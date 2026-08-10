@@ -859,37 +859,35 @@ class DibujosFundicionPdfController extends Controller
 
             $dstFilesRel = $dstFilesFull->map(fn($f) => str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f)))->toArray();
 
-            // Sincronizar: eliminar dibujos en Almacén que ya no existen en Ingeniería (solo al reiniciar)
-            if ($resetFlags) {
-                foreach ($dstFilesRel as $dfRel) {
-                    // Normalizar: si el destino tiene /Dibujos/ en la ruta, comparar sin él
-                    $dfRelNorm = preg_replace('#/Dibujos/#', '/', $dfRel);
+            // Sincronizar: eliminar dibujos en Almacén y Calidad que ya no existen en Ingeniería
+            foreach ($dstFilesRel as $dfRel) {
+                // Normalizar: si el destino tiene /Dibujos/ en la ruta, comparar sin él
+                $dfRelNorm = preg_replace('#/Dibujos/#', '/', $dfRel);
 
-                    // Si la clase tiene cambios pendientes, NO ELIMINAR sus archivos viejos en Almacen
-                    $parts = explode('/', $dfRelNorm, 2);
-                    $claseDel = count($parts) === 2 ? $parts[0] : '';
-                    
-                    if (is_array($onlyClasses) && count($onlyClasses) > 0) {
-                        $claseMatch = false;
-                        foreach ($onlyClasses as $oc) {
-                            if (strtolower(trim($claseDel)) === strtolower(trim($oc))) {
-                                $claseMatch = true;
-                                break;
-                            }
+                // Si la clase tiene cambios pendientes, NO ELIMINAR sus archivos viejos en Almacen
+                $parts = explode('/', $dfRelNorm, 2);
+                $claseDel = count($parts) === 2 ? $parts[0] : '';
+                
+                if (is_array($onlyClasses) && count($onlyClasses) > 0) {
+                    $claseMatch = false;
+                    foreach ($onlyClasses as $oc) {
+                        if (strtolower(trim($claseDel)) === strtolower(trim($oc))) {
+                            $claseMatch = true;
+                            break;
                         }
-                        if (!$claseMatch) continue;
                     }
+                    if (!$claseMatch) continue;
+                }
 
-                    if (in_array($claseDel, $pendingChanges)) {
-                        continue;
-                    }
+                if (in_array($claseDel, $pendingChanges)) {
+                    continue;
+                }
 
-                    $srcFilesRelNorm = array_map(fn($r) => preg_replace('#/Dibujos/#', '/', $r), $srcFilesRel);
-                    if (!in_array($dfRelNorm, $srcFilesRelNorm)) {
-                        Storage::disk('local')->delete($dstDir . '/' . $dfRel);
-                        $calidadDir = self::CALIDAD_DIR . '/' . $otName;
-                        Storage::disk('local')->delete($calidadDir . '/' . $dfRel);
-                    }
+                $srcFilesRelNorm = array_map(fn($r) => preg_replace('#/Dibujos/#', '/', $r), $srcFilesRel);
+                if (!in_array($dfRelNorm, $srcFilesRelNorm)) {
+                    Storage::disk('local')->delete($dstDir . '/' . $dfRel);
+                    $calidadDir = self::CALIDAD_DIR . '/' . $otName;
+                    Storage::disk('local')->delete($calidadDir . '/' . $dfRel);
                 }
             }
 
@@ -1141,6 +1139,7 @@ class DibujosFundicionPdfController extends Controller
         $calidadDir = 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otName;
         if (Storage::disk('local')->exists($dstDir)) {
             $allAlmacenFiles = Storage::disk('local')->allFiles($dstDir);
+            $almacenRelPaths = [];
             foreach ($allAlmacenFiles as $srcFile) {
                 $relPath = ltrim(substr(str_replace('\\', '/', $srcFile), strlen(str_replace('\\', '/', $dstDir))), '/');
 
@@ -1154,6 +1153,8 @@ class DibujosFundicionPdfController extends Controller
                     continue;
                 }
 
+                $almacenRelPaths[] = $relPath;
+
                 $targetPath = $calidadDir . '/' . $relPath;
                 $targetDirPath = dirname($targetPath);
 
@@ -1166,6 +1167,26 @@ class DibujosFundicionPdfController extends Controller
                     Storage::disk('local')->delete($targetPath);
                 }
                 Storage::disk('local')->copy($srcFile, $targetPath);
+            }
+
+            // Eliminar archivos huérfanos en Calidad (dibujos y ayudas visuales) que ya no están en Almacén
+            if (Storage::disk('local')->exists($calidadDir)) {
+                $allCalidadFiles = Storage::disk('local')->allFiles($calidadDir);
+                foreach ($allCalidadFiles as $cFile) {
+                    $cRel = ltrim(substr(str_replace('\\', '/', $cFile), strlen(str_replace('\\', '/', $calidadDir))), '/');
+                    if (
+                        str_starts_with($cRel, 'Documentos_Aprobados/') ||
+                        str_starts_with($cRel, 'Documentos_Rechazados/') ||
+                        str_starts_with($cRel, 'ayudas_visuales/preordenes/') ||
+                        str_starts_with($cRel, 'preordenes/')
+                    ) {
+                        continue;
+                    }
+
+                    if (!in_array($cRel, $almacenRelPaths)) {
+                        Storage::disk('local')->delete($cFile);
+                    }
+                }
             }
         }
     }

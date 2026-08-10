@@ -275,9 +275,11 @@ class AlmacenFundicionController extends Controller
                     // Legacy: dibujos en raíz de carpeta de clase
                     $legacyDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDir);
 
-                    foreach ([$newDibjPath, $legacyDibjPath] as $scanDibjDir) {
-                        if (!Storage::disk('local')->exists($scanDibjDir))
-                            continue;
+                    $scanDibjDir = Storage::disk('local')->exists($newDibjPath)
+                        ? $newDibjPath
+                        : (Storage::disk('local')->exists($legacyDibjPath) ? $legacyDibjPath : null);
+
+                    if ($scanDibjDir) {
                         $relatedDibujos = collect(Storage::disk('local')->files($scanDibjDir))
                             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
                             ->map(function ($f) use ($relatedOt, $relFolder, $claseDir) {
@@ -691,6 +693,7 @@ class AlmacenFundicionController extends Controller
         $files = Storage::disk('local')->allFiles($baseDir);
         $foundFile = null;
         $archivoNorm = Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), Normalizer::FORM_C);
+        $archivoBaseLower = mb_strtolower(basename($archivo), 'UTF-8');
 
         foreach ($files as $f) {
             $fNorm = str_replace('\\', '/', $f);
@@ -700,7 +703,7 @@ class AlmacenFundicionController extends Controller
             $utf8RelName = $this->toUtf8($relName);
             $utf8RelNameNorm = Normalizer::normalize(mb_strtolower($utf8RelName, 'UTF-8'), Normalizer::FORM_C);
 
-            if ($utf8RelNameNorm === $archivoNorm) {
+            if ($utf8RelNameNorm === $archivoNorm || mb_strtolower(basename($f), 'UTF-8') === $archivoBaseLower) {
                 if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0)
                     continue;
 
@@ -709,7 +712,7 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        // FALLBACK ampliado: buscar en todas las carpetas relacionadas de la OT (base + reprocesos)
+        // FALLBACK ampliado: buscar en todas las carpetas relacionadas de la OT (base + reprocesos + public/liberaciones_pdf)
         if (!$foundFile) {
             $baseOtRaw = preg_replace('/_R\d+$/', '', $ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
@@ -722,6 +725,7 @@ class AlmacenFundicionController extends Controller
                 self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales',
                 self::CALIDAD_DIR . '/' . $baseFolder . '/ayudas_visuales',
                 self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales',
+                'public/liberaciones_pdf',
             ];
             foreach ($possibleDirs as $possibleDir) {
                 $resolvedPossibleDir = $this->resolveCaseInsensitivePath($possibleDir);
@@ -739,7 +743,7 @@ class AlmacenFundicionController extends Controller
                     $utf8RelName = $this->toUtf8($relName);
                     $utf8RelNameNorm = Normalizer::normalize(mb_strtolower($utf8RelName, 'UTF-8'), Normalizer::FORM_C);
 
-                    if ($utf8RelNameNorm === $archivoNorm) {
+                    if ($utf8RelNameNorm === $archivoNorm || mb_strtolower(basename($f), 'UTF-8') === $archivoBaseLower) {
                         $foundFile = $f;
                         break 2;
                     }
@@ -1453,11 +1457,27 @@ class AlmacenFundicionController extends Controller
                 Storage::disk('local')->makeDirectory($destDir);
             }
 
+            $clasesInvolucradas = [];
+            if (is_array($clasesSeleccionadas)) {
+                foreach ($clasesSeleccionadas as $cs) {
+                    $cRaw = trim($cs);
+                    $cClean = trim(preg_replace('/^modelo\s+/i', '', $cRaw));
+                    $cVal = ucfirst($cClean);
+                    if (!empty($cVal)) {
+                        $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
+                    }
+                }
+            }
+            $clasesInvolucradas = array_values(array_unique(array_filter($clasesInvolucradas)));
+            $clasesTag = count($clasesInvolucradas) > 0 ? implode('-', $clasesInvolucradas) : 'Modelo';
+
+            $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
+            $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+            $fechaStamp = date('d_m_Y_H_i');
+
             foreach ($request->file('archivos') as $file) {
                 $ext = $file->getClientOriginalExtension();
-                $safeName = preg_replace('/[^A-Za-z0-9_\-.]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
-                $stamp = date('d_m_Y_H_i_s');
-                $fileName = "ConfirmacionModelo{$clasesSuffix}_{$safeName}_{$stamp}.{$ext}";
+                $fileName = "F_ALM_CFM_{$clasesTag}.{$ext}";
                 Storage::disk('local')->put($destDir . '/' . $fileName, file_get_contents($file->getRealPath()));
 
                 $attachments[] = [
@@ -2214,17 +2234,27 @@ class AlmacenFundicionController extends Controller
             'user' => $user
         ])->setPaper('a4', 'landscape');
 
-        // 4. Definir nombre del archivo y ruta de guardado
-        $folio = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['folio']);
-        $moldura = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['moldura'] ?? '');
-        $proveedor = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['proveedor']);
+        // 4. Definir nombre del archivo y ruta de guardado conforme al formato PreOrden_FDM_[Clases]_[OT]_[Fecha].pdf
+        $clasesInvolucradas = [];
+        $filasLista = $filasFiltradas ?? ($data['filas'] ?? []);
+        if (!empty($filasLista)) {
+            foreach ($filasLista as $f) {
+                $cRaw = trim($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
+                $cClean = trim(preg_replace('/^modelo\s+/i', '', $cRaw));
+                $cVal = ucfirst($cClean);
+                if (!empty($cVal)) {
+                    $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
+                }
+            }
+        }
+        $clasesInvolucradas = array_values(array_unique(array_filter($clasesInvolucradas)));
+        $clasesStr = count($clasesInvolucradas) > 0 ? implode('-', $clasesInvolucradas) : 'Modelo';
+
+        $otSanitizada = preg_replace('/[^\w\s\-]/', '', $otRaw);
+        $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
         $fechaStamp = date('d_m_Y_H_i');
 
-        // Extraer solo el número de OT para que el nombre del archivo no exceda el MAX_PATH de Windows (260 chars)
-        preg_match('/OT\s*(\d+)/i', $otRaw, $matches);
-        $otId = $matches[1] ?? (preg_replace('/[^0-9]/', '', $otRaw) ?: 'SN');
-
-        $fileName = "Pre-Orden_Fundicion-{$folio}_OT_{$otId}_{$fechaStamp}.pdf";
+        $fileName = "F_ALM_PFM_{$clasesStr}.pdf";
 
         $folderName = $this->sanitizePath($this->normalizeOTName($otRaw));
         $otPath = self::ALMACEN_DIR . '/' . $folderName . '/preordenes';
@@ -2233,18 +2263,17 @@ class AlmacenFundicionController extends Controller
         if (!Storage::disk('local')->exists($otPath)) {
             Storage::disk('local')->makeDirectory($otPath);
         } else {
-            // Delete old PDF file using database reference if exists
-            if ($preOrdenDB && $preOrdenDB->pdf_filename) {
+            // Eliminar versión borrador anterior activa (no archivada como _Anterior_N)
+            if ($preOrdenDB && $preOrdenDB->pdf_filename && !str_contains($preOrdenDB->pdf_filename, '_Anterior_N')) {
                 $oldPath = $otPath . '/' . $preOrdenDB->pdf_filename;
                 if (Storage::disk('local')->exists($oldPath)) {
                     Storage::disk('local')->delete($oldPath);
                 }
             }
-            // Also scan and clean up any other files starting with 'PreOrden_' or 'Pre-Orden_' in this folder
             $existingFiles = Storage::disk('local')->files($otPath);
             foreach ($existingFiles as $file) {
                 $base = basename($file);
-                if (str_starts_with($base, 'PreOrden_') || str_starts_with($base, 'Pre-Orden_')) {
+                if ((str_starts_with($base, 'PreOrden_') || str_starts_with($base, 'Pre-Orden_')) && !str_contains($base, '_Anterior_N')) {
                     Storage::disk('local')->delete($file);
                 }
             }
@@ -2253,10 +2282,14 @@ class AlmacenFundicionController extends Controller
         // 5. Guardar PDF físicamente en servidor
         Storage::disk('local')->put($savePath, $pdf->output());
 
-        // 6. Guardar / actualizar registro en base de datos (upsert por OT)
-        PreOrdenFundicion::updateOrCreate(
-            ['ot' => $otRaw],
-            [
+        // 6. Guardar / actualizar registro en base de datos (evitando sobreescribir _Anterior_N)
+        $activePo = PreOrdenFundicion::where('ot', '=', $otRaw)
+            ->where('pdf_filename', 'NOT LIKE', '%_Anterior_N%')
+            ->where('pdf_filename', 'NOT LIKE', '%Casting%')
+            ->first();
+
+        if ($activePo) {
+            $activePo->update([
                 'folio' => $data['folio'],
                 'proveedor' => $data['proveedor'],
                 'fecha_creacion' => $data['fecha_creacion'],
@@ -2264,11 +2297,26 @@ class AlmacenFundicionController extends Controller
                 'observaciones' => $data['observaciones'] ?? null,
                 'filas' => $data['filas'],
                 'pdf_filename' => $fileName,
-                'version' => DB::raw('version + 1'),
+                'is_sent' => false,
                 'user_id' => $user ? $user->id : null,
                 'user_nombre' => $user ? $user->name : null,
-            ]
-        );
+            ]);
+        } else {
+            PreOrdenFundicion::create([
+                'ot' => $otRaw,
+                'folio' => $data['folio'],
+                'proveedor' => $data['proveedor'],
+                'fecha_creacion' => $data['fecha_creacion'],
+                'moldura' => $data['moldura'] ?? null,
+                'observaciones' => $data['observaciones'] ?? null,
+                'filas' => $data['filas'],
+                'pdf_filename' => $fileName,
+                'is_sent' => false,
+                'version' => 1,
+                'user_id' => $user ? $user->id : null,
+                'user_nombre' => $user ? $user->name : null,
+            ]);
+        }
 
         // 7. Actualizar flag de pre_orden_sent en historial de Fundicion
         //    y marcar como pendiente de revision por Calidad
@@ -2355,12 +2403,20 @@ class AlmacenFundicionController extends Controller
             'user' => $user
         ])->setPaper('a4', 'landscape');
 
-        $folio = preg_replace('/[^A-Za-z0-9\-]/', '_', $p1Data['folio']);
-        $fechaStamp = date('d_m_Y_H_i');
-        preg_match('/OT\s*(\d+)/i', $otRaw, $matches);
-        $otId = $matches[1] ?? (preg_replace('/[^0-9]/', '', $otRaw) ?: 'SN');
+        $clasesInvolucradas = [];
+        $todasFilas = array_merge($p1Data['filas'] ?? [], $hasPage2 ? ($p2Data['filas'] ?? []) : []);
+        foreach ($todasFilas as $f) {
+            $cRaw = trim($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
+            $cClean = trim(preg_replace('/^modelo\s+/i', '', $cRaw));
+            $cVal = ucfirst($cClean);
+            if (!empty($cVal)) {
+                $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
+            }
+        }
+        $clasesInvolucradas = array_values(array_unique(array_filter($clasesInvolucradas)));
+        $clasesStr = count($clasesInvolucradas) > 0 ? implode('-', $clasesInvolucradas) : 'Casting';
 
-        $fileName = "Pre-Orden_Casting-{$folio}_OT_{$otId}_{$fechaStamp}.pdf";
+        $fileName = "F_ALM_PFC_{$clasesStr}.pdf";
         $folderName = $this->sanitizePath($this->normalizeOTName($otRaw));
         $otPath = self::ALMACEN_DIR . '/' . $folderName . '/preordenes';
         $savePath = $otPath . '/' . $fileName;
@@ -2852,8 +2908,12 @@ class AlmacenFundicionController extends Controller
                     }
                 }
             }
-            $clasesNombres = array_unique($clasesNombres);
-            $clasesSuffixStr = count($clasesNombres) > 0 ? '_' . implode('_', $clasesNombres) : '';
+            $clasesNombres = array_values(array_unique(array_filter($clasesNombres)));
+            $clasesStr = count($clasesNombres) > 0 ? implode('-', $clasesNombres) : 'Modelo';
+
+            $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
+            $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+            $fechaStamp = date('d_m_Y_H_i');
 
             if (!Storage::disk('local')->exists($destDir)) {
                 Storage::disk('local')->makeDirectory($destDir);
@@ -2861,8 +2921,7 @@ class AlmacenFundicionController extends Controller
 
             foreach ($filesArray as $file) {
                 $ext = $file->getClientOriginalExtension();
-                $safeName = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
-                $name = 'Escaneado_Fundicion' . $clasesSuffixStr . '-' . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
+                $name = "F_ALM_EFM_{$clasesStr}." . ($ext ?: 'pdf');
                 $savedPath = $file->storeAs($destDir, $name, 'local');
                 $attachments[] = [
                     'path' => storage_path('app/' . $savedPath),
@@ -3054,7 +3113,7 @@ class AlmacenFundicionController extends Controller
                 // Crear o actualizar registro de liberacion con origen pre_orden para cada clase confirmada enviada
                 if (!empty($po->filas)) {
                     foreach ($po->filas as $fila) {
-                        $claseNombre = $fila['clase'] ?? $fila['clase_nombre'] ?? '';
+                        $claseNombre = $fila['clase'] ?? $fila['clase_nombre'] ?? $fila['tipo_modelo'] ?? $fila['nombre'] ?? '';
                         $clLow = strtolower($claseNombre);
                         $tipo = null;
                         if (strpos($clLow, 'candado obturador') !== false)
@@ -3286,7 +3345,8 @@ class AlmacenFundicionController extends Controller
                 $originalName = $file->getClientOriginalName();
                 $ext = pathinfo($originalName, PATHINFO_EXTENSION);
 
-                $filename = "F-CCL-LDM_{$clase}_{$folderName}_APROBADO.{$ext}";
+                $claseClean = ucfirst(trim(preg_replace('/^modelo\s+/i', '', $clase)));
+                $filename = "F_CCL_LDM_{$claseClean}.{$ext}";
                 $file->storeAs($otPath, $filename, 'local');
                 $filesSaved++;
             }
@@ -3355,12 +3415,14 @@ class AlmacenFundicionController extends Controller
             $originalName = $file->getClientOriginalName();
             $ext = pathinfo($originalName, PATHINFO_EXTENSION);
             if (str_starts_with($key, 'rechazo_')) {
-                $clase = strtoupper(str_replace('rechazo_', '', $key));
-                $filename = "Rechazo_{$clase}_{$folderNameOriginal}.{$ext}";
+                $claseRaw = str_replace('rechazo_', '', $key);
+                $cClean = ucfirst(trim(preg_replace('/^modelo\s+/i', '', $claseRaw)));
+                $filename = "F_CCL_RDM_{$cClean}.{$ext}";
                 $file->storeAs($docRechazadosPathOriginal . '/' . FundicionPaths::FDRDM_SUBFOLDER, $filename, 'local');
             } elseif (str_starts_with($key, 'scar_')) {
-                $clase = strtoupper(str_replace('scar_', '', $key));
-                $filename = "SCAR_{$clase}_{$folderNameOriginal}.{$ext}";
+                $claseRaw = str_replace('scar_', '', $key);
+                $cClean = ucfirst(trim(preg_replace('/^modelo\s+/i', '', $claseRaw)));
+                $filename = "F_CCL_SCAR_{$cClean}.{$ext}";
                 $file->storeAs($docRechazadosPathOriginal . '/' . FundicionPaths::SCAR_SUBFOLDER, $filename, 'local');
             }
         }
@@ -3437,11 +3499,22 @@ class AlmacenFundicionController extends Controller
                     'user' => Auth::user()
                 ])->setPaper('a4', 'landscape');
 
-                $folio = preg_replace('/[^A-Za-z0-9\-]/', '_', $newPoData['folio']);
+                $clasesInvolucradas = [];
+                if (!empty($newFilas)) {
+                    foreach ($newFilas as $f) {
+                        $cVal = ucfirst(trim($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? ''));
+                        if (!empty($cVal)) {
+                            $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
+                        }
+                    }
+                }
+                $clasesInvolucradas = array_values(array_unique(array_filter($clasesInvolucradas)));
+                $clasesStr = count($clasesInvolucradas) > 0 ? implode('-', $clasesInvolucradas) : 'Modelo';
+
+                $otSanitizadaNew = preg_replace('/[^\w\s\-]/', '', $newOt);
+                $otSanitizadaNew = preg_replace('/[\s]+/', '_', trim($otSanitizadaNew));
                 $fechaStamp = date('d_m_Y_H_i');
-                preg_match('/OT\s*(\d+)/i', $newOt, $matches);
-                $otId = $matches[1] ?? (preg_replace('/[^0-9]/', '', $newOt) ?: 'SN');
-                $fileName = "Pre-Orden_Fundicion-{$folio}_OT_{$otId}_{$fechaStamp}.pdf";
+                $fileName = "F_ALM_PFM_{$clasesStr}.pdf";
 
                 $folderNameNew = $this->sanitizePath($this->normalizeOTName($newOt));
                 $otPathNew = self::ALMACEN_DIR . '/' . $folderNameNew . '/Documentos_Aprobados/preordenes';
@@ -3801,7 +3874,19 @@ class AlmacenFundicionController extends Controller
 
         if ($action === 'reiniciar_completo' || ($action === 'reiniciar' && $esTotal)) {
             // Reiniciar proceso completo de TODA la OT
+            // Eliminar todas las pre-órdenes y liberaciones de calidad de la OT
+            PreOrdenFundicion::where('ot', '=', $ot, 'and')->delete();
+            LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->delete();
+            ScarModelo::where('ot', '=', $ot, 'and')->delete();
+
+            // Resetear TODOS los flags de estado para que los controles se reactiven completamente
             $history->pending_almacen_changes = null;
+            $history->tiene_modelo            = 0;
+            $history->pre_orden_sent          = 0;
+            $history->pre_orden_email_sent    = 0;
+            $history->calidad_revision_status = null;
+            $history->rechazos_procesados     = 0;
+            $history->clases_enviadas         = [];
             $history->save();
 
             \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, true);
@@ -3876,12 +3961,15 @@ class AlmacenFundicionController extends Controller
                             }
                         }
                         // Borrar archivos (en cualquier profundidad) que contengan el nombre de la clase
-                        // Usamos allFiles() para cubrir subcarpetas FDRDM/, SCAR/, etc.
+                        // Usamos allFiles() para cubrir subcarpetas FDRDM/, SCAR/, etc. (sin tocar confirmaciones ni escaneados que se renombrarán)
                         foreach (['/Documentos_Rechazados', '/Documentos_Aprobados', '/ayudas_visuales/preordenes/documentos_aprobados'] as $sub) {
                             $targetSub = $r . $sub;
                             if (Storage::disk('local')->exists($targetSub)) {
                                 foreach (Storage::disk('local')->allFiles($targetSub) as $f) {
-                                    if (str_contains(strtolower(basename($f)), $claseNorm)) {
+                                    $fBaseLow = strtolower(basename($f));
+                                    if (str_contains($fBaseLow, '_anterior_n')) continue;
+                                    if (str_contains($fBaseLow, 'confirmacion') || str_contains($fBaseLow, 'escaneado')) continue;
+                                    if (str_contains($fBaseLow, $claseNorm)) {
                                         Storage::disk('local')->delete($f);
                                     }
                                 }
@@ -3891,59 +3979,84 @@ class AlmacenFundicionController extends Controller
                 }
             }
 
-            // 3.5. Limpiar Pre-órdenes asociadas a esta(s) clase(s)
-            $preOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')->get();
-            foreach ($preOrdenes as $po) {
-                $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                if (!is_array($filas)) continue;
+            // 3.5. Renombrar Pre-órdenes (PFM y PFC) asociadas a esta(s) clase(s) como Anterior_N (sin eliminar)
+            $otFolder = $this->sanitizePath($this->normalizeOTName($ot));
+            $baseRoots = [
+                self::ALMACEN_DIR,
+                'DOCUMENTACION_GIS/ALMACEN_FUNDICION',
+                'DOCUMENTACION_GIS/CALIDAD_FUNDICION',
+                'DOCUMENTACION_GIS/Fundicion_Calidad',
+            ];
 
-                $poClasses = array_map(function($f) {
-                    return strtolower($f['clase'] ?? $f['clase_nombre'] ?? '');
-                }, $filas);
+            foreach ($pending as $pClase) {
+                $pClean = ucfirst(trim(preg_replace('/^modelo\s+/i', '', $pClase)));
+                $pNorm  = strtolower($pClean);
 
-                // Check if all classes in the pre-order are in $pending
-                $allInPending = true;
-                foreach ($poClasses as $poc) {
-                    if (empty($poc)) continue;
-                    $isInPending = false;
-                    foreach ($pending as $p) {
-                        if (strtolower(trim($p)) === $poc) {
-                            $isInPending = true;
-                            break;
-                        }
-                    }
-                    if (!$isInPending) {
-                        $allInPending = false;
-                        break;
-                    }
-                }
+                foreach ($baseRoots as $br) {
+                    $subDirs = [
+                        $br . '/' . $otFolder . '/preordenes',
+                        $br . '/' . $otFolder . '/Documentos_Aprobados/preordenes',
+                        $br . '/' . $otFolder . '/ayudas_visuales/preordenes/documentos_aprobados',
+                    ];
 
-                if ($allInPending && count($poClasses) > 0) {
-                    $poFilename = $po->pdf_filename;
-                    $po->delete();
+                    foreach ($subDirs as $sd) {
+                        if (!Storage::disk('local')->exists($sd)) continue;
 
-                    if ($poFilename) {
-                        $baseRoots = [
-                            self::ALMACEN_DIR,
-                            'DOCUMENTACION_GIS/ALMACEN_FUNDICION',
-                            'DOCUMENTACION_GIS/CALIDAD_FUNDICION',
-                            'DOCUMENTACION_GIS/Fundicion_Calidad',
-                        ];
-                        $otFolder = $this->sanitizePath($this->normalizeOTName($ot));
-                        foreach ($baseRoots as $br) {
-                            $poPath1 = $br . '/' . $otFolder . '/Documentos_Aprobados/preordenes/' . $poFilename;
-                            $poPath2 = $br . '/' . $otFolder . '/ayudas_visuales/preordenes/documentos_aprobados/' . $poFilename;
-                            if (Storage::disk('local')->exists($poPath1)) Storage::disk('local')->delete($poPath1);
-                            if (Storage::disk('local')->exists($poPath2)) Storage::disk('local')->delete($poPath2);
+                        $filesInSd = Storage::disk('local')->files($sd);
+                        foreach ($filesInSd as $filePath) {
+                            $fileBase = basename($filePath);
+                            if (str_contains($fileBase, '_Anterior_N')) continue;
 
-                            // Eliminar versiones escaneadas
-                            $scanPath = $br . '/' . $otFolder . '/Documentos_Aprobados/preordenes/' . FundicionPaths::ESCANEADOS;
-                            if (Storage::disk('local')->exists($scanPath)) {
-                                foreach (Storage::disk('local')->files($scanPath) as $scanFile) {
-                                    if (str_contains(basename($scanFile), $poFilename) || str_contains(basename($scanFile), pathinfo($poFilename, PATHINFO_FILENAME))) {
-                                        Storage::disk('local')->delete($scanFile);
+                            $fileBaseLow = strtolower($fileBase);
+                            $isPFM = (str_contains($fileBaseLow, 'pfm') || str_contains($fileBaseLow, 'preorden') || str_contains($fileBaseLow, 'pre-orden'));
+                            $isPFC = (str_contains($fileBaseLow, 'pfc') || str_contains($fileBaseLow, 'casting'));
+
+                            if (!$isPFM && !$isPFC) continue;
+
+                            // Verificar si el archivo pertenece a la clase reiniciada (por nombre o por filas de la preorden)
+                            $belongsToClass = (str_contains($fileBaseLow, $pNorm) || str_contains($fileBaseLow, strtolower($pClase)));
+                            if (!$belongsToClass) {
+                                $dbPo = PreOrdenFundicion::where('ot', $ot)->where('pdf_filename', $fileBase)->first();
+                                if ($dbPo && !empty($dbPo->filas)) {
+                                    $poFilas = is_string($dbPo->filas) ? json_decode($dbPo->filas, true) : $dbPo->filas;
+                                    if (is_array($poFilas)) {
+                                        foreach ($poFilas as $f) {
+                                            $cRaw = strtolower(trim($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? ''));
+                                            if (str_contains($cRaw, $pNorm) || str_contains($pNorm, $cRaw)) {
+                                                $belongsToClass = true;
+                                                break;
+                                            }
+                                        }
                                     }
                                 }
+                            }
+
+                            if ($belongsToClass) {
+                                $ext = pathinfo($fileBase, PATHINFO_EXTENSION);
+                                $baseNoExt = pathinfo($fileBase, PATHINFO_FILENAME);
+
+                                $nextN = 1;
+                                foreach ($filesInSd as $checkFile) {
+                                    $checkBase = basename($checkFile);
+                                    if (str_contains($checkBase, "{$baseNoExt}_Anterior_N") || str_contains($checkBase, "_Anterior_N")) {
+                                        if (preg_match('/_Anterior_N(\d+)\./i', $checkBase, $nMatch)) {
+                                            $valN = (int) $nMatch[1];
+                                            if ($valN >= $nextN) {
+                                                $nextN = $valN + 1;
+                                            }
+                                        }
+                                    }
+                                }
+
+                                $newArchivedName = "{$baseNoExt}_Anterior_N{$nextN}." . ($ext ?: 'pdf');
+                                $newArchivedPath = $sd . '/' . $newArchivedName;
+
+                                Storage::disk('local')->move($filePath, $newArchivedPath);
+
+                                // Actualizar registro en BD si coincide con pdf_filename
+                                PreOrdenFundicion::where('ot', $ot)
+                                    ->where('pdf_filename', $fileBase)
+                                    ->update(['pdf_filename' => $newArchivedName, 'is_sent' => 1]);
                             }
                         }
                     }
@@ -4048,6 +4161,37 @@ class AlmacenFundicionController extends Controller
                 }
             }
             $history->clases_enviadas = $enviadas;
+
+            // ── Resetear flags de BD según el estado residual de la OT ─────────────
+            // Tras el reinicio parcial ya se borraron las liberaciones y pre-órdenes
+            // de las clases afectadas. Ahora revisamos si aún quedan avances en el
+            // resto de las clases para decidir qué flags deben limpiarse.
+
+            $pendingLower = array_map('strtolower', $pending);
+            $placeholders = implode(',', array_fill(0, count($pendingLower), '?'));
+            $quedanLiberaciones = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')
+                ->whereRaw("LOWER(tipo_modelo) NOT IN ({$placeholders})", $pendingLower)
+                ->exists();
+
+            $quedanPreOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')->exists();
+
+            if (!$quedanLiberaciones && !$quedanPreOrdenes) {
+                // Ninguna clase conserva avance: resetear todos los flags de estado
+                $history->tiene_modelo            = 0;
+                $history->pre_orden_sent          = 0;
+                $history->pre_orden_email_sent    = 0;
+                $history->calidad_revision_status = null;
+                $history->rechazos_procesados     = 0;
+            } elseif (!$quedanPreOrdenes) {
+                // Pre-órdenes eliminadas pero aún hay liberaciones de otras clases:
+                // solo limpiar los flags de pre-orden para que el botón reaparezca.
+                $history->pre_orden_sent       = 0;
+                $history->pre_orden_email_sent = 0;
+            }
+            // Si aún quedan liberaciones Y pre-órdenes de otras clases, no tocamos
+            // los flags globales para no romper el flujo de las clases no reiniciadas.
+            // ─────────────────────────────────────────────────────────────────────
+
             $history->save();
 
             // 4.5. Borrar carpetas de Dibujos y Ayudas_Visuales de las clases afectadas en Almacén

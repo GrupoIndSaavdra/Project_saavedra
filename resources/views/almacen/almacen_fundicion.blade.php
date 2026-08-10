@@ -1162,13 +1162,18 @@
                                                         strpos($baseLow, 'pre-orden') !== false ||
                                                         strpos($baseLow, 'preorden') !== false ||
                                                         strpos($baseLow, 'confirmacion') !== false ||
-                                                        strpos($baseLow, 'escaneado_fundicion') !== false ||
+                                                        strpos($baseLow, 'escaneado') !== false ||
+                                                        strpos($baseLow, 'pfm') !== false ||
+                                                        strpos($baseLow, 'cfm') !== false ||
+                                                        strpos($baseLow, 'efm') !== false ||
+                                                        strpos($baseLow, 'pfc') !== false ||
                                                         strpos($nameLow, 'preordenes/') !== false
                                                     ) {
                                                         $almacenPreordenes[] = $archivo;
                                                     } elseif (
                                                         strpos($nameLow, 'documentos_rechazados') !== false ||
                                                         strpos($baseLow, 'rechazado') !== false ||
+                                                        strpos($baseLow, 'rdm') !== false ||
                                                         strpos($baseLow, 'scar') !== false
                                                     ) {
                                                         $archivosRechazados[] = $archivo;
@@ -1303,7 +1308,9 @@
                                                      $rArchivo['ot']   = $rArchivo['ot'] ?? $reg->ot;
                                                      $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
 
-                                                     if (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
+                                                     if (strpos($nameLow, 'scar') !== false || strpos($nameLow, 'f_ccl_scar') !== false || strpos($nameLow, 'f_ccl_rdm') !== false || strpos($nameLow, 'foto') !== false) {
+                                                          $rechazadosOtros[] = $rArchivo;
+                                                      } elseif (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
                                                          if ($rArchivo['tipo'] === 'otro') $rArchivo['tipo'] = 'ayuda';
                                                          $rechazadosAyudas[] = $rArchivo;
                                                      } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
@@ -1611,7 +1618,7 @@
                                                             $almacenPreordenesFab = array_values(array_filter($almacenPreordenes, function($doc) use ($clasesFabricacion) {
                                                                 $nameLow = strtolower(basename($doc['nombre']));
                                                                 if (empty($clasesFabricacion)) return true;
-                                                                if (strpos($nameLow, 'pre-orden') !== false && strpos($nameLow, 'casting') === false) return true;
+                                                                if ((str_contains($nameLow, 'preorden') || str_contains($nameLow, 'pre-orden')) && !str_contains($nameLow, 'casting')) return true;
                                                                 foreach ($clasesFabricacion as $cf) {
                                                                     if ($cf !== '' && strpos($nameLow, $cf) !== false) return true;
                                                                 }
@@ -1670,7 +1677,12 @@
                                                                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #9c0300; font-weight: 700;">Ayudas Visuales de Fundición (Modelo)</h4>
                                                                         <div class="alm-pdf-grid" style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($ayudasModelo as $archivoInfo)
-                                                                                @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
+                                                                                @php
+                                                                                    $ayudaUrl = route('ayudas_fundicion.serve', [
+                                                                                        'clase' => $archivoInfo['clase'] ?? '',
+                                                                                        'archivo' => basename($archivoInfo['nombre'])
+                                                                                    ]);
+                                                                                @endphp
                                                                                 <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                                                                         <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
@@ -1739,32 +1751,55 @@
                                                                             $esReinicioParcial = $isCalidadAlerted && count($clasesFabricacion) > 0 && !$esReproceso;
 
                                                                             if ($esReinicioParcial) {
-                                                                                // Usar solo las clases pendientes de re-proceso como "activas" para el control
-                                                                                $otClasesActivas = $clasesFabricacion;
+                                                                                $otClasesActivas = array_map('strtolower', $clasesFabricacion);
                                                                             } elseif ($esReproceso) {
                                                                                 $otClasesActivas = array_map('strtolower', $rechazadosClases);
                                                                             } else {
-                                                                                $otClasesActivas = is_array($reg->ayudas_config) ? array_map('strtolower', $reg->ayudas_config) : [];
+                                                                                $otClasesActivas = !empty($clasesFabricacion)
+                                                                                    ? array_map('strtolower', $clasesFabricacion)
+                                                                                    : (is_array($reg->ayudas_config) ? array_map('strtolower', $reg->ayudas_config) : []);
                                                                             }
                                                                             // ────────────────────────────────────────────────────────────────────────────
 
-                                                                            $tienePreOrden = (bool)($targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent);
+                                                                            // Evaluar si existen pre-órdenes vigentes ESPECÍFICAMENTE para las clases en fabricación (ignorando las archivadas _Anterior_N)
+                                                                            $preOrdenesFabExistentes = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->get()->filter(function($po) use ($clasesFabricacion) {
+                                                                                if ($po->pdf_filename && str_contains($po->pdf_filename, '_Anterior_N')) return false;
+                                                                                $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+                                                                                if (!is_array($filas)) return false;
+                                                                                foreach ($filas as $f) {
+                                                                                     $c = strtolower($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
+                                                                                     foreach ($clasesFabricacion as $cf) {
+                                                                                         if ($c !== '' && ($c === strtolower($cf) || strpos($c, strtolower($cf)) !== false || strpos(strtolower($cf), $c) !== false)) return true;
+                                                                                     }
+                                                                                }
+                                                                                return false;
+                                                                            });
 
-                                                                            $controlDisabled = '';
-                                                                            $hideControlCard = (count($clasesFabricacion) === 0) ? 'display: none;' : '';
-                                                                            // En reinicio parcial: mostrar ambos botones (modelo + pre-orden) igual que el primer ciclo
-                                                                            $hideTengoModelo = ($esReproceso && !$esReinicioParcial) ? 'display: none;' : '';
-                                                                            $hideGenerarFormato = (($esReproceso && !$esReinicioParcial) || $tienePreOrden) ? 'display: none;' : '';
-                                                                            $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrden && !$esReinicioParcial) ? '' : 'display: none;';
-                                                                            $hideEditPreOrden = $tienePreOrden ? '' : 'display: none;';
+                                                                            $tieneFisicoFab = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
+                                                                                ->where('tipo_origen', 'con_modelo')
+                                                                                ->get()
+                                                                                ->filter(function($lib) use ($clasesFabricacion) {
+                                                                                    $tm = strtolower($lib->tipo_modelo ?? '');
+                                                                                    foreach ($clasesFabricacion as $cf) {
+                                                                                        if ($tm !== '' && ($tm === strtolower($cf) || strpos($tm, strtolower($cf)) !== false || strpos(strtolower($cf), $tm) !== false)) return true;
+                                                                                    }
+                                                                                    return false;
+                                                                                })->count() > 0;
 
+                                                                            $tienePreOrdenFab = $preOrdenesFabExistentes->count() > 0;
+                                                                            $poPendienteEnvioFab = $preOrdenesFabExistentes->where('is_sent', 0)->first();
+
+                                                                            $tienePreOrden = $tienePreOrdenFab || $tieneFisicoFab;
+
+                                                                            $clasesProcesadas = [];
                                                                             $preOrdenesEnviadas = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 1)->get();
                                                                             foreach ($preOrdenesEnviadas as $po) {
                                                                                 $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
                                                                                 if (is_array($filas)) {
                                                                                     foreach ($filas as $f) {
-                                                                                        if (!empty($f['clase'] ?? $f['clase_nombre'])) {
-                                                                                            $clasesProcesadas[] = strtolower($f['clase'] ?? $f['clase_nombre']);
+                                                                                        $cVal = strtolower($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
+                                                                                        if (!empty($cVal)) {
+                                                                                            $clasesProcesadas[] = $cVal;
                                                                                         }
                                                                                     }
                                                                                 }
@@ -1777,14 +1812,12 @@
                                                                                 ->pluck('tipo_modelo')->toArray();
                                                                             foreach ($liberacionesFisicas as $lf) {
                                                                                 if (!empty($lf)) {
-                                                                                    $clasesProcesadas[] = strtolower($lf);
+                                                                                    foreach (explode(',', $lf) as $c) {
+                                                                                        $clasesProcesadas[] = strtolower(trim($c));
+                                                                                    }
                                                                                 }
                                                                             }
-                                                                            $clasesProcesadas = array_filter(array_unique($clasesProcesadas), fn($v) => $v !== '');
-                                                                            // ── IMPORTANTE: Las clases reiniciadas ($clasesFabricacion) no deben contar como procesadas,
-                                                                            // aunque existan en pre-órdenes antiguas, porque necesitan un nuevo proceso.
-                                                                            $clasesProcesadas = array_diff($clasesProcesadas, array_map('strtolower', $clasesFabricacion));
-                                                                            $clasesProcesadas = array_values($clasesProcesadas);
+                                                                            $clasesProcesadas = array_values(array_unique(array_filter($clasesProcesadas, fn($v) => $v !== '')));
 
                                                                             $clasesActivasCubiertas = [];
                                                                             $clasesActivasFaltantes = [];
@@ -1807,7 +1840,13 @@
                                                                             $todasClasesProcesadas = count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
                                                                             $algunaClaseProcesada  = count($clasesActivasCubiertas) > 0;
 
-
+                                                                            $controlDisabled = '';
+                                                                            $hideControlCard = (count($clasesFabricacion) === 0) ? 'display: none;' : '';
+                                                                            // Mostrar los botones iniciales solo si faltan clases por procesar Y NO hay una pre-orden pendiente por enviar
+                                                                            $hideTengoModelo = (($esReproceso && !$esReinicioParcial) || $todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
+                                                                            $hideGenerarFormato = (($esReproceso && !$esReinicioParcial) || $todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
+                                                                            $hideReprocesoPreOrden = ($esReproceso && !$todasClasesProcesadas && !$esReinicioParcial && $poPendienteEnvioFab === null) ? '' : 'display: none;';
+                                                                            $hideEditPreOrden = ($tienePreOrdenFab && $poPendienteEnvioFab !== null) ? '' : 'display: none;';
 
                                                                             $clasesFisicamenteConfirmadas = [];
                                                                             $liberacionesFisicasObj = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
@@ -1844,11 +1883,16 @@
                                                                                 $filas = is_string($poPendienteEnvio->filas) ? json_decode($poPendienteEnvio->filas, true) : $poPendienteEnvio->filas;
                                                                                 if (is_array($filas)) {
                                                                                     foreach ($filas as $f) {
-                                                                                        if (!empty($f['clase'] ?? $f['clase_nombre'])) {
-                                                                                            $clasesParaEnvio[] = strtolower($f['clase'] ?? $f['clase_nombre']);
+                                                                                        $cVal = strtolower($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
+                                                                                        if (!empty($cVal)) {
+                                                                                            $clasesParaEnvio[] = $cVal;
                                                                                         }
                                                                                     }
                                                                                 }
+                                                                            }
+
+                                                                            if ($tieneFisicoFab && empty($clasesParaEnvio)) {
+                                                                                $clasesParaEnvio = array_values(array_map('strtolower', $clasesFisicamenteConfirmadas));
                                                                             }
 
                                                                             $clasesYaProcesadasJson     = json_encode(array_values($clasesActivasCubiertas));
@@ -1858,10 +1902,11 @@
                                                                             $clasesFaltantesFisicoJson = json_encode(array_values($clasesFaltantesFisico));
                                                                             $clasesParaEnvioJson = json_encode(array_values(array_unique($clasesParaEnvio)));
 
-                                                                            $todasClasesEnviadas = $todasClasesProcesadas && !$poPendienteEnvio;
+                                                                            $todasClasesEnviadas = $todasClasesProcesadas && ($poPendienteEnvioFab === null);
                                                                             $isFullySubmitted = $todasClasesEnviadas;
                                                                             $hideAllBtns = $isFullySubmitted ? 'display: none;' : '';
-                                                                            $hideSendEmail = ($tienePreOrden && $poPendienteEnvio) ? '' : 'display: none;';
+                                                                            // El botón de "Enviar Correo" se activa / muestra ÚNICAMENTE si existe una pre-orden generada pendiente de envío ($poPendienteEnvioFab !== null)
+                                                                            $hideSendEmail = ($poPendienteEnvioFab !== null) ? '' : 'display: none;';
                                                                         @endphp
 
                                                                         <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}" style="{{ $controlDisabled }} {{ $hideControlCard }}">
@@ -1977,7 +2022,7 @@
                                                                     <div class="cal-subcontainer-almacen" style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0fdf4; border: 2px solid #16a34a; box-shadow: 0 3px 10px rgba(22, 163, 74, 0.08);">
                                                                         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
                                                                             <h4 style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                                                                <span style="font-size: 1.2rem;">📦</span> Documentos, Dibujos y Ayudas Visuales Aprobados por Almacén
+                                                                                <img src="{{ asset('images/almacen.png') }}" style="width: 22px; height: 22px; object-fit: contain;"> Documentos, Dibujos y Ayudas Visuales Aprobados por Almacén
                                                                             </h4>
                                                                             <span style="font-size: 0.75rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 3px 10px; border-radius: 6px; border: 1px solid #86efac;">
                                                                                 DOCUMENTOS ALMACÉN
@@ -2190,7 +2235,7 @@
                                                                     <div class="cal-subcontainer-almacen" style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 3px 10px rgba(220, 38, 38, 0.08);">
                                                                         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fecaca; padding-bottom: 8px; margin-bottom: 15px;">
                                                                             <h4 style="margin: 0; color: #b91c1c; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                                                                <span style="font-size: 1.2rem;">📦</span> Documentos, Dibujos y Ayudas Visuales de Rechazo
+                                                                                <img src="{{ asset('images/almacen.png') }}" style="width: 22px; height: 22px; object-fit: contain;"> Documentos, Dibujos y Ayudas Visuales de Rechazo
                                                                             </h4>
                                                                             <span style="font-size: 0.75rem; font-weight: 700; background: #fee2e2; color: #b91c1c; padding: 3px 10px; border-radius: 6px; border: 1px solid #fca5a5;">
                                                                                 DOCUMENTOS ALMACÉN
@@ -2676,7 +2721,7 @@
                             </div>
                         </div>
                         <div id="env-archivos-adicionales-list"
-                            class="alm-margin-top-10px alm-display-flex alm-flex-wrap-wrap alm-gap-8px"></div>
+                            class="alm-margin-top-15px alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-none alm-grid-template-columns-repeat-auto-fill-minmax-200px-1fr alm-gap-12px alm-justify-items-center"></div>
                     </div>
 
                     <div class="form-actions alm-text-align-center">

@@ -213,8 +213,11 @@ class CalidadFundicionController extends Controller
                     $newDibjPath    = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDir . '/' . FundicionPaths::DIBUJOS);
                     $legacyDibjPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDir);
 
-                    foreach ([$newDibjPath, $legacyDibjPath] as $scanDibjDir) {
-                        if (!Storage::disk('local')->exists($scanDibjDir)) continue;
+                    $scanDibjDir = Storage::disk('local')->exists($newDibjPath)
+                        ? $newDibjPath
+                        : (Storage::disk('local')->exists($legacyDibjPath) ? $legacyDibjPath : null);
+
+                    if ($scanDibjDir) {
                         $relatedDibujos = collect(Storage::disk('local')->files($scanDibjDir))
                             ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')
                             ->map(function ($f) use ($relatedOt, $claseDir) {
@@ -612,6 +615,7 @@ class CalidadFundicionController extends Controller
         $files = Storage::disk('local')->allFiles($baseDir);
         $foundFile = null;
         $archivoNorm = Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), Normalizer::FORM_C);
+        $archivoBaseLower = mb_strtolower(basename($archivo), 'UTF-8');
 
         foreach ($files as $f) {
             $fNorm = str_replace('\\', '/', $f);
@@ -621,7 +625,7 @@ class CalidadFundicionController extends Controller
             $utf8RelName = $this->toUtf8($relName);
             $utf8RelNameNorm = Normalizer::normalize(mb_strtolower($utf8RelName, 'UTF-8'), Normalizer::FORM_C);
 
-            if ($utf8RelNameNorm === $archivoNorm) {
+            if ($utf8RelNameNorm === $archivoNorm || mb_strtolower(basename($f), 'UTF-8') === $archivoBaseLower) {
                 if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0) continue;
                 
                 $foundFile = $f;
@@ -629,7 +633,7 @@ class CalidadFundicionController extends Controller
             }
         }
 
-        // FALLBACK ampliado: buscar en todas las carpetas relacionadas de la OT (base + reprocesos)
+        // FALLBACK ampliado: buscar en todas las carpetas relacionadas de la OT (base + reprocesos + public/liberaciones_pdf)
         if (!$foundFile) {
             $baseOtRaw = preg_replace('/_R\d+$/', '', $ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
@@ -642,6 +646,7 @@ class CalidadFundicionController extends Controller
                 self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales',
                 self::CALIDAD_DIR . '/' . $baseFolder . '/ayudas_visuales',
                 self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales',
+                'public/liberaciones_pdf',
             ];
             foreach ($possibleDirs as $possibleDir) {
                 $resolvedPossibleDir = $this->resolveCaseInsensitivePath($possibleDir);
@@ -657,7 +662,7 @@ class CalidadFundicionController extends Controller
                     $utf8RelName = $this->toUtf8($relName);
                     $utf8RelNameNorm = Normalizer::normalize(mb_strtolower($utf8RelName, 'UTF-8'), Normalizer::FORM_C);
 
-                    if ($utf8RelNameNorm === $archivoNorm) {
+                    if ($utf8RelNameNorm === $archivoNorm || mb_strtolower(basename($f), 'UTF-8') === $archivoBaseLower) {
                         $foundFile = $f;
                         break 2;
                     }
@@ -1126,19 +1131,19 @@ class CalidadFundicionController extends Controller
         $pdfFilename = null;
         // Generar y guardar PDF en orientacion horizontal
         try {
-            // Nombre estetico: F-CCL-LDM_[Tipo]_[OT-sanitizada]_[Estado].pdf
+            // Nombre estetico: Formato_LDM_[APROBADO/RECHAZADO]_[Clase]_[OT]_[Fecha].pdf
             $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
             $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
-            $tipoLabel    = $tipo ? strtoupper($tipo) : 'GENERAL';
-            $estadoLabel  = strtoupper($decision === 'aprobar' ? 'aprobado' : 'rechazado');
-            $pdfFilename  = "F-CCL-LDM_{$tipoLabel}_{$otSanitizada}_{$estadoLabel}.pdf";
+            $tipoLabel    = $tipo ? ucfirst(strtolower(trim($tipo))) : 'Modelo';
+            $fmtCode     = ($decision === 'aprobar') ? 'LDM' : 'RDM';
+            $pdfFilename = "F_CCL_{$fmtCode}_{$tipoLabel}.pdf";
             $pdfPath = storage_path("app/public/liberaciones_pdf");
             if (!file_exists($pdfPath)) {
                 mkdir($pdfPath, 0755, true);
             } else {
-                // Eliminar PDFs anteriores (incluyendo posibles historiales con timestamp) para este Tipo y OT
-                $pattern = "{$pdfPath}/F-CCL-LDM_{$tipoLabel}_{$otSanitizada}*.pdf";
-                foreach (glob($pattern) as $oldFile) {
+                // Eliminar PDFs anteriores para esta clase
+                $pattern = "{$pdfPath}/F_CCL_*_{$tipoLabel}.pdf";
+                foreach (glob($pattern) ?: [] as $oldFile) {
                     @unlink($oldFile);
                 }
             }
@@ -1163,14 +1168,15 @@ class CalidadFundicionController extends Controller
             }
             $otPath = $basePath . '/' . $subFolder . '/' . $classSubFolder;
             
-            // Eliminar versiones previas de F-CCL-LDM para esta clase/modelo en ambas carpetas, la raíz y subcarpetas de clases
+            // Eliminar versiones previas de LDM para esta clase/modelo en ambas carpetas, la raíz y subcarpetas de clases
             foreach (['', 'documentos_aprobados', 'documentos_rechazados'] as $folder) {
                 $checkPath = $folder === '' ? $basePath : $basePath . '/' . $folder;
                 if (Storage::disk('local')->exists($checkPath)) {
                     // Limpiar de la carpeta principal
                     $files = Storage::disk('local')->files($checkPath);
                     foreach ($files as $f) {
-                        if (str_contains(basename($f), "F-CCL-LDM_{$tipoLabel}_")) {
+                        $fBase = basename($f);
+                        if (str_contains($fBase, "LDM_") && str_contains($fBase, "_{$tipoLabel}_")) {
                             Storage::disk('local')->delete($f);
                         }
                     }
@@ -1179,7 +1185,8 @@ class CalidadFundicionController extends Controller
                     if (Storage::disk('local')->exists($classCheckPath)) {
                         $classFiles = Storage::disk('local')->files($classCheckPath);
                         foreach ($classFiles as $f) {
-                            if (str_contains(basename($f), "F-CCL-LDM_{$tipoLabel}_")) {
+                            $fBase = basename($f);
+                            if (str_contains($fBase, "LDM_") && str_contains($fBase, "_{$tipoLabel}_")) {
                                 Storage::disk('local')->delete($f);
                             }
                         }
@@ -1334,16 +1341,19 @@ class CalidadFundicionController extends Controller
         
         $clases = array_map('trim', explode(',', $tipoModelo));
         $firstClassSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($clases[0] ?? 'general')));
-        $firstClassSuffix = strtoupper($firstClassSubFolder);
+        $clasesCleaned = array_values(array_filter(array_map(fn($c) => ucfirst(trim($c)), $clases)));
+        $clasesTag = count($clasesCleaned) > 0 ? implode('-', $clasesCleaned) : 'Modelo';
         
-        $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $ot)));
+        $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
+        $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+        $fechaStamp   = date('d_m_Y_H_i');
         $pdfDir       = storage_path('app/public/liberaciones_pdf');
         if (!file_exists($pdfDir)) {
             mkdir($pdfDir, 0755, true);
         }
         
-        // Borrar PDFs viejos
-        foreach (glob("{$pdfDir}/F-CCL-SCAR_{$firstClassSuffix}_{$otSanitizada}.pdf") as $old) {
+        // Borrar PDFs viejos de SCAR
+        foreach (glob("{$pdfDir}/*SCAR_*{$otSanitizada}*.pdf") as $old) {
             @unlink($old);
         }
         
@@ -1352,11 +1362,14 @@ class CalidadFundicionController extends Controller
         foreach ($clases as $clase) {
             $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
             if (empty($classSubFolder)) $classSubFolder = 'general';
-            $classSuffix = strtoupper($classSubFolder);
             
-            $oldScarPattern = $otPath . '/SCAR/' . $classSubFolder . '/F-CCL-SCAR_' . $classSuffix . '_' . $otSanitizada . '.pdf';
-            if (Storage::disk('local')->exists($oldScarPattern)) {
-                Storage::disk('local')->delete($oldScarPattern);
+            $oldScarDir = $otPath . '/SCAR/' . $classSubFolder;
+            if (Storage::disk('local')->exists($oldScarDir)) {
+                foreach (Storage::disk('local')->files($oldScarDir) as $sf) {
+                    if (str_contains(basename($sf), 'SCAR')) {
+                        Storage::disk('local')->delete($sf);
+                    }
+                }
             }
         }
         
@@ -1364,20 +1377,20 @@ class CalidadFundicionController extends Controller
         $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scar])
                   ->setPaper('letter', 'portrait');
                   
-        $pdfFilename = "F-CCL-SCAR_" . $firstClassSuffix . "_{$otSanitizada}.pdf";
+        $pdfFilename = "F_CCL_SCAR_{$clasesTag}.pdf";
         $pdf->save("{$pdfDir}/{$pdfFilename}");
         
         foreach ($clases as $clase) {
             $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
             if (empty($classSubFolder)) $classSubFolder = 'general';
-            $classSuffix = strtoupper($classSubFolder);
+            $cTitle = ucfirst(trim($clase));
             
             $destClassPath = $otPath . '/SCAR/' . $classSubFolder;
             if (!Storage::disk('local')->exists($destClassPath)) {
                 Storage::disk('local')->makeDirectory($destClassPath);
             }
             
-            $classPdfFilename = "F-CCL-SCAR_" . $classSuffix . "_{$otSanitizada}.pdf";
+            $classPdfFilename = "F_CCL_SCAR_{$cTitle}.pdf";
             Storage::disk('local')->put($destClassPath . '/' . $classPdfFilename, file_get_contents("{$pdfDir}/{$pdfFilename}"));
         }
     }
@@ -1475,30 +1488,35 @@ class CalidadFundicionController extends Controller
             // ── Generar el PDF ──────────────────────────────────────────
             $clasesStr = $request->input('tipo_modelo') ?: ($liberacion?->tipo_modelo ?? 'general');
             $clases = array_map('trim', explode(',', $clasesStr));
-            $firstClassSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($clases[0] ?? 'general')));
-            $firstClassSuffix = strtoupper($firstClassSubFolder);
+            $clasesCleaned = array_values(array_filter(array_map(fn($c) => ucfirst(trim($c)), $clases)));
+            $clasesTag = count($clasesCleaned) > 0 ? implode('-', $clasesCleaned) : 'Modelo';
             
             // Reemplazar SCAR anterior de la misma OT en el disco
-            $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $ot)));
+            $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
+            $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+            $fechaStamp   = date('d_m_Y_H_i');
             $pdfDir       = storage_path('app/public/liberaciones_pdf');
             if (!file_exists($pdfDir)) {
                 mkdir($pdfDir, 0755, true);
             }
-            foreach (glob("{$pdfDir}/F-CCL-SCAR_{$firstClassSuffix}_{$otSanitizada}.pdf") as $old) {
+            foreach (glob("{$pdfDir}/*SCAR_*{$otSanitizada}*.pdf") as $old) {
                 @unlink($old);
             }
 
-            // También borrar en la carpeta ayudas_visuales
+            // También borrar en la carpeta Documentos_Rechazados
             $folderName = $this->sanitizePath($this->normalizeOTName($ot));
             $otPath = self::CALIDAD_DIR . '/' . $folderName . '/Documentos_Rechazados';
             foreach ($clases as $clase) {
                 $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
                 if (empty($classSubFolder)) $classSubFolder = 'general';
-                $classSuffix = strtoupper($classSubFolder);
                 
-                $oldScarPattern = $otPath . '/SCAR/' . $classSubFolder . '/F-CCL-SCAR_' . $classSuffix . '_' . $otSanitizada . '.pdf';
-                if (Storage::disk('local')->exists($oldScarPattern)) {
-                    Storage::disk('local')->delete($oldScarPattern);
+                $oldScarDir = $otPath . '/SCAR/' . $classSubFolder;
+                if (Storage::disk('local')->exists($oldScarDir)) {
+                    foreach (Storage::disk('local')->files($oldScarDir) as $sf) {
+                        if (str_contains(basename($sf), 'SCAR')) {
+                            Storage::disk('local')->delete($sf);
+                        }
+                    }
                 }
             }
 
@@ -1506,10 +1524,7 @@ class CalidadFundicionController extends Controller
             $pdf = Pdf::loadView('almacen.pdf_scar', ['scar' => $scarData])
                       ->setPaper('letter', 'portrait');
 
-            // Guardamos el primer PDF en el directorio temporal
-            $firstClassSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($clases[0] ?? 'general')));
-            $firstClassSuffix = strtoupper($firstClassSubFolder);
-            $pdfFilename = "F-CCL-SCAR_" . $firstClassSuffix . "_{$otSanitizada}.pdf";
+            $pdfFilename = "F_CCL_SCAR_{$clasesTag}.pdf";
             $pdf->save("{$pdfDir}/{$pdfFilename}");
             $pdfUrl = asset('storage/liberaciones_pdf/' . $pdfFilename);
 
@@ -1517,31 +1532,33 @@ class CalidadFundicionController extends Controller
             foreach ($clases as $clase) {
                 $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
                 if (empty($classSubFolder)) $classSubFolder = 'general';
-                $classSuffix = strtoupper($classSubFolder);
+                $cTitle = ucfirst(trim($clase));
                 
                 $destClassPath = $otPath . '/SCAR/' . $classSubFolder;
                 if (!Storage::disk('local')->exists($destClassPath)) {
                     Storage::disk('local')->makeDirectory($destClassPath);
                 }
                 
-                $classPdfFilename = "F-CCL-SCAR_" . $classSuffix . "_{$otSanitizada}.pdf";
+                $classPdfFilename = "F_CCL_SCAR_{$cTitle}.pdf";
                 Storage::disk('local')->put($destClassPath . '/' . $classPdfFilename, file_get_contents("{$pdfDir}/{$pdfFilename}"));
             }
 
             // Guardar fotografías si se adjuntaron
             if ($request->hasFile('fotos')) {
                 foreach ($request->file('fotos') as $idx => $foto) {
+                    $num = $idx + 1;
+                    $ext = $foto->getClientOriginalExtension() ?: 'jpg';
+                    $fname = "F_CCL_SCAR_FOTO-{$num}_{$clasesTag}.{$ext}";
+
                     foreach ($clases as $clase) {
-                        $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
+                        $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim(preg_replace('/^modelo\s+/i', '', $clase))));
                         if (empty($classSubFolder)) $classSubFolder = 'general';
-                        $classSuffix = strtoupper($classSubFolder);
                         
                         $fotosPath = $otPath . '/SCAR/' . $classSubFolder;
                         if (!Storage::disk('local')->exists($fotosPath)) {
                             Storage::disk('local')->makeDirectory($fotosPath);
                         }
                         
-                        $fname = "SCAR_FOTO_" . $classSuffix . "_" . date('Ymd_His') . "_" . $idx . "." . $foto->getClientOriginalExtension();
                         $foto->storeAs($fotosPath, $fname, 'local');
                     }
                 }
@@ -1550,17 +1567,19 @@ class CalidadFundicionController extends Controller
             // Guardar otros archivos si se adjuntaron
             if ($request->hasFile('otros_archivos')) {
                 foreach ($request->file('otros_archivos') as $idx => $archivo) {
+                    $num = $idx + 1;
+                    $ext = $archivo->getClientOriginalExtension() ?: 'pdf';
+                    $fname = "F_CCL_SCAR_PDF-{$num}_{$clasesTag}.{$ext}";
+
                     foreach ($clases as $clase) {
-                        $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $clase));
+                        $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim(preg_replace('/^modelo\s+/i', '', $clase))));
                         if (empty($classSubFolder)) $classSubFolder = 'general';
-                        $classSuffix = strtoupper($classSubFolder);
                         
                         $otrosPath = $otPath . '/SCAR/' . $classSubFolder;
                         if (!Storage::disk('local')->exists($otrosPath)) {
                             Storage::disk('local')->makeDirectory($otrosPath);
                         }
                         
-                        $fname = "SCAR_DOC_" . $classSuffix . "_" . date('Ymd_His') . "_" . $idx . "." . $archivo->getClientOriginalExtension();
                         $archivo->storeAs($otrosPath, $fname, 'local');
                     }
                 }
@@ -2527,10 +2546,12 @@ class CalidadFundicionController extends Controller
                         Storage::disk('local')->makeDirectory($destPath);
                     }
                     
-                    $prefix    = $item['tipo'] ? strtoupper($item['tipo']) . '_SCAR_' : 'SCAR_';
+                    $cClean    = $item['tipo'] ? ucfirst(trim(preg_replace('/^modelo\s+/i', '', $item['tipo']))) : 'General';
                     $ext       = $extraFile->getClientOriginalExtension();
-                    $safeName  = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($extraFile->getClientOriginalName(), PATHINFO_FILENAME));
-                    $extraName = $prefix . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
+                    $mime      = $extraFile->getClientMimeType() ?: '';
+                    $isImg     = str_starts_with($mime, 'image/') || in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                    $prefix    = $isImg ? 'F_CCL_SCAR_FOTO-1' : 'F_CCL_SCAR_PDF-1';
+                    $extraName = "{$prefix}_{$cClean}." . ($ext ?: ($isImg ? 'jpg' : 'pdf'));
                     $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
                     $attachmentsRechazados[] = [
                         'path' => storage_path('app/' . $savedPath),

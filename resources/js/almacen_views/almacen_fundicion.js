@@ -1033,24 +1033,28 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                     const shouldCheck = !(
                         inputNameMode === "preorden" && isConfirmacion
                     );
-                    const checkedAttr = shouldCheck ? "checked" : "";
-                    const checkedClass = shouldCheck
-                        ? "checked-card"
-                        : "";
+                    const safeName = f.nombre.replace(/'/g, "\\'");
+                    const safeOt = ot.replace(/'/g, "\\'");
+                    const safeTipo = (f.tipo || 'otro').replace(/'/g, "\\'");
+                    const fnViewer = typeof window.almacenVerPdf === 'function' ? 'almacenVerPdf' : 'calidadVerPdf';
                     return `
                             <div class="dibujos-file-card ${colorClass} select-file-card ${checkedClass}" style="position: relative; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: #fff; padding: 10px; border: 1.5px solid #e2e8f0;">
                                 <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
                                     <input type="checkbox" name="${inputName}" value="${f.nombre}" ${checkedAttr} style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
                                 </div>
-                                <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir Archivo">
+                                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                                    <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="eliminarArchivoServidorCategorizado('${safeOt}', '${safeName}', '${safeTipo}')" title="Eliminar del servidor">&times;</button>
+                                </div>
+                                <div class="file-icon-wrapper" onclick="${fnViewer}('${safeOt}', '${safeName}', '${safeTipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir Archivo">
                                     <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width: 48px; height: auto;">
                                     <img src="${baseUrl}images/${hoverIcon}" class="file-icon icon-hover" style="width: 48px; height: auto;">
                                 </div>
-                                <div class="file-name" style="cursor: pointer; font-size: 0.82em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="Abrir Archivo" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')">
+                                <div class="file-name" style="cursor: pointer; font-size: 0.82em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="Abrir Archivo" onclick="${fnViewer}('${safeOt}', '${safeName}', '${safeTipo}')">
                                     ${cleanName}
                                 </div>
-                                <div class="file-actions" style="width: 100%; margin-top: auto;">
-                                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.8em;padding:5px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex-shrink:0;width:100%;" onclick="almacenVerPdf('${ot}', '${f.nombre}', '${f.tipo}')">Ver</button>
+                                <div class="file-actions" style="width: 100%; margin-top: auto; display: flex; gap: 5px;">
+                                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;" onclick="${fnViewer}('${safeOt}', '${safeName}', '${safeTipo}')">Ver</button>
+                                    <button type="button" class="btn-dibujos btn-dibujos-sm" style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;background:#dc2626;color:white;border:none;cursor:pointer;" onclick="eliminarArchivoServidorCategorizado('${safeOt}', '${safeName}', '${safeTipo}')">Eliminar</button>
                                 </div>
                             </div>
                         `;
@@ -1194,27 +1198,17 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         );
                     });
                 } else {
-                    if (clasesFaltantes && Array.isArray(clasesFaltantes)) {
-                        archivosAMostrar = archivosAMostrar.filter((f) => {
-                            const n = (f.nombre || "").toLowerCase();
-                            // Siempre mantener archivos que no estén divididos por carpetas de clase
-                            if (
-                                n.includes("documentos_aprobados") ||
-                                n.includes("documentos_rechazados") ||
-                                n.includes("pre-orden")
-                            )
-                                return true;
-                            // Para Ayudas Visuales y Dibujos (que están dentro de carpetas de clase), validar si la clase es faltante
-                            return clasesFaltantes.some((clase) => {
-                                let c = clase
-                                    .toLowerCase()
-                                    .trim()
-                                    .replace(/^modelo\s+/i, "")
-                                    .replace(/^casting\s+/i, "")
-                                    .trim();
-                                return n.includes(c);
+                    if (clasesFaltantes && Array.isArray(clasesFaltantes) && clasesFaltantes.length > 0) {
+                        const activeClasses = clasesFaltantes.map(c =>
+                            c.toLowerCase().trim().replace(/^modelo\s+/i, "").replace(/^casting\s+/i, "").trim()
+                        ).filter(c => c.length > 0);
+
+                        if (activeClasses.length > 0) {
+                            archivosAMostrar = archivosAMostrar.filter((f) => {
+                                const n = (f.nombre || "").toLowerCase();
+                                return activeClasses.some((c) => n.includes(c));
                             });
-                        });
+                        }
                     }
                 }
                 const sectionsHtml = generarHtmlCategorizadoArchivos(
@@ -1423,24 +1417,12 @@ window.syncArchivosSeleccionadosPreOrden = function () {
             document.getElementById("env-tipo") &&
             document.getElementById("env-tipo").value === "casting";
         if (preOrdenesChecked.length > 0) {
-            const partes = val.split("/");
-            const primeraCarpeta = partes[0] || "";
             if (isCasting) {
                 shouldBeChecked =
-                    (val.includes("pre-orden") || val.includes("preorden")) &&
+                    (val.includes("pre-orden") || val.includes("preorden") || val.includes("pfc")) &&
                     val.includes("casting");
             } else {
-                // Si el archivo esta organizado en una carpeta que no es generica, validamos la clase
-                if (
-                    primeraCarpeta &&
-                    !primeraCarpeta.includes("documentos_") &&
-                    !primeraCarpeta.includes("pre-orden") &&
-                    !primeraCarpeta.includes("scar")
-                ) {
-                    shouldBeChecked = clasesActivas.some((c) =>
-                        val.includes(c),
-                    );
-                }
+                shouldBeChecked = clasesActivas.some((c) => val.includes(c));
             }
         } else {
             shouldBeChecked = false;
@@ -1945,17 +1927,61 @@ function renderSelectedFilesBadges() {
     );
     if (!listContainer) return;
     listContainer.innerHTML = "";
+    if (adicionalesSelectedFiles.length === 0) {
+        listContainer.classList.add("alm-display-none");
+        return;
+    }
+    listContainer.classList.remove("alm-display-none");
     adicionalesSelectedFiles.forEach((file, index) => {
-        const badge = document.createElement("span");
-        badge.className = "file-badge";
-        badge.classList.remove("alm-display-none");
-        badge.style.alignItems = "center";
-        badge.style.gap = "6px";
-        badge.innerHTML = `
-            📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)
-            <button type="button" class="remove-file-badge-btn" style="background: none; border: none; color: #9c0300; font-weight: bold; cursor: pointer; padding: 0 4px; font-size: 1.2em; line-height: 1; display: flex; align-items: center;" onclick="removeSelectedAttachment(${index})">&times;</button>
+        const card = document.createElement("div");
+        card.className =
+            "dibujos-file-card card-ayuda select-file-card checked-card";
+        card.style.position = "relative";
+        card.style.width = "100%";
+        card.style.maxWidth = "220px";
+        card.classList.remove("alm-display-none");
+        card.style.flexDirection = "column";
+        card.style.alignItems = "center";
+        card.style.textAlign = "center";
+        card.style.borderRadius = "12px";
+        card.style.boxShadow = "0 4px 6px rgba(0,0,0,0.05)";
+        card.style.boxSizing = "border-box";
+        card.style.padding = "12px";
+        card.style.border = "2px solid #0284c7";
+        card.style.background = "#fff";
+
+        let baseUrl = window.baseUrl || window.location.origin + "/";
+        if (!baseUrl.endsWith("/")) baseUrl += "/";
+
+        let iconHtml = "";
+        const fileUrl = URL.createObjectURL(file);
+        if (file.type.startsWith("image/")) {
+            iconHtml = `
+                <div style="width: 80px; height: 80px; margin-top: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <img src="${fileUrl}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            `;
+        } else {
+            iconHtml = `
+                <div class="file-icon-wrapper" style="cursor: pointer; margin-top: 10px;" title="Abrir PDF" onclick="window.open('${fileUrl}', '_blank')">
+                    <img src="${baseUrl}images/pdf-view-shadow.png" class="file-icon icon-default">
+                    <img src="${baseUrl}images/pdf-view.png" class="file-icon icon-hover">
+                </div>
+            `;
+        }
+        card.innerHTML = `
+            <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="removeSelectedAttachment(${index})" title="Eliminar">&times;</button>
+            </div>
+            ${iconHtml}
+            <div class="file-name" style="cursor: pointer; font-size: 0.85em; margin: 8px 0; max-height: 40px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; font-weight: 600; color: #334155; line-height: 1.3;" title="${file.name}" onclick="window.open('${fileUrl}', '_blank')">
+                ${file.name}
+            </div>
+            <div class="file-actions" style="width: 100%; margin-top: auto;">
+                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="width: 100%; background: #0284c7; border: none; color: white; padding: 6px 12px; border-radius: 6px; font-weight: 600; cursor: pointer;" onclick="window.open('${fileUrl}', '_blank')">Ver</button>
+            </div>
         `;
-        listContainer.appendChild(badge);
+        listContainer.appendChild(card);
     });
 }
 window.removeSelectedAttachment = function (index) {
@@ -3566,100 +3592,10 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
         })
         .catch((err) => console.error("Error loading SCAR:", err));
     // Cargar evidencias ya subidas al SCAR (fotos y otros)
-    const scarServerFilesContainer = document.getElementById(
-        "scar-server-files-container",
-    );
-    if (scarServerFilesContainer) {
-        scarServerFilesContainer.innerHTML = `
-            <div style="text-align: center; padding: 10px; grid-column: 1 / -1;">
-                <div class="alm-spinner" style="border-top-color: #033966; display: inline-block;"></div>
-                <span style="color: #64748b; margin-left: 10px;">Obteniendo evidencias guardadas...</span>
-            </div>
-        `;
-        fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.existe && data.archivos && data.archivos.length > 0) {
-                    let baseUrl =
-                        window.baseUrl || window.location.origin + "/";
-                    if (!baseUrl.endsWith("/")) baseUrl += "/";
-                    const activeClasses = (tipoModelo || "")
-                        .toLowerCase()
-                        .split(",")
-                        .map((s) => s.trim().replace(/[^a-z0-9_\-]/g, "_"))
-                        .filter(Boolean);
-                    const scarFiles = data.archivos.filter((f) => {
-                        const pathLower = f.nombre.toLowerCase();
-                        if (!pathLower.includes("documentos_rechazados/"))
-                            return false;
-                        if (
-                            activeClasses.length === 0 ||
-                            activeClasses.includes("general")
-                        )
-                            return true;
-                        // Check if the path contains any of the active class folders, e.g. /documentos_rechazados/bombillo/
-                        return activeClasses.some((cls) =>
-                            pathLower.includes(
-                                "/documentos_rechazados/" + cls + "/",
-                            ),
-                        );
-                    });
-                    if (scarFiles.length > 0) {
-                        scarServerFilesContainer.innerHTML = scarFiles
-                            .map((file, index) => {
-                                const dispName = file.nombre.split("/").pop();
-                                const isImg = file.nombre
-                                    .toLowerCase()
-                                    .match(/\.(jpg|jpeg|png|gif)$/);
-                                const isPdf = file.nombre
-                                    .toLowerCase()
-                                    .endsWith(".pdf");
-                                let iconDefault =
-                                    baseUrl + "images/pdf-view-shadow.png";
-                                let iconHover = baseUrl + "images/pdf-view.png";
-                                if (isImg) {
-                                    iconDefault =
-                                        baseUrl + "images/galeria-shadow.png";
-                                    iconHover = baseUrl + "images/galeria.png";
-                                }
-                                return `
-                                <div class="dibujos-file-card" style="animation-delay: ${index * 0.05}s;">
-                                    <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')" style="cursor: pointer;" title="Abrir Archivo">
-                                        <img src="${iconDefault}" class="file-icon icon-default">
-                                        <img src="${iconHover}" class="file-icon icon-hover">
-                                    </div>
-                                    <div class="file-name" style="cursor: pointer;" title="Abrir Archivo" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')">${dispName}</div>
-                                    <div class="file-actions">
-                                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" onclick="almacenVerPdf('${ot}', '${file.nombre}', 'otro')">Ver</button>
-                                    </div>
-                                </div>
-                            `;
-                            })
-                            .join("");
-                    } else {
-                        scarServerFilesContainer.innerHTML = `
-                            <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">
-                                No hay evidencias subidas aún para este SCAR.
-                            </div>
-                        `;
-                    }
-                } else {
-                    scarServerFilesContainer.innerHTML = `
-                        <div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">
-                            No hay evidencias subidas aún para este SCAR.
-                        </div>
-                    `;
-                }
-            })
-            .catch((err) => {
-                console.error(err);
-                scarServerFilesContainer.innerHTML = `
-                    <div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600; grid-column: 1 / -1;">
-                        Error al cargar evidencias.
-                    </div>
-                `;
-            });
+    if (typeof window.cargarEvidenciasScarServer === 'function') {
+        window.cargarEvidenciasScarServer(ot, tipoModelo);
     }
+
     modal.classList.add("open");
     document.body.classList.add("modal-open");
 };
@@ -3671,6 +3607,99 @@ window.cerrarModalScar = function () {
     if (modal) modal.classList.remove("open");
     document.body.classList.remove("modal-open");
 };
+
+if (typeof window.eliminarArchivoServidorCategorizado !== 'function') {
+    window.eliminarArchivoServidorCategorizado = function (ot, fileNombre, tipo) {
+        const filenameOnly = fileNombre.split("/").pop();
+        if (
+            !confirm(
+                `¿Estás seguro de eliminar el archivo "${filenameOnly}" del servidor?`,
+            )
+        ) {
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append("ot", ot);
+        formData.append("archivo", fileNombre);
+        formData.append("tipo", tipo || "otro");
+
+        const lower = fileNombre.toLowerCase();
+        if (
+            lower.includes("documentos_rechazados") ||
+            lower.includes("rechazado") ||
+            lower.includes("scar")
+        ) {
+            formData.append("origin", "rechazado");
+        } else if (
+            lower.includes("documentos_aprobados") ||
+            lower.includes("aprobado") ||
+            lower.includes("confirmacion")
+        ) {
+            formData.append("origin", "aprobado");
+        }
+
+        const token = document
+            .querySelector('meta[name="csrf-token"]')
+            ?.getAttribute("content");
+        if (token) formData.append("_token", token);
+
+        fetch(window.almacenRoutes.deleteFile, {
+            method: "POST",
+            headers: {
+                "X-CSRF-TOKEN": token || "",
+            },
+            body: formData,
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data.success || data.message) {
+                    if (typeof almacenToast === "function") {
+                        almacenToast("Archivo eliminado del servidor.", "success");
+                    } else {
+                        alert("Archivo eliminado del servidor.");
+                    }
+                    const openModals = document.querySelectorAll(".alm-modal.open");
+                    if (openModals.length > 0) {
+                        openModals.forEach((m) => {
+                            if (
+                                m.id === "modalScar" &&
+                                typeof window.cargarEvidenciasScarServer ===
+                                    "function"
+                            ) {
+                                const otVal =
+                                    document.getElementById("scar-ot")?.value;
+                                const tipoVal =
+                                    document.getElementById("scar-tipo")?.value;
+                                if (otVal)
+                                    window.cargarEvidenciasScarServer(
+                                        otVal,
+                                        tipoVal,
+                                    );
+                            } else if (
+                                m.id === "modalEnviarScar" &&
+                                typeof window.abrirModalEnviarScar === "function"
+                            ) {
+                                const otVal =
+                                    document.getElementById("env-scar-ot")?.value;
+                                if (otVal) window.abrirModalEnviarScar(otVal);
+                            }
+                        });
+                    } else {
+                        setTimeout(() => window.location.reload(), 800);
+                    }
+                } else {
+                    alert(
+                        data.error || data.message || "Error al eliminar el archivo.",
+                    );
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+                alert("Error de red al intentar eliminar el archivo.");
+            });
+    };
+}
 /**
  * Envía el formulario del SCAR para generar el PDF y guardarlo en la BD.
  */
@@ -5335,9 +5364,10 @@ window.abrirModalFinalizarCalidad = function (
         .then((r) => r.json())
         .then((data) => {
             if (data.existe && data.archivos?.length > 0) {
-                // Función para comprobar si el archivo pertenece a un listado de modelos activos
                 const archivoPerteneceAModelos = (nombre, modelosActivos) => {
                     const pl = nombre.toLowerCase();
+                    if (pl.includes("_anterior_n")) return false;
+
                     const todosModelosPosibles = [
                         "candado obturador",
                         "cabeza de soplo",
@@ -5349,51 +5379,31 @@ window.abrirModalFinalizarCalidad = function (
                         "molde",
                         "fondo",
                     ];
-                    // comprobar si el path contiene el modelo como carpeta o prefijo
                     const modelosEncontrados = todosModelosPosibles.filter(
-                        (m) => {
-                            return (
-                                pl.includes("/" + m + "/") ||
-                                pl.startsWith(m + "/") ||
-                                pl.includes("_" + m + "_") ||
-                                pl.includes("-" + m + " -") ||
-                                pl.includes(" " + m + " ") ||
-                                pl.split("/").pop().startsWith(m)
-                            );
-                        },
+                        (m) => pl.includes(m),
                     );
                     if (modelosEncontrados.length === 0) {
-                        // Es un archivo general (no pertenece a ningún modelo específico, ej. preordenes)
-                        return true;
+                        return false;
                     }
                     const modelosActivosLower = modelosActivos.map((m) =>
-                        m.toLowerCase(),
+                        m.toLowerCase().trim().replace(/^modelo\s+/i, ""),
                     );
                     return modelosEncontrados.some((m) =>
                         modelosActivosLower.includes(m),
                     );
                 };
+                const allRelevantModels = [...arrAprobados, ...arrRechazados];
                 const filteredFiles = data.archivos.filter((f) => {
                     const pl = f.nombre.toLowerCase();
+                    if (pl.includes("_anterior_n")) return false;
+
                     const isRechazadoFile =
                         pl.includes("documentos_rechazados") ||
                         pl.includes("rechazado") ||
                         pl.includes("scar");
-                    const isDibujoOrAyuda =
-                        f.tipo === "dibujo" || f.tipo === "ayuda";
-                    const isPreordenFile =
-                        pl.includes("pre-orden") ||
-                        pl.includes("preorden") ||
-                        (pl.includes("confirmacionmodelo") &&
-                            !pl.includes("casting"));
-                    const allRelevantModels = [
-                        ...arrAprobados,
-                        ...arrRechazados,
-                    ];
-                    if (isPreordenFile) return true;
+
                     if (decision === "aprobar") {
                         if (isRechazadoFile) return false;
-                        // Dibujos/ayudas y preordenes solo de las clases aprobadas
                         return archivoPerteneceAModelos(f.nombre, arrAprobados);
                     }
                     if (decision === "rechazar") {
@@ -5402,32 +5412,28 @@ window.abrirModalFinalizarCalidad = function (
                                 f.nombre,
                                 arrRechazados,
                             );
-                        // Incluir dibujos/ayudas de las clases rechazadas (contexto útil para el correo)
-                        if (isDibujoOrAyuda)
-                            return archivoPerteneceAModelos(
-                                f.nombre,
-                                arrRechazados,
-                            );
-                        return false;
-                    }
-                    // mixto
-                    if (isRechazadoFile)
                         return archivoPerteneceAModelos(
                             f.nombre,
                             arrRechazados,
                         );
-                    if (isDibujoOrAyuda)
-                        return archivoPerteneceAModelos(
-                            f.nombre,
-                            allRelevantModels,
-                        );
+                    }
                     return archivoPerteneceAModelos(
                         f.nombre,
                         allRelevantModels,
                     );
                 });
+
+                // Deduplicar por basename para evitar duplicados en la interfaz
+                const seenBases = new Set();
+                const uniqueFilteredFiles = filteredFiles.filter((f) => {
+                    const baseName = (f.nombre.split("/").pop() || f.nombre).toLowerCase();
+                    if (seenBases.has(baseName)) return false;
+                    seenBases.add(baseName);
+                    return true;
+                });
+
                 const sectionsHtml = generarHtmlCategorizadoArchivos(
-                    filteredFiles,
+                    uniqueFilteredFiles,
                     ot,
                     baseUrl,
                     "calidad",
@@ -7018,15 +7024,22 @@ function generarHtmlCategorizadoCastingAprobados(
             const iconHover = isImg
                 ? `${getBaseUrl()}images/galeria.png`
                 : `${getBaseUrl()}images/pdf-view.png`;
-            const tipoParam = f.tipo || "otro";
+            const safeName = nombre.replace(/'/g, "\\'");
+            const safeOt = otClean.replace(/'/g, "\\'");
+            const safeTipo = tipoParam.replace(/'/g, "\\'");
+            const fnViewer = typeof window.almacenVerPdf === 'function' ? 'almacenVerPdf' : 'calidadVerPdf';
             html += `<div class="dibujos-file-card ${sec.claseCard} select-file-card" style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);background:#fff;padding:10px;border:1.5px solid #e2e8f0;">
-                <div class="file-icon-wrapper" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')" style="cursor:pointer;margin-top:10px;">
+                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
+                    <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="eliminarArchivoServidorCategorizado('${safeOt}', '${safeName}', '${safeTipo}')" title="Eliminar del servidor">&times;</button>
+                </div>
+                <div class="file-icon-wrapper" onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')" style="cursor:pointer;margin-top:10px;">
                     <img src="${iconDefault}" class="file-icon icon-default" style="width:48px;height:auto;">
                     <img src="${iconHover}" class="file-icon icon-hover" style="width:48px;height:auto;">
                 </div>
-                <div class="file-name" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')" style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;">${baseName}</div>
-                <div class="file-actions" style="width:100%;margin-top:auto;">
-                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:5px 12px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;width:100%;background:#15803d;color:white;border-color:#15803d;" onclick="almacenVerPdf('${otClean}','${nombre}','${tipoParam}')">Ver</button>
+                <div class="file-name" onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')" style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;">${baseName}</div>
+                <div class="file-actions" style="width:100%;margin-top:auto;display:flex;gap:5px;">
+                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;background:#15803d;color:white;border-color:#15803d;" onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')">Ver</button>
+                    <button type="button" class="btn-dibujos btn-dibujos-sm" style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;background:#dc2626;color:white;border:none;cursor:pointer;" onclick="eliminarArchivoServidorCategorizado('${safeOt}','${safeName}','${safeTipo}')">Eliminar</button>
                 </div>
             </div>`;
         });
