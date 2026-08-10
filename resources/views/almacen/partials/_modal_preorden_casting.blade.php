@@ -4,7 +4,7 @@
         <div class="alm-modal-header alm-background-linear-gradient-135deg-0369a1-0284c7 alm-padding-2-2em-2-5em-1-5em alm-position-relative" style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%);">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalPreOrdenCasting()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
+                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar" style="width: 36px !important; height: 36px !important;">
                 </button>
             </div>
             <h3 class="alm-font-size-2em alm-margin-0 alm-font-family-Poppins-sans-serif alm-font-weight-700 alm-color-fff" style="letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.15);">

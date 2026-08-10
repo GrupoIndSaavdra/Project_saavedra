@@ -8,7 +8,7 @@
         <div class="alm-modal-header lib-modal-header lib-modal-header-rechazo" id="scar-modal-header">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalScar()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
+                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar" style="width: 36px !important; height: 36px !important;">
                 </button>
             </div>
             <div class="lib-header-top">

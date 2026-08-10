@@ -40,110 +40,165 @@
             <aside class="alm-sidebar">
 
 
-                <div class="alm-filters-card alm-margin-bottom-2em alm-background-rgba-255-255-255-0-95 alm-backdrop-filter-blur-10px alm-border-radius-12px alm-box-shadow-0-4px-15px-rgba-0-0-0-0-08 alm-position-relative alm-padding-1-6em">
-                    <div class="alm-display-flex alm-align-items-center alm-gap-12px alm-margin-bottom-16px alm-border-bottom-2px-solid-e2e8f0 alm-padding-bottom-12px">
-                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda" class="alm-width-30px alm-height-30px alm-object-fit-contain">
-                        <h2 class="alm-margin-0 alm-font-size-1-30rem alm-color-0f172a alm-font-weight-700">Guía de Estados de Modelo</h2>
+                <div
+                    class="alm-filters-card alm-margin-bottom-2em alm-background-rgba-255-255-255-0-95 alm-backdrop-filter-blur-10px alm-border-radius-12px alm-box-shadow-0-4px-15px-rgba-0-0-0-0-08 alm-position-relative alm-padding-1-6em">
+                    <div
+                        class="alm-display-flex alm-align-items-center alm-gap-12px alm-margin-bottom-16px alm-border-bottom-2px-solid-e2e8f0 alm-padding-bottom-12px">
+                        <img src="{{ asset('images/Quality.png') }}" alt="Leyenda"
+                            class="alm-width-30px alm-height-30px alm-object-fit-contain">
+                        <h2 class="alm-margin-0 alm-font-size-1-30rem alm-color-0f172a alm-font-weight-700">Guía de Estados
+                            de Modelo</h2>
                     </div>
 
-                    <h3 class="alm-font-size-0-92rem alm-color-475569 alm-font-weight-700 alm-margin-0-0-10px-0 alm-border-left-4px-solid-94a3b8 alm-padding-left-8px">Estados de Transición</h3>
-                    <div class="legend-grid-compact alm-display-flex alm-flex-wrap-wrap alm-justify-content-center alm-gap-8px alm-margin-bottom-20px">
+                    <h3
+                        class="alm-font-size-0-92rem alm-color-475569 alm-font-weight-700 alm-margin-0-0-10px-0 alm-border-left-4px-solid-94a3b8 alm-padding-left-8px">
+                        Estados de Transición</h3>
+                    <div
+                        class="legend-grid-compact alm-display-flex alm-flex-wrap-wrap alm-justify-content-center alm-gap-8px alm-margin-bottom-20px">
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-f1f5f9 alm-border-2px-solid-cbd5e1 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-f1f5f9 alm-border-2px-solid-cbd5e1 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Recibido.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-475569 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Nuevo</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-475569 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Nuevo</span>
                         </div>
 
                         @if (Auth::user()->perfil != 4)
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-e0e7ff alm-border-2px-solid-818cf8 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
-                                <img src="{{ asset('images/enviando.png') }}" class="alm-legend-icon">
-                            </span>
-                            <span class="alm-font-size-0-80rem alm-color-4f46e5 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Correo Enviado</span>
-                        </div>
+                            <div
+                                class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                                <span
+                                    class="alm-display-flex alm-background-e0e7ff alm-border-2px-solid-818cf8 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                                    <img src="{{ asset('images/enviando.png') }}" class="alm-legend-icon">
+                                </span>
+                                <span
+                                    class="alm-font-size-0-80rem alm-color-4f46e5 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Correo
+                                    Enviado</span>
+                            </div>
                         @endif
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-fffbeb alm-border-2px-solid-f59e0b alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-fffbeb alm-border-2px-solid-f59e0b alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Revisando.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-b45309 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">En Revisión</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-b45309 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">En
+                                Revisión</span>
                         </div>
                     </div>
 
-                    <h3 class="alm-font-size-0-92rem alm-color-0f172a alm-font-weight-700 alm-margin-0-0-10px-0 alm-border-left-4px-solid-3b82f6 alm-padding-left-8px">Estados Prioritarios</h3>
-                    <div class="legend-grid-compact alm-display-flex alm-flex-wrap-wrap alm-justify-content-center alm-gap-8px">
+                    <h3
+                        class="alm-font-size-0-92rem alm-color-0f172a alm-font-weight-700 alm-margin-0-0-10px-0 alm-border-left-4px-solid-3b82f6 alm-padding-left-8px">
+                        Estados Prioritarios</h3>
+                    <div
+                        class="legend-grid-compact alm-display-flex alm-flex-wrap-wrap alm-justify-content-center alm-gap-8px">
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-eff6ff alm-border-2px-solid-60a5fa alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-eff6ff alm-border-2px-solid-60a5fa alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/pdf-view.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-2563eb alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Pre-Orden</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-2563eb alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Pre-Orden</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-f0f9ff alm-border-2px-solid-0ea5e9 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-f0f9ff alm-border-2px-solid-0ea5e9 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Espera.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-0369a1 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Tengo Modelo</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-0369a1 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Tengo
+                                Modelo</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-ecfdf5 alm-border-2px-solid-10b981 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-ecfdf5 alm-border-2px-solid-10b981 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Quality.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-047857 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Aprobado</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-047857 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Aprobado</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-fef2f2 alm-border-2px-solid-ef4444 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-fef2f2 alm-border-2px-solid-ef4444 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Quality.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-b91c1c alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Rechazado</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-b91c1c alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Rechazado</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-fef9c3 alm-border-2px-solid-eab308 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-fef9c3 alm-border-2px-solid-eab308 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Quality.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-854d0e alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Mixto</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-854d0e alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Mixto</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-f0fdf4 alm-border-2px-solid-059669 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-f0fdf4 alm-border-2px-solid-059669 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/pdf-view.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-15803d alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Casting</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-15803d alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Casting</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-fdf2f8 alm-border-2px-solid-ec4899 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-fdf2f8 alm-border-2px-solid-ec4899 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Reproceso.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-be185d alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Reproceso</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-be185d alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Reproceso</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-f3e8ff alm-border-2px-solid-9333ea alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-f3e8ff alm-border-2px-solid-9333ea alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Proveedor.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-9333ea alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Enviado a Proveedor</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-9333ea alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Enviado
+                                a Proveedor</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-ecfdf5 alm-border-2px-solid-10b981 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-ecfdf5 alm-border-2px-solid-10b981 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Aprobado.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-047857 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Aprobado Final</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-047857 alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Aprobado
+                                Final</span>
                         </div>
 
-                        <div class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
-                            <span class="alm-display-flex alm-background-fef2f2 alm-border-2px-solid-dc2626 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
+                        <div
+                            class="legend-compact-item alm-width-calc-33-33-6pxpct alm-display-flex alm-flex-direction-column alm-align-items-center alm-padding-10px-6px alm-background-f8fafc alm-border-1-5px-solid-e2e8f0 alm-border-radius-8px alm-min-height-102px alm-justify-content-center">
+                            <span
+                                class="alm-display-flex alm-background-fef2f2 alm-border-2px-solid-dc2626 alm-align-items-center alm-justify-content-center alm-width-54px alm-height-54px alm-border-radius-50pct alm-box-shadow-0-2px-4px-rgba-0-0-0-0-04 alm-flex-shrink-0">
                                 <img src="{{ asset('images/Rechazado.png') }}" class="alm-legend-icon">
                             </span>
-                            <span class="alm-font-size-0-80rem alm-color-b91c1c alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Rechazado Final</span>
+                            <span
+                                class="alm-font-size-0-80rem alm-color-b91c1c alm-font-weight-700 alm-margin-top-7px alm-text-align-center alm-line-height-1-1">Rechazado
+                                Final</span>
                         </div>
                     </div>
                 </div>
@@ -172,11 +227,14 @@
                 </style>
 
                 <!-- Zoom Tooltip Flotante (Mercado Libre / Amazon Style) -->
-                <div id="legend-zoom-tooltip" class="alm-position-fixed alm-display-none alm-pointer-events-none alm-z-index-99999 alm-background-rgba-255-255-255-0-98 alm-backdrop-filter-blur-10px alm-border-radius-12px alm-box-shadow-0-10px-25px-rgba-0-0-0-0-15 alm-border-3px-solid-cbd5e1 alm-padding-16px alm-width-170px alm-height-180px alm-flex-direction-column alm-align-items-center alm-justify-content-center alm-box-sizing-border-box alm-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease alm-opacity-0 alm-transform-scale-0-9 alm-font-family-Poppins-sans-serif">
-                    <span id="legend-zoom-circle" class="alm-display-flex alm-align-items-center alm-justify-content-center alm-width-90px alm-height-90px alm-border-radius-50pct alm-box-shadow-0-4px-8px-rgba-0-0-0-0-06 alm-flex-shrink-0 alm-border-3px-solid-transparent">
+                <div id="legend-zoom-tooltip"
+                    class="alm-position-fixed alm-display-none alm-pointer-events-none alm-z-index-99999 alm-background-rgba-255-255-255-0-98 alm-backdrop-filter-blur-10px alm-border-radius-12px alm-box-shadow-0-10px-25px-rgba-0-0-0-0-15 alm-border-3px-solid-cbd5e1 alm-padding-16px alm-width-170px alm-height-180px alm-flex-direction-column alm-align-items-center alm-justify-content-center alm-box-sizing-border-box alm-transition-transform-0-15s-cubic-bezier-0-175-0-885-0-32-1-25-opacity-0-15s-ease alm-opacity-0 alm-transform-scale-0-9 alm-font-family-Poppins-sans-serif">
+                    <span id="legend-zoom-circle"
+                        class="alm-display-flex alm-align-items-center alm-justify-content-center alm-width-90px alm-height-90px alm-border-radius-50pct alm-box-shadow-0-4px-8px-rgba-0-0-0-0-06 alm-flex-shrink-0 alm-border-3px-solid-transparent">
                         <img id="legend-zoom-img" src="" class="alm-width-55px alm-height-55px alm-object-fit-contain">
                     </span>
-                    <span id="legend-zoom-label" class="alm-font-size-1-08rem alm-font-weight-800 alm-margin-top-10px alm-text-align-center alm-line-height-1-2"></span>
+                    <span id="legend-zoom-label"
+                        class="alm-font-size-1-08rem alm-font-weight-800 alm-margin-top-10px alm-text-align-center alm-line-height-1-2"></span>
                 </div>
 
                 <script>
@@ -359,30 +417,35 @@
                         </div>
 
                         @if ($estado === 'activa')
-                        {{-- ── BARRA DE SINCRONIZACIÓN MANUAL (solo tabla Activa) ── --}}
-                        <div id="sync-bar-activa" class="alm-display-flex alm-align-items-center alm-justify-content-space-between alm-flex-wrap-wrap alm-gap-10px alm-padding-10px-20px alm-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct alm-border-bottom-1px-solid-bae6fd alm-font-size-0-85rem alm-color-0369a1 alm-font-family-Poppins-sans-serif">
-                            <span id="sync-status-almacen" class="alm-display-flex alm-align-items-center alm-gap-6px alm-font-weight-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0369a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="alm-flex-shrink-0">
-                                    <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
-                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                                </svg>
-                                <span id="sync-last-time-almacen">Sincronización automática activa</span>
-                            </span>
-                            <button
-                                id="btn-sync-manual-almacen"
-                                onclick="sincronizarDibujos(true)"
-                                title="Sincronizar archivos ahora"
-                                class="alm-display-inline-flex alm-align-items-center alm-gap-7px alm-padding-7px-18px alm-background-linear-gradient-135deg-0369a1-0-0284c7-100pct alm-color-fff alm-border-none alm-border-radius-8px alm-font-weight-700 alm-font-size-0-82rem alm-font-family-Poppins-sans-serif alm-cursor-pointer alm-box-shadow-0-3px-10px-rgba-3-105-161-0-25 alm-transition-all-0-2s-ease alm-white-space-nowrap"
-                                onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(3,105,161,0.35)';"
-                                onmouseout="this.style.transform=''; this.style.boxShadow='0 3px 10px rgba(3,105,161,0.25)';"
-                            >
-                                <svg id="sync-icon-almacen" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline>
-                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                                </svg>
-                                Sincronizar ahora
-                            </button>
-                        </div>
+                            {{-- ── BARRA DE SINCRONIZACIÓN MANUAL (solo tabla Activa) ── --}}
+                            <div id="sync-bar-activa"
+                                class="alm-display-flex alm-align-items-center alm-justify-content-space-between alm-flex-wrap-wrap alm-gap-10px alm-padding-10px-20px alm-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct alm-border-bottom-1px-solid-bae6fd alm-font-size-0-85rem alm-color-0369a1 alm-font-family-Poppins-sans-serif">
+                                <span id="sync-status-almacen"
+                                    class="alm-display-flex alm-align-items-center alm-gap-6px alm-font-weight-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                        stroke="#0369a1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                                        class="alm-flex-shrink-0">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <polyline points="1 20 1 14 7 14"></polyline>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                    </svg>
+                                    <span id="sync-last-time-almacen">Sincronización automática activa</span>
+                                </span>
+                                <button id="btn-sync-manual-almacen" onclick="sincronizarDibujos(true)"
+                                    title="Sincronizar archivos ahora"
+                                    class="alm-display-inline-flex alm-align-items-center alm-gap-7px alm-padding-7px-18px alm-background-linear-gradient-135deg-0369a1-0-0284c7-100pct alm-color-fff alm-border-none alm-border-radius-8px alm-font-weight-700 alm-font-size-0-82rem alm-font-family-Poppins-sans-serif alm-cursor-pointer alm-box-shadow-0-3px-10px-rgba-3-105-161-0-25 alm-transition-all-0-2s-ease alm-white-space-nowrap"
+                                    onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 5px 15px rgba(3,105,161,0.35)';"
+                                    onmouseout="this.style.transform=''; this.style.boxShadow='0 3px 10px rgba(3,105,161,0.25)';">
+                                    <svg id="sync-icon-almacen" xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="23 4 23 10 17 10"></polyline>
+                                        <polyline points="1 20 1 14 7 14"></polyline>
+                                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                                    </svg>
+                                    Sincronizar ahora
+                                </button>
+                            </div>
                         @endif
 
                         @if ($registrosEstado->isEmpty())
@@ -450,15 +513,18 @@
                                                 $isReprocesoOT = preg_match('/_R\d+$/i', $reg->ot);
                                                 $baseOtOfReg = preg_replace('/_R\d+$/i', '', $reg->ot);
                                                 preg_match('/_R(\d+)$/i', $reg->ot, $mReg);
-                                                $sReg = isset($mReg[1]) ? (int)$mReg[1] : 0;
+                                                $sReg = isset($mReg[1]) ? (int) $mReg[1] : 0;
 
-                                                $allowFileCrossOt = function($fileOt) use ($reg, $isReprocesoOT, $baseOtOfReg, $sReg) {
-                                                    if ($fileOt === $reg->ot) return true;
-                                                    if (!$isReprocesoOT) return false;
+                                                $allowFileCrossOt = function ($fileOt) use ($reg, $isReprocesoOT, $baseOtOfReg, $sReg) {
+                                                    if ($fileOt === $reg->ot)
+                                                        return true;
+                                                    if (!$isReprocesoOT)
+                                                        return false;
                                                     $baseOtOfFile = preg_replace('/_R\d+$/i', '', $fileOt);
-                                                    if ($baseOtOfFile !== $baseOtOfReg) return false;
+                                                    if ($baseOtOfFile !== $baseOtOfReg)
+                                                        return false;
                                                     preg_match('/_R(\d+)$/i', $fileOt, $mFile);
-                                                    $sFile = isset($mFile[1]) ? (int)$mFile[1] : 0;
+                                                    $sFile = isset($mFile[1]) ? (int) $mFile[1] : 0;
                                                     return $sFile < $sReg;
                                                 };
 
@@ -470,7 +536,8 @@
                                                     if (is_array($configs)) {
                                                         foreach ($configs as $val) {
                                                             $val = strtolower($val);
-                                                            if (str_contains($val, 'opcional')) continue;
+                                                            if (str_contains($val, 'opcional'))
+                                                                continue;
                                                             $parts = explode(',', $val);
                                                             foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
                                                                 foreach ($parts as $p) {
@@ -531,7 +598,8 @@
                                                             $parts = explode(',', strtolower($dc));
                                                             foreach ($parts as $p) {
                                                                 $p = trim($p);
-                                                                if ($p !== '') $parsedCurrent[] = $p;
+                                                                if ($p !== '')
+                                                                    $parsedCurrent[] = $p;
                                                             }
                                                         }
 
@@ -541,7 +609,7 @@
                                                         } else {
                                                             // Fallback: si la OT actual aún no tiene decisiones, mostrar las
                                                             // rechazadas de la OT anterior (las que se están re-procesando)
-                                                            $prevOt = preg_replace_callback('/_R(\d+)$/i', function($m) {
+                                                            $prevOt = preg_replace_callback('/_R(\d+)$/i', function ($m) {
                                                                 $num = intval($m[1]) - 1;
                                                                 return $num > 0 ? '_R' . $num : '';
                                                             }, $reg->ot);
@@ -555,7 +623,8 @@
                                                                 $parts = explode(',', strtolower($dc));
                                                                 foreach ($parts as $p) {
                                                                     $p = trim($p);
-                                                                    if ($p !== '') $parsedPrev[] = $p;
+                                                                    if ($p !== '')
+                                                                        $parsedPrev[] = $p;
                                                                 }
                                                             }
                                                             if (!empty($parsedPrev)) {
@@ -576,7 +645,8 @@
                                                                 $parts = explode(',', strtolower($dc));
                                                                 foreach ($parts as $p) {
                                                                     $p = trim($p);
-                                                                    if ($p !== '') $parsedDecided[] = $p;
+                                                                    if ($p !== '')
+                                                                        $parsedDecided[] = $p;
                                                                 }
                                                             }
 
@@ -597,7 +667,7 @@
                                                 // Para OTs base, están en la misma OT.
                                                 $otParaRechazados = $reg->ot;
                                                 if (preg_match('/_R\d+$/i', $reg->ot)) {
-                                                    $otParaRechazados = preg_replace_callback('/_R(\d+)$/i', function($m) {
+                                                    $otParaRechazados = preg_replace_callback('/_R(\d+)$/i', function ($m) {
                                                         $num = intval($m[1]) - 1;
                                                         return $num > 0 ? '_R' . $num : '';
                                                     }, $reg->ot);
@@ -611,21 +681,21 @@
                                                     ->toArray();
 
 
-                                                                // Cuando esta OT ES un reproceso (_R1, _R2...) y tiene
-                                                                // pre-orden generada, los dibujos/ayudas de las clases
-                                                                // rechazadas ya estan siendo trabajadas nuevamente:
-                                                                // mostrarlas como aprobadas (limpiar clasesRechazadas).
-                                                                $reprocesoTienePreOrden = false;
-                                                                if (preg_match('/_R\d+$/i', $reg->ot) && !empty($clasesRechazadas)) {
-                                                                    $reprocesoTienePreOrden = (
-                                                                        $reg->pre_orden_sent
-                                                                        || $reg->pre_orden_email_sent
-                                                                        || \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->exists()
-                                                                    );
-                                                                    if ($reprocesoTienePreOrden) {
-                                                                        $clasesRechazadas = [];
-                                                                    }
-                                                                }
+                                                // Cuando esta OT ES un reproceso (_R1, _R2...) y tiene
+                                                // pre-orden generada, los dibujos/ayudas de las clases
+                                                // rechazadas ya estan siendo trabajadas nuevamente:
+                                                // mostrarlas como aprobadas (limpiar clasesRechazadas).
+                                                $reprocesoTienePreOrden = false;
+                                                if (preg_match('/_R\d+$/i', $reg->ot) && !empty($clasesRechazadas)) {
+                                                    $reprocesoTienePreOrden = (
+                                                        $reg->pre_orden_sent
+                                                        || $reg->pre_orden_email_sent
+                                                        || \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->exists()
+                                                    );
+                                                    if ($reprocesoTienePreOrden) {
+                                                        $clasesRechazadas = [];
+                                                    }
+                                                }
                                                 $rechazadosDibujos = [];
                                                 $rechazadosAyudas = [];
                                                 $rechazadosOtros = [];
@@ -678,18 +748,19 @@
                                                 $ayudasArchivos = [];
                                                 $otrosArchivos = [];
                                                 $baseNames = $dibujoBaseNames;
-                                                $normBaseNames = array_map(function($b) { return strtolower(preg_replace('/[\s_]+/', '', $b)); }, $baseNames);
+                                                $normBaseNames = array_map(function ($b) {
+                                                    return strtolower(preg_replace('/[\s_]+/', '', $b)); }, $baseNames);
 
                                                 // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
                                                 $ayudasGlobalesBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
                                                 foreach ($activeClassesForOt as $activeClass) {
                                                     $classNameProper = ucfirst(strtolower($activeClass));
-                                                    
+
                                                     $candidateDirs = [
                                                         $ayudasGlobalesBase . '/' . $classNameProper,
                                                         $ayudasGlobalesBase . '/' . $classNameProper . '/Fundicion'
                                                     ];
-                                                    
+
                                                     foreach ($candidateDirs as $globalClassDir) {
                                                         if (\Illuminate\Support\Facades\Storage::disk('local')->exists($globalClassDir)) {
                                                             $files = \Illuminate\Support\Facades\Storage::disk('local')->files($globalClassDir);
@@ -705,11 +776,11 @@
                                                                             'tipo' => 'ayuda',
                                                                             'ot' => $reg->ot,
                                                                         ];
-                                                                        
+
                                                                         // Las ayudas globales SIEMPRE se muestran, aunque la clase esté rechazada.
                                                                         // Son documentos de referencia permanentes.
                                                                         $ayudasArchivos[] = $ayudaData;
-                                                                        
+
                                                                         $baseNames[] = $base;
                                                                         $normBaseNames[] = $normBase;
                                                                     }
@@ -862,26 +933,26 @@
                                                                 }
                                                             }
                                                             if ($hasKnownClass) {
-                                                                    // Ayudas de preordenes de Calidad SIEMPRE visibles (documentos de referencia).
-                                                                    $matchesActive = false;
-                                                                    foreach ($activeClassesForOt as $ac) {
-                                                                        if (strpos($fileLower, $ac) !== false) {
+                                                                // Ayudas de preordenes de Calidad SIEMPRE visibles (documentos de referencia).
+                                                                $matchesActive = false;
+                                                                foreach ($activeClassesForOt as $ac) {
+                                                                    if (strpos($fileLower, $ac) !== false) {
+                                                                        $matchesActive = true;
+                                                                        break;
+                                                                    }
+                                                                }
+                                                                // Incluir clases rechazadas también
+                                                                if (!$matchesActive) {
+                                                                    foreach ($clasesRechazadas as $rc) {
+                                                                        if (strpos($fileLower, $rc) !== false) {
                                                                             $matchesActive = true;
                                                                             break;
                                                                         }
                                                                     }
-                                                                    // Incluir clases rechazadas también
-                                                                    if (!$matchesActive) {
-                                                                        foreach ($clasesRechazadas as $rc) {
-                                                                            if (strpos($fileLower, $rc) !== false) {
-                                                                                $matchesActive = true;
-                                                                                break;
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                    if (!$matchesActive)
-                                                                        continue;
-                                                                } else {
+                                                                }
+                                                                if (!$matchesActive)
+                                                                    continue;
+                                                            } else {
                                                                 if (!$allowFileCrossOt($otName)) {
                                                                     continue;
                                                                 }
@@ -1021,16 +1092,16 @@
                                                                 }
                                                             }
                                                             if ($hasKnownClass) {
-                                                                    $matchesActive = false;
-                                                                    foreach ($activeClassesForOt as $ac) {
-                                                                        if (strpos($fileLower, $ac) !== false) {
-                                                                            $matchesActive = true;
-                                                                            break;
-                                                                        }
+                                                                $matchesActive = false;
+                                                                foreach ($activeClassesForOt as $ac) {
+                                                                    if (strpos($fileLower, $ac) !== false) {
+                                                                        $matchesActive = true;
+                                                                        break;
                                                                     }
-                                                                    if (!$matchesActive)
-                                                                        continue;
-                                                                } else {
+                                                                }
+                                                                if (!$matchesActive)
+                                                                    continue;
+                                                            } else {
                                                                 if (!$allowFileCrossOt($otName)) {
                                                                     continue;
                                                                 }
@@ -1066,16 +1137,16 @@
                                                                 }
                                                             }
                                                             if ($hasKnownClass) {
-                                                                    $matchesActive = false;
-                                                                    foreach ($activeClassesForOt as $ac) {
-                                                                        if (strpos($fileLower, $ac) !== false) {
-                                                                            $matchesActive = true;
-                                                                            break;
-                                                                        }
+                                                                $matchesActive = false;
+                                                                foreach ($activeClassesForOt as $ac) {
+                                                                    if (strpos($fileLower, $ac) !== false) {
+                                                                        $matchesActive = true;
+                                                                        break;
                                                                     }
-                                                                    if (!$matchesActive)
-                                                                        continue;
-                                                                } else {
+                                                                }
+                                                                if (!$matchesActive)
+                                                                    continue;
+                                                            } else {
                                                                 if (!$allowFileCrossOt($otName)) {
                                                                     continue;
                                                                 }
@@ -1118,10 +1189,10 @@
                                                         $status = $targetReg->calidad_revision_status ?? ($fileHistory ? $fileHistory->calidad_revision_status : null);
                                                         $calidadAlertaEnviada = (
                                                             in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']) ||
-                                                            \App\Models\LiberacionModeloFundicion::where(function($q) use ($archivo, $targetReg) {
+                                                            \App\Models\LiberacionModeloFundicion::where(function ($q) use ($archivo, $targetReg) {
                                                                 $q->where('ot', '=', $archivo['ot'])->orWhere('ot', '=', $targetReg->ot);
                                                             })->where('alerta_enviada', true)->exists() ||
-                                                            \App\Models\ScarModelo::where(function($q) use ($archivo, $targetReg) {
+                                                            \App\Models\ScarModelo::where(function ($q) use ($archivo, $targetReg) {
                                                                 $q->where('ot', '=', $archivo['ot'])->orWhere('ot', '=', $targetReg->ot);
                                                             })->whereIn('estatus', ['alertado', 'cerrado'])->exists()
                                                         );
@@ -1188,7 +1259,7 @@
                                                 $countAyudas = count($ayudasArchivos);
                                                 $countOtros = count($otrosArchivos);
 
-                                                // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÚLTIMO VEREDICTO DE CADA CLASE ──
+                                                // ── CALCULAR APROBADOS Y RECHAZADOS DE CADA CLASE ──
                                                 // (Calculado ANTES de showControlCard para poder usarlos en la lógica de visibilidad)
                                                 $liberacionesAll = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)->get();
                                                 $latestLiberacionesByClass = [];
@@ -1219,7 +1290,7 @@
                                                 $rechazadosRaw = [];
                                                 foreach ($latestLiberacionesByClass as $tipo => $data) {
                                                     $lib = $data['lib'];
-                                                    // Solo considerar como veredicto válido si Calidad ya envió la alerta
+                                                    // Solo considerar como liberación válida si Calidad ya envió la alerta
                                                     // (alerta_enviada=true). Si solo guardó sin enviar, ignorar.
                                                     if ($lib->estado !== 'pendiente' && $lib->alerta_enviada) {
                                                         if ($lib->decision === 'aprobar') {
@@ -1238,120 +1309,197 @@
                                                     return in_array(strtolower($clase), $activeClassesForOt);
                                                 }));
                                                 // Clasificar dibujos y ayudas por etapa (Fabricación de Modelo vs Casting)
-                                                 $aprobadosNorm = array_map('strtolower', $aprobados);
-                                                 $rechazadosNorm = array_map('strtolower', $rechazados);
-                                                 $clasesFabricacion = array_values(array_diff($activeClassesForOt, array_merge($aprobadosNorm, $rechazadosNorm)));
-                                                 $isMixedProcess = (count($aprobadosNorm) > 0 && count($clasesFabricacion) > 0);
+                                                $aprobadosNorm = array_map('strtolower', $aprobados);
+                                                $rechazadosNorm = array_map('strtolower', $rechazados);
+                                                $clasesFabricacion = array_values(array_diff($activeClassesForOt, array_merge($aprobadosNorm, $rechazadosNorm)));
+                                                $isMixedProcess = (count($aprobadosNorm) > 0 && count($clasesFabricacion) > 0);
 
-                                                 $dibujosCasting = array_values(array_filter($archivos, function($d) use ($aprobadosNorm) {
-                                                     $nameLow = strtolower($d['nombre']);
-                                                     foreach ($aprobadosNorm as $ap) {
-                                                         if ($ap !== '' && strpos($nameLow, $ap) !== false) return true;
-                                                     }
-                                                     return false;
-                                                 }));
+                                                $dibujosCasting = array_values(array_filter($archivos, function ($d) use ($aprobadosNorm) {
+                                                    $nameLow = strtolower($d['nombre']);
+                                                    foreach ($aprobadosNorm as $ap) {
+                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
 
-                                                 $dibujosModelo = array_values(array_filter($archivos, function($d) use ($clasesFabricacion) {
-                                                     $nameLow = strtolower($d['nombre']);
-                                                     foreach ($clasesFabricacion as $cf) {
-                                                         if ($cf !== '' && strpos($nameLow, $cf) !== false) return true;
-                                                     }
-                                                     return false;
-                                                 }));
+                                                $dibujosModelo = array_values(array_filter($archivos, function ($d) use ($clasesFabricacion) {
+                                                    $nameLow = strtolower($d['nombre']);
+                                                    foreach ($clasesFabricacion as $cf) {
+                                                        if ($cf !== '' && strpos($nameLow, $cf) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
 
-                                                 $ayudasCasting = array_values(array_filter($ayudasArchivos, function($a) use ($aprobadosNorm) {
-                                                     $nameLow = strtolower($a['nombre']);
-                                                     foreach ($aprobadosNorm as $ap) {
-                                                         if ($ap !== '' && strpos($nameLow, $ap) !== false) return true;
-                                                     }
-                                                     return false;
-                                                 }));
+                                                $ayudasCasting = array_values(array_filter($ayudasArchivos, function ($a) use ($aprobadosNorm) {
+                                                    $nameLow = strtolower($a['nombre']);
+                                                    foreach ($aprobadosNorm as $ap) {
+                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
 
-                                                 $ayudasModelo = array_values(array_filter($ayudasArchivos, function($a) use ($clasesFabricacion) {
-                                                     $nameLow = strtolower($a['nombre']);
-                                                     foreach ($clasesFabricacion as $cf) {
-                                                         if ($cf !== '' && strpos($nameLow, $cf) !== false) return true;
-                                                     }
-                                                     return false;
-                                                 }));
+                                                $ayudasModelo = array_values(array_filter($ayudasArchivos, function ($a) use ($clasesFabricacion) {
+                                                    $nameLow = strtolower($a['nombre']);
+                                                    foreach ($clasesFabricacion as $cf) {
+                                                        if ($cf !== '' && strpos($nameLow, $cf) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
 
-                                                 $dibujosRechazadosOrig = array_values(array_filter($archivos, function($d) use ($rechazadosNorm) {
-                                                     $nameLow = strtolower($d['nombre']);
-                                                     foreach ($rechazadosNorm as $r) {
-                                                         if ($r !== '' && strpos($nameLow, $r) !== false) return true;
-                                                     }
-                                                     return false;
-                                                 }));
+                                                $dibujosRechazadosOrig = array_values(array_filter($archivos, function ($d) use ($rechazadosNorm) {
+                                                    $nameLow = strtolower($d['nombre']);
+                                                    foreach ($rechazadosNorm as $r) {
+                                                        if ($r !== '' && strpos($nameLow, $r) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
 
-                                                 $ayudasRechazadosOrig = array_values(array_filter($ayudasArchivos, function($a) use ($rechazadosNorm) {
-                                                     $nameLow = strtolower($a['nombre']);
-                                                     foreach ($rechazadosNorm as $r) {
-                                                         if ($r !== '' && strpos($nameLow, $r) !== false) return true;
-                                                     }
-                                                     return false;
-                                                 }));
+                                                $ayudasRechazadosOrig = array_values(array_filter($ayudasArchivos, function ($a) use ($rechazadosNorm) {
+                                                    $nameLow = strtolower($a['nombre']);
+                                                    foreach ($rechazadosNorm as $r) {
+                                                        if ($r !== '' && strpos($nameLow, $r) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
 
-                                                 // Clasificar rechazados:
-                                                 // Guardar primero los que vienen del escaneo de filesystem (acumulados arriba)
-                                                 // y limpiar los arrays para que la reclasificación empiece de cero.
-                                                 $rechazadosOtrosFilesystem = $rechazadosOtros ?? [];
-                                                 $rechazadosAyudasFilesystem = $rechazadosAyudas ?? [];
-                                                 $rechazadosDibujos = $rechazadosDibujos ?? [];
-                                                 // Reclasificar $archivosRechazados (los de la lógica de otrosArchivos)
-                                                 $rechazadosAyudas = [];
-                                                 $rechazadosOtros = [];
-                                                 foreach ($archivosRechazados as $rArchivo) {
-                                                     $nameLow = strtolower($rArchivo['nombre']);
-                                                     $ext     = pathinfo($nameLow, PATHINFO_EXTENSION);
-                                                     $isImg   = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                                // Clasificar rechazados:
+                                                // Guardar primero los que vienen del escaneo de filesystem (acumulados arriba)
+                                                // y limpiar los arrays para que la reclasificación empiece de cero.
+                                                $rechazadosOtrosFilesystem = $rechazadosOtros ?? [];
+                                                $rechazadosAyudasFilesystem = $rechazadosAyudas ?? [];
+                                                $rechazadosDibujos = $rechazadosDibujos ?? [];
+                                                // Reclasificar $archivosRechazados (los de la lógica de otrosArchivos)
+                                                $rechazadosAyudas = [];
+                                                $rechazadosOtros = [];
+                                                foreach ($archivosRechazados as $rArchivo) {
+                                                    $nameLow = strtolower($rArchivo['nombre']);
+                                                    $ext = pathinfo($nameLow, PATHINFO_EXTENSION);
+                                                    $isImg = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
 
-                                                     $rArchivo['ot']   = $rArchivo['ot'] ?? $reg->ot;
-                                                     $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
+                                                    $rArchivo['ot'] = $rArchivo['ot'] ?? $reg->ot;
+                                                    $rArchivo['tipo'] = $rArchivo['tipo'] ?? ($isImg ? 'imagen' : 'otro');
 
-                                                     if (strpos($nameLow, 'scar') !== false || strpos($nameLow, 'f_ccl_scar') !== false || strpos($nameLow, 'f_ccl_rdm') !== false || strpos($nameLow, 'foto') !== false) {
-                                                          $rechazadosOtros[] = $rArchivo;
-                                                      } elseif (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
-                                                         if ($rArchivo['tipo'] === 'otro') $rArchivo['tipo'] = 'ayuda';
-                                                         $rechazadosAyudas[] = $rArchivo;
-                                                     } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
-                                                         $rechazadosDibujos[] = $rArchivo;
-                                                     } else {
-                                                         $rechazadosOtros[] = $rArchivo;
-                                                     }
-                                                 }
-                                                 // Combinar los del filesystem con los reclasificados, deduplicando por nombre base
-                                                 $baseNamesRechOtros = array_map(fn($a) => basename($a['nombre']), $rechazadosOtros);
-                                                 foreach ($rechazadosOtrosFilesystem as $rFs) {
-                                                     if (!in_array(basename($rFs['nombre']), $baseNamesRechOtros)) {
-                                                         $rechazadosOtros[] = $rFs;
-                                                         $baseNamesRechOtros[] = basename($rFs['nombre']);
-                                                     }
-                                                 }
-                                                 $baseNamesRechAyudas = array_map(fn($a) => basename($a['nombre']), $rechazadosAyudas);
-                                                 foreach ($rechazadosAyudasFilesystem as $rFs) {
-                                                     if (!in_array(basename($rFs['nombre']), $baseNamesRechAyudas)) {
-                                                         $rechazadosAyudas[] = $rFs;
-                                                         $baseNamesRechAyudas[] = basename($rFs['nombre']);
-                                                     }
-                                                 }
-                                                 $isReprocesoBadge = (bool) preg_match('/_R\d+$/i', $reg->ot);
-                                                 $count = count($dibujosModelo) + count($ayudasModelo) + count($dibujosCasting) + count($ayudasCasting) + count($dibujosRechazadosOrig) + count($ayudasRechazadosOrig) + count($almacenPreordenes) + count($calidadAprobadosLdm) + count($rechazadosDibujos) + count($rechazadosAyudas) + count($rechazadosOtros);
-
-                                                // ── CONTROL DE VISIBILIDAD DE LA CARD DE ALMACÉN ──
-                                                // La card se muestra siempre que:
-                                                //  (a) Calidad haya enviado al menos una alerta (hay aprobados o rechazados en BD), O
-                                                //  (b) El status aún no ha sido procesado completamente
-                                                // Importante: NO ocultar aunque el status sea 'calidad_aprobado' o similar,
-                                                // porque pueden llegar nuevas alertas parciales o re-envíos.
+                                                    if (strpos($nameLow, 'scar') !== false || strpos($nameLow, 'f_ccl_scar') !== false || strpos($nameLow, 'f_ccl_rdm') !== false || strpos($nameLow, 'foto') !== false) {
+                                                        $rechazadosOtros[] = $rArchivo;
+                                                    } elseif (strpos($nameLow, 'ayudas_visuales') !== false || strpos($nameLow, 'ayudas-visuales') !== false || $isImg) {
+                                                        if ($rArchivo['tipo'] === 'otro')
+                                                            $rArchivo['tipo'] = 'ayuda';
+                                                        $rechazadosAyudas[] = $rArchivo;
+                                                    } elseif (strpos($nameLow, 'dibujos') !== false || strpos($nameLow, 'dibujo') !== false) {
+                                                        $rechazadosDibujos[] = $rArchivo;
+                                                    } else {
+                                                        $rechazadosOtros[] = $rArchivo;
+                                                    }
+                                                }
+                                                // Combinar los del filesystem con los reclasificados, deduplicando por nombre base
+                                                $baseNamesRechOtros = array_map(fn($a) => basename($a['nombre']), $rechazadosOtros);
+                                                foreach ($rechazadosOtrosFilesystem as $rFs) {
+                                                    if (!in_array(basename($rFs['nombre']), $baseNamesRechOtros)) {
+                                                        $rechazadosOtros[] = $rFs;
+                                                        $baseNamesRechOtros[] = basename($rFs['nombre']);
+                                                    }
+                                                }
+                                                $baseNamesRechAyudas = array_map(fn($a) => basename($a['nombre']), $rechazadosAyudas);
+                                                foreach ($rechazadosAyudasFilesystem as $rFs) {
+                                                    if (!in_array(basename($rFs['nombre']), $baseNamesRechAyudas)) {
+                                                        $rechazadosAyudas[] = $rFs;
+                                                        $baseNamesRechAyudas[] = basename($rFs['nombre']);
+                                                    }
+                                                }
+                                                // ── CONTROL DE VISIBILIDAD DE LA CARD DE ALMACÉN Y CONTEO EXACTO DE TARJETAS ──
                                                 $hasVerdictosPendientes = count($aprobados) > 0 || count($rechazados) > 0;
                                                 $isFinalized = ($targetReg->calidad_revision_status === 'casting_aprobado') && !$hasVerdictosPendientes;
-                                                // Si hay clases que calidad marcó pero no han sido gestionadas por almacén, desbloquear la card
                                                 if ($hasVerdictosPendientes) {
                                                     $isFinalized = false;
                                                 }
-                                                // Calcular isCalidadAlerted aquí mismo
                                                 $isCalidadAlerted = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado'])
                                                     || \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->where('alerta_enviada', true)->exists();
+
+                                                $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
+
+                                                $rechazadosSinPreorden = [];
+                                                if ($isCalidadAlerted && count($rechazados) > 0 && !$reg->rechazos_procesados) {
+                                                    $rechazadosNormFab = array_map('strtolower', $rechazados);
+                                                    $preordenesSentClassesFab = [];
+                                                    $preOrdenesEnviadasFab = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 1)->get();
+                                                    foreach ($preOrdenesEnviadasFab as $poFab) {
+                                                        $filasFab = is_string($poFab->filas) ? json_decode($poFab->filas, true) : $poFab->filas;
+                                                        if (is_array($filasFab)) {
+                                                            foreach ($filasFab as $fFab) {
+                                                                if (!empty($fFab['clase'] ?? $fFab['clase_nombre'])) {
+                                                                    $preordenesSentClassesFab[] = strtolower($fFab['clase'] ?? $fFab['clase_nombre']);
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                    foreach ($rechazadosNormFab as $rClase) {
+                                                        $cubiertaFab = false;
+                                                        foreach ($preordenesSentClassesFab as $psc) {
+                                                            if (strpos($psc, $rClase) !== false || strpos($rClase, $psc) !== false) {
+                                                                $cubiertaFab = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if (!$cubiertaFab) {
+                                                            $rechazadosSinPreorden[] = $rClase;
+                                                        }
+                                                    }
+                                                }
+                                                $hayRechazadosSinPreorden = count($rechazadosSinPreorden) > 0;
+
+                                                $almacenPreordenesFab = array_values(array_filter($almacenPreordenes, function ($doc) use ($clasesFabricacion) {
+                                                    $nameLow = strtolower(basename($doc['nombre']));
+                                                    if (empty($clasesFabricacion))
+                                                        return true;
+                                                    if ((str_contains($nameLow, 'preorden') || str_contains($nameLow, 'pre-orden')) && !str_contains($nameLow, 'casting'))
+                                                        return true;
+                                                    foreach ($clasesFabricacion as $cf) {
+                                                        if ($cf !== '' && strpos($nameLow, $cf) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
+
+                                                $tieneArchivosFabricacion = count($dibujosModelo) > 0 || count($ayudasModelo) > 0 || count($almacenPreordenesFab) > 0;
+                                                $tieneFabricacion = (!$isCalidadAlerted && !$castingEmailSent) || $hayRechazadosSinPreorden || $tieneArchivosFabricacion;
+                                                $aprobadosNorm = array_map('strtolower', $aprobados);
+                                                $tieneAprobados = $isCalidadAlerted && (count($aprobados) > 0 || count($calidadAprobadosLdm) > 0 || count($dibujosCasting) > 0 || count($ayudasCasting) > 0);
+                                                $tieneRechazados = $isCalidadAlerted && (count($rechazados) > 0 || count($rechazadosOtros) > 0 || count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($dibujosRechazadosOrig) > 0 || count($ayudasRechazadosOrig) > 0);
+
+                                                $calidadAprobadosLdmCasting = array_values(array_filter($calidadAprobadosLdm, function ($doc) use ($aprobadosNorm) {
+                                                    if (empty($aprobadosNorm))
+                                                        return true;
+                                                    $nameLow = strtolower(basename($doc['nombre']));
+                                                    foreach ($aprobadosNorm as $ap) {
+                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
+                                                $almacenPreordenesCasting = array_values(array_filter($almacenPreordenes, function ($doc) use ($aprobadosNorm) {
+                                                    if (empty($aprobadosNorm))
+                                                        return false;
+                                                    $nameLow = strtolower(basename($doc['nombre']));
+                                                    if (strpos($nameLow, 'casting') === false)
+                                                        return false;
+                                                    foreach ($aprobadosNorm as $ap) {
+                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false)
+                                                            return true;
+                                                    }
+                                                    return false;
+                                                }));
+
+                                                $countVisibleFabricacion = $tieneFabricacion ? (count($dibujosModelo) + count($ayudasModelo) + count($almacenPreordenesFab)) : 0;
+                                                $countVisibleAprobados   = $tieneAprobados   ? (count($dibujosCasting) + count($ayudasCasting) + count($calidadAprobadosLdmCasting) + count($almacenPreordenesCasting)) : 0;
+                                                $countVisibleRechazados  = $tieneRechazados  ? (count($dibujosRechazadosOrig) + count($ayudasRechazadosOrig) + count($rechazadosDibujos) + count($rechazadosAyudas) + count($rechazadosOtros)) : 0;
+
+                                                $count = $countVisibleFabricacion + $countVisibleAprobados + $countVisibleRechazados;
 
                                                 $showControlCard = ($estado === 'activa' && !$isFinalized && (!$isCalidadAlerted || count($clasesFabricacion) > 0));
                                                 $hasFilesOrControl = ($count > 0 || $showControlCard);
@@ -1518,7 +1666,8 @@
                                             @endphp
 
                                             {{-- Fila principal --}}
-                                            <tr data-ot="{{ $reg->ot }}" data-estado-real="{{ $fsmState }}" data-is-fully-processed="{{ $targetReg->isAlmacenFullyProcessed() ? 'true' : 'false' }}">
+                                            <tr data-ot="{{ $reg->ot }}" data-estado-real="{{ $fsmState }}"
+                                                data-is-fully-processed="{{ $targetReg->isAlmacenFullyProcessed() ? 'true' : 'false' }}">
                                                 <td>
                                                     <div class="alm-ot-label">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}
                                                     </div>
@@ -1536,7 +1685,8 @@
                                                 </td>
                                                 <td class="d-text-center">
                                                     <div id="status-modelo-{{ $reg->ot }}">
-                                                        <div class="status-modelo-container alm-display-inline-flex alm-flex-direction-column alm-align-items-center alm-gap-2px alm-padding-6px alm-border-radius-8px">
+                                                        <div
+                                                            class="status-modelo-container alm-display-inline-flex alm-flex-direction-column alm-align-items-center alm-gap-2px alm-padding-6px alm-border-radius-8px">
                                                             <span class="badge-modelo-icon" title="{{ $tooltip }}"
                                                                 style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: {{ $bgColor }}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid {{ $borderColor }}; transition: all 0.2s ease;">
                                                                 <img src="{{ asset('images/' . $icon) }}" alt="{{ $label }}"
@@ -1557,7 +1707,8 @@
                                                 </td>
                                                 <td class="d-text-center">
                                                     @if($hasPendingChanges)
-                                                        <button class="btn-toggle-files" style="background: linear-gradient(135deg, #f97316, #ea580c); color: white; border: 1px solid #c2410c;"
+                                                        <button class="btn-toggle-files"
+                                                            style="background: linear-gradient(135deg, #f97316, #ea580c); color: white; border: 1px solid #c2410c;"
                                                             onclick="almacenRevisarCambios('{{ $reg->ot }}')">
                                                             Revisar Cambios
                                                         </button>
@@ -1577,95 +1728,57 @@
                                             @if ($hasFilesOrControl)
                                                 <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
                                                     <td colspan="6">
-                                                        @php
-                                                            // $isCalidadAlerted = true SOLO cuando Calidad haya enviado el correo de alerta.
-                                                            // Los statuses con prefijo 'calidad_*' se asignan al momento del envío del correo.
-                                                            // Los planos ('aprobado','rechazado','mixto') se asignan al guardar el formulario (ANTES del envío)
-                                                            // y NO deben activar los bloques de Almacén prematuramente.
-                                                            $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado');
-
-                                                            // Detectar si hay clases rechazadas que aún no tienen pre-orden de reproceso generada
-                                                            $rechazadosSinPreorden = [];
-                                                            if ($isCalidadAlerted && count($rechazados) > 0 && !$reg->rechazos_procesados) {
-                                                                $rechazadosNormFab = array_map('strtolower', $rechazados);
-                                                                $preordenesSentClassesFab = [];
-                                                                $preOrdenesEnviadasFab = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 1)->get();
-                                                                foreach ($preOrdenesEnviadasFab as $poFab) {
-                                                                    $filasFab = is_string($poFab->filas) ? json_decode($poFab->filas, true) : $poFab->filas;
-                                                                    if (is_array($filasFab)) {
-                                                                        foreach ($filasFab as $fFab) {
-                                                                            if (!empty($fFab['clase'] ?? $fFab['clase_nombre'])) {
-                                                                                $preordenesSentClassesFab[] = strtolower($fFab['clase'] ?? $fFab['clase_nombre']);
-                                                                            }
-                                                                        }
-                                                                    }
-                                                                }
-                                                                foreach ($rechazadosNormFab as $rClase) {
-                                                                    $cubiertaFab = false;
-                                                                    foreach ($preordenesSentClassesFab as $psc) {
-                                                                        if (strpos($psc, $rClase) !== false || strpos($rClase, $psc) !== false) {
-                                                                            $cubiertaFab = true;
-                                                                            break;
-                                                                        }
-                                                                    }
-                                                                    if (!$cubiertaFab) {
-                                                                        $rechazadosSinPreorden[] = $rClase;
-                                                                    }
-                                                                }
-                                                            }
-                                                            $hayRechazadosSinPreorden = count($rechazadosSinPreorden) > 0;
-
-                                                            $almacenPreordenesFab = array_values(array_filter($almacenPreordenes, function($doc) use ($clasesFabricacion) {
-                                                                $nameLow = strtolower(basename($doc['nombre']));
-                                                                if (empty($clasesFabricacion)) return true;
-                                                                if ((str_contains($nameLow, 'preorden') || str_contains($nameLow, 'pre-orden')) && !str_contains($nameLow, 'casting')) return true;
-                                                                foreach ($clasesFabricacion as $cf) {
-                                                                    if ($cf !== '' && strpos($nameLow, $cf) !== false) return true;
-                                                                }
-                                                                return false;
-                                                            }));
-                                                            $tieneArchivosFabricacion = count($dibujosModelo) > 0 || count($ayudasModelo) > 0 || count($almacenPreordenesFab) > 0;
-                                                            $tieneFabricacion = (!$isCalidadAlerted && !$castingEmailSent) || $hayRechazadosSinPreorden || $tieneArchivosFabricacion;
-                                                            $aprobadosNorm = array_map('strtolower', $aprobados);
-                                                            $tieneAprobados = $isCalidadAlerted && (count($aprobados) > 0 || count($calidadAprobadosLdm) > 0 || count($dibujosCasting) > 0 || count($ayudasCasting) > 0);
-                                                            $tieneRechazados = $isCalidadAlerted && (count($rechazados) > 0 || count($rechazadosOtros) > 0 || count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0);
-                                                        @endphp
-
                                                         {{-- CONTENEDOR PRINCIPAL PROCESOS (CONTENEDOR 0) --}}
-                                                        <div class="alm-contenedor-principal-procesos" style="display: flex; flex-direction: column; gap: 25px; width: 100%; margin-top: 15px;">
+                                                        <div class="alm-contenedor-principal-procesos"
+                                                            style="display: flex; flex-direction: column; gap: 25px; width: 100%; margin-top: 15px;">
 
                                                             {{-- CONTENEDOR 1: FABRICACIÓN / RE-PROCESO DE MODELO --}}
                                                             @if ($tieneFabricacion)
-                                                                <div class="alm-process-block" style="margin-bottom: 10px; padding: 20px; border-radius: 14px; background-color: #f0f9ff; border: 2px solid #0284c7; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);">
-                                                                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
-                                                                        <h3 style="margin: 0; color: #0284c7; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                                                                            <img src="{{ asset('images/almacen.png') }}" style="width: 30px; height: 30px; object-fit: contain;">
+                                                                <div class="alm-process-block"
+                                                                    style="margin-bottom: 10px; padding: 20px; border-radius: 14px; background-color: #f0f9ff; border: 2px solid #0284c7; box-shadow: 0 4px 14px rgba(2, 132, 199, 0.08);">
+                                                                    <div
+                                                                        style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
+                                                                        <h3
+                                                                            style="margin: 0; color: #0284c7; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                                                                            <img src="{{ asset('images/almacen.png') }}"
+                                                                                style="width: 30px; height: 30px; object-fit: contain;">
                                                                             @if ($hayRechazadosSinPreorden)
-                                                                                Documentos de Almacén ({{ implode(', ', array_map('ucfirst', $rechazadosSinPreorden)) }})
+                                                                                Documentos de Almacén
+                                                                                ({{ implode(', ', array_map('ucfirst', $rechazadosSinPreorden)) }})
                                                                             @else
-                                                                                Etapa: Fabricación / Re-Proceso de Modelo {{ count($clasesFabricacion) > 0 ? '(' . implode(', ', array_map('ucfirst', $clasesFabricacion)) . ')' : '' }}
+                                                                                Etapa: Fabricación / Re-Proceso de Modelo
+                                                                                {{ count($clasesFabricacion) > 0 ? '(' . implode(', ', array_map('ucfirst', $clasesFabricacion)) . ')' : '' }}
                                                                             @endif
                                                                         </h3>
-                                                                        <span style="font-size: 0.8rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 6px; border: 1px solid #bae6fd;">
+                                                                        <span
+                                                                            style="font-size: 0.8rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 4px 12px; border-radius: 6px; border: 1px solid #bae6fd;">
                                                                             {{ $hayRechazadosSinPreorden ? 'DOCUMENTOS ALMACÉN' : 'FABRICACIÓN / MODELO' }}
                                                                         </span>
                                                                     </div>
 
                                                                     {{-- Dibujos de Modelo --}}
                                                                     @if (count($dibujosModelo) > 0)
-                                                                        <h4 style="margin-top: 10px; margin-bottom: 10px; color: #005194; font-weight: 700;">Dibujos de Fundición (Modelo)</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                        <h4
+                                                                            style="margin-top: 10px; margin-bottom: 10px; color: #005194; font-weight: 700;">
+                                                                            Dibujos de Fundición (Modelo)</h4>
+                                                                        <div class="alm-pdf-grid"
+                                                                            style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($dibujosModelo as $archivoInfo)
-                                                                                <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                                                                <div class="dibujos-file-card"
+                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                            class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                            class="file-icon icon-hover">
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
                                                                                         {{ basename($archivoInfo['nombre']) }}
                                                                                     </div>
                                                                                     <div class="file-actions">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
+                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver"
+                                                                                            onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
                                                                                     </div>
                                                                                 </div>
                                                                             @endforeach
@@ -1674,8 +1787,11 @@
 
                                                                     {{-- Ayudas Visuales de Modelo --}}
                                                                     @if (count($ayudasModelo) > 0)
-                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #9c0300; font-weight: 700;">Ayudas Visuales de Fundición (Modelo)</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                        <h4
+                                                                            style="margin-top: 15px; margin-bottom: 10px; color: #9c0300; font-weight: 700;">
+                                                                            Ayudas Visuales de Fundición (Modelo)</h4>
+                                                                        <div class="alm-pdf-grid"
+                                                                            style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($ayudasModelo as $archivoInfo)
                                                                                 @php
                                                                                     $ayudaUrl = route('ayudas_fundicion.serve', [
@@ -1683,16 +1799,22 @@
                                                                                         'archivo' => basename($archivoInfo['nombre'])
                                                                                     ]);
                                                                                 @endphp
-                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                                                                <div class="dibujos-file-card card-ayuda"
+                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                            class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                            class="file-icon icon-hover">
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                        onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
                                                                                         {{ basename($archivoInfo['nombre']) }}
                                                                                     </div>
                                                                                     <div class="file-actions">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0284c7 alm-color-white" onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                                        <button
+                                                                                            class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0284c7 alm-color-white"
+                                                                                            onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
                                                                                     </div>
                                                                                 </div>
                                                                             @endforeach
@@ -1702,19 +1824,28 @@
                                                                     {{-- Documentos / Pre-órdenes de Fabricación --}}
 
                                                                     @if (count($almacenPreordenesFab) > 0)
-                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #0284c7; font-weight: 700;">Documentos / Pre-órdenes de Fabricación</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                        <h4
+                                                                            style="margin-top: 15px; margin-bottom: 10px; color: #0284c7; font-weight: 700;">
+                                                                            Documentos / Pre-órdenes de Fabricación</h4>
+                                                                        <div class="alm-pdf-grid"
+                                                                            style="background-color: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                                                                             @foreach ($almacenPreordenesFab as $archivoInfo)
-                                                                                <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                                                                <div class="dibujos-file-card"
+                                                                                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                                                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                            class="file-icon icon-default">
+                                                                                        <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                            class="file-icon icon-hover">
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
+                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
                                                                                         {{ basename($archivoInfo['nombre']) }}
                                                                                     </div>
                                                                                     <div class="file-actions">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0284c7 alm-color-white" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">Ver</button>
+                                                                                        <button
+                                                                                            class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0284c7 alm-color-white"
+                                                                                            onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">Ver</button>
                                                                                     </div>
                                                                                 </div>
                                                                             @endforeach
@@ -1729,7 +1860,7 @@
                                                                             $previousOtForRechazo = $targetReg->ot;
                                                                             if ($esReproceso) {
                                                                                 preg_match('/_R(\d+)$/i', $targetReg->ot, $matches);
-                                                                                $rNum = (int)($matches[1] ?? 1);
+                                                                                $rNum = (int) ($matches[1] ?? 1);
                                                                                 if ($rNum > 1) {
                                                                                     $previousOtForRechazo = preg_replace('/_R\d+$/i', '_R' . ($rNum - 1), $targetReg->ot);
                                                                                 } else {
@@ -1762,15 +1893,18 @@
                                                                             // ────────────────────────────────────────────────────────────────────────────
 
                                                                             // Evaluar si existen pre-órdenes vigentes ESPECÍFICAMENTE para las clases en fabricación (ignorando las archivadas _Anterior_N)
-                                                                            $preOrdenesFabExistentes = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->get()->filter(function($po) use ($clasesFabricacion) {
-                                                                                if ($po->pdf_filename && str_contains($po->pdf_filename, '_Anterior_N')) return false;
+                                                                            $preOrdenesFabExistentes = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->get()->filter(function ($po) use ($clasesFabricacion) {
+                                                                                if ($po->pdf_filename && str_contains($po->pdf_filename, '_Anterior_N'))
+                                                                                    return false;
                                                                                 $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                                                                                if (!is_array($filas)) return false;
+                                                                                if (!is_array($filas))
+                                                                                    return false;
                                                                                 foreach ($filas as $f) {
-                                                                                     $c = strtolower($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
-                                                                                     foreach ($clasesFabricacion as $cf) {
-                                                                                         if ($c !== '' && ($c === strtolower($cf) || strpos($c, strtolower($cf)) !== false || strpos(strtolower($cf), $c) !== false)) return true;
-                                                                                     }
+                                                                                    $c = strtolower($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
+                                                                                    foreach ($clasesFabricacion as $cf) {
+                                                                                        if ($c !== '' && ($c === strtolower($cf) || strpos($c, strtolower($cf)) !== false || strpos(strtolower($cf), $c) !== false))
+                                                                                            return true;
+                                                                                    }
                                                                                 }
                                                                                 return false;
                                                                             });
@@ -1778,10 +1912,11 @@
                                                                             $tieneFisicoFab = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
                                                                                 ->where('tipo_origen', 'con_modelo')
                                                                                 ->get()
-                                                                                ->filter(function($lib) use ($clasesFabricacion) {
+                                                                                ->filter(function ($lib) use ($clasesFabricacion) {
                                                                                     $tm = strtolower($lib->tipo_modelo ?? '');
                                                                                     foreach ($clasesFabricacion as $cf) {
-                                                                                        if ($tm !== '' && ($tm === strtolower($cf) || strpos($tm, strtolower($cf)) !== false || strpos(strtolower($cf), $tm) !== false)) return true;
+                                                                                        if ($tm !== '' && ($tm === strtolower($cf) || strpos($tm, strtolower($cf)) !== false || strpos(strtolower($cf), $tm) !== false))
+                                                                                            return true;
                                                                                     }
                                                                                     return false;
                                                                                 })->count() > 0;
@@ -1824,7 +1959,8 @@
                                                                             foreach ($otClasesActivas as $clActiva) {
                                                                                 $cubierta = false;
                                                                                 foreach ($clasesProcesadas as $cp) {
-                                                                                    if ($cp === '' || $clActiva === '') continue;
+                                                                                    if ($cp === '' || $clActiva === '')
+                                                                                        continue;
                                                                                     if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
                                                                                         $cubierta = true;
                                                                                         break;
@@ -1838,7 +1974,7 @@
                                                                             }
 
                                                                             $todasClasesProcesadas = count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
-                                                                            $algunaClaseProcesada  = count($clasesActivasCubiertas) > 0;
+                                                                            $algunaClaseProcesada = count($clasesActivasCubiertas) > 0;
 
                                                                             $controlDisabled = '';
                                                                             $hideControlCard = (count($clasesFabricacion) === 0) ? 'display: none;' : '';
@@ -1866,7 +2002,8 @@
                                                                             foreach ($otClasesActivas as $clActiva) {
                                                                                 $cubierta = false;
                                                                                 foreach ($clasesFisicamenteConfirmadas as $cp) {
-                                                                                    if ($cp === '' || $clActiva === '') continue;
+                                                                                    if ($cp === '' || $clActiva === '')
+                                                                                        continue;
                                                                                     if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
                                                                                         $cubierta = true;
                                                                                         break;
@@ -1895,9 +2032,9 @@
                                                                                 $clasesParaEnvio = array_values(array_map('strtolower', $clasesFisicamenteConfirmadas));
                                                                             }
 
-                                                                            $clasesYaProcesadasJson     = json_encode(array_values($clasesActivasCubiertas));
+                                                                            $clasesYaProcesadasJson = json_encode(array_values($clasesActivasCubiertas));
                                                                             $clasesActivasFaltantesJson = json_encode(array_values($clasesActivasFaltantes));
-                                                                            $todasClasesActivasJson     = json_encode(array_values($otClasesActivas));
+                                                                            $todasClasesActivasJson = json_encode(array_values($otClasesActivas));
                                                                             $clasesActivasNoEnviadasJson = json_encode(array_values($clasesActivasFaltantes));
                                                                             $clasesFaltantesFisicoJson = json_encode(array_values($clasesFaltantesFisico));
                                                                             $clasesParaEnvioJson = json_encode(array_values(array_unique($clasesParaEnvio)));
@@ -1909,21 +2046,30 @@
                                                                             $hideSendEmail = ($poPendienteEnvioFab !== null) ? '' : 'display: none;';
                                                                         @endphp
 
-                                                                        <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}" style="{{ $controlDisabled }} {{ $hideControlCard }}">
+                                                                        <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
+                                                                            style="{{ $controlDisabled }} {{ $hideControlCard }}">
                                                                             <div class="lib-calidad-card-header">
-                                                                                <img src="{{ ($esReproceso || $esReinicioParcial) ? asset('images/Reproceso.png') : asset('images/almacen.png') }}" alt="Almacén" class="alm-icon-lg">
+                                                                                <img src="{{ ($esReproceso || $esReinicioParcial) ? asset('images/Reproceso.png') : asset('images/almacen.png') }}"
+                                                                                    alt="Almacén" class="alm-icon-lg">
                                                                                 <div class="alm-overflow-hidden alm-flex-1">
-                                                                                    <span class="lib-calidad-card-title">Control de Modelos &mdash; Almacén</span>
-                                                                                    <span class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                                    <span class="lib-calidad-card-title">Control de Modelos &mdash;
+                                                                                        Almacén</span>
+                                                                                    <span
+                                                                                        class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                                 </div>
                                                                                 @if (count($otClasesActivas) > 0)
-                                                                                    <div class="alm-flex-shrink-0 alm-display-flex alm-flex-direction-column alm-align-items-center alm-gap-2px">
-                                                                                        <span style="font-size:1.1em; font-weight:800; color:{{ $todasClasesProcesadas ? '#15803d' : ($algunaClaseProcesada ? '#0369a1' : '#ffffff') }};">
+                                                                                    <div
+                                                                                        class="alm-flex-shrink-0 alm-display-flex alm-flex-direction-column alm-align-items-center alm-gap-2px">
+                                                                                        <span
+                                                                                            style="font-size:1.1em; font-weight:800; color:{{ $todasClasesProcesadas ? '#15803d' : ($algunaClaseProcesada ? '#0369a1' : '#ffffff') }};">
                                                                                             {{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
                                                                                         </span>
-                                                                                        <span class="alm-font-size-0-65em alm-font-weight-600 alm-color-rgba-255-255-255-0-75 alm-letter-spacing-0-5px alm-text-transform-uppercase">clases</span>
+                                                                                        <span
+                                                                                            class="alm-font-size-0-65em alm-font-weight-600 alm-color-rgba-255-255-255-0-75 alm-letter-spacing-0-5px alm-text-transform-uppercase">clases</span>
                                                                                         @if ($todasClasesProcesadas)
-                                                                                            <img src="{{ asset('images/ready.png') }}" class="alm-width-18px alm-height-18px alm-margin-top-2px" alt="Listo">
+                                                                                            <img src="{{ asset('images/ready.png') }}"
+                                                                                                class="alm-width-18px alm-height-18px alm-margin-top-2px"
+                                                                                                alt="Listo">
                                                                                         @endif
                                                                                     </div>
                                                                                 @endif
@@ -1932,34 +2078,54 @@
                                                                                 <div class="lib-calidad-action-row">
                                                                                     <h4 class="lib-calidad-card-prompt">
                                                                                         @if ($isFullySubmitted)
-                                                                                            <span class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                                <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
-                                                                                                El proceso ahora le pertenece a Calidad. Por favor, espera instrucciones para las clases enviadas.
+                                                                                            <span
+                                                                                                class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                <img src="{{ asset('images/ready.png') }}"
+                                                                                                    class="alm-icon-md" alt="Listo">
+                                                                                                El proceso ahora le pertenece a Calidad. Por favor,
+                                                                                                espera instrucciones para las clases enviadas.
                                                                                             </span>
                                                                                         @elseif ($todasClasesProcesadas)
-                                                                                            <span class="alm-color-0369a1 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                                <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
-                                                                                                ¡Todas las clases procesadas! Falta enviar la alerta a Calidad.
+                                                                                            <span
+                                                                                                class="alm-color-0369a1 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                <img src="{{ asset('images/ready.png') }}"
+                                                                                                    class="alm-icon-md" alt="Listo">
+                                                                                                ¡Todas las clases procesadas! Falta enviar la alerta a
+                                                                                                Calidad.
                                                                                             </span>
                                                                                         @elseif ($algunaClaseProcesada)
                                                                                             <span class="alm-color-0369a1 alm-font-weight-600">
-                                                                                                Proceso parcial ({{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }} clases enviadas). Puedes generar o enviar las pre-órdenes restantes.
+                                                                                                Proceso parcial
+                                                                                                ({{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
+                                                                                                clases enviadas). Puedes generar o enviar las
+                                                                                                pre-órdenes restantes.
                                                                                             </span>
                                                                                         @elseif ($targetReg->tiene_modelo)
-                                                                                            ¡Modelo recibido y procesado! Pendiente de que Calidad lo revise.
+                                                                                            ¡Modelo recibido y procesado! Pendiente de que Calidad lo
+                                                                                            revise.
                                                                                         @elseif ($targetReg->pre_orden_email_sent)
-                                                                                            Alerta enviada a Calidad. En espera de su revisión y nuevo veredicto de liberación.
+                                                                                            Alerta enviada a Calidad. En espera de su revisión y
+                                                                                            liberación.
                                                                                         @elseif ($targetReg->pre_orden_sent)
-                                                                                            Pre-orden lista. Puedes seguir editando los datos o enviarla por correo.
+                                                                                            Pre-orden lista. Puedes seguir editando los datos o enviarla
+                                                                                            por correo.
                                                                                         @elseif ($esReinicioParcial)
-                                                                                            <span class="alm-color-0284c7 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                                <img src="{{ asset('images/Reproceso.png') }}" class="alm-icon-md" alt="Reinicio">
-                                                                                                Clase(s) reiniciadas: <strong>{{ implode(', ', array_map('ucfirst', $clasesFabricacion)) }}</strong>. Genera una nueva pre-orden o confirma que cuentas con el modelo para continuar.
+                                                                                            <span
+                                                                                                class="alm-color-0284c7 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                <img src="{{ asset('images/Reproceso.png') }}"
+                                                                                                    class="alm-icon-md" alt="Reinicio">
+                                                                                                Clase(s) reiniciadas:
+                                                                                                <strong>{{ implode(', ', array_map('ucfirst', $clasesFabricacion)) }}</strong>.
+                                                                                                Genera una nueva pre-orden o confirma que cuentas con el
+                                                                                                modelo para continuar.
                                                                                             </span>
                                                                                         @elseif ($esReproceso)
-                                                                                            OT en re-proceso por rechazo de Calidad. Genera o edita la pre-orden de modelo para iniciar el nuevo ciclo de fabricación.
+                                                                                            OT en re-proceso por rechazo de Calidad. Genera o edita la
+                                                                                            pre-orden de modelo para iniciar el nuevo ciclo de
+                                                                                            fabricación.
                                                                                         @else
-                                                                                            ¿Ya cuentas con el modelo de esta OT o necesitas generar una pre-orden?
+                                                                                            ¿Ya cuentas con el modelo de esta OT o necesitas generar una
+                                                                                            pre-orden?
                                                                                         @endif
                                                                                     </h4>
                                                                                     <div class="lib-calidad-card-btns" style="{{ $hideAllBtns }}">
@@ -1981,21 +2147,24 @@
                                                                                             onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
                                                                                             title="Generar / editar la pre-orden de fabricación de modelo"
                                                                                             style="{{ $hideReprocesoPreOrden }}">
-                                                                                            <img src="{{ asset('images/pdf.png') }}" alt="Pre-Orden">
+                                                                                            <img src="{{ asset('images/pdf.png') }}"
+                                                                                                alt="Pre-Orden">
                                                                                             <span>Pre-Orden Modelo</span>
                                                                                         </button>
                                                                                         <button class="btn-modelo btn-modelo-edit"
                                                                                             onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
                                                                                             title="Editar información de la preorden existente"
                                                                                             style="{{ $hideEditPreOrden }}">
-                                                                                            <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
+                                                                                            <img src="{{ asset('images/editar-informacion.png') }}"
+                                                                                                alt="Editar">
                                                                                             <span>Editar Pre-orden</span>
                                                                                         </button>
                                                                                         <button class="btn-modelo btn-modelo-email"
                                                                                             onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo', {{ $clasesParaEnvioJson }})"
                                                                                             title="{{ $esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico' }}"
                                                                                             style="{{ $hideSendEmail }}">
-                                                                                            <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                                                                            <img src="{{ asset('images/enviando.png') }}"
+                                                                                                alt="Enviar">
                                                                                             <span>{{ $esReproceso ? 'Enviar Alerta' : 'Enviar Correo' }}</span>
                                                                                         </button>
                                                                                     </div>
@@ -2008,157 +2177,216 @@
 
                                                             {{-- CONTENEDOR 2: PROCESO DE CASTING / MODELOS APROBADOS --}}
                                                             @if ($tieneAprobados)
-                                                                <div class="alm-process-block" style="margin-bottom: 10px; padding: 20px; border-radius: 14px; background-color: #f0fdf4; border: 2px solid #16a34a; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);">
-                                                                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #16a34a; padding-bottom: 10px; margin-bottom: 15px;">
-                                                                        <h3 style="margin: 0; color: #16a34a; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                                                                            <img src="{{ asset('images/Aprobado.png') }}" style="width: 30px; height: 30px; object-fit: contain;">
-                                                                            Etapa: Proceso de Casting / Modelos Aprobados ({{ implode(', ', array_map('ucfirst', $aprobados)) }})
+                                                                <div class="alm-process-block"
+                                                                    style="margin-bottom: 10px; padding: 20px; border-radius: 14px; background-color: #f0fdf4; border: 2px solid #16a34a; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);">
+                                                                    <div
+                                                                        style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #16a34a; padding-bottom: 10px; margin-bottom: 15px;">
+                                                                        <h3
+                                                                            style="margin: 0; color: #16a34a; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                                                                            <img src="{{ asset('images/Aprobado.png') }}"
+                                                                                style="width: 30px; height: 30px; object-fit: contain;">
+                                                                            Etapa: Proceso de Casting / Modelos Aprobados
+                                                                            ({{ implode(', ', array_map('ucfirst', $aprobados)) }})
                                                                         </h3>
-                                                                        <span style="font-size: 0.8rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                                                                        <span
+                                                                            style="font-size: 0.8rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
                                                                             CASTING / APROBADOS
                                                                         </span>
                                                                     </div>
 
-                                                                    <div class="cal-subcontainer-almacen" style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0fdf4; border: 2px solid #16a34a; box-shadow: 0 3px 10px rgba(22, 163, 74, 0.08);">
-                                                                        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
-                                                                            <h4 style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                                                                <img src="{{ asset('images/almacen.png') }}" style="width: 22px; height: 22px; object-fit: contain;"> Documentos, Dibujos y Ayudas Visuales Aprobados por Almacén
+                                                                    <div class="cal-subcontainer-almacen"
+                                                                        style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0fdf4; border: 2px solid #16a34a; box-shadow: 0 3px 10px rgba(22, 163, 74, 0.08);">
+                                                                        <div
+                                                                            style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
+                                                                            <h4
+                                                                                style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                                <img src="{{ asset('images/almacen.png') }}"
+                                                                                    style="width: 22px; height: 22px; object-fit: contain;">
+                                                                                Documentos, Dibujos y Ayudas Visuales Aprobados por Almacén
                                                                             </h4>
-                                                                            <span style="font-size: 0.75rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 3px 10px; border-radius: 6px; border: 1px solid #86efac;">
+                                                                            <span
+                                                                                style="font-size: 0.75rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 3px 10px; border-radius: 6px; border: 1px solid #86efac;">
                                                                                 DOCUMENTOS ALMACÉN
                                                                             </span>
                                                                         </div>
 
-                                                                    {{-- Dibujos de Casting --}}
-                                                                    @if (count($dibujosCasting) > 0)
-                                                                        <h4 style="margin-top: 10px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Dibujos de Fundición (Casting)</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($dibujosCasting as $archivoInfo)
-                                                                                <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        {{-- Dibujos de Casting --}}
+                                                                        @if (count($dibujosCasting) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 10px; margin-bottom: 10px; color: #15803d; font-weight: 700;">
+                                                                                Dibujos de Fundición (Casting)</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($dibujosCasting as $archivoInfo)
+                                                                                    <div class="dibujos-file-card"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
+                                                                                            {{ basename($archivoInfo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
+                                                                                                onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
-                                                                                        {{ basename($archivoInfo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
 
-                                                                    {{-- Ayudas Visuales de Casting --}}
-                                                                    @if (count($ayudasCasting) > 0)
-                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Ayudas Visuales (Casting)</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($ayudasCasting as $archivoInfo)
-                                                                                @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
-                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        {{-- Ayudas Visuales de Casting --}}
+                                                                        @if (count($ayudasCasting) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">
+                                                                                Ayudas Visuales (Casting)</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($ayudasCasting as $archivoInfo)
+                                                                                    @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
+                                                                                    <div class="dibujos-file-card card-ayuda"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
+                                                                                            {{ basename($archivoInfo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
+                                                                                                onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
-                                                                                        {{ basename($archivoInfo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white" onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
 
-                                                                    {{-- Documentos Aprobados (solo de clases aprobadas) --}}
-                                                                    @php
-                                                                        $calidadAprobadosLdmCasting = array_values(array_filter($calidadAprobadosLdm, function($doc) use ($aprobadosNorm) {
-                                                                            if (empty($aprobadosNorm)) return true;
-                                                                            $nameLow = strtolower(basename($doc['nombre']));
-                                                                            foreach ($aprobadosNorm as $ap) {
-                                                                                if ($ap !== '' && strpos($nameLow, $ap) !== false) return true;
-                                                                            }
-                                                                            return false;
-                                                                        }));
-                                                                        $almacenPreordenesCasting = array_values(array_filter($almacenPreordenes, function($doc) use ($aprobadosNorm) {
-                                                                            if (empty($aprobadosNorm)) return false;
-                                                                            $nameLow = strtolower(basename($doc['nombre']));
-                                                                            if (strpos($nameLow, 'casting') === false) return false;
-                                                                            foreach ($aprobadosNorm as $ap) {
-                                                                                if ($ap !== '' && strpos($nameLow, $ap) !== false) return true;
-                                                                            }
-                                                                            return false;
-                                                                        }));
-                                                                    @endphp
-                                                                    @if (count($calidadAprobadosLdmCasting) > 0)
-                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #155724; font-weight: 700;">Documentos Aprobados</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($calidadAprobadosLdmCasting as $otroArchivo)
-                                                                                @php
-                                                                                    $canDelete = false;
-                                                                                    $fileOwner = $otroArchivo['owner'] ?? '';
-                                                                                    $fileNameLower = strtolower($otroArchivo['nombre']);
-                                                                                    if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
-                                                                                        $fileOwner = 'calidad';
-                                                                                    }
-                                                                                    $userPerfil = Auth::user()->perfil;
-                                                                                    $alertSent = false;
-                                                                                    if ($fileOwner === 'almacen') {
-                                                                                        $alertSent = (bool)($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
-                                                                                    } elseif ($fileOwner === 'calidad') {
-                                                                                        $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
-                                                                                    }
-                                                                                    if (!$alertSent) {
-                                                                                        if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
-                                                                                            $canDelete = true;
-                                                                                        } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
-                                                                                            $canDelete = true;
-                                                                                        } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
-                                                                                            $canDelete = true;
+                                                                        {{-- Documentos Aprobados (solo de clases aprobadas) --}}
+                                                                        @php
+                                                                            $calidadAprobadosLdmCasting = array_values(array_filter($calidadAprobadosLdm, function ($doc) use ($aprobadosNorm) {
+                                                                                if (empty($aprobadosNorm))
+                                                                                    return true;
+                                                                                $nameLow = strtolower(basename($doc['nombre']));
+                                                                                foreach ($aprobadosNorm as $ap) {
+                                                                                    if ($ap !== '' && strpos($nameLow, $ap) !== false)
+                                                                                        return true;
+                                                                                }
+                                                                                return false;
+                                                                            }));
+                                                                            $almacenPreordenesCasting = array_values(array_filter($almacenPreordenes, function ($doc) use ($aprobadosNorm) {
+                                                                                if (empty($aprobadosNorm))
+                                                                                    return false;
+                                                                                $nameLow = strtolower(basename($doc['nombre']));
+                                                                                if (strpos($nameLow, 'casting') === false)
+                                                                                    return false;
+                                                                                foreach ($aprobadosNorm as $ap) {
+                                                                                    if ($ap !== '' && strpos($nameLow, $ap) !== false)
+                                                                                        return true;
+                                                                                }
+                                                                                return false;
+                                                                            }));
+                                                                        @endphp
+                                                                        @if (count($calidadAprobadosLdmCasting) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 15px; margin-bottom: 10px; color: #155724; font-weight: 700;">
+                                                                                Documentos Aprobados</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($calidadAprobadosLdmCasting as $otroArchivo)
+                                                                                    @php
+                                                                                        $canDelete = false;
+                                                                                        $fileOwner = $otroArchivo['owner'] ?? '';
+                                                                                        $fileNameLower = strtolower($otroArchivo['nombre']);
+                                                                                        if (strpos($fileNameLower, 'f-ccl-ldm') !== false || strpos($fileNameLower, 'scar') !== false) {
+                                                                                            $fileOwner = 'calidad';
                                                                                         }
-                                                                                    }
-                                                                                @endphp
-                                                                                <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                                        $userPerfil = Auth::user()->perfil;
+                                                                                        $alertSent = false;
+                                                                                        if ($fileOwner === 'almacen') {
+                                                                                            $alertSent = (bool) ($targetReg->pre_orden_email_sent || $targetReg->pre_orden_sent);
+                                                                                        } elseif ($fileOwner === 'calidad') {
+                                                                                            $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
+                                                                                        }
+                                                                                        if (!$alertSent) {
+                                                                                            if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
+                                                                                                $canDelete = true;
+                                                                                            } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                                                                                $canDelete = true;
+                                                                                            } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
+                                                                                                $canDelete = true;
+                                                                                            }
+                                                                                        }
+                                                                                    @endphp
+                                                                                    <div class="dibujos-file-card card-otro"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                            {{ basename($otroArchivo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions alm-flex-gap-5">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-155724 alm-color-white"
+                                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                            @if ($canDelete)
+                                                                                                <button
+                                                                                                    class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white"
+                                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                            @endif
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                        {{ basename($otroArchivo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions alm-flex-gap-5">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-155724 alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                                        @if ($canDelete)
-                                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                        @endif
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
 
-                                                                    {{-- Pre-órdenes de Modelo (Casting) - solo las de clases aprobadas --}}
-                                                                    @if (count($almacenPreordenesCasting) > 0)
-                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Pre-órdenes de Casting</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($almacenPreordenesCasting as $archivoInfo)
-                                                                                <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        {{-- Pre-órdenes de Modelo (Casting) - solo las de clases aprobadas --}}
+                                                                        @if (count($almacenPreordenesCasting) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">
+                                                                                Pre-órdenes de Casting</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($almacenPreordenesCasting as $archivoInfo)
+                                                                                    <div class="dibujos-file-card"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
+                                                                                            {{ basename($archivoInfo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
+                                                                                                onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">Ver</button>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
-                                                                                        {{ basename($archivoInfo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">Ver</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
                                                                     </div>
 
                                                                     {{-- Control de Modelos — Almacén (Aprobados) --}}
@@ -2166,48 +2394,77 @@
                                                                         $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->first();
                                                                         $hasCastingPre = (bool) $castingPre;
                                                                     @endphp
-                                                                    <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}" style="margin-top: 15px;">
-                                                                        <div class="lib-calidad-card-header alm-background-linear-gradient-135deg-16a34a-15803d alm-border-bottom-2px-solid-rgba-22-163-74-0-5">
-                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Almacén" class="alm-icon-lg">
+                                                                    <div class="lib-calidad-card"
+                                                                        id="control-almacen-aprobados-{{ md5($reg->ot) }}"
+                                                                        style="margin-top: 15px;">
+                                                                        <div
+                                                                            class="lib-calidad-card-header alm-background-linear-gradient-135deg-16a34a-15803d alm-border-bottom-2px-solid-rgba-22-163-74-0-5">
+                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Almacén"
+                                                                                class="alm-icon-lg">
                                                                             <div class="alm-overflow-hidden">
-                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de Modelos &mdash; Almacén (Aprobados)</span>
-                                                                                <span class="lib-calidad-card-ot alm-color-d1fae5">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de
+                                                                                    Modelos &mdash; Almacén (Aprobados)</span>
+                                                                                <span
+                                                                                    class="lib-calidad-card-ot alm-color-d1fae5">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                             </div>
                                                                         </div>
                                                                         <div class="lib-calidad-card-body">
                                                                             <div class="lib-calidad-action-row">
                                                                                 <h4 class="lib-calidad-card-prompt">
                                                                                     @if ($castingEmailSent)
-                                                                                        <span class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                            <img src="{{ asset('images/ready.png') }}" class="alm-icon-md" alt="Listo">
-                                                                                            Proceso de pre-orden finalizado correctamente. El correo ha sido enviado al proveedor. Favor de esperar nuevas instrucciones.
+                                                                                        <span
+                                                                                            class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                            <img src="{{ asset('images/ready.png') }}"
+                                                                                                class="alm-icon-md" alt="Listo">
+                                                                                            Proceso de pre-orden finalizado correctamente. El correo
+                                                                                            ha sido enviado al proveedor. Favor de esperar nuevas
+                                                                                            instrucciones.
                                                                                         </span>
                                                                                     @elseif ($hasCastingPre)
-                                                                                        Pre-orden de casting generada para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>. Puedes editar los datos o enviar la pre-orden por correo.
+                                                                                        Pre-orden de casting generada para los modelos:
+                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>. Puedes
+                                                                                        editar los datos o enviar la pre-orden por correo.
                                                                                     @elseif ($reg->casting_pdf_generated)
-                                                                                        Formatos LDM subidos. Procede a generar la Pre-Orden de Fabricación de Casting para los modelos: <strong>{{ implode(', ', $aprobados) }}</strong>.
+                                                                                        Formatos LDM subidos. Procede a generar la Pre-Orden de
+                                                                                        Fabricación de Casting para los modelos:
+                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>.
                                                                                     @else
-                                                                                        Modelos Aprobados por Calidad: <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a subir los formatos F-CCL-LDM firmados para iniciar el casting.
+                                                                                        Modelos Aprobados por Calidad:
+                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a
+                                                                                        subir los formatos F-CCL-LDM firmados para iniciar el
+                                                                                        casting.
                                                                                     @endif
                                                                                 </h4>
                                                                                 <div class="lib-calidad-card-btns">
                                                                                     @if ($castingEmailSent)
                                                                                     @elseif ($hasCastingPre)
-                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white" onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
-                                                                                            <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
+                                                                                        <button
+                                                                                            class="btn-modelo btn-modelo-si alm-bg-success-white"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
+                                                                                            <img src="{{ asset('images/editar-informacion.png') }}"
+                                                                                                alt="Editar">
                                                                                             <span>Editar Pre-orden</span>
                                                                                         </button>
-                                                                                        <button class="btn-modelo btn-modelo-email alm-display-flex alm-background-color-033966 alm-color-white" onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')">
-                                                                                            <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                                                                        <button
+                                                                                            class="btn-modelo btn-modelo-email alm-display-flex alm-background-color-033966 alm-color-white"
+                                                                                            onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')">
+                                                                                            <img src="{{ asset('images/enviando.png') }}"
+                                                                                                alt="Enviar">
                                                                                             <span>Enviar Correo</span>
                                                                                         </button>
                                                                                     @elseif ($reg->casting_pdf_generated)
-                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white" onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
-                                                                                            <img src="{{ asset('images/almacen.png') }}" alt="Preorden" class="alm-width-16px alm-height-16px alm-filter-brightness-0-invert-1">
+                                                                                        <button
+                                                                                            class="btn-modelo btn-modelo-si alm-bg-success-white"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
+                                                                                            <img src="{{ asset('images/almacen.png') }}"
+                                                                                                alt="Preorden"
+                                                                                                class="alm-width-16px alm-height-16px alm-filter-brightness-0-invert-1">
                                                                                             <span>Preorden de Casting</span>
                                                                                         </button>
                                                                                     @else
-                                                                                        <button class="btn-modelo btn-modelo-si alm-bg-success-white" onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])">
+                                                                                        <button
+                                                                                            class="btn-modelo btn-modelo-si alm-bg-success-white"
+                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])">
                                                                                             <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                             <span>Procesar Aceptados</span>
                                                                                         </button>
@@ -2221,143 +2478,207 @@
 
                                                             {{-- CONTENEDOR 3: MODELOS RECHAZADOS --}}
                                                             @if ($tieneRechazados)
-                                                                <div class="alm-process-block" style="margin-bottom: 25px; padding: 20px; border-radius: 14px; background-color: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.08);">
-                                                                    <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 15px;">
-                                                                        <h3 style="margin: 0; color: #dc2626; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                                                                            <img src="{{ asset('images/Rechazado.png') }}" style="width: 30px; height: 30px; object-fit: contain;">
-                                                                            Etapa: Modelos Rechazados ({{ implode(', ', array_map('ucfirst', $rechazados)) }})
+                                                                <div class="alm-process-block"
+                                                                    style="margin-bottom: 25px; padding: 20px; border-radius: 14px; background-color: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.08);">
+                                                                    <div
+                                                                        style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 15px;">
+                                                                        <h3
+                                                                            style="margin: 0; color: #dc2626; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                                                                            <img src="{{ asset('images/Rechazado.png') }}"
+                                                                                style="width: 30px; height: 30px; object-fit: contain;">
+                                                                            Etapa: Modelos Rechazados
+                                                                            ({{ implode(', ', array_map('ucfirst', $rechazados)) }})
                                                                         </h3>
-                                                                        <span style="font-size: 0.8rem; font-weight: 700; background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 6px; border: 1px solid #fecaca;">
+                                                                        <span
+                                                                            style="font-size: 0.8rem; font-weight: 700; background: #fee2e2; color: #b91c1c; padding: 4px 12px; border-radius: 6px; border: 1px solid #fecaca;">
                                                                             RECHAZADOS
                                                                         </span>
                                                                     </div>
 
-                                                                    <div class="cal-subcontainer-almacen" style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 3px 10px rgba(220, 38, 38, 0.08);">
-                                                                        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fecaca; padding-bottom: 8px; margin-bottom: 15px;">
-                                                                            <h4 style="margin: 0; color: #b91c1c; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                                                                                <img src="{{ asset('images/almacen.png') }}" style="width: 22px; height: 22px; object-fit: contain;"> Documentos, Dibujos y Ayudas Visuales de Rechazo
+                                                                    <div class="cal-subcontainer-almacen"
+                                                                        style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #fef2f2; border: 2px solid #dc2626; box-shadow: 0 3px 10px rgba(220, 38, 38, 0.08);">
+                                                                        <div
+                                                                            style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fecaca; padding-bottom: 8px; margin-bottom: 15px;">
+                                                                            <h4
+                                                                                style="margin: 0; color: #b91c1c; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                                                                                <img src="{{ asset('images/almacen.png') }}"
+                                                                                    style="width: 22px; height: 22px; object-fit: contain;">
+                                                                                Documentos, Dibujos y Ayudas Visuales de Rechazo
                                                                             </h4>
-                                                                            <span style="font-size: 0.75rem; font-weight: 700; background: #fee2e2; color: #b91c1c; padding: 3px 10px; border-radius: 6px; border: 1px solid #fca5a5;">
+                                                                            <span
+                                                                                style="font-size: 0.75rem; font-weight: 700; background: #fee2e2; color: #b91c1c; padding: 3px 10px; border-radius: 6px; border: 1px solid #fca5a5;">
                                                                                 DOCUMENTOS ALMACÉN
                                                                             </span>
                                                                         </div>
 
-                                                                    {{-- Dibujos Originales Rechazados --}}
-                                                                    @if (count($dibujosRechazadosOrig) > 0)
-                                                                        <h4 style="margin-top: 10px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Dibujos de Fundición (Rechazados)</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($dibujosRechazadosOrig as $archivoInfo)
-                                                                                <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        {{-- Dibujos Originales Rechazados --}}
+                                                                        @if (count($dibujosRechazadosOrig) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 10px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">
+                                                                                Dibujos de Fundición (Rechazados)</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($dibujosRechazadosOrig as $archivoInfo)
+                                                                                    <div class="dibujos-file-card card-otro"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
+                                                                                            {{ basename($archivoInfo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions alm-flex-gap-5">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white"
+                                                                                                onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
-                                                                                        {{ basename($archivoInfo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions alm-flex-gap-5">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
 
-                                                                    {{-- Ayudas Visuales Originales Rechazadas --}}
-                                                                    @if (count($ayudasRechazadosOrig) > 0)
-                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Ayudas Visuales (Rechazadas)</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($ayudasRechazadosOrig as $archivoInfo)
-                                                                                @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
-                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        {{-- Ayudas Visuales Originales Rechazadas --}}
+                                                                        @if (count($ayudasRechazadosOrig) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 15px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">
+                                                                                Ayudas Visuales (Rechazadas)</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($ayudasRechazadosOrig as $archivoInfo)
+                                                                                    @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
+                                                                                    <div class="dibujos-file-card card-ayuda"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
+                                                                                            {{ basename($archivoInfo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions alm-flex-gap-5">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white"
+                                                                                                onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
-                                                                                        {{ basename($archivoInfo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions alm-flex-gap-5">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white" onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
 
-                                                                    {{-- Dibujos Rechazados (Calidad) --}}
-                                                                    @if (count($rechazadosDibujos) > 0)
-                                                                        <h4 style="margin-top: 10px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Documentos Adjuntos de Calidad (Dibujos)</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($rechazadosDibujos as $otroArchivo)
-                                                                                <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        {{-- Dibujos Rechazados (Calidad) --}}
+                                                                        @if (count($rechazadosDibujos) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 10px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">
+                                                                                Documentos Adjuntos de Calidad (Dibujos)</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($rechazadosDibujos as $otroArchivo)
+                                                                                    <div class="dibujos-file-card card-otro"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                            {{ basename($otroArchivo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions alm-flex-gap-5">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white"
+                                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                        {{ basename($otroArchivo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions alm-flex-gap-5">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
 
-                                                                    {{-- Ayudas Visuales Rechazadas (Calidad) --}}
-                                                                    @if (count($rechazadosAyudas) > 0)
-                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">Documentos Adjuntos de Calidad (Ayudas Visuales)</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($rechazadosAyudas as $otroArchivo)
-                                                                                <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        {{-- Ayudas Visuales Rechazadas (Calidad) --}}
+                                                                        @if (count($rechazadosAyudas) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 15px; margin-bottom: 10px; color: #b91c1c; font-weight: 700;">
+                                                                                Documentos Adjuntos de Calidad (Ayudas Visuales)</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($rechazadosAyudas as $otroArchivo)
+                                                                                    <div class="dibujos-file-card card-ayuda"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                            {{ basename($otroArchivo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions alm-flex-gap-5">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white"
+                                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                        {{ basename($otroArchivo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions alm-flex-gap-5">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
 
-                                                                    {{-- Documentos de Rechazo / SCAR --}}
-                                                                    @if (count($rechazadosOtros) > 0)
-                                                                        <h4 style="margin-top: 15px; margin-bottom: 10px; color: #721c24; font-weight: 700;">Documentos de Rechazo</h4>
-                                                                        <div class="alm-pdf-grid" style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                                                                            @foreach ($rechazadosOtros as $otroArchivo)
-                                                                                <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #721c24;">
-                                                                                    <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                                                                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                                                        <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                                        {{-- Documentos de Rechazo / SCAR --}}
+                                                                        @if (count($rechazadosOtros) > 0)
+                                                                            <h4
+                                                                                style="margin-top: 15px; margin-bottom: 10px; color: #721c24; font-weight: 700;">
+                                                                                Documentos de Rechazo</h4>
+                                                                            <div class="alm-pdf-grid"
+                                                                                style="background-color: #fef2f2; border: 1px solid #fecaca; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                                                                @foreach ($rechazadosOtros as $otroArchivo)
+                                                                                    <div class="dibujos-file-card card-otro"
+                                                                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #721c24;">
+                                                                                        <div class="file-icon-wrapper alm-cursor-pointer"
+                                                                                            title="Abrir PDF">
+                                                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                                                                                class="file-icon icon-default">
+                                                                                            <img src="{{ asset('images/pdf-view.png') }}"
+                                                                                                class="file-icon icon-hover">
+                                                                                        </div>
+                                                                                        <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                                                                            onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                                                                            {{ basename($otroArchivo['nombre']) }}
+                                                                                        </div>
+                                                                                        <div class="file-actions alm-flex-gap-5">
+                                                                                            <button
+                                                                                                class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white"
+                                                                                                onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                                                                            @php
+                                                                                                $canDeleteRechazado = false;
+                                                                                                $rUserPerfil = Auth::user()->perfil;
+                                                                                                $rAlertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
+                                                                                                if (!$rAlertSent && ($rUserPerfil == 1 || $rUserPerfil == 2 || $rUserPerfil == 3 || $rUserPerfil == 4)) {
+                                                                                                    $canDeleteRechazado = true;
+                                                                                                }
+                                                                                            @endphp
+                                                                                            @if ($canDeleteRechazado)
+                                                                                                <button
+                                                                                                    class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white"
+                                                                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                                                                            @endif
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                                                                        {{ basename($otroArchivo['nombre']) }}
-                                                                                    </div>
-                                                                                    <div class="file-actions alm-flex-gap-5">
-                                                                                        <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-b91c1c alm-color-white" onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
-                                                                                        @php
-                                                                                            $canDeleteRechazado = false;
-                                                                                            $rUserPerfil = Auth::user()->perfil;
-                                                                                            $rAlertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
-                                                                                            if (!$rAlertSent && ($rUserPerfil == 1 || $rUserPerfil == 2 || $rUserPerfil == 3 || $rUserPerfil == 4)) {
-                                                                                                $canDeleteRechazado = true;
-                                                                                            }
-                                                                                        @endphp
-                                                                                        @if ($canDeleteRechazado)
-                                                                                            <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                                                                        @endif
-                                                                                    </div>
-                                                                                </div>
-                                                                            @endforeach
-                                                                        </div>
-                                                                    @endif
+                                                                                @endforeach
+                                                                            </div>
+                                                                        @endif
                                                                     </div>
 
 
@@ -2371,12 +2692,18 @@
                                                                                 ->first();
                                                                         }
                                                                     @endphp
-                                                                    <div class="lib-calidad-card" id="control-almacen-rechazados-{{ md5($reg->ot) }}" style="margin-top: 15px;">
-                                                                        <div class="lib-calidad-card-header alm-background-linear-gradient-135deg-dc2626-b91c1c alm-border-bottom-2px-solid-rgba-220-38-38-0-5">
-                                                                            <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso" class="alm-icon-lg">
+                                                                    <div class="lib-calidad-card"
+                                                                        id="control-almacen-rechazados-{{ md5($reg->ot) }}"
+                                                                        style="margin-top: 15px;">
+                                                                        <div
+                                                                            class="lib-calidad-card-header alm-background-linear-gradient-135deg-dc2626-b91c1c alm-border-bottom-2px-solid-rgba-220-38-38-0-5">
+                                                                            <img src="{{ asset('images/Reproceso.png') }}" alt="Reproceso"
+                                                                                class="alm-icon-lg">
                                                                             <div class="alm-overflow-hidden">
-                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de Modelos &mdash; Almacén (Rechazados)</span>
-                                                                                <span class="lib-calidad-card-ot alm-color-fee2e2">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
+                                                                                <span class="lib-calidad-card-title alm-color-ffffff">Control de
+                                                                                    Modelos &mdash; Almacén (Rechazados)</span>
+                                                                                <span
+                                                                                    class="lib-calidad-card-ot alm-color-fee2e2">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                             </div>
                                                                         </div>
                                                                         <div class="lib-calidad-card-body">
@@ -2384,39 +2711,66 @@
                                                                                 <h4 class="lib-calidad-card-prompt">
                                                                                     @if ($reg->rechazos_procesados)
                                                                                         @if ($latestReproceso)
-                                                                                            <div class="alm-background-linear-gradient-to-right-f8fafc-f1f5f9 alm-border-left-4px-solid-0284c7 alm-padding-14px-18px alm-border-radius-8px alm-box-shadow-0-2px-6px-rgba-0-0-0-0-06 alm-margin-bottom-5px alm-display-inline-block">
-                                                                                                <span class="alm-color-1e293b alm-font-weight-600 alm-display-inline-flex alm-align-items-center alm-gap-12px alm-font-size-1-05rem">
-                                                                                                    <span class="alm-display-flex alm-align-items-center alm-justify-content-center alm-background-e0f2fe alm-width-38px alm-height-38px alm-border-radius-50pct alm-flex-shrink-0">
-                                                                                                        <img src="{{ asset('images/redireccionar.png') }}" class="alm-width-22px alm-height-22px alm-filter-invert-36-sepia-87-saturate-1514-hue-rotate-176deg-brightness-94-contrast-101pct" alt="Info">
+                                                                                            <div
+                                                                                                class="alm-background-linear-gradient-to-right-f8fafc-f1f5f9 alm-border-left-4px-solid-0284c7 alm-padding-14px-18px alm-border-radius-8px alm-box-shadow-0-2px-6px-rgba-0-0-0-0-06 alm-margin-bottom-5px alm-display-inline-block">
+                                                                                                <span
+                                                                                                    class="alm-color-1e293b alm-font-weight-600 alm-display-inline-flex alm-align-items-center alm-gap-12px alm-font-size-1-05rem">
+                                                                                                    <span
+                                                                                                        class="alm-display-flex alm-align-items-center alm-justify-content-center alm-background-e0f2fe alm-width-38px alm-height-38px alm-border-radius-50pct alm-flex-shrink-0">
+                                                                                                        <img src="{{ asset('images/redireccionar.png') }}"
+                                                                                                            class="alm-width-22px alm-height-22px alm-filter-invert-36-sepia-87-saturate-1514-hue-rotate-176deg-brightness-94-contrast-101pct"
+                                                                                                            alt="Info">
                                                                                                     </span>
                                                                                                     <span class="alm-line-height-1-45">
-                                                                                                        El reproceso de la <strong class="alm-color-dc2626 alm-background-fee2e2 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ $reg->ot }}</strong> se está trabajando en la nueva OT <strong class="alm-color-15803d alm-background-dcfce7 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>.<br>
-                                                                                                        <span class="alm-font-size-0-9rem alm-color-64748b alm-font-weight-500">Presiona el botón para redirigirte a la nueva Orden de Trabajo.</span>
+                                                                                                        El reproceso de la <strong
+                                                                                                            class="alm-color-dc2626 alm-background-fee2e2 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ $reg->ot }}</strong>
+                                                                                                        se está trabajando en la nueva OT <strong
+                                                                                                            class="alm-color-15803d alm-background-dcfce7 alm-padding-2px-6px alm-border-radius-4px alm-font-weight-800">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $latestReproceso->ot) }}</strong>.<br>
+                                                                                                        <span
+                                                                                                            class="alm-font-size-0-9rem alm-color-64748b alm-font-weight-500">Presiona
+                                                                                                            el botón para redirigirte a la nueva Orden
+                                                                                                            de Trabajo.</span>
                                                                                                     </span>
                                                                                                 </span>
                                                                                             </div>
                                                                                         @else
-                                                                                            Formatos de rechazo y SCAR subidos para los modelos: <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva pre-orden de modelo generada.
+                                                                                            Formatos de rechazo y SCAR subidos para los modelos:
+                                                                                            <strong>{{ implode(', ', $rechazados) }}</strong>. Nueva
+                                                                                            pre-orden de modelo generada.
                                                                                         @endif
                                                                                     @else
-                                                                                        Modelos Rechazados por Calidad: <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a subir el Formato de Rechazo y el SCAR correspondiente.
+                                                                                        Modelos Rechazados por Calidad:
+                                                                                        <strong>{{ implode(', ', $rechazados) }}</strong>. Procede a
+                                                                                        subir el Formato de Rechazo y el SCAR correspondiente.
                                                                                     @endif
                                                                                 </h4>
                                                                                 <div class="lib-calidad-card-btns">
                                                                                     @if ($reg->rechazos_procesados)
                                                                                         @if ($latestReproceso)
-                                                                                            <button class="btn-modelo btn-modelo-si" onclick="const row = document.querySelector('tr[data-ot=\'{{ $latestReproceso->ot }}\']'); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#86efac' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { alert('La OT de reproceso se encuentra en otra página o filtro.'); }" class="alm-display-flex alm-background-linear-gradient-135deg-0284c7-0369a1 alm-color-white alm-padding-12px-35px alm-font-size-1-15em alm-align-items-center alm-justify-content-center alm-min-height-52px alm-border-radius-10px alm-gap-10px alm-box-shadow-0-4px-12px-rgba-2-132-199-0-35 alm-border-none alm-cursor-pointer alm-transition-transform-0-2s-ease-box-shadow-0-2s-ease" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(2, 132, 199, 0.45)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(2, 132, 199, 0.35)';" title="Ir a la OT de re-proceso">
-                                                                                                <img src="{{ asset('images/redireccionar.png') }}" alt="Ir" class="alm-width-24px alm-height-24px alm-filter-brightness-0-invert-1">
-                                                                                                <span class="alm-font-weight-700 alm-letter-spacing-0-5px">Ir a la Nueva OT</span>
+                                                                                            <button class="btn-modelo btn-modelo-si"
+                                                                                                onclick="const row = document.querySelector('tr[data-ot=\'{{ $latestReproceso->ot }}\']'); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#86efac' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { alert('La OT de reproceso se encuentra en otra página o filtro.'); }"
+                                                                                                class="alm-display-flex alm-background-linear-gradient-135deg-0284c7-0369a1 alm-color-white alm-padding-12px-35px alm-font-size-1-15em alm-align-items-center alm-justify-content-center alm-min-height-52px alm-border-radius-10px alm-gap-10px alm-box-shadow-0-4px-12px-rgba-2-132-199-0-35 alm-border-none alm-cursor-pointer alm-transition-transform-0-2s-ease-box-shadow-0-2s-ease"
+                                                                                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px rgba(2, 132, 199, 0.45)';"
+                                                                                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(2, 132, 199, 0.35)';"
+                                                                                                title="Ir a la OT de re-proceso">
+                                                                                                <img src="{{ asset('images/redireccionar.png') }}"
+                                                                                                    alt="Ir"
+                                                                                                    class="alm-width-24px alm-height-24px alm-filter-brightness-0-invert-1">
+                                                                                                <span
+                                                                                                    class="alm-font-weight-700 alm-letter-spacing-0-5px">Ir
+                                                                                                    a la Nueva OT</span>
                                                                                             </button>
                                                                                         @else
-                                                                                            <button class="btn-modelo btn-modelo-no alm-display-flex alm-background-color-b91c1c alm-color-white">
+                                                                                            <button
+                                                                                                class="btn-modelo btn-modelo-no alm-display-flex alm-background-color-b91c1c alm-color-white">
                                                                                                 <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                                 <span>Rechazos Procesados</span>
                                                                                             </button>
                                                                                         @endif
                                                                                     @else
-                                                                                        <button class="btn-modelo btn-modelo-no" onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], {{ json_encode($rechazados) }})" class="alm-display-flex alm-background-color-b91c1c alm-color-white">
+                                                                                        <button class="btn-modelo btn-modelo-no"
+                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], {{ json_encode($rechazados) }})"
+                                                                                            class="alm-display-flex alm-background-color-b91c1c alm-color-white">
                                                                                             <img src="{{ asset('images/Rechazado.png') }}" alt="No">
                                                                                             <span>Procesar Rechazados</span>
                                                                                         </button>
@@ -2427,9 +2781,7 @@
                                                                     </div>
                                                                 </div>
                                                             @endif
-
-                                                        </div> {{-- FIN CONTENEDOR PRINCIPAL PROCESOS (CONTENEDOR 0) --}}
-
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             @endif
@@ -2445,110 +2797,157 @@
     </div>
 
     <div id="modalConfirmarModelo" class="alm-modal" role="dialog" aria-modal="true">
-        <div class="alm-modal-content alm-max-width-1100px alm-border-radius-20px alm-border-2-5px-solid-0a8504 alm-overflow-hidden">
-            <div class="alm-modal-header alm-background-linear-gradient-135deg-0a8504-064e03 alm-border-bottom-2px-solid-064e03 alm-padding-2-2em-2-5em-2em alm-position-relative">
+        <div class="alm-modal-content alm-border-radius-20px alm-border-2-5px-solid-0a8504 alm-overflow-hidden"
+            style="max-width: 1720px; width: 97vw; max-height: 96vh; height: 95vh; display: flex; flex-direction: column; margin: auto;">
+            <div
+                class="alm-modal-header alm-background-linear-gradient-135deg-0a8504-064e03 alm-border-bottom-2px-solid-064e03 alm-padding-0-9em-2-2em alm-position-relative">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalConfirmarModelo()">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar" style="width: 36px !important; height: 36px !important;">
                     </button>
                 </div>
-                <div class="alm-display-flex alm-align-items-center alm-gap-18px">
+                <div class="alm-display-flex alm-align-items-center alm-gap-16px">
                     <img src="{{ asset('images/Aprobado.png') }}"
-                        class="alm-width-46px alm-height-46px alm-object-fit-contain alm-filter-drop-shadow-0-4px-8px-rgba-0-0-0-0-15"
+                        style="width: 34px !important; height: 34px !important; max-width: 34px !important; max-height: 34px !important; object-fit: contain; flex-shrink: 0;"
                         alt="">
                     <div>
                         <h3
-                            class="alm-color-fff alm-margin-0 alm-font-size-1-45em alm-font-weight-800 alm-font-family-Poppins-sans-serif">
+                            class="alm-color-fff alm-margin-0 alm-font-size-1-3em alm-font-weight-800 alm-font-family-Poppins-sans-serif">
                             Confirmar Disponibilidad del Modelo</h3>
                         <div id="confirmar-modelo-subtitle"
-                            class="alm-color-rgba-255-255-255-0-9 alm-font-size-0-95em alm-margin-top-2px alm-font-weight-500 alm-font-family-Poppins-sans-serif">
+                            class="alm-color-rgba-255-255-255-0-9 alm-font-size-0-88em alm-margin-top-2px alm-font-weight-500 alm-font-family-Poppins-sans-serif">
                             OT: -</div>
                     </div>
                 </div>
             </div>
-            <div class="alm-modal-body alm-padding-2-2em-2-5em alm-background-fafafa alm-font-family-Poppins-sans-serif">
+            <div class="alm-modal-body alm-padding-1em-1-6em-1-2em-1-6em alm-background-fafafa alm-font-family-Poppins-sans-serif"
+                style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
                 <form id="formConfirmarModelo" enctype="multipart/form-data"
-                      data-email-modelo="{{ env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx') }}"
-                      data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}">
+                    style="display: flex; flex-direction: column; flex: 1; min-height: 0;"
+                    data-email-modelo="{{ env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx') }}"
+                    data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}">
                     <input type="hidden" id="cm-ot" name="ot">
                     <input type="hidden" id="cm-id-hash" name="id_hash">
 
-                    <div class="alm-padding-0-0-14px alm-color-334155 alm-font-size-0-97em">
-                        <p class="alm-margin-bottom-12px alm-font-weight-500">¿Confirmas que cuentas físicamente con el modelo
-                            para esta OT?</p>
-                        <p
-                            class="alm-background-fef9c3 alm-border-1px-solid-fde047 alm-border-radius-12px alm-padding-12px-18px alm-color-713f12 alm-font-size-0-9em alm-line-height-1-5 alm-margin-bottom-20px">
-                            <strong>Documentos requeridos:</strong> Debes adjuntar los documentos que acrediten la
-                            recepción del modelo (ej. remisión, hoja de entrega, fotos).
-                        </p>
+                    <div
+                        class="alm-background-fef9c3 alm-border-1px-solid-fde047 alm-border-radius-12px alm-padding-7px-14px alm-color-713f12 alm-font-size-0-86em alm-line-height-1-3 alm-margin-bottom-12px">
+                        <strong>Documentos requeridos:</strong> Adjunta las evidencias o remisión que acrediten la recepción
+                        del modelo para esta OT.
                     </div>
 
-                    <div class="form-group alm-mb-20" id="div-cm-destinatario">
-                        <label for="cm-destinatario" class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-10px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
-                            Notificar a Proveedor (correo electrónico):
-                        </label>
-                        <input type="text" id="cm-destinatario" name="destinatario" class="form-control alm-font-family-Poppins-sans-serif alm-font-size-1-1em alm-padding-12px-18px alm-height-auto alm-border-radius-10px">
-                        <span class="alm-font-size-0-85em alm-color-64748b alm-margin-top-4px alm-display-block">Separa múltiples correos con comas.</span>
-                    </div>
+                    <div
+                        style="display: grid; grid-template-columns: minmax(360px, 1fr) minmax(600px, 1.55fr); gap: 18px; align-items: stretch; flex: 1; min-height: 0;">
 
-                    <div class="form-group alm-mb-20" id="div-cm-destinatario-calidad">
-                        <label for="cm-destinatario-calidad" class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-10px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
-                            Notificar a Calidad (correo electrónico):
-                        </label>
-                        <input type="text" id="cm-destinatario-calidad" name="destinatario_calidad" class="form-control alm-font-family-Poppins-sans-serif alm-font-size-1-1em alm-padding-12px-18px alm-height-auto alm-border-radius-10px">
-                        <span class="alm-font-size-0-85em alm-color-64748b alm-margin-top-4px alm-display-block">Copia para Calidad (Modelos).</span>
-                    </div>
+                        <!-- Columna Izquierda: Datos del Formulario + Botón Verde de Selección -->
+                        <div style="display: flex; flex-direction: column; gap: 12px; min-height: 0;">
 
-                    {{-- FECHA DE CONFIRMACIÓN / ENVÍO --}}
-                    <div class="form-group alm-mb-20">
-                        <label for="cm-fecha"
-                            class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-10px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
-                            Fecha de Confirmación / Envío <span class="alm-text-dark-red">*</span>
-                        </label>
-                        <input type="date" id="cm-fecha" name="fecha" class="form-control alm-font-family-Poppins-sans-serif alm-font-size-1-1em alm-padding-12px-18px alm-height-auto alm-border-radius-10px">
-                    </div>
+                            <!-- Bloque 1: Formulario Principal -->
+                            <div
+                                style="background: #fff; padding: 14px 16px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+                                <h4
+                                    style="margin-top: 0; margin-bottom: 8px; color: #0a8504; font-size: 1em; border-bottom: 2px solid #0a8504; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px;">
+                                    <img src="{{ asset('images/copia-de-datos.png') }}"
+                                        style="width: 18px; height: 18px; object-fit: contain;"> Datos de Confirmación
+                                </h4>
 
-                    <div class="form-group alm-mb-22">
-                        <label class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-8px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
-                            Selecciona las clases (modelos) disponibles físicamente <span class="alm-text-dark-red">*</span>
-                        </label>
-                        <div id="cm-clases-container" class="alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-display-flex alm-flex-wrap-wrap alm-gap-15px">
-                            <div class="alm-spinner alm-border-top-color-0284c7 alm-display-block alm-margin-5px-auto"></div>
-                        </div>
-                    </div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div class="form-group" id="div-cm-destinatario">
+                                        <label for="cm-destinatario"
+                                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Notificar
+                                            a Proveedor:</label>
+                                        <input type="text" id="cm-destinatario" name="destinatario" class="form-control"
+                                            style="font-size: 0.84em; padding: 6px 10px; height: auto;">
+                                    </div>
 
-                    <div class="form-group alm-mb-22">
-                        <label
-                            class="alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-8px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">Archivos
-                            de la OT disponibles para adjuntar:</label>
-                        <div id="cm-server-files-container"
-                            class="alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-flex alm-flex-direction-column alm-gap-15px">
-                            <div class="alm-spinner alm-border-top-color-0284c7 alm-display-block alm-margin-10px-auto alm-grid-column-1-1">
+                                    <div class="form-group" id="div-cm-destinatario-calidad">
+                                        <label for="cm-destinatario-calidad"
+                                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Notificar
+                                            a Calidad:</label>
+                                        <input type="text" id="cm-destinatario-calidad" name="destinatario_calidad"
+                                            class="form-control"
+                                            style="font-size: 0.84em; padding: 6px 10px; height: auto;">
+                                    </div>
+                                </div>
+
+                                <div class="form-group" style="margin-top: 6px;">
+                                    <label for="cm-fecha"
+                                        style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Fecha
+                                        de Envío <span class="alm-text-dark-red">*</span>:</label>
+                                    <input type="date" id="cm-fecha" name="fecha" class="form-control"
+                                        style="font-size: 0.84em; padding: 6px 10px; height: auto;">
+                                </div>
+
+                                <div class="form-group" style="margin-top: 6px; margin-bottom: 0;">
+                                    <label
+                                        style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Clases
+                                        Disponibles <span class="alm-text-dark-red">*</span>:</label>
+                                    <div id="cm-clases-container"
+                                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; display: flex; flex-wrap: wrap; gap: 6px; max-height: 100px; overflow-y: auto;">
+                                        <div
+                                            class="alm-spinner alm-border-top-color-0284c7 alm-display-block alm-margin-5px-auto">
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <div class="form-group alm-mb-22">
-                        <label class="custom-file-upload-label alm-font-weight-700 alm-color-334155 alm-display-block alm-margin-bottom-10px alm-font-family-Poppins-sans-serif alm-font-size-1-15em">
-                            Adjuntar documentos de recepción <span class="alm-text-dark-red">*</span>
-                        </label>
-                        <div class="custom-file-dropzone alm-border-2px-dashed-0a8504 alm-background-f0fdf4 alm-min-height-80px alm-position-relative alm-border-radius-12px alm-display-flex alm-flex-direction-column alm-align-items-center alm-justify-content-center alm-padding-12px alm-cursor-pointer">
-                            <input type="file" id="cm-archivos" name="archivos[]" class="custom-file-input alm-position-absolute alm-width-100pct alm-height-100pct alm-opacity-0 alm-cursor-pointer">
-                            <div class="dropzone-content">
-                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon alm-width-40px alm-height-40px alm-margin-bottom-8px alm-object-fit-contain">
-                                <span class="dropzone-text alm-font-weight-700 alm-color-0a8504 alm-font-size-0-85em alm-text-align-center alm-font-family-Poppins-sans-serif">Arrastra
-                                    archivos aquí o haz clic para buscar</span>
-                                <span class="dropzone-subtext alm-font-size-0-7em alm-color-64748b alm-margin-top-2px alm-font-family-Poppins-sans-serif">Soporta
-                                    múltiples archivos PDF o imágenes</span>
+                            <!-- Bloque 2 (VERDE): SOLO el Botón Dropzone para Seleccionar/Cargar -->
+                            <div
+                                style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08);">
+                                <h4
+                                    style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.96em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px;">
+                                    <img src="{{ asset('images/anadir.png') }}"
+                                        style="width: 18px; height: 18px; object-fit: contain;"> Subir Nuevos Archivos <span
+                                        class="alm-text-dark-red">*</span>
+                                </h4>
+
+                                <div class="custom-file-dropzone"
+                                    style="border: 2px dashed #16a34a; background: #ffffff; padding: 12px 14px; border-radius: 10px; text-align: center; cursor: pointer; position: relative;">
+                                    <input type="file" id="cm-archivos" name="archivos[]" class="custom-file-input"
+                                        style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;"
+                                        multiple>
+                                    <div class="dropzone-content"
+                                        style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <img src="{{ asset('images/anadir.png') }}"
+                                            style="width: 22px; height: 22px; object-fit: contain;">
+                                        <span style="font-weight: 700; color: #15803d; font-size: 0.86em;">Haz clic o
+                                            arrastra PDFs e imágenes aquí</span>
+                                    </div>
+                                </div>
                             </div>
+
                         </div>
-                        <div id="cm-archivos-list"
-                            class="alm-margin-top-15px alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-none alm-grid-template-columns-repeat-auto-fill-minmax-200px-1fr alm-gap-12px alm-justify-items-center">
+
+                        <!-- Columna Derecha: 2 Sub-contenedores bien diferenciados -->
+                        <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0; box-sizing: border-box;">
+                            
+                            <!-- Sub-contenedor 1 (AZUL ICE): Archivos y Dibujos de la OT Disponibles -->
+                            <div style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); flex: 1.45; display: flex; flex-direction: column; min-height: 0;">
+                                <h4 style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <img src="{{ asset('images/galeria.png') }}" style="width: 18px; height: 18px; object-fit: contain;"> Archivos y Dibujos de la OT Disponibles
+                                </h4>
+
+                                <div id="cm-server-files-container" style="background: #f0f7ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 12px; flex: 1; max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                                    <div class="alm-spinner alm-border-top-color-0284c7 alm-display-block alm-margin-10px-auto"></div>
+                                </div>
+                            </div>
+
+                            <!-- Sub-contenedor 2 (VERDE ESMERALDA): Nuevos Archivos Adjuntados (Coincide en color con el botón de la izquierda) -->
+                            <div style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                                <h4 style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.98em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                                    <img src="{{ asset('images/anadir.png') }}" style="width: 16px; height: 16px; object-fit: contain;"> Nuevos Archivos Adjuntados
+                                </h4>
+
+                                <div id="cm-archivos-list" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 12px; flex: 1; max-height: 250px; min-height: 140px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start;"></div>
+                            </div>
+
                         </div>
+
                     </div>
 
-                    <div class="form-actions alm-text-align-center alm-margin-top-24px">
-                        <button type="submit" class="btn-save-preorden alm-background-linear-gradient-135deg-0a8504-064e03 alm-box-shadow-0-4px-15px-rgba-10-133-4-0-35 alm-padding-12px-32px alm-border-none alm-border-radius-10px alm-color-fff alm-font-weight-700 alm-cursor-pointer alm-font-family-Poppins-sans-serif alm-font-size-1-05em alm-display-inline-flex alm-align-items-center alm-justify-content-center alm-gap-8px">
+                    <div class="form-actions"
+                        style="text-align: center; margin-top: 10px; padding-top: 8px; flex-shrink: 0;">
+                        <button type="submit" class="btn-save-preorden"
+                            style="background: linear-gradient(135deg, #0a8504, #064e03); box-shadow: 0 4px 15px rgba(10, 133, 4, 0.35); padding: 11px 44px; border: none; border-radius: 10px; color: #fff; font-weight: 700; cursor: pointer; font-size: 1.05em; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                             Confirmar y Registrar
                         </button>
                     </div>
@@ -2576,8 +2975,10 @@
                             <div class="form-group po-proveedor-group">
                                 <label for="po-proveedor">Proveedor <span class="alm-text-danger">*</span>:</label>
                                 <select id="po-proveedor" name="proveedor" class="form-control" required>
-                                    <option value="SS Metal Foundry, S. de R. L. de C. V." selected>SS Metal Foundry, S. de R. L. de C. V.</option>
-                                    <option value="Sociedad Cooperativa de Producción Jacarandas">Sociedad Cooperativa de Producción Jacarandas</option>
+                                    <option value="SS Metal Foundry, S. de R. L. de C. V." selected>SS Metal Foundry, S. de
+                                        R. L. de C. V.</option>
+                                    <option value="Sociedad Cooperativa de Producción Jacarandas">Sociedad Cooperativa de
+                                        Producción Jacarandas</option>
                                 </select>
                             </div>
                             <div class="form-group po-fecha-group">
@@ -2605,7 +3006,8 @@
                             <table class="modal-table">
                                 <thead>
                                     <tr>
-                                        <th class="alm-width-16pct">Tipo de Modelo <span class="alm-text-danger">*</span></th>
+                                        <th class="alm-width-16pct">Tipo de Modelo <span class="alm-text-danger">*</span>
+                                        </th>
                                         <th class="alm-w-12">Impresiones <span class="alm-text-danger">*</span></th>
                                         <th class="alm-w-12">Cantidad <span class="alm-text-danger">*</span></th>
                                         <th class="alm-width-22pct">Descripción <span class="alm-text-danger">*</span></th>
@@ -2649,83 +3051,140 @@
     @include('almacen.partials._modal_preorden_casting')
 
     <div id="modalEnviarPreOrden" class="alm-modal">
-        <div class="alm-modal-content alm-max-width-1100px">
-            <div class="alm-modal-header">
+        <div class="alm-modal-content"
+            style="max-width: 1720px; width: 97vw; max-height: 96vh; height: 95vh; display: flex; flex-direction: column; margin: auto;">
+            <div class="alm-modal-header" style="padding: 0.9em 2.2em;">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarPreOrden()">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}">
+                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 36px !important; height: 36px !important;">
                     </button>
                 </div>
                 <h3>Enviar Pre-Orden por Correo</h3>
-                <p id="env-po-modal-subtitle" class="lib-modal-subtitle alm-color-bae6fd alm-font-size-0-9em alm-margin-top-4px alm-margin-bottom-0"></p>
+                <p id="env-po-modal-subtitle"
+                    class="lib-modal-subtitle alm-color-bae6fd alm-font-size-0-88em alm-margin-top-2px alm-margin-bottom-0">
+                </p>
             </div>
-            <div class="alm-modal-body">
+            <div class="alm-modal-body alm-padding-1em-1-6em-1-2em-1-6em"
+                style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
                 <form id="formEnviarPreOrden" enctype="multipart/form-data"
-                      data-email-modelo="{{ env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx') }}"
-                      data-email-casting="{{ env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx') }}"
-                      data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}"
-                      data-email-jacarandas="{{ env('EMAIL_PRODUCCION_JACARANDAS', 'ventas_jacarandas@prodigy.net.mx,requisicionestec@grupoindsaavedra.com') }}">
+                    style="display: flex; flex-direction: column; flex: 1; min-height: 0;"
+                    data-email-modelo="{{ env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx') }}"
+                    data-email-casting="{{ env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx') }}"
+                    data-email-calidad="{{ env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com') }}"
+                    data-email-jacarandas="{{ env('EMAIL_PRODUCCION_JACARANDAS', 'ventas_jacarandas@prodigy.net.mx,requisicionestec@grupoindsaavedra.com') }}">
                     <input type="hidden" id="env-ot" name="ot">
                     <input type="hidden" id="env-tipo" name="tipo" value="modelo">
 
-                    <div class="form-group alm-mb-20" id="div-env-destinatario">
-                        <label for="env-destinatario">Notificar a Proveedor (correo electrónico):</label>
-                        <input type="text" id="env-destinatario" name="destinatario" class="form-control" required>
-                        <span class="alm-text-sm-gray">Separa múltiples correos con comas.</span>
-                    </div>
+                    <div
+                        style="display: grid; grid-template-columns: minmax(360px, 1fr) minmax(600px, 1.55fr); gap: 18px; align-items: stretch; flex: 1; min-height: 0;">
 
-                    <div class="form-group alm-mb-20" id="div-env-destinatario-calidad">
-                        <label for="env-destinatario-calidad">Notificar a Calidad (correo electrónico):</label>
-                        <input type="text" id="env-destinatario-calidad" name="destinatario_calidad" class="form-control">
-                        <span class="alm-text-sm-gray">Copia para Calidad (Modelos).</span>
-                    </div>
+                        <!-- Columna Izquierda: Información de Envío + Botón Verde de Selección -->
+                        <div style="display: flex; flex-direction: column; gap: 12px; min-height: 0;">
 
-                    <div class="form-group alm-mb-20">
-                        <label for="env-fecha-entrega">Fecha de Entrega:</label>
-                        <input type="date" id="env-fecha-entrega" name="fecha_entrega" class="form-control" required>
-                        <span class="alm-text-sm-gray">Indica la fecha de entrega acordada
-                            para imprimirla en el reporte.</span>
-                    </div>
+                            <!-- Bloque 1: Formulario de Envío -->
+                            <div
+                                style="background: #fff; padding: 14px 16px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+                                <h4
+                                    style="margin-top: 0; margin-bottom: 8px; color: #033966; font-size: 1em; border-bottom: 2px solid #033966; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px;">
+                                    <img src="{{ asset('images/enviando.png') }}"
+                                        style="width: 18px; height: 18px; object-fit: contain;"> Información del Envío
+                                </h4>
 
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                                    <div class="form-group" id="div-env-destinatario">
+                                        <label for="env-destinatario"
+                                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Notificar
+                                            a Proveedor:</label>
+                                        <input type="text" id="env-destinatario" name="destinatario" class="form-control"
+                                            style="font-size: 0.84em; padding: 6px 10px; height: auto;" required>
+                                    </div>
 
+                                    <div class="form-group" id="div-env-destinatario-calidad">
+                                        <label for="env-destinatario-calidad"
+                                            style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Notificar
+                                            a Calidad:</label>
+                                        <input type="text" id="env-destinatario-calidad" name="destinatario_calidad"
+                                            class="form-control"
+                                            style="font-size: 0.84em; padding: 6px 10px; height: auto;">
+                                    </div>
+                                </div>
 
-                    <div class="form-group alm-mb-20">
-                        <label>Pre-órdenes pendientes de enviar:</label>
-                        <div id="env-pending-preordenes-container"
-                            class="alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-200px alm-overflow-y-auto alm-display-flex alm-flex-direction-column alm-gap-10px">
-                            <!-- Checkboxes se cargarán aquí dinámicamente -->
-                        </div>
-                    </div>
+                                <div class="form-group" style="margin-top: 6px;">
+                                    <label for="env-fecha-entrega"
+                                        style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Fecha
+                                        de Entrega acordada:</label>
+                                    <input type="date" id="env-fecha-entrega" name="fecha_entrega" class="form-control"
+                                        style="font-size: 0.84em; padding: 6px 10px; height: auto;" required>
+                                </div>
 
-                    <div class="form-group alm-mb-20">
-                        <label>Archivos de la OT disponibles para adjuntar:</label>
-                        <div id="env-server-files-container"
-                            class="alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-flex alm-flex-direction-column alm-gap-15px">
-                            <div class="alm-spinner alm-border-top-color-033966 alm-display-block alm-margin-10px-auto alm-grid-column-1-1">
+                                <div class="form-group" style="margin-top: 6px; margin-bottom: 0;">
+                                    <label
+                                        style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Pre-órdenes
+                                        pendientes por enviar:</label>
+                                    <div id="env-pending-preordenes-container"
+                                        style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; max-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+                                    </div>
+                                </div>
                             </div>
-                            <span class="alm-text-align-center alm-color-64748b alm-grid-column-1-1">Cargando archivos de la
-                                OT...</span>
-                        </div>
-                    </div>
 
-                    <div class="form-group alm-margin-bottom-30px">
-                        <label class="custom-file-upload-label alm-font-weight-700 alm-color-033966 alm-display-block alm-margin-bottom-8px">Adjuntar archivos
-                            adicionales desde tu equipo:</label>
-                        <div class="custom-file-dropzone">
-                            <input type="file" id="env-archivos-adicionales" name="archivos_adicionales[]"
-                                class="custom-file-input" multiple>
-                            <div class="dropzone-content">
-                                <img src="{{ asset('images/anadir.png') }}" class="dropzone-icon alm-width-40px alm-height-40px alm-margin-bottom-8px alm-object-fit-contain">
-                                <span class="dropzone-text">Arrastra archivos aquí o haz clic para buscar</span>
-                                <span class="dropzone-subtext">Soporta múltiples archivos PDF o imágenes</span>
+                            <!-- Bloque 2 (VERDE): SOLO el Botón Dropzone de Selección -->
+                            <div
+                                style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08);">
+                                <h4
+                                    style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.96em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px;">
+                                    <img src="{{ asset('images/anadir.png') }}"
+                                        style="width: 18px; height: 18px; object-fit: contain;"> Subir Nuevos Archivos
+                                </h4>
+
+                                <div class="custom-file-dropzone"
+                                    style="border: 2px dashed #16a34a; background: #ffffff; padding: 12px 14px; border-radius: 10px; text-align: center; cursor: pointer; position: relative;">
+                                    <input type="file" id="env-archivos-adicionales" name="archivos_adicionales[]"
+                                        class="custom-file-input"
+                                        style="position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer;"
+                                        multiple>
+                                    <div class="dropzone-content"
+                                        style="display: flex; align-items: center; justify-content: center; gap: 8px;">
+                                        <img src="{{ asset('images/anadir.png') }}"
+                                            style="width: 22px; height: 22px; object-fit: contain;">
+                                        <span style="font-weight: 700; color: #15803d; font-size: 0.86em;">Arrastrar
+                                            adicionales aquí (PDFs o imágenes)</span>
+                                    </div>
+                                </div>
                             </div>
+
                         </div>
-                        <div id="env-archivos-adicionales-list"
-                            class="alm-margin-top-15px alm-background-f8fafc alm-border-1px-solid-e2e8f0 alm-border-radius-12px alm-padding-15px alm-max-height-420px alm-overflow-y-auto alm-display-none alm-grid-template-columns-repeat-auto-fill-minmax-200px-1fr alm-gap-12px alm-justify-items-center"></div>
+
+                        <!-- Columna Derecha: 2 Sub-contenedores bien diferenciados -->
+                        <div style="display: flex; flex-direction: column; gap: 14px; height: 100%; min-height: 0; box-sizing: border-box;">
+                            
+                            <!-- Sub-contenedor 1 (AZUL ICE): Archivos y Dibujos de la OT Disponibles -->
+                            <div style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); flex: 1.45; display: flex; flex-direction: column; min-height: 0;">
+                                <h4 style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                                    <img src="{{ asset('images/galeria.png') }}" style="width: 18px; height: 18px; object-fit: contain;"> Archivos y Dibujos de la OT Disponibles
+                                </h4>
+
+                                <div id="env-server-files-container" style="background: #f0f7ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 12px; flex: 1; max-height: 380px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                                    <div class="alm-spinner alm-border-top-color-033966 alm-display-block alm-margin-10px-auto"></div>
+                                </div>
+                            </div>
+
+                            <!-- Sub-contenedor 2 (VERDE ESMERALDA): Nuevos Archivos Adjuntados (Coincide en color with left button) -->
+                            <div style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); flex: 1; display: flex; flex-direction: column; min-height: 0;">
+                                <h4 style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.98em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                                    <img src="{{ asset('images/anadir.png') }}" style="width: 16px; height: 16px; object-fit: contain;"> Nuevos Archivos Adjuntados
+                                </h4>
+
+                                <div id="env-archivos-adicionales-list" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 12px; flex: 1; max-height: 250px; min-height: 140px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start;"></div>
+                            </div>
+
+                        </div>
+
                     </div>
 
-                    <div class="form-actions alm-text-align-center">
-                        <button type="submit" id="btn-submit-envio" class="btn-save-preorden alm-background-005194 alm-box-shadow-0-4px-15px-rgba-0-81-148-0-3">
+                    <div class="form-actions"
+                        style="text-align: center; margin-top: 10px; padding-top: 8px; flex-shrink: 0;">
+                        <button type="submit" id="btn-submit-envio" class="btn-save-preorden"
+                            style="background: linear-gradient(135deg, #033966, #022340); box-shadow: 0 4px 15px rgba(3, 57, 102, 0.35); padding: 11px 44px; border: none; border-radius: 10px; color: #fff; font-weight: 700; cursor: pointer; font-size: 1.05em; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                             Enviar Correo con Adjuntos
                         </button>
                     </div>
@@ -2748,7 +3207,9 @@
                 </div>
                 <h3>Cambios Pendientes en Dibujos de Fundición</h3>
                 <p class="lib-modal-subtitle alm-color-bae6fd alm-font-size-0-9em alm-margin-top-4px alm-margin-bottom-0">
-                    Se registraron cambios en Dibujos de Fundición. ¿Deseas reiniciar el proceso desde el inicio (borrando estados de Calidad actuales) o solo cambiar los dibujos viejos por los nuevos manteniendo el progreso de la OT?
+                    Se registraron cambios en Dibujos de Fundición. ¿Deseas reiniciar el proceso desde el inicio (borrando
+                    estados de Calidad actuales) o solo cambiar los dibujos viejos por los nuevos manteniendo el progreso de
+                    la OT?
                 </p>
             </div>
             <div class="alm-modal-body">
@@ -2756,10 +3217,14 @@
                     <!-- Contenido dinámico -->
                 </div>
                 <div class="alm-margin-top-20px alm-display-flex alm-gap-15px alm-justify-content-center">
-                    <button type="button" id="btn-resolver-reiniciar" class="btn-save-preorden alm-background-color-b91c1c alm-box-shadow-0-4px-15px-rgba-220-38-38-0-3" onclick="almacenResolverCambios('reiniciar')">
+                    <button type="button" id="btn-resolver-reiniciar"
+                        class="btn-save-preorden alm-background-color-b91c1c alm-box-shadow-0-4px-15px-rgba-220-38-38-0-3"
+                        onclick="almacenResolverCambios('reiniciar')">
                         Reiniciar Proceso Completo
                     </button>
-                    <button type="button" id="btn-resolver-mantener" class="btn-save-preorden alm-background-linear-gradient-135deg-0a8504-064e03 alm-box-shadow-0-4px-15px-rgba-10-133-4-0-35" onclick="almacenResolverCambios('mantener')">
+                    <button type="button" id="btn-resolver-mantener"
+                        class="btn-save-preorden alm-background-linear-gradient-135deg-0a8504-064e03 alm-box-shadow-0-4px-15px-rgba-10-133-4-0-35"
+                        onclick="almacenResolverCambios('mantener')">
                         Solo Reemplazar Archivos
                     </button>
                 </div>
@@ -2805,5 +3270,3 @@
     </script>
 
 @endsection
-
-

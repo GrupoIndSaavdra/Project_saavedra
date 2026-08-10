@@ -6892,6 +6892,7 @@ function generarHtmlCategorizadoCastingAprobados(
                 : `${getBaseUrl()}images/pdf-view.png`;
             const safeName = nombre.replace(/'/g, "\\'");
             const safeOt = otClean.replace(/'/g, "\\'");
+            const tipoParam = isRechazados ? "rechazados" : "aprobados";
             const safeTipo = tipoParam.replace(/'/g, "\\'");
             const fnViewer = typeof window.calidadVerPdf === 'function' ? 'calidadVerPdf' : 'almacenVerPdf';
             html += `<div class="dibujos-file-card ${sec.claseCard} select-file-card" style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);background:#fff;padding:10px;border:1.5px solid #e2e8f0;">
@@ -7365,15 +7366,20 @@ No se encontraron archivos en el servidor para esta OT.
         });
 };
 window.switchMgvTab = function (tabName) {
-    document
-        .querySelectorAll(".mgv-view")
-        .forEach((v) => v.classList.add("cal-display-none"));
+    document.querySelectorAll(".mgv-view").forEach((v) => {
+        v.style.display = "none";
+        v.classList.add("cal-display-none");
+        v.classList.add("alm-display-none");
+    });
     document
         .querySelectorAll(".mgv-tab")
         .forEach((t) => t.classList.remove("active"));
-    document
-        .getElementById("mgv-view-" + tabName)
-        .classList.remove("cal-display-none");
+    const targetView = document.getElementById("mgv-view-" + tabName);
+    if (targetView) {
+        targetView.style.display = "flex";
+        targetView.classList.remove("cal-display-none");
+        targetView.classList.remove("alm-display-none");
+    }
     const activeTab = document.getElementById("tab-" + tabName);
     if (activeTab) activeTab.classList.add("active");
     const header = document.getElementById("mgv-header");

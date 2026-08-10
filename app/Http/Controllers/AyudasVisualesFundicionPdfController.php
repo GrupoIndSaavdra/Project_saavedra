@@ -167,24 +167,45 @@ class AyudasVisualesFundicionPdfController extends Controller
     public function serveFile(Request $request): BinaryFileResponse
     {
         $clase   = $this->sanitizePath($request->query('clase', ''));
-        $archivo = $this->sanitizeFileName($request->query('archivo', ''));
+        $rawArchivo = $request->query('archivo', '');
 
-        if (empty($clase) || empty($archivo)) {
+        if (empty($clase) && !empty($rawArchivo) && str_contains($rawArchivo, '/')) {
+            $parts = explode('/', trim($rawArchivo, '/'));
+            $clase = $this->sanitizePath($parts[0]);
+            $rawArchivo = array_pop($parts);
+        }
+
+        $archivo = $this->sanitizeFileName($rawArchivo);
+
+        if (empty($archivo)) {
             abort(422, 'Parámetros inválidos.');
         }
 
-        // Buscar en los tres posibles directorios
-        $candidateDirs = [
-            self::BASE_DIR     . '/' . $clase,
-            self::BASE_DIR     . '/' . $clase . '/Fundicion',
-            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion',
-        ];
+        // Buscar en los directorios candidatos
+        $candidateDirs = [];
+        if (!empty($clase)) {
+            $candidateDirs = [
+                self::BASE_DIR     . '/' . $clase,
+                self::BASE_DIR     . '/' . $clase . '/Fundicion',
+                self::OLD_BASE_DIR . '/' . $clase . '/Fundicion',
+            ];
+        } else {
+            $allClassFolders = array_merge(
+                Storage::disk('local')->directories(self::BASE_DIR) ?: [],
+                Storage::disk('local')->directories(self::OLD_BASE_DIR) ?: []
+            );
+            foreach ($allClassFolders as $dir) {
+                $candidateDirs[] = $dir;
+                $candidateDirs[] = $dir . '/Fundicion';
+            }
+        }
 
         $foundFile = null;
+        $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
+
         foreach ($candidateDirs as $dir) {
             if (Storage::disk('local')->exists($dir)) {
                 $files = Storage::disk('local')->files($dir);
-                $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
                 foreach ($files as $f) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
