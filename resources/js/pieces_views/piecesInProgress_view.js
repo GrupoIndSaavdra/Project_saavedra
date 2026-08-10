@@ -471,7 +471,7 @@ class FundicionChecklistCard {
         // Toggle logic: make whole card clickable
         card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
-            if (itemsContainer.classList.contains("hidden")) {
+            if (itemsContainer.hidden) {
                 itemsContainer.hidden = false;
                 card.classList.remove('is-closed');
             } else {
@@ -807,7 +807,7 @@ class PlaneacionChecklistCard {
             <div class="checklist-header">
                 <span class="checklist-title">Planeación</span>
             </div>
-            <div class="checklist-items hidden" id="planeacion-items-${this.otId}-${this.claseId}" style="padding-top: 5px;">
+            <div class="checklist-items" id="planeacion-items-${this.otId}-${this.claseId}" style="padding-top: 5px;">
                 <div class="checklist-item checklist-item--pendiente" title="Pendiente">
                     <div class="checklist-icon-col">
                         <span class="checklist-icon"><img src="${this._getIconFor('pendiente')}" alt="pendiente" class="checklist-state-icon"></span>
@@ -847,10 +847,13 @@ class PlaneacionChecklistCard {
         `;
 
         const itemsContainer = card.querySelector('.checklist-items');
+        // Ocultar mediante atributo HTML (no clase CSS) para que el toggle sea consistente
+        if (itemsContainer) itemsContainer.hidden = true;
+
         card.classList.add('is-closed');
         card.style.cursor = 'pointer';
         card.addEventListener('click', () => {
-            if (itemsContainer.classList.contains("hidden")) {
+            if (itemsContainer.hidden) {
                 itemsContainer.hidden = false;
                 card.classList.remove('is-closed');
             } else {
@@ -1015,7 +1018,7 @@ class TermicoChecklistCard {
         this.root.addEventListener('click', () => {
             const tItems = this.root.querySelector('.checklist-items');
             if (tItems) {
-                if (tItems.classList.contains("hidden")) {
+                if (tItems.hidden) {
                     tItems.hidden = false;
                     this.root.classList.remove('is-closed');
                 } else {
@@ -1030,7 +1033,7 @@ class TermicoChecklistCard {
         const isTermicoComplete = (this.tPieces > 0 && this.tTratadas >= this.tPieces);
 
         const tItems = this.root.querySelector('.checklist-items');
-        const isHidden = tItems ? tItems.classList.contains('hidden') : true;
+        const isHidden = tItems ? tItems.hidden : true;
         const hiddenClass = isHidden ? 'hidden' : '';
         const isClosedClass = tItems ? (this.root.classList.contains('is-closed') ? 'is-closed' : '') : 'is-closed';
 
@@ -1049,7 +1052,7 @@ class TermicoChecklistCard {
             <div class="checklist-header">
                 <span class="checklist-title">Tratamiento Térmico</span>
             </div>
-            <div class="checklist-items ${hiddenClass}" style="padding-top: 15px;">
+            <div class="checklist-items" style="padding-top: 15px;">
                 <div class="checklist-item ${iconStateClass}" title="Piezas en tratamiento térmico" style="cursor: help;">
                     <div class="checklist-icon-col">
                         <span class="checklist-icon">
@@ -1065,6 +1068,11 @@ class TermicoChecklistCard {
                 </div>
             </div>
         `;
+
+        // Restaurar el estado de visibilidad usando el atributo HTML (no la clase CSS)
+        // para que el listener de click (que usa tItems.hidden) funcione correctamente.
+        const newItems = this.root.querySelector('.checklist-items');
+        if (newItems) newItems.hidden = isHidden;
     }
 
     async _poll() {
@@ -1951,7 +1959,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!window.isScrollingProgrammatically) {
             document.querySelectorAll('.fundicion-checklist-card:not(.is-closed)').forEach(card => {
                 const itemsContainer = card.querySelector('.checklist-items');
-                if (itemsContainer && !itemsContainer.classList.contains("hidden")) {
+                if (itemsContainer && !itemsContainer.hidden) {
                     itemsContainer.hidden = true;
                     card.classList.add('is-closed');
                 }
