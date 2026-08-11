@@ -111,7 +111,9 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function filterGroups(selector, idClase) {
         document.querySelectorAll(selector).forEach(g => {
-            g.classList.toggle("hidden", !(g.dataset.idClase === idClase ));
+            const shouldHide = !(g.dataset.idClase === idClase);
+            g.classList.toggle("hidden", shouldHide);
+            g.hidden = shouldHide;
         });
     }
 

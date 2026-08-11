@@ -145,15 +145,16 @@
     ═══════════════════════════════════════════════════ --}}
     <div class="panel-actividad">
 
-        {{-- ── CARD REMISIONES (Ocultado ya que ahora se sube junto con la parcialidad) ── --}}
-        <div class="card-actividad" id="remisiones-panel" hidden>
+        {{-- ── CARD REMISIONES (Ocultado para subidas nuevas, visible solo si hay historial antiguo) ── --}}
+        @if(isset($remisiones) && $remisiones->count() > 0)
+        <div class="card-actividad" id="remisiones-panel">
             <h3>
-                Remisiones
+                Historial de Remisiones (Antiguas)
             </h3>
 
             {{-- Placeholder cuando no hay clase seleccionada --}}
             <div class="placeholder-msg" id="placeholder-remision">
-                Selecciona una clase en la tabla para ver y agregar remisiones.
+                Selecciona una clase en la tabla para ver las remisiones anteriores.
             </div>
 
             {{-- Formulario de subida (único, rellenado por JS) --}}
@@ -215,7 +216,7 @@
                 @endforeach
             </div>
         </div>
-
+        @endif
 
         {{-- ── CARD PARCIALIDADES ── --}}
         <div class="card-actividad" id="parcialidades-panel">
@@ -336,12 +337,16 @@
                                     <td>
                                         <div class="view-remision">
                                             @if($p->remision)
-                                                <a href="{{ route('wo.remision.serve', $p->remision->id) }}" target="_blank" class="link-action-modal" title="{{ $p->remision->descripcion }}">
-                                                    <img src="{{ asset('images/pdf.png') }}" alt="PDF" class="icon-16">
-                                                    <span class="text-truncate max-w-120">{{ $p->remision->filename }}</span>
+                                                @php
+                                                    $isPdf = Str::endsWith(strtolower($p->remision->filename), '.pdf');
+                                                    $iconName = $isPdf ? 'pdf.png' : 'image-icon.png'; 
+                                                @endphp
+                                                <a href="{{ route('wo.remision.serve', $p->remision->id) }}" target="_blank" class="link-action-modal" title="{{ $p->remision->filename }}">
+                                                    <img src="{{ asset('images/' . $iconName) }}" alt="{{ $isPdf ? 'PDF' : 'IMG' }}" class="icon-16" onerror="this.src='{{ asset('images/pdf.png') }}'">
+                                                    <span class="text-truncate" style="max-width: 200px; display: inline-block; vertical-align: middle;">{{ $p->remision->filename }}</span>
                                                 </a>
                                             @else
-                                                <span class="text-muted-sm">—</span>
+                                                <span class="text-muted-sm" title="Sin remisión vinculada">—</span>
                                             @endif
                                         </div>
                                         <input type="file" class="edit-archivo form-control" accept=".pdf,.jpg,.jpeg,.png">
