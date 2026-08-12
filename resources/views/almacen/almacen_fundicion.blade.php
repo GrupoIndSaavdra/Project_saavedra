@@ -1573,18 +1573,34 @@
                                                     }
                                                 }
                                                 $aprobadosNorm = array_map('strtolower', $aprobados);
-                                                $tieneAprobados = $isCalidadAlerted && (count($aprobados) > 0 || count($calidadAprobadosLdm) > 0 || count($dibujosCasting) > 0 || count($ayudasCasting) > 0);
-                                                $tieneRechazados = $isCalidadAlerted && (count($rechazados) > 0 || count($rechazadosOtros) > 0 || count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($dibujosRechazadosOrig) > 0 || count($ayudasRechazadosOrig) > 0);
+                                                $rechazadosNorm = array_map('strtolower', $rechazados);
+                                                $tieneAprobados = count($aprobados) > 0 || count($calidadAprobadosLdm) > 0 || count($dibujosCasting) > 0 || count($ayudasCasting) > 0 || count($almacenPreordenesCasting) > 0;
+                                                $tieneRechazados = count($rechazados) > 0 || count($rechazadosOtros) > 0 || count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($dibujosRechazadosOrig) > 0 || count($ayudasRechazadosOrig) > 0;
 
-                                                $calidadAprobadosLdmCasting = array_values(array_filter($calidadAprobadosLdm, function ($doc) use ($aprobadosNorm) {
-                                                    if (empty($aprobadosNorm))
-                                                        return true;
+                                                $calidadAprobadosLdmCasting = array_values(array_filter($calidadAprobadosLdm, function ($doc) use ($aprobadosNorm, $rechazadosNorm) {
                                                     $nameLow = strtolower(basename($doc['nombre']));
-                                                    foreach ($aprobadosNorm as $ap) {
-                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false)
-                                                            return true;
+                                                    if (!empty($rechazadosNorm)) {
+                                                        $mencionaRechazada = false;
+                                                        foreach ($rechazadosNorm as $rCl) {
+                                                            if ($rCl !== '' && strpos($nameLow, $rCl) !== false) {
+                                                                $mencionaRechazada = true;
+                                                                break;
+                                                            }
+                                                        }
+                                                        if ($mencionaRechazada) {
+                                                            $mencionaAprobada = false;
+                                                            foreach ($aprobadosNorm as $ap) {
+                                                                if ($ap !== '' && strpos($nameLow, $ap) !== false) {
+                                                                    $mencionaAprobada = true;
+                                                                    break;
+                                                                }
+                                                            }
+                                                            if (!$mencionaAprobada) {
+                                                                return false;
+                                                            }
+                                                        }
                                                     }
-                                                    return false;
+                                                    return true;
                                                 }));
                                                 $almacenPreordenesCasting = array_values(array_filter($almacenPreordenes, function ($doc) use ($aprobadosNorm) {
                                                     $pathLow = strtolower($doc['nombre']);
@@ -2395,15 +2411,30 @@
 
                                                                         {{-- Documentos Aprobados (solo de clases aprobadas) --}}
                                                                         @php
-                                                                            $calidadAprobadosLdmCasting = array_values(array_filter($calidadAprobadosLdm, function ($doc) use ($aprobadosNorm) {
-                                                                                if (empty($aprobadosNorm))
-                                                                                    return true;
+                                                                            $calidadAprobadosLdmCasting = array_values(array_filter($calidadAprobadosLdm, function ($doc) use ($aprobadosNorm, $rechazadosNorm) {
                                                                                 $nameLow = strtolower(basename($doc['nombre']));
-                                                                                foreach ($aprobadosNorm as $ap) {
-                                                                                    if ($ap !== '' && strpos($nameLow, $ap) !== false)
-                                                                                        return true;
+                                                                                if (!empty($rechazadosNorm)) {
+                                                                                    $mencionaRechazada = false;
+                                                                                    foreach ($rechazadosNorm as $rCl) {
+                                                                                        if ($rCl !== '' && strpos($nameLow, $rCl) !== false) {
+                                                                                            $mencionaRechazada = true;
+                                                                                            break;
+                                                                                        }
+                                                                                    }
+                                                                                    if ($mencionaRechazada) {
+                                                                                        $mencionaAprobada = false;
+                                                                                        foreach ($aprobadosNorm as $ap) {
+                                                                                            if ($ap !== '' && strpos($nameLow, $ap) !== false) {
+                                                                                                $mencionaAprobada = true;
+                                                                                                break;
+                                                                                            }
+                                                                                        }
+                                                                                        if (!$mencionaAprobada) {
+                                                                                            return false;
+                                                                                        }
+                                                                                    }
                                                                                 }
-                                                                                return false;
+                                                                                return true;
                                                                             }));
                                                                             $almacenPreordenesCasting = array_values(array_filter($almacenPreordenes, function ($doc) use ($aprobadosNorm) {
                                                                                 $pathLow = strtolower($doc['nombre']);
