@@ -1616,6 +1616,7 @@
                                                 $count = $countVisibleFabricacion + $countVisibleAprobados + $countVisibleRechazados;
 
                                                 $hasRechazosRealLocal = (count($rechazados) > 0 || $tieneRechazados);
+                                                $esReproceso = (bool) preg_match('/_R\d+$/i', $targetReg->ot);
                                                 $showControlCard = ($estado === 'activa' && !$isFinalized && (!$isCalidadAlerted || $hasRechazosRealLocal || ($esReproceso && count($clasesFabricacion) > 0)));
                                                 $hasFilesOrControl = ($count > 0 || $showControlCard);
 
