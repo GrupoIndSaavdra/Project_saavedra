@@ -1486,12 +1486,26 @@
                                                         strpos($baseLow, 'pre-orden') !== false ||
                                                         strpos($baseLow, 'preorden') !== false ||
                                                         strpos($baseLow, 'confirmacion') !== false ||
-                                                        strpos($baseLow, 'escaneado_fundicion') !== false
+                                                        strpos($baseLow, 'escaneado') !== false ||
+                                                        strpos($baseLow, 'pfm') !== false ||
+                                                        strpos($baseLow, 'cfm') !== false ||
+                                                        strpos($baseLow, 'efm') !== false ||
+                                                        strpos($baseLow, 'pfc') !== false ||
+                                                        strpos($nameLow, 'preordenes/') !== false ||
+                                                        strpos($nameLow, 'preorden_casting') !== false ||
+                                                        strpos($nameLow, 'preorden_modelo') !== false ||
+                                                        strpos($nameLow, 'confirmacion_modelo') !== false ||
+                                                        strpos($nameLow, 'fdldm') !== false ||
+                                                        strpos($nameLow, 'f_ccl_ldm') !== false
                                                     ) {
                                                         $archivosAprobados[] = $archivo;
                                                     } elseif (
                                                         strpos($baseLow, 'rechazado') !== false ||
-                                                        strpos($baseLow, 'scar') !== false
+                                                        strpos($baseLow, 'scar') !== false ||
+                                                        strpos($baseLow, 'rdm') !== false ||
+                                                        strpos($baseLow, 'fdrdm') !== false ||
+                                                        strpos($nameLow, 'f_ccl_rdm') !== false ||
+                                                        strpos($nameLow, 'f_ccl_scar') !== false
                                                     ) {
                                                         $archivosRechazados[] = $archivo;
                                                     } else {

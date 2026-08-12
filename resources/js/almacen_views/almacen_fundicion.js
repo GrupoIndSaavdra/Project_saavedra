@@ -961,19 +961,31 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                     ayudasPdfs.push(f);
                 } else {
                     const lower = f.nombre.toLowerCase();
-                    // Usar el campo 'origin' del backend (aprobado/rechazado) como fuente principal
                     const originField = (f.origin || "").toLowerCase();
                     if (
                         originField === "rechazado" ||
                         lower.includes("documentos_rechazados") ||
                         lower.includes("rechazado") ||
-                        lower.includes("scar")
+                        lower.includes("scar") ||
+                        lower.includes("rdm") ||
+                        lower.includes("f_ccl_rdm") ||
+                        lower.includes("f_ccl_scar") ||
+                        lower.includes("fdrdm")
                     ) {
                         rechazadosPdfs.push(f);
                     } else if (
                         originField === "aprobado" ||
-                        lower.includes("escaneado_fundicion") ||
-                        lower.includes("documentos_aprobados")
+                        lower.includes("escaneado") ||
+                        lower.includes("documentos_aprobados") ||
+                        lower.includes("preorden") ||
+                        lower.includes("pre-orden") ||
+                        lower.includes("confirmacion") ||
+                        lower.includes("pfc") ||
+                        lower.includes("pfm") ||
+                        lower.includes("cfm") ||
+                        lower.includes("efm") ||
+                        lower.includes("fdldm") ||
+                        lower.includes("f_ccl_ldm")
                     ) {
                         aprobadosPdfs.push(f);
                     } else {
@@ -4143,7 +4155,7 @@ window.abrirModalConfirmarModelo = function (
                                     return foundClass === c;
                                 });
                             }
-                            return false;
+                            return true;
                         });
                     }
                     const sectionsHtml = generarHtmlCategorizadoArchivos(
@@ -7044,7 +7056,16 @@ function generarHtmlCategorizadoCastingAprobados(
                     tipo === "preorden" ||
                     tipo === "otro" ||
                     nombre.includes(targetFolder) ||
-                    nombre.includes("preordenes/")
+                    nombre.includes("preordenes") ||
+                    nombre.includes("preorden_casting") ||
+                    nombre.includes("preorden_modelo") ||
+                    nombre.includes("fdldm") ||
+                    nombre.includes("f_ccl_ldm") ||
+                    nombre.includes("f_alm_pfc") ||
+                    nombre.includes("f_alm_pfm") ||
+                    nombre.includes("f_alm_cfm") ||
+                    nombre.includes("f_alm_efm") ||
+                    nombre.includes("escaneado")
                 );
             }
             return sec.tipos.includes(tipo);
@@ -7105,17 +7126,9 @@ window.cargarInputsCasting = function (ot, files) {
                     .toUpperCase();
                 existingFile = files.find((f) => {
                     const nameUpper = (f.nombre || "").toUpperCase();
-                    return (
-                        f.origin === "aprobado" &&
-                        nameUpper.includes("DOCUMENTOS_APROBADOS/FDLDM/") &&
-                        nameUpper.includes(
-                            "F-CCL-LDM_" +
-                            c.toUpperCase() +
-                            "_" +
-                            sanitizedOt +
-                            "_APROBADO",
-                        )
-                    );
+                    const cleanClass = c.toUpperCase();
+                    const isLdmDoc = nameUpper.includes("FDLDM") || nameUpper.includes("F_CCL_LDM") || nameUpper.includes("F-CCL-LDM") || nameUpper.includes("LDM");
+                    return isLdmDoc && nameUpper.includes(cleanClass);
                 });
             }
             const label = c.charAt(0).toUpperCase() + c.slice(1);
@@ -7658,6 +7671,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                     archivosList,
                     clasesActivas,
                 ) => {
+                    if (!clasesActivas || clasesActivas.length === 0) return archivosList;
                     const clasesMonitoreadas = [
                         "candado obturador",
                         "cabeza de soplo",
@@ -7701,7 +7715,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                 const archivosAprob =
                     filteredAprobados.length > 0
                         ? filtrarPorClasesActivas(baseAprob, filteredAprobados)
-                        : [];
+                        : baseAprob;
                 if (filesContainerA) {
                     filesContainerA.innerHTML =
                         generarHtmlCategorizadoCastingAprobados(
@@ -7732,7 +7746,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                 const archivosRech =
                     filteredRechazados.length > 0
                         ? filtrarPorClasesActivas(baseRech, filteredRechazados)
-                        : [];
+                        : baseRech;
                 if (filesContainerR) {
                     filesContainerR.innerHTML =
                         generarHtmlCategorizadoCastingAprobados(

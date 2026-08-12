@@ -1241,6 +1241,24 @@
                                                     $nameLow = strtolower($archivo['nombre']);
                                                     $baseLow = strtolower(basename($archivo['nombre']));
                                                     if (
+                                                        strpos($nameLow, 'documentos_rechazados') !== false ||
+                                                        strpos($baseLow, 'rechazado') !== false ||
+                                                        strpos($baseLow, 'scar') !== false ||
+                                                        strpos($baseLow, 'rdm') !== false ||
+                                                        strpos($baseLow, 'fdrdm') !== false ||
+                                                        strpos($nameLow, 'f_ccl_rdm') !== false ||
+                                                        strpos($nameLow, 'f_ccl_scar') !== false
+                                                    ) {
+                                                        $archivosRechazados[] = $archivo;
+                                                    } elseif (
+                                                        strpos($nameLow, 'fdldm') !== false ||
+                                                        strpos($nameLow, 'f_ccl_ldm') !== false
+                                                    ) {
+                                                        $calidadAprobadosLdm[] = $archivo;
+                                                    } elseif (
+                                                        strpos($nameLow, 'preorden_casting') !== false ||
+                                                        strpos($nameLow, 'preorden_modelo') !== false ||
+                                                        strpos($nameLow, 'confirmacion_modelo') !== false ||
                                                         strpos($baseLow, 'pre-orden') !== false ||
                                                         strpos($baseLow, 'preorden') !== false ||
                                                         strpos($baseLow, 'confirmacion') !== false ||
@@ -1252,13 +1270,6 @@
                                                         strpos($nameLow, 'preordenes/') !== false
                                                     ) {
                                                         $almacenPreordenes[] = $archivo;
-                                                    } elseif (
-                                                        strpos($nameLow, 'documentos_rechazados') !== false ||
-                                                        strpos($baseLow, 'rechazado') !== false ||
-                                                        strpos($baseLow, 'rdm') !== false ||
-                                                        strpos($baseLow, 'scar') !== false
-                                                    ) {
-                                                        $archivosRechazados[] = $archivo;
                                                     } else {
                                                         $calidadAprobadosLdm[] = $archivo;
                                                     }
@@ -1301,24 +1312,67 @@
                                                 $rechazadosRaw = [];
                                                 foreach ($latestLiberacionesByClass as $tipo => $data) {
                                                     $lib = $data['lib'];
-                                                    // Solo considerar como liberación válida si Calidad ya envió la alerta
-                                                    // (alerta_enviada=true). Si solo guardó sin enviar, ignorar.
-                                                    if ($lib->estado !== 'pendiente' && $lib->alerta_enviada) {
-                                                        if ($lib->decision === 'aprobar') {
-                                                            $aprobadosRaw[] = $tipo;
-                                                        } elseif ($lib->decision === 'rechazar') {
+                                                    if ($lib->decision === 'aprobar' || $lib->estado === 'aprobado' || $lib->estado === 'aprobada') {
+                                                        $aprobadosRaw[] = $tipo;
+                                                    } elseif ($lib->decision === 'rechazar' || $lib->estado === 'rechazado' || $lib->estado === 'rechazada') {
+                                                        if ($lib->alerta_enviada || $lib->estado !== 'pendiente') {
                                                             $rechazadosRaw[] = $tipo;
                                                         }
                                                     }
                                                 }
 
-                                                // Filtrar por clases activas en esta versión de la OT
-                                                $aprobados = array_values(array_filter($aprobadosRaw, function ($clase) use ($activeClassesForOt) {
-                                                    return in_array(strtolower($clase), $activeClassesForOt);
-                                                }));
-                                                $rechazados = array_values(array_filter($rechazadosRaw, function ($clase) use ($activeClassesForOt) {
-                                                    return in_array(strtolower($clase), $activeClassesForOt);
-                                                }));
+                                                // Extraer clases de archivos aprobados en $calidadAprobadosLdm
+                                                foreach ($calidadAprobadosLdm as $docAprob) {
+                                                    $baseName = basename($docAprob['nombre']);
+                                                    if (preg_match('/F_CCL_LDM_([^\.]+)/i', $baseName, $mMatches)) {
+                                                        $extractedClass = trim(str_replace(['_', '-'], ' ', $mMatches[1]));
+                                                        if (!empty($extractedClass)) {
+                                                            $aprobadosRaw[] = $extractedClass;
+                                                        }
+                                                    }
+                                                    foreach ($activeClassesForOt as $ac) {
+                                                        if (!empty($ac) && strpos(strtolower($baseName), strtolower($ac)) !== false) {
+                                                            $aprobadosRaw[] = $ac;
+                                                        }
+                                                    }
+                                                }
+
+                                                // Normalizar y deduplicar aprobados y rechazados con respecto a activeClassesForOt
+                                                $aprobados = [];
+                                                foreach ($aprobadosRaw as $cRaw) {
+                                                    $cLow = strtolower(trim($cRaw));
+                                                    if (empty($cLow)) continue;
+                                                    $matched = false;
+                                                    foreach ($activeClassesForOt as $ac) {
+                                                        $acLow = strtolower(trim($ac));
+                                                        if ($cLow === $acLow || strpos($cLow, $acLow) !== false || strpos($acLow, $cLow) !== false) {
+                                                            $aprobados[] = $ac;
+                                                            $matched = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!$matched) {
+                                                        $aprobados[] = trim($cRaw);
+                                                    }
+                                                }
+                                                $aprobados = array_values(array_unique($aprobados));
+
+                                                $rechazados = array_values(array_unique(array_filter($rechazadosRaw, function ($clase) use ($activeClassesForOt) {
+                                                    return in_array(strtolower($clase), array_map('strtolower', $activeClassesForOt));
+                                                })));
+
+                                                // Fallback: si $tieneAprobados o count($calidadAprobadosLdm) > 0 y $aprobados está vacío
+                                                $isCalidadAlertedLocal = in_array($reg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado'])
+                                                    || \App\Models\LiberacionModeloFundicion::where('ot', $reg->ot)->where('alerta_enviada', true)->exists();
+                                                if (empty($aprobados) && ($isCalidadAlertedLocal || count($calidadAprobadosLdm) > 0 || in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'casting_aprobado']))) {
+                                                    $rechazadosNormLocal = array_map('strtolower', $rechazados);
+                                                    $aprobados = array_values(array_filter($activeClassesForOt, function ($ac) use ($rechazadosNormLocal) {
+                                                        return !in_array(strtolower($ac), $rechazadosNormLocal);
+                                                    }));
+                                                    if (empty($aprobados) && !empty($activeClassesForOt)) {
+                                                        $aprobados = $activeClassesForOt;
+                                                    }
+                                                }
                                                 // Clasificar dibujos y ayudas por etapa (Fabricación de Modelo vs Casting)
                                                 $aprobadosNorm = array_map('strtolower', $aprobados);
                                                 $rechazadosNorm = array_map('strtolower', $rechazados);
@@ -1465,10 +1519,31 @@
                                                 $hayRechazadosSinPreorden = count($rechazadosSinPreorden) > 0;
 
                                                 $almacenPreordenesFab = array_values(array_filter($almacenPreordenes, function ($doc) use ($clasesFabricacion) {
+                                                    $pathLow = strtolower($doc['nombre']);
                                                     $nameLow = strtolower(basename($doc['nombre']));
+                                                    if (
+                                                        str_contains($pathLow, 'preorden_casting') ||
+                                                        str_contains($pathLow, 'casting') ||
+                                                        str_contains($pathLow, 'fdldm') ||
+                                                        str_contains($nameLow, 'pfc') ||
+                                                        str_contains($nameLow, 'f_alm_pfc') ||
+                                                        str_contains($nameLow, 'f_ccl_ldm') ||
+                                                        str_contains($nameLow, 'fdldm')
+                                                    ) {
+                                                        return false;
+                                                    }
                                                     if (empty($clasesFabricacion))
                                                         return true;
-                                                    if ((str_contains($nameLow, 'preorden') || str_contains($nameLow, 'pre-orden')) && !str_contains($nameLow, 'casting'))
+                                                    if (
+                                                        str_contains($nameLow, 'preorden') ||
+                                                        str_contains($nameLow, 'pre-orden') ||
+                                                        str_contains($nameLow, 'escaneado') ||
+                                                        str_contains($nameLow, 'cfm') ||
+                                                        str_contains($nameLow, 'pfm') ||
+                                                        str_contains($nameLow, 'efm') ||
+                                                        str_contains($pathLow, 'preorden_modelo') ||
+                                                        str_contains($pathLow, 'confirmacion_modelo')
+                                                    )
                                                         return true;
                                                     foreach ($clasesFabricacion as $cf) {
                                                         if ($cf !== '' && strpos($nameLow, $cf) !== false)
@@ -1479,6 +1554,24 @@
 
                                                 $tieneArchivosFabricacion = count($dibujosModelo) > 0 || count($ayudasModelo) > 0 || count($almacenPreordenesFab) > 0;
                                                 $tieneFabricacion = (!$isCalidadAlerted && !$castingEmailSent) || $hayRechazadosSinPreorden || $tieneArchivosFabricacion;
+
+                                                $clasesFabricacionHeader = $clasesFabricacion;
+                                                if (empty($clasesFabricacionHeader)) {
+                                                    $archivosFabAll = array_merge($almacenPreordenesFab, $dibujosModelo, $ayudasModelo);
+                                                    $extractedFab = [];
+                                                    foreach ($archivosFabAll as $af) {
+                                                        $bName = basename($af['nombre']);
+                                                        foreach ($activeClassesForOt as $ac) {
+                                                            if (!empty($ac) && strpos(strtolower($bName), strtolower($ac)) !== false) {
+                                                                $extractedFab[] = $ac;
+                                                            }
+                                                        }
+                                                    }
+                                                    $clasesFabricacionHeader = array_values(array_unique($extractedFab));
+                                                    if (empty($clasesFabricacionHeader)) {
+                                                        $clasesFabricacionHeader = $activeClassesForOt;
+                                                    }
+                                                }
                                                 $aprobadosNorm = array_map('strtolower', $aprobados);
                                                 $tieneAprobados = $isCalidadAlerted && (count($aprobados) > 0 || count($calidadAprobadosLdm) > 0 || count($dibujosCasting) > 0 || count($ayudasCasting) > 0);
                                                 $tieneRechazados = $isCalidadAlerted && (count($rechazados) > 0 || count($rechazadosOtros) > 0 || count($rechazadosDibujos) > 0 || count($rechazadosAyudas) > 0 || count($dibujosRechazadosOrig) > 0 || count($ayudasRechazadosOrig) > 0);
@@ -1494,16 +1587,26 @@
                                                     return false;
                                                 }));
                                                 $almacenPreordenesCasting = array_values(array_filter($almacenPreordenes, function ($doc) use ($aprobadosNorm) {
-                                                    if (empty($aprobadosNorm))
-                                                        return false;
+                                                    $pathLow = strtolower($doc['nombre']);
                                                     $nameLow = strtolower(basename($doc['nombre']));
-                                                    if (strpos($nameLow, 'casting') === false && strpos($nameLow, 'pfc') === false && strpos($nameLow, 'f_alm_pfc') === false)
+                                                    $isCastingDoc = (
+                                                        str_contains($pathLow, 'preorden_casting') ||
+                                                        str_contains($pathLow, 'casting') ||
+                                                        str_contains($nameLow, 'pfc') ||
+                                                        str_contains($nameLow, 'f_alm_pfc')
+                                                    );
+                                                    if (!$isCastingDoc) {
                                                         return false;
-                                                    foreach ($aprobadosNorm as $ap) {
-                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false)
-                                                            return true;
                                                     }
-                                                    return false;
+                                                    if (empty($aprobadosNorm)) {
+                                                        return true;
+                                                    }
+                                                    foreach ($aprobadosNorm as $ap) {
+                                                        if ($ap !== '' && strpos($nameLow, $ap) !== false) {
+                                                            return true;
+                                                        }
+                                                    }
+                                                    return true;
                                                 }));
 
                                                 $countVisibleFabricacion = $tieneFabricacion ? (count($dibujosModelo) + count($ayudasModelo) + count($almacenPreordenesFab)) : 0;
@@ -1512,7 +1615,8 @@
 
                                                 $count = $countVisibleFabricacion + $countVisibleAprobados + $countVisibleRechazados;
 
-                                                $showControlCard = ($estado === 'activa' && !$isFinalized && (!$isCalidadAlerted || count($clasesFabricacion) > 0));
+                                                $hasRechazosRealLocal = (count($rechazados) > 0 || $tieneRechazados);
+                                                $showControlCard = ($estado === 'activa' && !$isFinalized && (!$isCalidadAlerted || $hasRechazosRealLocal || ($esReproceso && count($clasesFabricacion) > 0)));
                                                 $hasFilesOrControl = ($count > 0 || $showControlCard);
 
                                                 // DEBUG MARKER
@@ -1755,10 +1859,10 @@
                                                                                 style="width: 30px; height: 30px; object-fit: contain;">
                                                                             @if ($hayRechazadosSinPreorden)
                                                                                 Documentos de Almacén
-                                                                                ({{ implode(', ', array_map('ucfirst', $rechazadosSinPreorden)) }})
+                                                                                {{ count($rechazadosSinPreorden) > 0 ? '(' . implode(', ', array_map('ucfirst', $rechazadosSinPreorden)) . ')' : '' }}
                                                                             @else
                                                                                 Etapa: Fabricación / Re-Proceso de Modelo
-                                                                                {{ count($clasesFabricacion) > 0 ? '(' . implode(', ', array_map('ucfirst', $clasesFabricacion)) . ')' : '' }}
+                                                                                {{ count($clasesFabricacionHeader) > 0 ? '(' . implode(', ', array_map('ucfirst', $clasesFabricacionHeader)) . ')' : '' }}
                                                                             @endif
                                                                         </h3>
                                                                         <span
@@ -1886,11 +1990,8 @@
                                                                                 ->values()
                                                                                 ->toArray();
 
-                                                                            // ── Reinicio parcial dentro de la misma OT (estado mixto) ────────────────────
-                                                                            // Cuando Calidad aprobó algunas clases y rechazó/reinició otras dentro de la
-                                                                            // misma OT (sin sufijo _R\d), las clases reiniciadas están en $clasesFabricacion.
-                                                                            // En este caso el control card debe activarse sobre esas clases específicas.
-                                                                            $esReinicioParcial = $isCalidadAlerted && count($clasesFabricacion) > 0 && !$esReproceso;
+                                                                            $hasRechazosReal = (count($rechazados) > 0 || count($rechazadosClases) > 0 || $tieneRechazados);
+                                                                            $esReinicioParcial = $isCalidadAlerted && count($clasesFabricacion) > 0 && !$esReproceso && $hasRechazosReal;
 
                                                                             if ($esReinicioParcial) {
                                                                                 $otClasesActivas = array_map('strtolower', $clasesFabricacion);
@@ -1901,9 +2002,7 @@
                                                                                     ? array_map('strtolower', $clasesFabricacion)
                                                                                     : (is_array($reg->ayudas_config) ? array_map('strtolower', $reg->ayudas_config) : []);
                                                                             }
-                                                                            // ────────────────────────────────────────────────────────────────────────────
 
-                                                                            // Evaluar si existen pre-órdenes vigentes ESPECÍFICAMENTE para las clases en fabricación (ignorando las archivadas _Anterior_N)
                                                                             $preOrdenesFabExistentes = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->get()->filter(function ($po) use ($clasesFabricacion) {
                                                                                 if ($po->pdf_filename && (str_contains($po->pdf_filename, '_Anterior_N') || str_contains($po->pdf_filename, 'Casting') || str_contains($po->pdf_filename, 'F_ALM_PFC_') || str_contains($po->pdf_filename, 'PFC')))
                                                                                     return false;
@@ -1929,7 +2028,6 @@
                                                                                         if ($tm !== '' && ($tm === strtolower($cf) || strpos($tm, strtolower($cf)) !== false || strpos(strtolower($cf), $tm) !== false))
                                                                                             return true;
                                                                                     }
-                                                                                    return false;
                                                                                 })->count() > 0;
 
                                                                             $tienePreOrdenFab = $preOrdenesFabExistentes->count() > 0;
@@ -1989,7 +2087,6 @@
 
                                                                             $controlDisabled = ($targetReg->tiene_modelo || $targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
                                                                             $hideControlCard = (($tieneAprobados || $tieneRechazados) && !$esReproceso) ? 'display: none;' : ((count($clasesFabricacion) === 0 && !$esReproceso && !$targetReg->tiene_modelo && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? 'display: none;' : '');
-                                                                            // Mostrar los botones iniciales solo si faltan clases por procesar Y NO hay una pre-orden pendiente por enviar
                                                                             $hideTengoModelo = (($esReproceso && !$esReinicioParcial) || $todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
                                                                             $hideGenerarFormato = (($esReproceso && !$esReinicioParcial) || $todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
                                                                             $hideReprocesoPreOrden = ($esReproceso && !$todasClasesProcesadas && !$esReinicioParcial && $poPendienteEnvioFab === null) ? '' : 'display: none;';
@@ -2061,10 +2158,9 @@
                                                                             $todasClasesEnviadas = $todasClasesProcesadas && ($poPendienteEnvioFab === null);
                                                                             $isFullySubmitted = $todasClasesEnviadas;
                                                                             $hideAllBtns = $isFullySubmitted ? 'display: none;' : '';
-                                                                            // El botón de "Enviar Correo" se activa / muestra ÚNICAMENTE si existe una pre-orden generada pendiente de envío ($poPendienteEnvioFab !== null)
                                                                             $hideSendEmail = ($poPendienteEnvioFab !== null) ? '' : 'display: none;';
                                                                             $calidadYaRespondio = ($reg->casting_pdf_generated || in_array($reg->calidad_revision_status, ['casting_aprobado']) || (($tieneAprobados || $tieneRechazados) && !$esReproceso && !$esReinicioParcial));
-                                                                            $ocultarCardEnModelo = $calidadYaRespondio || (($tieneAprobados || $tieneRechazados) && (!$esReproceso || count($clasesFabricacion) === 0));
+                                                                            $ocultarCardEnModelo = $calidadYaRespondio || (($tieneAprobados || $tieneRechazados) && (!$esReproceso || count($clasesFabricacion) === 0 || !$hasRechazosReal));
                                                                         @endphp
 
                                                                         @if (!$ocultarCardEnModelo)
@@ -2209,7 +2305,7 @@
                                                                             <img src="{{ asset('images/Aprobado.png') }}"
                                                                                 style="width: 30px; height: 30px; object-fit: contain;">
                                                                             Etapa: Proceso de Casting / Modelos Aprobados
-                                                                            ({{ implode(', ', array_map('ucfirst', $aprobados)) }})
+                                                                            {{ count($aprobados) > 0 ? '(' . implode(', ', array_map('ucfirst', $aprobados)) . ')' : '' }}
                                                                         </h3>
                                                                         <span
                                                                             style="font-size: 0.8rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
@@ -2309,16 +2405,26 @@
                                                                                 return false;
                                                                             }));
                                                                             $almacenPreordenesCasting = array_values(array_filter($almacenPreordenes, function ($doc) use ($aprobadosNorm) {
-                                                                                if (empty($aprobadosNorm))
-                                                                                    return false;
+                                                                                $pathLow = strtolower($doc['nombre']);
                                                                                 $nameLow = strtolower(basename($doc['nombre']));
-                                                                                if (strpos($nameLow, 'casting') === false && strpos($nameLow, 'pfc') === false && strpos($nameLow, 'f_alm_pfc') === false)
+                                                                                $isCastingDoc = (
+                                                                                    str_contains($pathLow, 'preorden_casting') ||
+                                                                                    str_contains($pathLow, 'casting') ||
+                                                                                    str_contains($nameLow, 'pfc') ||
+                                                                                    str_contains($nameLow, 'f_alm_pfc')
+                                                                                );
+                                                                                if (!$isCastingDoc) {
                                                                                     return false;
-                                                                                foreach ($aprobadosNorm as $ap) {
-                                                                                    if ($ap !== '' && strpos($nameLow, $ap) !== false)
-                                                                                        return true;
                                                                                 }
-                                                                                return false;
+                                                                                if (empty($aprobadosNorm)) {
+                                                                                    return true;
+                                                                                }
+                                                                                foreach ($aprobadosNorm as $ap) {
+                                                                                    if ($ap !== '' && strpos($nameLow, $ap) !== false) {
+                                                                                        return true;
+                                                                                    }
+                                                                                }
+                                                                                return true;
                                                                             }));
                                                                         @endphp
                                                                         @if (count($calidadAprobadosLdmCasting) > 0)
@@ -2414,14 +2520,16 @@
 
                                                                     {{-- Control de Modelos — Almacén (Aprobados) --}}
                                                                     @php
-                                                                        $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)
-                                                                            ->where(function ($q) {
-                                                                                $q->where('pdf_filename', 'LIKE', '%Casting%')
-                                                                                  ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
-                                                                                  ->orWhere('pdf_filename', 'LIKE', '%PFC%');
-                                                                            })->first();
-                                                                        $hasCastingPre = (bool) $castingPre;
-                                                                        $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado') || ($castingPre && $castingPre->is_sent == 1);
+                                                                        $castingPre = \App\Models\PreOrdenFundicion::where(function ($q) use ($reg, $targetReg) {
+                                                                            $q->where('ot', '=', $reg->ot)->orWhere('ot', '=', $targetReg->ot);
+                                                                        })
+                                                                        ->where(function ($q) {
+                                                                            $q->where('pdf_filename', 'LIKE', '%Casting%')
+                                                                              ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
+                                                                              ->orWhere('pdf_filename', 'LIKE', '%PFC%');
+                                                                        })->orderBy('id', 'desc')->first();
+                                                                        $hasCastingPre = (bool) $castingPre || (count($almacenPreordenesCasting) > 0);
+                                                                        $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado') || ($targetReg->calidad_revision_status === 'casting_aprobado') || ($castingPre && $castingPre->is_sent == 1);
                                                                     @endphp
                                                                     <div class="lib-calidad-card"
                                                                         id="control-almacen-aprobados-{{ md5($reg->ot) }}"
@@ -2446,22 +2554,21 @@
                                                                                             <img src="{{ asset('images/ready.png') }}"
                                                                                                 class="alm-icon-md" alt="Listo">
                                                                                             @if (count($aprobados) == 1)
-                                                                                                El proceso de pre-orden ha finalizado para la clase <strong>{{ implode(', ', $aprobados) }}</strong>. El correo ha sido enviado al proveedor. Favor de esperar instrucciones.
+                                                                                                El proceso de pre-orden ha finalizado para la clase <strong>{{ implode(', ', array_map('ucfirst', $aprobados)) }}</strong>. El correo ha sido enviado al proveedor. Favor de esperar instrucciones.
+                                                                                            @elseif (count($aprobados) > 1)
+                                                                                                El proceso de pre-orden ha finalizado para las clases <strong>{{ implode(', ', array_map('ucfirst', $aprobados)) }}</strong>. El correo ha sido enviado al proveedor. Favor de esperar instrucciones.
                                                                                             @else
-                                                                                                El proceso de pre-orden ha finalizado para las clases <strong>{{ implode(', ', $aprobados) }}</strong>. El correo ha sido enviado al proveedor. Favor de esperar instrucciones.
+                                                                                                El proceso de pre-orden ha finalizado. El correo ha sido enviado al proveedor. Favor de esperar instrucciones.
                                                                                             @endif
                                                                                         </span>
                                                                                     @elseif ($hasCastingPre)
-                                                                                        Pre-orden de casting generada para los modelos:
-                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>. Puedes
+                                                                                        Pre-orden de casting generada {!! count($aprobados) > 0 ? 'para los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobados))) . '</strong>' : '' !!}. Puedes
                                                                                         editar los datos o enviar la pre-orden por correo.
                                                                                     @elseif ($reg->casting_pdf_generated)
                                                                                         Formatos LDM subidos. Procede a generar la Pre-Orden de
-                                                                                        Fabricación de Casting para los modelos:
-                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>.
+                                                                                        Fabricación de Casting {!! count($aprobados) > 0 ? 'para los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobados))) . '</strong>' : '' !!}.
                                                                                     @else
-                                                                                        Modelos Aprobados por Calidad:
-                                                                                        <strong>{{ implode(', ', $aprobados) }}</strong>. Procede a
+                                                                                        Modelos Aprobados por Calidad{!! count($aprobados) > 0 ? ': <strong>' . e(implode(', ', array_map('ucfirst', $aprobados))) . '</strong>' : '' !!}. Procede a
                                                                                         subir los formatos F-CCL-LDM firmados para iniciar el
                                                                                         casting.
                                                                                     @endif
