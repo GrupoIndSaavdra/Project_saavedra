@@ -1267,6 +1267,8 @@
                                                         strpos($baseLow, 'cfm') !== false ||
                                                         strpos($baseLow, 'efm') !== false ||
                                                         strpos($baseLow, 'pfc') !== false ||
+                                                        strpos($baseLow, 'efc') !== false ||
+                                                        strpos($nameLow, 'f_alm_efc') !== false ||
                                                         strpos($nameLow, 'preordenes/') !== false
                                                     ) {
                                                         $almacenPreordenes[] = $archivo;
@@ -1518,6 +1520,9 @@
                                                 }
                                                 $hayRechazadosSinPreorden = count($rechazadosSinPreorden) > 0;
 
+                                                $aprobadosNorm = array_map('strtolower', $aprobados);
+                                                $rechazadosNorm = array_map('strtolower', $rechazados);
+
                                                 $almacenPreordenesFab = array_values(array_filter($almacenPreordenes, function ($doc) use ($clasesFabricacion) {
                                                     $pathLow = strtolower($doc['nombre']);
                                                     $nameLow = strtolower(basename($doc['nombre']));
@@ -1527,6 +1532,8 @@
                                                         str_contains($pathLow, 'fdldm') ||
                                                         str_contains($nameLow, 'pfc') ||
                                                         str_contains($nameLow, 'f_alm_pfc') ||
+                                                        str_contains($nameLow, 'efc') ||
+                                                        str_contains($nameLow, 'f_alm_efc') ||
                                                         str_contains($nameLow, 'f_ccl_ldm') ||
                                                         str_contains($nameLow, 'fdldm')
                                                     ) {
@@ -1609,7 +1616,9 @@
                                                         str_contains($pathLow, 'preorden_casting') ||
                                                         str_contains($pathLow, 'casting') ||
                                                         str_contains($nameLow, 'pfc') ||
-                                                        str_contains($nameLow, 'f_alm_pfc')
+                                                        str_contains($nameLow, 'f_alm_pfc') ||
+                                                        str_contains($nameLow, 'efc') ||
+                                                        str_contains($nameLow, 'f_alm_efc')
                                                     );
                                                     if (!$isCastingDoc) {
                                                         return false;
@@ -2053,57 +2062,79 @@
                                                                             $tienePreOrden = $tienePreOrdenFab || $tieneFisicoFab;
 
                                                                             $clasesProcesadas = [];
-                                                                            $preOrdenesEnviadas = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 1)->get();
-                                                                            foreach ($preOrdenesEnviadas as $po) {
-                                                                                $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                                                                                if (is_array($filas)) {
-                                                                                    foreach ($filas as $f) {
-                                                                                        $cVal = strtolower($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
-                                                                                        if (!empty($cVal)) {
-                                                                                            $clasesProcesadas[] = $cVal;
-                                                                                        }
-                                                                                    }
-                                                                                }
-                                                                            }
+                                                                             $preOrdenesEnviadas = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)
+                                                                                 ->where('is_sent', 1)
+                                                                                 ->where('pdf_filename', 'NOT LIKE', '%_Anterior_N%')
+                                                                                 ->get();
+                                                                             foreach ($preOrdenesEnviadas as $po) {
+                                                                                 $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+                                                                                 if (is_array($filas)) {
+                                                                                     foreach ($filas as $f) {
+                                                                                         $cVal = strtolower($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? '');
+                                                                                         if (!empty($cVal)) {
+                                                                                             $inFab = false;
+                                                                                             foreach ($clasesFabricacion as $cf) {
+                                                                                                 if (!empty($cf) && (strtolower($cf) === $cVal || strpos($cVal, strtolower($cf)) !== false || strpos(strtolower($cf), $cVal) !== false)) {
+                                                                                                     $inFab = true;
+                                                                                                     break;
+                                                                                                 }
+                                                                                             }
+                                                                                             if (!$inFab) {
+                                                                                                 $clasesProcesadas[] = $cVal;
+                                                                                             }
+                                                                                         }
+                                                                                     }
+                                                                                 }
+                                                                             }
 
-                                                                            $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
-                                                                                ->where('tipo_origen', 'con_modelo')
-                                                                                ->whereNotNull('tipo_modelo')
-                                                                                ->where('tipo_modelo', '!=', '')
-                                                                                ->pluck('tipo_modelo')->toArray();
-                                                                            foreach ($liberacionesFisicas as $lf) {
-                                                                                if (!empty($lf)) {
-                                                                                    foreach (explode(',', $lf) as $c) {
-                                                                                        $clasesProcesadas[] = strtolower(trim($c));
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                            $clasesProcesadas = array_values(array_unique(array_filter($clasesProcesadas, fn($v) => $v !== '')));
+                                                                             $liberacionesFisicas = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
+                                                                                 ->where('tipo_origen', 'con_modelo')
+                                                                                 ->whereNotNull('tipo_modelo')
+                                                                                 ->where('tipo_modelo', '!=', '')
+                                                                                 ->pluck('tipo_modelo')->toArray();
+                                                                             foreach ($liberacionesFisicas as $lf) {
+                                                                                 if (!empty($lf)) {
+                                                                                     foreach (explode(',', $lf) as $c) {
+                                                                                         $cTrim = strtolower(trim($c));
+                                                                                         $inFab = false;
+                                                                                         foreach ($clasesFabricacion as $cf) {
+                                                                                             if (!empty($cf) && (strtolower($cf) === $cTrim || strpos($cTrim, strtolower($cf)) !== false || strpos(strtolower($cf), $cTrim) !== false)) {
+                                                                                                 $inFab = true;
+                                                                                                 break;
+                                                                                             }
+                                                                                         }
+                                                                                         if (!$inFab) {
+                                                                                             $clasesProcesadas[] = $cTrim;
+                                                                                         }
+                                                                                     }
+                                                                                 }
+                                                                             }
+                                                                             $clasesProcesadas = array_values(array_unique(array_filter($clasesProcesadas, fn($v) => $v !== '')));
 
-                                                                            $clasesActivasCubiertas = [];
-                                                                            $clasesActivasFaltantes = [];
-                                                                            foreach ($otClasesActivas as $clActiva) {
-                                                                                $cubierta = false;
-                                                                                foreach ($clasesProcesadas as $cp) {
-                                                                                    if ($cp === '' || $clActiva === '')
-                                                                                        continue;
-                                                                                    if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
-                                                                                        $cubierta = true;
-                                                                                        break;
-                                                                                    }
-                                                                                }
-                                                                                if ($cubierta) {
-                                                                                    $clasesActivasCubiertas[] = $clActiva;
-                                                                                } else {
-                                                                                    $clasesActivasFaltantes[] = $clActiva;
-                                                                                }
-                                                                            }
+                                                                             $clasesActivasCubiertas = [];
+                                                                             $clasesActivasFaltantes = [];
+                                                                             foreach ($otClasesActivas as $clActiva) {
+                                                                                 $cubierta = false;
+                                                                                 foreach ($clasesProcesadas as $cp) {
+                                                                                     if ($cp === '' || $clActiva === '')
+                                                                                         continue;
+                                                                                     if (strpos($cp, strtolower($clActiva)) !== false || strpos(strtolower($clActiva), $cp) !== false) {
+                                                                                         $cubierta = true;
+                                                                                         break;
+                                                                                     }
+                                                                                 }
+                                                                                 if ($cubierta) {
+                                                                                     $clasesActivasCubiertas[] = $clActiva;
+                                                                                 } else {
+                                                                                     $clasesActivasFaltantes[] = $clActiva;
+                                                                                 }
+                                                                             }
 
-                                                                            $todasClasesProcesadas = count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
-                                                                            $algunaClaseProcesada = count($clasesActivasCubiertas) > 0;
+                                                                             $todasClasesProcesadas = count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
+                                                                             $algunaClaseProcesada = count($clasesActivasCubiertas) > 0;
 
-                                                                            $controlDisabled = ($targetReg->tiene_modelo || $targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
-                                                                            $hideControlCard = (($tieneAprobados || $tieneRechazados) && !$esReproceso) ? 'display: none;' : ((count($clasesFabricacion) === 0 && !$esReproceso && !$targetReg->tiene_modelo && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? 'display: none;' : '');
+                                                                             $controlDisabled = ((count($clasesFabricacion) > 0 || $esReinicioParcial)) ? '' : (($targetReg->tiene_modelo || $targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '');
+                                                                             $hideControlCard = (count($clasesFabricacion) > 0 || $esReinicioParcial) ? '' : ((($tieneAprobados || $tieneRechazados) && !$esReproceso) ? 'display: none;' : ((count($clasesFabricacion) === 0 && !$esReproceso && !$targetReg->tiene_modelo && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? 'display: none;' : ''));
                                                                             $hideTengoModelo = (($esReproceso && !$esReinicioParcial) || $todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
                                                                             $hideGenerarFormato = (($esReproceso && !$esReinicioParcial) || $todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
                                                                             $hideReprocesoPreOrden = ($esReproceso && !$todasClasesProcesadas && !$esReinicioParcial && $poPendienteEnvioFab === null) ? '' : 'display: none;';
@@ -2177,7 +2208,7 @@
                                                                             $hideAllBtns = $isFullySubmitted ? 'display: none;' : '';
                                                                             $hideSendEmail = ($poPendienteEnvioFab !== null) ? '' : 'display: none;';
                                                                             $calidadYaRespondio = ($reg->casting_pdf_generated || in_array($reg->calidad_revision_status, ['casting_aprobado']) || (($tieneAprobados || $tieneRechazados) && !$esReproceso && !$esReinicioParcial));
-                                                                            $ocultarCardEnModelo = $calidadYaRespondio || (($tieneAprobados || $tieneRechazados) && (!$esReproceso || count($clasesFabricacion) === 0 || !$hasRechazosReal));
+                                                                            $ocultarCardEnModelo = count($clasesFabricacion) > 0 ? false : ($calidadYaRespondio || (($tieneAprobados || $tieneRechazados) && (!$esReproceso || count($clasesFabricacion) === 0 || !$hasRechazosReal)));
                                                                         @endphp
 
                                                                         @if (!$ocultarCardEnModelo)
@@ -2313,6 +2344,111 @@
 
                                                             {{-- CONTENEDOR 2: PROCESO DE CASTING / MODELOS APROBADOS --}}
                                                             @if ($tieneAprobados)
+                                                                @php
+                                                                    $castingPre = \App\Models\PreOrdenFundicion::where(function ($q) use ($reg, $targetReg) {
+                                                                        $q->where('ot', '=', $reg->ot)->orWhere('ot', '=', $targetReg->ot);
+                                                                    })
+                                                                    ->where('pdf_filename', 'NOT LIKE', '%_Anterior_N%')
+                                                                    ->where(function ($q) {
+                                                                        $q->where('pdf_filename', 'LIKE', '%Casting%')
+                                                                          ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
+                                                                          ->orWhere('pdf_filename', 'LIKE', '%PFC%');
+                                                                    })->orderBy('id', 'desc')->first();
+
+                                                                    $hasCastingPre = (bool) $castingPre || (count($almacenPreordenesCasting) > 0);
+
+                                                                    $aprobadosPendientesCasting = [];
+                                                                    $clasesAprobadasCubiertas = [];
+                                                                    if (!empty($aprobados)) {
+                                                                        $allCastingPres = \App\Models\PreOrdenFundicion::where(function ($q) use ($reg, $targetReg) {
+                                                                            $q->where('ot', '=', $reg->ot)->orWhere('ot', '=', $targetReg->ot);
+                                                                        })
+                                                                        ->where(function ($q) {
+                                                                            $q->where('pdf_filename', 'LIKE', '%Casting%')
+                                                                              ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
+                                                                              ->orWhere('pdf_filename', 'LIKE', '%PFC%');
+                                                                        })->get();
+
+                                                                        $clasesPreordenCastingValidas = [];
+                                                                        foreach ($allCastingPres as $cPo) {
+                                                                            if ($cPo->is_sent != 1) continue;
+                                                                            $filasC = is_string($cPo->filas) ? json_decode($cPo->filas, true) : $cPo->filas;
+                                                                            if (is_array($filasC)) {
+                                                                                foreach ($filasC as $fc) {
+                                                                                    $cVal = strtolower($fc['clase'] ?? $fc['clase_nombre'] ?? $fc['tipo_modelo'] ?? $fc['nombre'] ?? '');
+                                                                                    if (!empty($cVal)) {
+                                                                                        $clasesPreordenCastingValidas[$cVal] = $cPo;
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                            $fnLow = strtolower($cPo->pdf_filename ?? '');
+                                                                            foreach ($aprobadosNorm as $apN) {
+                                                                                if ($apN !== '' && str_contains($fnLow, $apN)) {
+                                                                                    $clasesPreordenCastingValidas[$apN] = $cPo;
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        foreach ($almacenPreordenesCasting as $docCasting) {
+                                                                            $docNameLow = strtolower(basename($docCasting['nombre']));
+                                                                            if (str_contains($docNameLow, '_anterior_n')) continue;
+                                                                            foreach ($aprobadosNorm as $apN) {
+                                                                                if ($apN !== '' && str_contains($docNameLow, $apN)) {
+                                                                                    if (!isset($clasesPreordenCastingValidas[$apN])) {
+                                                                                        $clasesPreordenCastingValidas[$apN] = true;
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+
+                                                                        foreach ($aprobados as $apClase) {
+                                                                            $apLow = strtolower($apClase);
+                                                                            $cubiertaC = false;
+                                                                            $poAssoc = null;
+
+                                                                            foreach ($clasesPreordenCastingValidas as $cKey => $poObj) {
+                                                                                if ($cKey === $apLow || str_contains($cKey, $apLow) || str_contains($apLow, $cKey)) {
+                                                                                    $cubiertaC = true;
+                                                                                    if (is_object($poObj)) {
+                                                                                        $poAssoc = $poObj;
+                                                                                    }
+                                                                                    break;
+                                                                                }
+                                                                            }
+
+                                                                            if ($cubiertaC && $poAssoc) {
+                                                                                $latestLdmClase = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
+                                                                                    ->where(function ($q) use ($apLow) {
+                                                                                        $q->whereRaw("LOWER(tipo_modelo) = ?", [$apLow])
+                                                                                          ->orWhereRaw("LOWER(tipo_modelo) LIKE ?", ['%' . $apLow . '%']);
+                                                                                    })
+                                                                                    ->orderBy('id', 'desc')
+                                                                                    ->first();
+                                                                                if ($latestLdmClase && strtotime($latestLdmClase->created_at) > strtotime($poAssoc->created_at)) {
+                                                                                    $cubiertaC = false;
+                                                                                }
+                                                                            }
+
+                                                                            if (!$cubiertaC) {
+                                                                                $aprobadosPendientesCasting[] = $apClase;
+                                                                            } else {
+                                                                                $clasesAprobadasCubiertas[] = $apClase;
+                                                                            }
+                                                                        }
+                                                                    }
+
+                                                                    $clasesAccionCasting = !empty($aprobadosPendientesCasting) ? $aprobadosPendientesCasting : $aprobados;
+                                                                    $castingEmailSent = ($castingPre && $castingPre->is_sent == 1 && count($aprobadosPendientesCasting) === 0);
+                                                                    
+                                                                    $tituloCasting = "Etapa: Proceso de Casting / Modelos Aprobados";
+                                                                    if (count($aprobadosPendientesCasting) > 0 && count($clasesAprobadasCubiertas) > 0) {
+                                                                        $tituloCasting .= " (Pendientes: " . implode(', ', array_map('ucfirst', $aprobadosPendientesCasting)) . " | Procesadas: " . implode(', ', array_map('ucfirst', $clasesAprobadasCubiertas)) . ")";
+                                                                    } elseif (count($aprobadosPendientesCasting) > 0) {
+                                                                        $tituloCasting .= " (Pendientes: " . implode(', ', array_map('ucfirst', $aprobadosPendientesCasting)) . ")";
+                                                                    } elseif (count($clasesAprobadasCubiertas) > 0) {
+                                                                        $tituloCasting .= " (" . implode(', ', array_map('ucfirst', $clasesAprobadasCubiertas)) . ")";
+                                                                    }
+                                                                @endphp
                                                                 <div class="alm-process-block"
                                                                     style="margin-bottom: 10px; padding: 20px; border-radius: 14px; background-color: #f0fdf4; border: 2px solid #16a34a; box-shadow: 0 4px 14px rgba(22, 163, 74, 0.08);">
                                                                     <div
@@ -2321,8 +2457,7 @@
                                                                             style="margin: 0; color: #16a34a; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
                                                                             <img src="{{ asset('images/Aprobado.png') }}"
                                                                                 style="width: 30px; height: 30px; object-fit: contain;">
-                                                                            Etapa: Proceso de Casting / Modelos Aprobados
-                                                                            {{ count($aprobados) > 0 ? '(' . implode(', ', array_map('ucfirst', $aprobados)) . ')' : '' }}
+                                                                            {{ $tituloCasting }}
                                                                         </h3>
                                                                         <span
                                                                             style="font-size: 0.8rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 4px 12px; border-radius: 6px; border: 1px solid #bbf7d0;">
@@ -2443,7 +2578,9 @@
                                                                                     str_contains($pathLow, 'preorden_casting') ||
                                                                                     str_contains($pathLow, 'casting') ||
                                                                                     str_contains($nameLow, 'pfc') ||
-                                                                                    str_contains($nameLow, 'f_alm_pfc')
+                                                                                    str_contains($nameLow, 'f_alm_pfc') ||
+                                                                                    str_contains($nameLow, 'efc') ||
+                                                                                    str_contains($nameLow, 'f_alm_efc')
                                                                                 );
                                                                                 if (!$isCastingDoc) {
                                                                                     return false;
@@ -2551,18 +2688,7 @@
                                                                     </div>
 
                                                                     {{-- Control de Modelos — Almacén (Aprobados) --}}
-                                                                    @php
-                                                                        $castingPre = \App\Models\PreOrdenFundicion::where(function ($q) use ($reg, $targetReg) {
-                                                                            $q->where('ot', '=', $reg->ot)->orWhere('ot', '=', $targetReg->ot);
-                                                                        })
-                                                                        ->where(function ($q) {
-                                                                            $q->where('pdf_filename', 'LIKE', '%Casting%')
-                                                                              ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
-                                                                              ->orWhere('pdf_filename', 'LIKE', '%PFC%');
-                                                                        })->orderBy('id', 'desc')->first();
-                                                                        $hasCastingPre = (bool) $castingPre || (count($almacenPreordenesCasting) > 0);
-                                                                        $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado') || ($targetReg->calidad_revision_status === 'casting_aprobado') || ($castingPre && $castingPre->is_sent == 1);
-                                                                    @endphp
+
                                                                     <div class="lib-calidad-card"
                                                                         id="control-almacen-aprobados-{{ md5($reg->ot) }}"
                                                                         style="margin-top: 15px;">
@@ -2593,6 +2719,10 @@
                                                                                                 El proceso de pre-orden ha finalizado. El correo ha sido enviado al proveedor. Favor de esperar instrucciones.
                                                                                             @endif
                                                                                         </span>
+                                                                                    @elseif (!empty($aprobadosPendientesCasting))
+                                                                                        <span class="alm-color-0284c7 alm-font-weight-700">
+                                                                                            Clase(s) aprobada(s) pendiente(s) de Pre-Orden de Casting: <strong>{{ implode(', ', array_map('ucfirst', $aprobadosPendientesCasting)) }}</strong>. Genera o envía la pre-orden correspondiente.
+                                                                                        </span>
                                                                                     @elseif ($hasCastingPre)
                                                                                         Pre-orden de casting generada {!! count($aprobados) > 0 ? 'para los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobados))) . '</strong>' : '' !!}. Puedes
                                                                                         editar los datos o enviar la pre-orden por correo.
@@ -2617,12 +2747,12 @@
                                                                                         </button>
                                                                                         <button
                                                                                             class="btn-modelo btn-modelo-email alm-display-flex alm-background-color-033966 alm-color-white"
-                                                                                            onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting')">
+                                                                                            onclick="abrirModalEnviarPreOrden('{{ $reg->ot }}', 'casting', {{ json_encode($clasesAccionCasting) }})">
                                                                                             <img src="{{ asset('images/enviando.png') }}"
                                                                                                 alt="Enviar">
                                                                                             <span>Enviar Correo</span>
                                                                                         </button>
-                                                                                    @elseif ($reg->casting_pdf_generated)
+                                                                                    @elseif ($reg->casting_pdf_generated || count($calidadAprobadosLdm) > 0 || !empty($aprobadosPendientesCasting))
                                                                                         <button
                                                                                             class="btn-modelo btn-modelo-si alm-bg-success-white"
                                                                                             onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
@@ -2631,12 +2761,26 @@
                                                                                                 class="alm-width-16px alm-height-16px alm-filter-brightness-0-invert-1">
                                                                                             <span>Preorden de Casting</span>
                                                                                         </button>
+                                                                                        <button
+                                                                                            class="btn-modelo btn-modelo-si alm-bg-success-white"
+                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($clasesAccionCasting) }}, [])">
+                                                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                                            <span>Procesar Aceptados</span>
+                                                                                        </button>
                                                                                     @else
                                                                                         <button
                                                                                             class="btn-modelo btn-modelo-si alm-bg-success-white"
-                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($aprobados) }}, [])">
+                                                                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', {{ json_encode($clasesAccionCasting) }}, [])">
                                                                                             <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
                                                                                             <span>Procesar Aceptados</span>
+                                                                                        </button>
+                                                                                        <button
+                                                                                            class="btn-modelo btn-modelo-si alm-bg-success-white"
+                                                                                            onclick="abrirModalPreOrdenCasting('{{ $reg->ot }}')">
+                                                                                            <img src="{{ asset('images/almacen.png') }}"
+                                                                                                alt="Preorden"
+                                                                                                class="alm-width-16px alm-height-16px alm-filter-brightness-0-invert-1">
+                                                                                            <span>Preorden de Casting</span>
                                                                                         </button>
                                                                                     @endif
                                                                                 </div>

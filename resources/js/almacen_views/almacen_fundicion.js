@@ -984,6 +984,7 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                         lower.includes("pfm") ||
                         lower.includes("cfm") ||
                         lower.includes("efm") ||
+                        lower.includes("efc") ||
                         lower.includes("fdldm") ||
                         lower.includes("f_ccl_ldm")
                     ) {
@@ -5776,43 +5777,51 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                         : pageObj.fecha;
                     pageObj.folio = poRecord.folio || res.folio;
                     if (Array.isArray(parsedFilas) && parsedFilas.length > 0) {
-                        pageObj.filas = parsedFilas.map((f) => {
-                            let claseId = f.clase_id || f.id_clase || "";
-                            if (!claseId) {
-                                let cFound = pocState.allClases.find(
-                                    (c) =>
-                                        c.nombre.toLowerCase() ===
-                                        (
-                                            f.clase ||
-                                            f.clase_nombre ||
-                                            ""
-                                        ).toLowerCase(),
+                        pageObj.filas = parsedFilas
+                            .filter((f) => {
+                                const fName = (f.clase || f.clase_nombre || f.descripcion || "").toLowerCase().trim();
+                                if (!fName) return false;
+                                return pocState.allClases.some(
+                                    (c) => c.nombre.toLowerCase().trim() === fName || fName.includes(c.nombre.toLowerCase().trim()) || c.nombre.toLowerCase().trim().includes(fName)
                                 );
-                                if (cFound) claseId = cFound.id;
-                            }
-                            return {
-                                id_clase: claseId,
-                                tipo_modelo:
-                                    f.tipo_modelo ||
-                                    getTipoModeloFromClase(
-                                        f.clase || f.clase_nombre || "",
-                                    ),
-                                impresiones: f.impresiones || 1,
-                                cant_fabricar: f.cant_fabricar || "",
-                                cant_consignacion: f.cant_consignacion || 0,
-                                descripcion:
-                                    f.clase_nombre ||
-                                    f.clase ||
-                                    f.descripcion ||
-                                    "",
-                                material: f.material || "",
-                                codigo: f.codigo || "",
-                                peso_juego: f.peso_juego || 0,
-                                peso_total: f.peso_total || 0,
-                                fecha_entrega:
-                                    f.fecha_entrega || pageObj.fecha_entrega,
-                            };
-                        });
+                            })
+                            .map((f) => {
+                                let claseId = f.clase_id || f.id_clase || "";
+                                if (!claseId) {
+                                    let cFound = pocState.allClases.find(
+                                        (c) =>
+                                            c.nombre.toLowerCase() ===
+                                            (
+                                                f.clase ||
+                                                f.clase_nombre ||
+                                                ""
+                                            ).toLowerCase(),
+                                    );
+                                    if (cFound) claseId = cFound.id;
+                                }
+                                return {
+                                    id_clase: claseId,
+                                    tipo_modelo:
+                                        f.tipo_modelo ||
+                                        getTipoModeloFromClase(
+                                            f.clase || f.clase_nombre || "",
+                                        ),
+                                    impresiones: f.impresiones || 1,
+                                    cant_fabricar: f.cant_fabricar || "",
+                                    cant_consignacion: f.cant_consignacion || 0,
+                                    descripcion:
+                                        f.clase_nombre ||
+                                        f.clase ||
+                                        f.descripcion ||
+                                        "",
+                                    material: f.material || "",
+                                    codigo: f.codigo || "",
+                                    peso_juego: f.peso_juego || 0,
+                                    peso_total: f.peso_total || 0,
+                                    fecha_entrega:
+                                        f.fecha_entrega || pageObj.fecha_entrega,
+                                };
+                            });
                     } else {
                         pageObj.filas = [];
                     }
@@ -7065,6 +7074,8 @@ function generarHtmlCategorizadoCastingAprobados(
                     nombre.includes("f_alm_pfm") ||
                     nombre.includes("f_alm_cfm") ||
                     nombre.includes("f_alm_efm") ||
+                    nombre.includes("f_alm_efc") ||
+                    nombre.includes("efc") ||
                     nombre.includes("escaneado")
                 );
             }
