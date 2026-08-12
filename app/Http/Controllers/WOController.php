@@ -516,7 +516,9 @@ class WOController extends Controller
             ->where('ot', '=', $otKey)
             ->where(function ($q) {
                 $q->where('pdf_filename', 'LIKE', '%casting%')
-                    ->orWhere('pdf_filename', 'LIKE', '%Casting%');
+                    ->orWhere('pdf_filename', 'LIKE', '%Casting%')
+                    ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
+                    ->orWhere('pdf_filename', 'LIKE', '%PFC%');
             })
             ->get();
 

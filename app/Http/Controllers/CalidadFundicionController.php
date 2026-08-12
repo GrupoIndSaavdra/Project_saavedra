@@ -165,7 +165,7 @@ class CalidadFundicionController extends Controller
             if (is_array($config)) {
                 foreach ($config as $c) {
                     $clLow = strtolower($c);
-                    foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
+                    foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
                         if (strpos($clLow, $kc) !== false) {
                             $activeClasses[] = $kc;
                             break;
@@ -184,7 +184,7 @@ class CalidadFundicionController extends Controller
         }
 
         if (empty($activeClasses)) {
-            $activeClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
+            $activeClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'];
         }
         $activeClasses = array_unique($activeClasses);
 
@@ -206,7 +206,7 @@ class CalidadFundicionController extends Controller
 
             if (!$soloPreorden) {
                 // 1a. Dibujos — nueva ruta: {Clase}/Dibujos/ (con fallback a raíz de clase en CALIDAD)
-                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
+                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo', 'Pistones', 'Guías', 'Guias'] as $claseDir) {
                     $claseNorm = strtolower($claseDir);
                     if (!in_array($claseNorm, $activeClasses)) continue;
 
@@ -255,7 +255,7 @@ class CalidadFundicionController extends Controller
                         ->filter(function ($f) use ($sharedDir, $activeClasses) {
                             $rel = str_replace(str_replace('\\', '/', $sharedDir) . '/', '', str_replace('\\', '/', $f));
                             $lower = strtolower($rel);
-                            $known = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
+                            $known = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'];
                             foreach ($known as $k) {
                                 if (str_contains($lower, $k)) return in_array($k, $activeClasses);
                             }
@@ -278,7 +278,7 @@ class CalidadFundicionController extends Controller
                 }
 
                 // 2a. Ayudas Visuales — nueva ruta: {Clase}/Ayudas_Visuales/ (con fallback legacy CALIDAD)
-                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'] as $claseDir) {
+                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo', 'Pistones', 'Guías', 'Guias'] as $claseDir) {
                     $claseNorm = strtolower($claseDir);
                     if (!in_array($claseNorm, $activeClasses)) continue;
 
@@ -393,7 +393,7 @@ class CalidadFundicionController extends Controller
                                 return true;
                             }
 
-                            $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
+                            $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'];
                             $hasKnownClass = false;
                             foreach ($knownClasses as $kc) {
                                 if (strpos($fileLower, $kc) !== false) {
@@ -1064,11 +1064,11 @@ class CalidadFundicionController extends Controller
             'tipo_modelo'             => $tipo,
             'medidas_modelo'          => in_array($tipo, ['Molde', 'Bombillo']) ? $sanitizarMedidas($request->input('modelo')) : null,
             'medidas_plantilla'       => in_array($tipo, ['Molde', 'Bombillo']) ? $sanitizarMedidas($request->input('plantilla')) : null,
-            'medidas_fondo'           => $tipo === 'Fondo' ? $sanitizarMedidas($request->input('fondo')) : null,
+            'medidas_fondo'           => in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías', 'Guias']) ? $sanitizarMedidas($request->input('fondo')) : null,
             'medidas_obturador'       => $tipo === 'Obturador' ? $sanitizarMedidas($request->input('obturador')) : null,
             'observaciones_modelo'    => in_array($tipo, ['Molde', 'Bombillo']) ? $request->input('observaciones_modelo') : null,
             'observaciones_plantilla' => in_array($tipo, ['Molde', 'Bombillo']) ? $request->input('observaciones_plantilla') : null,
-            'observaciones_fondo'     => $tipo === 'Fondo' ? $request->input('observaciones_fondo') : null,
+            'observaciones_fondo'     => in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías', 'Guias']) ? $request->input('observaciones_fondo') : null,
             'observaciones_obturador' => $tipo === 'Obturador' ? $request->input('observaciones_obturador') : null,
             'motivo_rechazo'          => $accion === 'rechazar' ? $request->input('motivo_rechazo') : null,
             'user_id_calidad'         => $user->id,
@@ -1111,7 +1111,7 @@ class CalidadFundicionController extends Controller
             $actualizacion['observaciones_modelo'] = $request->input('observaciones_modelo');
             $actualizacion['medidas_plantilla']       = $sanitizarMedidas($request->input('plantilla'));
             $actualizacion['observaciones_plantilla'] = $request->input('observaciones_plantilla');
-        } elseif (in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador'])) {
+        } elseif (in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías', 'Guias'])) {
             $actualizacion['medidas_fondo']       = $sanitizarMedidas($request->input('fondo'));
             $actualizacion['observaciones_fondo'] = $request->input('observaciones_fondo');
         } elseif ($tipo === 'Obturador') {
@@ -1134,17 +1134,38 @@ class CalidadFundicionController extends Controller
             // Nombre estetico: Formato_LDM_[APROBADO/RECHAZADO]_[Clase]_[OT]_[Fecha].pdf
             $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
             $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
-            $tipoLabel    = $tipo ? ucfirst(strtolower(trim($tipo))) : 'Modelo';
+            $tipoLabel    = $tipo ? mb_convert_case(trim($tipo), MB_CASE_TITLE, 'UTF-8') : 'Modelo';
             $fmtCode     = ($decision === 'aprobar') ? 'LDM' : 'RDM';
             $pdfFilename = "F_CCL_{$fmtCode}_{$tipoLabel}.pdf";
             $pdfPath = storage_path("app/public/liberaciones_pdf");
             if (!file_exists($pdfPath)) {
                 mkdir($pdfPath, 0755, true);
             } else {
-                // Eliminar PDFs anteriores para esta clase
-                $pattern = "{$pdfPath}/F_CCL_*_{$tipoLabel}.pdf";
-                foreach (glob($pattern) ?: [] as $oldFile) {
-                    @unlink($oldFile);
+                // Eliminar PDFs anteriores para esta clase en liberaciones_pdf
+                $isAprobar = ($decision === 'aprobar');
+                $tipoNorm = mb_strtolower(trim($tipo), 'UTF-8');
+                $tipoNormAlt = str_replace(['í', 'gú'], ['i', 'gu'], $tipoNorm);
+                $tipoNormClean = str_replace([' ', '_', '-'], '', $tipoNorm);
+                $tipoNormAltClean = str_replace([' ', '_', '-'], '', $tipoNormAlt);
+
+                foreach (glob("{$pdfPath}/*.pdf") ?: [] as $oldFile) {
+                    $fBase = mb_strtolower(basename($oldFile), 'UTF-8');
+                    $fBaseClean = str_replace([' ', '_', '-'], '', $fBase);
+                    
+                    // Si se aprueba la clase, eliminar LDM, RDM y SCAR anterior. Si se rechaza, eliminar LDM y RDM anterior.
+                    $matchesDocType = $isAprobar
+                        ? (str_contains($fBase, 'ldm') || str_contains($fBase, 'rdm') || str_contains($fBase, 'scar'))
+                        : (str_contains($fBase, 'ldm') || str_contains($fBase, 'rdm'));
+                        
+                    $matchesClass = str_contains($fBase, $tipoNorm) || str_contains($fBase, $tipoNormAlt) ||
+                                    str_contains($fBaseClean, $tipoNormClean) || str_contains($fBaseClean, $tipoNormAltClean);
+
+                    if ($matchesDocType && $matchesClass) {
+                        $otSan = mb_strtolower($otSanitizada, 'UTF-8');
+                        if (str_contains($fBase, $otSan) || !str_contains($fBase, 'ot_')) {
+                            @unlink($oldFile);
+                        }
+                    }
                 }
             }
             ini_set('memory_limit', '2048M');
@@ -1157,7 +1178,7 @@ class CalidadFundicionController extends Controller
             $pdfUrl = asset('storage/liberaciones_pdf/' . $pdfFilename);
             $liberacion->update(['pdf_filename' => $pdfFilename]);
 
-            // Copiar a la carpeta de la OT en ayudas_visuales/preordenes de Calidad para que se liste en Otros documentos
+            // Copiar a la carpeta de la OT en Calidad
             $folderName = $this->sanitizePath($this->normalizeOTName($ot));
             $basePath = self::CALIDAD_DIR . '/' . $folderName;
             $subFolder = $hasRechazo ? 'Documentos_Rechazados' : 'Documentos_Aprobados';
@@ -1168,30 +1189,35 @@ class CalidadFundicionController extends Controller
             }
             $otPath = $basePath . '/' . $subFolder . '/' . $classSubFolder;
             
-            // Eliminar versiones previas de LDM para esta clase/modelo en ambas carpetas, la raíz y subcarpetas de clases
-            foreach (['', 'documentos_aprobados', 'documentos_rechazados'] as $folder) {
-                $checkPath = $folder === '' ? $basePath : $basePath . '/' . $folder;
-                if (Storage::disk('local')->exists($checkPath)) {
-                    // Limpiar de la carpeta principal
-                    $files = Storage::disk('local')->files($checkPath);
-                    foreach ($files as $f) {
-                        $fBase = basename($f);
-                        if (str_contains($fBase, "LDM_") && str_contains($fBase, "_{$tipoLabel}_")) {
-                            Storage::disk('local')->delete($f);
-                        }
-                    }
-                    // Limpiar de la subcarpeta de la clase específica
-                    $classCheckPath = $checkPath . '/' . $classSubFolder;
-                    if (Storage::disk('local')->exists($classCheckPath)) {
-                        $classFiles = Storage::disk('local')->files($classCheckPath);
-                        foreach ($classFiles as $f) {
-                            $fBase = basename($f);
-                            if (str_contains($fBase, "LDM_") && str_contains($fBase, "_{$tipoLabel}_")) {
-                                Storage::disk('local')->delete($f);
-                            }
-                        }
+            // Eliminar versiones previas de esta clase/modelo en toda la OT (LDM, RDM y si fue aprobada también SCAR)
+            if (Storage::disk('local')->exists($basePath)) {
+                $allOtFiles = Storage::disk('local')->allFiles($basePath);
+                foreach ($allOtFiles as $f) {
+                    $fBase = mb_strtolower(basename($f), 'UTF-8');
+                    $fBaseClean = str_replace([' ', '_', '-'], '', $fBase);
+                    
+                    $matchesDocType = $isAprobar
+                        ? (str_contains($fBase, 'ldm') || str_contains($fBase, 'rdm') || str_contains($fBase, 'scar'))
+                        : (str_contains($fBase, 'ldm') || str_contains($fBase, 'rdm'));
+                        
+                    $matchesClass = str_contains($fBase, $tipoNorm) || str_contains($fBase, $tipoNormAlt) ||
+                                    str_contains($fBaseClean, $tipoNormClean) || str_contains($fBaseClean, $tipoNormAltClean);
+
+                    if ($matchesDocType && $matchesClass) {
+                        Storage::disk('local')->delete($f);
                     }
                 }
+            }
+
+            // Si se aprueba la clase, eliminar también registro de SCAR en la BD si existía para esta OT y clase
+            if ($isAprobar) {
+                ScarModelo::where('ot', '=', $ot)
+                    ->where(function($q) use ($tipo, $tipoNorm, $tipoNormAlt) {
+                        $q->where('tipo_modelo', '=', $tipo)
+                          ->orWhereRaw("LOWER(tipo_modelo) = ?", [$tipoNorm])
+                          ->orWhereRaw("LOWER(tipo_modelo) = ?", [$tipoNormAlt]);
+                    })
+                    ->delete();
             }
 
             if (!Storage::disk('local')->exists($otPath)) {
@@ -1217,8 +1243,8 @@ class CalidadFundicionController extends Controller
                 if (is_array($configs)) {
                     foreach ($configs as $val) {
                         $val = strtolower($val);
-                        if (str_contains($val, 'opcional')) continue;
-                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
+                        if (str_contains($val, 'opcional') && !str_contains($val, 'pistones') && !str_contains($val, 'guías') && !str_contains($val, 'guias')) continue;
+                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
                             if (strpos($val, $kc) !== false) {
                                 $clasesRequeridas[] = ucfirst($kc);
                             }
@@ -1238,7 +1264,7 @@ class CalidadFundicionController extends Controller
                     if (is_array($filas)) {
                         foreach ($filas as $fila) {
                             $val = strtolower($fila['clase'] ?? ($fila['clase_nombre'] ?? ''));
-                            foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'] as $kc) {
+                            foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
                                 if (strpos($val, $kc) !== false) {
                                     $clasesRequeridas[] = ucfirst($kc);
                                     break;
@@ -1251,7 +1277,7 @@ class CalidadFundicionController extends Controller
             
             // 3. Fallback a todas si no se pudo determinar
             if (empty($clasesRequeridas)) {
-                $clasesRequeridas = ['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo'];
+                $clasesRequeridas = ['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo', 'Pistones', 'Guías', 'Guias'];
             }
             $clasesRequeridas = array_unique($clasesRequeridas);
             
@@ -2237,7 +2263,7 @@ class CalidadFundicionController extends Controller
         if ($history && $history->ayudas_config) {
             $clasesActivas = [];
             foreach ($history->ayudas_config as $c) {
-                if (!str_contains(strtolower($c), 'opcional')) {
+                if (!str_contains(strtolower($c), 'opcional') || str_contains(strtolower($c), 'pistones') || str_contains(strtolower($c), 'guías') || str_contains(strtolower($c), 'guias')) {
                     $clLow = strtolower($c);
                     if (strpos($clLow, 'candado obturador') !== false) $clasesActivas[] = 'candado obturador';
                     elseif (strpos($clLow, 'cabeza de soplo') !== false) $clasesActivas[] = 'cabeza de soplo';
@@ -2248,6 +2274,8 @@ class CalidadFundicionController extends Controller
                     elseif (strpos($clLow, 'obturador') !== false) $clasesActivas[] = 'obturador';
                     elseif (strpos($clLow, 'molde') !== false) $clasesActivas[] = 'molde';
                     elseif (strpos($clLow, 'bombillo') !== false) $clasesActivas[] = 'bombillo';
+                    elseif (strpos($clLow, 'pistones') !== false) $clasesActivas[] = 'pistones';
+                    elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) $clasesActivas[] = 'guías';
                 }
             }
             

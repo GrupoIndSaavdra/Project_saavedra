@@ -1008,7 +1008,7 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
         return `
             <div style="width: 100%;">
                 <h4 style="font-family:'Poppins',sans-serif;font-weight:700;color:#1e293b;font-size:1.05em;margin-top:10px;margin-bottom:12px;border-left:4px solid ${borderLeftColor};padding-left:8px;text-align:left;">${title}</h4>
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; justify-items: center; width: 100%;">
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; justify-items: center; width: 100%; box-sizing: border-box;">
                     ${files
                 .map((f, idx) => {
                     const cleanName = f.nombre.split("/").pop();
@@ -1043,9 +1043,6 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                             <div class="dibujos-file-card ${colorClass} select-file-card ${checkedClass}" style="position: relative; width: 100%; max-width: 220px; display: inline-flex; flex-direction: column; align-items: center; text-align: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); box-sizing: border-box; background: #fff; padding: 10px; border: 1.5px solid #e2e8f0;">
                                 <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
                                     <input type="checkbox" name="${inputName}" value="${f.nombre}" ${checkedAttr} style="width: 20px; height: 20px; cursor: pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card', this.checked);">
-                                </div>
-                                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
-                                    <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="eliminarArchivoServidorCategorizado('${safeOt}', '${safeName}', '${safeTipo}')" title="Eliminar del servidor">&times;</button>
                                 </div>
                                 <div class="file-icon-wrapper" onclick="${fnViewer}('${safeOt}', '${safeName}', '${safeTipo}')" style="cursor: pointer; margin-top: 10px;" title="Abrir Archivo">
                                     <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width: 48px; height: auto;">
@@ -1196,7 +1193,10 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         const n = (f.nombre || "").toLowerCase();
                         return (
                             n.includes("pre-orden_casting") ||
-                            (n.includes("pre-orden") && n.includes("casting"))
+                            (n.includes("pre-orden") && n.includes("casting")) ||
+                            n.includes("f_alm_pfc") ||
+                            n.includes("pfc") ||
+                            n.includes("casting")
                         );
                     });
                 } else {
@@ -1244,8 +1244,10 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         let shouldCheck = false;
                         if (tipo === "casting") {
                             if (
-                                (fileName.includes("pre-orden") ||
-                                    fileName.includes("preorden")) &&
+                                fileName.includes("pre-orden_casting") ||
+                                (fileName.includes("pre-orden") && fileName.includes("casting")) ||
+                                fileName.includes("f_alm_pfc") ||
+                                fileName.includes("pfc") ||
                                 fileName.includes("casting")
                             ) {
                                 shouldCheck = true;
@@ -2452,6 +2454,9 @@ async function _libCargarDatos(ot) {
             obturador: "Obturador",
             molde: "Molde",
             bombillo: "Bombillo",
+            pistones: "Pistones",
+            guías: "Guías",
+            guias: "Guías",
         };
         const knownKeys = Object.keys(MAPA_TIPO);
         for (let key in rawCache) {
@@ -2469,21 +2474,18 @@ async function _libCargarDatos(ot) {
         _libActualizarColoresSelect();
         if (!data.success) return;
         const lastLib = data.liberacion;
-        // Pre-seleccionar tipo y actualizar visibilidad de tablas
+        // Pre-seleccionar tipo y actualizar visibilidad de tablas (priorizando el primer modelo en blanco/sin procesar)
         const selectTipo = document.getElementById("lib-tipo");
         if (selectTipo) {
-            if (window._currentClasesActivas) {
-                // Si venimos del flujo unificado, reevaluar auto-selección (ignorar los ya verdes)
-                const autoSelectValue = _libFiltrarTiposModelo(
-                    window._currentClasesActivas,
-                    window._currentTodasClases,
-                );
-                if (autoSelectValue) {
-                    selectTipo.value = autoSelectValue;
-                    libCambiarTipo(autoSelectValue);
-                }
+            const autoSelectValue = _libFiltrarTiposModelo(
+                window._currentClasesActivas,
+                window._currentTodasClases,
+            );
+            if (autoSelectValue) {
+                selectTipo.value = autoSelectValue;
+                libCambiarTipo(autoSelectValue);
             } else if (lastLib && lastLib.tipo_modelo) {
-                // Flujo normal: cargar el último modelo que guardamos
+                // Flujo normal: cargar el último modelo si todos están procesados
                 let tipo = lastLib.tipo_modelo;
                 const tipoLow = tipo.toLowerCase();
                 for (let k of knownKeys) {
@@ -3398,6 +3400,10 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                     prefix = "M";
                 else if (tLow === "fondo" || tLow.includes("fondo"))
                     prefix = "F";
+                else if (tLow.includes("pistones"))
+                    prefix = "P";
+                else if (tLow.includes("guías") || tLow.includes("guias"))
+                    prefix = "G";
                 else if (tLow.includes("cabeza") && tLow.includes("soplo"))
                     prefix = "CS";
                 else {
@@ -3415,6 +3421,13 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     if (motivoInput) motivoInput.value = motivoRechazo || "";
     const descTextarea = document.getElementById("scar-descripcion");
     if (descTextarea) descTextarea.value = motivoRechazo || "";
+    // Pre-llenar valores predeterminados/por defecto
+    const clienteEl = document.getElementById("scar-cliente-empresa");
+    if (clienteEl) clienteEl.value = "Industrial Saavedra";
+    const areaEl = document.getElementById("scar-area-solicitante");
+    if (areaEl) areaEl.value = "Calidad";
+    const provEl = document.getElementById("scar-proveedor");
+    if (provEl) provEl.value = "SS Metal Foundry, S. de R.L. de C.V.";
     // Checkboxes seleccionados de cajón/por defecto
     const defaultChkDibujos = document.getElementById("scar-evidencia-dibujos");
     if (defaultChkDibujos) defaultChkDibujos.checked = true;
@@ -4108,6 +4121,9 @@ window.abrirModalConfirmarModelo = function (
                                 "plato",
                                 "molde",
                                 "fondo",
+                                "pistones",
+                                "guías",
+                                "guias",
                             ];
                             let foundClass = null;
                             for (let kc of knownClasses) {
@@ -4460,6 +4476,9 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
         obturador: "Obturador",
         molde: "Molde",
         bombillo: "Bombillo",
+        pistones: "Pistones",
+        guías: "Guías",
+        guias: "Guías",
     };
     const knownKeys = [
         "candado obturador",
@@ -4471,6 +4490,9 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
         "obturador",
         "molde",
         "bombillo",
+        "pistones",
+        "guías",
+        "guias",
     ];
     // Calcular qué tipos están configurados en la OT
     const tiposConfigurados = new Set();
@@ -4528,7 +4550,13 @@ function _libFiltrarTiposModelo(clasesActivas, todasClases) {
                 const cached =
                     window.cacheLiberacionGlobal &&
                     window.cacheLiberacionGlobal[opt.value];
-                if (!cached && !firstUnprocessed) {
+                const isProcessed =
+                    cached &&
+                    (cached.decision === "aprobar" ||
+                        cached.decision === "rechazar" ||
+                        cached.estado === "aprobado" ||
+                        cached.estado === "rechazado");
+                if (!isProcessed && !firstUnprocessed) {
                     firstUnprocessed = opt.value;
                 }
             }
@@ -5042,6 +5070,9 @@ window.abrirModalEnviarAlertaLiberacion = function (
                         "plato",
                         "molde",
                         "fondo",
+                        "pistones",
+                        "guías",
+                        "guias",
                     ];
                     // comprobar si el path contiene el modelo como carpeta o prefijo
                     const modelosEncontrados = todosModelosPosibles.filter(
@@ -5380,6 +5411,9 @@ window.abrirModalFinalizarCalidad = function (
                         "plato",
                         "molde",
                         "fondo",
+                        "pistones",
+                        "guías",
+                        "guias",
                     ];
                     const modelosEncontrados = todosModelosPosibles.filter(
                         (m) => pl.includes(m),
@@ -5705,7 +5739,9 @@ window.abrirModalPreOrdenCasting = async function (ot) {
                 castingPos = res.pre_ordenes.filter(
                     (po) =>
                         po.pdf_filename &&
-                        po.pdf_filename.toLowerCase().includes("casting"),
+                        (po.pdf_filename.toLowerCase().includes("casting") ||
+                         po.pdf_filename.includes("F_ALM_PFC_") ||
+                         po.pdf_filename.includes("PFC")),
                 );
             }
             if (castingPos.length > 0) {
@@ -5994,6 +6030,8 @@ function getTipoModeloFromClase(claseNombre) {
     if (clLow.includes("obturador")) return "Obturador";
     if (clLow.includes("molde")) return "Molde";
     if (clLow.includes("bombillo")) return "Bombillo";
+    if (clLow.includes("pistones")) return "Pistones";
+    if (clLow.includes("guías") || clLow.includes("guias")) return "Guías";
     return "Otro";
 }
 // Tabla de consignaciones por rango de fabricar
@@ -7014,7 +7052,7 @@ function generarHtmlCategorizadoCastingAprobados(
         if (archivosSeccion.length === 0) return;
         html += `<div style="width:100%;">
             <h4 style="font-family:'Poppins',sans-serif;font-weight:700;color:#1e293b;font-size:1.05em;margin-top:10px;margin-bottom:12px;border-left:4px solid ${sec.color};padding-left:8px;">${sec.label}</h4>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">`;
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;width:100%;box-sizing:border-box;">`;
         archivosSeccion.forEach((f) => {
             const nombre = f.nombre || "";
             const baseName = nombre.split("/").pop();
@@ -7032,9 +7070,6 @@ function generarHtmlCategorizadoCastingAprobados(
             const safeTipo = tipoParam.replace(/'/g, "\\'");
             const fnViewer = typeof window.almacenVerPdf === 'function' ? 'almacenVerPdf' : 'calidadVerPdf';
             html += `<div class="dibujos-file-card ${sec.claseCard} select-file-card" style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);background:#fff;padding:10px;border:1.5px solid #e2e8f0;">
-                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
-                    <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.9em; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="eliminarArchivoServidorCategorizado('${safeOt}', '${safeName}', '${safeTipo}')" title="Eliminar del servidor">&times;</button>
-                </div>
                 <div class="file-icon-wrapper" onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')" style="cursor:pointer;margin-top:10px;">
                     <img src="${iconDefault}" class="file-icon icon-default" style="width:48px;height:auto;">
                     <img src="${iconHover}" class="file-icon icon-hover" style="width:48px;height:auto;">

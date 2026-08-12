@@ -59,20 +59,19 @@
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                         <div>
                             <label class="lib-dato-label" for="scar-cliente-empresa">Cliente / Empresa:</label>
-                            <input type="text" id="scar-cliente-empresa" name="cliente_empresa" class="form-control input-disabled-style">
+                            <input type="text" id="scar-cliente-empresa" name="cliente_empresa" class="form-control input-disabled-style" value="Industrial Saavedra">
                         </div>
                         <div>
                             <label class="lib-dato-label" for="scar-area-solicitante">Área Solicitante:</label>
-                            <input type="text" id="scar-area-solicitante" name="area_solicitante" class="form-control input-disabled-style">
+                            <input type="text" id="scar-area-solicitante" name="area_solicitante" class="form-control input-disabled-style" value="Calidad">
                         </div>
                     </div>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                         <div>
                             <label class="lib-dato-label" for="scar-nombre-solicitante">Nombre del Solicitante:</label>
                             <input type="text" id="scar-nombre-solicitante" name="nombre_solicitante"
-                                class="form-control" value="{{ Auth::user() ? Auth::user()->name : '' }}"
-                                placeholder="Inspector de Calidad" readonly
-                                class="input-disabled-style">
+                                class="form-control input-disabled-style" value="{{ Auth::user() ? Auth::user()->name : '' }}"
+                                placeholder="Inspector de Calidad" readonly>
                         </div>
                         <div>
                             <label class="lib-dato-label" for="scar-nombre-moldura">Nombre de la Moldura:</label>
@@ -99,7 +98,7 @@
                     <h5 style="font-weight: 700; color: #334155; font-size: 1.05em; margin-bottom: 6px;">
                         Proveedor
                     </h5>
-                    <input type="text" id="scar-proveedor" name="proveedor" class="form-control input-disabled-style">
+                    <input type="text" id="scar-proveedor" name="proveedor" class="form-control input-disabled-style" value="SS Metal Foundry, S. de R.L. de C.V.">
                 </div>
 
                 {{-- EVIDENCIA ADJUNTA --}}
@@ -163,7 +162,7 @@
                                 <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Solo archivos de imagen</span>
                             </div>
                         </div>
-                        <div id="scar-fotos-list" class="alm-display-none cal-display-none" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                        <div id="scar-fotos-list" class="alm-display-none cal-display-none" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; justify-items: center; width: 100%; box-sizing: border-box;"></div>
                     </div>
 
                     {{-- UPLOAD DE OTROS ARCHIVOS --}}
@@ -179,11 +178,11 @@
                                 <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Cualquier tipo de archivo</span>
                             </div>
                         </div>
-                        <div id="scar-otro-archivos-list" class="alm-display-none cal-display-none" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; justify-items: center;"></div>
+                        <div id="scar-otro-archivos-list" class="alm-display-none cal-display-none" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; justify-items: center; width: 100%; box-sizing: border-box;"></div>
                     </div>
 
                     {{-- ARCHIVOS EVIDENCIA DEL SERVIDOR --}}
-                    <div id="scar-server-files-container" class="alm-pdf-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px;">
+                    <div id="scar-server-files-container" class="alm-pdf-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 15px; margin-top: 20px; width: 100%; box-sizing: border-box;">
                         <!-- Aquí se inyectarán las fotos y archivos previamente subidos al SCAR -->
                     </div>
                 </div>

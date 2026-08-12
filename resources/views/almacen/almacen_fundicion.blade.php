@@ -1078,48 +1078,58 @@
                                                     $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
 
                                                     if (file_exists($liberacionesPath)) {
-                                                        // Buscar LDM PDFs
-                                                        $ldmPattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
-                                                        foreach (glob($ldmPattern) ?: [] as $f) {
-                                                            $base = basename($f);
-                                                            $fileLower = strtolower($base);
-                                                            $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
-                                                            $hasKnownClass = false;
-                                                            foreach ($knownClasses as $kc) {
-                                                                if (strpos($fileLower, $kc) !== false) {
-                                                                    $hasKnownClass = true;
-                                                                    break;
-                                                                }
-                                                            }
-                                                            if ($hasKnownClass) {
-                                                                $matchesActive = false;
-                                                                foreach ($activeClassesForOt as $ac) {
-                                                                    if (strpos($fileLower, $ac) !== false) {
-                                                                        $matchesActive = true;
-                                                                        break;
-                                                                    }
-                                                                }
-                                                                if (!$matchesActive)
-                                                                    continue;
-                                                            } else {
-                                                                if (!$allowFileCrossOt($otName)) {
-                                                                    continue;
-                                                                }
-                                                            }
-                                                            $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
-                                                            if (!in_array($normBase, $normBaseNames)) {
-                                                                $otrosArchivos[] = [
-                                                                    'nombre' => $base,
-                                                                    'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion', 'origin' => 'aprobado']),
-                                                                    'tipo' => 'liberacion',
-                                                                    'ot' => $otName,
-                                                                    'origin' => 'aprobado',
-                                                                    'owner' => 'calidad',
-                                                                ];
-                                                                $baseNames[] = $base;
-                                                                $normBaseNames[] = $normBase;
-                                                            }
-                                                        }
+                                                        // Buscar LDM y RDM PDFs generados para ESTA OT en public/liberaciones_pdf
+                                                         $otLow = mb_strtolower($otSanitizada, 'UTF-8');
+                                                         $otNameLow = mb_strtolower($otName, 'UTF-8');
+                                                         $ldmFiles = array_merge(
+                                                             glob("{$liberacionesPath}/*{$otSanitizada}*.pdf") ?: [],
+                                                             glob("{$liberacionesPath}/F*CCL*{$otSanitizada}*.pdf") ?: []
+                                                         );
+                                                         foreach (array_unique($ldmFiles) as $f) {
+                                                             $base = basename($f);
+                                                             $fileLower = mb_strtolower($base, 'UTF-8');
+                                                             if (!str_contains($fileLower, $otLow) && !str_contains($fileLower, $otNameLow)) {
+                                                                 continue;
+                                                             }
+                                                             $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'];
+                                                             $hasKnownClass = false;
+                                                             foreach ($knownClasses as $kc) {
+                                                                 if (strpos($fileLower, $kc) !== false) {
+                                                                     $hasKnownClass = true;
+                                                                     break;
+                                                                 }
+                                                             }
+                                                             if ($hasKnownClass) {
+                                                                 $matchesActive = false;
+                                                                 foreach ($activeClassesForOt as $ac) {
+                                                                     if (strpos($fileLower, $ac) !== false) {
+                                                                         $matchesActive = true;
+                                                                         break;
+                                                                     }
+                                                                 }
+                                                                 if (!$matchesActive)
+                                                                     continue;
+                                                             } else {
+                                                                 if (!$allowFileCrossOt($otName)) {
+                                                                     continue;
+                                                                 }
+                                                             }
+                                                             $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                                                             if (!in_array($normBase, $normBaseNames)) {
+                                                                 $isRechazado = strpos($fileLower, 'rdm') !== false || strpos($fileLower, 'rechazado') !== false;
+                                                                 $origin = $isRechazado ? 'rechazado' : 'aprobado';
+                                                                 $otrosArchivos[] = [
+                                                                     'nombre' => $base,
+                                                                     'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $base, 'tipo' => 'liberacion', 'origin' => $origin]),
+                                                                     'tipo' => 'liberacion',
+                                                                     'ot' => $otName,
+                                                                     'origin' => $origin,
+                                                                     'owner' => 'calidad',
+                                                                 ];
+                                                                 $baseNames[] = $base;
+                                                                 $normBaseNames[] = $normBase;
+                                                             }
+                                                         }
 
                                                         // Buscar SCAR PDFs (digital y firmado)
                                                         $scarPattern = "{$liberacionesPath}/F-CCL-SCAR_*_{$otSanitizada}*.pdf";
@@ -1176,6 +1186,7 @@
                                                     $isPreorden = (
                                                         ((in_array($archivo['tipo'], ['otro', 'imagen']) || str_starts_with($archivo['nombre'], 'preordenes/')) &&
                                                             strpos($nameLow, 'ldm') === false &&
+                                                            strpos($nameLow, 'rdm') === false &&
                                                             strpos($nameLow, 'scar') === false &&
                                                             strpos($nameLow, 'confirmacion') === false &&
                                                             strpos($nameLow, 'liberacion') === false) ||
@@ -1486,7 +1497,7 @@
                                                     if (empty($aprobadosNorm))
                                                         return false;
                                                     $nameLow = strtolower(basename($doc['nombre']));
-                                                    if (strpos($nameLow, 'casting') === false)
+                                                    if (strpos($nameLow, 'casting') === false && strpos($nameLow, 'pfc') === false && strpos($nameLow, 'f_alm_pfc') === false)
                                                         return false;
                                                     foreach ($aprobadosNorm as $ap) {
                                                         if ($ap !== '' && strpos($nameLow, $ap) !== false)
@@ -1894,7 +1905,7 @@
 
                                                                             // Evaluar si existen pre-órdenes vigentes ESPECÍFICAMENTE para las clases en fabricación (ignorando las archivadas _Anterior_N)
                                                                             $preOrdenesFabExistentes = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->get()->filter(function ($po) use ($clasesFabricacion) {
-                                                                                if ($po->pdf_filename && str_contains($po->pdf_filename, '_Anterior_N'))
+                                                                                if ($po->pdf_filename && (str_contains($po->pdf_filename, '_Anterior_N') || str_contains($po->pdf_filename, 'Casting') || str_contains($po->pdf_filename, 'F_ALM_PFC_') || str_contains($po->pdf_filename, 'PFC')))
                                                                                     return false;
                                                                                 $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
                                                                                 if (!is_array($filas))
@@ -1976,8 +1987,8 @@
                                                                             $todasClasesProcesadas = count($otClasesActivas) > 0 && count($clasesActivasFaltantes) === 0;
                                                                             $algunaClaseProcesada = count($clasesActivasCubiertas) > 0;
 
-                                                                            $controlDisabled = '';
-                                                                            $hideControlCard = (count($clasesFabricacion) === 0) ? 'display: none;' : '';
+                                                                            $controlDisabled = ($targetReg->tiene_modelo || $targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '';
+                                                                            $hideControlCard = (($tieneAprobados || $tieneRechazados) && !$esReproceso) ? 'display: none;' : ((count($clasesFabricacion) === 0 && !$esReproceso && !$targetReg->tiene_modelo && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? 'display: none;' : '');
                                                                             // Mostrar los botones iniciales solo si faltan clases por procesar Y NO hay una pre-orden pendiente por enviar
                                                                             $hideTengoModelo = (($esReproceso && !$esReinicioParcial) || $todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
                                                                             $hideGenerarFormato = (($esReproceso && !$esReinicioParcial) || $todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
@@ -2014,7 +2025,15 @@
                                                                                 }
                                                                             }
 
-                                                                            $poPendienteEnvio = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->where('is_sent', 0)->orderBy('id', 'desc')->first();
+                                                                            $poPendienteEnvio = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)
+                                                                                ->where('is_sent', 0)
+                                                                                ->where(function ($q) {
+                                                                                    $q->where('pdf_filename', 'NOT LIKE', '%Casting%')
+                                                                                      ->where('pdf_filename', 'NOT LIKE', '%F_ALM_PFC_%')
+                                                                                      ->where('pdf_filename', 'NOT LIKE', '%PFC%');
+                                                                                })
+                                                                                ->orderBy('id', 'desc')
+                                                                                ->first();
                                                                             $clasesParaEnvio = [];
                                                                             if ($poPendienteEnvio) {
                                                                                 $filas = is_string($poPendienteEnvio->filas) ? json_decode($poPendienteEnvio->filas, true) : $poPendienteEnvio->filas;
@@ -2044,133 +2063,137 @@
                                                                             $hideAllBtns = $isFullySubmitted ? 'display: none;' : '';
                                                                             // El botón de "Enviar Correo" se activa / muestra ÚNICAMENTE si existe una pre-orden generada pendiente de envío ($poPendienteEnvioFab !== null)
                                                                             $hideSendEmail = ($poPendienteEnvioFab !== null) ? '' : 'display: none;';
+                                                                            $calidadYaRespondio = ($reg->casting_pdf_generated || in_array($reg->calidad_revision_status, ['casting_aprobado']) || (($tieneAprobados || $tieneRechazados) && !$esReproceso && !$esReinicioParcial));
+                                                                            $ocultarCardEnModelo = $calidadYaRespondio || (($tieneAprobados || $tieneRechazados) && (!$esReproceso || count($clasesFabricacion) === 0));
                                                                         @endphp
 
-                                                                        <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
-                                                                            style="{{ $controlDisabled }} {{ $hideControlCard }}">
-                                                                            <div class="lib-calidad-card-header">
-                                                                                <img src="{{ ($esReproceso || $esReinicioParcial) ? asset('images/Reproceso.png') : asset('images/almacen.png') }}"
-                                                                                    alt="Almacén" class="alm-icon-lg">
-                                                                                <div class="alm-overflow-hidden alm-flex-1">
-                                                                                    <span class="lib-calidad-card-title">Control de Modelos &mdash;
-                                                                                        Almacén</span>
-                                                                                    <span
-                                                                                        class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
-                                                                                </div>
-                                                                                @if (count($otClasesActivas) > 0)
-                                                                                    <div
-                                                                                        class="alm-flex-shrink-0 alm-display-flex alm-flex-direction-column alm-align-items-center alm-gap-2px">
+                                                                        @if (!$ocultarCardEnModelo)
+                                                                            <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
+                                                                                style="{{ trim($controlDisabled . ' ' . $hideControlCard) }}">
+                                                                                <div class="lib-calidad-card-header">
+                                                                                    <img src="{{ ($esReproceso || $esReinicioParcial) ? asset('images/Reproceso.png') : asset('images/almacen.png') }}"
+                                                                                        alt="Almacén" class="alm-icon-lg">
+                                                                                    <div class="alm-overflow-hidden alm-flex-1">
+                                                                                        <span class="lib-calidad-card-title">Control de Modelos &mdash;
+                                                                                            Almacén</span>
                                                                                         <span
-                                                                                            style="font-size:1.1em; font-weight:800; color:{{ $todasClasesProcesadas ? '#15803d' : ($algunaClaseProcesada ? '#0369a1' : '#ffffff') }};">
-                                                                                            {{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
-                                                                                        </span>
-                                                                                        <span
-                                                                                            class="alm-font-size-0-65em alm-font-weight-600 alm-color-rgba-255-255-255-0-75 alm-letter-spacing-0-5px alm-text-transform-uppercase">clases</span>
-                                                                                        @if ($todasClasesProcesadas)
-                                                                                            <img src="{{ asset('images/ready.png') }}"
-                                                                                                class="alm-width-18px alm-height-18px alm-margin-top-2px"
-                                                                                                alt="Listo">
-                                                                                        @endif
+                                                                                            class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reg->ot) }}</span>
                                                                                     </div>
-                                                                                @endif
-                                                                            </div>
-                                                                            <div class="lib-calidad-card-body">
-                                                                                <div class="lib-calidad-action-row">
-                                                                                    <h4 class="lib-calidad-card-prompt">
-                                                                                        @if ($isFullySubmitted)
+                                                                                    @if (count($otClasesActivas) > 0)
+                                                                                        <div
+                                                                                            class="alm-flex-shrink-0 alm-display-flex alm-flex-direction-column alm-align-items-center alm-gap-2px">
                                                                                             <span
-                                                                                                class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                style="font-size:1.1em; font-weight:800; color:{{ $todasClasesProcesadas ? '#15803d' : ($algunaClaseProcesada ? '#0369a1' : '#ffffff') }};">
+                                                                                                {{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
+                                                                                            </span>
+                                                                                            <span
+                                                                                                class="alm-font-size-0-65em alm-font-weight-600 alm-color-rgba-255-255-255-0-75 alm-letter-spacing-0-5px alm-text-transform-uppercase">clases</span>
+                                                                                            @if ($todasClasesProcesadas)
                                                                                                 <img src="{{ asset('images/ready.png') }}"
-                                                                                                    class="alm-icon-md" alt="Listo">
-                                                                                                El proceso ahora le pertenece a Calidad. Por favor,
-                                                                                                espera instrucciones para las clases enviadas.
-                                                                                            </span>
-                                                                                        @elseif ($todasClasesProcesadas)
-                                                                                            <span
-                                                                                                class="alm-color-0369a1 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                                <img src="{{ asset('images/ready.png') }}"
-                                                                                                    class="alm-icon-md" alt="Listo">
-                                                                                                ¡Todas las clases procesadas! Falta enviar la alerta a
-                                                                                                Calidad.
-                                                                                            </span>
-                                                                                        @elseif ($algunaClaseProcesada)
-                                                                                            <span class="alm-color-0369a1 alm-font-weight-600">
-                                                                                                Proceso parcial
-                                                                                                ({{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
-                                                                                                clases enviadas). Puedes generar o enviar las
-                                                                                                pre-órdenes restantes.
-                                                                                            </span>
-                                                                                        @elseif ($targetReg->tiene_modelo)
-                                                                                            ¡Modelo recibido y procesado! Pendiente de que Calidad lo
-                                                                                            revise.
-                                                                                        @elseif ($targetReg->pre_orden_email_sent)
-                                                                                            Alerta enviada a Calidad. En espera de su revisión y
-                                                                                            liberación.
-                                                                                        @elseif ($targetReg->pre_orden_sent)
-                                                                                            Pre-orden lista. Puedes seguir editando los datos o enviarla
-                                                                                            por correo.
-                                                                                        @elseif ($esReinicioParcial)
-                                                                                            <span
-                                                                                                class="alm-color-0284c7 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
-                                                                                                <img src="{{ asset('images/Reproceso.png') }}"
-                                                                                                    class="alm-icon-md" alt="Reinicio">
-                                                                                                Clase(s) reiniciadas:
-                                                                                                <strong>{{ implode(', ', array_map('ucfirst', $clasesFabricacion)) }}</strong>.
-                                                                                                Genera una nueva pre-orden o confirma que cuentas con el
-                                                                                                modelo para continuar.
-                                                                                            </span>
-                                                                                        @elseif ($esReproceso)
-                                                                                            OT en re-proceso por rechazo de Calidad. Genera o edita la
-                                                                                            pre-orden de modelo para iniciar el nuevo ciclo de
-                                                                                            fabricación.
-                                                                                        @else
-                                                                                            ¿Ya cuentas con el modelo de esta OT o necesitas generar una
-                                                                                            pre-orden?
-                                                                                        @endif
-                                                                                    </h4>
-                                                                                    <div class="lib-calidad-card-btns" style="{{ $hideAllBtns }}">
-                                                                                        <button class="btn-modelo btn-modelo-si"
-                                                                                            onclick="abrirModalConfirmarModelo('{{ $targetReg->ot }}', '{{ md5($reg->ot) }}', {{ $clasesFaltantesFisicoJson }}, {{ $todasClasesActivasJson }})"
-                                                                                            title="Sí, cuento con el modelo de esta OT"
-                                                                                            style="{{ $hideTengoModelo }}">
-                                                                                            <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
-                                                                                            <span>Tengo el Modelo</span>
-                                                                                        </button>
-                                                                                        <button class="btn-modelo btn-modelo-no"
-                                                                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                                                                            title="No cuento con él, generar formato PDF"
-                                                                                            style="{{ $hideGenerarFormato }}">
-                                                                                            <img src="{{ asset('images/pdf.png') }}" alt="PDF">
-                                                                                            <span>No, generar formato</span>
-                                                                                        </button>
-                                                                                        <button class="btn-modelo btn-modelo-no"
-                                                                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                                                                            title="Generar / editar la pre-orden de fabricación de modelo"
-                                                                                            style="{{ $hideReprocesoPreOrden }}">
-                                                                                            <img src="{{ asset('images/pdf.png') }}"
-                                                                                                alt="Pre-Orden">
-                                                                                            <span>Pre-Orden Modelo</span>
-                                                                                        </button>
-                                                                                        <button class="btn-modelo btn-modelo-edit"
-                                                                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                                                                            title="Editar información de la preorden existente"
-                                                                                            style="{{ $hideEditPreOrden }}">
-                                                                                            <img src="{{ asset('images/editar-informacion.png') }}"
-                                                                                                alt="Editar">
-                                                                                            <span>Editar Pre-orden</span>
-                                                                                        </button>
-                                                                                        <button class="btn-modelo btn-modelo-email"
-                                                                                            onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo', {{ $clasesParaEnvioJson }})"
-                                                                                            title="{{ $esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico' }}"
-                                                                                            style="{{ $hideSendEmail }}">
-                                                                                            <img src="{{ asset('images/enviando.png') }}"
-                                                                                                alt="Enviar">
-                                                                                            <span>{{ $esReproceso ? 'Enviar Alerta' : 'Enviar Correo' }}</span>
-                                                                                        </button>
+                                                                                                    class="alm-width-18px alm-height-18px alm-margin-top-2px"
+                                                                                                    alt="Listo">
+                                                                                            @endif
+                                                                                        </div>
+                                                                                    @endif
+                                                                                </div>
+                                                                                <div class="lib-calidad-card-body">
+                                                                                    <div class="lib-calidad-action-row">
+                                                                                        <h4 class="lib-calidad-card-prompt">
+                                                                                            @if ($isFullySubmitted)
+                                                                                                <span
+                                                                                                    class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                    <img src="{{ asset('images/ready.png') }}"
+                                                                                                        class="alm-icon-md" alt="Listo">
+                                                                                                    El proceso ahora le pertenece a Calidad. Por favor,
+                                                                                                    espera instrucciones para las clases enviadas.
+                                                                                                </span>
+                                                                                            @elseif ($todasClasesProcesadas)
+                                                                                                <span
+                                                                                                    class="alm-color-0369a1 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                    <img src="{{ asset('images/ready.png') }}"
+                                                                                                        class="alm-icon-md" alt="Listo">
+                                                                                                    ¡Todas las clases procesadas! Falta enviar la alerta a
+                                                                                                    Calidad.
+                                                                                                </span>
+                                                                                            @elseif ($algunaClaseProcesada)
+                                                                                                <span class="alm-color-0369a1 alm-font-weight-600">
+                                                                                                    Proceso parcial
+                                                                                                    ({{ count($clasesActivasCubiertas) }}/{{ count($otClasesActivas) }}
+                                                                                                    clases enviadas). Puedes generar o enviar las
+                                                                                                    pre-órdenes restantes.
+                                                                                                </span>
+                                                                                            @elseif ($targetReg->tiene_modelo)
+                                                                                                ¡Modelo recibido y procesado! Pendiente de que Calidad lo
+                                                                                                revise.
+                                                                                            @elseif ($targetReg->pre_orden_email_sent)
+                                                                                                Alerta enviada a Calidad. En espera de su revisión y
+                                                                                                liberación.
+                                                                                            @elseif ($targetReg->pre_orden_sent)
+                                                                                                Pre-orden lista. Puedes seguir editando los datos o enviarla
+                                                                                                por correo.
+                                                                                            @elseif ($esReinicioParcial)
+                                                                                                <span
+                                                                                                    class="alm-color-0284c7 alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
+                                                                                                    <img src="{{ asset('images/Reproceso.png') }}"
+                                                                                                        class="alm-icon-md" alt="Reinicio">
+                                                                                                    Clase(s) reiniciadas:
+                                                                                                    <strong>{{ implode(', ', array_map('ucfirst', $clasesFabricacion)) }}</strong>.
+                                                                                                    Genera una nueva pre-orden o confirma que cuentas con el
+                                                                                                    modelo para continuar.
+                                                                                                </span>
+                                                                                            @elseif ($esReproceso)
+                                                                                                OT en re-proceso por rechazo de Calidad. Genera o edita la
+                                                                                                pre-orden de modelo para iniciar el nuevo ciclo de
+                                                                                                fabricación.
+                                                                                            @else
+                                                                                                ¿Ya cuentas con el modelo de esta OT o necesitas generar una
+                                                                                                pre-orden?
+                                                                                            @endif
+                                                                                        </h4>
+                                                                                        <div class="lib-calidad-card-btns" style="{{ $hideAllBtns }}">
+                                                                                            <button class="btn-modelo btn-modelo-si"
+                                                                                                onclick="abrirModalConfirmarModelo('{{ $targetReg->ot }}', '{{ md5($reg->ot) }}', {{ $clasesFaltantesFisicoJson }}, {{ $todasClasesActivasJson }})"
+                                                                                                title="Sí, cuento con el modelo de esta OT"
+                                                                                                style="{{ $hideTengoModelo }}">
+                                                                                                <img src="{{ asset('images/Aprobado.png') }}" alt="Si">
+                                                                                                <span>Tengo el Modelo</span>
+                                                                                            </button>
+                                                                                            <button class="btn-modelo btn-modelo-no"
+                                                                                                onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
+                                                                                                title="No cuento con él, generar formato PDF"
+                                                                                                style="{{ $hideGenerarFormato }}">
+                                                                                                <img src="{{ asset('images/pdf.png') }}" alt="PDF">
+                                                                                                <span>No, generar formato</span>
+                                                                                            </button>
+                                                                                            <button class="btn-modelo btn-modelo-no"
+                                                                                                onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
+                                                                                                title="Generar / editar la pre-orden de fabricación de modelo"
+                                                                                                style="{{ $hideReprocesoPreOrden }}">
+                                                                                                <img src="{{ asset('images/pdf.png') }}"
+                                                                                                    alt="Pre-Orden">
+                                                                                                <span>Pre-Orden Modelo</span>
+                                                                                            </button>
+                                                                                            <button class="btn-modelo btn-modelo-edit"
+                                                                                                onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
+                                                                                                title="Editar información de la preorden existente"
+                                                                                                style="{{ $hideEditPreOrden }}">
+                                                                                                <img src="{{ asset('images/editar-informacion.png') }}"
+                                                                                                    alt="Editar">
+                                                                                                <span>Editar Pre-orden</span>
+                                                                                            </button>
+                                                                                            <button class="btn-modelo btn-modelo-email"
+                                                                                                onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo', {{ $clasesParaEnvioJson }})"
+                                                                                                title="{{ $esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico' }}"
+                                                                                                style="{{ $hideSendEmail }}">
+                                                                                                <img src="{{ asset('images/enviando.png') }}"
+                                                                                                    alt="Enviar">
+                                                                                                <span>{{ $esReproceso ? 'Enviar Alerta' : 'Enviar Correo' }}</span>
+                                                                                            </button>
+                                                                                        </div>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        </div>
+                                                                        @endif
                                                                     @endif
                                                                 </div>
                                                             @endif
@@ -2289,7 +2312,7 @@
                                                                                 if (empty($aprobadosNorm))
                                                                                     return false;
                                                                                 $nameLow = strtolower(basename($doc['nombre']));
-                                                                                if (strpos($nameLow, 'casting') === false)
+                                                                                if (strpos($nameLow, 'casting') === false && strpos($nameLow, 'pfc') === false && strpos($nameLow, 'f_alm_pfc') === false)
                                                                                     return false;
                                                                                 foreach ($aprobadosNorm as $ap) {
                                                                                     if ($ap !== '' && strpos($nameLow, $ap) !== false)
@@ -2391,8 +2414,14 @@
 
                                                                     {{-- Control de Modelos — Almacén (Aprobados) --}}
                                                                     @php
-                                                                        $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->first();
+                                                                        $castingPre = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)
+                                                                            ->where(function ($q) {
+                                                                                $q->where('pdf_filename', 'LIKE', '%Casting%')
+                                                                                  ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
+                                                                                  ->orWhere('pdf_filename', 'LIKE', '%PFC%');
+                                                                            })->first();
                                                                         $hasCastingPre = (bool) $castingPre;
+                                                                        $castingEmailSent = ($reg->calidad_revision_status === 'casting_aprobado') || ($castingPre && $castingPre->is_sent == 1);
                                                                     @endphp
                                                                     <div class="lib-calidad-card"
                                                                         id="control-almacen-aprobados-{{ md5($reg->ot) }}"
@@ -2416,9 +2445,11 @@
                                                                                             class="alm-color-15803d alm-font-weight-700 alm-display-inline-flex alm-align-items-center alm-gap-8px">
                                                                                             <img src="{{ asset('images/ready.png') }}"
                                                                                                 class="alm-icon-md" alt="Listo">
-                                                                                            Proceso de pre-orden finalizado correctamente. El correo
-                                                                                            ha sido enviado al proveedor. Favor de esperar nuevas
-                                                                                            instrucciones.
+                                                                                            @if (count($aprobados) == 1)
+                                                                                                El proceso de pre-orden ha finalizado para la clase <strong>{{ implode(', ', $aprobados) }}</strong>. El correo ha sido enviado al proveedor. Favor de esperar instrucciones.
+                                                                                            @else
+                                                                                                El proceso de pre-orden ha finalizado para las clases <strong>{{ implode(', ', $aprobados) }}</strong>. El correo ha sido enviado al proveedor. Favor de esperar instrucciones.
+                                                                                            @endif
                                                                                         </span>
                                                                                     @elseif ($hasCastingPre)
                                                                                         Pre-orden de casting generada para los modelos:

@@ -206,6 +206,8 @@
         elseif (str_contains($tipoRaw, 'fondo')) { $tipo = 'Fondo'; }
         elseif (str_contains($tipoRaw, 'molde')) { $tipo = 'Molde'; }
         elseif (str_contains($tipoRaw, 'bombillo')) { $tipo = 'Bombillo'; }
+        elseif (str_contains($tipoRaw, 'pistones')) { $tipo = 'Pistones'; }
+        elseif (str_contains($tipoRaw, 'guías') || str_contains($tipoRaw, 'guias')) { $tipo = 'Guías'; }
 
         $activas = \App\Models\LiberacionModeloFundicion::tablasActivas($tipo);
 
@@ -296,7 +298,9 @@
                     C. SOPLO [ {{ $tipo == 'Cabeza de Soplo' ? 'X' : ' ' }} ] &nbsp;
                     C. OBTURADOR [ {{ $tipo == 'Candado Obturador' ? 'X' : ' ' }} ] &nbsp;
                     OBTURADOR [ {{ $tipo == 'Obturador' ? 'X' : ' ' }} ] &nbsp;
-                    BOMBILLO [ {{ $tipo == 'Bombillo' ? 'X' : ' ' }} ]
+                    BOMBILLO [ {{ $tipo == 'Bombillo' ? 'X' : ' ' }} ] &nbsp;
+                    PISTONES [ {{ $tipo == 'Pistones' ? 'X' : ' ' }} ] &nbsp;
+                    GUÍAS [ {{ $tipo == 'Guías' ? 'X' : ' ' }} ]
                 </span>
             </td>
         </tr>
@@ -347,7 +351,7 @@
                     <tr>
                         <td style="width: 35%; vertical-align: top; padding-right: 5px;">
 
-                            <div class="section-title">{{ in_array($tipo, ['Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador']) ? strtoupper($tipo) : 'FONDO' }}</div>
+                            <div class="section-title">{{ in_array($tipo, ['Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías']) ? strtoupper($tipo) : 'FONDO' }}</div>
                             <table class="data-table">
                                 <thead>
                                     <tr>
@@ -493,7 +497,7 @@
                 {{-- OBSERVACIONES --}}
                 <div class="section-title" style="margin-top: 5px;">OBSERVACIONES</div>
                 <div class="obs-box" style="margin-bottom: 5px;">
-                    @if (in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador']))
+                    @if (in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías']))
                         <span class="obs-label">{{ $tipo }}:</span>
                         {!! nl2br(e($liberacion->observaciones_fondo ?: 'Ninguna.')) !!}
                     @elseif ($tipo === 'Obturador')

@@ -584,7 +584,7 @@
                                                     if (is_array($configs)) {
                                                         foreach ($configs as $val) {
                                                             $val = strtolower($val);
-                                                            if (str_contains($val, 'opcional')) {
+                                                            if (str_contains($val, 'opcional') && !str_contains($val, 'pistones') && !str_contains($val, 'guías') && !str_contains($val, 'guias')) {
                                                                 continue;
                                                             }
                                                             foreach (
@@ -598,6 +598,12 @@
                                                                     'plato',
                                                                     'molde',
                                                                     'fondo',
+                                                                    'pistones',
+                                                                    'guías',
+                                                                    'guias',
+                                                                    'pistones',
+                                                                    'guías',
+                                                                    'guias',
                                                                 ]
                                                                 as $kc
                                                             ) {
@@ -638,6 +644,12 @@
                                                                             'plato',
                                                                             'molde',
                                                                             'fondo',
+                                                                            'pistones',
+                                                                            'guías',
+                                                                            'guias',
+                                                                            'pistones',
+                                                                            'guías',
+                                                                            'guias',
                                                                         ]
                                                                         as $kc
                                                                     ) {
@@ -731,6 +743,9 @@
                                                         'plato',
                                                         'molde',
                                                         'fondo',
+                                                        'pistones',
+                                                        'guías',
+                                                        'guias',
                                                     ];
                                                 }
                                                 $activeClassesForOt = array_values(array_unique($activeClassesForOt));
@@ -754,7 +769,7 @@
                                                 )
                                                     ->where('decision', 'rechazar')
                                                     ->pluck('tipo_modelo')
-                                                    ->map(fn($t) => strtolower($t))
+                                                    ->map(fn($t) => mb_strtolower($t, 'UTF-8'))
                                                     ->toArray();
 
                                                 $reprocesoTienePreOrden = false;
@@ -794,6 +809,9 @@
                                                             'plato',
                                                             'molde',
                                                             'fondo',
+                                                            'pistones',
+                                                            'guías',
+                                                            'guias',
                                                         ];
                                                         $hasKnownClass = false;
                                                         foreach ($knownClasses as $kc) {
@@ -920,6 +938,9 @@
                                                             'Plato',
                                                             'Molde',
                                                             'Fondo',
+                                                            'Pistones',
+                                                            'Guías',
+                                                            'Guias',
                                                         ]
                                                         as $claseDir
                                                     ) {
@@ -987,6 +1008,12 @@
                                                                     'plato',
                                                                     'molde',
                                                                     'fondo',
+                                                                    'pistones',
+                                                                    'guías',
+                                                                    'guias',
+                                                                    'pistones',
+                                                                    'guías',
+                                                                    'guias',
                                                                 ];
                                                                 $hasKnownClass = false;
                                                                 foreach ($knownClasses as $kc) {
@@ -1094,6 +1121,9 @@
                                                                 'plato',
                                                                 'molde',
                                                                 'fondo',
+                                                                'pistones',
+                                                                'guías',
+                                                                'guias',
                                                             ];
                                                             $hasKnownClass = false;
                                                             foreach ($knownClasses as $kc) {
@@ -1243,6 +1273,12 @@
                                                                     'plato',
                                                                     'molde',
                                                                     'fondo',
+                                                                    'pistones',
+                                                                    'guías',
+                                                                    'guias',
+                                                                    'pistones',
+                                                                    'guías',
+                                                                    'guias',
                                                                 ];
                                                                 $fileClasses = [];
                                                                 foreach ($knownClasses as $kc) {
@@ -1296,14 +1332,22 @@
                                                     $otSanitizada = preg_replace('/[^\w\s\-]/', '', $otName);
                                                     $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
                                                     if (file_exists($liberacionesPath)) {
-                                                        // Buscar LDM PDFs (aprobados y rechazados)
-                                                        $ldmPattern = "{$liberacionesPath}/F-CCL-LDM_*_{$otSanitizada}*.pdf";
-                                                        foreach (glob($ldmPattern) ?: [] as $f) {
+                                                        // Buscar LDM y RDM PDFs generados para ESTA OT en public/liberaciones_pdf
+                                                        $otLow = mb_strtolower($otSanitizada, 'UTF-8');
+                                                        $otNameLow = mb_strtolower($otName, 'UTF-8');
+                                                        $ldmFiles = array_merge(
+                                                            glob("{$liberacionesPath}/*{$otSanitizada}*.pdf") ?: [],
+                                                            glob("{$liberacionesPath}/F*CCL*{$otSanitizada}*.pdf") ?: []
+                                                        );
+                                                        foreach (array_unique($ldmFiles) as $f) {
                                                             $base = basename($f);
-                                                            $fileLower = strtolower($base);
+                                                            $fileLower = mb_strtolower($base, 'UTF-8');
+                                                            if (!str_contains($fileLower, $otLow) && !str_contains($fileLower, $otNameLow)) {
+                                                                continue;
+                                                            }
                                                             $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
                                                             if (!in_array($normBase, $normBaseNames)) {
-                                                                $isRechazado = strpos($fileLower, 'rechazado') !== false;
+                                                                $isRechazado = strpos($fileLower, 'rdm') !== false || strpos($fileLower, 'rechazado') !== false;
                                                                 $origin = $isRechazado ? 'rechazado' : 'aprobado';
                                                                 $itemData = [
                                                                     'nombre' => $base,
@@ -1368,6 +1412,7 @@
                                                             ((in_array($archivo['tipo'], ['otro', 'imagen']) ||
                                                                 str_starts_with($archivo['nombre'], 'preordenes/')) &&
                                                                 strpos($nameLow, 'ldm') === false &&
+                                                                strpos($nameLow, 'rdm') === false &&
                                                                 strpos($nameLow, 'scar') === false &&
                                                                 strpos($nameLow, 'confirmacion') === false &&
                                                                 strpos($nameLow, 'liberacion') === false) ||
@@ -1454,7 +1499,7 @@
                                                     }
                                                 }
                                                 $clasesActivas = collect($targetReg->ayudas_config ?? [])
-                                                    ->filter(fn($c) => !str_contains(strtolower($c), 'opcional'))
+                                                    ->filter(fn($c) => !str_contains(strtolower($c), 'opcional') || str_contains(strtolower($c), 'pistones') || str_contains(strtolower($c), 'guías') || str_contains(strtolower($c), 'guias'))
                                                     ->filter(function ($claseNombre) use ($targetReg) {
                                                         $clLow = strtolower($claseNombre);
                                                         $tipo = null;
@@ -1476,6 +1521,14 @@
                                                             $tipo = 'Molde';
                                                         } elseif (strpos($clLow, 'bombillo') !== false) {
                                                             $tipo = 'Bombillo';
+                                                            } elseif (strpos($clLow, 'pistones') !== false) {
+                                                                $tipo = 'Pistones';
+                                                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
+                                                                $tipo = 'Guías';
+                                                            } elseif (strpos($clLow, 'pistones') !== false) {
+                                                                $tipo = 'Pistones';
+                                                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
+                                                                $tipo = 'Guías';
                                                         }
                                                         if ($tipo) {
                                                             $baseOt = preg_replace('/_R\d+$/i', '', $targetReg->ot);
@@ -1516,6 +1569,14 @@
                                                         $tipo = 'Molde';
                                                     } elseif (strpos($clLow, 'bombillo') !== false) {
                                                         $tipo = 'Bombillo';
+                                                        } elseif (strpos($clLow, 'pistones') !== false) {
+                                                            $tipo = 'Pistones';
+                                                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
+                                                            $tipo = 'Guías';
+                                                        } elseif (strpos($clLow, 'pistones') !== false) {
+                                                            $tipo = 'Pistones';
+                                                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
+                                                            $tipo = 'Guías';
                                                     }
                                                     if ($tipo) {
                                                         $hasData = \App\Models\LiberacionModeloFundicion::where(
@@ -2224,7 +2285,7 @@
                                                                                     fn($c) => !str_contains(
                                                                                         strtolower($c),
                                                                                         'opcional',
-                                                                                    ),
+                                                                                    ) || str_contains(strtolower($c), 'pistones') || str_contains(strtolower($c), 'guías') || str_contains(strtolower($c), 'guias'),
                                                                                 )
                                                                                 ->filter(function ($claseNombre) use ($targetReg, ) {
                                                                                     $clLow = strtolower($claseNombre);
@@ -2272,6 +2333,22 @@
                                                                                         strpos($clLow, 'bombillo') !== false
                                                                                     ) {
                                                                                         $tipo = 'Bombillo';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'pistones') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'Pistones';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'Guías';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'pistones') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'Pistones';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'Guías';
                                                                                     }
                                                                                     if ($tipo) {
                                                                                         $baseOt = preg_replace(
@@ -2355,6 +2432,22 @@
                                                                                     strpos($clLow, 'bombillo') !== false
                                                                                 ) {
                                                                                     $tipo = 'Bombillo';
+                                                                                } elseif (
+                                                                                    strpos($clLow, 'pistones') !== false
+                                                                                ) {
+                                                                                    $tipo = 'Pistones';
+                                                                                } elseif (
+                                                                                    strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                ) {
+                                                                                    $tipo = 'Guías';
+                                                                                } elseif (
+                                                                                    strpos($clLow, 'pistones') !== false
+                                                                                ) {
+                                                                                    $tipo = 'Pistones';
+                                                                                } elseif (
+                                                                                    strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                ) {
+                                                                                    $tipo = 'Guías';
                                                                                 }
                                                                                 if ($tipo) {
                                                                                     if (
@@ -2455,7 +2548,7 @@
                                                                                     fn($c) => !str_contains(
                                                                                         strtolower($c),
                                                                                         'opcional',
-                                                                                    ),
+                                                                                    ) || str_contains(strtolower($c), 'pistones') || str_contains(strtolower($c), 'guías') || str_contains(strtolower($c), 'guias'),
                                                                                 )
                                                                                 ->filter(function ($claseNombre) use ($targetReg, ) {
                                                                                     $clLow = strtolower($claseNombre);
@@ -2503,6 +2596,22 @@
                                                                                         strpos($clLow, 'bombillo') !== false
                                                                                     ) {
                                                                                         $tipo = 'Bombillo';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'pistones') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'Pistones';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'Guías';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'pistones') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'Pistones';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'Guías';
                                                                                     }
                                                                                     if ($tipo) {
                                                                                         $baseOt = preg_replace(
@@ -2588,6 +2697,22 @@
                                                                                     strpos($clLow, 'bombillo') !== false
                                                                                 ) {
                                                                                     $tipo = 'Bombillo';
+                                                                                } elseif (
+                                                                                    strpos($clLow, 'pistones') !== false
+                                                                                ) {
+                                                                                    $tipo = 'Pistones';
+                                                                                } elseif (
+                                                                                    strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                ) {
+                                                                                    $tipo = 'Guías';
+                                                                                } elseif (
+                                                                                    strpos($clLow, 'pistones') !== false
+                                                                                ) {
+                                                                                    $tipo = 'Pistones';
+                                                                                } elseif (
+                                                                                    strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                ) {
+                                                                                    $tipo = 'Guías';
                                                                                 }
                                                                                 if ($tipo) {
                                                                                     $hasData = \App\Models\LiberacionModeloFundicion::where(
@@ -2733,6 +2858,22 @@
                                                                                         strpos($clLow, 'bombillo') !== false
                                                                                     ) {
                                                                                         $tipo = 'bombillo';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'pistones') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'pistones';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'guías';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'pistones') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'pistones';
+                                                                                    } elseif (
+                                                                                        strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
+                                                                                    ) {
+                                                                                        $tipo = 'guías';
                                                                                     }
                                                                                     return $tipo &&
                                                                                         !in_array($tipo, $clasesAlertadas);

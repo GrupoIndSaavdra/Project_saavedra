@@ -69,7 +69,9 @@
                 <option value="Plato">Plato</option>
                 <option value="Embudo">Embudo</option>
                 <option value="Cabeza de Soplo">Cabeza de Soplo</option>
-                <option value="Candado Obturador">Candado Obturador</option>
+                 <option value="Candado Obturador">Candado Obturador</option>
+                 <option value="Pistones">Pistones</option>
+                 <option value="Guías">Guías</option>
               </select>
             </div>
             <div class="lib-dato-group">

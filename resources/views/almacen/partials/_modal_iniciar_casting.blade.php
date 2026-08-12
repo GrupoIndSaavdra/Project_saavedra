@@ -46,7 +46,7 @@
                         Revisa los archivos disponibles de la OT, sube los formatos <strong style="color:#15803d;">F-CCL-LDM</strong> firmados por cada modelo aprobado y genera la Pre-Orden de Casting.
                     </p>
 
-                    <div style="display: grid; grid-template-columns: minmax(360px, 1fr) minmax(600px, 1.55fr); gap: 18px; align-items: stretch; flex: 1; min-height: 0;">
+                    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr); gap: 18px; align-items: stretch; flex: 1; min-height: 0; width: 100%; box-sizing: border-box;">
                         
                         <!-- Columna Izquierda: Formatos F-CCL-LDM Requeridos -->
                         <div style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
@@ -58,11 +58,11 @@
                         </div>
 
                         <!-- Columna Derecha (AZUL ICE): Archivos de la OT disponibles -->
-                        <div style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
+                        <div style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; width: 100%;">
                             <h4 style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                                 <img src="{{ asset('images/galeria.png') }}" style="width: 18px; height: 18px; object-fit: contain;"> Archivos de la OT Disponibles (Aprobados)
                             </h4>
-                            <div id="mgv-aprobados-files" style="background:#f0f7ff; border:1px solid #bae6fd; border-radius:10px; padding:12px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction: column; gap: 10px;">
+                            <div id="mgv-aprobados-files" style="background:#f0f7ff; border:1px solid #bae6fd; border-radius:10px; padding:12px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; min-width: 0;">
                                 <div style="text-align:center; color:#64748b; padding:12px; font-style:italic; font-size:0.9em; font-family:'Poppins',sans-serif;">
                                     Cargando archivos...
                                 </div>
@@ -101,7 +101,7 @@
                         Revisa los archivos disponibles, sube el <strong style="color:#b91c1c;">Formato de Rechazo</strong> y el <strong style="color:#b91c1c;">SCAR</strong> por cada modelo rechazado. Al finalizar, podrás generar la nueva Pre-Orden de Fabricación de Modelo.
                     </p>
 
-                    <div style="display: grid; grid-template-columns: minmax(360px, 1fr) minmax(600px, 1.55fr); gap: 18px; align-items: stretch; flex: 1; min-height: 0;">
+                    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.55fr); gap: 18px; align-items: stretch; flex: 1; min-height: 0; width: 100%; box-sizing: border-box;">
 
                         <!-- Columna Izquierda: Formatos de Rechazo y SCAR -->
                         <div style="background: #fef2f2; border: 2px solid #dc2626; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
@@ -113,11 +113,11 @@
                         </div>
 
                         <!-- Columna Derecha (AZUL ICE): Archivos de la OT disponibles -->
-                        <div style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
+                        <div style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; width: 100%;">
                             <h4 style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                                 <img src="{{ asset('images/galeria.png') }}" style="width: 18px; height: 18px; object-fit: contain;"> Archivos de la OT Disponibles (Rechazados)
                             </h4>
-                            <div id="mgv-rechazados-files" style="background:#f0f7ff; border:1px solid #bae6fd; border-radius:10px; padding:12px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction: column; gap: 10px;">
+                            <div id="mgv-rechazados-files" style="background:#f0f7ff; border:1px solid #bae6fd; border-radius:10px; padding:12px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; min-width: 0;">
                                 <div style="text-align:center; color:#64748b; padding:12px; font-style:italic; font-size:0.9em; font-family:'Poppins',sans-serif;">
                                     Cargando archivos...
                                 </div>

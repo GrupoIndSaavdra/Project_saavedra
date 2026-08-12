@@ -267,6 +267,11 @@ public function test_store_pre_orden_casting_with_two_suppliers_generates_single
 
         $ot = 'OT-CAST-456';
 
+        FundicionHistory::create([
+            'ot' => $ot,
+            'casting_pdf_generated' => true
+        ]);
+
         $pData = [
             'type' => 'casting',
             'has_page2' => true,
