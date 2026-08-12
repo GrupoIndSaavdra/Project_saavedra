@@ -1808,6 +1808,171 @@ class AlmacenFundicionController extends Controller
 
         $baseOt = preg_replace('/_R\d+$/i', '', $otFull);
 
+        $isClassAprobada = function($claseNombre) use ($baseOt, $otFull) {
+            $tipo = null;
+            $clLow = strtolower($claseNombre);
+            if (strpos($clLow, 'candado obturador') !== false)
+                $tipo = 'Candado obturador';
+            elseif (strpos($clLow, 'cabeza de soplo') !== false)
+                $tipo = 'Cabeza de soplo';
+            elseif (strpos($clLow, 'embudo') !== false)
+                $tipo = 'Embudo';
+            elseif (strpos($clLow, 'corona') !== false)
+                $tipo = 'Corona';
+            elseif (strpos($clLow, 'plato') !== false)
+                $tipo = 'Plato';
+            elseif (strpos($clLow, 'fondo') !== false)
+                $tipo = 'Fondo';
+            elseif (strpos($clLow, 'obturador') !== false)
+                $tipo = 'Obturador';
+            elseif (strpos($clLow, 'molde') !== false)
+                $tipo = 'Molde';
+            elseif (strpos($clLow, 'bombillo') !== false)
+                $tipo = 'Bombillo';
+            elseif (strpos($clLow, 'pistones') !== false)
+                $tipo = 'Pistones';
+            elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+                $tipo = 'Guías';
+
+            if (!$tipo) {
+                return false;
+            }
+
+            // 1. DB check
+            $dbApproved = LiberacionModeloFundicion::query()
+                ->where(function ($q) use ($baseOt) {
+                    $q->where('ot', 'LIKE', $baseOt . '%');
+                })
+                ->where('tipo_modelo', '=', $tipo)
+                ->where('estado', '=', 'aprobado')
+                ->exists();
+            if ($dbApproved) {
+                return true;
+            }
+
+            // 2. Filesystem check (FDLDM directory)
+            $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
+                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+                ->pluck('ot')
+                ->toArray();
+            if (!in_array($otFull, $allOtNames)) {
+                $allOtNames[] = $otFull;
+            }
+
+            $claseNorm = str_replace(' ', '_', strtolower($tipo));
+            foreach ($allOtNames as $relOt) {
+                $folders = [
+                    trim($relOt),
+                    preg_replace('/[\s]+/', '_', trim(preg_replace('/[^A-Za-z0-9\-]/', '_', $relOt)))
+                ];
+                $folders = array_unique($folders);
+
+                foreach ($folders as $relFolder) {
+                    $pathsToCheck = [
+                        self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados/FDLDM',
+                        self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados/FDLDM',
+                    ];
+
+                    foreach ($pathsToCheck as $dir) {
+                        if (\Storage::disk('local')->exists($dir)) {
+                            $files = \Storage::disk('local')->files($dir);
+                            foreach ($files as $file) {
+                                $baseName = strtolower(basename($file));
+                                if (strpos($baseName, 'f_ccl_ldm') !== false && strpos($baseName, $claseNorm) !== false) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        };
+
+        $isClassRechazada = function($claseNombre) use ($baseOt, $otFull) {
+            $tipo = null;
+            $clLow = strtolower($claseNombre);
+            if (strpos($clLow, 'candado obturador') !== false)
+                $tipo = 'Candado obturador';
+            elseif (strpos($clLow, 'cabeza de soplo') !== false)
+                $tipo = 'Cabeza de soplo';
+            elseif (strpos($clLow, 'embudo') !== false)
+                $tipo = 'Embudo';
+            elseif (strpos($clLow, 'corona') !== false)
+                $tipo = 'Corona';
+            elseif (strpos($clLow, 'plato') !== false)
+                $tipo = 'Plato';
+            elseif (strpos($clLow, 'fondo') !== false)
+                $tipo = 'Fondo';
+            elseif (strpos($clLow, 'obturador') !== false)
+                $tipo = 'Obturador';
+            elseif (strpos($clLow, 'molde') !== false)
+                $tipo = 'Molde';
+            elseif (strpos($clLow, 'bombillo') !== false)
+                $tipo = 'Bombillo';
+            elseif (strpos($clLow, 'pistones') !== false)
+                $tipo = 'Pistones';
+            elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+                $tipo = 'Guías';
+
+            if (!$tipo) {
+                return false;
+            }
+
+            // 1. DB check: Check if the latest status is rechazado
+            $latest = LiberacionModeloFundicion::query()
+                ->where(function ($q) use ($baseOt) {
+                    $q->where('ot', 'LIKE', $baseOt . '%');
+                })
+                ->where('tipo_modelo', '=', $tipo)
+                ->orderBy('id', 'desc')
+                ->first();
+
+            if ($latest && ($latest->estado === 'rechazado' || $latest->decision === 'rechazar')) {
+                return true;
+            }
+
+            // 2. Filesystem check (FDRDM directory)
+            $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
+                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+                ->pluck('ot')
+                ->toArray();
+            if (!in_array($otFull, $allOtNames)) {
+                $allOtNames[] = $otFull;
+            }
+
+            $claseNorm = str_replace(' ', '_', strtolower($tipo));
+            foreach ($allOtNames as $relOt) {
+                $folders = [
+                    trim($relOt),
+                    preg_replace('/[\s]+/', '_', trim(preg_replace('/[^A-Za-z0-9\-]/', '_', $relOt)))
+                ];
+                $folders = array_unique($folders);
+
+                foreach ($folders as $relFolder) {
+                    $pathsToCheck = [
+                        self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados/FDRDM',
+                        self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Rechazados/FDRDM',
+                    ];
+
+                    foreach ($pathsToCheck as $dir) {
+                        if (\Storage::disk('local')->exists($dir)) {
+                            $files = \Storage::disk('local')->files($dir);
+                            foreach ($files as $file) {
+                                $baseName = strtolower(basename($file));
+                                if (strpos($baseName, 'f_ccl_rdm') !== false && strpos($baseName, $claseNorm) !== false) {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
+        };
+
         $modelPreOrden = PreOrdenFundicion::where('ot', '=', $otFull, 'and')
             ->where(function ($q) {
                 $q->where('pdf_filename', 'NOT LIKE', '%Casting%')
@@ -1847,7 +2012,7 @@ class AlmacenFundicionController extends Controller
         ])->values();
 
         // Obtener TODAS las clases para esta OT y filtrarlas por aprobados en liberación
-        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $baseOt, $type) {
+        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $baseOt, $type, $isClassAprobada, $isClassRechazada) {
 
             $clLow = strtolower($c['nombre']);
             $tipo = null;
@@ -1884,16 +2049,8 @@ class AlmacenFundicionController extends Controller
                         ->where('estado', '=', 'aprobado')
                         ->exists();
                 } else {
-                    // Para pre-orden de modelo normal, queremos los que NUNCA han sido aprobados
-                    // en ninguna iteración de esta OT.
-                    $isAprobado = LiberacionModeloFundicion::query()
-                        ->where(function ($q) use ($otFull, $baseOt) {
-                            $q->where('ot', 'LIKE', $baseOt . '%');
-                        })
-                        ->where('tipo_modelo', '=', $tipo)
-                        ->where('estado', '=', 'aprobado')
-                        ->exists();
-                    return !$isAprobado;
+                    // Para pre-orden de modelo normal, queremos los que no están aprobados ni rechazados
+                    return !$isClassAprobada($c['nombre']) && !$isClassRechazada($c['nombre']);
                 }
             }
             return $type !== 'casting'; // Si no es casting, dejamos los otros. Si es casting, los quitamos
@@ -1902,7 +2059,7 @@ class AlmacenFundicionController extends Controller
         // Obtener clases vinculadas desde FundicionHistory (Ayudas Visuales asignadas)
         $history = FundicionHistory::where('ot', '=', $otFull, 'and')->first();
         $clasesVinculadas = $history ? ($history->ayudas_config ?? []) : [];
-        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $baseOt, $type) {
+        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $baseOt, $type, $isClassAprobada, $isClassRechazada) {
 
             $clLow = strtolower($claseNombre);
             $tipo = null;
@@ -1930,17 +2087,14 @@ class AlmacenFundicionController extends Controller
                 $tipo = 'Guías';
 
             if ($tipo) {
-                $isAprobado = LiberacionModeloFundicion::query()
-                    ->where(function ($q) use ($baseOt) {
-                        $q->where('ot', 'LIKE', $baseOt . '%');
-                    })
-                    ->where('tipo_modelo', '=', $tipo)
-                    ->where('estado', '=', 'aprobado')
-                    ->exists();
                 if ($type === 'casting') {
-                    return $isAprobado;
+                    return LiberacionModeloFundicion::query()
+                        ->where('ot', '=', $otFull)
+                        ->where('tipo_modelo', '=', $tipo)
+                        ->where('estado', '=', 'aprobado')
+                        ->exists();
                 } else {
-                    return !$isAprobado;
+                    return !$isClassAprobada($claseNombre) && !$isClassRechazada($claseNombre);
                 }
             }
             return $type !== 'casting';
@@ -2000,7 +2154,12 @@ class AlmacenFundicionController extends Controller
         }
 
         // --- Recuperar pre-orden existente desde la BASE DE DATOS ---
-        $preOrdenDB = PreOrdenFundicion::where('ot', '=', $otFull, 'and')->first();
+        $preOrdenDB = PreOrdenFundicion::where('ot', '=', $otFull, 'and')
+            ->where(function ($q) {
+                $q->where('pdf_filename', 'NOT LIKE', '%Casting%')
+                  ->where('pdf_filename', 'NOT LIKE', '%F_ALM_PFC_%')
+                  ->where('pdf_filename', 'NOT LIKE', '%PFC%');
+            })->first();
 
         $preordenData = null;
         $folioStr = '';
@@ -2046,14 +2205,7 @@ class AlmacenFundicionController extends Controller
                         $tipo = 'Guías';
 
                     if ($tipo) {
-                        $isAprobado = LiberacionModeloFundicion::query()
-                            ->where(function ($q) use ($baseOt) {
-                                $q->where('ot', 'LIKE', $baseOt . '%');
-                            })
-                            ->where('tipo_modelo', '=', $tipo)
-                            ->where('estado', '=', 'aprobado')
-                            ->exists();
-                        if ($isAprobado) {
+                        if ($isClassAprobada($claseNombre) || $isClassRechazada($claseNombre)) {
                             continue;
                         }
                     }
@@ -2190,6 +2342,17 @@ class AlmacenFundicionController extends Controller
         if (empty($otRaw)) {
             $history = FundicionHistory::where('ot', 'LIKE', '%OT ' . $otClean . '%', 'and')->first();
             $otRaw = $history ? $history->ot : ('OT ' . $otClean);
+        }
+
+        // Evitar error de clave duplicada con pre-órdenes archivadas en BD
+        $archivedPOs = PreOrdenFundicion::where('ot', '=', $otRaw)
+            ->where('pdf_filename', 'LIKE', '%_Anterior_N%')
+            ->get();
+        foreach ($archivedPOs as $arc) {
+            if (!str_contains($arc->ot, '_Anterior_')) {
+                $arc->ot = $arc->ot . '_Anterior_' . $arc->id;
+                $arc->save();
+            }
         }
 
         $baseOt = preg_replace('/_R\d+$/i', '', $otRaw);
@@ -3485,11 +3648,12 @@ class AlmacenFundicionController extends Controller
         }
 
         // Marcar en la BD (Unlock Casting button)
-        $history = FundicionHistory::where('ot', '=', $otRaw, 'and')->first();
-        if ($history) {
-            $history->casting_pdf_generated = true;
-            $history->save();
-        }
+        $baseOtClean = preg_replace('/_R\d+$|_Anterior_\d+$/i', '', $otRaw);
+        FundicionHistory::where(function ($q) use ($otRaw, $baseOtClean) {
+            $q->where('ot', '=', $otRaw)
+              ->orWhere('ot', 'LIKE', $otRaw . '%')
+              ->orWhere('ot', 'LIKE', $baseOtClean . '%');
+        })->update(['casting_pdf_generated' => true]);
 
         return response()->json([
             'success' => true,
@@ -3542,11 +3706,17 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        // Duplicar OT
-        $baseOt = preg_replace('/_R\d+$/', '', $otRaw);
-        $existingHistories = FundicionHistory::where('ot', 'LIKE', $baseOt . '_R%', 'and')->count();
-        $newSuffix = '_R' . ($existingHistories + 1);
-        $newOt = $baseOt . $newSuffix;
+        // Duplicar OT con la nueva nomenclatura: _[Clase o Clases]_R[numero incremental]
+        $baseOtClean = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $otRaw);
+        $clasesSuffix = implode('_', array_map(function($c) { return ucfirst(trim($c)); }, $clases));
+
+        $existingHistories = FundicionHistory::where(function($q) use ($baseOtClean) {
+            $q->where('ot', 'LIKE', $baseOtClean . '_%_R%')
+              ->orWhere('ot', 'LIKE', $baseOtClean . '_R%');
+        })->count();
+
+        $nextNum = $existingHistories + 1;
+        $newOt = $baseOtClean . '_' . $clasesSuffix . '_R' . $nextNum;
 
         $newHistory = new FundicionHistory();
         $newHistory->ot = $newOt;
@@ -4237,9 +4407,16 @@ class AlmacenFundicionController extends Controller
                                 Storage::disk('local')->move($filePath, $newArchivedPath);
 
                                 // Actualizar registro en BD si coincide con pdf_filename
-                                PreOrdenFundicion::where('ot', $ot)
+                                $poDb = PreOrdenFundicion::where('ot', $ot)
                                     ->where('pdf_filename', $fileBase)
-                                    ->update(['pdf_filename' => $newArchivedName, 'is_sent' => 1]);
+                                    ->first();
+                                if ($poDb) {
+                                    $poDb->update([
+                                        'pdf_filename' => $newArchivedName,
+                                        'is_sent' => 1,
+                                        'ot' => $ot . '_Anterior_' . $poDb->id
+                                    ]);
+                                }
                             }
                         }
                     }
@@ -4270,6 +4447,7 @@ class AlmacenFundicionController extends Controller
                         $baseNoExt = pathinfo($poArc->pdf_filename ?? 'file', PATHINFO_FILENAME);
                         $poArc->pdf_filename = "{$baseNoExt}_Anterior_N1." . ($ext ?: 'pdf');
                         $poArc->is_sent = 1;
+                        $poArc->ot = $poArc->ot . '_Anterior_' . $poArc->id;
                         $poArc->save();
                     }
                 }

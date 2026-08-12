@@ -1205,11 +1205,10 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                     archivosAMostrar = data.archivos.filter((f) => {
                         const n = (f.nombre || "").toLowerCase();
                         return (
-                            n.includes("pre-orden_casting") ||
-                            (n.includes("pre-orden") && n.includes("casting")) ||
                             n.includes("f_alm_pfc") ||
                             n.includes("pfc") ||
-                            n.includes("casting")
+                            (n.includes("pre-orden") && n.includes("casting")) ||
+                            n.includes("pre-orden_casting")
                         );
                     });
                 } else {
@@ -1257,11 +1256,10 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         let shouldCheck = false;
                         if (tipo === "casting") {
                             if (
-                                fileName.includes("pre-orden_casting") ||
-                                (fileName.includes("pre-orden") && fileName.includes("casting")) ||
                                 fileName.includes("f_alm_pfc") ||
                                 fileName.includes("pfc") ||
-                                fileName.includes("casting")
+                                (fileName.includes("pre-orden") && fileName.includes("casting")) ||
+                                fileName.includes("pre-orden_casting")
                             ) {
                                 shouldCheck = true;
                             }
@@ -1436,8 +1434,10 @@ window.syncArchivosSeleccionadosPreOrden = function () {
         if (preOrdenesChecked.length > 0) {
             if (isCasting) {
                 shouldBeChecked =
-                    (val.includes("pre-orden") || val.includes("preorden") || val.includes("pfc")) &&
-                    val.includes("casting");
+                    val.includes("f_alm_pfc") ||
+                    val.includes("pfc") ||
+                    (val.includes("pre-orden") && val.includes("casting")) ||
+                    val.includes("pre-orden_casting");
             } else {
                 shouldBeChecked = clasesActivas.some((c) => val.includes(c));
             }

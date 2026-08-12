@@ -2905,23 +2905,16 @@
                                                                                     $alertaEnviadaEtapa = empty($clasesPendientesAlertar);
                                                                                 @endphp
                                                                                 <div class="lib-calidad-finalizado-banner"
-                                                                                    style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 1.5px solid #bbf7d0; border-radius: 12px; padding: 16px 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; width: 100%; box-shadow: 0 2px 10px rgba(34, 197, 94, 0.06);">
-                                                                                    <div style="display: flex; align-items: center; gap: 14px;">
-                                                                                        <div
-                                                                                            style="background: rgba(22, 163, 74, 0.12); width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; border: 1.5px solid #bbf7d0;">
-                                                                                            <img src="{{ asset('images/ready.png') }}"
-                                                                                                style="width: 22px; height: 22px; filter: none !important;"
-                                                                                                alt="Listo">
-                                                                                        </div>
+                                                                                    style="background: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08);">
+                                                                                    <div style="display: flex; align-items: center; gap: 20px;">
+                                                                                        <img src="{{ asset('images/enviando.png') }}" style="width: 54px; height: 54px; flex-shrink: 0;" alt="Enviado">
                                                                                         <div>
-                                                                                            <h4
-                                                                                                style="margin: 0; font-size: 1.05em; font-weight: 700; color: #14532d; font-family: 'Poppins', sans-serif;">
-                                                                                                Proceso de Liberación Finalizado</h4>
-                                                                                            <p
-                                                                                                style="margin: 3px 0 0 0; font-size: 0.88em; color: #166534; font-family: 'Poppins', sans-serif;">
-                                                                                                Las clases actuales han sido procesadas
-                                                                                                correctamente y están en espera de la siguiente
-                                                                                                etapa o nuevas clases.</p>
+                                                                                            <h4 class="lib-calidad-card-prompt" style="color: #0369a1; margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.1rem; font-family: 'Poppins', sans-serif;">
+                                                                                                Proceso de Liberación Finalizado
+                                                                                            </h4>
+                                                                                            <p style="color: #0c4a6e; margin: 0; font-size: 0.95rem; font-weight: 500; font-family: 'Poppins', sans-serif;">
+                                                                                                Las clases actuales han sido procesadas correctamente y están en espera de la siguiente etapa o nuevas clases.
+                                                                                            </p>
                                                                                         </div>
                                                                                     </div>
                                                                                     @if ($contClasesConDatos > 0)

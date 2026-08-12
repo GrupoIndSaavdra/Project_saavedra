@@ -76,13 +76,6 @@
                             style="font-size:0.95em; padding:10px 28px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto; background: linear-gradient(135deg, #16a34a, #15803d); box-shadow: 0 4px 15px rgba(22,163,74,0.35); display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; color: white; cursor: pointer;">
                             <span>Procesar Aceptados</span>
                         </button>
-                        <button type="button" id="btn-ir-preorden-casting"
-                            onclick="cerrarModalGestionVeredicto(); abrirModalPreOrdenCasting(document.getElementById('mgv-ot').value)"
-                            title="Ir directamente a generar / editar la Pre-Orden de Casting"
-                            class="alm-display-none cal-display-none"
-                            style="font-size:0.95em; padding:10px 28px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight: 700; height: auto; background: linear-gradient(135deg, #0369a1, #0284c7); box-shadow: 0 4px 15px rgba(3,105,161,0.3); align-items: center; justify-content: center; gap: 8px; border: none; color: white; cursor: pointer;">
-                            <span>Generar / Ver Pre-Orden Casting</span>
-                        </button>
                     </div>
                 </form>
             </div>

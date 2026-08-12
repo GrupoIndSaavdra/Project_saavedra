@@ -1075,11 +1075,10 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                     archivosAMostrar = data.archivos.filter((f) => {
                         const n = (f.nombre || "").toLowerCase();
                         return (
-                            n.includes("pre-orden_casting") ||
-                            (n.includes("pre-orden") && n.includes("casting")) ||
                             n.includes("f_alm_pfc") ||
                             n.includes("pfc") ||
-                            n.includes("casting")
+                            (n.includes("pre-orden") && n.includes("casting")) ||
+                            n.includes("pre-orden_casting")
                         );
                     });
                 } else {
