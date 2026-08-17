@@ -36,16 +36,47 @@ class EnviarReporteDiario extends Command
 
         $this->info("Generando reporte para: {$fecha->toDateString()}");
 
-        // ── GUARD DE IDEMPOTENCIA ─────────────────────────────────────────
-        // Si el cron o el scheduler disparan el comando más de una vez en el
-        // mismo día (cron duplicado, reinicio del servidor, etc.), el archivo
-        // .sent evita que el correo se envíe dos veces.
-        // El flag se omite en --test para poder re-enviar manualmente.
+        // ── GUARD DE IDEMPOTENCIA CON LOCK ATÓMICO ────────────────────────
+        // Protege contra race conditions cuando dos instancias del scheduler
+        // arrancan casi simultáneamente (el check simple de file_exists NO es
+        // suficiente porque ambas instancias pueden leerlo antes de que alguna
+        // escriba el flag).
+        //
+        // Mecanismo:
+        //   1. Abrimos (o creamos) un archivo .lock exclusivo con flock().
+        //   2. Solo UNA instancia obtiene el lock; la otra espera bloqueada.
+        //   3. La instancia que obtuvo el lock verifica si el .sent ya existe
+        //      (creado por una ejecución anterior del mismo día) y aborta si es así.
+        //   4. Al terminar de enviar, escribe el .sent y libera el lock.
+        //   5. La instancia que esperaba obtiene el lock, ve el .sent y aborta.
+        //
+        // El flag --test salta todo este mecanismo para poder re-enviar manualmente.
         $sentFlag = storage_path("logs/reporte_{$fecha->toDateString()}.sent");
-        if (!$this->option('test') && file_exists($sentFlag)) {
-            $this->warn("⚠ El reporte de {$fecha->toDateString()} ya fue enviado hoy. Abortando para evitar duplicado.");
-            $this->warn("  (Borra '{$sentFlag}' si necesitas re-enviar manualmente.)");
-            return self::SUCCESS;
+        $lockFile = storage_path("logs/reporte_{$fecha->toDateString()}.lock");
+
+        if (!$this->option('test')) {
+            // Abrimos el archivo de lock (se crea si no existe)
+            $lockHandle = fopen($lockFile, 'c');
+            if ($lockHandle === false) {
+                $this->error("No se pudo abrir el archivo de lock: {$lockFile}");
+                return self::FAILURE;
+            }
+
+            // flock bloqueante: espera hasta obtener el lock exclusivo
+            if (!flock($lockHandle, LOCK_EX)) {
+                $this->error("No se pudo adquirir el lock exclusivo: {$lockFile}");
+                fclose($lockHandle);
+                return self::FAILURE;
+            }
+
+            // --- ZONA CRÍTICA: solo una instancia entra aquí a la vez ---
+            if (file_exists($sentFlag)) {
+                $this->warn("⚠ El reporte de {$fecha->toDateString()} ya fue enviado hoy. Abortando para evitar duplicado.");
+                $this->warn("  (Borra '{$sentFlag}' si necesitas re-enviar manualmente.)");
+                flock($lockHandle, LOCK_UN);
+                fclose($lockHandle);
+                return self::SUCCESS;
+            }
         }
 
         // ── 2. Consultar piezas del día ───────────────────────────────────
@@ -58,6 +89,10 @@ class EnviarReporteDiario extends Command
 
         if ($piezasDelDia->isEmpty()) {
             $this->warn("No se encontraron registros para {$fecha->toDateString()}. No se enviará correo.");
+            if (!$this->option('test')) {
+                flock($lockHandle, LOCK_UN);
+                fclose($lockHandle);
+            }
             return self::SUCCESS;
         }
 
@@ -113,7 +148,15 @@ class EnviarReporteDiario extends Command
             $this->info("✓ Flag de idempotencia escrito: {$sentFlag}");
         }
 
+        // Liberar el lock para que cualquier instancia en espera pueda despertar,
+        // ver el .sent y abortar correctamente.
+        if (!$this->option('test')) {
+            flock($lockHandle, LOCK_UN);
+            fclose($lockHandle);
+        }
+
         return self::SUCCESS;
+
     }
 
     /**
