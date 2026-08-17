@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../../global.css";
 
 /* ==========================================================================
@@ -99,6 +99,7 @@
 /* MODALES DE SISTEMA Y PRODUCTIVIDAD - ESTILO PREMIUM SAAVEDRA */
 /* ════════════════════════════════════════════════════════════════ */
 
+.gis-lock-overlay,
 .productivity-lock-overlay {
     position: fixed;
     top: 0;
@@ -115,6 +116,7 @@
     padding: 20px;
 }
 
+.gis-premium-modal,
 .productivity-premium-modal {
     background: #ffffff;
     width: 95%;
@@ -131,53 +133,75 @@
 }
 
 /* Variante: ÉXITO (Verde) */
+.gis-premium-modal.success,
 .productivity-premium-modal.success {
     border-color: #28a745;
 }
+.gis-premium-modal.success:hover,
 .productivity-premium-modal.success:hover { 
     box-shadow: 0 0 40px rgba(40, 167, 69, 0.4); 
     transform: scale(1.02);
 }
+.gis-premium-modal.success .lock-title,
 .productivity-premium-modal.success .lock-title { color: #155724; }
+.gis-premium-modal.success .lock-icon,
 .productivity-premium-modal.success .lock-icon { filter: drop-shadow(0 4px 6px rgba(40, 167, 69, 0.3)); }
 
 /* Variante: AVISO / REPORTE PENDIENTE (Amarillo) */
+.gis-premium-modal.notice,
 .productivity-premium-modal.notice {
     border-color: #f1c40f;
 }
+.gis-premium-modal.notice:hover,
 .productivity-premium-modal.notice:hover { 
     box-shadow: 0 0 40px rgba(241, 196, 15, 0.5); 
     transform: scale(1.02);
 }
+.gis-premium-modal.notice .lock-title,
 .productivity-premium-modal.notice .lock-title { color: #9a7d0a; }
+.gis-premium-modal.notice .lock-icon,
 .productivity-premium-modal.notice .lock-icon { filter: drop-shadow(0 4px 6px rgba(241, 196, 15, 0.3)); }
+.gis-premium-modal.notice .btn-lock-understood,
 .productivity-premium-modal.notice .btn-lock-understood { background: #9a7d0a; color: #fff; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+.gis-premium-modal.notice .btn-lock-understood:hover,
 .productivity-premium-modal.notice .btn-lock-understood:hover { background: #f1c40f; color: #000; transform: scale(1.05) translateY(-2px); box-shadow: 0 10px 20px rgba(241, 196, 15, 0.4); }
 
 /* Variante: ADVERTENCIA / INACTIVIDAD (Naranja) */
+.gis-premium-modal.warning,
 .productivity-premium-modal.warning {
     border-color: #f39c12;
 }
+.gis-premium-modal.warning:hover,
 .productivity-premium-modal.warning:hover { 
     box-shadow: 0 0 40px rgba(243, 156, 18, 0.5); 
     transform: scale(1.02);
 }
+.gis-premium-modal.warning .lock-title,
 .productivity-premium-modal.warning .lock-title { color: #a04000; }
+.gis-premium-modal.warning .lock-icon,
 .productivity-premium-modal.warning .lock-icon { filter: drop-shadow(0 4px 6px rgba(243, 156, 18, 0.3)); }
+.gis-premium-modal.warning .btn-lock-understood,
 .productivity-premium-modal.warning .btn-lock-understood { background: #a04000; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+.gis-premium-modal.warning .btn-lock-understood:hover,
 .productivity-premium-modal.warning .btn-lock-understood:hover { background: #f39c12; transform: scale(1.05) translateY(-2px); box-shadow: 0 10px 20px rgba(243, 156, 18, 0.4); }
 
 /* Variante: ERROR / BLOQUEO CRÍTICO (Rojo) */
+.gis-premium-modal.error,
 .productivity-premium-modal.error {
     border-color: var(--gis-red);
 }
+.gis-premium-modal.error:hover,
 .productivity-premium-modal.error:hover { 
     box-shadow: 0 0 40px rgba(156, 3, 0, 0.5); 
     transform: scale(1.02);
 }
+.gis-premium-modal.error .lock-title,
 .productivity-premium-modal.error .lock-title { color: var(--gis-red); }
+.gis-premium-modal.error .lock-icon,
 .productivity-premium-modal.error .lock-icon { filter: drop-shadow(0 4px 6px rgba(156, 3, 0, 0.4)); }
+.gis-premium-modal.error .btn-lock-understood,
 .productivity-premium-modal.error .btn-lock-understood { background: #640200; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+.gis-premium-modal.error .btn-lock-understood:hover,
 .productivity-premium-modal.error .btn-lock-understood:hover { background: var(--gis-red); transform: scale(1.05) translateY(-2px); box-shadow: 0 10px 20px rgba(156, 3, 0, 0.4); }
 
 .lock-icon-container {

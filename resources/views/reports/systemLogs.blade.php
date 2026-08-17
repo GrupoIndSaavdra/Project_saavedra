@@ -89,9 +89,11 @@
                 @if(in_array(auth()->user()->perfil, [1, 3]))
                     <div id="manual-purge-container">
                         <button type="button" id="btn-manual-purge" class="btn-manual-purge-premium">
-                            Depurar Logs
+                            <span id="purge-btn-icon">🗑</span>
+                            <span id="purge-btn-text">Depurar Logs</span>
                         </button>
                     </div>
+
                 @endif
 
                 <!-- Botón de carga en la parte inferior derecha -->
@@ -326,4 +328,35 @@
                 </table>
             </div>
         </div>
+
+        {{-- Overlay de progreso de depuración (fuera de la tabla y del formulario para abarcar toda la pantalla) --}}
+        @if(in_array(auth()->user()->perfil, [1, 3]))
+            <div id="purge-progress-overlay" class="gis-lock-overlay" style="display:none;">
+                <div class="gis-premium-modal" style="border-color: #033966;">
+                    {{-- Spinner GIS --}}
+                    <div class="lock-icon-container">
+                        <div class="purge-progress-spinner"></div>
+                    </div>
+
+                    <h2 class="lock-title" style="color:#033966;">Depuración en Progreso</h2>
+                    <p class="lock-message">
+                        Por favor espera. <strong>No cierres ni recargues esta página.</strong>
+                    </p>
+
+                    {{-- Barra de progreso --}}
+                    <div style="padding: 0 2rem 0.6rem;">
+                        <div class="purge-progress-bar-track">
+                            <div id="purge-progress-bar" class="purge-progress-bar-fill"></div>
+                        </div>
+                        <p id="purge-progress-status" class="purge-progress-status">Conectando con el servidor...</p>
+                    </div>
+
+                    <div style="padding-bottom: 2.2rem; padding-top: 0.4rem;">
+                        <span style="font-size:0.78rem; color:#94a3b8; font-style:italic;">
+                            Este proceso puede tardar varios minutos con grandes volúmenes de datos.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        @endif
 @endsection

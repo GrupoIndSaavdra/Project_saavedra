@@ -81,3 +81,81 @@ if (data.success) {
 2. **Never refetch the entire structure** from the server (`fetch(routes['doc.estructura'])`) unless absolutely necessary, as it can be very slow if there are many directories.
 3. Always make sure the backend returns the specific identifiers (`ot`, `clase`, `proceso`, `ayudasLinked`) needed to update the `window.*` cache.
 4. **Abstract rendering logic** into reusable functions like `renderEstructuraTable()` and `renderAlertasTable()` so that you can call them from anywhere in the script once the state is updated.
+
+---
+
+## Patrón OBLIGATORIO: Modales y Overlays de Pantalla Completa
+
+> ⚠️ **REGLA**: Siempre que necesites crear un modal con fondo oscuro, pantalla de carga, alerta bloqueante o cualquier overlay de pantalla completa, **DEBES usar las clases globales del proyecto** definidas en `resources/css/layouts/partials/messages.css`. **NUNCA crear CSS nuevo** para el overlay/modal desde cero.
+
+### Clases globales recomendadas (listas para usar)
+
+| Clase | Rol |
+|---|---|
+| `.gis-lock-overlay` | Contenedor fijo que cubre toda la pantalla con fondo oscuro + blur |
+| `.gis-premium-modal` | Caja blanca centrada con borde de color, sombra y bordes redondeados |
+| `.gis-premium-modal.success` | Variante verde (éxito) |
+| `.gis-premium-modal.warning` | Variante naranja (advertencia) |
+| `.gis-premium-modal.error` | Variante roja (error crítico) |
+| `.gis-premium-modal.notice` | Variante amarilla (aviso) |
+| `.lock-icon-container` | Contenedor para el ícono/imagen central |
+| `.lock-icon` | Imagen de 100×100px con drop-shadow |
+| `.lock-title` | Título del modal (1.8em, bold 900) |
+| `.lock-message` | Mensaje descriptivo del modal |
+| `.btn-lock-understood` | Botón de acción del modal |
+
+> 📌 **Nota sobre compatibilidad**: Las clases `.productivity-lock-overlay` y `.productivity-premium-modal` siguen existiendo como alias en el archivo de estilos global para compatibilidad con la advertencia de inactividad de `processProduction`. Para cualquier otro caso de uso general, prefiere utilizar `.gis-lock-overlay` y `.gis-premium-modal`.
+
+### Estructura HTML de referencia
+
+```html
+<div class="gis-lock-overlay" id="mi-overlay" style="display:none;">
+    <div class="gis-premium-modal warning">
+
+        <!-- Opción A: imagen estática -->
+        <div class="lock-icon-container">
+            <img src="{{ asset('images/Sospechosa.png') }}" class="lock-icon" alt="Aviso">
+        </div>
+
+        <!-- Opción B: spinner animado (para pantallas de carga) -->
+        <div class="lock-icon-container">
+            <div class="mi-spinner-css"></div>
+        </div>
+
+        <h2 class="lock-title">Título del Modal</h2>
+        <p class="lock-message">Descripción clara de lo que está pasando.</p>
+
+        <!-- Barra de progreso (opcional, para procesos largos) -->
+        <div style="padding: 0 2rem 0.6rem;">
+            <div class="purge-progress-bar-track">
+                <div id="mi-progress-bar" class="purge-progress-bar-fill"></div>
+            </div>
+            <p id="mi-status-text" class="purge-progress-status">Procesando...</p>
+        </div>
+
+        <div style="padding-bottom: 3em;">
+            <button class="btn-lock-understood" onclick="cerrarModal()">Aceptar</button>
+        </div>
+    </div>
+</div>
+```
+
+### Personalizar el color del borde (sin crear clase nueva)
+Si ninguna variante predefinida aplica, usar inline style para el color de borde:
+```html
+<div class="gis-premium-modal" style="border-color: #033966;">
+```
+
+### Mostrar/ocultar desde JavaScript
+```javascript
+// Mostrar
+document.getElementById('mi-overlay').style.display = 'flex';
+
+// Ocultar
+document.getElementById('mi-overlay').style.display = 'none';
+```
+
+### Lo que SÍ puedes agregar en el CSS del módulo (componentes únicos)
+Solo los elementos que no existen en el sistema global:
+- Spinner animado (`@keyframes` + `.mi-spinner`)
+- Barra de progreso (`.purge-progress-bar-track`, `.purge-progress-bar-fill`, `.purge-progress-status` — ya definidos en `systemLogs.css` y reusables)

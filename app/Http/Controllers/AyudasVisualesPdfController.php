@@ -47,7 +47,14 @@ class AyudasVisualesPdfController extends Controller
             'Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'
         ];
 
-        $nombresProcesos = array_unique(array_merge($nombresProcesos, $estructura));
+        // Sólo agregamos al catálogo los directorios del disco cuyo nombre
+        // ya pertenece al listado canónico de procesos.  Esto evita que las
+        // carpetas con nombre de CLASE que existen en el directorio legado
+        // AYUDAS_GIS (Bombillo, Molde, Plato, etc.) contaminen el selector.
+        $procesosEnDisco = array_filter($estructura, function ($nombre) use ($nombresProcesos) {
+            return in_array($nombre, $nombresProcesos, true);
+        });
+        $nombresProcesos = array_unique(array_merge($nombresProcesos, $procesosEnDisco));
 
         $todosLosProcesos = collect($nombresProcesos)->map(function($nombre) {
             return (object)[ 'id' => $nombre, 'nombre' => $nombre ];

@@ -113,20 +113,93 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ---------------------------------------------------------
-    // LÓGICA DE DEPURACIÓN MANUAL (PUGE)
+    // LÓGICA DE DEPURACIÓN MANUAL (PURGE) — con progreso y bloqueo
     // ---------------------------------------------------------
-    const btnPurge = document.getElementById('btn-manual-purge');
+    const btnPurge   = document.getElementById('btn-manual-purge');
+    const overlay    = document.getElementById('purge-progress-overlay');
+    const progressBar = document.getElementById('purge-progress-bar');
+    const statusText  = document.getElementById('purge-progress-status');
+
+    // Guard para prevenir doble clic o múltiples peticiones simultáneas
+    let isPurging = false;
+
+    // Mensajes de progreso que se muestran de forma animada mientras el servidor trabaja
+    const progressSteps = [
+        { pct: 5,  msg: 'Conectando con el servidor...' },
+        { pct: 12, msg: 'Verificando registros en la base de datos...' },
+        { pct: 20, msg: 'Cargando catálogo de operadores...' },
+        { pct: 30, msg: 'Identificando grupos por semana...' },
+        { pct: 42, msg: 'Generando respaldos en PDF — Administradores...' },
+        { pct: 55, msg: 'Generando respaldos en PDF — Producción...' },
+        { pct: 68, msg: 'Eliminando registros respaldados de la BD...' },
+        { pct: 80, msg: 'Guardando archivos en LOGS_GIS...' },
+        { pct: 90, msg: 'Optimizando tabla de base de datos...' },
+        { pct: 95, msg: 'Finalizando proceso...' },
+    ];
+
+    function setProgress(pct, msg) {
+        if (progressBar) progressBar.style.transform = `scaleX(${pct / 100})`;
+        if (statusText)  statusText.textContent  = msg;
+    }
+
+    function showOverlay() {
+        if (overlay) overlay.style.display = 'flex';
+        setProgress(5, 'Conectando con el servidor...');
+    }
+
+    function hideOverlay() {
+        if (overlay) overlay.style.display = 'none';
+        setProgress(0, '');
+    }
+
+    // Simula progreso visual mientras el servidor trabaja (el servidor no emite eventos SSE)
+    // El avance se detiene en 95% y solo llega a 100% cuando el servidor responde.
+    let progressInterval = null;
+    function startFakeProgress() {
+        let stepIndex = 0;
+        progressInterval = setInterval(() => {
+            if (stepIndex < progressSteps.length) {
+                const step = progressSteps[stepIndex];
+                setProgress(step.pct, step.msg);
+                stepIndex++;
+            } else {
+                clearInterval(progressInterval);
+            }
+        }, 2200); // avanzar un paso cada ~2.2 segundos
+    }
+
+    function stopFakeProgress() {
+        if (progressInterval) {
+            clearInterval(progressInterval);
+            progressInterval = null;
+        }
+    }
+
     if (btnPurge) {
         btnPurge.addEventListener('click', async () => {
-            const confirmed = confirm("¿ESTÁ SEGURO DE DEPURAR LOS LOGS?\n\nEsta acción:\n1. Generará respaldos en formato PDF organizados semanalmente.\n2. ELIMINARÁ PERMANENTEMENTE todos los registros de la tabla actual.\n\n¿Desea continuar?");
+            // Bloquear si ya hay una depuración en curso
+            if (isPurging) return;
+
+            const confirmed = confirm(
+                '¿ESTÁ SEGURO DE DEPURAR LOS LOGS?\n\n' +
+                'Esta acción:\n' +
+                '  1. Generará respaldos en PDF organizados por semana.\n' +
+                '  2. ELIMINARÁ PERMANENTEMENTE los registros respaldados.\n\n' +
+                'El proceso puede tardar varios minutos si hay muchos logs.\n' +
+                '¿Desea continuar?'
+            );
 
             if (!confirmed) return;
 
+            // ── Iniciar proceso ──────────────────────────────────────────────
+            isPurging = true;
             btnPurge.disabled = true;
-            btnPurge.textContent = 'Depurando y Respaldando...';
-            btnPurge.classList.add('opacity-70');
+            btnPurge.classList.add('purge-btn-loading');
+            document.getElementById('purge-btn-text').textContent = 'En proceso...';
 
-            // Obtener base URL segura
+            showOverlay();
+            startFakeProgress();
+
             let baseUrl = window.baseUrl || (window.location.origin + '/');
             if (!baseUrl.endsWith('/')) baseUrl += '/';
             const purgeUrl = baseUrl + 'system-logs/purge';
@@ -141,22 +214,37 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 });
 
+                stopFakeProgress();
                 const data = await response.json();
 
                 if (data.success) {
-                    alert('ÉXITO: ' + data.message);
-                    // Recargar la página para ver la tabla limpia
+                    setProgress(100, '✓ Depuración completada exitosamente.');
+                    // Pequeña pausa para que el usuario vea el 100%
+                    await new Promise(r => setTimeout(r, 1200));
+                    hideOverlay();
+                    alert('✅ ÉXITO:\n' + data.message);
                     window.location.reload();
                 } else {
-                    alert('ERROR: ' + data.message);
+                    setProgress(100, '✗ El servidor reportó un error.');
+                    await new Promise(r => setTimeout(r, 800));
+                    hideOverlay();
+                    alert('❌ ERROR:\n' + data.message);
                 }
+
             } catch (error) {
-                console.error('Error al depurar logs:', error);
-                alert('Ocurrió un error técnico al intentar depurar los logs.');
+                stopFakeProgress();
+                console.error('[GIS] Error al depurar logs:', error);
+                setProgress(100, '✗ Error de conexión.');
+                await new Promise(r => setTimeout(r, 800));
+                hideOverlay();
+                alert('❌ Ocurrió un error técnico al intentar depurar los logs.\nRevisa la consola para más detalles.');
+
             } finally {
+                // ── Restaurar botón siempre, pase lo que pase ────────────────
+                isPurging = false;
                 btnPurge.disabled = false;
-                btnPurge.textContent = 'Depurar logs ahora';
-                btnPurge.classList.remove('opacity-70');
+                btnPurge.classList.remove('purge-btn-loading');
+                document.getElementById('purge-btn-text').textContent = 'Depurar Logs';
             }
         });
     }
