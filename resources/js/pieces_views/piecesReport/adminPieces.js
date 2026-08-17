@@ -1,3 +1,4 @@
+import { initializeSoldaduraFeature } from './soldaduraModal.js';
 var operacion = false;
 
 function crearTabla(piezas, infoPiezas) {
@@ -340,13 +341,22 @@ function createFilters() {
     setupGameFilterLogic();
 
     if (Object.keys(window.selectedItems).length > 0) {
-        document.querySelectorAll(".input-filter, .select-filter").forEach(el => {
+        // Selects: solo 'change'
+        document.querySelectorAll(".select-filter").forEach(el => {
             el.addEventListener("change", applyAllFilters);
+        });
+        // Inputs de fecha: 'change' + 'input' para reaccionar en tiempo real al seleccionar fecha
+        document.querySelectorAll(".input-filter").forEach(el => {
+            el.addEventListener("change", applyAllFilters);
+            el.addEventListener("input", applyAllFilters);
         });
 
         // ============================================
         // NUEVO BOTÓN: Limpiar Filtros
         // ============================================
+        let divClear = document.createElement("div");
+        divClear.className = "filter filter-btn-wrapper";
+
         let btnClear = document.createElement("button");
         btnClear.id = "btnClearFilters";
         btnClear.textContent = "Limpiar Filtros";
@@ -373,7 +383,8 @@ function createFilters() {
             applyAllFilters();
         });
 
-        document.querySelector(".filters").appendChild(btnClear);
+        divClear.appendChild(btnClear);
+        document.querySelector(".filters").appendChild(divClear);
 
         // Función para actualizar el estado del botón
         window.updateClearButtonState = () => {
@@ -730,9 +741,15 @@ function applyAllFilters() {
 
 
         if (f.machine && f.machine !== "Todos") {
-            let mach = f.machine.replace(" y ", "_");
             let strMach = String(ds.machine).trim();
-            if (strMach !== f.machine && strMach !== mach) show = false;
+            if (f.machine.includes("_")) {
+                // Máquina agrupada (ej. "5_6"): mostrar piezas de cualquiera de las dos máquinas
+                // o si el DB almacena el valor agrupado directamente
+                let parts = f.machine.split("_");
+                if (!parts.includes(strMach) && strMach !== f.machine) show = false;
+            } else {
+                if (strMach !== f.machine) show = false;
+            }
         }
 
         if (f.process && f.process !== "Todos" && String(ds.process).trim() !== f.process) show = false;
@@ -896,321 +913,6 @@ const pdf = document.getElementById("pdf");
 // FUNCIONALIDAD EXTRA PARA SOLDADURA
 // ============================================
 
-let currentSelectedProcess = window.selectedItems?.process || "Todos";
-let extraInfoButton = null;
-let soldaduraModalOpen = false;
-
-/**
- * Detectar cambios en el filtro de proceso
- */
-function initializeSoldaduraFeature() {
-    const processSelect = document.querySelector('select[name="process"]');
-
-    if (processSelect) {
-        // Verificar el valor inicial
-        checkProcessAndShowButton(processSelect.value);
-
-        // Agregar listener para cambios
-        processSelect.addEventListener("change", function () {
-            currentSelectedProcess = this.value;
-            checkProcessAndShowButton(this.value);
-        });
-    }
-}
-
-/**
- * Verificar si el proceso es Soldadura y mostrar/ocultar botón
- */
-function checkProcessAndShowButton(processValue) {
-    if (processValue === "Soldadura" || processValue === "Soldadura PTA" || processValue === "soldaduraPTA" || processValue === "PTA") {
-        showExtraInfoButton();
-    } else {
-        hideExtraInfoButton();
-        closeSoldaduraModal(); // Cerrar modal si está abierto
-    }
-}
-
-/**
- * Crear y mostrar el botón "Ver información extra"
- */
-function showExtraInfoButton() {
-    if (extraInfoButton) return; // Ya existe
-
-    // Limpiar botones huérfanos que pudieran haber quedado en el DOM
-    document.querySelectorAll(".btn-extra-info-soldadura").forEach(btn => btn.remove());
-
-    extraInfoButton = document.createElement("button");
-    extraInfoButton.className = "btn-extra-info-soldadura";
-    extraInfoButton.textContent = "Ver información extra";
-
-    extraInfoButton.addEventListener("click", getSoldaduraExtraInfo);
-
-    document.body.appendChild(extraInfoButton);
-}
-
-/**
- * Ocultar y remover el botón
- */
-function hideExtraInfoButton() {
-    if (extraInfoButton) {
-        extraInfoButton.remove();
-        extraInfoButton = null;
-    }
-    
-    // Asegurar que se eliminen del DOM todos los botones con esa clase
-    document.querySelectorAll(".btn-extra-info-soldadura").forEach(btn => btn.remove());
-}
-
-
-/**
- * Obtener los filtros activos actualmente desde el DOM
- */
-function getCurrentFiltersFromDOM() {
-    const getVal = (name) => {
-        let el = document.querySelector(`[name="${name}"]`);
-        if (!el) return "Todos";
-        if (name === "operator") {
-            // Para operador devolvemos la matrícula (value del select), no el textContent
-            return el.value.trim();
-        }
-        return el.value.trim();
-    };
-
-    let statusFilterEl = document.getElementById("statusPieceFilter");
-
-    return {
-        workOrder: getVal("workOrder"),
-        class: getVal("class"),
-        operator: getVal("operator"),
-        machine: getVal("machine"),
-        process: getVal("process"),
-        error: getVal("error"),
-        dateFrom: getVal("dateFrom"),
-        dateTo: getVal("dateTo"),
-        n_juego: getVal("n_juego"),
-        status: statusFilterEl ? statusFilterEl.value : "Todos",
-    };
-}
-
-function getSoldaduraExtraInfo(e) {
-    if (e) e.preventDefault();
-    if (extraInfoButton.disabled) return;
-    
-    extraInfoButton.disabled = true;
-    const originalText = extraInfoButton.textContent;
-    extraInfoButton.textContent = "Cargando...";
-
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
-
-    // Leer los filtros activos del DOM en lugar de los selectedItems iniciales
-    const liveFilters = getCurrentFiltersFromDOM();
-
-    fetch(window.baseUrl + "/pieces/getSoldaduraExtraInfo", {
-        method: "POST",
-        headers: {
-            "X-CSRF-TOKEN": csrfToken,
-            "Content-Type": "application/json",
-            Accept: "application/json",
-        },
-        body: JSON.stringify(liveFilters)
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            extraInfoButton.disabled = false;
-            extraInfoButton.textContent = originalText;
-            if (data.success) {
-                showSoldaduraExtraInfoTable(data.pieces, liveFilters);
-            } else {
-                alert(data.message || "Error al obtener información");
-            }
-        })
-        .catch((error) => {
-            extraInfoButton.disabled = false;
-            extraInfoButton.textContent = originalText;
-            console.error("Error:", error);
-            alert("Error al obtener información de Soldadura.");
-        });
-}
-
-/**
- * Mostrar tabla con información extra de Soldadura
- */
-function showSoldaduraExtraInfoTable(pieces, liveFilters) {
-    closeSoldaduraModal(); // Asegurar que no haya múltiples modales abiertos
-    soldaduraModalOpen = true;
-
-    // Crear div de opacidad
-    const divOpacity = document.createElement("div");
-    divOpacity.className = "div-opacity";
-    divOpacity.id = "div-opacity-soldadura-table";
-
-    // Crear contenedor del modal
-    const modalContainer = document.createElement("div");
-    modalContainer.className = "soldadura-info-modal";
-
-    // Detectar si es PTA
-    const isPTA = liveFilters.process && liveFilters.process.toLowerCase().includes('pta');
-
-    // Título
-    const title = document.createElement("h2");
-    title.textContent = isPTA ? "Información Extra - Soldadura PTA" : "Información Extra - Soldadura";
-    title.className = "soldadura-modal-title";
-    modalContainer.appendChild(title);
-
-    // Subtítulo con total
-    const subtitle = document.createElement("p");
-    subtitle.textContent = `Total de piezas en ${isPTA ? 'PTA' : 'Soldadura'}: ${pieces.length}`;
-    subtitle.className = "soldadura-modal-subtitle";
-    modalContainer.appendChild(subtitle);
-
-    if (pieces.length === 0) {
-        const noDataMsg = document.createElement("p");
-        noDataMsg.textContent = `No hay piezas en proceso de ${isPTA ? 'PTA' : 'Soldadura'} actualmente.`;
-        noDataMsg.className = "soldadura-no-data";
-        modalContainer.appendChild(noDataMsg);
-    } else {
-        // Crear tabla
-        const tableContainer = document.createElement("div");
-        tableContainer.className = "soldadura-table-container";
-
-        const table = document.createElement("table");
-        table.className = "soldadura-modal-table";
-
-        // Encabezados
-        const thead = document.createElement("thead");
-        const headerRow = document.createElement("tr");
-        headerRow.className = "soldadura-modal-header-row";
-
-        const headers = isPTA ? [
-            "N° Juego",
-            "Operador",
-            "Clase",
-            "OT",
-            "Fecha",
-            "Hora",
-            "PRECAL. (°C)",
-            "Soldadura",
-            "Resultado",
-            "Defecto",
-            "Observaciones"
-        ] : [
-            "N° Juego",
-            "Operador",
-            "Clase",
-            "OT",
-            "Peso por Pieza",
-            "Tipo Soldadura",
-            "Soldadura",
-            "Lote",
-            "Fecha",
-            "Hora",
-            "Observaciones",
-        ];
-        headers.forEach((headerText) => {
-            const th = document.createElement("th");
-            th.textContent = headerText;
-            th.className = "soldadura-modal-th";
-            headerRow.appendChild(th);
-        });
-
-        thead.appendChild(headerRow);
-        table.appendChild(thead);
-
-        // Cuerpo de la tabla
-        const tbody = document.createElement("tbody");
-        pieces.forEach((piece, index) => {
-            const tr = document.createElement("tr");
-            tr.className = index % 2 === 0 ? "soldadura-row-even" : "soldadura-row-odd";
-            
-            const renderCell = (val) => {
-                const td = document.createElement("td");
-                td.textContent = val !== null && val !== undefined ? val : 'N/A';
-                td.className = "soldadura-modal-td";
-                tr.appendChild(td);
-            };
-
-            renderCell(piece.n_juego);
-            renderCell(piece.operador);
-            renderCell(piece.clase);
-            renderCell(piece.orden_trabajo);
-            
-            if (isPTA) {
-                renderCell(piece.fecha);
-                renderCell(piece.hora);
-                renderCell(piece.precalentamiento);
-                renderCell(piece.material_soldadura);
-                renderCell(piece.resultado);
-                renderCell(piece.defecto);
-                renderCell(piece.observaciones);
-            } else {
-                renderCell(piece.peso_pieza);
-                renderCell(piece.tipo_soldadura);
-                renderCell(piece.material_soldadura);
-                renderCell(piece.lote);
-                renderCell(piece.fecha);
-                renderCell(piece.hora);
-                renderCell(piece.observaciones);
-            }
-
-            tbody.appendChild(tr);
-        });
-
-        table.appendChild(tbody);
-        tableContainer.appendChild(table);
-        modalContainer.appendChild(tableContainer);
-    }
-
-    // Botones de acción
-    const buttonsContainer = document.createElement("div");
-    buttonsContainer.className = "soldadura-modal-buttons";
-
-    // Botón descargar PDF
-    const btnDownload = document.createElement("button");
-    btnDownload.type = "button";
-    btnDownload.textContent = "Descargar PDF";
-    btnDownload.className = "soldadura-btn-download";
-    btnDownload.addEventListener("click", () => {
-        // Usar los filtros vivos del DOM (los mismos que se enviaron al backend)
-        const filters = liveFilters ? { ...liveFilters } : getCurrentFiltersFromDOM();
-
-        // Eliminar parámetros que no son filtros de datos
-        delete filters.action;
-        delete filters.status; // Se maneja por separado si el backend lo necesita
-
-        const params = new URLSearchParams(filters).toString();
-        const downloadUrl = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF?" + params;
-
-        window.open(downloadUrl, '_blank');
-    });
-
-    // Botón cerrar
-    const btnClose = document.createElement("button");
-    btnClose.textContent = "Cerrar";
-    btnClose.className = "soldadura-btn-close";
-    btnClose.addEventListener("click", closeSoldaduraModal);
-
-    buttonsContainer.appendChild(btnDownload);
-    buttonsContainer.appendChild(btnClose);
-    modalContainer.appendChild(buttonsContainer);
-
-    divOpacity.appendChild(modalContainer);
-    document.body.appendChild(divOpacity);
-}
-
-/**
- * Cerrar modal de Soldadura
- */
-function closeSoldaduraModal() {
-    let divOpacity = document.getElementById("div-opacity-soldadura-table");
-    while (divOpacity) {
-        divOpacity.remove();
-        divOpacity = document.getElementById("div-opacity-soldadura-table");
-    }
-    soldaduraModalOpen = false;
-}
-
-// Inicializar la funcionalidad cuando se carga la página
-initializeSoldaduraFeature();
 
 /**
  * Lógica para el filtro de N# Pieza/Juego
@@ -1324,3 +1026,6 @@ function loadAvailableGames(ot, clase, selectElement) {
         });
 }
 
+
+// Inicializar la funcionalidad cuando se carga la pagina
+initializeSoldaduraFeature();

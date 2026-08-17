@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Reporte de piezas</title>
@@ -54,13 +54,14 @@
     <form action="{{ route('searchPieces') }}" method="post" class="form-search">
         @csrf
         <input type="hidden" name="profile" value="admin">
-        <!-- FILTROS DE BÚSQUEDA Y RESULTADOS DE PIEZAS EN GENERAL. -->
-        <h1>Reporte de piezas</h1>
+        <div class="report-header">
+            <h1>Reporte de piezas</h1>
+            <!-- IMAGEN DE PDF -->
+            <button type="submit" name="action" value="pdf" class="btn-PDF">
+                <img src="{{ asset('images/pdf.png') }}" alt="pdf" id="pdf" class="generar_pdf">
+            </button>
+        </div>
         <div class="filters"></div>
-        <!-- IMAGEN DE PDF -->
-        <button type="submit" name="action" value="pdf" class="btn-PDF">
-            <img src="{{ asset('images/pdf.png') }}" alt="pdf" id="pdf" class="generar_pdf">
-        </button>
 
         @if (count($pieces) > 0)
             <div class="div-table">

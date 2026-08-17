@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../../global.css";
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
@@ -36,6 +36,29 @@ body {
     flex-direction: column;
 }
 
+@media (max-height: 750px), (max-width: 1024px) {
+    .form-search {
+        position: relative !important;
+        left: auto !important;
+        top: auto !important;
+        transform: none !important;
+        margin: 80px auto 20px auto !important;
+        height: auto !important;
+        min-height: calc(100vh - 120px) !important;
+        width: 98% !important;
+    }
+}
+
+.report-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+}
+
 h1 {
     font-size: clamp(1.2rem, 3vh, 2rem);
     color: #1e293b;
@@ -45,9 +68,8 @@ h1 {
     border-bottom: 3px solid var(--gis-blue);
     display: inline-block;
     padding-bottom: 0.2em;
-    align-self: center;
+    margin: 0;
     flex-shrink: 0;
-    margin-top: 0;
 }
 
 .filters {
@@ -195,7 +217,7 @@ label {
 .div-table {
     margin-top: 1em;
     flex-grow: 1;
-    min-height: 0;
+    min-height: 350px;
     overflow-x: auto;
     overflow-y: auto;
 
@@ -223,9 +245,9 @@ label {
 
 table {
     width: 100%;
+    min-width: max-content;
     border-collapse: collapse;
     background: transparent;
-    width: max-content;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
@@ -236,6 +258,13 @@ td {
     padding: 4px 10px;
     border: 1px solid rgba(3, 57, 102, 0.2);
     white-space: nowrap;
+}
+
+th {
+    white-space: normal !important;
+    vertical-align: middle;
+    min-width: 80px;
+    max-width: 150px;
 }
 
 .wide-cell {
@@ -323,11 +352,12 @@ tr:hover {
 .btn-PDF {
     position: absolute;
     width: clamp(40px, 5vw, 60px);
-    top: 10px;
     right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
     background-color: transparent;
     border: none;
-    transition: 0.2s;
+    transition: transform 0.2s ease;
     cursor: pointer;
 }
 
@@ -338,8 +368,7 @@ tr:hover {
 }
 
 .btn-PDF:hover {
-    transform: scale(1.1);
-    transition: 0.2s;
+    transform: translateY(-50%) scale(1.1);
 }
 
 /* ADVERTENCE */
@@ -553,128 +582,375 @@ tr:hover {
     box-shadow: 0 6px 20px rgba(3, 57, 102, 0.6);
 }
 
+/* Fondo de opacidad moderno sin GPU blur bottleneck */
+#productivity-lock-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.85) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    z-index: 100001 !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease-out, visibility 0.15s ease-out !important;
+    will-change: opacity, visibility;
+}
+
+#productivity-lock-overlay.show {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Contenedor del modal responsivo, amplio y ultra-fluido */
 .soldadura-info-modal {
     position: fixed;
-    top: 53%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(255, 255, 255, 0.95);
-    -webkit-backdrop-filter: blur(20px);
-    backdrop-filter: blur(20px);
-    padding: 30px;
-    border-radius: 16px;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-    z-index: 1001;
-    max-width: 90%;
-    max-height: 90%;
-    overflow: auto;
+    background: var(--gis-white);
+    padding: 22px 26px;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3);
+    z-index: 10001 !important;
+    width: 98vw;
+    max-width: 98vw;
+    height: 94vh;
+    max-height: 94vh;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    border: 1px solid rgba(3, 57, 102, 0.15);
+}
+
+/* Cabecera del modal */
+.soldadura-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid rgba(3, 57, 102, 0.15);
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+    flex-shrink: 0;
+}
+
+.soldadura-modal-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .soldadura-modal-title {
-    margin: 0 0 20px 0;
-    color: #1e293b;
-    font-size: 20px;
-    font-weight: 700;
+    margin: 0;
+    color: var(--gis-blue);
+    font-size: 24px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .soldadura-modal-subtitle {
-    margin: 0 0 15px 0;
-    color: #64748b;
+    margin: 0;
+    color: var(--gis-gray);
     font-size: 14px;
+    font-weight: 500;
+}
+
+/* Botón cerrar X circular en cabecera con rotación interactiva */
+.btn-modal-close-x {
+    background: rgba(3, 57, 102, 0.05);
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--gis-blue);
+    cursor: pointer;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    line-height: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.btn-modal-close-x:hover {
+    background-color: rgba(156, 3, 3, 0.12);
+    color: var(--gis-red);
+    transform: rotate(90deg);
+}
+
+/* Barra de filtros horizontales con degradado sutil y tintes corporativos */
+.soldadura-modal-filters-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: linear-gradient(135deg, rgba(3, 57, 102, 0.03) 0%, rgba(3, 57, 102, 0.07) 100%);
+    padding: 16px 20px;
+    border-radius: 14px;
+    border: 1px solid rgba(3, 57, 102, 0.15);
+    margin-bottom: 18px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+}
+
+.soldadura-modal-filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+    min-width: 140px;
+}
+
+.soldadura-modal-filter-item label {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+}
+
+.soldadura-modal-filter-select {
+    padding: 9px 12px;
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    border-radius: 10px;
+    background-color: var(--gis-white);
+    color: var(--gis-black);
+    font-size: 13px;
+    font-weight: 600;
+    outline: none;
+    transition: all 0.2s ease;
+    width: 100%;
+    cursor: pointer;
+    box-sizing: border-box;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.soldadura-modal-filter-select:hover {
+    border-color: rgba(3, 57, 102, 0.4);
+    background-color: #fafafa;
+}
+
+.soldadura-modal-filter-select:focus {
+    border-color: var(--gis-blue);
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }
 
 .soldadura-no-data {
-    color: #999;
+    color: var(--gis-gray);
     font-style: italic;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px 0;
 }
 
+/* Contenedor de la tabla con scroll independiente y bordes redondeados */
 .soldadura-table-container {
+    flex-grow: 1;
+    overflow-y: auto;
     overflow-x: auto;
-    margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    margin-bottom: 18px;
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    border-radius: 12px;
+    background-color: var(--gis-white);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
+/* Scrollbar premium para el contenedor de la tabla */
+.soldadura-table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.soldadura-table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.soldadura-table-container::-webkit-scrollbar-thumb {
+    background: var(--gis-blue);
+    border-radius: 4px;
+}
+
+.soldadura-table-container::-webkit-scrollbar-thumb:hover {
+    background: #022340;
+}
+
+/* Tabla interna del modal estirada al 100% de ancho */
 .soldadura-modal-table {
-    width: 100%;
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: auto !important;
     border-collapse: collapse;
-    font-size: 13px;
+    font-size: 12px;
+    font-family: 'Poppins', sans-serif;
 }
 
 .soldadura-modal-header-row {
-    background-color: var(--gis-blue);
-    color: white;
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #055ba3 100%) !important;
+    color: var(--gis-white);
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
 .soldadura-modal-th {
-    padding: 12px 8px;
-    text-align: left;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 12px 8px !important;
+    text-align: center !important;
+    font-weight: 700;
+    font-size: 11.5px;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    text-transform: uppercase;
+    white-space: nowrap;
 }
 
 .soldadura-row-even {
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: rgba(248, 250, 252, 0.75);
 }
 
 .soldadura-row-odd {
-    background-color: white;
+    background-color: var(--gis-white);
+}
+
+.soldadura-modal-table tbody tr {
+    transition: background-color 0.15s ease;
+}
+
+.soldadura-modal-table tbody tr:hover {
+    background-color: rgba(3, 57, 102, 0.06);
 }
 
 .soldadura-modal-td {
-    padding: 10px 8px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    padding: 10px 8px !important;
+    border-bottom: 1px solid #e2e8f0;
+    color: var(--gis-gray);
+    line-height: 1.4;
+    text-align: center !important;
+    white-space: nowrap;
 }
 
+.soldadura-modal-td:last-child {
+    white-space: normal !important;
+    word-break: break-word !important;
+    text-align: left !important;
+    min-width: 180px;
+}
+
+/* Badges estilizados para columnas de resultado en PTA */
+.soldadura-modal-td .badge-si {
+    background-color: rgba(10, 133, 4, 0.12);
+    color: var(--gis-green);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 11px;
+    display: inline-block;
+}
+
+.soldadura-modal-td .badge-no {
+    background-color: rgba(156, 3, 3, 0.12);
+    color: var(--gis-red);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 11px;
+    display: inline-block;
+}
+
+.soldadura-modal-td .badge-na {
+    background-color: rgba(64, 64, 64, 0.1);
+    color: var(--gis-gray);
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    display: inline-block;
+}
+
+.soldadura-modal-td .badge-empty {
+    color: var(--gis-gray);
+}
+
+/* Contenedor de botones inferiores */
 .soldadura-modal-buttons {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
-    margin-top: 20px;
+    gap: 12px;
+    margin-top: auto;
+    padding-top: 15px;
+    border-top: 1px solid rgba(3, 57, 102, 0.15);
+    flex-shrink: 0;
 }
 
+/* Botones descargar PDF y Cerrar */
 .soldadura-btn-download,
 .soldadura-btn-close {
-    padding: 10px 20px;
+    padding: 10px 24px;
     border: none;
     border-radius: 8px;
-    font-weight: 600;
+    font-weight: 700;
+    font-size: 13.5px;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .soldadura-btn-download {
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    color: white;
-    box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.3);
+    background: linear-gradient(135deg, var(--gis-green) 0%, #086b03 100%);
+    color: var(--gis-white);
+    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.35);
 }
 
 .soldadura-btn-download:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 8px -1px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 6px 16px rgba(10, 133, 4, 0.5);
+}
+
+.soldadura-btn-download:active {
+    transform: translateY(0);
 }
 
 .soldadura-btn-close {
-    background: #e2e8f0;
-    color: #475569;
+    background: rgba(64, 64, 64, 0.08);
+    color: var(--gis-gray);
+    border: 1px solid rgba(64, 64, 64, 0.2);
 }
 
 .soldadura-btn-close:hover {
-    background: #cbd5e1;
-    color: #1e293b;
+    background: rgba(64, 64, 64, 0.15);
+    color: var(--gis-black);
+    border-color: var(--gis-gray);
+}
+
+.soldadura-btn-close:active {
+    background: rgba(64, 64, 64, 0.25);
 }
 
 /* BOTÓN LIMPIAR FILTROS */
+.filter-btn-wrapper {
+    justify-content: flex-end;
+}
+
 .btn-clear-filters {
-    margin: 0 10px;
+    width: 100%;
+    margin: 0 !important;
     background: linear-gradient(135deg, #64748b 0%, #475569 100%);
     color: white;
     border: none;
-    padding: 10px;
-    border-radius: 10px;
-    font-size: 1em;
+    padding: clamp(0.4rem, 1vh, 0.6rem) 10px !important;
+    border-radius: 6px !important;
+    font-size: clamp(0.75rem, 1.5vh, 0.88rem) !important;
     font-weight: 700;
     transition: all 0.3s ease;
     box-shadow: 0 4px 6px -1px rgba(100, 116, 139, 0.3);
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-clear-filters:enabled {
@@ -691,4 +967,105 @@ tr:hover {
 .btn-clear-filters:hover:enabled {
     transform: translateY(-2px);
     box-shadow: 0 6px 8px -1px rgba(100, 116, 139, 0.4);
+}
+
+/* ==========================================================================
+   MODAL DE SOLDADURA PREMIUM (ESTILO PRE-ORDEN CASTING DETALLE)
+   ========================================================================== */
+
+@keyframes prodModalEntrance {
+    0% {
+        opacity: 0;
+        transform: scale(0.92) translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.modal-soldadura-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 10, 25, 0.85) !important;
+    z-index: 10000;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 3vh;
+    overflow: hidden;
+}
+
+.modal-soldadura-overlay.open {
+    display: flex;
+}
+
+.modal-soldadura-content {
+    background: #ffffff;
+    width: 95vw !important;
+    max-width: 1800px !important;
+    max-height: 94vh !important;
+    border-radius: 20px !important;
+    border: 4px solid #0284c7 !important;
+    box-shadow: 0 25px 60px rgba(2, 132, 199, 0.25) !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    animation: prodModalEntrance 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.modal-soldadura-header {
+    padding: 2.2em 2.5em 1.5em !important;
+    background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%) !important;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02);
+    display: block !important;
+}
+
+.modal-soldadura-header h3 {
+    margin: 0;
+    color: #fff !important;
+    font-size: 2em !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    font-family: 'Poppins', sans-serif !important;
+    text-transform: none !important;
+    text-align: left !important;
+}
+
+.modal-soldadura-header .div-cerrar {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.modal-soldadura-header .btn-cerrar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+    padding: 0;
+}
+
+.modal-soldadura-header .btn-cerrar:hover {
+    transform: scale(1.1);
+}
+
+.modal-soldadura-header .img-cerrar {
+    width: 36px !important;
+    height: 36px !important;
+}
+
+.modal-soldadura-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2em 2.5em !important;
+    background: #f8fafc !important;
+    font-family: 'Poppins', sans-serif !important;
 }

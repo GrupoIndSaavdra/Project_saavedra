@@ -944,20 +944,30 @@ header {
 }
 
 /* Estilos de la tabla del modal */
-.bad-pieces-table {
+.bad-pieces-table-wrapper {
     box-sizing: border-box;
-    display: block;
     width: 100% !important;
     max-height: 55vh !important;
-    border-collapse: collapse !important;
-    margin-top: 1rem !important;
-    border-top: none !important;
-    font-size: 0.95rem !important;
     overflow-y: auto;
+    overflow-x: auto;
+    margin-top: 1rem !important;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.bad-pieces-table {
+    width: 100% !important;
+    min-width: 600px;
+    border-collapse: collapse !important;
+    font-size: 0.95rem !important;
 }
 
 .bad-pieces-table th {
-    background: rgba(255, 255, 255, 0.05) !important;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #022a4a !important; /* Slightly darker than modal background for visual contrast */
     font-weight: 700 !important;
     color: #ffffff !important;
     padding: 1rem !important;

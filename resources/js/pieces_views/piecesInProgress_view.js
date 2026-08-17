@@ -1697,8 +1697,11 @@ class Dashboard {
         modal.appendChild(modalClose);
 
         //Creacion de la tabla de las piezas malas
+        let tableWrapper = document.createElement("div");
+        tableWrapper.className = "bad-pieces-table-wrapper";
         let table = this.createTableBadPieces(badPieces, processName);
-        modal.appendChild(table);
+        tableWrapper.appendChild(table);
+        modal.appendChild(tableWrapper);
 
         div.addEventListener("click", function (e) {
             if (e.target === div) {
@@ -1724,7 +1727,7 @@ class Dashboard {
         headers.forEach((header) => {
             let th = document.createElement("th");
             th.innerHTML = header;
-            th.style.width = headers.length / 100 + "%"; // Ajustar el ancho de las columnas
+            th.style.width = (100 / headers.length) + "%"; // Ajustar el ancho de las columnas
             headerRow.appendChild(th);
         });
 

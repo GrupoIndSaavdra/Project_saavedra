@@ -205,6 +205,7 @@ function createFilters() {
             input.className = "input-filter";
             input.value = window.selectedItems[key] || "";
             input.addEventListener("change", () => document.getElementById("filters-form").submit());
+            input.addEventListener("input", () => document.getElementById("filters-form").submit());
             div.appendChild(input);
         } else {
             let select = document.createElement("select");
@@ -407,11 +408,15 @@ function createFilters() {
     };
 
     // Botón Limpiar Filtros
+    let divClear = document.createElement("div");
+    divClear.className = "filter filter-btn-wrapper";
+
     let btnClear = document.createElement("button");
     btnClear.id = "btnClearFilters";
     btnClear.textContent = "Limpiar Filtros";
     btnClear.className = "btns btn-clear-filters";
     btnClear.type = "button";
+    divClear.appendChild(btnClear);
 
     // Función para verificar el estado de los filtros
     const updateClearButtonState = () => {
@@ -439,12 +444,16 @@ function createFilters() {
                 updateNPiezaState();
                 updateClearButtonState();
             });
+            el.addEventListener("input", () => {
+                updateNPiezaState();
+                updateClearButtonState();
+            });
         });
         updateNPiezaState();
         updateClearButtonState();
     }, 100);
 
-    container.appendChild(btnClear);
+    container.appendChild(divClear);
 }
 
 let currentRenderId = null;

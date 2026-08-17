@@ -115,7 +115,7 @@ class PzasGeneralesController extends Controller
     {
         return $this->getPiecesRequest(new Request());
     }
-        /**
+    /**
      * @param mixed $workOrder
      * @param int $index
      * @param mixed $classes
@@ -134,19 +134,19 @@ class PzasGeneralesController extends Controller
             $array[$index][1][$indexClass][1] = $class->nombre . " " . $class->tamanio;
         }
     }
-        /**
+    /**
      * @param mixed $piecesData
      * @param mixed $profile
      */
     public function search($piecesData, $profile = null)
     {
         $selectedItems = array();
-        $infoPieces    = array();
-        $filtersData   = $this->getFiltersInfo();
+        $infoPieces = array();
+        $filtersData = $this->getFiltersInfo();
 
         // Siempre cargar observaciones: los índices de BD hacen las queries eficientes
-        $isPdf   = $piecesData["action"] === 'pdf';
-        $pieces  = $this->buscarPiezas($piecesData, $selectedItems, true);
+        $isPdf = $piecesData["action"] === 'pdf';
+        $pieces = $this->buscarPiezas($piecesData, $selectedItems, true);
 
         $pieces = $pieces == null ? array() : $pieces;
 
@@ -160,8 +160,12 @@ class PzasGeneralesController extends Controller
                 $procName = $p[4] ?? '';
                 $colorColumn = '#FFFFFF';
                 switch (true) {
-                    case $libVal == 1: $colorColumn = '#79BFED'; break;
-                    case $libVal == 2: $colorColumn = '#FF6B6B'; break;
+                    case $libVal == 1:
+                        $colorColumn = '#79BFED';
+                        break;
+                    case $libVal == 2:
+                        $colorColumn = '#FF6B6B';
+                        break;
                     default:
                         if (str_contains($errVal, 'Incompleto')) {
                             $colorColumn = '#FFD700';
@@ -216,7 +220,7 @@ class PzasGeneralesController extends Controller
         }
     }
 
-        /**
+    /**
      * @param mixed $selectedItems
      * @param mixed $reportType
      */
@@ -264,7 +268,7 @@ class PzasGeneralesController extends Controller
         );
         return $filtersData;
     }
-        /**
+    /**
      * @param mixed $object
      * @param mixed $param
      * @param mixed $molduras
@@ -284,7 +288,7 @@ class PzasGeneralesController extends Controller
         }
         return $array;
     }
-        /**
+    /**
      * @param Request $request
      */
     public function getPiecesRequest(Request $request)
@@ -304,7 +308,7 @@ class PzasGeneralesController extends Controller
         );
         return $this->search($datosPiezas, 'admin');
     }
-        /**
+    /**
      * @param mixed $piecesData
      * @param mixed &$itemElegidos
      * @param mixed bool $includeObservations
@@ -319,7 +323,8 @@ class PzasGeneralesController extends Controller
         }
 
         foreach ($piecesData as $key => $value) {
-            if ($key === 'action') continue;
+            if ($key === 'action')
+                continue;
 
             if ($value === null || $value === 'Todos' || $value === '') {
                 $itemElegidos[$key] = 'Todos';
@@ -331,8 +336,8 @@ class PzasGeneralesController extends Controller
             switch ($key) {
                 case 'workOrder':
                     $workOrderId = explode(' - ', $value)[0];
-                    $workOrder   = Orden_trabajo::query()->find($workOrderId);
-                    $molding     = Moldura::query()->find($workOrder->id_moldura);
+                    $workOrder = Orden_trabajo::query()->find($workOrderId);
+                    $molding = Moldura::query()->find($workOrder->id_moldura);
                     $itemElegidos[$key] = $workOrder->id . ' - ' . ($molding ? $molding->nombre : '?');
                     $query->where('id_ot', $workOrderId);
                     break;
@@ -365,8 +370,8 @@ class PzasGeneralesController extends Controller
                     $numJuego = rtrim($value, 'J'); // "3J" → "3"
                     $query->where(function ($q) use ($numJuego) {
                         $q->where('n_pieza', $numJuego . 'J')
-                          ->orWhere('n_pieza', $numJuego . 'H')
-                          ->orWhere('n_pieza', $numJuego . 'M');
+                            ->orWhere('n_pieza', $numJuego . 'H')
+                            ->orWhere('n_pieza', $numJuego . 'M');
                     });
                     break;
             }
@@ -376,7 +381,7 @@ class PzasGeneralesController extends Controller
         return $piezas->isEmpty() ? [] : $this->saveInArray($piezas, $includeObservations);
     }
     //Obtener los procesos por los que pasa una clase
-        /**
+    /**
      * @param mixed $clase
      */
     public function procesosClase($clase)
@@ -394,7 +399,7 @@ class PzasGeneralesController extends Controller
         array_splice($procesos, 0, 2);
         return $procesos;
     }
-        /**
+    /**
      * @param mixed $arrayP
      * @param mixed $posicion
      * @param mixed $elemento
@@ -445,7 +450,7 @@ class PzasGeneralesController extends Controller
         }
         return $array;
     }
-        /**
+    /**
      * @param mixed $arrayP
      * @param mixed bool $includeObservations
      */
@@ -453,8 +458,8 @@ class PzasGeneralesController extends Controller
     {
         // ── OPTIMIZACIÓN: pre-cargar todo en memoria para eliminar N+1 queries ──
         $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
-        $usersCache       = User::all()->keyBy('matricula');
-        $clasesCache      = Clase::all()->keyBy('id');
+        $usersCache = User::all()->keyBy('matricula');
+        $clasesCache = Clase::all()->keyBy('id');
 
         // Índice en memoria: '{id_clase}_{proceso}_{numJuego}' → colección de piezas
         $piezasIndex = collect($arrayP)->groupBy(function ($pza) {
@@ -473,7 +478,7 @@ class PzasGeneralesController extends Controller
             foreach ($piezasPorProceso as $nombreProceso => $piezasDelProceso) {
                 $processString = str_contains($nombreProceso, 'Operacion Equipo') ? 'Operacion Equipo' : $nombreProceso;
                 try {
-                    $modelClass = $processController->get_ModelProcess($processString); 
+                    $modelClass = $processController->get_ModelProcess($processString);
                     $modelPiecesClass = $processController->get_ModelProcessPieces($processString);
 
                     $idProcesos = [];
@@ -502,29 +507,30 @@ class PzasGeneralesController extends Controller
                             }
                         }
                     }
-                } catch (\Throwable $e) { }
+                } catch (\Throwable $e) {
+                }
             }
         }
 
-        $array          = array();
+        $array = array();
         $juegosGuardados = array();
-        $contador       = 0;
-        $mitad          = false;
+        $contador = 0;
+        $mitad = false;
 
         // ── OPTIMIZACIÓN DE METAS (TIEMPOS) ──
         $otsArray = collect($arrayP)->pluck('id_ot')->unique();
         $clasesArray = collect($arrayP)->pluck('id_clase')->unique();
 
         $metasDB = Metas::query()->whereIn('id_ot', $otsArray, 'and', false)
-                                    ->whereIn('id_clase', $clasesArray, 'and', false)
-                                    ->get();
+            ->whereIn('id_clase', $clasesArray, 'and', false)
+            ->get();
 
-        $metasCruzadas = collect($metasDB)->groupBy(function($m) {
+        $metasCruzadas = collect($metasDB)->groupBy(function ($m) {
             return $m->id_ot . '_' . $m->id_clase . '_' . $m->proceso . '_' . $m->fecha;
         });
 
         // ── FALLBACK: Metas por Operador si las fechas no coinciden ──
-        $metasPorOperador = collect($metasDB)->sortByDesc('fecha')->groupBy(function($m) {
+        $metasPorOperador = collect($metasDB)->sortByDesc('fecha')->groupBy(function ($m) {
             return $m->id_ot . '_' . $m->id_clase . '_' . $m->proceso . '_' . $m->id_usuario;
         });
 
@@ -533,23 +539,23 @@ class PzasGeneralesController extends Controller
                 continue;
             }
 
-            $band     = false;
+            $band = false;
             $numJuego = $this->getPiezaNumber($item->n_pieza);
 
             if (substr($item->n_pieza, -1) !== 'J') { // Es mitad (H o M)
-                $mitad    = true;
+                $mitad = true;
                 $juegoKey = $numJuego . 'J_' . $item->proceso . '_' . $item->id_clase . '_' . $item->id_ot;
 
                 if (!in_array($juegoKey, $juegosGuardados)) {
                     $band = true;
                     $array[$contador][1] = $numJuego . 'J';
-                    $juegosGuardados[]   = $juegoKey;
+                    $juegosGuardados[] = $juegoKey;
 
                     // ── Buscar mitades desde índice en memoria (0 queries) ──
                     $indexKey = $item->id_clase . '_' . $item->proceso . '_' . $numJuego;
-                    $group    = $piezasIndex->get($indexKey, collect());
-                    $pzaH     = $group->firstWhere('n_pieza', $numJuego . 'H');
-                    $pzaM     = $group->firstWhere('n_pieza', $numJuego . 'M');
+                    $group = $piezasIndex->get($indexKey, collect());
+                    $pzaH = $group->firstWhere('n_pieza', $numJuego . 'H');
+                    $pzaM = $group->firstWhere('n_pieza', $numJuego . 'M');
 
                     // ── Si no se encontró alguna mitad en el índice en memoria,
                     //    puede ser que esté filtrada (ej. filtro por operador).
@@ -581,8 +587,10 @@ class PzasGeneralesController extends Controller
                         $opH = $usersCache->get($pzaH->id_operador);
                         $opM = $usersCache->get($pzaM->id_operador);
                         // Si el operador H no está en caché (es de otro operador filtrado), ir a BD
-                        if (!$opH) $opH = User::query()->where('matricula', $pzaH->id_operador)->first();
-                        if (!$opM) $opM = User::query()->where('matricula', $pzaM->id_operador)->first();
+                        if (!$opH)
+                            $opH = User::query()->where('matricula', $pzaH->id_operador)->first();
+                        if (!$opM)
+                            $opM = User::query()->where('matricula', $pzaM->id_operador)->first();
                         $nombreH = $opH ? "{$opH->nombre} {$opH->a_paterno} {$opH->a_materno}" : '(desconocido)';
                         $nombreM = $opM ? "{$opM->nombre} {$opM->a_paterno} {$opM->a_materno}" : '(desconocido)';
 
@@ -608,7 +616,7 @@ class PzasGeneralesController extends Controller
 
                 }
             } else { // Es juego completo (J)
-                $band  = true;
+                $band = true;
                 $mitad = false;
                 $array[$contador][1] = $item->n_pieza;
                 $op = $usersCache->get($item->id_operador);
@@ -620,17 +628,17 @@ class PzasGeneralesController extends Controller
             $userLib = $usersCache->get($item->user_liberacion);
 
             if ($band) {
-                $array[$contador][0]             = $item->id_ot;
-                $array[$contador][3]             = $item->maquina;
-                $array[$contador]['id_clase']    = $item->id_clase;
-                $className                       = $clasesCache->get($item->id_clase);
-                $array[$contador]['className']   = $className ? $className->nombre : null;
+                $array[$contador][0] = $item->id_ot;
+                $array[$contador][3] = $item->maquina;
+                $array[$contador]['id_clase'] = $item->id_clase;
+                $className = $clasesCache->get($item->id_clase);
+                $array[$contador]['className'] = $className ? $className->nombre : null;
                 $array[$contador]['observacion_liberacion'] = $item->observacion_liberacion;
 
                 $array[$contador]['observations'] = '';
                 if ($includeObservations && $className) {
                     $id_process = str_replace(' ', '_', $item->proceso) . '_' . $className->nombre . '_' . $item->id_ot;
-                    
+
                     if (isset($procesosDBMap[$item->proceso][$id_process])) {
                         $pDbId = $procesosDBMap[$item->proceso][$id_process]->id;
                         $mapKey = $pDbId . '_' . $numJuego . 'J';
@@ -641,13 +649,13 @@ class PzasGeneralesController extends Controller
                 }
 
                 $array[$contador][4] = $item->proceso;
-                $date                = new \DateTime($item->created_at);
+                $date = new \DateTime($item->created_at);
                 $array[$contador][6] = $date->format('Y-m-d H:i:s');
 
                 $metaKey = $item->id_ot . '_' . $item->id_clase . '_' . $item->proceso . '_' . $date->format('Y-m-d');
                 $mMatchGroup = $metasCruzadas->get($metaKey, collect());
                 $mMatch = $mMatchGroup->first(); // Tomar primera coincidencia de la meta por turno/proceso
-                
+
                 // Si no coincide por fecha exacta (ej. pieza creada días después de la meta)
                 if (!$mMatch) {
                     $metaOpKey = $item->id_ot . '_' . $item->id_clase . '_' . $item->proceso . '_' . $item->id_operador;
@@ -658,7 +666,7 @@ class PzasGeneralesController extends Controller
                 if ($mMatch && $mMatch->h_inicio && $mMatch->h_termino) {
                     $array[$contador]['hora_inicio'] = $mMatch->h_inicio;
                     $array[$contador]['hora_termino'] = $mMatch->h_termino;
-                    
+
                     $inicioStr = new \DateTime($mMatch->h_inicio);
                     $terminoStr = new \DateTime($mMatch->h_termino);
                     $array[$contador]['tiempo_total'] = $inicioStr->diff($terminoStr)->format('%H:%I:%S');
@@ -683,7 +691,7 @@ class PzasGeneralesController extends Controller
         }
         return $array;
     }
-        /**
+    /**
      * @param mixed &$infoPiezas
      * @param mixed $piezas
      */
@@ -715,28 +723,94 @@ class PzasGeneralesController extends Controller
                     $lookupKey = 'Operacion_Equipo_2_operacion_' . $claseName . "_" . $otId;
                     $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
-                case 'Cepillado': $lookupKey = 'Cepillado_'.$claseName.'_'.$otId; $model = Cepillado::class; break;
-                case 'Desbaste Exterior': $lookupKey = 'Desbaste_Exterior_'.$claseName.'_'.$otId; $model = DesbasteExterior::class; break;
-                case 'Revision Laterales': $lookupKey = 'Revision_Laterales_'.$claseName.'_'.$otId; $model = RevLaterales::class; break;
-                case 'Primera Operacion': $lookupKey = 'Primera_Operacion_'.$claseName.'_'.$otId; $model = PrimeraOpeSoldadura::class; break;
-                case 'Barreno Maniobra': $lookupKey = 'Barreno_Maniobra_'.$claseName.'_'.$otId; $model = BarrenoManiobra::class; break;
-                case 'Segunda Operacion': $lookupKey = 'Segunda_Operacion_'.$claseName.'_'.$otId; $model = SegundaOpeSoldadura::class; break;
-                case 'Soldadura': $lookupKey = 'Soldadura_'.$claseName.'_'.$otId; $model = Soldadura::class; break;
-                case 'Soldadura PTA': $lookupKey = 'Soldadura_PTA_'.$claseName.'_'.$otId; $model = SoldaduraPTA::class; break;
-                case 'Rectificado': $lookupKey = 'Rectificado_'.$claseName.'_'.$otId; $model = Rectificado::class; break;
-                case 'Asentado': $lookupKey = 'Asentado_'.$claseName.'_'.$otId; $model = Asentado::class; break;
-                case 'Calificado': $lookupKey = 'Calificado_'.$claseName.'_'.$otId; $model = revCalificado::class; break;
-                case 'Acabado Bombillo': $lookupKey = 'Acabado_Bombillo_'.$claseName.'_'.$otId; $model = AcabadoBombilo::class; break;
-                case 'Acabado Molde': $lookupKey = 'Acabado_Molde_'.$claseName.'_'.$otId; $model = AcabadoMolde::class; break;
-                case 'Barreno Profundidad': $lookupKey = 'Barreno_Profundidad_'.$claseName.'_'.$otId; $model = BarrenoProfundidad::class; break;
-                case 'Cavidades': $lookupKey = 'Cavidades_'.$claseName.'_'.$otId; $model = Cavidades::class; break;
-                case 'Copiado': $lookupKey = 'Copiado_'.$claseName.'_'.$otId; $model = Copiado::class; break;
-                case 'Off Set': $lookupKey = 'Off_Set_'.$claseName.'_'.$otId; $model = OffSet::class; break;
-                case 'Palomas': $lookupKey = 'Palomas_'.$claseName.'_'.$otId; $model = Palomas::class; break;
-                case 'Rebajes': $lookupKey = 'Rebajes_'.$claseName.'_'.$otId; $model = Rebajes::class; break;
-                case 'Embudo CM': $lookupKey = 'Embudo_CM_'.$claseName.'_'.$otId; $model = EmbudoCM::class; break;
-                case 'Primera Operacion Cabeza Soplo': $lookupKey = 'Primera_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId; $model = PrimeraOperacionCabezaSoplo::class; break;
-                case 'Segunda Operacion Cabeza Soplo': $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId; $model = SegundaOperacionCabezaSoplo::class; break;
+                case 'Cepillado':
+                    $lookupKey = 'Cepillado_' . $claseName . '_' . $otId;
+                    $model = Cepillado::class;
+                    break;
+                case 'Desbaste Exterior':
+                    $lookupKey = 'Desbaste_Exterior_' . $claseName . '_' . $otId;
+                    $model = DesbasteExterior::class;
+                    break;
+                case 'Revision Laterales':
+                    $lookupKey = 'Revision_Laterales_' . $claseName . '_' . $otId;
+                    $model = RevLaterales::class;
+                    break;
+                case 'Primera Operacion':
+                    $lookupKey = 'Primera_Operacion_' . $claseName . '_' . $otId;
+                    $model = PrimeraOpeSoldadura::class;
+                    break;
+                case 'Barreno Maniobra':
+                    $lookupKey = 'Barreno_Maniobra_' . $claseName . '_' . $otId;
+                    $model = BarrenoManiobra::class;
+                    break;
+                case 'Segunda Operacion':
+                    $lookupKey = 'Segunda_Operacion_' . $claseName . '_' . $otId;
+                    $model = SegundaOpeSoldadura::class;
+                    break;
+                case 'Soldadura':
+                    $lookupKey = 'Soldadura_' . $claseName . '_' . $otId;
+                    $model = Soldadura::class;
+                    break;
+                case 'Soldadura PTA':
+                    $lookupKey = 'Soldadura_PTA_' . $claseName . '_' . $otId;
+                    $model = SoldaduraPTA::class;
+                    break;
+                case 'Rectificado':
+                    $lookupKey = 'Rectificado_' . $claseName . '_' . $otId;
+                    $model = Rectificado::class;
+                    break;
+                case 'Asentado':
+                    $lookupKey = 'Asentado_' . $claseName . '_' . $otId;
+                    $model = Asentado::class;
+                    break;
+                case 'Calificado':
+                    $lookupKey = 'Calificado_' . $claseName . '_' . $otId;
+                    $model = revCalificado::class;
+                    break;
+                case 'Acabado Bombillo':
+                    $lookupKey = 'Acabado_Bombillo_' . $claseName . '_' . $otId;
+                    $model = AcabadoBombilo::class;
+                    break;
+                case 'Acabado Molde':
+                    $lookupKey = 'Acabado_Molde_' . $claseName . '_' . $otId;
+                    $model = AcabadoMolde::class;
+                    break;
+                case 'Barreno Profundidad':
+                    $lookupKey = 'Barreno_Profundidad_' . $claseName . '_' . $otId;
+                    $model = BarrenoProfundidad::class;
+                    break;
+                case 'Cavidades':
+                    $lookupKey = 'Cavidades_' . $claseName . '_' . $otId;
+                    $model = Cavidades::class;
+                    break;
+                case 'Copiado':
+                    $lookupKey = 'Copiado_' . $claseName . '_' . $otId;
+                    $model = Copiado::class;
+                    break;
+                case 'Off Set':
+                    $lookupKey = 'Off_Set_' . $claseName . '_' . $otId;
+                    $model = OffSet::class;
+                    break;
+                case 'Palomas':
+                    $lookupKey = 'Palomas_' . $claseName . '_' . $otId;
+                    $model = Palomas::class;
+                    break;
+                case 'Rebajes':
+                    $lookupKey = 'Rebajes_' . $claseName . '_' . $otId;
+                    $model = Rebajes::class;
+                    break;
+                case 'Embudo CM':
+                    $lookupKey = 'Embudo_CM_' . $claseName . '_' . $otId;
+                    $model = EmbudoCM::class;
+                    break;
+                case 'Primera Operacion Cabeza Soplo':
+                    $lookupKey = 'Primera_Operacion_Cabeza_Soplo_' . $claseName . '_' . $otId;
+                    $model = PrimeraOperacionCabezaSoplo::class;
+                    break;
+                case 'Segunda Operacion Cabeza Soplo':
+                    $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_' . $claseName . '_' . $otId;
+                    $model = SegundaOperacionCabezaSoplo::class;
+                    break;
             }
 
             if ($lookupKey) {
@@ -762,36 +836,102 @@ class PzasGeneralesController extends Controller
             $model = null;
             $lookupKey = null;
             switch ($procName) {
-                case 'Operacion Equipo_1 operacion': 
-                    $lookupKey = 'Operacion_Equipo_1_operacion_'.$claseName.'_'.$otId; 
+                case 'Operacion Equipo_1 operacion':
+                    $lookupKey = 'Operacion_Equipo_1_operacion_' . $claseName . '_' . $otId;
                     $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
-                case 'Operacion Equipo_2 operacion': 
-                    $lookupKey = 'Operacion_Equipo_2_operacion_'.$claseName.'_'.$otId;
+                case 'Operacion Equipo_2 operacion':
+                    $lookupKey = 'Operacion_Equipo_2_operacion_' . $claseName . '_' . $otId;
                     $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
-                case 'Cepillado': $lookupKey = 'Cepillado_'.$claseName.'_'.$otId; $model = Cepillado::class; break;
-                case 'Desbaste Exterior': $lookupKey = 'Desbaste_Exterior_'.$claseName.'_'.$otId; $model = DesbasteExterior::class; break;
-                case 'Revision Laterales': $lookupKey = 'Revision_Laterales_'.$claseName.'_'.$otId; $model = RevLaterales::class; break;
-                case 'Primera Operacion': $lookupKey = 'Primera_Operacion_'.$claseName.'_'.$otId; $model = PrimeraOpeSoldadura::class; break;
-                case 'Barreno Maniobra': $lookupKey = 'Barreno_Maniobra_'.$claseName.'_'.$otId; $model = BarrenoManiobra::class; break;
-                case 'Segunda Operacion': $lookupKey = 'Segunda_Operacion_'.$claseName.'_'.$otId; $model = SegundaOpeSoldadura::class; break;
-                case 'Soldadura': $lookupKey = 'Soldadura_'.$claseName.'_'.$otId; $model = Soldadura::class; break;
-                case 'Soldadura PTA': $lookupKey = 'Soldadura_PTA_'.$claseName.'_'.$otId; $model = SoldaduraPTA::class; break;
-                case 'Rectificado': $lookupKey = 'Rectificado_'.$claseName.'_'.$otId; $model = Rectificado::class; break;
-                case 'Asentado': $lookupKey = 'Asentado_'.$claseName.'_'.$otId; $model = Asentado::class; break;
-                case 'Calificado': $lookupKey = 'Calificado_'.$claseName.'_'.$otId; $model = revCalificado::class; break;
-                case 'Acabado Bombillo': $lookupKey = 'Acabado_Bombillo_'.$claseName.'_'.$otId; $model = AcabadoBombilo::class; break;
-                case 'Acabado Molde': $lookupKey = 'Acabado_Molde_'.$claseName.'_'.$otId; $model = AcabadoMolde::class; break;
-                case 'Barreno Profundidad': $lookupKey = 'Barreno_Profundidad_'.$claseName.'_'.$otId; $model = BarrenoProfundidad::class; break;
-                case 'Cavidades': $lookupKey = 'Cavidades_'.$claseName.'_'.$otId; $model = Cavidades::class; break;
-                case 'Copiado': $lookupKey = 'Copiado_'.$claseName.'_'.$otId; $model = Copiado::class; break;
-                case 'Off Set': $lookupKey = 'Off_Set_'.$claseName.'_'.$otId; $model = OffSet::class; break;
-                case 'Palomas': $lookupKey = 'Palomas_'.$claseName.'_'.$otId; $model = Palomas::class; break;
-                case 'Rebajes': $lookupKey = 'Rebajes_'.$claseName.'_'.$otId; $model = Rebajes::class; break;
-                case 'Embudo CM': $lookupKey = 'Embudo_CM_'.$claseName.'_'.$otId; $model = EmbudoCM::class; break;
-                case 'Primera Operacion Cabeza Soplo': $lookupKey = 'Primera_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId; $model = PrimeraOperacionCabezaSoplo::class; break;
-                case 'Segunda Operacion Cabeza Soplo': $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId; $model = SegundaOperacionCabezaSoplo::class; break;
+                case 'Cepillado':
+                    $lookupKey = 'Cepillado_' . $claseName . '_' . $otId;
+                    $model = Cepillado::class;
+                    break;
+                case 'Desbaste Exterior':
+                    $lookupKey = 'Desbaste_Exterior_' . $claseName . '_' . $otId;
+                    $model = DesbasteExterior::class;
+                    break;
+                case 'Revision Laterales':
+                    $lookupKey = 'Revision_Laterales_' . $claseName . '_' . $otId;
+                    $model = RevLaterales::class;
+                    break;
+                case 'Primera Operacion':
+                    $lookupKey = 'Primera_Operacion_' . $claseName . '_' . $otId;
+                    $model = PrimeraOpeSoldadura::class;
+                    break;
+                case 'Barreno Maniobra':
+                    $lookupKey = 'Barreno_Maniobra_' . $claseName . '_' . $otId;
+                    $model = BarrenoManiobra::class;
+                    break;
+                case 'Segunda Operacion':
+                    $lookupKey = 'Segunda_Operacion_' . $claseName . '_' . $otId;
+                    $model = SegundaOpeSoldadura::class;
+                    break;
+                case 'Soldadura':
+                    $lookupKey = 'Soldadura_' . $claseName . '_' . $otId;
+                    $model = Soldadura::class;
+                    break;
+                case 'Soldadura PTA':
+                    $lookupKey = 'Soldadura_PTA_' . $claseName . '_' . $otId;
+                    $model = SoldaduraPTA::class;
+                    break;
+                case 'Rectificado':
+                    $lookupKey = 'Rectificado_' . $claseName . '_' . $otId;
+                    $model = Rectificado::class;
+                    break;
+                case 'Asentado':
+                    $lookupKey = 'Asentado_' . $claseName . '_' . $otId;
+                    $model = Asentado::class;
+                    break;
+                case 'Calificado':
+                    $lookupKey = 'Calificado_' . $claseName . '_' . $otId;
+                    $model = revCalificado::class;
+                    break;
+                case 'Acabado Bombillo':
+                    $lookupKey = 'Acabado_Bombillo_' . $claseName . '_' . $otId;
+                    $model = AcabadoBombilo::class;
+                    break;
+                case 'Acabado Molde':
+                    $lookupKey = 'Acabado_Molde_' . $claseName . '_' . $otId;
+                    $model = AcabadoMolde::class;
+                    break;
+                case 'Barreno Profundidad':
+                    $lookupKey = 'Barreno_Profundidad_' . $claseName . '_' . $otId;
+                    $model = BarrenoProfundidad::class;
+                    break;
+                case 'Cavidades':
+                    $lookupKey = 'Cavidades_' . $claseName . '_' . $otId;
+                    $model = Cavidades::class;
+                    break;
+                case 'Copiado':
+                    $lookupKey = 'Copiado_' . $claseName . '_' . $otId;
+                    $model = Copiado::class;
+                    break;
+                case 'Off Set':
+                    $lookupKey = 'Off_Set_' . $claseName . '_' . $otId;
+                    $model = OffSet::class;
+                    break;
+                case 'Palomas':
+                    $lookupKey = 'Palomas_' . $claseName . '_' . $otId;
+                    $model = Palomas::class;
+                    break;
+                case 'Rebajes':
+                    $lookupKey = 'Rebajes_' . $claseName . '_' . $otId;
+                    $model = Rebajes::class;
+                    break;
+                case 'Embudo CM':
+                    $lookupKey = 'Embudo_CM_' . $claseName . '_' . $otId;
+                    $model = EmbudoCM::class;
+                    break;
+                case 'Primera Operacion Cabeza Soplo':
+                    $lookupKey = 'Primera_Operacion_Cabeza_Soplo_' . $claseName . '_' . $otId;
+                    $model = PrimeraOperacionCabezaSoplo::class;
+                    break;
+                case 'Segunda Operacion Cabeza Soplo':
+                    $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_' . $claseName . '_' . $otId;
+                    $model = SegundaOperacionCabezaSoplo::class;
+                    break;
             }
 
             $id_proceso = ($model && $lookupKey) ? ($processLookups[$model][$lookupKey] ?? null) : null;
@@ -813,7 +953,7 @@ class PzasGeneralesController extends Controller
             $contador++;
         }
     }
-        /**
+    /**
      * @param Request $request
      */
     public function getGamesFromOT(Request $request)
@@ -883,7 +1023,7 @@ class PzasGeneralesController extends Controller
         $cNominal = null;
         /** @var mixed $tolerance */
         $tolerance = null;
-        
+
         switch ($process) {
             case 'Cepillado':
                 $pieceInfo = array();
@@ -1189,7 +1329,8 @@ class PzasGeneralesController extends Controller
                         array_push($pieceInfo, $p);
                     } else {
                         $p = PySOpeSoldadura_pza::query()->where('id_pza', $pza)->first();
-                        if ($p) array_push($pieceInfo, $p);
+                        if ($p)
+                            array_push($pieceInfo, $p);
                     }
                 }
                 if (empty($pieceInfo)) {
@@ -1335,7 +1476,7 @@ class PzasGeneralesController extends Controller
         return view('pieces_views.piecesReport.chosenPiece', compact('process', 'piecesInfo', 'cNominal', 'tolerance', 'ot', 'clase', 'profile', 'operadores', 'piezasGroup'));
     }
 
-        /**
+    /**
      * @param mixed $ot
      */
     public function getOperadores($ot)
@@ -1346,7 +1487,7 @@ class PzasGeneralesController extends Controller
         }
         return $operadores;
     }
-        /**
+    /**
      * @param mixed $matricula
      */
     public function getNameOperador($matricula)
@@ -1358,7 +1499,7 @@ class PzasGeneralesController extends Controller
         $op = $this->usersCache[$matricula];
         return $op ? "{$op->nombre} {$op->a_paterno} {$op->a_materno}" : '(desconocido)';
     }
-        /**
+    /**
      * @param int|string $id
      */
     public function getNameClase($id)
@@ -1366,7 +1507,7 @@ class PzasGeneralesController extends Controller
         $clase = Clase::query()->find($id);
         return $clase->nombre . " " . $clase->tamanio;
     }
-        /**
+    /**
      * @param mixed $pieza
      */
     public function getPiezaNumber($pieza)
@@ -1398,9 +1539,9 @@ class PzasGeneralesController extends Controller
             3 => 2, // Buena sin lib
             1 => 1, // Liberado        — mejor
         ];
-        $pH = $priority[(int)$libH] ?? 0;
-        $pM = $priority[(int)$libM] ?? 0;
-        return $pH >= $pM ? (int)$libH : (int)$libM;
+        $pH = $priority[(int) $libH] ?? 0;
+        $pM = $priority[(int) $libM] ?? 0;
+        return $pH >= $pM ? (int) $libH : (int) $libM;
     }
 
     //Funciones para el control de la vista de piezas por maquina
@@ -1990,7 +2131,7 @@ class PzasGeneralesController extends Controller
                                     $pzasNoCero++;
                                 }
                             }
-                            
+
                             if ($pzasNoCero == 0) {
                                 $procesos[$indice][1][0] = array("---", "---", "---", "---");
                             }
@@ -2036,7 +2177,7 @@ class PzasGeneralesController extends Controller
         array_splice($procesos, 0, 2);
         return view('machines_views.vistaProcesos', compact('procesos', 'ot', 'clase'));
     }
-        /**
+    /**
      * @param mixed $proceso
      */
     public function nombreProceso($proceso)
@@ -2134,34 +2275,66 @@ class PzasGeneralesController extends Controller
             }
         }
 
-        // 4. Filtro por OT o Clase (usando join con soldadura)
-        $needsSoldaduraJoin = false;
-        if (
-            (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') ||
-            (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '')
-        ) {
+        // 4. Filtro por OT o Clase (pre-resolviendo IDs de proceso para acelerar la consulta con índices SQL)
+        $hasWorkOrderFilter = isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '';
+        $hasClassFilter = isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '';
+        $activeOts = (isset($filters['activeOts']) && is_array($filters['activeOts'])) ? array_values(array_filter($filters['activeOts'])) : [];
 
-            $query->join('soldadura', 'soldadura_pza.id_proceso', '=', 'soldadura.id', 'inner', false);
-            $needsSoldaduraJoin = true;
+        if ($hasWorkOrderFilter || $hasClassFilter || (!empty($activeOts) && !$hasWorkOrderFilter)) {
+            $soldaduraQuery = Soldadura::query();
 
-            if (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') {
+            if ($hasWorkOrderFilter) {
                 $otId = strpos($filters['workOrder'], ' - ') !== false
                     ? explode(' - ', $filters['workOrder'])[0]
                     : $filters['workOrder'];
-                $query->where('soldadura.id_proceso', 'LIKE', '%_' . $otId);
+                $soldaduraQuery->where('id_proceso', 'LIKE', '%_' . trim($otId));
+            } else if (!empty($activeOts)) {
+                $soldaduraQuery->where(function ($q) use ($activeOts) {
+                    foreach ($activeOts as $otId) {
+                        $q->orWhere('id_proceso', 'LIKE', '%_' . trim($otId));
+                    }
+                });
             }
 
-            if (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '') {
-                $query->where('soldadura.id_proceso', 'LIKE', 'Soldadura_' . $filters['class'] . '_%');
+            if ($hasClassFilter) {
+                $soldaduraQuery->where('id_proceso', 'LIKE', 'Soldadura_' . $filters['class'] . '_%');
             }
+
+            $procesoIds = $soldaduraQuery->pluck('id')->toArray();
+
+            if (empty($procesoIds)) {
+                return collect([]);
+            }
+
+            $query->whereIn('soldadura_pza.id_proceso', $procesoIds);
         }
 
-        // Seleccionar solo las columnas de soldadura_pza para evitar conflictos
-        $query->select('soldadura_pza.*');
+        if (isset($filters['tipo_soldadura']) && $filters['tipo_soldadura'] !== 'Todos' && $filters['tipo_soldadura'] !== '') {
+            $tipoVal = $filters['tipo_soldadura'];
+            $map = [
+                'P1 - 3' => '1',
+                'P2 - 2.5' => '2',
+                'P3 - 2' => '3',
+                'P4 - 1.5' => '4'
+            ];
+            if (isset($map[$tipoVal])) {
+                $tipoVal = $map[$tipoVal];
+            }
+            $query->where('soldadura_pza.tipo_soldadura', $tipoVal);
+        }
 
-        return $query->get()->unique(function ($item) {
-            return $item->id_proceso . '_' . $item->n_juego;
-        });
+        if (isset($filters['material_soldadura']) && $filters['material_soldadura'] !== 'Todos' && $filters['material_soldadura'] !== '') {
+            $query->where('soldadura_pza.material_soldadura', $filters['material_soldadura']);
+        }
+
+        // Seleccionar solo el ID máximo agrupado por pieza única
+        $subQuery = $query->clone()
+            ->selectRaw('MAX(soldadura_pza.id)')
+            ->groupBy('soldadura_pza.id_proceso', 'soldadura_pza.n_juego');
+
+        return Soldadura_pza::query()
+            ->whereIn('id', $subQuery)
+            ->get();
     }
 
     /**
@@ -2202,31 +2375,60 @@ class PzasGeneralesController extends Controller
             }
         }
 
-        // 4. Filtro por OT o Clase (usando join con soldaduraPTA)
-        if (
-            (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') ||
-            (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '')
-        ) {
-            $query->join('soldaduraPTA', 'soldaduraPTA_pza.id_proceso', '=', 'soldaduraPTA.id', 'inner', false);
+        // 4. Filtro por OT o Clase (pre-resolviendo IDs de proceso PTA)
+        $hasWorkOrderFilterPTA = isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '';
+        $hasClassFilterPTA = isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '';
+        $activeOtsPTA = (isset($filters['activeOts']) && is_array($filters['activeOts'])) ? array_values(array_filter($filters['activeOts'])) : [];
 
-            if (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') {
+        if ($hasWorkOrderFilterPTA || $hasClassFilterPTA || (!empty($activeOtsPTA) && !$hasWorkOrderFilterPTA)) {
+            $soldaduraPTAQuery = SoldaduraPTA::query();
+
+            if ($hasWorkOrderFilterPTA) {
                 $otId = strpos($filters['workOrder'], ' - ') !== false
                     ? explode(' - ', $filters['workOrder'])[0]
                     : $filters['workOrder'];
-                $query->where('soldaduraPTA.id_proceso', 'LIKE', '%_' . $otId);
+                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_' . trim($otId));
+            } else if (!empty($activeOtsPTA)) {
+                $soldaduraPTAQuery->where(function ($q) use ($activeOtsPTA) {
+                    foreach ($activeOtsPTA as $otId) {
+                        $q->orWhere('id_proceso', 'LIKE', '%_' . trim($otId));
+                    }
+                });
             }
 
-            if (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '') {
-                $query->where('soldaduraPTA.id_proceso', 'LIKE', '%_' . $filters['class'] . '_%');
+            if ($hasClassFilterPTA) {
+                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_' . $filters['class'] . '_%');
             }
+
+            $procesoIdsPTA = $soldaduraPTAQuery->pluck('id')->toArray();
+
+            if (empty($procesoIdsPTA)) {
+                return collect([]);
+            }
+
+            $query->whereIn('soldaduraPTA_pza.id_proceso', $procesoIdsPTA);
         }
 
-        // Seleccionar solo las columnas de soldaduraPTA_pza para evitar conflictos
-        $query->select('soldaduraPTA_pza.*');
+        if (isset($filters['resultado']) && $filters['resultado'] !== 'Todos' && $filters['resultado'] !== '') {
+            $query->where('soldaduraPTA_pza.resultado', $filters['resultado']);
+        }
 
-        return $query->get()->unique(function ($item) {
-            return $item->id_proceso . '_' . $item->n_juego;
-        });
+        if (isset($filters['defecto']) && $filters['defecto'] !== 'Todos' && $filters['defecto'] !== '') {
+            $query->where('soldaduraPTA_pza.defecto_pta', $filters['defecto']);
+        }
+
+        if (isset($filters['material_soldadura']) && $filters['material_soldadura'] !== 'Todos' && $filters['material_soldadura'] !== '') {
+            $query->where('soldaduraPTA_pza.material_soldadura', $filters['material_soldadura']);
+        }
+
+        // Seleccionar solo el ID máximo agrupado por pieza única
+        $subQuery = $query->clone()
+            ->selectRaw('MAX(soldaduraPTA_pza.id)')
+            ->groupBy('soldaduraPTA_pza.id_proceso', 'soldaduraPTA_pza.n_juego');
+
+        return SoldaduraPTA_pza::query()
+            ->whereIn('id', $subQuery)
+            ->get();
     }
 
     /**
@@ -2311,20 +2513,28 @@ class PzasGeneralesController extends Controller
                 }
 
                 if ($proceso) {
-                    $processIdParts = explode('_', $proceso->id_proceso);
+                    $procStr = $proceso->id_proceso;
+                    $lastUnderscore = strrpos($procStr, '_');
+                    $workOrderId = ($lastUnderscore !== false) ? substr($procStr, $lastUnderscore + 1) : 'N/A';
+
                     if ($isPTA) {
-                        // Soldadura_PTA_Bombillo_1002
-                        $className = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
-                        $workOrderId = isset($processIdParts[3]) ? $processIdParts[3] : 'N/A';
+                        $prefix = 'Soldadura_PTA_';
+                        $start = (strpos($procStr, $prefix) === 0) ? strlen($prefix) : 0;
+                        $className = ($lastUnderscore !== false && $lastUnderscore > $start)
+                            ? substr($procStr, $start, $lastUnderscore - $start)
+                            : 'N/A';
                     } else {
-                        // Soldadura_Bombillo_1002
-                        $className = isset($processIdParts[1]) ? $processIdParts[1] : 'N/A';
-                        $workOrderId = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+                        $prefix = 'Soldadura_';
+                        $start = (strpos($procStr, $prefix) === 0) ? strlen($prefix) : 0;
+                        $className = ($lastUnderscore !== false && $lastUnderscore > $start)
+                            ? substr($procStr, $start, $lastUnderscore - $start)
+                            : 'N/A';
                     }
 
                     $piecesData[] = [
                         'n_juego' => $piece->n_juego ?? 'N/A',
                         'operador' => $operatorName,
+                        'operator_matricula' => $meta ? $meta->id_usuario : null,
                         'clase' => $className,
                         'orden_trabajo' => $workOrderId,
                         'precalentamiento' => $piece->precalentamiento ?? 'N/A',
@@ -2332,7 +2542,12 @@ class PzasGeneralesController extends Controller
                         'defecto' => $piece->defecto_pta ?? 'N/A',
                         'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
                         'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
-                        'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
+                        'tipo_soldadura' => [
+                            '1' => 'P1 - 3',
+                            '2' => 'P2 - 2.5',
+                            '3' => 'P3 - 2',
+                            '4' => 'P4 - 1.5'
+                        ][strval($piece->tipo_soldadura)] ?? 'N/A',
                         'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
                         'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
@@ -2340,6 +2555,44 @@ class PzasGeneralesController extends Controller
                         'observaciones' => $piece->observaciones ?? '',
                     ];
                 }
+            }
+
+            // Deduplicar piezas por clase + orden_trabajo + n_juego
+            $uniquePieces = [];
+            foreach ($piecesData as $p) {
+                $key = $p['clase'] . '_' . $p['orden_trabajo'] . '_' . $p['n_juego'];
+                if (!isset($uniquePieces[$key])) {
+                    $uniquePieces[$key] = $p;
+                } else {
+                    $existingTime = strtotime($uniquePieces[$key]['fecha'] . ' ' . $uniquePieces[$key]['hora']);
+                    $newTime = strtotime($p['fecha'] . ' ' . $p['hora']);
+                    if ($newTime > $existingTime) {
+                        $uniquePieces[$key] = $p;
+                    }
+                }
+            }
+            $piecesData = array_values($uniquePieces);
+
+            // Filtrar por activePieces para que coincida exactamente con las piezas visibles en el reporte principal
+            $activePieces = $filters['activePieces'] ?? [];
+            if (is_string($activePieces)) {
+                $activePieces = json_decode($activePieces, true) ?? [];
+            }
+            if (is_array($activePieces) && !empty($activePieces)) {
+                $activeKeys = [];
+                foreach ($activePieces as $ap) {
+                    $key = trim($ap['class'] ?? '') . '_' . trim($ap['workOrder'] ?? '') . '_' . trim($ap['noAssembly'] ?? '');
+                    $activeKeys[$key] = true;
+                }
+
+                $filteredPieces = [];
+                foreach ($piecesData as $p) {
+                    $key = trim($p['clase'] ?? '') . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
+                    if (isset($activeKeys[$key])) {
+                        $filteredPieces[] = $p;
+                    }
+                }
+                $piecesData = $filteredPieces;
             }
 
             return response()->json([
@@ -2387,10 +2640,13 @@ class PzasGeneralesController extends Controller
             $metasMap = Metas::query()->whereIn('id', $metasIds)->get()->keyBy('id');
             $userIds = $metasMap->pluck('id_usuario')->unique()->toArray();
             $usersMap = User::query()->whereIn('matricula', $userIds)->get()->keyBy('matricula');
+            $claseIds = $metasMap->pluck('id_clase')->unique()->toArray();
+            $clasesMap = Clase::query()->whereIn('id', $claseIds)->get()->keyBy('id');
 
             foreach ($soldaduraPieces as $piece) {
                 $proceso = $procesosMap->get($piece->id_proceso);
                 $meta = $metasMap->get($piece->id_meta);
+                $clase = $meta ? $clasesMap->get($meta->id_clase) : null;
                 $operatorName = 'N/A';
 
                 if ($meta) {
@@ -2401,13 +2657,22 @@ class PzasGeneralesController extends Controller
                 }
 
                 if ($proceso) {
-                    $processIdParts = explode('_', $proceso->id_proceso);
+                    $procStr = $proceso->id_proceso;
+                    $lastUnderscore = strrpos($procStr, '_');
+                    $workOrderId = ($lastUnderscore !== false) ? substr($procStr, $lastUnderscore + 1) : 'N/A';
+
                     if ($isPTA) {
-                        $className = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
-                        $workOrderId = isset($processIdParts[3]) ? $processIdParts[3] : 'N/A';
+                        $prefix = 'Soldadura_PTA_';
+                        $start = (strpos($procStr, $prefix) === 0) ? strlen($prefix) : 0;
+                        $className = ($lastUnderscore !== false && $lastUnderscore > $start)
+                            ? substr($procStr, $start, $lastUnderscore - $start)
+                            : 'N/A';
                     } else {
-                        $className = isset($processIdParts[1]) ? $processIdParts[1] : 'N/A';
-                        $workOrderId = isset($processIdParts[2]) ? $processIdParts[2] : 'N/A';
+                        $prefix = 'Soldadura_';
+                        $start = (strpos($procStr, $prefix) === 0) ? strlen($prefix) : 0;
+                        $className = ($lastUnderscore !== false && $lastUnderscore > $start)
+                            ? substr($procStr, $start, $lastUnderscore - $start)
+                            : 'N/A';
                     }
 
                     if ($isPTA) {
@@ -2425,13 +2690,25 @@ class PzasGeneralesController extends Controller
                             'observaciones' => $piece->observaciones ?? '',
                         ];
                     } else {
+                        $tipoRaw = $piece->tipo_soldadura;
+                        if (empty($tipoRaw) || in_array(strval($tipoRaw), ['0', '.0', '00', '000', '0000'])) {
+                            if ($clase) {
+                                $tipoRaw = $clase->tipo_soldadura;
+                            }
+                        }
+
                         $piecesData[] = [
                             'n_juego' => $piece->n_juego ?? 'N/A',
                             'operador' => $operatorName,
                             'clase' => $className,
                             'orden_trabajo' => $workOrderId,
                             'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
-                            'tipo_soldadura' => $piece->tipo_soldadura ?? 'N/A',
+                            'tipo_soldadura' => [
+                                '1' => 'P1 - 3',
+                                '2' => 'P2 - 2.5',
+                                '3' => 'P3 - 2',
+                                '4' => 'P4 - 1.5'
+                            ][strval($tipoRaw)] ?? $tipoRaw ?? 'N/A',
                             'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                             'lote' => $piece->lote ?? 'N/A',
                             'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
@@ -2442,16 +2719,54 @@ class PzasGeneralesController extends Controller
                 }
             }
 
+            // Deduplicar piezas por clase + orden_trabajo + n_juego para el PDF
+            $uniquePieces = [];
+            foreach ($piecesData as $p) {
+                $key = $p['clase'] . '_' . $p['orden_trabajo'] . '_' . $p['n_juego'];
+                if (!isset($uniquePieces[$key])) {
+                    $uniquePieces[$key] = $p;
+                } else {
+                    $existingTime = strtotime($uniquePieces[$key]['fecha'] . ' ' . $uniquePieces[$key]['hora']);
+                    $newTime = strtotime($p['fecha'] . ' ' . $p['hora']);
+                    if ($newTime > $existingTime) {
+                        $uniquePieces[$key] = $p;
+                    }
+                }
+            }
+            $piecesData = array_values($uniquePieces);
+
+            // Filtrar por activePieces para que coincida exactamente con las piezas visibles en el reporte principal
+            $activePieces = $filters['activePieces'] ?? [];
+            if (is_string($activePieces)) {
+                $activePieces = json_decode($activePieces, true) ?? [];
+            }
+            if (is_array($activePieces) && !empty($activePieces)) {
+                $activeKeys = [];
+                foreach ($activePieces as $ap) {
+                    $key = trim($ap['class'] ?? '') . '_' . trim($ap['workOrder'] ?? '') . '_' . trim($ap['noAssembly'] ?? '');
+                    $activeKeys[$key] = true;
+                }
+
+                $filteredPieces = [];
+                foreach ($piecesData as $p) {
+                    $key = trim($p['clase'] ?? '') . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
+                    if (isset($activeKeys[$key])) {
+                        $filteredPieces[] = $p;
+                    }
+                }
+                $piecesData = $filteredPieces;
+            }
+
             // Construir nombre de archivo dinámico basado en filtros
             $filenameParts = $isPTA ? ['Reporte_PTA'] : ['Reporte_Soldadura'];
-            
+
             $ordenTrabajo = 'Todas';
 
             // Agregar OT si está filtrado
             if (isset($filters['workOrder']) && $filters['workOrder'] !== 'Todos' && $filters['workOrder'] !== '') {
                 $otValue = $filters['workOrder'];
                 $ordenTrabajo = $otValue; // Para mostrar en la vista
-                
+
                 // Si tiene formato "123 - Descripción", extraer solo el número para el nombre del archivo
                 if (strpos($otValue, ' - ') !== false) {
                     $otValue = explode(' - ', $otValue)[0];
@@ -2508,11 +2823,13 @@ class PzasGeneralesController extends Controller
             $filename = implode('_', $filenameParts) . '.pdf';
 
             if ($isPTA) {
-                $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraPTAExtraInfoPdf', compact('piecesData', 'ordenTrabajo'));
+                $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraPTAExtraInfoPdf', compact('piecesData', 'ordenTrabajo'))
+                    ->setPaper('a4', 'landscape');
             } else {
-                $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraExtraInfoPdf', compact('piecesData'));
+                $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraExtraInfoPdf', compact('piecesData'))
+                    ->setPaper('a4', 'landscape');
             }
-            
+
             return $pdf->download($filename);
 
         } catch (\Exception $e) {
