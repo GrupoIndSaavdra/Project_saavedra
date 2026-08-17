@@ -441,6 +441,23 @@ function initializeSoldaduraModalContent(modalContainer, pieces, liveFilters, su
         return { container: filterItem, selectElement: select };
     };
 
+    const createFilterDate = (labelName, nameAttr) => {
+        const filterItem = document.createElement("div");
+        filterItem.className = "soldadura-modal-filter-item";
+ 
+        const label = document.createElement("label");
+        label.textContent = labelName;
+        filterItem.appendChild(label);
+ 
+        const input = document.createElement("input");
+        input.type = "date";
+        input.name = nameAttr;
+        input.className = "soldadura-modal-filter-input";
+ 
+        filterItem.appendChild(input);
+        return { container: filterItem, inputElement: input };
+    };
+
     const filterOt = createFilterSelect("OT", "Todas", uniqueOts, (val) => {
         const idStr = String(val).trim();
         if (otMap[idStr]) {
@@ -452,11 +469,15 @@ function initializeSoldaduraModalContent(modalContainer, pieces, liveFilters, su
     const filterClass = createFilterSelect("Clase", "Todas", uniqueClasses);
     const filterOperator = createFilterSelect("Operador", "Todos", uniqueOperators);
     const filterJuego = createFilterSelect("N° Juego", "Todos", uniqueJuegos);
-
+    const filterDateFrom = createFilterDate("Desde", "dateFrom");
+    const filterDateTo = createFilterDate("Hasta", "dateTo");
+ 
     filtersBar.appendChild(filterOt.container);
     filtersBar.appendChild(filterClass.container);
     filtersBar.appendChild(filterOperator.container);
     filtersBar.appendChild(filterJuego.container);
+    filtersBar.appendChild(filterDateFrom.container);
+    filtersBar.appendChild(filterDateTo.container);
 
     let filterPtaResultado = null;
     let filterPtaDefecto = null;
@@ -622,17 +643,28 @@ function initializeSoldaduraModalContent(modalContainer, pieces, liveFilters, su
         renderNextChunk();
     };
 
+    const parsePieceDate = (dateStr) => {
+        if (!dateStr || dateStr === 'N/A') return null;
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1]}-${parts[0]}`; // yyyy-mm-dd
+        }
+        return null;
+    };
+
     const applyModalFilters = () => {
         const selectedOt = filterOt.selectElement.value;
         const selectedClass = filterClass.selectElement.value;
         const selectedOperator = filterOperator.selectElement.value;
         const selectedJuego = filterJuego.selectElement.value;
-
+        const selectedDateFrom = filterDateFrom.inputElement.value;
+        const selectedDateTo = filterDateTo.inputElement.value;
+ 
         let selectedResultado = "Todos";
         let selectedDefecto = "Todos";
         let selectedTipo = "Todos";
         let selectedMaterial = "Todos";
-
+ 
         if (isPTA) {
             selectedResultado = filterPtaResultado.selectElement.value;
             selectedDefecto = filterPtaDefecto.selectElement.value;
@@ -640,13 +672,19 @@ function initializeSoldaduraModalContent(modalContainer, pieces, liveFilters, su
             selectedTipo = filterGeneralTipo.selectElement.value;
             selectedMaterial = filterGeneralMaterial.selectElement.value;
         }
-
+ 
         const filtered = pieces.filter(piece => {
             if (selectedOt !== "Todos" && String(piece.orden_trabajo) !== selectedOt) return false;
             if (selectedClass !== "Todos" && String(piece.clase) !== selectedClass) return false;
             if (selectedOperator !== "Todos" && String(piece.operador) !== selectedOperator) return false;
             if (selectedJuego !== "Todos" && String(piece.n_juego) !== selectedJuego) return false;
-
+ 
+            const pieceDate = parsePieceDate(piece.fecha);
+            if (pieceDate) {
+                if (selectedDateFrom && pieceDate < selectedDateFrom) return false;
+                if (selectedDateTo && pieceDate > selectedDateTo) return false;
+            }
+ 
             if (isPTA) {
                 if (selectedResultado !== "Todos" && String(piece.resultado) !== selectedResultado) return false;
                 if (selectedDefecto !== "Todos" && String(piece.defecto) !== selectedDefecto) return false;
@@ -656,15 +694,20 @@ function initializeSoldaduraModalContent(modalContainer, pieces, liveFilters, su
             }
             return true;
         });
-
+ 
         renderTableBody(filtered);
     };
-
+ 
     // Agregar event listeners a todos los selectores de filtros
     [filterOt, filterClass, filterOperator, filterJuego].forEach(f => {
         f.selectElement.addEventListener("change", applyModalFilters);
     });
-
+ 
+    [filterDateFrom.inputElement, filterDateTo.inputElement].forEach(elem => {
+        elem.addEventListener("change", applyModalFilters);
+        elem.addEventListener("input", applyModalFilters);
+    });
+ 
     if (isPTA) {
         filterPtaResultado.selectElement.addEventListener("change", applyModalFilters);
         filterPtaDefecto.selectElement.addEventListener("change", applyModalFilters);
@@ -689,17 +732,19 @@ function initializeSoldaduraModalContent(modalContainer, pieces, liveFilters, su
         const filters = {
             ...getCurrentFiltersFromDOM()
         };
-
-        // Serializar activePieces a JSON string para enviarlo por GET de forma segura
+ 
+        // Serializar activePieces a JSON string para enviarlo de forma segura
         if (filters.activePieces) {
             filters.activePieces = JSON.stringify(filters.activePieces);
         }
-
+ 
         const modalOt = filterOt.selectElement.value;
         const modalClass = filterClass.selectElement.value;
         const modalOperator = filterOperator.selectElement.value;
         const modalJuego = filterJuego.selectElement.value;
-
+        const modalDateFrom = filterDateFrom.inputElement.value;
+        const modalDateTo = filterDateTo.inputElement.value;
+ 
         if (modalOt !== "Todos") filters.workOrder = modalOt;
         if (modalClass !== "Todos") filters.class = modalClass;
         if (modalOperator !== "Todos") {
@@ -709,25 +754,48 @@ function initializeSoldaduraModalContent(modalContainer, pieces, liveFilters, su
             }
         }
         if (modalJuego !== "Todos") filters.n_juego = modalJuego;
-
+        if (modalDateFrom) filters.dateFrom = modalDateFrom;
+        if (modalDateTo) filters.dateTo = modalDateTo;
+ 
         if (isPTA) {
             const modalResultado = filterPtaResultado.selectElement.value;
             const modalDefecto = filterPtaDefecto.selectElement.value;
-            if (modalResultado !== "Todos") filters.resultado = modalResultado;
-            if (modalDefecto !== "Todos") filters.defecto = modalDefecto;
+            if (modalResultado !== "Todos" && modalResultado !== "") filters.resultado = modalResultado;
+            if (modalDefecto !== "Todos" && modalDefecto !== "") filters.defecto = modalDefecto;
         } else {
             const modalTipo = filterGeneralTipo.selectElement.value;
             const modalMaterial = filterGeneralMaterial.selectElement.value;
-            if (modalTipo !== "Todos") filters.tipo_soldadura = modalTipo;
-            if (modalMaterial !== "Todos") filters.material_soldadura = modalMaterial;
+            if (modalTipo !== "Todos" && modalTipo !== "") filters.tipo_soldadura = modalTipo;
+            if (modalMaterial !== "Todos" && modalMaterial !== "") filters.material_soldadura = modalMaterial;
         }
-
+ 
         delete filters.action;
         delete filters.status;
-
-        const params = new URLSearchParams(filters).toString();
-        const downloadUrl = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF?" + params;
-        window.open(downloadUrl, '_blank');
+ 
+        // Submit using dynamic POST form to avoid Apache "Request-URI Too Long" 414 error
+        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = window.baseUrl + "/pieces/downloadSoldaduraExtraInfoPDF";
+        form.target = "_blank";
+ 
+        const csrfInput = document.createElement("input");
+        csrfInput.type = "hidden";
+        csrfInput.name = "_token";
+        csrfInput.value = csrfToken;
+        form.appendChild(csrfInput);
+ 
+        Object.entries(filters).forEach(([key, val]) => {
+            const input = document.createElement("input");
+            input.type = "hidden";
+            input.name = key;
+            input.value = val;
+            form.appendChild(input);
+        });
+ 
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
     });
 
     // Botón cerrar

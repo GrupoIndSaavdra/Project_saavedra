@@ -118,7 +118,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const btnPurge = document.getElementById('btn-manual-purge');
     if (btnPurge) {
         btnPurge.addEventListener('click', async () => {
-            const confirmed = confirm("¿ESTÁ SEGURO DE DEPURAR LOS LOGS?\n\nEsta acción:\n1. Generará respaldos en archivos .txt por operador.\n2. ELIMINARÁ PERMANENTEMENTE todos los registros de la tabla actual.\n\n¿Desea continuar?");
+            const confirmed = confirm("¿ESTÁ SEGURO DE DEPURAR LOS LOGS?\n\nEsta acción:\n1. Generará respaldos en formato PDF organizados semanalmente.\n2. ELIMINARÁ PERMANENTEMENTE todos los registros de la tabla actual.\n\n¿Desea continuar?");
 
             if (!confirmed) return;
 

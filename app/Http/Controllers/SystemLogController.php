@@ -607,6 +607,7 @@ class SystemLogController extends Controller
      */
     public function purge(Request $request)
     {
+        set_time_limit(0);
         try {
             // Solo administradores (perfil 1) o Master (perfil 3)
             if (!in_array(Auth::user()->perfil, [1, 3])) {

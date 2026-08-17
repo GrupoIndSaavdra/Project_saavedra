@@ -78,7 +78,7 @@
     </style>
 
     <div class="title">
-        <h1>{{ $isAdminOnly ? 'Logs de Administradores' : 'Auditoría y Logs del Sistema' }}</h1>
+        <h1>{{ $isAdminOnly ? 'Logs de Administradores' : 'Auditoría y Logs del Sistema' }}{{ isset($partNumber) ? " (Parte {$partNumber})" : "" }}</h1>
         <p>Fecha de generación: {{ date('d-m-Y H:i:s') }}</p>
     </div>
 

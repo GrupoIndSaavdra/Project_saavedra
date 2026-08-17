@@ -2499,10 +2499,13 @@ class PzasGeneralesController extends Controller
             $metasMap = Metas::query()->whereIn('id', $metasIds)->get()->keyBy('id');
             $userIds = $metasMap->pluck('id_usuario')->unique()->toArray();
             $usersMap = User::query()->whereIn('matricula', $userIds)->get()->keyBy('matricula');
+            $claseIds = $metasMap->pluck('id_clase')->unique()->toArray();
+            $clasesMap = Clase::query()->whereIn('id', $claseIds)->get()->keyBy('id');
 
             foreach ($soldaduraPieces as $piece) {
                 $proceso = $procesosMap->get($piece->id_proceso);
                 $meta = $metasMap->get($piece->id_meta);
+                $clase = $meta ? $clasesMap->get($meta->id_clase) : null;
                 $operatorName = 'N/A';
 
                 if ($meta) {
@@ -2531,6 +2534,13 @@ class PzasGeneralesController extends Controller
                             : 'N/A';
                     }
 
+                    $tipoRaw = $piece->tipo_soldadura;
+                    if (empty($tipoRaw) || in_array(strval($tipoRaw), ['0', '.0', '00', '000', '0000'])) {
+                        if ($clase) {
+                            $tipoRaw = $clase->tipo_soldadura;
+                        }
+                    }
+
                     $piecesData[] = [
                         'n_juego' => $piece->n_juego ?? 'N/A',
                         'operador' => $operatorName,
@@ -2547,7 +2557,7 @@ class PzasGeneralesController extends Controller
                             '2' => 'P2 - 2.5',
                             '3' => 'P3 - 2',
                             '4' => 'P4 - 1.5'
-                        ][strval($piece->tipo_soldadura)] ?? 'N/A',
+                        ][strval($tipoRaw)] ?? $tipoRaw ?? 'N/A',
                         'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
                         'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',

@@ -714,7 +714,8 @@ tr:hover {
     letter-spacing: 0.7px;
 }
 
-.soldadura-modal-filter-select {
+.soldadura-modal-filter-select,
+.soldadura-modal-filter-input {
     padding: 9px 12px;
     border: 1px solid rgba(3, 57, 102, 0.2);
     border-radius: 10px;
@@ -730,12 +731,14 @@ tr:hover {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.soldadura-modal-filter-select:hover {
+.soldadura-modal-filter-select:hover,
+.soldadura-modal-filter-input:hover {
     border-color: rgba(3, 57, 102, 0.4);
     background-color: #fafafa;
 }
 
-.soldadura-modal-filter-select:focus {
+.soldadura-modal-filter-select:focus,
+.soldadura-modal-filter-input:focus {
     border-color: var(--gis-blue);
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }

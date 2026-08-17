@@ -45,10 +45,9 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/sync_fundicion.log'));
 
-        // ── Depuración cada 3 días de Logs ──────────────────────────────────────────────────────
-        // Programación: Cada 3 días a las 23:00 (11 PM)
+        // ── Depuración el día 24 de cada mes a las 23:00 ──
         $schedule->command('app:depurar-logs')
-            ->cron('0 23 */3 * *')
+            ->monthlyOn(24, '23:00')
             ->appendOutputTo(storage_path('logs/depuracion_periodica.log'));
     }
 
