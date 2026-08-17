@@ -123,26 +123,30 @@
                     <tr style="background-color: #1E8449; color: white; font-size: 10px;"><td colspan="2" style="text-align: center; padding: 2px;"><b>Gestión de Carpetas</b></td></tr>
                     <tr style="background-color: #82E0AA; color: black; font-size: 9px;"><td style="padding: 1px;">Verde Menta</td><td style="padding: 1px;">Creación de Carpeta</td></tr>
                 @else
-                    {{-- COLORES MODO OPERADOR (lógica dinámica según logs presentes) --}}
+                    {{-- COLORES MODO OPERADOR --}}
                     <?php
-                    $activeFamilies = ['azul' => false, 'verde' => false, 'amarillo' => false, 'morado' => false, 'rojo' => false];
-                    foreach ($logsRender as $log) {
-                        $action = $log['action'];
-                        $isSuspicious = $log['is_suspicious'] ?? false;
-                        if (in_array($action, ['Inicio de Sesión', 'Nuevo reporte', 'Inicio de Reporte', 'Cierre de Sesión', 'Login Inspector Calidad', 'Carga de Formulario de Producción', 'Selección de Pieza', 'Selección de OT', 'Selección de Clase', 'Selección de Proceso', 'Nueva Meta Creada', 'Ingreso a Meta Existente'])) {
-                            $activeFamilies['azul'] = true;
-                        }
-                        if (in_array($action, ['Proceso Correcto', 'Captura Medida', 'Liberación por Calidad', 'Terminar Reporte']) && !$isSuspicious) {
-                            $activeFamilies['verde'] = true;
-                        }
-                        if (in_array($action, ['Consulta Dibujos Técnicos', 'Solicitud Edición de Piezas', 'Intento de Liberación'])) {
-                            $activeFamilies['morado'] = true;
-                        }
-                        if (in_array($action, ['Consulta Documentación Técnica', 'Captura Sospechosa', 'Solicitud Edición de Reporte']) || ($action === 'Captura Medida' && $isSuspicious)) {
-                            $activeFamilies['amarillo'] = true;
-                        }
-                        if (in_array($action, ['Exceso de Tiempo', 'Mensaje de Error', 'Rechazo por Calidad', 'Alerta de Error en Sistema', 'Avisos de Sistema', 'Intento de Login Fallido'])) {
-                            $activeFamilies['rojo'] = true;
+                    // Si el comando de depuración pre-calculó $activeFamilies en PHP, se usa directamente.
+                    // Si no viene (petición manual desde la UI), se calcula aquí en el template.
+                    if (!isset($activeFamilies)) {
+                        $activeFamilies = ['azul' => false, 'verde' => false, 'amarillo' => false, 'morado' => false, 'rojo' => false];
+                        foreach ($logsRender as $log) {
+                            $action = $log['action'];
+                            $isSuspicious = $log['is_suspicious'] ?? false;
+                            if (in_array($action, ['Inicio de Sesión', 'Nuevo reporte', 'Inicio de Reporte', 'Cierre de Sesión', 'Login Inspector Calidad', 'Carga de Formulario de Producción', 'Selección de Pieza', 'Selección de OT', 'Selección de Clase', 'Selección de Proceso', 'Nueva Meta Creada', 'Ingreso a Meta Existente'])) {
+                                $activeFamilies['azul'] = true;
+                            }
+                            if (in_array($action, ['Proceso Correcto', 'Captura Medida', 'Liberación por Calidad', 'Terminar Reporte']) && !$isSuspicious) {
+                                $activeFamilies['verde'] = true;
+                            }
+                            if (in_array($action, ['Consulta Dibujos Técnicos', 'Solicitud Edición de Piezas', 'Intento de Liberación'])) {
+                                $activeFamilies['morado'] = true;
+                            }
+                            if (in_array($action, ['Consulta Documentación Técnica', 'Captura Sospechosa', 'Solicitud Edición de Reporte']) || ($action === 'Captura Medida' && $isSuspicious)) {
+                                $activeFamilies['amarillo'] = true;
+                            }
+                            if (in_array($action, ['Exceso de Tiempo', 'Mensaje de Error', 'Rechazo por Calidad', 'Alerta de Error en Sistema', 'Avisos de Sistema', 'Intento de Login Fallido'])) {
+                                $activeFamilies['rojo'] = true;
+                            }
                         }
                     }
                     ?>

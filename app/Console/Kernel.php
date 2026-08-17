@@ -45,9 +45,14 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/sync_fundicion.log'));
 
-        // ── Depuración el día 24 de cada mes a las 23:00 ──
+        // ── Depuración automática cada domingo a las 23:00 ────────────────────
+        // Se ejecuta semanalmente para evitar acumulación brusca de logs en el servidor.
+        // La depuración manual sigue disponible desde la interfaz de administración en cualquier momento.
         $schedule->command('app:depurar-logs')
-            ->monthlyOn(24, '23:00')
+            ->weekly()
+            ->sundays()
+            ->at('23:00')
+            ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/depuracion_periodica.log'));
     }
 
