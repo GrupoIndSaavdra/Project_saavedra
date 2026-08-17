@@ -22,10 +22,14 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
         $schedule->command('qr:cancelar-vencidos')->daily();
 
-        // ── Reporte Diario de Producción — 23:59 todos los días ────────
+        // ── Reporte Diario de Producción — 23:50 todos los días ────────
+        // withoutOverlapping: evita que dos instancias corran en paralelo.
+        // onOneServer: si hay múltiples instancias del scheduler corriendo (ej. cron duplicado
+        //              o varios workers), garantiza que SOLO UNA ejecute el comando.
         $schedule->command('reporte:enviar-diario')
             ->dailyAt('23:50')
-            ->withoutOverlapping()       // evita ejecuciones duplicadas
+            ->withoutOverlapping()
+            ->onOneServer()
             ->appendOutputTo(storage_path('logs/reporte_diario.log'));
 
         // ── Latido de Monitoreo — cada minuto ──────────────────────────

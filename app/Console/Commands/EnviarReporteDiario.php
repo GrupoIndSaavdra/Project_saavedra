@@ -29,11 +29,24 @@ class EnviarReporteDiario extends Command
     public function handle(): int
     {
         ini_set('memory_limit', '512M');
+
         // ── 1. Determinar fecha ───────────────────────────────────────────
         $fechaStr = $this->option('fecha');
-        $fecha = $fechaStr ? Carbon::parse($fechaStr) : Carbon::today();
+        $fecha    = $fechaStr ? Carbon::parse($fechaStr) : Carbon::today();
 
         $this->info("Generando reporte para: {$fecha->toDateString()}");
+
+        // ── GUARD DE IDEMPOTENCIA ─────────────────────────────────────────
+        // Si el cron o el scheduler disparan el comando más de una vez en el
+        // mismo día (cron duplicado, reinicio del servidor, etc.), el archivo
+        // .sent evita que el correo se envíe dos veces.
+        // El flag se omite en --test para poder re-enviar manualmente.
+        $sentFlag = storage_path("logs/reporte_{$fecha->toDateString()}.sent");
+        if (!$this->option('test') && file_exists($sentFlag)) {
+            $this->warn("⚠ El reporte de {$fecha->toDateString()} ya fue enviado hoy. Abortando para evitar duplicado.");
+            $this->warn("  (Borra '{$sentFlag}' si necesitas re-enviar manualmente.)");
+            return self::SUCCESS;
+        }
 
         // ── 2. Consultar piezas del día ───────────────────────────────────
         $piezasDelDia = Pieza::with(['clase', 'operador', 'ordenTrabajo'])
@@ -53,9 +66,9 @@ class EnviarReporteDiario extends Command
         // ── 3. Agrupar: OT → Clase → Proceso → Operadores ────────────────
         $reporte = $this->agruparJerarquicamente($piezasDelDia);
 
-        // ── 3.5. Generar PDF global ────────────────────────────────
-        $pdfPaths = [];
-        $baseDir = storage_path('app/public/reportes');
+        // ── 3.5. Generar PDF global ────────────────────────────────────────
+        $pdfPaths  = [];
+        $baseDir   = storage_path('app/public/reportes');
         $folderPath = "{$baseDir}/General";
         if (!file_exists($folderPath)) {
             mkdir($folderPath, 0755, true);
@@ -63,13 +76,12 @@ class EnviarReporteDiario extends Command
         $fullPath = "{$folderPath}/{$fecha->toDateString()}.pdf";
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('emails.reporte_diario_pdf', [
             'reporte' => $reporte,
-            'fecha' => $fecha
+            'fecha'   => $fecha,
         ]);
         $pdf->setPaper('a4', 'portrait');
         $pdf->save($fullPath);
         $pdfPaths[] = $fullPath;
         $this->info("PDF generado: {$fullPath}");
-
 
         // ── 4. Determinar destinatarios ───────────────────────────────────
         $destinatarios = $this->obtenerDestinatarios();
@@ -92,6 +104,15 @@ class EnviarReporteDiario extends Command
         }
 
         $this->info("Reporte diario completado. Enviados: {$enviados}/" . count($destinatarios));
+
+        // ── 6. Marcar como enviado (flag de idempotencia) ─────────────────
+        // Solo se escribe si al menos un correo fue enviado exitosamente.
+        // El flag se limpia automáticamente al día siguiente (nombre incluye la fecha).
+        if ($enviados > 0 && !$this->option('test')) {
+            file_put_contents($sentFlag, now()->toDateTimeString() . " — {$enviados} correo(s) enviado(s)\n");
+            $this->info("✓ Flag de idempotencia escrito: {$sentFlag}");
+        }
+
         return self::SUCCESS;
     }
 
@@ -99,7 +120,7 @@ class EnviarReporteDiario extends Command
      * Agrupa los registros en la jerarquía:
      * OT → Clase → Proceso → [ filas de operadores ]
      *
-     * @param \Illuminate\Support\Collection|\App\Models\Pieza[] $piezas
+     * @param \Illuminate\Support\Collection|Pieza[] $piezas
      */
     private function agruparJerarquicamente($piezas): array
     {
@@ -537,7 +558,7 @@ class EnviarReporteDiario extends Command
     }
 
     /**
-     * @param \App\Models\Pieza|null $piece
+     * @param Pieza|null $piece
      * @return bool
      */
     private function verifyPiece($piece): bool
