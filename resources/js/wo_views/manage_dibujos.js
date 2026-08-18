@@ -832,56 +832,89 @@ function renderEstructuraTable() {
     if (ots.length > 0) {
         ots.forEach(otName => {
             const clases = window.estructura[otName];
-            const displayClases = clases.length > 0 ? clases : ['--'];
             
-            displayClases.forEach(claseLabel => {
-                const esHuerfano = (claseLabel === '--');
-                const badgeId = "badge-" + slugify(otName) + "-" + slugify(claseLabel);
-                const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
-                const countClass = savedCount === '0' ? 'badge-count badge-count-empty' : 'badge-count';
-                
+            // Parsear ID de OT
+            const match = otName.match(/OT\s*(\d+)/i);
+            const otIdNumber = match ? parseInt(match[1]) : 0;
+            const otReal = window.todasLasOTs ? window.todasLasOTs.find(o => o.id === otIdNumber) : null;
+            const otLabel = otReal ? `OT ${otReal.id}${otReal.moldura_nombre ? ' — ' + otReal.moldura_nombre : ''}` : otName;
+            const otIdBD = otReal ? otReal.id : null;
+
+            if (clases.length === 0) {
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-ot', otName);
-                tr.setAttribute('data-clase', claseLabel);
+                tr.setAttribute('data-clase', '');
                 tr.innerHTML = `
-                    <td class="d-text-center d-text-primary"><strong>${otName}</strong></td>
+                    <td class="d-text-center d-text-primary"><strong>${otLabel}</strong></td>
                     <td class="d-text-center">
-                        ${esHuerfano ? 
-                            `<em class="d-text-danger d-text-bold">Sin clases</em>` : 
-                            `<span class="d-text-success d-text-bold">${claseLabel}</span>`
-                        }
+                        <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
+                            <span class="badge-ayuda-tag alerta-sin-clases-tag pointer-events-none">Sin clases asignadas</span>
+                        </div>
                     </td>
-                    <td class="d-text-center">
-                        ${esHuerfano ? 
-                            `<span class="d-text-subtle">—</span>` : 
-                            `<span class="${countClass}" id="${badgeId}">${savedCount}</span>`
-                        }
-                    </td>
+                    <td class="d-text-center"><span class="badge-count" id="badge-${slugify(otName)}-raiz">...</span></td>
                     <td class="d-text-center">
                         <div class="td-actions">
-                            ${!esHuerfano ? 
-                                `<button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                    onclick="irACarpeta('${otName}', '${claseLabel}')">
-                                    <img src="${window.baseUrl}/images/documento.png" alt="Ver">
-                                    <span>Ver PDF's</span>
-                                </button>` : ''
-                            }
-                            <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                onclick="confirmarEliminarCarpeta('${otName}', '${claseLabel}', '${otName}${esHuerfano ? "" : " / " + claseLabel}')">
+                            <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar OT completa"
+                                onclick="confirmarEliminarCarpeta('${otName}', null, '${otLabel}')">
                                 <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
-                                <span>Eliminar ${esHuerfano ? 'Directorio Raíz' : 'Clase'}</span>
+                                <span>Eliminar Directorio Raíz</span>
                             </button>
                         </div>
                     </td>
                 `;
                 tbody.appendChild(tr);
-            });
+            } else {
+                clases.forEach(claseName => {
+                    const isRoot = claseName === null || claseName === '--';
+                    const paramClase = isRoot ? '--' : claseName;
+                    const displayClase = isRoot ? 'Archivos en Raíz' : claseName;
+                    const claseReal = (!isRoot && otReal && otReal.clases) ? otReal.clases.find(c => c.nombre === claseName) : null;
+                    const claseIdBD = claseReal ? claseReal.id : paramClase;
+                    const badgeId = "badge-" + slugify(otName) + "-" + slugify(paramClase);
+
+                    const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
+                    const countClass = savedCount === '0' ? 'badge-count badge-count-empty' : 'badge-count';
+
+                    const p1Param = otIdBD || otName;
+                    const p2ParamVer = otIdBD ? claseIdBD : (isRoot ? null : claseName);
+                    const isIdParam = otIdBD ? 'true' : 'false';
+
+                    const p2ParamEliminar = isRoot ? null : claseName;
+                    const labelParamEliminar = `${otLabel}${isRoot ? '' : ' / ' + claseName}`;
+
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-ot', otName);
+                    tr.setAttribute('data-clase', paramClase);
+                    tr.innerHTML = `
+                        <td class="d-text-center d-text-primary"><strong>${otLabel}</strong></td>
+                        <td class="d-text-center">
+                            <span class="badge-ayuda-tag alerta-enviada-tag transform-none-important">${displayClase}</span>
+                        </td>
+                        <td class="d-text-center"><span class="${countClass}" id="${badgeId}">${savedCount}</span></td>
+                        <td class="d-text-center">
+                            <div class="td-actions">
+                                <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                                    onclick="irACarpeta('${p1Param}', '${p2ParamVer}', ${isIdParam})">
+                                    <img src="${window.baseUrl}/images/documento.png" alt="Ver">
+                                    <span>Ver PDF's</span>
+                                </button>
+                                <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
+                                    onclick="confirmarEliminarCarpeta('${otName}', '${p2ParamEliminar || ''}', '${labelParamEliminar}')">
+                                    <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
+                                    <span>Eliminar Clase</span>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
         });
     } else {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td colspan="4" class="d-text-center d-text-subtle">
-                No hay carpetas de OTs registradas en el servidor.
+                No hay carpetas creadas aun.
             </td>
         `;
         tbody.appendChild(tr);

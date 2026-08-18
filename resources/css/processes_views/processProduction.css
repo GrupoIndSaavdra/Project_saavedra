@@ -1849,4 +1849,34 @@ td select {
     transform: scale(1.15) rotate(3deg) translateY(-3px);
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
 }
+ 
+/* Asegurar que los contenedores en verificación e inputs de contraseña salgan por encima del overlay global */
+body:has(.is-verifying) .container-meta {
+    z-index: 1000000 !important;
+}
+
+/* Dim/opacar todos los elementos hermanos del contenedor que está en verificación */
+body:has(.is-verifying) .container-meta > div:not(:has(.is-verifying)) {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease;
+}
+
+/* Dim/opacar los elementos hermanos dentro de .div-table-meta */
+body:has(.is-verifying) .div-table-meta > *:not(.is-verifying):not(:has(.is-verifying)) {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease;
+}
+
+/* Dim/opacar los botones hermanos de acciones de producción */
+body:has(.is-verifying) .production-actions > *:not(.is-verifying) {
+    opacity: 0.35 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease;
+}
+
+.is-verifying {
+    z-index: 1000000 !important;
+}
 

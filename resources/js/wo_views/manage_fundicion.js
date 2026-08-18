@@ -1146,6 +1146,22 @@ function eliminarCarpetaAJAX(folder) {
                     }
                 }
 
+                // Actualizar historiales y alertas locales para que desaparezcan de la tabla de estructura
+                if (window.historiales && window.historiales[folder.p1]) {
+                    if (folder.p2) {
+                        window.historiales[folder.p1] = window.historiales[folder.p1].filter(c => c !== folder.p2);
+                    } else {
+                        delete window.historiales[folder.p1];
+                    }
+                }
+                if (window.alertasEnviadas && window.alertasEnviadas[folder.p1]) {
+                    if (folder.p2) {
+                        delete window.alertasEnviadas[folder.p1][folder.p2];
+                    } else {
+                        delete window.alertasEnviadas[folder.p1];
+                    }
+                }
+
                 // Si la carpeta eliminada era la que estabamos viendo, limpiar UI
                 updateAdminUI();
                 loadBadgeCounts();
@@ -1546,45 +1562,131 @@ function renderEstructuraTable() {
     const ots = Object.keys(window.estructura);
     if (ots.length > 0) {
         ots.forEach(otName => {
-            const clases = window.estructura[otName];
-            const displayClases = clases.length > 0 ? clases : ['--'];
+            const clasesFisicas = window.estructura[otName] || [];
+            const ayudasLinked = window.historiales ? (window.historiales[otName] || []) : [];
 
-            displayClases.forEach(claseLabel => {
-                const esHuerfano = (claseLabel === '--');
+            // Combinar clases físicas con ayudas vinculadas
+            const clasesCompletas = Array.from(new Set([...clasesFisicas, ...ayudasLinked]));
+            const clasesValidas = clasesCompletas.filter(c => {
+                if (c === null) return true;
+                const val = String(c).trim().toLowerCase();
+                return val !== '' && val !== 'null' && val !== 'undefined';
+            });
+            const displayClases = clasesValidas.length > 0 ? clasesValidas : [null];
+
+            displayClases.forEach(claseName => {
+                const esRaiz = (claseName === null);
+                const claseLabel = esRaiz ? 'Raíz OT' : claseName;
+
+                // Parsear ID de OT
+                const match = otName.match(/OT\s*(\d+)/i);
+                const otIdNumber = match ? parseInt(match[1]) : 0;
+                const otReal = window.todasLasOTs ? window.todasLasOTs.find(o => o.id === otIdNumber) : null;
+                const otLabel = otReal ? `OT ${otReal.id}${otReal.moldura_nombre ? ' — ' + otReal.moldura_nombre : ''}` : otName;
+                const otIdBD = otReal ? otReal.id : null;
+
+                const claseReal = (!esRaiz && otReal && otReal.clases) ? otReal.clases.find(c => c.nombre === claseName) : null;
+                let claseIdBD = 'null';
+                if (claseReal) {
+                    claseIdBD = claseReal.id;
+                } else if (['Pistones', 'Guías', 'Guias'].includes(claseName)) {
+                    claseIdBD = claseName;
+                }
+
                 const badgeId = "badge-" + slugify(otName) + "-" + slugify(claseLabel);
                 const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
                 const countClass = savedCount === '0' ? 'badge-count badge-count-empty' : 'badge-count';
 
                 const tr = document.createElement('tr');
                 tr.setAttribute('data-ot', otName);
-                tr.setAttribute('data-clase', claseLabel);
+                tr.setAttribute('data-clase', esRaiz ? '' : claseName);
+
+                // Generar HTML de columna Clase (con sus badges de ayuda)
+                const ayudasFiltradas = ayudasLinked.filter(a => {
+                    const val = (a || '').toString().trim().toLowerCase();
+                    return val && val !== 'null' && val !== 'undefined';
+                });
+
+                let htmlClasesColumn = '';
+                if (ayudasFiltradas.length > 0) {
+                    htmlClasesColumn += `<div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">`;
+                    ayudasFiltradas.forEach(al => {
+                        // Mostrar solo si coincide con la clase de la fila actual
+                        if (al !== claseName && !esRaiz) return;
+
+                        let clTagId = 'null';
+                        const clTagReal = window.todasLasClases ? window.todasLasClases.find(c => c.nombre === al) : null;
+                        if (clTagReal) {
+                            clTagId = clTagReal.id;
+                        } else if (['Pistones', 'Guías', 'Guias'].includes(al)) {
+                            clTagId = al;
+                        }
+
+                        const isThisClass = (al === claseName);
+                        const clasesEnviadas = (window.alertasEnviadas && window.alertasEnviadas[otName]) ? window.alertasEnviadas[otName] : {};
+                        const estadoClase = clasesEnviadas[al] || 'pendiente';
+                        
+                        let tagClass = '';
+                        if (estadoClase === 'enviada') tagClass = 'alerta-enviada-tag';
+                        else if (estadoClase === 'modificada') tagClass = 'alerta-modificada-tag';
+                        else if (estadoClase === 'vacio') tagClass = 'alerta-vacia-tag';
+
+                        htmlClasesColumn += `
+                            <span class="badge-ayuda-tag clickable-tag ${isThisClass ? 'badge-tag-active' : ''} ${tagClass}"
+                                title="Filtrar por esta clase"
+                                onclick="irACarpeta('${otIdBD || otName}', '${clTagId}', ${otIdBD ? 'true' : 'false'})">
+                                ${al}
+                            </span>
+                        `;
+                    });
+                    htmlClasesColumn += `</div>`;
+                } else {
+                    htmlClasesColumn += `
+                        <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
+                            <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases vinculadas</span>
+                        </div>
+                    `;
+                }
+
+                // Botones de acción
+                const p1Param = otIdBD || otName;
+                const p2ParamVer = otIdBD ? claseIdBD : (esRaiz ? null : claseName);
+                const isIdParam = otIdBD ? 'true' : 'false';
+
+                const p2ParamEliminar = esRaiz ? null : claseName;
+                const labelParamEliminar = `${otLabel}${esRaiz ? '' : ' / ' + claseLabel}`;
+
+                let btnVerHTML = '';
+                if (!esRaiz) {
+                    btnVerHTML = `
+                        <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
+                            onclick="irACarpeta('${p1Param}', '${p2ParamVer}', ${isIdParam})">
+                            <img src="${window.baseUrl}/images/documento.png" alt="Ver">
+                            <span>Ver PDF's</span>
+                        </button>
+                    `;
+                }
+
+                const btnEliminarLabel = esRaiz ? 'Vaciar Raíz' : 'Eliminar Clase';
+
                 tr.innerHTML = `
-                    <td class="d-text-center d-text-primary"><strong>${otName}</strong></td>
+                    <td class="d-text-center d-text-primary"><strong>${otLabel}</strong></td>
                     <td class="d-text-center">
-                        ${esHuerfano ?
-                        `<em class="d-text-danger d-text-bold">Sin clases</em>` :
-                        `<span class="d-text-success d-text-bold">${claseLabel}</span>`
-                    }
+                        ${htmlClasesColumn}
                     </td>
                     <td class="d-text-center">
-                        ${esHuerfano ?
-                        `<span class="d-text-subtle">—</span>` :
-                        `<span class="${countClass}" id="${badgeId}">${savedCount}</span>`
-                    }
+                        ${esRaiz ?
+                            `<span class="d-text-subtle">—</span>` :
+                            `<span class="${countClass}" id="${badgeId}">${savedCount}</span>`
+                        }
                     </td>
                     <td class="d-text-center">
                         <div class="td-actions">
-                            ${!esHuerfano ?
-                        `<button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                    onclick="irACarpeta('${otName}', '${claseLabel}')">
-                                    <img src="${window.baseUrl}/images/documento.png" alt="Ver">
-                                    <span>Ver PDF's</span>
-                                </button>` : ''
-                    }
+                            ${btnVerHTML}
                             <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
-                                onclick="confirmarEliminarCarpeta('${otName}', '${claseLabel}', '${otName}${esHuerfano ? "" : " / " + claseLabel}')">
+                                onclick="confirmarEliminarCarpeta('${otName}', '${p2ParamEliminar || ''}', '${labelParamEliminar}')">
                                 <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
-                                <span>Eliminar ${esHuerfano ? 'Directorio Raíz' : 'Clase'}</span>
+                                <span>${btnEliminarLabel}</span>
                             </button>
                         </div>
                     </td>
