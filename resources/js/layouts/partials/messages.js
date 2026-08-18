@@ -128,14 +128,24 @@ window.showSystemModal = function(title, message, options = {}) {
     overlay.id = 'productivity-lock-overlay';
     
     overlay.innerHTML = `
-        <div class="productivity-premium-modal ${type}">
-            <div class="lock-icon-container">
-                <img src="${baseUrl}images/${iconName}" class="lock-icon" alt="Aviso">
+        <div class="alm-modal-content" style="background: #ffffff; width: 95vw; max-width: 600px; border-radius: 20px; border: 4px solid #0284c7; box-shadow: 0 25px 60px rgba(2, 132, 199, 0.25); display: flex; flex-direction: column; overflow: hidden; position: relative;">
+            <div class="alm-modal-header" style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); padding: 2em 2.5em 1.5em; position: relative; text-align: center;">
+                <h3 style="margin: 0; color: #fff; font-size: 1.8em; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.15); font-family: 'Poppins', sans-serif;">
+                    ${title}
+                </h3>
             </div>
-            <h2 class="lock-title">${title}</h2>
-            <p class="lock-message">${message}</p>
-            <div style="padding-bottom: 3em;">
-                <button class="btn-lock-understood">Aceptar y Continuar</button>
+            <div class="alm-modal-body" style="background: #f8fafc; padding: 2.5em; font-family: 'Poppins', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+                <div class="lock-icon-container" style="margin: 0;">
+                    <img src="${baseUrl}images/${iconName}" class="lock-icon" alt="Aviso" style="width: 100px; height: 100px; filter: drop-shadow(0 4px 6px rgba(3, 57, 102, 0.2));">
+                </div>
+                <p class="lock-message" style="color: #475569; font-size: 1.25em; line-height: 1.6; margin: 0; font-weight: 500; padding: 0 1rem; text-align: center;">
+                    ${message}
+                </p>
+                <div style="margin-top: 15px; width: 100%;">
+                    <button class="btn-lock-understood" style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); border-radius: 50px; font-weight: 800; font-size: 1.1em; text-transform: uppercase; letter-spacing: 1.5px; padding: 16px 45px; border: none; color: #fff; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35); width: 100%; max-width: 320px;" onmouseover="this.style.filter='brightness(1.1)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.filter='none'; this.style.transform='none';">
+                        Aceptar y Continuar
+                    </button>
+                </div>
             </div>
         </div>
     `;

@@ -122,12 +122,18 @@ class DatosProduccionController extends Controller
     public function obtenerDatos($OTs)
     {
         // ── OPTIMIZACIÓN: pre-cargar todo en 4 queries en lugar de N queries por OT ──
+        // Solo columnas necesarias para el loop → menor memoria por modelo instanciado
         $otIds       = $OTs->pluck('id')->toArray();
-        $usersCache  = User::all()->keyBy('matricula');
-        $clasesCache = Clase::all()->keyBy('id');
+        $usersCache  = User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])->get()->keyBy('matricula');
+        $clasesCache = Clase::query()->select(['id', 'id_ot', 'nombre', 'pedido'])->get()->keyBy('id');
 
-        // 1 query: todas las piezas de todas las OTs activas
-        $todasPiezas = Pieza::query()->whereIn('id_ot', $otIds, 'and', false)->get()->groupBy('id_ot');
+        // 1 query: solo las columnas necesarias de todas las piezas de todas las OTs activas.
+        // CRÍTICO: sin ->select() se cargan TODOS los atributos de 76k+ modelos → memory exhausted.
+        $todasPiezas = Pieza::query()
+            ->select(['id_ot', 'id_clase', 'id_operador', 'proceso', 'error', 'liberacion', 'n_pieza', 'created_at'])
+            ->whereIn('id_ot', $otIds, 'and', false)
+            ->get()
+            ->groupBy('id_ot');
 
         $datos = [];
         foreach ($OTs as $ot) {
@@ -208,7 +214,7 @@ class DatosProduccionController extends Controller
     public function obtenerInformacionPiezas($piezas, $clase)
     {
         // ── OPTIMIZACIÓN: pre-cargar users en cache para evitar N+1 ──
-        $usersCache = User::all()->keyBy('matricula');
+        $usersCache = User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])->get()->keyBy('matricula');
 
         $operadores = [];
         foreach ($piezas as $pieza) {

@@ -697,8 +697,12 @@ class PzasLiberadasController extends Controller
         // Solo necesitamos piezas con error pendientes de liberar, de clases activas
         $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
 
-        // 1 query: solo las piezas que realmente necesitamos
-        $piezasRaw = Pieza::query()->where('error', '!=', 'Ninguno')
+        // 1 query: solo las piezas que realmente necesitamos, con columnas mínimas
+        // CRÍTICO: sin ->select() se cargan TODOS los atributos de 76k+ piezas → memory exhausted
+        $piezasRaw = Pieza::query()
+            ->select(['id', 'id_ot', 'id_clase', 'id_operador', 'proceso', 'error', 'liberacion',
+                      'n_pieza', 'maquina', 'created_at', 'fecha_liberacion', 'user_liberacion', 'observacion_liberacion'])
+            ->where('error', '!=', 'Ninguno')
             ->where('liberacion', 0)
             ->when(!empty($finishedClassIds), fn($q) => $q->whereNotIn('id_clase', $finishedClassIds))
             ->get();

@@ -319,3 +319,98 @@ $history = FundicionHistory::firstOrCreate(
  ['estado' => 'en_proceso'] // valores solo si se crea nuevo
 );
 ```
+
+---
+
+## 14. 🔴 REGLA CRÍTICA: Anti-patrón de Memoria con Eloquent (PHP Fatal: memory exhausted)
+
+> **Origen:** Bug real encontrado el 2026-08-18. Causó crashes en `/system-logs` y `/productionData`.
+> **Causa raíz:** Eloquent hidrata modelos completos (incluyendo `GuardsAttributes`) para CADA fila — con tablas de miles de filas, esto agota los 128MB de límite de PHP.
+
+### Tablas grandes del proyecto (referencia obligatoria)
+
+| Tabla | Filas | Riesgo |
+|---|---|---|
+| `piezas` | **76,094** | 🔴 CRÍTICO |
+| `cepillado_pza` / `primeraopesoldadura_pza` / `desbaste_pza` | 8,000–9,500 | 🔴 Alto |
+| `metas` | 6,404 | 🔴 Alto |
+| `revcalificado_pza` / `segundaopesoldadura_pza` | 7,900–8,400 | 🔴 Alto |
+| `acabadobombillo_pza` | 6,290 | 🔴 Alto |
+| `tiempos_produccion` | 2,669 | 🟡 Medio |
+| `fechas_procesos` | 2,256 | 🟡 Medio |
+| `clases` / `procesos` / `molduras` | < 250 | ✅ Seguro |
+| `users` / `orden_trabajo` / `maquinas` | < 120 | ✅ Seguro |
+
+### REGLA 1: Nunca `->get()` o `::all()` sin `->select()` en tablas grandes
+
+```php
+// ❌ PROHIBIDO en piezas, metas, tiempos_produccion, y *_pza tables:
+$piezas = Pieza::query()->whereIn('id_ot', $ids)->get();
+$metas  = Metas::all();
+$tiempos = tiempoproduccion::all()->groupBy('id_clase');
+
+// ✅ CORRECTO: seleccionar SOLO las columnas que el código usa
+$piezas = Pieza::query()
+    ->select(['id_ot', 'id_clase', 'id_operador', 'proceso', 'error', 'liberacion', 'n_pieza', 'created_at'])
+    ->whereIn('id_ot', $ids)
+    ->get();
+
+$metas = Metas::query()
+    ->select(['id', 'id_clase', 'proceso', 'h_inicio', 'h_termino', 't_estandar', 'meta'])
+    ->get();
+
+$tiempos = tiempoproduccion::query()
+    ->select(['id_clase', 'proceso', 'tiempo', 'tamanio'])
+    ->get()
+    ->groupBy('id_clase');
+```
+
+### REGLA 2: Usar `DB::table()` para queries de solo lectura (filtros, dropdowns)
+
+Cuando solo necesitas **valores escalares** para llenar un dropdown o filtro, `DB::table()` es mucho más eficiente que Eloquent — devuelve `stdClass` sin instanciar modelos ni pasar por `GuardsAttributes`:
+
+```php
+// ❌ PROHIBIDO: Eloquent hidrata modelos incluso para pluck()
+$procesos = SystemLog::query()->distinct()->pluck('proceso');
+
+// ✅ CORRECTO: DB::table() no instancia modelos Eloquent
+$procesos = DB::table('system_logs')
+    ->distinct()
+    ->whereNotNull('proceso')
+    ->orderBy('proceso')
+    ->pluck('proceso');
+
+// ✅ Para JOINs con dropdowns:
+$ots = DB::table('system_logs')
+    ->select(['system_logs.ot', 'molduras.nombre as moldura_nombre'])
+    ->leftJoin('orden_trabajo', 'system_logs.id_ot', '=', 'orden_trabajo.id')
+    ->leftJoin('molduras', 'orden_trabajo.id_moldura', '=', 'molduras.id')
+    ->whereNotNull('system_logs.ot')
+    ->distinct()
+    ->get();
+```
+
+### REGLA 3: Para caches pre-cargados, siempre especificar columnas
+
+```php
+// ❌ Carga TODAS las columnas incluyendo campos pesados/no usados
+$usersCache  = User::all()->keyBy('matricula');
+$clasesCache = Clase::all()->keyBy('id');
+
+// ✅ Solo las columnas que se usan en el loop
+$usersCache  = User::query()
+    ->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])
+    ->get()->keyBy('matricula');
+
+$clasesCache = Clase::query()
+    ->select(['id', 'id_ot', 'nombre', 'pedido', 'tamanio'])
+    ->get()->keyBy('id');
+```
+
+### Checklist antes de escribir cualquier `->get()` o `::all()`
+
+- [ ] ¿La tabla tiene más de 1,000 filas? → Agregar `->select([columnas_usadas])`
+- [ ] ¿Es una query de filtro/dropdown? → Usar `DB::table()` en lugar de Eloquent
+- [ ] ¿El resultado se usa solo para pluck()? → `DB::table()->pluck()` directamente
+- [ ] ¿Se carga para hacer un `->keyBy()` o `->groupBy()`? → Agregar `->select()` primero
+

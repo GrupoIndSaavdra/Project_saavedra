@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -133,7 +133,7 @@
 .envio-pta-select {
     width: 100%;
     padding: 10px 14px;
-    border: 3px solid var(--gis-blue)90;
+    border: 3px solid #033966d4; /* Remarcado con el azul del contenedor */
     border-radius: 6px;
     font-size: 14px;
     font-family: var(--font);
@@ -147,8 +147,8 @@
 .envio-pta-input:focus,
 .envio-pta-select:focus {
     outline: none;
-    border-color: var(--azul-primario);
-    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.2);
+    border-color: #033966;
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.2);
 }
 
 .envio-pta-input:disabled {

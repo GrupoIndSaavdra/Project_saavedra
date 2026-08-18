@@ -249,49 +249,56 @@ class SystemLogController extends Controller
      */
     public function index(Request $request)
     {
-        // 1. Obtener valores ÚNICOS para los filtros usando consultas eficientes y el índice de la DB
-        // Esto evita cargar miles de registros en memoria solo para llenar un dropdown
+        // 1. Obtener valores ÚNICOS para los filtros usando DB::table() en lugar de Eloquent.
+        // DB::table() devuelve stdClass simples — NUNCA instancia modelos Eloquent ni su
+        // GuardsAttributes, evitando el agotamiento de memoria con tablas grandes.
         $filtrosDisponibles = [
-            'ot' => SystemLog::query()
-                ->select(['system_logs.ot', 'system_logs.id_ot', 'molduras.nombre as moldura_nombre'])
+            'ot' => DB::table('system_logs')
+                ->select(['system_logs.id_ot', 'system_logs.ot', 'molduras.nombre as moldura_nombre'])
                 ->leftJoin('orden_trabajo', 'system_logs.id_ot', '=', 'orden_trabajo.id')
                 ->leftJoin('molduras', 'orden_trabajo.id_moldura', '=', 'molduras.id')
                 ->whereNotNull('system_logs.ot')
+                ->distinct()
                 ->get()
                 ->map(function($val) {
-                    // Extraer el número base (6473) sin importar qué traiga el string original
                     $idBase = preg_match('/^(\d+)/', $val->ot, $m) ? $m[1] : $val->ot;
-                    
-                    // Si tenemos el nombre por el JOIN, lo usamos
                     if ($val->moldura_nombre) {
                         return "{$idBase} - {$val->moldura_nombre}";
                     }
-                    
-                    // Si no hay nombre por join, intentamos buscarlo en el catálogo por el ID base
-                    $catalog = Orden_trabajo::query()->with('moldura')->find($idBase);
-                    if ($catalog && $catalog->moldura) {
-                        return "{$idBase} - {$catalog->moldura->nombre}";
-                    }
-
-                    // Si de plano no hay nada en catálogo, al menos devolvemos el string original 
-                    // pero intentamos que no sea solo el número si hay algo más
                     return $val->ot;
                 })
                 ->filter()
                 ->unique()
                 ->sort()
                 ->values(),
-            'clase' => SystemLog::query()->select(['system_logs.clase', 'clases.nombre as clase_nombre'])
+
+            'clase' => DB::table('system_logs')
+                ->select(['system_logs.clase', 'clases.nombre as clase_nombre'])
                 ->leftJoin('clases', 'system_logs.id_clase', '=', 'clases.id')
+                ->whereNotNull('system_logs.clase')
                 ->distinct()
-                ->whereNotNull('clase')
                 ->get()
                 ->map(function($val) {
                     if ($val->clase_nombre) return $val->clase_nombre;
                     return preg_match('/^\d+$/', $val->clase) ? null : $val->clase;
-                })->filter()->unique()->sort()->values(),
-            'proceso' => SystemLog::query()->distinct()->whereNotNull('proceso')->pluck('proceso')->sort()->values(),
-            'maquina' => SystemLog::query()->distinct()->whereNotNull('maquina')->pluck('maquina')->sort()->values(),
+                })
+                ->filter()
+                ->unique()
+                ->sort()
+                ->values(),
+
+            'proceso' => DB::table('system_logs')
+                ->distinct()
+                ->whereNotNull('proceso')
+                ->orderBy('proceso')
+                ->pluck('proceso'),
+
+            'maquina' => DB::table('system_logs')
+                ->distinct()
+                ->whereNotNull('maquina')
+                ->orderBy('maquina')
+                ->pluck('maquina'),
+
             'action' => $request->filled('admin_only') && $request->admin_only == 1
                 ? collect([
                     'Inicio de Sesión',
@@ -317,12 +324,17 @@ class SystemLogController extends Controller
                     'Visualización de Dibujo',
                     'Autorización de Edición',
                 ])->sort()->values()
-                : SystemLog::query()->distinct()->whereNotNull('action')->pluck('action')->sort()->values(),
+                : DB::table('system_logs')
+                    ->distinct()
+                    ->whereNotNull('action')
+                    ->orderBy('action')
+                    ->pluck('action'),
         ];
 
         // Obtener operadores únicos de forma eficiente
         // En modo admin_only, solo mostrar administradores (perfil == 1)
-        $filtrosDisponibles['operador'] = SystemLog::query()->select(['system_logs.user_matricula', 'users.nombre', 'users.a_paterno', 'users.perfil'])
+        $filtrosDisponibles['operador'] = DB::table('system_logs')
+            ->select(['system_logs.user_matricula', 'users.nombre', 'users.a_paterno', 'users.perfil'])
             ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
             ->whereNotNull('system_logs.user_matricula')
             ->when($request->filled('admin_only') && $request->admin_only == 1, fn($q) => $q->whereIn('users.perfil', [1, 3]))
@@ -334,10 +346,12 @@ class SystemLogController extends Controller
                 'a_paterno' => $o->a_paterno
             ]);
 
-        // Obtener N# Pieza (Juegos) simplificado
-        $filtrosDisponibles['n_pieza'] = SystemLog::query()->distinct()
+        // Obtener N# Pieza (Juegos) simplificado — sin Eloquent para evitar hidratación de modelos
+        $filtrosDisponibles['n_pieza'] = DB::table('system_logs')
+            ->distinct()
             ->whereNotNull('n_pieza')
             ->where('n_pieza', 'NOT LIKE', '%/%')
+            ->orderBy('n_pieza')
             ->pluck('n_pieza')
             ->map(function($p) {
                 $num = preg_replace('/[a-zA-Z]/', '', (string)$p);

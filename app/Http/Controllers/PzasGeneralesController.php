@@ -458,8 +458,9 @@ class PzasGeneralesController extends Controller
     {
         // ── OPTIMIZACIÓN: pre-cargar todo en memoria para eliminar N+1 queries ──
         $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
-        $usersCache = User::all()->keyBy('matricula');
-        $clasesCache = Clase::all()->keyBy('id');
+        // Solo columnas necesarias — sin SELECT * sobre tablas grandes
+        $usersCache = User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])->get()->keyBy('matricula');
+        $clasesCache = Clase::query()->select(['id', 'id_ot', 'nombre', 'pedido', 'tamanio'])->get()->keyBy('id');
 
         // Índice en memoria: '{id_clase}_{proceso}_{numJuego}' → colección de piezas
         $piezasIndex = collect($arrayP)->groupBy(function ($pza) {
@@ -702,7 +703,8 @@ class PzasGeneralesController extends Controller
         }
 
         // Cache classes
-        $clasesCache = Clase::all()->keyBy('id');
+        // Solo columnas necesarias — Clase tiene 216 filas pero SELECT * incluye campos pesados
+        $clasesCache = Clase::query()->select(['id', 'id_ot', 'nombre', 'pedido', 'tamanio'])->get()->keyBy('id');
 
         // Pre-gather all process strings to fetch in bulk
         $processLookups = [];

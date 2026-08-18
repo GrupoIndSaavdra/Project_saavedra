@@ -84,66 +84,75 @@ if (data.success) {
 
 ---
 
-## Patrón OBLIGATORIO: Modales y Overlays de Pantalla Completa
+### Patrón OBLIGATORIO: Modales y Overlays de Pantalla Completa
 
-> ⚠️ **REGLA**: Siempre que necesites crear un modal con fondo oscuro, pantalla de carga, alerta bloqueante o cualquier overlay de pantalla completa, **DEBES usar las clases globales del proyecto** definidas en `resources/css/layouts/partials/messages.css`. **NUNCA crear CSS nuevo** para el overlay/modal desde cero.
+> ⚠️ **REGLA CRÍTICA DE RENDIMIENTO (Evitar Lag/Trabamiento)**: Nunca uses `backdrop-filter` o `-webkit-backdrop-filter` con valores altos de desenfoque (`blur(15px)`) en overlays de pantalla completa. Esto genera un cuello de botella de renderizado en GPU y hace que la interfaz se trabe o se sienta pesada.
+>
+> En su lugar, usa el **filtro azulito corporativo** sin blur (`background: rgba(0, 10, 25, 0.85)`).
 
 ### Clases globales recomendadas (listas para usar)
 
 | Clase | Rol |
 |---|---|
-| `.gis-lock-overlay` | Contenedor fijo que cubre toda la pantalla con fondo oscuro + blur |
-| `.gis-premium-modal` | Caja blanca centrada con borde de color, sombra y bordes redondeados |
-| `.gis-premium-modal.success` | Variante verde (éxito) |
-| `.gis-premium-modal.warning` | Variante naranja (advertencia) |
-| `.gis-premium-modal.error` | Variante roja (error crítico) |
-| `.gis-premium-modal.notice` | Variante amarilla (aviso) |
-| `.lock-icon-container` | Contenedor para el ícono/imagen central |
-| `.lock-icon` | Imagen de 100×100px con drop-shadow |
-| `.lock-title` | Título del modal (1.8em, bold 900) |
-| `.lock-message` | Mensaje descriptivo del modal |
-| `.btn-lock-understood` | Botón de acción del modal |
+| `.gis-lock-overlay` | Contenedor fijo que cubre toda la pantalla con fondo azul corporativo translúcido (`rgba(0, 10, 25, 0.85)`) sin blur. |
+| `.alm-modal-content` | Caja blanca contenedora del modal con borde celeste, sombra suave y esquinas redondeadas. |
 
-> 📌 **Nota sobre compatibilidad**: Las clases `.productivity-lock-overlay` y `.productivity-premium-modal` siguen existiendo como alias en el archivo de estilos global para compatibilidad con la advertencia de inactividad de `processProduction`. Para cualquier otro caso de uso general, prefiere utilizar `.gis-lock-overlay` y `.gis-premium-modal`.
+### Estética Premium del Proyecto (Estilo Pre-Orden Casting)
 
-### Estructura HTML de referencia
+Para que cualquier modal u overlay se integre perfectamente con la identidad del software, debe apegarse a estas especificaciones de diseño:
 
-```html
-<div class="gis-lock-overlay" id="mi-overlay" style="display:none;">
-    <div class="gis-premium-modal warning">
+1. **Contenedor Principal (`.alm-modal-content` o equivalente)**:
+   - Borde: `4px solid #0284c7` (Borde celeste premium).
+   - Sombras: `box-shadow: 0 25px 60px rgba(2, 132, 199, 0.25)` (Sombra brillante celeste).
+   - Esquinas: `border-radius: 20px` (Esquinas muy suaves y redondeadas).
+2. **Cabecera (`.alm-modal-header`)**:
+   - Fondo: `background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%)` (Degradado azul brillante).
+   - Texto del título: Fuente `Poppins, sans-serif`, peso `700`, sombra `text-shadow: 0 2px 4px rgba(0,0,0,0.15)`.
+3. **Cuerpo del Modal (`.alm-modal-body`)**:
+   - Fondo: `#f8fafc` (Gris claro premium).
+   - Tipografía: `Poppins, sans-serif`.
+4. **Botón Principal (`.btn-lock-understood` o `.btn-save-preorden`)**:
+   - Fondo: `linear-gradient(135deg, #0369a1 0%, #0284c7 100%)`.
+   - Borde: Redondeado de tipo píldora (`border-radius: 50px`).
+   - Sombras: `box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35)`.
+   - Transiciones: Suaves al hacer hover y active:
+     ```html
+     onmouseover="this.style.filter='brightness(1.1)'; this.style.transform='translateY(-2px)';" 
+     onmouseout="this.style.filter='none'; this.style.transform='none';"
+     ```
 
-        <!-- Opción A: imagen estática -->
-        <div class="lock-icon-container">
-            <img src="{{ asset('images/Sospechosa.png') }}" class="lock-icon" alt="Aviso">
+### Estructura HTML de referencia (Totalmente Autocontenida)
+
+Si creas el modal de manera dinámica mediante JavaScript, inyecta este marcado con los estilos integrados para asegurar que se renderice perfecto en cualquier sección del sistema:
+
+```javascript
+const overlay = document.createElement('div');
+overlay.className = 'gis-lock-overlay';
+overlay.id = 'mi-overlay';
+
+overlay.innerHTML = `
+    <div class="alm-modal-content" style="background: #ffffff; width: 95vw; max-width: 600px; border-radius: 20px; border: 4px solid #0284c7; box-shadow: 0 25px 60px rgba(2, 132, 199, 0.25); display: flex; flex-direction: column; overflow: hidden; position: relative;">
+        <div class="alm-modal-header" style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); padding: 2em 2.5em 1.5em; position: relative; text-align: center;">
+            <h3 style="margin: 0; color: #fff; font-size: 1.8em; font-weight: 700; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.15); font-family: 'Poppins', sans-serif;">
+                Título del Modal
+            </h3>
         </div>
-
-        <!-- Opción B: spinner animado (para pantallas de carga) -->
-        <div class="lock-icon-container">
-            <div class="mi-spinner-css"></div>
-        </div>
-
-        <h2 class="lock-title">Título del Modal</h2>
-        <p class="lock-message">Descripción clara de lo que está pasando.</p>
-
-        <!-- Barra de progreso (opcional, para procesos largos) -->
-        <div style="padding: 0 2rem 0.6rem;">
-            <div class="purge-progress-bar-track">
-                <div id="mi-progress-bar" class="purge-progress-bar-fill"></div>
+        <div class="alm-modal-body" style="background: #f8fafc; padding: 2.5em; font-family: 'Poppins', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px;">
+            <div class="lock-icon-container" style="margin: 0;">
+                <img src="${baseUrl}images/Aviso.png" class="lock-icon" alt="Aviso" style="width: 100px; height: 100px; filter: drop-shadow(0 4px 6px rgba(3, 57, 102, 0.2));">
             </div>
-            <p id="mi-status-text" class="purge-progress-status">Procesando...</p>
-        </div>
-
-        <div style="padding-bottom: 3em;">
-            <button class="btn-lock-understood" onclick="cerrarModal()">Aceptar</button>
+            <p class="lock-message" style="color: #475569; font-size: 1.25em; line-height: 1.6; margin: 0; font-weight: 500; padding: 0 1rem; text-align: center;">
+                Descripción clara de lo que está pasando en la aplicación.
+            </p>
+            <div style="margin-top: 15px; width: 100%;">
+                <button class="btn-lock-understood" style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); border-radius: 50px; font-weight: 800; font-size: 1.1em; text-transform: uppercase; letter-spacing: 1.5px; padding: 16px 45px; border: none; color: #fff; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35); width: 100%; max-width: 320px;" onmouseover="this.style.filter='brightness(1.1)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.filter='none'; this.style.transform='none';">
+                    Aceptar y Continuar
+                </button>
+            </div>
         </div>
     </div>
-</div>
-```
-
-### Personalizar el color del borde (sin crear clase nueva)
-Si ninguna variante predefinida aplica, usar inline style para el color de borde:
-```html
-<div class="gis-premium-modal" style="border-color: #033966;">
+`;
+document.body.appendChild(overlay);
 ```
 
 ### Mostrar/ocultar desde JavaScript
@@ -154,8 +163,3 @@ document.getElementById('mi-overlay').style.display = 'flex';
 // Ocultar
 document.getElementById('mi-overlay').style.display = 'none';
 ```
-
-### Lo que SÍ puedes agregar en el CSS del módulo (componentes únicos)
-Solo los elementos que no existen en el sistema global:
-- Spinner animado (`@keyframes` + `.mi-spinner`)
-- Barra de progreso (`.purge-progress-bar-track`, `.purge-progress-bar-fill`, `.purge-progress-status` — ya definidos en `systemLogs.css` y reusables)

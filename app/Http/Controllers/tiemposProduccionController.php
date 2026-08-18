@@ -32,7 +32,11 @@ class tiemposProduccionController extends Controller
         $wOrdersFounded = Orden_trabajo::all();
         $workOrders = array();
         if (count($wOrdersFounded) > 0) {
-            $allTiempos = tiempoproduccion::all()->groupBy('id_clase'); // Optimizacion: precargar todos los tiempos
+            // OPTIMIZACIÓN: solo columnas necesarias para evitar memoria agotada con tablas grandes
+            $allTiempos = tiempoproduccion::query()
+                ->select(['id_clase', 'proceso', 'tiempo', 'tamanio'])
+                ->get()
+                ->groupBy('id_clase'); // Precargar todos los tiempos
 
             foreach ($wOrdersFounded as $workOrder) {
                 $classes = $this->classController->getClasses($workOrder);
@@ -324,8 +328,14 @@ class tiemposProduccionController extends Controller
     }
     public function updateMetas()
     {
-        $metas = Metas::all();
-        $allTiemposDeClases = tiempoproduccion::all()->groupBy('id_clase'); // Pre-cargar todos los tiempos
+        // OPTIMIZACIÓN: solo columnas necesarias — Metas tiene 6,400+ filas y tiempos 2,600+
+        $metas = Metas::query()
+            ->select(['id', 'id_clase', 'proceso', 'h_inicio', 'h_termino', 't_estandar', 'meta'])
+            ->get();
+        $allTiemposDeClases = tiempoproduccion::query()
+            ->select(['id_clase', 'proceso', 'tiempo', 'tamanio'])
+            ->get()
+            ->groupBy('id_clase'); // Pre-cargar todos los tiempos
 
         if ($metas->count() > 0) {
             foreach ($metas as $meta) {
