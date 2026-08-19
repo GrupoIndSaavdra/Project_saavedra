@@ -1,5 +1,52 @@
-import { initializeSoldaduraFeature } from './soldaduraModal.js';
+import { initializeSoldaduraFeature, checkProcessAndShowButton } from './soldaduraModal.js';
 var operacion = false;
+
+// Restaurar filtros si venimos de la vista de detalle de una pieza
+const comingBack = sessionStorage.getItem('comingFromPieceView') === 'true';
+sessionStorage.removeItem('comingFromPieceView');
+
+if (comingBack) {
+    const savedFilters = sessionStorage.getItem('adminPiecesFilters');
+    if (savedFilters) {
+        try {
+            const parsed = JSON.parse(savedFilters);
+            if (window.selectedItems) {
+                Object.keys(parsed).forEach(key => {
+                    if (key !== 'status' && key !== 'statusPerson') {
+                        window.selectedItems[key] = parsed[key];
+                    }
+                });
+            }
+            if (parsed.status) {
+                sessionStorage.setItem("currentStatusFilter", parsed.status);
+            }
+            if (parsed.statusPerson) {
+                sessionStorage.setItem("currentStatusPersonFilter", parsed.statusPerson);
+            }
+        } catch (e) {
+            console.error("[restoreFilters] Error parsing saved filters:", e);
+        }
+    }
+} else {
+    // Si no venimos de la pieza, limpiar filtros para iniciar limpio
+    sessionStorage.removeItem('adminPiecesFilters');
+    sessionStorage.removeItem('currentStatusFilter');
+    sessionStorage.removeItem('currentStatusPersonFilter');
+}
+
+// Escuchar clicks en el botón "Ver pieza" para marcar el retorno
+document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-pza");
+    if (btn) {
+        sessionStorage.setItem("comingFromPieceView", "true");
+        // Guardar estado actual de filtros antes de navegar
+        const filters = obtenerRequest();
+        const filterNames = ["workOrder", "class", "operator", "machine", "process", "error", "dateFrom", "dateTo", "n_juego"];
+        let filterObj = {};
+        filterNames.forEach((name, i) => filterObj[name] = filters[i]);
+        sessionStorage.setItem("adminPiecesFilters", JSON.stringify(filterObj));
+    }
+});
 
 function crearTabla(piezas, infoPiezas) {
     const table = document.querySelector(".table");
@@ -365,6 +412,9 @@ function createFilters() {
 
         btnClear.addEventListener("click", () => {
             if (btnClear.disabled) return;
+            sessionStorage.removeItem('adminPiecesFilters');
+            sessionStorage.removeItem('currentStatusPersonFilter');
+            sessionStorage.removeItem('currentStatusFilter');
             document.querySelectorAll(".select-filter").forEach(select => {
                 select.value = "Todos";
                 select.dispatchEvent(new Event('change'));
@@ -377,7 +427,6 @@ function createFilters() {
             if (statusSel) {
                 statusSel.value = "Todos";
                 statusSel.dispatchEvent(new Event('change'));
-                sessionStorage.setItem("currentStatusFilter", "Todos");
             }
 
             applyAllFilters();
@@ -480,6 +529,7 @@ function createStatusPersonFilterUI() {
     selectPerson.appendChild(defaultOpt);
 
     selectPerson.addEventListener("change", function () {
+        sessionStorage.setItem("currentStatusPersonFilter", this.value);
         applyAllFilters();
         if (window.updateClearButtonState) window.updateClearButtonState();
     });
@@ -556,8 +606,11 @@ function updateStatusPersonFilter(statusValue) {
         selectPerson.appendChild(opt);
     });
 
-    // Restaurar valor previo si sigue existiendo
-    if (prevValue !== "Todos" && sortedPersons.includes(prevValue)) {
+    // Restaurar valor previo o guardado en sessionStorage si sigue existiendo
+    const savedPerson = sessionStorage.getItem("currentStatusPersonFilter");
+    if (savedPerson && sortedPersons.includes(savedPerson)) {
+        selectPerson.value = savedPerson;
+    } else if (prevValue !== "Todos" && sortedPersons.includes(prevValue)) {
         selectPerson.value = prevValue;
     } else {
         selectPerson.value = "Todos";
@@ -721,6 +774,10 @@ function applyAllFilters() {
         n_juego: getVal("n_juego")
     };
 
+    if (typeof checkProcessAndShowButton === 'function') {
+        checkProcessAndShowButton(f.process);
+    }
+
     const rows = document.querySelectorAll(".table tbody tr");
     rows.forEach(row => {
         let show = true;
@@ -843,6 +900,9 @@ function applyAllFilters() {
     if (curStatus !== "Todos") {
         updateStatusPersonFilter(curStatus);
     }
+
+    // Guardar filtros en sessionStorage
+    sessionStorage.setItem('adminPiecesFilters', JSON.stringify(f));
 }
 
 function sortPiezasDatabaseOrder(piezas, infoPiezas) {

@@ -316,10 +316,10 @@ class PzasGeneralesController extends Controller
     public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false)
     {
         // ── OPTIMIZACIÓN: filtrar directamente en SQL en lugar de cargar Pieza::all() ──
-        $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
+        $finishedClassIds = Clase::query()->where('finalizada', '!=', 0, 'and')->pluck('id')->toArray();
         $query = Pieza::query();
         if (!empty($finishedClassIds)) {
-            $query->whereNotIn('id_clase', $finishedClassIds, 'and');
+            $query->whereNotIn('id_clase', $finishedClassIds, 'and', true);
         }
 
         foreach ($piecesData as $key => $value) {
@@ -339,44 +339,46 @@ class PzasGeneralesController extends Controller
                     $workOrder = Orden_trabajo::query()->find($workOrderId);
                     $molding = Moldura::query()->find($workOrder->id_moldura);
                     $itemElegidos[$key] = $workOrder->id . ' - ' . ($molding ? $molding->nombre : '?');
-                    $query->where('id_ot', $workOrderId);
+                    $query->where('id_ot', '=', $workOrderId, 'and');
                     break;
                 case 'class':
-                    $claseIds = Clase::query()->where('nombre', $value)->pluck('id');
+                    $claseIds = Clase::query()->where('nombre', '=', $value, 'and')->pluck('id');
                     $query->whereIn('id_clase', $claseIds, 'and', false);
                     break;
                 case 'operator':
-                    $user = User::query()->where('matricula', $value)->first();
+                    $user = User::query()->where('matricula', '=', $value, 'and')->first();
                     $itemElegidos[$key] = $user;
-                    $query->where('id_operador', $value);
+                    $query->where('id_operador', '=', $value, 'and');
                     break;
                 case 'machine':
-                    $query->where('maquina', $value);
+                    $query->where('maquina', '=', $value, 'and');
                     break;
                 case 'process':
                     // Exacto para que 'Soldadura' no coincida con 'Soldadura PTA'
-                    $query->where('proceso', $value);
+                    $query->where('proceso', '=', $value, 'and');
                     break;
                 case 'error':
-                    $query->where('error', $value);
+                    $query->where('error', '=', $value, 'and');
                     break;
                 case 'dateFrom':
-                    $query->where('created_at', '>=', $value . ' 00:00:00');
+                    $query->where('created_at', '>=', $value . ' 00:00:00', 'and');
                     break;
                 case 'dateTo':
-                    $query->where('created_at', '<=', $value . ' 23:59:59');
+                    $query->where('created_at', '<=', $value . ' 23:59:59', 'and');
                     break;
                 case 'n_juego':
                     $numJuego = rtrim($value, 'J'); // "3J" → "3"
                     $query->where(function ($q) use ($numJuego) {
-                        $q->where('n_pieza', $numJuego . 'J')
-                            ->orWhere('n_pieza', $numJuego . 'H')
-                            ->orWhere('n_pieza', $numJuego . 'M');
+                        $q->where('n_pieza', '=', $numJuego . 'J', 'and')
+                            ->orWhere('n_pieza', '=', $numJuego . 'H', 'and')
+                            ->orWhere('n_pieza', '=', $numJuego . 'M', 'and');
                     });
                     break;
             }
         }
 
+        // Seleccionar solo las columnas necesarias para evitar Fatal error: memory exhausted en tablas grandes
+        $query->select(['id', 'id_ot', 'id_clase', 'n_pieza', 'id_operador', 'maquina', 'proceso', 'error', 'liberacion', 'fecha_liberacion', 'user_liberacion', 'observacion_liberacion', 'created_at']);
         $piezas = $query->get();
         return $piezas->isEmpty() ? [] : $this->saveInArray($piezas, $includeObservations);
     }
@@ -1483,9 +1485,13 @@ class PzasGeneralesController extends Controller
      */
     public function getOperadores($ot)
     {
-        $operadores = Pieza::query()->where('id_ot', $ot)->distinct('id_operador')->pluck('id_operador');
+        $operadores = \Illuminate\Support\Facades\DB::table('piezas')
+            ->where('id_ot', '=', $ot, 'and')
+            ->distinct()
+            ->pluck('id_operador')
+            ->toArray();
         for ($i = 0; $i < count($operadores); $i++) {
-            $operadores[$i] = User::query()->where('matricula', $operadores[$i])->first();
+            $operadores[$i] = User::query()->where('matricula', '=', $operadores[$i], 'and')->first();
         }
         return $operadores;
     }
@@ -2246,15 +2252,15 @@ class PzasGeneralesController extends Controller
 
         // 1. Filtro por n_juego
         if (isset($filters['n_juego']) && $filters['n_juego'] !== 'Todos' && $filters['n_juego'] !== '') {
-            $query->where('n_juego', $filters['n_juego']);
+            $query->where('soldadura_pza.n_juego', '=', $filters['n_juego'], 'and');
         }
 
         // 2. Filtro por fechas (dateFrom, dateTo)
         if (isset($filters['dateFrom']) && $filters['dateFrom'] !== '' && $filters['dateFrom'] !== 'Todos') {
-            $query->where('soldadura_pza.created_at', '>=', $filters['dateFrom'] . " 00:00:00");
+            $query->where('soldadura_pza.created_at', '>=', $filters['dateFrom'] . " 00:00:00", 'and');
         }
         if (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
-            $query->where('soldadura_pza.created_at', '<=', $filters['dateTo'] . " 23:59:59");
+            $query->where('soldadura_pza.created_at', '<=', $filters['dateTo'] . " 23:59:59", 'and');
         }
 
         // 3. Filtro por Operador o Maquina (requiere join con metas)
@@ -2263,17 +2269,33 @@ class PzasGeneralesController extends Controller
             (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') ||
             (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '')
         ) {
-
             $query->join('metas', 'soldadura_pza.id_meta', '=', 'metas.id', 'inner', false);
             $needsMetaJoin = true;
 
             if (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') {
                 $matricula = is_array($filters['operator']) ? $filters['operator']['matricula'] : $filters['operator'];
-                $query->where('metas.id_usuario', $matricula);
+                $query->where('metas.id_usuario', '=', $matricula, 'and');
             }
 
             if (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '') {
-                $query->where('metas.maquina', $filters['machine']);
+                if (strpos($filters['machine'], '_') !== false) {
+                    $machines = explode('_', $filters['machine']);
+                    $query->whereIn('metas.maquina', $machines, 'and', false);
+                } else {
+                    $query->where('metas.maquina', '=', $filters['machine'], 'and');
+                }
+            }
+        }
+
+        // 3.1 Filtro por error (nuevo)
+        if (isset($filters['error']) && $filters['error'] !== 'Todos' && $filters['error'] !== '') {
+            if ($filters['error'] === 'Ninguno') {
+                $query->where(function ($q) {
+                    $q->where('soldadura_pza.error', '=', 'Ninguno', 'and')
+                      ->orWhereNull('soldadura_pza.error');
+                });
+            } else {
+                $query->where('soldadura_pza.error', 'LIKE', '%' . $filters['error'] . '%', 'and');
             }
         }
 
@@ -2289,17 +2311,17 @@ class PzasGeneralesController extends Controller
                 $otId = strpos($filters['workOrder'], ' - ') !== false
                     ? explode(' - ', $filters['workOrder'])[0]
                     : $filters['workOrder'];
-                $soldaduraQuery->where('id_proceso', 'LIKE', '%_' . trim($otId));
+                $soldaduraQuery->where('id_proceso', 'LIKE', '%_' . trim($otId), 'and');
             } else if (!empty($activeOts)) {
                 $soldaduraQuery->where(function ($q) use ($activeOts) {
                     foreach ($activeOts as $otId) {
-                        $q->orWhere('id_proceso', 'LIKE', '%_' . trim($otId));
+                        $q->orWhere('id_proceso', 'LIKE', '%_' . trim($otId), 'and');
                     }
                 });
             }
 
             if ($hasClassFilter) {
-                $soldaduraQuery->where('id_proceso', 'LIKE', 'Soldadura_' . $filters['class'] . '_%');
+                $soldaduraQuery->where('id_proceso', 'LIKE', 'Soldadura_' . $filters['class'] . '_%', 'and');
             }
 
             $procesoIds = $soldaduraQuery->pluck('id')->toArray();
@@ -2308,7 +2330,7 @@ class PzasGeneralesController extends Controller
                 return collect([]);
             }
 
-            $query->whereIn('soldadura_pza.id_proceso', $procesoIds);
+            $query->whereIn('soldadura_pza.id_proceso', $procesoIds, 'and', false);
         }
 
         if (isset($filters['tipo_soldadura']) && $filters['tipo_soldadura'] !== 'Todos' && $filters['tipo_soldadura'] !== '') {
@@ -2322,11 +2344,11 @@ class PzasGeneralesController extends Controller
             if (isset($map[$tipoVal])) {
                 $tipoVal = $map[$tipoVal];
             }
-            $query->where('soldadura_pza.tipo_soldadura', $tipoVal);
+            $query->where('soldadura_pza.tipo_soldadura', '=', $tipoVal, 'and');
         }
 
         if (isset($filters['material_soldadura']) && $filters['material_soldadura'] !== 'Todos' && $filters['material_soldadura'] !== '') {
-            $query->where('soldadura_pza.material_soldadura', $filters['material_soldadura']);
+            $query->where('soldadura_pza.material_soldadura', '=', $filters['material_soldadura'], 'and');
         }
 
         // Seleccionar solo el ID máximo agrupado por pieza única
@@ -2335,7 +2357,7 @@ class PzasGeneralesController extends Controller
             ->groupBy('soldadura_pza.id_proceso', 'soldadura_pza.n_juego');
 
         return Soldadura_pza::query()
-            ->whereIn('id', $subQuery)
+            ->whereIn('id', $subQuery, 'and', false)
             ->get();
     }
 
@@ -2346,34 +2368,54 @@ class PzasGeneralesController extends Controller
     private function applySoldaduraPTAFilters($filters)
     {
         $query = SoldaduraPTA_pza::query();
+        $query->where('soldaduraPTA_pza.tipo_medida', '=', 'D_Conexion_pico', 'and');
 
         // 1. Filtro por n_juego
         if (isset($filters['n_juego']) && $filters['n_juego'] !== 'Todos' && $filters['n_juego'] !== '') {
-            $query->where('n_juego', $filters['n_juego']);
+            $query->where('soldaduraPTA_pza.n_juego', '=', $filters['n_juego'], 'and');
         }
 
         // 2. Filtro por fechas (dateFrom, dateTo)
         if (isset($filters['dateFrom']) && $filters['dateFrom'] !== '' && $filters['dateFrom'] !== 'Todos') {
-            $query->where('soldaduraPTA_pza.created_at', '>=', $filters['dateFrom'] . " 00:00:00");
+            $query->where('soldaduraPTA_pza.created_at', '>=', $filters['dateFrom'] . " 00:00:00", 'and');
         }
         if (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
-            $query->where('soldaduraPTA_pza.created_at', '<=', $filters['dateTo'] . " 23:59:59");
+            $query->where('soldaduraPTA_pza.created_at', '<=', $filters['dateTo'] . " 23:59:59", 'and');
         }
 
         // 3. Filtro por Operador o Maquina (requiere join con metas)
+        $needsMetaJoin = false;
         if (
             (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') ||
             (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '')
         ) {
             $query->join('metas', 'soldaduraPTA_pza.id_meta', '=', 'metas.id', 'inner', false);
+            $needsMetaJoin = true;
 
             if (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') {
                 $matricula = is_array($filters['operator']) ? $filters['operator']['matricula'] : $filters['operator'];
-                $query->where('metas.id_usuario', $matricula);
+                $query->where('metas.id_usuario', '=', $matricula, 'and');
             }
 
             if (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '') {
-                $query->where('metas.maquina', $filters['machine']);
+                if (strpos($filters['machine'], '_') !== false) {
+                    $machines = explode('_', $filters['machine']);
+                    $query->whereIn('metas.maquina', $machines, 'and', false);
+                } else {
+                    $query->where('metas.maquina', '=', $filters['machine'], 'and');
+                }
+            }
+        }
+
+        // 3.1 Filtro por error (nuevo)
+        if (isset($filters['error']) && $filters['error'] !== 'Todos' && $filters['error'] !== '') {
+            if ($filters['error'] === 'Ninguno') {
+                $query->where(function ($q) {
+                    $q->where('soldaduraPTA_pza.defecto_pta', '=', 'Ninguno', 'and')
+                      ->orWhereNull('soldaduraPTA_pza.defecto_pta');
+                });
+            } else {
+                $query->where('soldaduraPTA_pza.defecto_pta', 'LIKE', '%' . $filters['error'] . '%', 'and');
             }
         }
 
@@ -2389,17 +2431,17 @@ class PzasGeneralesController extends Controller
                 $otId = strpos($filters['workOrder'], ' - ') !== false
                     ? explode(' - ', $filters['workOrder'])[0]
                     : $filters['workOrder'];
-                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_' . trim($otId));
+                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_' . trim($otId), 'and');
             } else if (!empty($activeOtsPTA)) {
                 $soldaduraPTAQuery->where(function ($q) use ($activeOtsPTA) {
                     foreach ($activeOtsPTA as $otId) {
-                        $q->orWhere('id_proceso', 'LIKE', '%_' . trim($otId));
+                        $q->orWhere('id_proceso', 'LIKE', '%_' . trim($otId), 'and');
                     }
                 });
             }
 
             if ($hasClassFilterPTA) {
-                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_' . $filters['class'] . '_%');
+                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_' . $filters['class'] . '_%', 'and');
             }
 
             $procesoIdsPTA = $soldaduraPTAQuery->pluck('id')->toArray();
@@ -2408,19 +2450,19 @@ class PzasGeneralesController extends Controller
                 return collect([]);
             }
 
-            $query->whereIn('soldaduraPTA_pza.id_proceso', $procesoIdsPTA);
+            $query->whereIn('soldaduraPTA_pza.id_proceso', $procesoIdsPTA, 'and', false);
         }
 
         if (isset($filters['resultado']) && $filters['resultado'] !== 'Todos' && $filters['resultado'] !== '') {
-            $query->where('soldaduraPTA_pza.resultado', $filters['resultado']);
+            $query->where('soldaduraPTA_pza.resultado', '=', $filters['resultado'], 'and');
         }
 
         if (isset($filters['defecto']) && $filters['defecto'] !== 'Todos' && $filters['defecto'] !== '') {
-            $query->where('soldaduraPTA_pza.defecto_pta', $filters['defecto']);
+            $query->where('soldaduraPTA_pza.defecto_pta', '=', $filters['defecto'], 'and');
         }
 
         if (isset($filters['material_soldadura']) && $filters['material_soldadura'] !== 'Todos' && $filters['material_soldadura'] !== '') {
-            $query->where('soldaduraPTA_pza.material_soldadura', $filters['material_soldadura']);
+            $query->where('soldaduraPTA_pza.material_soldadura', '=', $filters['material_soldadura'], 'and');
         }
 
         // Seleccionar solo el ID máximo agrupado por pieza única
@@ -2429,7 +2471,7 @@ class PzasGeneralesController extends Controller
             ->groupBy('soldaduraPTA_pza.id_proceso', 'soldaduraPTA_pza.n_juego');
 
         return SoldaduraPTA_pza::query()
-            ->whereIn('id', $subQuery)
+            ->whereIn('id', $subQuery, 'and', false)
             ->get();
     }
 
@@ -2493,16 +2535,16 @@ class PzasGeneralesController extends Controller
             $metasIds = $soldaduraPieces->pluck('id_meta')->unique()->toArray();
 
             if ($isPTA) {
-                $procesosMap = SoldaduraPTA::query()->whereIn('id', $procesosIds)->get()->keyBy('id');
+                $procesosMap = SoldaduraPTA::query()->whereIn('id', $procesosIds, 'and', false)->get()->keyBy('id');
             } else {
-                $procesosMap = Soldadura::query()->whereIn('id', $procesosIds)->get()->keyBy('id');
+                $procesosMap = Soldadura::query()->whereIn('id', $procesosIds, 'and', false)->get()->keyBy('id');
             }
 
-            $metasMap = Metas::query()->whereIn('id', $metasIds)->get()->keyBy('id');
+            $metasMap = Metas::query()->whereIn('id', $metasIds, 'and', false)->get()->keyBy('id');
             $userIds = $metasMap->pluck('id_usuario')->unique()->toArray();
-            $usersMap = User::query()->whereIn('matricula', $userIds)->get()->keyBy('matricula');
+            $usersMap = User::query()->whereIn('matricula', $userIds, 'and', false)->get()->keyBy('matricula');
             $claseIds = $metasMap->pluck('id_clase')->unique()->toArray();
-            $clasesMap = Clase::query()->whereIn('id', $claseIds)->get()->keyBy('id');
+            $clasesMap = Clase::query()->whereIn('id', $claseIds, 'and', false)->get()->keyBy('id');
 
             foreach ($soldaduraPieces as $piece) {
                 $proceso = $procesosMap->get($piece->id_proceso);
@@ -2536,6 +2578,14 @@ class PzasGeneralesController extends Controller
                             : 'N/A';
                     }
 
+                    if (!$clase && $className !== 'N/A' && $workOrderId !== 'N/A') {
+                        $searchClassName = str_replace('_', ' ', $className);
+                        $clase = Clase::query()
+                            ->where('nombre', '=', $searchClassName, 'and')
+                            ->where('id_ot', '=', $workOrderId, 'and')
+                            ->first();
+                    }
+
                     $tipoRaw = $piece->tipo_soldadura;
                     if (empty($tipoRaw) || in_array(strval($tipoRaw), ['0', '.0', '00', '000', '0000'])) {
                         if ($clase) {
@@ -2554,12 +2604,17 @@ class PzasGeneralesController extends Controller
                         'defecto' => $piece->defecto_pta ?? 'N/A',
                         'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
                         'tiempo_aplicacion' => $piece->tiempo_aplicacion ?? 'N/A',
-                        'tipo_soldadura' => [
+                        'tipo_soldadura' => (isset([
                             '1' => 'P1 - 3',
                             '2' => 'P2 - 2.5',
                             '3' => 'P3 - 2',
                             '4' => 'P4 - 1.5'
-                        ][strval($tipoRaw)] ?? $tipoRaw ?? 'N/A',
+                        ][strval($tipoRaw)]) ? [
+                            '1' => 'P1 - 3',
+                            '2' => 'P2 - 2.5',
+                            '3' => 'P3 - 2',
+                            '4' => 'P4 - 1.5'
+                        ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
                         'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
                         'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
@@ -2572,7 +2627,8 @@ class PzasGeneralesController extends Controller
             // Deduplicar piezas por clase + orden_trabajo + n_juego
             $uniquePieces = [];
             foreach ($piecesData as $p) {
-                $key = $p['clase'] . '_' . $p['orden_trabajo'] . '_' . $p['n_juego'];
+                $claseNorm = str_replace('_', ' ', trim($p['clase'] ?? ''));
+                $key = $claseNorm . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
                 if (!isset($uniquePieces[$key])) {
                     $uniquePieces[$key] = $p;
                 } else {
@@ -2593,13 +2649,15 @@ class PzasGeneralesController extends Controller
             if (is_array($activePieces) && !empty($activePieces)) {
                 $activeKeys = [];
                 foreach ($activePieces as $ap) {
-                    $key = trim($ap['class'] ?? '') . '_' . trim($ap['workOrder'] ?? '') . '_' . trim($ap['noAssembly'] ?? '');
+                    $apClassNorm = str_replace('_', ' ', trim($ap['class'] ?? ''));
+                    $key = $apClassNorm . '_' . trim($ap['workOrder'] ?? '') . '_' . trim($ap['noAssembly'] ?? '');
                     $activeKeys[$key] = true;
                 }
 
                 $filteredPieces = [];
                 foreach ($piecesData as $p) {
-                    $key = trim($p['clase'] ?? '') . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
+                    $claseNorm = str_replace('_', ' ', trim($p['clase'] ?? ''));
+                    $key = $claseNorm . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
                     if (isset($activeKeys[$key])) {
                         $filteredPieces[] = $p;
                     }
@@ -2644,16 +2702,16 @@ class PzasGeneralesController extends Controller
             $metasIds = $soldaduraPieces->pluck('id_meta')->unique()->toArray();
 
             if ($isPTA) {
-                $procesosMap = SoldaduraPTA::query()->whereIn('id', $procesosIds)->get()->keyBy('id');
+                $procesosMap = SoldaduraPTA::query()->whereIn('id', $procesosIds, 'and', false)->get()->keyBy('id');
             } else {
-                $procesosMap = Soldadura::query()->whereIn('id', $procesosIds)->get()->keyBy('id');
+                $procesosMap = Soldadura::query()->whereIn('id', $procesosIds, 'and', false)->get()->keyBy('id');
             }
 
-            $metasMap = Metas::query()->whereIn('id', $metasIds)->get()->keyBy('id');
+            $metasMap = Metas::query()->whereIn('id', $metasIds, 'and', false)->get()->keyBy('id');
             $userIds = $metasMap->pluck('id_usuario')->unique()->toArray();
-            $usersMap = User::query()->whereIn('matricula', $userIds)->get()->keyBy('matricula');
+            $usersMap = User::query()->whereIn('matricula', $userIds, 'and', false)->get()->keyBy('matricula');
             $claseIds = $metasMap->pluck('id_clase')->unique()->toArray();
-            $clasesMap = Clase::query()->whereIn('id', $claseIds)->get()->keyBy('id');
+            $clasesMap = Clase::query()->whereIn('id', $claseIds, 'and', false)->get()->keyBy('id');
 
             foreach ($soldaduraPieces as $piece) {
                 $proceso = $procesosMap->get($piece->id_proceso);
@@ -2687,6 +2745,14 @@ class PzasGeneralesController extends Controller
                             : 'N/A';
                     }
 
+                    if (!$clase && $className !== 'N/A' && $workOrderId !== 'N/A') {
+                        $searchClassName = str_replace('_', ' ', $className);
+                        $clase = Clase::query()
+                            ->where('nombre', '=', $searchClassName, 'and')
+                            ->where('id_ot', '=', $workOrderId, 'and')
+                            ->first();
+                    }
+
                     if ($isPTA) {
                         $piecesData[] = [
                             'n_juego' => $piece->n_juego ?? 'N/A',
@@ -2705,7 +2771,7 @@ class PzasGeneralesController extends Controller
                         $tipoRaw = $piece->tipo_soldadura;
                         if (empty($tipoRaw) || in_array(strval($tipoRaw), ['0', '.0', '00', '000', '0000'])) {
                             if ($clase) {
-                                $tipoRaw = $clase->tipo_soldadura;
+                                    $tipoRaw = $clase->tipo_soldadura;
                             }
                         }
 
@@ -2715,12 +2781,17 @@ class PzasGeneralesController extends Controller
                             'clase' => $className,
                             'orden_trabajo' => $workOrderId,
                             'peso_pieza' => $piece->pesoxpieza ?? 'N/A',
-                            'tipo_soldadura' => [
+                            'tipo_soldadura' => (isset([
                                 '1' => 'P1 - 3',
                                 '2' => 'P2 - 2.5',
                                 '3' => 'P3 - 2',
                                 '4' => 'P4 - 1.5'
-                            ][strval($tipoRaw)] ?? $tipoRaw ?? 'N/A',
+                            ][strval($tipoRaw)]) ? [
+                                '1' => 'P1 - 3',
+                                '2' => 'P2 - 2.5',
+                                '3' => 'P3 - 2',
+                                '4' => 'P4 - 1.5'
+                            ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
                             'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                             'lote' => $piece->lote ?? 'N/A',
                             'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
@@ -2734,7 +2805,8 @@ class PzasGeneralesController extends Controller
             // Deduplicar piezas por clase + orden_trabajo + n_juego para el PDF
             $uniquePieces = [];
             foreach ($piecesData as $p) {
-                $key = $p['clase'] . '_' . $p['orden_trabajo'] . '_' . $p['n_juego'];
+                $claseNorm = str_replace('_', ' ', trim($p['clase'] ?? ''));
+                $key = $claseNorm . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
                 if (!isset($uniquePieces[$key])) {
                     $uniquePieces[$key] = $p;
                 } else {
@@ -2755,13 +2827,15 @@ class PzasGeneralesController extends Controller
             if (is_array($activePieces) && !empty($activePieces)) {
                 $activeKeys = [];
                 foreach ($activePieces as $ap) {
-                    $key = trim($ap['class'] ?? '') . '_' . trim($ap['workOrder'] ?? '') . '_' . trim($ap['noAssembly'] ?? '');
+                    $apClassNorm = str_replace('_', ' ', trim($ap['class'] ?? ''));
+                    $key = $apClassNorm . '_' . trim($ap['workOrder'] ?? '') . '_' . trim($ap['noAssembly'] ?? '');
                     $activeKeys[$key] = true;
                 }
 
                 $filteredPieces = [];
                 foreach ($piecesData as $p) {
-                    $key = trim($p['clase'] ?? '') . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
+                    $claseNorm = str_replace('_', ' ', trim($p['clase'] ?? ''));
+                    $key = $claseNorm . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
                     if (isset($activeKeys[$key])) {
                         $filteredPieces[] = $p;
                     }
@@ -2794,7 +2868,7 @@ class PzasGeneralesController extends Controller
             // Agregar Operador si está filtrado
             if (isset($filters['operator']) && $filters['operator'] !== 'Todos' && $filters['operator'] !== '') {
                 $operatorMatricula = is_array($filters['operator']) ? $filters['operator']['matricula'] : $filters['operator'];
-                $operator = User::query()->where('matricula', $operatorMatricula)->first();
+                $operator = User::query()->where('matricula', '=', $operatorMatricula, 'and')->first();
                 if ($operator) {
                     $operatorName = $operator->nombre . '_' . $operator->a_paterno;
                     // Limpiar caracteres especiales del nombre
