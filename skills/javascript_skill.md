@@ -431,3 +431,90 @@ document
         // ... Lógica de subida ...
     });
 ```
+
+---
+
+## 14. Persistencia de Filtros con `sessionStorage`
+
+Cuando el usuario navega a una vista de detalle (por ejemplo, ver una pieza o historial de OT) y luego regresa con un botón "Regresar" o la navegación del navegador, los filtros que tenía aplicados en la tabla de origen se pierden, arruinando la experiencia de usuario.
+
+Para solucionar esto, usa el **Patrón de Persistencia con sessionStorage**:
+1. Antes de navegar fuera de la página, guarda los filtros actuales en `sessionStorage` en formato JSON.
+2. Al cargar la página, comprueba si existe una bandera que indique que venimos regresando de la subvista. Si es así, carga y aplica los filtros.
+3. Si el usuario entra por primera vez de forma directa, limpia la sesión para evitar filtros antiguos inesperados.
+
+```javascript
+// ✅ PATRÓN CORRECTO: Persistencia de Filtros
+const comingBack = sessionStorage.getItem('comingFromPieceView') === 'true';
+sessionStorage.removeItem('comingFromPieceView'); // Consumir bandera inmediatamente
+
+if (comingBack) {
+    const savedFilters = sessionStorage.getItem('adminPiecesFilters');
+    if (savedFilters) {
+        try {
+            const parsed = JSON.parse(savedFilters);
+            if (window.selectedItems) {
+                Object.keys(parsed).forEach(key => {
+                    window.selectedItems[key] = parsed[key];
+                });
+            }
+        } catch (e) {
+            console.error("[restoreFilters] Error parsing saved filters:", e);
+        }
+    }
+} else {
+    // Si no es un regreso, limpiar filtros previos para iniciar de cero
+    sessionStorage.removeItem('adminPiecesFilters');
+}
+
+// Escuchar clics en los enlaces de detalles/ver para guardar el estado antes de irse
+document.addEventListener("click", (e) => {
+    const btn = e.target.closest(".btn-ver-detalle");
+    if (btn) {
+        sessionStorage.setItem("comingFromPieceView", "true");
+        const filters = obtenerFiltrosActivos(); // Retorna objeto con filtros
+        sessionStorage.setItem("adminPiecesFilters", JSON.stringify(filters));
+    }
+});
+
+// Al presionar el botón "Limpiar Filtros", también limpiar la persistencia
+document.getElementById("btnClearFilters")?.addEventListener("click", () => {
+    sessionStorage.removeItem('adminPiecesFilters');
+});
+```
+
+---
+
+## 15. Activación Condicional de Controles/Botones Según Filtros Activos
+
+Si tienes un botón global cuya funcionalidad solo aplica a ciertos datos filtrados (por ejemplo, "Exportar Reporte de Soldadura" que solo tiene sentido si estamos visualizando procesos de soldadura), debes ocultar o deshabilitar dinámicamente el botón dependiendo del filtro seleccionado.
+
+La función debe ser **idempotente** y ejecutarse cada vez que la tabla se re-filtre:
+
+```javascript
+// ✅ PATRÓN CORRECTO: Mostrar/ocultar condicional de botones globales
+function checkProcessAndShowButton(procesoFiltrado) {
+    const btnSoldadura = document.getElementById('btn-soldadura-report');
+    if (!btnSoldadura) return;
+
+    const procesosPermitidos = ['Soldadura', 'SoldaduraPTA'];
+
+    // Usar clases CSS de visibilidad (del styles_skill.md)
+    if (procesosPermitidos.includes(procesoFiltrado)) {
+        btnSoldadura.classList.remove('hidden');
+    } else {
+        btnSoldadura.classList.add('hidden');
+    }
+}
+
+// En tu función principal de filtrado de filas:
+function applyAllFilters() {
+    const proceso = document.getElementById("select-proceso").value;
+    
+    // Ejecutar verificación del botón
+    checkProcessAndShowButton(proceso);
+
+    // ... lógica para mostrar/ocultar filas en la tabla ...
+}
+```
+

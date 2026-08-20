@@ -312,3 +312,111 @@ CaseInsensitive: true
 ```
 
 Esto es más rápido que ejecutar PowerShell para búsquedas simples. Usa Python para búsquedas complejas con contexto o ediciones.
+
+---
+
+## 12. Comandos Artisan Masivos: Paginación y Modos de Ejecución
+
+Cuando implementes un comando de Artisan para procesar volúmenes masivos de registros en base de datos (por ejemplo, exportar/depurar logs históricos o actualizar estados de piezas en masa), debes seguir estas reglas de diseño:
+
+1. **Usar `lazyById()` en lugar de `chunk()` si se eliminan/modifican registros durante la iteración.** Si eliminas registros dentro del bucle de `chunk()`, el OFFSET de la consulta SQL interna se desplaza, causando que la mitad de los registros se omitan. `lazyById()` utiliza un cursor del estilo `WHERE id > $lastId`, lo que garantiza que no se salte ningún registro.
+2. **Soportar el parámetro `--dry-run`.** Este parámetro debe simular el proceso por completo en consola (contar registros que procesaría, mostrar logs) pero sin realizar ninguna escritura, guardado de archivos o borrado en la base de datos.
+3. **Liberar memoria del servidor.** Llama a `unset()` sobre variables de objetos grandes e invoca `gc_collect_cycles()` tras finalizar el procesamiento de cada lote para evitar que PHP agote la RAM asignada.
+4. **Optimizar la base de datos.** InnoDB no libera el espacio físico en disco tras hacer un `DELETE` masivo, dejando "páginas vacías". Agrega un comando de optimización al final.
+
+```php
+// ✅ PATRÓN CORRECTO: Comando Artisan Masivo Seguro
+class DepurarRegistros extends Command
+{
+    protected $signature = 'app:depurar-registros
+                            {--dry-run : Simula el proceso sin hacer cambios en BD o disco}
+                            {--chunk=300 : Lotes de registros a procesar}';
+
+    public function handle()
+    {
+        set_time_limit(0);                  // Evitar timeout en background
+        ini_set('memory_limit', '1024M');     // Incrementar límite de RAM
+
+        $isDryRun = (bool) $this->option('dry-run');
+        $chunkSize = (int) $this->option('chunk');
+        $totalEliminados = 0;
+
+        // lazyById es seguro contra borrados en cascada durante la iteración
+        $query = RegistroHistorial::query()->orderBy('id')->lazyById($chunkSize);
+
+        $lote = collect();
+        foreach ($query as $registro) {
+            $lote->push($registro);
+
+            if ($lote->count() >= $chunkSize) {
+                $totalEliminados += $this->procesarLote($lote, $isDryRun);
+                $lote = collect(); // Limpiar colección
+            }
+        }
+        
+        // Procesar remanentes
+        if ($lote->isNotEmpty()) {
+            $totalEliminados += $this->procesarLote($lote, $isDryRun);
+        }
+
+        // Desfragmentar espacio e índices en disco tras borrado masivo
+        if (!$isDryRun && $totalEliminados > 0) {
+            DB::statement('OPTIMIZE TABLE registro_historials');
+            $this->info("Tabla optimizada física y lógicamente.");
+        }
+    }
+
+    private function procesarLote($registros, $isDryRun)
+    {
+        if ($isDryRun) {
+            $this->line("  [Dry-Run] Se procesarían y eliminarían {$registros->count()} registros.");
+            return $registros->count();
+        }
+
+        // ... Lógica de exportación/procesamiento pesado ...
+
+        // Eliminar masivamente por IDs del lote actual
+        $ids = $registros->pluck('id')->toArray();
+        $count = RegistroHistorial::whereIn('id', $ids)->delete();
+
+        // Liberar recursos de memoria
+        unset($registros);
+        gc_collect_cycles();
+
+        return $count;
+    }
+}
+```
+
+---
+
+## 13. Pre-carga de Catálogos (Evitar Consultas N+1 en Loops de Consola)
+
+En scripts de línea de comandos que iteran sobre miles de registros, **nunca ejecutes consultas SQL individuales dentro de un bucle**. Si necesitas asociar información de relaciones (por ejemplo, el nombre del operador a través de su matrícula), pre-carga la tabla en memoria usando una sola query agrupada por llave antes del bucle principal:
+
+```php
+// ❌ ANTES (Incorrecto: Genera 10,000 queries si hay 10,000 logs)
+foreach ($logs as $log) {
+    $user = User::where('matricula', '=', $log->user_matricula, 'and')->first();
+    $this->line("Log del usuario: " . ($user ? $user->nombre : 'Sistema'));
+}
+
+// ✅ AHORA (Correcto: 1 sola query inicial con indexación en memoria O(1))
+$matriculas = SystemLog::query()->whereNotNull('user_matricula')->distinct()->pluck('user_matricula')->toArray();
+
+// Obtener mapa indexado en memoria
+$usersMap = User::query()
+    ->whereIn('matricula', $matriculas)
+    ->select(['matricula', 'nombre', 'a_paterno'])
+    ->get()
+    ->keyBy('matricula'); // Indexar usando la matrícula como clave
+
+foreach ($logs as $log) {
+    // Búsqueda en memoria super rápida, sin tocar la base de datos
+    $user = $log->user_matricula ? $usersMap->get($log->user_matricula) : null;
+    $nombre = $user ? "{$user->nombre} {$user->a_paterno}" : 'Sistema';
+    
+    $this->line("Log del usuario: {$nombre}");
+}
+```
+

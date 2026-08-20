@@ -54,26 +54,28 @@ Si la tarea te obligó a deducir algo que no estaba en ninguna skill, agrégalo 
 - **Alertas UI:** SweetAlert2
 - **Base de datos:** MySQL
 - **Entorno:** Windows (PowerShell) en desarrollo, Linux en producción
+- **Encoding:** Todos los archivos deben ser UTF-8 sin BOM (ver `fix_encoding.py` si hay problemas de mojibake)
 
 ---
 
 ## Índice Completo de Skills
 
 1. **[Controladores](controllers_skill.md)** — Transacciones, eager loading, JSON vs Blade, Form Requests, thin controllers
-2. **[Lógica y Modelos](logic_skill.md)** — Eloquent optimizado, scopes, perfiles, Carbon, orWhere agrupado
+2. **[Lógica y Modelos](logic_skill.md)** — Eloquent optimizado, scopes, perfiles, Carbon, orWhere agrupado, anti-patrón de memoria
 3. **[Vistas Blade](views_skill.md)** — Layouts, CSRF, Vite, partials, stacks, escapado XSS
 4. **[Estilos CSS](styles_skill.md)** — Paleta GIS, glassmorphism, botones `.btns`, responsivo, dark mode
 5. **[JavaScript](javascript_skill.md)** — Async/await, FormData, delegación de eventos, window.routes
 6. **[PDFs DomPDF](pdf_skill.md)** — Tablas HTML, imágenes locales, fuentes TTF, saltos de página
 7. **[Migraciones](migrations_skill.md)** — Tablas nuevas vs producción, índices, soft deletes, naming
-8. **[Validación](validation_skill.md)** — Inline vs Form Request, sanitización, reglas reales del proyecto
+8. **[Validación](validation_skill.md)** — Inline vs Form Request, sanitización, reglas reales del proyecto, after hooks
 9. **[QR Codes](qr_codes_skill.md)** — Payload JSON, parseo de lectores físicos, interfaz de escaneo
-10. **[Error Logging](error_logging_skill.md)** — Log estructurado, SystemLog, niveles de severidad
-11. **[Seguridad](security_skill.md)** — SQL Injection, XSS, CSRF, perfiles de acceso, middlewares
+10. **[Error Logging](error_logging_skill.md)** — Log estructurado, SystemLog, niveles de severidad, anti-patrón de memoria
+11. **[Seguridad](security_skill.md)** — SQL Injection, XSS, CSRF, perfiles de acceso correctos (1,2,4,5,6,8), middlewares
 12. **[Comandos](commands_skill.md)** — Python, PowerShell, Artisan, NPM, Git, patrones de búsqueda
 13. **[Dynamic UI](dynamic_ui_skill.md)** — State local con `window.*`, render sin recargar, pattern CRUD
 14. **[Emails](emails_skill.md)** — Mailables Laravel, plantillas Blade, configuración SMTP
 15. **[Rutas](routes_skill.md)** — Convenciones, grupos de rutas, naming, middlewares en rutas
+16. **[No Testing](no_testing_skill.md)** — Límites del agente: no browser_subagent, verificaciones de backend permitidas
 
 ---
 
@@ -100,10 +102,10 @@ Cuando recibas un nuevo requerimiento completo, ejecuta este flujo mental:
 Project_saavedra/
  app/
  Http/
- Controllers/ ← 65+ controladores (ver controllers_skill)
- Requests/ ← Form Requests (ver validation_skill)
- Middleware/ ← auth, CheckPtaAccess, guest (ver security_skill)
- Models/ ← 132+ modelos (ver logic_skill)
+  Controllers/ ← 72+ controladores (ver controllers_skill)
+  Requests/    ← Form Requests (ver validation_skill)
+  Middleware/  ← auth, CheckPtaAccess, guest (ver security_skill)
+ Models/      ← 145+ modelos (ver logic_skill)
  Mail/ ← Mailables de correo (ver emails_skill)
  database/
  migrations/ ← 31+ grupos de migraciones (ver migrations_skill)
@@ -137,9 +139,9 @@ Project_saavedra/
 
 | Perfil | Nombre | Acceso Principal |
 |--------|--------|-----------------|
-| `1` | Administrador | Acceso total, creación de OTs, depuración |
-| `2` | Gerente/Supervisor | Ver todo, aprobar, auditoría |
-| `4` | Calidad | Revisión y liberación de OTs, SCARs |
-| `5` | Almacén | Recepción, pre-órdenes, reprocesos |
-| `6` | Operador Maquinado | Maquinado de piezas, registro de medidas |
+| `1` | Administrador | Acceso total, creación de OTs, depuración, acceso global |
+| `2` | Gerente/Supervisor | Ver todo, aprobar, auditoría completa |
+| `4` | Calidad Fundición | Revisión y liberación de OTs, SCARs, liberación de modelos |
+| `5` | Almacén | Recepción, pre-órdenes, reprocesos, subida de documentos |
+| `6` | Operador Maquinado | Maquinado de piezas, registro de medidas en procesos |
 | `8` | Calidad Soldadura | Liberación de botes y lotes de soldadura |

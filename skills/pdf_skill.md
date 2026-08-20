@@ -144,3 +144,42 @@ La única vista en `resources/views/pdf/` es la pre-orden de fundición. Su estr
 </body>
 </html>
 ```
+
+---
+
+## 9. Optimización de DomPDF para Procesamiento en Lote (Comandos Artisan)
+
+Cuando generes decenas o cientos de PDFs en un solo proceso de servidor (como el comando Artisan para exportar logs semanales o generar reportes de producción masivos), DomPDF puede agotar los 128MB o 256MB de RAM asignados por defecto a PHP rápidamente si se carga de forma estándar.
+
+Para evitar esto, aplica estas reglas de optimización de DomPDF:
+1. **Deshabilitar procesamiento innecesario.** Establece `enable_javascript` y `enable_remote` a `false`. Esto previene que DomPDF intente realizar llamadas HTTP internas o procesar scripts, lo cual consume muchos recursos.
+2. **Definir fuente nativa del PDF.** Usa fuentes del sistema nativas de PDF (como `helvetica` o `courier`) en lugar de cargar fuentes TTF externas personalizadas mediante `@font-face` (las cuales consumen mucha memoria al incrustarse).
+3. **Liberar RAM al instante.** Tras guardar cada archivo PDF generado, llama a `unset($pdf)` y ejecuta el recolector de basura de PHP (`gc_collect_cycles()`). Esto obliga a PHP a liberar los megabytes retenidos en cada ciclo del loop.
+
+```php
+// ✅ PATRÓN CORRECTO: DomPDF Optimizado para Loops Masivos
+foreach ($lotes as $lote) {
+    try {
+        $pdf = Pdf::loadView('reports.layout_simple', [
+            'registros' => $lote
+        ])
+        ->setOption('enable_javascript', false)    // Evita pasos de procesamiento JS redundantes
+        ->setOption('enable_remote', false)        // Bloquea peticiones HTTP salientes lentas
+        ->setOption('default_media_type', 'print') // Lee estilos dedicados a impresión
+        ->setOption('default_font', 'helvetica')   // Fuente nativa de PDF ultraligera
+        ->setOption('dpi', 96);                    // Ajusta DPI de renderizado
+
+        $nombreArchivo = "reportes/Lote_" . $lote->id . ".pdf";
+        Storage::disk('local')->put($nombreArchivo, $pdf->output());
+
+        // ⚠️ CRÍTICO: Liberación activa de RAM para prevenir fugas de memoria (Memory Leaks)
+        unset($pdf);
+        gc_collect_cycles(); 
+
+    } catch (\Throwable $e) {
+        Log::error("Fallo al generar PDF del lote: " . $e->getMessage());
+        unset($pdf);
+        gc_collect_cycles();
+    }
+}
+```

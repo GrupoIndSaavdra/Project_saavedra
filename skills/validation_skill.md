@@ -143,3 +143,42 @@ $request->validate([
  'archivo' => 'required|file|mimes:pdf,jpg,jpeg,png,gif,webp|max:20480',
 ]);
 ```
+
+### Validación con `after` (Reglas Post-Validación Cruzada)
+Cuando una regla depende de otra columna o condición de negocio:
+```php
+public function rules(): array
+{
+    return [
+        'fecha_fin' => 'required|date',
+        'fecha_inicio' => 'required|date',
+    ];
+}
+
+public function withValidator($validator): void
+{
+    $validator->after(function ($validator) {
+        if ($this->fecha_fin < $this->fecha_inicio) {
+            $validator->errors()->add('fecha_fin', 'La fecha de fin debe ser posterior a la fecha de inicio.');
+        }
+    });
+}
+```
+
+### Validación de Parámetros de Ruta (Request de Detalle)
+Para endpoints que reciben IDs en la URL, valida la existencia y el permiso:
+```php
+public function show(string $ot): \Illuminate\Http\Response
+{
+    // Validar existencia antes de procesar
+    $registro = FundicionHistory::where('ot', '=', $ot, 'and')->firstOrFail();
+
+    // Validar permiso de acceso al recurso
+    if (!in_array(auth()->user()->perfil, [1, 2, 4, 5])) {
+        abort(403, 'No tienes permiso para ver esta OT.');
+    }
+
+    return view('calidad.detalle', compact('registro'));
+}
+```
+

@@ -65,11 +65,13 @@ Cross-Site Request Forgery obliga a un usuario autenticado a enviar solicitudes 
 El sistema restringe las funcionalidades según la matriz de perfiles del personal:
 
 | ID Perfil | Nombre del Rol | Ejemplo de Permiso |
-|-----------|----------------|--------------------|
-| **1** | Administrador | Creación de OTs, dibujos, depuración total |
-| **2** | Operador | Maquinado de piezas, registro de medidas |
-| **5** | Almacén | Recepción y liberación de botes de soldadura |
-| **6 / 8** | Calidad / Gte | Liberación final, auditoría de logs, PTA |
+|-----------|----------------|--------------------| 
+| **1** | Administrador | Creación de OTs, dibujos, depuración total, acceso global |
+| **2** | Gerente/Supervisor | Ver todo, aprobar, auditoría completa |
+| **4** | Calidad Fundición | Revisión y liberación de OTs, SCARs, liberación de modelos |
+| **5** | Almacén | Recepción, pre-órdenes, reprocesos, subida de documentos |
+| **6** | Operador Maquinado | Maquinado de piezas, registro de medidas en procesos |
+| **8** | Calidad Soldadura | Liberación de botes y lotes de soldadura |
 
 ### Middleware de Ruta (Seguridad Temprana)
 Protege las rutas en el archivo `routes/web.php` usando middlewares existentes o validación en el constructor de controladores:
@@ -77,14 +79,14 @@ Protege las rutas en el archivo `routes/web.php` usando middlewares existentes o
 - **En Controlador:**
 ```php
 public function __construct() {
- $this->middleware('auth');
+    $this->middleware('auth');
 }
 
 public function store(Request $request) {
- // Validar perfil en el método
- if (auth()->user()->perfil != 1) {
- abort(403, 'No tienes permisos de Administrador.');
- }
+    // Validar perfil en el método
+    if (auth()->user()->perfil != 1) {
+        abort(403, 'No tienes permisos de Administrador.');
+    }
 }
 ```
 

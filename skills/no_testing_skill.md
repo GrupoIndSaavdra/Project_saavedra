@@ -88,3 +88,30 @@ try {
 }
 ```
 Este método permite diagnosticar inmediatamente si falta alguna variable en la plantilla de Blade o si existe un problema de autenticación SMTP.
+
+---
+
+## Verificación de Assets Frontend (Vite)
+
+Antes de considerar un cambio CSS/JS como terminado, verifica que compila sin errores:
+
+```powershell
+# Verificar compilación de CSS y JS sin errores
+npm run build 2>&1
+
+# Si hay un SyntaxError en JS, Vite mostrará la línea exacta del problema
+# Ver javascript_skill.md § 10 sobre escapes inválidos que rompen esbuild
+```
+
+> **Nota:** Si el build tiene errores de sintaxis JS (ej. `\\'` dentro de template literals), el servidor `npm run dev` seguirá funcionando en cache hasta que lo reinicies. **Siempre verifica con `npm run build`** antes de reportar que "funciona".
+
+---
+
+## Checklist de Verificación Final (Antes de Cerrar una Tarea)
+
+- [ ] ¿Se verificó la sintaxis PHP de los controladores modificados? (`php -l archivo.php`)
+- [ ] ¿Se verificó que las rutas no tienen conflictos? (`php artisan route:list`)
+- [ ] ¿Se limpiaron las cachés? (`php artisan optimize:clear`)
+- [ ] ¿Se verificó que Vite compila sin errores? (`npm run build`)
+- [ ] ¿Se documentó en la skill correspondiente si se descubrió un nuevo patrón?
+

@@ -1,4 +1,4 @@
-﻿# Guía de Estilos y Colores (Styles Skill) — Project Saavedra
+# Guía de Estilos y Colores (Styles Skill) — Project Saavedra
 
 > **Directorio de Referencia:** `resources/css/`
 > *`Project_saavedra` NO usa TailwindCSS ni Bootstrap. Todo es Vanilla CSS con Poppins. El diseño debe ser absolutamente premium.*
@@ -174,7 +174,7 @@ Cuando crees menús superpuestos, modales o paneles de detalles, usa esta arquit
  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 
  border-radius: 12px;
- padding: var(--space-lg);
+ padding: var(--sp-lg);
 }
 ```
 
@@ -184,7 +184,7 @@ Cuando crees menús superpuestos, modales o paneles de detalles, usa esta arquit
 
 ```css
 .btns {
- background-color: var(--color-primary-green);
+ background-color: var(--gis-green);
  color: #fff;
  border: none;
  padding: 12px 35px;
@@ -192,7 +192,7 @@ Cuando crees menús superpuestos, modales o paneles de detalles, usa esta arquit
  font-size: 1.2rem;
  font-weight: bold;
  cursor: pointer;
- box-shadow: 0 4px 6px rgba(10, 133, 4, 0.3);
+ box-shadow: 0 4px 6px var(--shadow-green);
  transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
  box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
  background-color 0.2s ease;
@@ -209,8 +209,8 @@ Cuando crees menús superpuestos, modales o paneles de detalles, usa esta arquit
 
 /* Variante de peligro (rojo) */
 .btns.danger {
- background-color: var(--color-danger-red);
- box-shadow: 0 4px 6px rgba(156, 3, 3, 0.3);
+ background-color: var(--gis-red);
+ box-shadow: 0 4px 6px var(--shadow-red);
 }
 
 .btns.danger:hover {
@@ -273,7 +273,7 @@ La aplicación se visualiza en tabletas industriales y teléfonos de operadores.
  display: flex;
  justify-content: space-between;
  align-items: center;
- gap: var(--space-md);
+ gap: var(--sp-md);
 }
 
 /* Distribución de tarjetas auto-responsiva con Grid */
@@ -423,7 +423,7 @@ O en línea cuando no hay clase disponible:
 }
 
 .data-table thead {
- background-color: var(--color-primary-blue);
+ background-color: var(--gis-blue);
  color: #fff;
 }
 
@@ -437,7 +437,7 @@ O en línea cuando no hay clase disponible:
 }
 
 .data-table tbody tr {
- border-bottom: 1px solid var(--color-border);
+ border-bottom: 1px solid rgba(0,0,0,0.08);
  transition: background-color 0.15s ease;
 }
 
@@ -513,14 +513,16 @@ element.classList.replace('hidden', 'flex-visible');
 
 ## 15. Creación Dinámica de Componentes DOM en JavaScript
 
-Al construir interfaces o componentes de manera dinámica con document.createElement() en JavaScript (lmacen_fundicion.js, processProduction.js, etc.), sigue estas reglas:
+Al construir interfaces o componentes de manera dinámica con `document.createElement()` en JavaScript (`almacen_fundicion.js`, `processProduction.js`, etc.), sigue estas reglas:
 
-1. **Prohibido style.cssText o asignaciones masivas inline:** No inyectes cadenas largas de estilos ni redefinas propiedades estáticas (como bordes, sombras, fuentes o paddings) mediante código JavaScript.
-2. **Usar Clases Declarativas:** Asigna siempre clases CSS claras mediante element.className o element.classList.add(...). Si el componente no tiene clases existentes, define nuevas clases en esources/css/global.css o en el CSS del módulo respectivo.
-3. **Excepción Válida de Runtime:** Las únicas asignaciones mediante element.style.* permitidas son aquellas cuyos valores se calculan en tiempo de ejecución y cambian dinámicamente según los datos u operadores:
-   - Anchos de barras de progreso: element.style.width = \${pct}%\;`n   - Retardos de animación calculados en bucles: element.style.animationDelay = \${i * 0.05}s\;`n   - Colores o gradientes variables recibidos como parámetro de configuración o base de datos.
+1. **Prohibido `style.cssText` o asignaciones masivas inline:** No inyectes cadenas largas de estilos ni redefinas propiedades estáticas (como bordes, sombras, fuentes o paddings) mediante código JavaScript.
+2. **Usar Clases Declarativas:** Asigna siempre clases CSS claras mediante `element.className` o `element.classList.add(...)`. Si el componente no tiene clases existentes, define nuevas clases en `resources/css/global.css` o en el CSS del módulo respectivo.
+3. **Excepción Válida de Runtime:** Las únicas asignaciones mediante `element.style.*` permitidas son aquellas cuyos valores se calculan en tiempo de ejecución y cambian dinámicamente según los datos:
+   - Anchos de barras de progreso: `element.style.width = \`${pct}%\`;`
+   - Retardos de animación calculados en bucles: `element.style.animationDelay = \`${i * 0.05}s\`;`
+   - Colores o gradientes variables recibidos como parámetro de configuración o base de datos.
 
-`js
+```js
 // ❌ ANTES (incorrecto - estilo estático inyectado por JS)
 const card = document.createElement('div');
 card.style.cssText = 'border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 12px; background: #fff; border: 2px solid #d97706;';
@@ -528,4 +530,4 @@ card.style.cssText = 'border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05
 // ✅ AHORA (correcto - uso de clases atómicas o de componente)
 const card = document.createElement('div');
 card.classList.add('alm-card-base', 'alm-card-warning');
-``n
+```
