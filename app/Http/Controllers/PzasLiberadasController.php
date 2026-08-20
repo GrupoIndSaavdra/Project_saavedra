@@ -171,60 +171,32 @@ class PzasLiberadasController extends Controller
         $juego = explode(",", $juego);
         switch ($proceso) {
             case "Cepillado":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Pza_cepillado::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Pza_cepillado::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Pza_cepillado::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Pza_cepillado::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Desbaste Exterior":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Desbaste_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Desbaste_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Desbaste_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Desbaste_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Revision Laterales":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = RevLaterales_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? RevLaterales_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = RevLaterales_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? RevLaterales_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Primera Operacion":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = PrimeraOpeSoldadura_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? PrimeraOpeSoldadura_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = PrimeraOpeSoldadura_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? PrimeraOpeSoldadura_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Barreno Maniobra":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = BarrenoManiobra_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? BarrenoManiobra_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = BarrenoManiobra_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? BarrenoManiobra_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Segunda Operacion":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = SegundaOpeSoldadura_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? SegundaOpeSoldadura_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = SegundaOpeSoldadura_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? SegundaOpeSoldadura_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Soldadura":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Soldadura_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Soldadura_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Soldadura_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Soldadura_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Soldadura PTA":
                 $pieza = array();
@@ -233,9 +205,9 @@ class PzasLiberadasController extends Controller
                     if (count($matches) == 3) {
                         $n_pieza = $matches[1];
                         $id_proceso = $matches[2];
-                        $p = SoldaduraPTA_pza::query()->where('n_pieza', $n_pieza)->where('id_proceso', $id_proceso)->first();
+                        $p = SoldaduraPTA_pza::query()->where('n_pieza', '=', $n_pieza, 'and')->where('id_proceso', '=', $id_proceso, 'and')->first();
                     } else {
-                        $p = SoldaduraPTA_pza::query()->where('id_pza', $pza)->first();
+                        $p = SoldaduraPTA_pza::query()->where('id_pza', '=', $pza, 'and')->first();
                     }
 
                     if ($p) {
@@ -243,140 +215,83 @@ class PzasLiberadasController extends Controller
                     }
                 }
                 if (count($pieza) > 0) {
-                    $piezas = SoldaduraPTA_pza::query()->where('id_meta', $pieza[0]->id_meta)->get();
+                    $piezas = SoldaduraPTA_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get();
                 } else {
                     $piezas = array();
                 }
                 break;
             case "Rectificado":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Rectificado_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Rectificado_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Rectificado_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Rectificado_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Asentado":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Asentado_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Asentado_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Asentado_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Asentado_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Calificado":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = revCalificado_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? revCalificado_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = revCalificado_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? revCalificado_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Acabado Bombillo":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = AcabadoBombilo_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? AcabadoBombilo_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = AcabadoBombilo_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? AcabadoBombilo_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Acabado Molde":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = AcabadoMolde_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? AcabadoMolde_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = AcabadoMolde_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? AcabadoMolde_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Cavidades":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Cavidades_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Cavidades_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Cavidades_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Cavidades_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Barreno Profundidad":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = BarrenoProfundidad_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? BarrenoProfundidad_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = BarrenoProfundidad_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? BarrenoProfundidad_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Copiado":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Copiado_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Copiado_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Copiado_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Copiado_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Off Set":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = OffSet_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? OffSet_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = OffSet_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? OffSet_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Palomas":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Palomas_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Palomas_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Palomas_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Palomas_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Rebajes":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = Rebajes_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? Rebajes_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = Rebajes_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? Rebajes_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Operacion Equipo_1 operacion":
             case "Operacion Equipo_2 operacion":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = PySOpeSoldadura_pza::query()->where('id_pza', $pza)->first();
-                    if (!$p) {
-                        $p = CandadoObturador_pza::query()->where('id_pza', $pza)->first();
-                    }
-                    if ($p) {
-                        array_push($pieza, $p);
+                $pieza = PySOpeSoldadura_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                if (count($pieza) < count($juego)) {
+                    $foundIds = collect($pieza)->pluck('id_pza')->toArray();
+                    $missingIds = array_diff($juego, $foundIds);
+                    if (!empty($missingIds)) {
+                        $candadoPzas = CandadoObturador_pza::query()->whereIn('id_pza', $missingIds, 'and', false)->get()->all();
+                        $pieza = array_merge($pieza, $candadoPzas);
                     }
                 }
                 if (!empty($pieza) && $pieza[0]) {
-                    $piezas = get_class($pieza[0])::query()->where('id_meta', $pieza[0]->id_meta)->get();
+                    $piezas = get_class($pieza[0])::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get();
                 } else {
                     $piezas = array();
                 }
                 break;
             case "Embudo CM":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = EmbudoCM_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? EmbudoCM_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = EmbudoCM_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? EmbudoCM_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Primera Operacion Cabeza Soplo":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = PrimeraOperacionCabezaSoplo_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? PrimeraOperacionCabezaSoplo_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = PrimeraOperacionCabezaSoplo_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? PrimeraOperacionCabezaSoplo_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
             case "Segunda Operacion Cabeza Soplo":
-                $pieza = array();
-                foreach ($juego as $pza) {
-                    $p = SegundaOperacionCabezaSoplo_pza::query()->where('id_pza', $pza)->first();
-                    array_push($pieza, $p);
-                }
-                $piezas = !empty($pieza) && $pieza[0] ? SegundaOperacionCabezaSoplo_pza::query()->where('id_meta', $pieza[0]->id_meta)->get() : array();
+                $pieza = SegundaOperacionCabezaSoplo_pza::query()->whereIn('id_pza', $juego, 'and', false)->get()->all();
+                $piezas = !empty($pieza) && $pieza[0] ? SegundaOperacionCabezaSoplo_pza::query()->where('id_meta', '=', $pieza[0]->id_meta, 'and')->get() : array();
                 break;
         }
         //Algoritmo para liberar 5 juegos despues de que se libere uno
@@ -412,9 +327,9 @@ class PzasLiberadasController extends Controller
         foreach ($piezas as $pza) {
             $n_pieza = $pza->n_pieza ?: $pza->n_juego;
 
-            Pieza::query()->where('n_pieza', $n_pieza)
-                ->where('id_clase', $meta->id_clase)
-                ->where('proceso', $proceso)
+            Pieza::query()->where('n_pieza', '=', $n_pieza, 'and')
+                ->where('id_clase', '=', $meta->id_clase, 'and')
+                ->where('proceso', '=', $proceso, 'and')
                 ->update([
                     'liberacion' => 1,
                     'fecha_liberacion' => date('Y-m-d H:i:s'),
@@ -428,9 +343,9 @@ class PzasLiberadasController extends Controller
                 if ($ultimaLetra === 'H' || $ultimaLetra === 'M') {
                     $partnerLetra = $ultimaLetra === 'H' ? 'M' : 'H';
                     $partnerNPieza = substr($n_pieza, 0, -1) . $partnerLetra;
-                    Pieza::query()->where('n_pieza', $partnerNPieza)
-                        ->where('id_clase', $meta->id_clase)
-                        ->where('proceso', $proceso)
+                    Pieza::query()->where('n_pieza', '=', $partnerNPieza, 'and')
+                        ->where('id_clase', '=', $meta->id_clase, 'and')
+                        ->where('proceso', '=', $proceso, 'and')
                         ->update([
                             'liberacion' => 1,
                             'fecha_liberacion' => date('Y-m-d H:i:s'),
@@ -551,7 +466,7 @@ class PzasLiberadasController extends Controller
         // 1. Actualizar estado de rechazo
         foreach ($piezas as $pza) {
             $n_pieza = $pza->n_pieza ?: $pza->n_juego;
-            Pieza::query()->where('n_pieza', $n_pieza)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->update([
+            Pieza::query()->where('n_pieza', '=', $n_pieza, 'and')->where('id_clase', '=', $meta->id_clase, 'and')->where('proceso', '=', $proceso, 'and')->update([
                 'liberacion' => 2,
                 'fecha_liberacion' => date('Y-m-d H:i:s'),
                 'user_liberacion' => $matricula,
@@ -564,9 +479,9 @@ class PzasLiberadasController extends Controller
                 if ($ultimaLetra === 'H' || $ultimaLetra === 'M') {
                     $partnerLetra = $ultimaLetra === 'H' ? 'M' : 'H';
                     $partnerNPieza = substr($n_pieza, 0, -1) . $partnerLetra;
-                    Pieza::query()->where('n_pieza', $partnerNPieza)
-                        ->where('id_clase', $meta->id_clase)
-                        ->where('proceso', $proceso)
+                    Pieza::query()->where('n_pieza', '=', $partnerNPieza, 'and')
+                        ->where('id_clase', '=', $meta->id_clase, 'and')
+                        ->where('proceso', '=', $proceso, 'and')
                         ->update([
                             'liberacion' => 2,
                             'fecha_liberacion' => date('Y-m-d H:i:s'),
@@ -624,7 +539,14 @@ class PzasLiberadasController extends Controller
     public function juegosMalos($meta, $proceso)
     {
         $juegosMalos = array();
-        $piezasMalas = Pieza::query()->where('id_operador', $meta->id_usuario)->where('id_clase', $meta->id_clase)->where('proceso', $proceso)->where('error', '!=', 'Ninguno')->where('liberacion', 0)->get();
+        $piezasMalas = Pieza::query()
+            ->select(['n_pieza', 'n_juego'])
+            ->where('id_operador', '=', $meta->id_usuario, 'and')
+            ->where('id_clase', '=', $meta->id_clase, 'and')
+            ->where('proceso', '=', $proceso, 'and')
+            ->where('error', '!=', 'Ninguno', 'and')
+            ->where('liberacion', '=', 0, 'and')
+            ->get();
         foreach ($piezasMalas as $pieza) {
             //Obtener el numero de juego
             if ($pieza->n_pieza) {
@@ -651,19 +573,19 @@ class PzasLiberadasController extends Controller
             $piezaLiberada = null;
             if ($pieza->n_pieza) {
                 $numero = substr($pieza->n_pieza, 0, -1);
-                $pLibH = Pieza::query()->where('id_ot', $meta->id_ot)->where('id_clase', $meta->id_clase)->where('id_operador', $meta->id_usuario)->where('proceso', $proceso)->where('n_pieza', $numero . "H")->where('error', 'Ninguno')->where('liberacion', 1)->first();
-                $pLibM = Pieza::query()->where('id_ot', $meta->id_ot)->where('id_clase', $meta->id_clase)->where('id_operador', $meta->id_usuario)->where('proceso', $proceso)->where('n_pieza', $numero . "M")->where('error', 'Ninguno')->where('liberacion', 1)->first();
+                $pLibH = Pieza::query()->where('id_ot', '=', $meta->id_ot, 'and')->where('id_clase', '=', $meta->id_clase, 'and')->where('id_operador', '=', $meta->id_usuario, 'and')->where('proceso', '=', $proceso, 'and')->where('n_pieza', '=', $numero . "H", 'and')->where('error', '=', 'Ninguno', 'and')->where('liberacion', '=', 1, 'and')->first();
+                $pLibM = Pieza::query()->where('id_ot', '=', $meta->id_ot, 'and')->where('id_clase', '=', $meta->id_clase, 'and')->where('id_operador', '=', $meta->id_usuario, 'and')->where('proceso', '=', $proceso, 'and')->where('n_pieza', '=', $numero . "M", 'and')->where('error', '=', 'Ninguno', 'and')->where('liberacion', '=', 1, 'and')->first();
                 if ($pLibH && $pLibM) {
                     $piezaLiberada = $pLibH; // Usar una de las piezas como referencia
                 }
             } else {
-                $piezaLiberada = Pieza::query()->where('id_ot', $meta->id_ot)->where('id_clase', $meta->id_clase)->where('id_operador', $meta->id_usuario)->where('proceso', $proceso)->where('n_pieza', $pieza->n_juego)->where('error', 'Ninguno')->where('liberacion', 1)->first();
+                $piezaLiberada = Pieza::query()->where('id_ot', '=', $meta->id_ot, 'and')->where('id_clase', '=', $meta->id_clase, 'and')->where('id_operador', '=', $meta->id_usuario, 'and')->where('proceso', '=', $proceso, 'and')->where('n_pieza', '=', $pieza->n_juego, 'and')->where('error', '=', 'Ninguno', 'and')->where('liberacion', '=', 1, 'and')->first();
             }
             if ($piezaLiberada) {
                 if (substr($piezaLiberar, -1) == "H" || substr($piezaLiberar, -1) == "M") {
                     $numero = substr($piezaLiberar, 0, -1);
-                    $piezaLiberarH = Pieza::query()->where('id_ot', $meta->id_ot)->where('id_clase', $meta->id_clase)->where('id_operador', $meta->id_usuario)->where('proceso', $proceso)->where('n_pieza', $numero . "H")->where('error', 'Ninguno')->first();
-                    $piezaLiberarM = Pieza::query()->where('id_ot', $meta->id_ot)->where('id_clase', $meta->id_clase)->where('id_operador', $meta->id_usuario)->where('proceso', $proceso)->where('n_pieza', $numero . "M")->where('error', 'Ninguno')->first();
+                    $piezaLiberarH = Pieza::query()->where('id_ot', '=', $meta->id_ot, 'and')->where('id_clase', '=', $meta->id_clase, 'and')->where('id_operador', '=', $meta->id_usuario, 'and')->where('proceso', '=', $proceso, 'and')->where('n_pieza', '=', $numero . "H", 'and')->where('error', '=', 'Ninguno', 'and')->first();
+                    $piezaLiberarM = Pieza::query()->where('id_ot', '=', $meta->id_ot, 'and')->where('id_clase', '=', $meta->id_clase, 'and')->where('id_operador', '=', $meta->id_usuario, 'and')->where('proceso', '=', $proceso, 'and')->where('n_pieza', '=', $numero . "M", 'and')->where('error', '=', 'Ninguno', 'and')->first();
 
                     if ($piezaLiberarH && $piezaLiberarM) {
                         $piezaLiberarH->liberacion = 1;
@@ -678,7 +600,7 @@ class PzasLiberadasController extends Controller
                         return;
                     }
                 } else {
-                    $piezaLiberar = Pieza::query()->where('id_ot', $meta->id_ot)->where('id_clase', $meta->id_clase)->where('id_operador', $meta->id_usuario)->where('proceso', $proceso)->where('n_pieza', $piezaLiberar)->where('error', 'Ninguno')->first();
+                    $piezaLiberar = Pieza::query()->where('id_ot', '=', $meta->id_ot, 'and')->where('id_clase', '=', $meta->id_clase, 'and')->where('id_operador', '=', $meta->id_usuario, 'and')->where('proceso', '=', $proceso, 'and')->where('n_pieza', '=', $piezaLiberar, 'and')->where('error', '=', 'Ninguno', 'and')->first();
                     $piezaLiberar->liberacion = 1;
                     $piezaLiberar->fecha_liberacion = date('Y-m-d H:i:s');
                     $piezaLiberar->user_liberacion = $piezaLiberada->user_liberacion;
@@ -695,15 +617,15 @@ class PzasLiberadasController extends Controller
     {
         // ── OPTIMIZACIÓN: query directa sin pasar por saveInArray completo ──
         // Solo necesitamos piezas con error pendientes de liberar, de clases activas
-        $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
+        $finishedClassIds = Clase::query()->where('finalizada', '!=', 0, 'and')->pluck('id')->toArray();
 
         // 1 query: solo las piezas que realmente necesitamos, con columnas mínimas
         // CRÍTICO: sin ->select() se cargan TODOS los atributos de 76k+ piezas → memory exhausted
         $piezasRaw = Pieza::query()
             ->select(['id', 'id_ot', 'id_clase', 'id_operador', 'proceso', 'error', 'liberacion',
                       'n_pieza', 'maquina', 'created_at', 'fecha_liberacion', 'user_liberacion', 'observacion_liberacion'])
-            ->where('error', '!=', 'Ninguno')
-            ->where('liberacion', 0)
+            ->where('error', '!=', 'Ninguno', 'and')
+            ->where('liberacion', '=', 0, 'and')
             ->when(!empty($finishedClassIds), fn($q) => $q->whereNotIn('id_clase', $finishedClassIds))
             ->get();
 

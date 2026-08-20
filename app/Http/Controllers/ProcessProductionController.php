@@ -1932,6 +1932,13 @@ class ProcessProductionController extends Controller
         $totalGood = 0;
         $availableAssemblies = array();
 
+        // Precargar piezas generales para evitar consultas N+1 en el bucle
+        $generalPieces = Pieza::query()
+            ->select(['id', 'id_ot', 'id_clase', 'n_pieza', 'proceso', 'liberacion', 'error', 'id_operador'])
+            ->where('id_clase', '=', $class->id, 'and')
+            ->get()
+            ->groupBy('proceso');
+
         // Obtener las piezas maquinadas de Desbaste y Revision Laterales y oragizarlas en arrays como buenas y malas
         $assembliesProcesses = [
             "Desbaste Exterior" => array("good" => array(), "bad" => array(), "incomplete" => array()),
@@ -1941,25 +1948,25 @@ class ProcessProductionController extends Controller
             // Obtener el id del proceso anterior
             $id_process = str_replace(' ', '_', $processName) . "_" . $class->nombre . "_" . $class->id_ot;
             $modelProcess = $this->get_ModelProcess($processName, $class);
-            $processDB = $modelProcess::query()->where('id_proceso', $id_process)->first();
+            $processDB = $modelProcess::query()->where('id_proceso', '=', $id_process, 'and')->first();
 
             $countedAssemblies = array(); // Array para almacenar los juegos que ya han pasado
             if ($processDB) {
                 // Obtener las piezas maquinadas en el proceso
                 $modelPiecesProcess = $this->get_ModelProcessPieces($processName, $class);
-                $pieces = $modelPiecesProcess::query()->where('id_proceso', $processDB->id)->where('estado', 2)->get();
+                $pieces = $modelPiecesProcess::query()->where('id_proceso', '=', $processDB->id, 'and')->where('estado', '=', 2, 'and')->get();
                 if (count($pieces) > 0) {
                     foreach ($pieces as $piece) {
                         if (!in_array($piece->n_juego, $countedAssemblies)) { // Si el juego aun no ha sido contado
                             array_push($countedAssemblies, $piece->n_juego); // Contar el juego
                             // Obtener las mitades de ese juego
-                            $halfPieces = $modelPiecesProcess::query()->where('n_juego', $piece->n_juego)->where('id_proceso', $processDB->id)->get();
+                            $halfPieces = $modelPiecesProcess::query()->where('n_juego', '=', $piece->n_juego, 'and')->where('id_proceso', '=', $processDB->id, 'and')->get();
                             // Verificar si el juego esta completo
                             if ($halfPieces->count() > 1) { // Si el juego esta completo
                                 $correct = false;
                                 foreach ($halfPieces as $halfPiece) {
                                     // Verificar si la pieza ya esta maquinada
-                                    $half = Pieza::query()->where('n_pieza', $halfPiece->n_pieza)->where('proceso', $processName)->where('id_clase', $class->id)->first();
+                                    $half = $generalPieces->get($processName)?->firstWhere('n_pieza', $halfPiece->n_pieza);
                                     if ($half) { // Si esta maquinada
                                         $releasedPiece = $this->verifyPiece($half);
                                         if ($releasedPiece) { // Verificar si la mitad esta correcta
@@ -2052,16 +2059,20 @@ class ProcessProductionController extends Controller
             $modelPreProcess = $this->get_ModelProcess($preProcessString, $class);
             $stringPreProcess = str_replace(' ', '_', $previousProcess);
             $stringPreProcess = $stringPreProcess . "_" . $class->nombre . "_" . $class->id_ot; // Obtener el registro de la tabla del proceso anterior
-            $preProcessDB = $modelPreProcess::query()->where('id_proceso', $stringPreProcess)->first();
+            $preProcessDB = $modelPreProcess::query()->where('id_proceso', '=', $stringPreProcess, 'and')->first();
             if ($preProcessDB) {
                 //Obtener las piezas maquinadas en el proceso anterior
                 $modelPiecesPreProcess = $this->get_ModelProcessPieces($preProcessString, $class);
-                $prePieces = $modelPiecesPreProcess::query()->where('id_proceso', $preProcessDB->id)->where('estado', 2)->get();
+                $prePieces = $modelPiecesPreProcess::query()->where('id_proceso', '=', $preProcessDB->id, 'and')->where('estado', '=', 2, 'and')->get();
                 if ($prePieces->isNotEmpty()) {
                     [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas en el proceso actual
 
                     // Pre-fetch all general pieces for this OT and class to avoid N+1 in the loop
-                    $generalPieces = Pieza::query()->where('id_clase', $class->id)->get()->groupBy('proceso');
+                    $generalPieces = Pieza::query()
+                        ->select(['id', 'id_ot', 'id_clase', 'n_pieza', 'proceso', 'liberacion', 'error', 'id_operador'])
+                        ->where('id_clase', '=', $class->id, 'and')
+                        ->get()
+                        ->groupBy('proceso');
 
                     $countedAssemblies = array();
                     // Piece assembly cache
@@ -2174,7 +2185,7 @@ class ProcessProductionController extends Controller
         // Obtener el modelo del proceso
         $modelProcess = $this->get_ModelProcess($processString, $class);
         $id_process_string = str_replace(' ', '_', $processName) . "_" . $class->nombre . "_" . $class->id_ot;
-        $processDB = $modelProcess::query()->where('id_proceso', $id_process_string)->first();
+        $processDB = $modelProcess::query()->where('id_proceso', '=', $id_process_string, 'and')->first();
 
         //Si el proceso no existe crearlo para retornar las piezas
         if (!$processDB) {
@@ -2196,7 +2207,7 @@ class ProcessProductionController extends Controller
 
         // Obtener las piezas maquinadas en el proceso correspondiente
         $modelPiecesProcess = $this->get_ModelProcessPieces($processString, $class);
-        $machinedPiecesInProcess = $modelPiecesProcess::query()->where('id_proceso', $processDB->id)->where('estado', 2)->get();
+        $machinedPiecesInProcess = $modelPiecesProcess::query()->where('id_proceso', '=', $processDB->id, 'and')->where('estado', '=', 2, 'and')->get();
 
         //Insertar los juegos maquinados en un array
         $machinedPieces = [];
@@ -2208,7 +2219,7 @@ class ProcessProductionController extends Controller
             }
         }
         //Obtener las piezas ocupadas en el proceso correspondiente
-        $occupiedPieces = $modelPiecesProcess::query()->where('id_proceso', $processDB->id)->whereIn('estado', [1, 2])->get();
+        $occupiedPieces = $modelPiecesProcess::query()->where('id_proceso', '=', $processDB->id, 'and')->whereIn('estado', [1, 2], 'and', false)->get();
 
         //Insertar los juegos ocupados en un array
         $occupiedAssemblies = [];

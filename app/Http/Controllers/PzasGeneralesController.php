@@ -249,13 +249,13 @@ class PzasGeneralesController extends Controller
     {
         // 1 minuto de cache local: reduce carga en base de datos para la generación de filtros
         $molduras = \Illuminate\Support\Facades\Cache::remember('molduras_all', 60, function () {
-            return Moldura::all()->keyBy('id');
+            return Moldura::query()->select(['id', 'nombre'])->get()->keyBy('id');
         });
         $orders = \Illuminate\Support\Facades\Cache::remember('ot_all', 60, function () {
-            return Orden_trabajo::all();
+            return Orden_trabajo::query()->select(['id', 'id_moldura'])->get();
         });
         $users = \Illuminate\Support\Facades\Cache::remember('users_all', 60, function () {
-            return User::all();
+            return User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno', 'perfil'])->get();
         });
 
         $filtersData = array(
@@ -824,7 +824,7 @@ class PzasGeneralesController extends Controller
 
         // Bulk fetch all needed process records
         foreach ($processLookups as $model => $keys) {
-            $records = $model::query()->whereIn('id_proceso', array_keys($keys))->get();
+            $records = $model::query()->whereIn('id_proceso', array_keys($keys), 'and', false)->get();
             foreach ($records as $r) {
                 $processLookups[$model][$r->id_proceso] = $r;
             }

@@ -22,8 +22,8 @@ const aplicarAccionesToEvents = (habilitar, campos) => {
                     crearInputConValor(box, pedido, "pedido");
                     break;
                 case "boton":
-                    let boton = document.getElementById("button");
-                    if (!boton.classList.contains("pro-display-none")) {
+                    boton = document.getElementById("button");
+                    if (boton && !boton.classList.contains("pro-display-none")) {
                         boton.classList.add("pro-display-none");
                     }
                     break;
@@ -155,6 +155,7 @@ const crearInputConValor = (box, valor, campo) => {
 //********FUNCTIONS TO APPLY IN THE TABLE***********
 const crearTabla = (datos) => {
     let table = document.createElement("table");
+    table.className = "data-table";
 
     for (let i = 0; i < 2; i++) {
         let tr_head = document.createElement("tr");
@@ -200,23 +201,31 @@ const crearTabla = (datos) => {
                             } else if (realPct >= 100) {
                                 barColor = "#f1c40f"; // Dorado (Esfuerzo destacado)
                             } else if (realPct >= 75) {
-                                barColor = "#27ae60"; // Verde (Aceptable)
+                                barColor = "#0a8504"; // Verde GIS (Aceptable)
                             } else if (realPct >= 40) {
                                 barColor = "#e67e22"; // Naranja (Medio)
                             } else {
-                                barColor = "#e74c3c"; // Rojo (Bajo)
+                                barColor = "#9c0303"; // Rojo GIS (Bajo)
                             }
-                            let container_progress =
-                                document.createElement("div");
+                            let wrapper = document.createElement("div");
+                            wrapper.className = "productividad-wrapper";
+
+                            let spanText = document.createElement("span");
+                            spanText.className = "productividad-text";
+                            spanText.innerText = realPct + "%";
+
+                            let container_progress = document.createElement("div");
                             container_progress.className = "container-progress";
+
                             let progress_bar = document.createElement("div");
                             progress_bar.className = "progress-bar";
                             progress_bar.style.width = visualPct + "%";
                             progress_bar.style.backgroundColor = barColor;
-                            progress_bar.innerHTML = visualPct + "%";
 
                             container_progress.appendChild(progress_bar);
-                            td.appendChild(container_progress);
+                            wrapper.appendChild(spanText);
+                            wrapper.appendChild(container_progress);
+                            td.appendChild(wrapper);
                         }
                         tr_body.appendChild(td);
                     }
@@ -233,11 +242,142 @@ var datos = window.datos; //Datos de las ordenes de trabajo
 
 let habilitar,
     box,
-    selects = [];
+    selects = [],
+    boton,
+    isInitializing = true;
 //Crear select de OTs y agregarlo al div
 box = document.querySelector(".ot");
 selects["ot"] = insertarSelect("ot", datos);
 box.appendChild(selects["ot"]);
+boton = document.getElementById("button");
+
+// Escuchar evento de envío para realizar consulta AJAX
+let form = document.querySelector(".search-form");
+if (form) {
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        let otSelect = document.getElementById("ot-select");
+        let operadorSelect = document.getElementById("operadores-select");
+        let clasesSelect = document.getElementById("clases-select");
+        let procesosSelect = document.getElementById("procesos-select");
+
+        let otValue = otSelect ? otSelect.value : "0";
+        let operadorValue = operadorSelect ? operadorSelect.value : "0";
+        let claseValue = clasesSelect ? clasesSelect.value : "0";
+        let procesoValue = procesosSelect ? procesosSelect.value : "0";
+
+        if (otValue == "0" || operadorValue == "0" || claseValue == "0" || procesoValue == "0") {
+            return;
+        }
+
+        let dashboard2 = document.querySelector(".dashboard2");
+        let div_table = document.querySelector(".div-table");
+
+        // Mostrar indicador de carga en el banner
+        let loadingStatus = document.getElementById("loading-status");
+        let statusText = document.getElementById("status-text");
+        let statusSpinner = document.querySelector(".status-spinner");
+
+        if (loadingStatus) {
+            loadingStatus.classList.remove("status-success", "status-error");
+        }
+        if (statusText) {
+            statusText.innerText = "Realizando consulta de rendimiento en tiempo real, por favor espere...";
+        }
+        if (statusSpinner) {
+            statusSpinner.style.display = "block";
+        }
+
+        if (dashboard2) {
+            dashboard2.style.display = "grid";
+        }
+
+        if (div_table) {
+            div_table.innerHTML = `
+                <div class="loading-spinner-container">
+                    <div class="gis-spinner"></div>
+                    <p>Cargando información de productividad...</p>
+                </div>
+            `;
+        }
+
+        // Remover leyenda anterior si existe
+        let oldLegend = document.querySelector(".leyenda-productividad");
+        if (oldLegend) oldLegend.remove();
+
+        const formData = new FormData(form);
+
+        fetch(window.location.pathname + "?ajax=1", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-Requested-With": "XMLHttpRequest",
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || ""
+            }
+        })
+        .then(response => {
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                return response.text().then(text => {
+                    console.error("Respuesta no es JSON:", text);
+                    throw new Error("Sesión expirada o error en el servidor. Recarga la página por favor.");
+                });
+            }
+            if (!response.ok) {
+                throw new Error("Error en el servidor");
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (statusSpinner) {
+                statusSpinner.style.display = "none";
+            }
+
+            if (data.success) {
+                if (loadingStatus) {
+                    loadingStatus.classList.add("status-success");
+                }
+                if (statusText) {
+                    statusText.innerHTML = `Consulta completada. Mostrando rendimiento para la OT <strong>${data.filtros.ot}</strong>, proceso <strong>${data.filtros.proceso}</strong>.`;
+                }
+
+                // Actualizar etiquetas de detalles
+                document.getElementById("detail-ot").innerText = data.filtros.ot + " - " + data.filtros.moldura;
+                document.getElementById("detail-clase").innerText = data.filtros.clase + " (" + data.filtros.pedido + " pzas)";
+                document.getElementById("detail-proceso").innerText = data.filtros.proceso;
+                document.getElementById("detail-operador").innerText = data.filtros.operador;
+
+                // Limpiar spinner y renderizar tabla y leyenda nuevas
+                div_table.innerHTML = "";
+                div_table.appendChild(crearTabla(data.operadores));
+                dashboard2.appendChild(crearLeyendaProductividad());
+            } else {
+                if (loadingStatus) {
+                    loadingStatus.classList.add("status-error");
+                }
+                if (statusText) {
+                    statusText.innerText = `Error: ${data.error}`;
+                }
+                div_table.innerHTML = `<div class="alert-error-container" style="margin: 20px auto; max-width: 90%;">${data.error}</div>`;
+            }
+        })
+        .catch(err => {
+            if (loadingStatus) {
+                loadingStatus.classList.add("status-error");
+            }
+            if (statusSpinner) {
+                statusSpinner.style.display = "none";
+            }
+            if (statusText) {
+                statusText.innerText = "Error al conectar con el servidor. Por favor, inténtelo de nuevo.";
+            }
+            div_table.innerHTML = `<div class="alert-error-container" style="margin: 20px auto; max-width: 90%;">Error al conectar con el servidor. Por favor, inténtelo de nuevo.</div>`;
+            console.error(err);
+        });
+    });
+}
+
 // Aplicar acciones cuando cambie cualquier selector en el dashboard usando delegación de eventos
 document.querySelector(".dashboard").addEventListener("change", (e) => {
     let target = e.target;
@@ -266,10 +406,7 @@ document.querySelector(".dashboard").addEventListener("change", (e) => {
                 boxClases.appendChild(clasesSelect);
             }
 
-            // Mostrar la moldura de la OT seleccionada
-            let boxOt = document.querySelector(".ot");
-            let moldura = datos[otValue]["moldura"];
-            crearInputConValor(boxOt, moldura, "moldura");
+
         } else {
             // Deshabilitar operadores y clases si no hay OT seleccionada
             let boxOperadores = document.querySelector(".operadores");
@@ -280,8 +417,7 @@ document.querySelector(".dashboard").addEventListener("change", (e) => {
             let inputClases = des_habilitarCampo(boxClases, "clases", null);
             boxClases.appendChild(inputClases);
 
-            let boxOt = document.querySelector(".ot");
-            crearInputConValor(boxOt, null, "moldura");
+
         }
 
         // Limpiar procesos, pedido y botón
@@ -291,8 +427,6 @@ document.querySelector(".dashboard").addEventListener("change", (e) => {
 
         let boxPedido = document.querySelector(".pedido");
         crearInputConValor(boxPedido, null, "pedido");
-
-        if (boton) boton.classList.add("pro-display-none");
     }
 
     else if (target.id === "operadores-select") {
@@ -314,11 +448,7 @@ document.querySelector(".dashboard").addEventListener("change", (e) => {
         updateProcesos();
     }
 
-    else if (target.id === "procesos-select") {
-        if (boton) {
-            boton.classList.toggle("pro-display-none", !(target.value != 0 ));
-        }
-    }
+    checkFormValidity();
 });
 
 function updateProcesos() {
@@ -348,7 +478,7 @@ function updateProcesos() {
         boxProcesos.appendChild(inputProcesos);
     }
 
-    if (boton) boton.classList.add("pro-display-none");
+    checkFormValidity();
 }
 
 const crearLeyendaProductividad = () => {
@@ -401,4 +531,142 @@ if (window.filtros !== undefined) {
 
     div_table.appendChild(crearTabla(datosOperadores));
     dashboard2.appendChild(crearLeyendaProductividad());
+
+    // Restablecer filtros seleccionados previamente tras el reload del submit
+    let otSelect = document.getElementById("ot-select");
+    if (otSelect && window.filtros.ot) {
+        otSelect.value = window.filtros.ot;
+        
+        // Habilitar operadores
+        let otValue = window.filtros.ot;
+        let habilitarOperadores = datos[otValue]["operadores"];
+        let boxOperadores = document.querySelector(".operadores");
+        let operadoresSelect = des_habilitarCampo(boxOperadores, "operadores", habilitarOperadores);
+        boxOperadores.appendChild(operadoresSelect);
+        selects["operadores"] = operadoresSelect;
+        
+        // Seleccionar operador
+        if (window.filtros.operador_matricula) {
+            operadoresSelect.value = window.filtros.operador_matricula;
+        } else {
+            for (let opVal in habilitarOperadores) {
+                if (habilitarOperadores[opVal].nombre === window.filtros.operador) {
+                    operadoresSelect.value = opVal;
+                    break;
+                }
+            }
+        }
+
+        // Habilitar clases
+        if (datos[otValue]["clases_ot"]) {
+            let boxClases = document.querySelector(".clases");
+            let prevClasesSelect = document.getElementById("clases-select");
+            let prevClasesInput  = document.getElementById("clases-input");
+            if (prevClasesSelect) prevClasesSelect.remove();
+            if (prevClasesInput)  prevClasesInput.remove();
+
+            let clasesSelect = insertarSelect("clases", datos[otValue]["clases_ot"]);
+            selects["clases"] = clasesSelect;
+            boxClases.classList.remove("box--disabled");
+            boxClases.classList.add("box--enabled");
+            boxClases.appendChild(clasesSelect);
+            
+            if (window.filtros.clase) {
+                clasesSelect.value = window.filtros.clase;
+            }
+        }
+
+        // Habilitar procesos
+        let operadorValue = operadoresSelect.value;
+        let claseValue = window.filtros.clase;
+        let procesosClase = null;
+        if (otValue != 0 && operadorValue != 0 && claseValue != 0) {
+            let operadorData = datos[otValue]["operadores"][operadorValue];
+            if (operadorData && operadorData["clases"] && operadorData["clases"][claseValue]) {
+                procesosClase = operadorData["clases"][claseValue]["procesos"];
+            }
+        }
+
+        let boxProcesos = document.querySelector(".procesos");
+        if (procesosClase && procesosClase.length > 0) {
+            let selectProcesos = des_habilitarCampo(boxProcesos, "procesos", procesosClase);
+            boxProcesos.appendChild(selectProcesos);
+            selects["procesos"] = selectProcesos;
+            if (window.filtros.proceso) {
+                selectProcesos.value = window.filtros.proceso;
+            }
+        }
+
+        // Mostrar pedido
+        let boxPedido = document.querySelector(".pedido");
+        let pedido = (claseValue != 0 && otValue != 0 && datos[otValue]["clases_ot"] && datos[otValue]["clases_ot"][claseValue])
+            ? datos[otValue]["clases_ot"][claseValue]["pedido"]
+            : null;
+        crearInputConValor(boxPedido, pedido, "pedido");
+
+
+
+        checkFormValidity();
+    }
+}
+isInitializing = false;
+
+function checkFormValidity() {
+    let otSelect = document.getElementById("ot-select");
+    let operadorSelect = document.getElementById("operadores-select");
+    let clasesSelect = document.getElementById("clases-select");
+    let procesosSelect = document.getElementById("procesos-select");
+    let pedidoInput = document.getElementById("pedido-input");
+
+    let otValue = otSelect ? otSelect.value : "0";
+    let operadorValue = operadorSelect ? operadorSelect.value : "0";
+    let claseValue = clasesSelect ? clasesSelect.value : "0";
+    let procesoValue = procesosSelect ? procesosSelect.value : "0";
+
+    let isValid = otValue != "0" && operadorValue != "0" && claseValue != "0" && procesoValue != "0";
+
+    if (boton) {
+        if (isValid) {
+            boton.removeAttribute("disabled");
+        } else {
+            boton.setAttribute("disabled", "true");
+        }
+    }
+
+    // Actualizar el estado del banner de información
+    let statusText = document.getElementById("status-text");
+    let statusSpinner = document.querySelector(".status-spinner");
+    let loadingStatus = document.getElementById("loading-status");
+
+    if (loadingStatus && !isValid) {
+        // Contar parámetros faltantes de los 5 elementos visuales del dashboard
+        let missing = 0;
+        if (!otSelect || otValue == "0") missing++;
+        if (!operadorSelect || operadorValue == "0") missing++;
+        if (!clasesSelect || claseValue == "0") missing++;
+        if (!pedidoInput || !pedidoInput.value || pedidoInput.value == "0" || pedidoInput.value == "—") missing++;
+        if (!procesosSelect || procesoValue == "0") missing++;
+
+        missing = Math.min(Math.max(missing, 1), 5);
+
+        if (statusText) {
+            statusText.innerText = `Falta seleccionar ${missing} parámetro${missing > 1 ? 's' : ''} para realizar la consulta automática.`;
+        }
+        if (statusSpinner) {
+            statusSpinner.style.display = "none";
+        }
+        loadingStatus.classList.remove("status-success", "status-error");
+    }
+
+    // Auto-submit si el formulario es válido y no estamos en fase de carga inicial
+    if (isValid && !isInitializing) {
+        let form = document.querySelector(".search-form");
+        if (form) {
+            if (typeof form.requestSubmit === "function") {
+                form.requestSubmit();
+            } else {
+                form.dispatchEvent(new Event("submit", { cancelable: true }));
+            }
+        }
+    }
 }

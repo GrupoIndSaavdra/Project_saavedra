@@ -151,9 +151,9 @@ class WOController extends Controller
 
     public function destroy(string $idWOrder)
     {
-        $pieces = Pieza::query()->where('id_ot', '=', $idWOrder)->get(); //Busco las piezas de la OT
-        $goal = Metas::query()->where('id_ot', '=', $idWOrder)->get();
-        if (count($pieces) == 0 && count($goal) == 0) { //Si la OT no tiene piezas ni metas asociadas entonces
+        $hasPieces = Pieza::query()->where('id_ot', '=', $idWOrder, 'and')->exists(); //Busco si hay piezas de la OT
+        $hasGoals = Metas::query()->where('id_ot', '=', $idWOrder, 'and')->exists();
+        if (!$hasPieces && !$hasGoals) { //Si la OT no tiene piezas ni metas asociadas entonces
             $classes = Clase::query()->where('id_ot', '=', $idWOrder)->get(); //Busco todas las clases que pertenecen a la OT
             foreach ($classes as $class) { //Recorro las clases de la OT
                 $this->classController->destroy($class->id, $idWOrder); //Elimino las clases
@@ -1486,7 +1486,10 @@ class WOController extends Controller
         // ── OPTIMIZACIÓN: pre-cargar users en memoria de forma estática (se ejecuta solo una vez por request) ──
         static $usersCache = null;
         if ($usersCache === null) {
-            $usersCache = User::all()->keyBy('matricula');
+            $usersCache = User::query()
+                ->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])
+                ->get()
+                ->keyBy('matricula');
         }
 
         foreach ($processNamesArray as $pName) {
@@ -1613,7 +1616,10 @@ class WOController extends Controller
         // ── Usa cache si está disponible; si no, hace la query ──
         $operador = $usersCache
             ? $usersCache->get($piece->id_operador)
-            : User::query()->where('matricula', $piece->id_operador)->first();
+            : User::query()
+                ->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])
+                ->where('matricula', '=', $piece->id_operador, 'and')
+                ->first();
 
         $array['piece'] = $piece->n_pieza;
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);

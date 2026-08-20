@@ -85,14 +85,14 @@ class EmbudoCMController extends Controller
         } else {
             $meta = Metas::query()->find($request->metaData); //Busco la meta de la OT.
         }
-        $ot = Orden_trabajo::query()->where('id', $meta->id_ot)->first(); //Busco la OT que se quiere editar.
+        $ot = Orden_trabajo::query()->where('id', '=', $meta->id_ot, 'and')->first(); //Busco la OT que se quiere editar.
         $clase = Clase::query()->find($meta->id_clase); //Busco la clase de la OT.
         $id = "embudoCM_" . $clase->nombre . "_" . $ot->id; //Creación de id para tabla SoldaduraPTA
         $pzasRestantes = 0;
         $moldura = Moldura::query()->find($ot->id_moldura); //Busco la moldura de la OT.
-        $cNominal = EmbudoCM_cnominal::query()->where('id_proceso', $id)->first(); //Busco la meta de la OT.
-        $tolerancia = EmbudoCM_tolerancias::query()->where('id_proceso', $id)->first(); //Busco la meta de la OT.
-        $proceso = EmbudoCM::query()->where('id_proceso', $id)->first(); //Busco el proceso de la OT.
+        $cNominal = EmbudoCM_cnominal::query()->where('id_proceso', '=', $id, 'and')->first(); //Busco la meta de la OT.
+        $tolerancia = EmbudoCM_tolerancias::query()->where('id_proceso', '=', $id, 'and')->first(); //Busco la meta de la OT.
+        $proceso = EmbudoCM::query()->where('id_proceso', '=', $id, 'and')->first(); //Busco el proceso de la OT.
         if (!$proceso) {
             //Llenado de la tabla SoldaduraPTA
             $embudoCM = new EmbudoCM(); //Creación de objeto para llenar tabla SoldaduraPTA
@@ -138,7 +138,12 @@ class EmbudoCMController extends Controller
                 }
                 $piezaExistente->save();
 
-                $pieza = Pieza::query()->where('n_pieza', $piezaExistente->n_juego)->where('proceso', 'Embudo CM')->where('id_ot', $ot->id)->where('id_clase', $clase->id)->first();
+                $pieza = Pieza::query()
+                    ->where('n_pieza', '=', $piezaExistente->n_juego, 'and')
+                    ->where('proceso', '=', 'Embudo CM', 'and')
+                    ->where('id_ot', '=', $ot->id, 'and')
+                    ->where('id_clase', '=', $clase->id, 'and')
+                    ->first();
                 //Guardar los datos de las pieza en la tabla pieza (En donde se almacenan todas las piezas)
                 if (!$pieza) {
                     $pieza = new Pieza();
@@ -408,7 +413,12 @@ class EmbudoCMController extends Controller
                     }
                     $piezaExistente->save();
 
-                    $pieza = Pieza::query()->where('n_pieza', $piezaExistente->n_juego)->where('proceso', 'Embudo CM')->where('id_ot', $ot->id)->where('id_clase', $clase->id)->first();
+                    $pieza = Pieza::query()
+                        ->where('n_pieza', '=', $piezaExistente->n_juego, 'and')
+                        ->where('proceso', '=', 'Embudo CM', 'and')
+                        ->where('id_ot', '=', $ot->id, 'and')
+                        ->where('id_clase', '=', $clase->id, 'and')
+                        ->first();
                     //Guardar los datos de las pieza en la tabla pieza (En donde se almacenan todas las piezas)
                     if (!$pieza) {
                         $pieza = new Pieza(); //Creación del obejeto para llenar la tabla pieza.
@@ -518,16 +528,22 @@ class EmbudoCMController extends Controller
     {
         $pzasUtilizar = array();
         $pzasGuardadas = array();
-        $procesos = Procesos::query()->where('id_clase', $clase->id)->first();
+        $procesos = Procesos::query()->where('id_clase', '=', $clase->id, 'and')->first();
 
         //Obtener las piezas que esten terminadas y correctas en la tabla SoldaduraPTA para despues comparar cada una con su consecuente y asi armar los juegos
         $id_proceso = "embudoCM_" . $clase->nombre . "_" . $ot;
-        $proceso = EmbudoCM::query()->where('id_proceso', $id_proceso)->first();
-        $pzasOcupadas = EmbudoCM_pza::query()->where('id_proceso', $proceso->id)->where('estado', 1)->get(); //Obtención de todas las piezas creadas.
-        $pzasUsadas = collect();
-        if ($proceso) {
-            $pzasUsadas = Pieza::query()->where('id_ot', $ot)->where('id_clase', $clase->id)->where('proceso', 'Embudo CM')->get(); //Obtención de todas las piezas creadas en Soldadura
-        }
+        $proceso = EmbudoCM::query()->where('id_proceso', '=', $id_proceso, 'and')->first();
+        $pzasOcupadas = EmbudoCM_pza::query()->where('id_proceso', '=', $proceso->id, 'and')->where('estado', '=', 1, 'and')->get(); //Obtención de todas las piezas creadas.
+        
+        // Eager load all relevant pieces at once to avoid N+1 query loops
+        $relevantPieces = Pieza::query()
+            ->select(['id', 'id_ot', 'id_clase', 'n_pieza', 'proceso', 'error', 'liberacion', 'id_operador'])
+            ->where('id_ot', '=', $ot, 'and')
+            ->where('id_clase', '=', $clase->id, 'and')
+            ->whereIn('proceso', ['Operacion Equipo_1', 'Operacion Equipo_2', 'Embudo CM'], 'and', false)
+            ->get();
+
+        $pzasUsadas = $relevantPieces->where('proceso', 'Embudo CM');
 
         if ($procesos->operacionEquipo != 0) {
             $pzasUtilizarO1 = array();
@@ -536,13 +552,13 @@ class EmbudoCMController extends Controller
             $pzasUtilizarO2 = array();
             $pzasGuardadasO2 = array();
             $juegosUtilizados = array();
-            $procesos = Procesos::query()->where('id_clase', $clase->id)->first();
+            $procesos = Procesos::query()->where('id_clase', '=', $clase->id, 'and')->first();
 
             //Obtener las piezas solamente en el proceso de Segunda operacion
-            $pzasEncontradasOp1 = Pieza::query()->where('id_ot', $ot)->where('id_clase', $clase->id)->where('proceso', 'Operacion Equipo_1')->get();
-            $pzasEncontradasOp2 = Pieza::query()->where('id_ot', $ot)->where('id_clase', $clase->id)->where('proceso', 'Operacion Equipo_2')->get();
-            $this->piezasEncontradas($ot, $clase, $pzasEncontradasOp1, $pzasUtilizarO1, $pzasGuardadasO1, 'Operacion Equipo_1', $pzasUsadas, $pzasOcupadas);
-            $this->piezasEncontradas($ot, $clase, $pzasEncontradasOp2, $pzasUtilizarO2, $pzasGuardadasO2, 'Operacion Equipo_2', $pzasUsadas, $pzasOcupadas);
+            $pzasEncontradasOp1 = $relevantPieces->where('proceso', 'Operacion Equipo_1');
+            $pzasEncontradasOp2 = $relevantPieces->where('proceso', 'Operacion Equipo_2');
+            $this->piezasEncontradas($ot, $clase, $pzasEncontradasOp1, $pzasUtilizarO1, $pzasGuardadasO1, 'Operacion Equipo_1', $pzasUsadas, $pzasOcupadas, $relevantPieces);
+            $this->piezasEncontradas($ot, $clase, $pzasEncontradasOp2, $pzasUtilizarO2, $pzasGuardadasO2, 'Operacion Equipo_2', $pzasUsadas, $pzasOcupadas, $relevantPieces);
             foreach ($pzasUtilizarO1 as $pzaOp1) {
                 if (!in_array($pzaOp1, $juegosUtilizados)) {
                     array_push($juegosUtilizados, $pzaOp1);
@@ -564,17 +580,17 @@ class EmbudoCMController extends Controller
      * @param mixed $pzasUsadas
      * @param mixed $pzasOcupadas
      */
-    public function piezasEncontradas($ot, $clase, $pzasEncontradas, &$pzasUtilizar, &$pzasGuardadas, $nameProceso, $pzasUsadas, $pzasOcupadas)
+    public function piezasEncontradas($ot, $clase, $pzasEncontradas, &$pzasUtilizar, &$pzasGuardadas, $nameProceso, $pzasUsadas, $pzasOcupadas, $relevantPieces = null)
     {
         $numero = "";
-        for ($i = 0; $i < count($pzasEncontradas); $i++) { //Recorro las piezas encontradas de SoldaduraPTA
-            if (array_search($pzasEncontradas[$i]->n_pieza, $pzasGuardadas) == false) {
-                if ($pzasEncontradas[$i]->error == "Ninguno") {
+        foreach ($pzasEncontradas as $pzaEnc) { //Recorro las piezas encontradas de SoldaduraPTA
+            if (array_search($pzaEnc->n_pieza, $pzasGuardadas) == false) {
+                if ($pzaEnc->error == "Ninguno") {
                     $numerosUsados = array();
                     if (count($pzasUsadas) > 0) {
                         $numeroUsado = "";
-                        for ($x = 0; $x < count($pzasUsadas); $x++) {
-                            $pzaDividida_Usada = str_split($pzasUsadas[$x]->n_pieza); //División del número de pieza usada.
+                        foreach ($pzasUsadas as $pzaUsada) {
+                            $pzaDividida_Usada = str_split($pzaUsada->n_pieza); //División del número de pieza usada.
                             for ($h = 0; $h < count($pzaDividida_Usada) - 1; $h++) { //Recorro el número de pieza usada.
                                 $numeroUsado .= $pzaDividida_Usada[$h]; //Obtención del número de pieza usada.
                             }
@@ -594,27 +610,38 @@ class EmbudoCMController extends Controller
                             $numeroUsado = "";
                         }
                     }
-                    $n_pieza = $pzasEncontradas[$i]->n_pieza; //Obtención del número de pieza.
+                    $n_pieza = $pzaEnc->n_pieza; //Obtención del número de pieza.
                     $piezaDividida = str_split($n_pieza); //División del número de pieza.
                     for ($j = 0; $j < count($piezaDividida) - 1; $j++) { //Recorro el número de pieza.
                         $numero .= $piezaDividida[$j]; //Obtención del número de pieza.
                     }
                     //Se hace la condicion para saber si el numero de la pieza se encuentra ya usada.
                     if (array_search($numero, $numerosUsados) === false) {
-                        if (mb_substr($n_pieza, -1, null, 'UTF-8') == "M") { //Si la pieza es macho, se busca la pieza hembra.
-                            $pieza = Pieza::query()->where('id_ot', $ot)->where('id_clase', $clase->id)->where('proceso', $nameProceso)->where('n_pieza', $numero . "H")->where('error', 'Ninguno')->first(); //Busco la pieza hembra.
+                        $targetLetter = (mb_substr($n_pieza, -1, null, 'UTF-8') == "M") ? "H" : "M";
+                        $targetNPieza = $numero . $targetLetter;
+                        if ($relevantPieces) {
+                            $pieza = $relevantPieces->where('proceso', $nameProceso)
+                                ->where('n_pieza', $targetNPieza)
+                                ->where('error', 'Ninguno')
+                                ->first();
                         } else {
-                            $pieza = Pieza::query()->where('id_ot', $ot)->where('id_clase', $clase->id)->where('proceso', $nameProceso)->where('n_pieza', $numero . "M")->where('error', 'Ninguno')->first(); //Busco la pieza macho.
+                            $pieza = Pieza::query()
+                                ->where('id_ot', '=', $ot, 'and')
+                                ->where('id_clase', '=', $clase->id, 'and')
+                                ->where('proceso', '=', $nameProceso, 'and')
+                                ->where('n_pieza', '=', $targetNPieza, 'and')
+                                ->where('error', '=', 'Ninguno', 'and')
+                                ->first();
                         }
                         if (isset($pieza)) {
                             array_push($pzasUtilizar, $numero . "J"); //Guardo el número de pieza.
-                            array_push($pzasGuardadas, $pzasEncontradas[$i]->n_pieza); //Guardo el número de pieza.
+                            array_push($pzasGuardadas, $pzaEnc->n_pieza); //Guardo el número de pieza.
                             array_push($pzasGuardadas, $pieza->n_pieza); //Guardo el número de pieza.
                         }
                     }
                     $numero = "";
                 } else {
-                    $numeroDiv = str_split($pzasEncontradas[$i]->n_pieza);
+                    $numeroDiv = str_split($pzaEnc->n_pieza);
                     for ($l = 0; $l < count($numeroDiv) - 1; $l++) {
                         $numero .= $numeroDiv[$l];
                     }
