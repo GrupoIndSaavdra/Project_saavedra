@@ -3297,6 +3297,51 @@ class AlmacenFundicionController extends Controller
                         }
                     }
                 });
+
+                // Enviar también a compras si la variable de entorno está definida y hay adjuntos escaneados
+                $destinatarioCompras = env('EMAIL_COMPRAS');
+                if (!empty($destinatarioCompras)) {
+                    $destinatariosCompras = array_filter(array_map('trim', explode(',', $destinatarioCompras)));
+                    
+                    // Filtrar los adjuntos que son escaneados (por tipo o nombre: anterior o nuevo estándar)
+                    $attachmentsCompras = array_filter($attachments, function ($att) {
+                        $filename = basename($att['path'] ?? $att['name'] ?? '');
+                        
+                        // Excluir explícitamente el PDF generado por el sistema (Pre-Orden_Casting, etc.)
+                        if (stripos($filename, 'Pre-Orden_') === 0 || stripos($filename, 'Pre-orden_') === 0 || stripos($filename, 'pre-orden_') === 0) {
+                            return false;
+                        }
+
+                        $isScanned = (isset($att['tipo']) && $att['tipo'] === 'escaneado')
+                            || str_starts_with($filename, 'F_ALM_EFC')
+                            || str_starts_with($filename, 'F_ALM_')
+                            || str_starts_with($filename, 'Escaneado_Fundicion-')
+                            || stripos($filename, 'escaneado') !== false;
+
+                        if (str_starts_with($filename, 'F_ALM_EFM')) {
+                            return false;
+                        }
+
+                        return $isScanned;
+                    });
+
+                    if (!empty($destinatariosCompras) && !empty($attachmentsCompras)) {
+                        Mail::send([], [], function ($message) use ($destinatariosCompras, $asunto, $cuerpo, $attachmentsCompras) {
+                            $message->to($destinatariosCompras)
+                                ->subject($asunto)
+                                ->html($cuerpo);
+
+                            foreach ($attachmentsCompras as $att) {
+                                if (!empty($att['path']) && file_exists($att['path'])) {
+                                    $message->attach($att['path'], [
+                                        'as' => $att['name'],
+                                        'mime' => $att['mime']
+                                    ]);
+                                }
+                            }
+                        });
+                    }
+                }
             } else {
                 // Para Modelo: Enviar correo completo a Calidad, y correo filtrado a Proveedores
                 $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com');
@@ -3717,6 +3762,7 @@ class AlmacenFundicionController extends Controller
 
         $nextNum = $existingHistories + 1;
         $newOt = $baseOtClean . '_' . $clasesSuffix . '_R' . $nextNum;
+        $newSuffix = '_R' . $nextNum;
 
         $newHistory = new FundicionHistory();
         $newHistory->ot = $newOt;
