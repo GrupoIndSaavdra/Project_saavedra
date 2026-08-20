@@ -11,6 +11,11 @@
 
 Cuando recibas cualquier petición que involucre el proyecto (errores, nuevas funciones, modificaciones, búsquedas, refactorizaciones), debes ejecutar el siguiente protocolo:
 
+### Paso 0 — Sincronizar Aprendizajes Continuos (Autocorrección)
+Antes de iniciar, comprueba si existe el archivo [aprendizajes_temp.md](file:///c:/Users/Jaxer020406/Documents/GitHub/Project_saavedra/skills/aprendizajes_temp.md).
+- Si **existe**: Léelo en detalle para asimilar qué errores ocurrieron en logs o qué commits de corrección se aplicaron recientemente. Actualiza de inmediato las skills afectadas (ej. `logic_skill.md`, `javascript_skill.md`) con las nuevas lecciones aprendidas y **elimina** el archivo `aprendizajes_temp.md` para marcar que el conocimiento ya está consolidado.
+- Si **no existe**: Continúa al Paso 1.
+
 ### Paso 1 — Identificar la Skill aplicable
 Analiza mentalmente cuál de las skills del Índice de abajo cubre el contexto de la tarea:
 
@@ -38,8 +43,9 @@ Usa la herramienta `view_file` para leer el contenido de la skill identificada *
 ### Paso 3 — Aplicar el patrón definido en la skill
 Si el patrón existe en la skill, aplícalo directamente. No improvises ni reescribas desde cero lo que ya está documentado.
 
-### Paso 4 — Documentar lo nuevo
-Si la tarea te obligó a deducir algo que no estaba en ninguna skill, agrégalo a la skill más cercana (o crea una nueva) para que futuras sesiones sean más rápidas.
+### Paso 4 — Documentar lo nuevo y cerrar sesión
+- Si la tarea te obligó a deducir algo que no estaba en ninguna skill, agrégalo a la skill más cercana para que futuras sesiones sean más rápidas.
+- **Antes de dar por finalizada la sesión:** Ejecuta el comando `php artisan app:analizar-aprendizajes` para escanear tus propios commits de la sesión y los logs recientes. Así, si cometiste algún error que corregiste más tarde, el buffer quedará listo para la siguiente IA.
 
 > **FALLA EN SEGUIR ESTE PROTOCOLO** resultará en código inconsistente, inseguro o incompatible con la arquitectura establecida.
 
@@ -54,26 +60,28 @@ Si la tarea te obligó a deducir algo que no estaba en ninguna skill, agrégalo 
 - **Alertas UI:** SweetAlert2
 - **Base de datos:** MySQL
 - **Entorno:** Windows (PowerShell) en desarrollo, Linux en producción
+- **Encoding:** Todos los archivos deben ser UTF-8 sin BOM (ver `fix_encoding.py` si hay problemas de mojibake)
 
 ---
 
 ## Índice Completo de Skills
 
 1. **[Controladores](controllers_skill.md)** — Transacciones, eager loading, JSON vs Blade, Form Requests, thin controllers
-2. **[Lógica y Modelos](logic_skill.md)** — Eloquent optimizado, scopes, perfiles, Carbon, orWhere agrupado
+2. **[Lógica y Modelos](logic_skill.md)** — Eloquent optimizado, scopes, perfiles, Carbon, orWhere agrupado, anti-patrón de memoria
 3. **[Vistas Blade](views_skill.md)** — Layouts, CSRF, Vite, partials, stacks, escapado XSS
 4. **[Estilos CSS](styles_skill.md)** — Paleta GIS, glassmorphism, botones `.btns`, responsivo, dark mode
 5. **[JavaScript](javascript_skill.md)** — Async/await, FormData, delegación de eventos, window.routes
 6. **[PDFs DomPDF](pdf_skill.md)** — Tablas HTML, imágenes locales, fuentes TTF, saltos de página
 7. **[Migraciones](migrations_skill.md)** — Tablas nuevas vs producción, índices, soft deletes, naming
-8. **[Validación](validation_skill.md)** — Inline vs Form Request, sanitización, reglas reales del proyecto
+8. **[Validación](validation_skill.md)** — Inline vs Form Request, sanitización, reglas reales del proyecto, after hooks
 9. **[QR Codes](qr_codes_skill.md)** — Payload JSON, parseo de lectores físicos, interfaz de escaneo
-10. **[Error Logging](error_logging_skill.md)** — Log estructurado, SystemLog, niveles de severidad
-11. **[Seguridad](security_skill.md)** — SQL Injection, XSS, CSRF, perfiles de acceso, middlewares
+10. **[Error Logging](error_logging_skill.md)** — Log estructurado, SystemLog, niveles de severidad, anti-patrón de memoria
+11. **[Seguridad](security_skill.md)** — SQL Injection, XSS, CSRF, perfiles de acceso correctos (1,2,4,5,6,8), middlewares
 12. **[Comandos](commands_skill.md)** — Python, PowerShell, Artisan, NPM, Git, patrones de búsqueda
 13. **[Dynamic UI](dynamic_ui_skill.md)** — State local con `window.*`, render sin recargar, pattern CRUD
 14. **[Emails](emails_skill.md)** — Mailables Laravel, plantillas Blade, configuración SMTP
 15. **[Rutas](routes_skill.md)** — Convenciones, grupos de rutas, naming, middlewares en rutas
+16. **[No Testing](no_testing_skill.md)** — Límites del agente: no browser_subagent, verificaciones de backend permitidas
 
 ---
 
@@ -100,10 +108,10 @@ Cuando recibas un nuevo requerimiento completo, ejecuta este flujo mental:
 Project_saavedra/
  app/
  Http/
- Controllers/ ← 65+ controladores (ver controllers_skill)
- Requests/ ← Form Requests (ver validation_skill)
- Middleware/ ← auth, CheckPtaAccess, guest (ver security_skill)
- Models/ ← 132+ modelos (ver logic_skill)
+  Controllers/ ← 72+ controladores (ver controllers_skill)
+  Requests/    ← Form Requests (ver validation_skill)
+  Middleware/  ← auth, CheckPtaAccess, guest (ver security_skill)
+ Models/      ← 145+ modelos (ver logic_skill)
  Mail/ ← Mailables de correo (ver emails_skill)
  database/
  migrations/ ← 31+ grupos de migraciones (ver migrations_skill)
@@ -137,9 +145,9 @@ Project_saavedra/
 
 | Perfil | Nombre | Acceso Principal |
 |--------|--------|-----------------|
-| `1` | Administrador | Acceso total, creación de OTs, depuración |
-| `2` | Gerente/Supervisor | Ver todo, aprobar, auditoría |
-| `4` | Calidad | Revisión y liberación de OTs, SCARs |
-| `5` | Almacén | Recepción, pre-órdenes, reprocesos |
-| `6` | Operador Maquinado | Maquinado de piezas, registro de medidas |
+| `1` | Administrador | Acceso total, creación de OTs, depuración, acceso global |
+| `2` | Gerente/Supervisor | Ver todo, aprobar, auditoría completa |
+| `4` | Calidad Fundición | Revisión y liberación de OTs, SCARs, liberación de modelos |
+| `5` | Almacén | Recepción, pre-órdenes, reprocesos, subida de documentos |
+| `6` | Operador Maquinado | Maquinado de piezas, registro de medidas en procesos |
 | `8` | Calidad Soldadura | Liberación de botes y lotes de soldadura |

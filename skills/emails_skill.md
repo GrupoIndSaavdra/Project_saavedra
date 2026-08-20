@@ -242,8 +242,12 @@ Mail::to('destino@ejemplo.com')->queue(new AlertaPreOrdenFundicion($registro, $o
 
 | Clase Mailable | Vista | Trigger |
 |---|---|---|
-| `AlertaPreOrdenFundicion` | `emails/alerta-pre-orden` | Al generar pre-orden en Almacén |
-| *(Otros Mailables del proyecto)* | `emails/` | Revisar `app/Mail/` para lista actualizada |
+| `AlertaPreOrdenFundicion` / (Raw Mail) | `emails/alerta-pre-orden` | Al generar pre-orden en Almacén Fundición |
+| `PtaReporteMail` | `emails/pta-reporte` | Al finalizar el flujo PTA, envía PDF adjunto |
+| `DibujoFundicionAlertMail` | `emails/dibujo-fundicion-alert` | Al subir nuevo dibujo en Almacén para notificar a Calidad |
+| `LiberacionModeloMailable` | `emails/liberacion-modelo` | Al liberar o rechazar un modelo de fundición |
+
+> Para ver la lista actualizada: `Get-ChildItem app/Mail/`
 
 ---
 
@@ -258,3 +262,23 @@ php artisan tinker
 ```
 
 Para desarrollo, usar **Mailtrap** o **Laravel Sail + Mailpit** para interceptar correos sin enviarlos realmente.
+
+---
+
+## 10. ⚠️ Regla de Seguridad — Variables de Entorno de Mail
+
+```env
+# NUNCA comitear credenciales SMTP reales al repositorio
+# Usar siempre .env local y .env.example sin valores sensibles
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.example.com
+MAIL_PORT=587
+MAIL_USERNAME=              # ← Dejar vacío en .env.example
+MAIL_PASSWORD=              # ← Dejar vacío en .env.example
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=sistema@gis.com
+MAIL_FROM_NAME="Sistema GIS Saavedra"
+```
+
+Si el servidor SMTP tiene problemas de conexión, asegúrate de que el puerto 587 esté abierto en el firewall del servidor y que `MAIL_ENCRYPTION=tls` sea compatible con el proveedor.
+

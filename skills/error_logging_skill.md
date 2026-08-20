@@ -127,3 +127,32 @@ SystemLog::create([
 Get-Content -Path "storage/logs/laravel.log" -Tail 100 -Wait
 ```
 - **Los logs de BD** se consultan en la vista `SystemLogController@index` con filtros por módulo, usuario y fecha.
+
+---
+
+## 7. ⚠️ Consultas de `SystemLog` — Precaución con Tablas Grandes
+
+> Ver también: `logic_skill.md` § 14 — Regla Crítica Anti-Patrón de Memoria.
+
+La tabla `system_logs` puede crecer a miles de filas. **NUNCA** hagas `SystemLog::all()` sin filtros o paginación.
+
+```php
+// ❌ PROHIBIDO: Puede agotar los 128MB de PHP
+$logs = SystemLog::all();
+
+// ✅ CORRECTO: Paginar con filtros
+$logs = SystemLog::query()
+    ->select(['id', 'user_name', 'accion', 'descripcion', 'modulo', 'ip', 'created_at'])
+    ->when($filtroModulo, fn($q, $m) => $q->where('modulo', '=', $m, 'and'))
+    ->when($filtroUsuario, fn($q, $u) => $q->where('user_name', 'LIKE', '%' . $u . '%', 'and'))
+    ->orderBy('created_at', 'desc')
+    ->paginate(50);
+
+// ✅ CORRECTO para dropdowns de filtros: usar DB::table()
+$modulos = DB::table('system_logs')
+    ->distinct()
+    ->whereNotNull('modulo')
+    ->orderBy('modulo')
+    ->pluck('modulo');
+```
+

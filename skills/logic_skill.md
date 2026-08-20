@@ -414,3 +414,70 @@ $clasesCache = Clase::query()
 - [ ] ¿El resultado se usa solo para pluck()? → `DB::table()->pluck()` directamente
 - [ ] ¿Se carga para hacer un `->keyBy()` o `->groupBy()`? → Agregar `->select()` primero
 
+---
+
+## 15. Patrón de Reintentos Automáticos en Operaciones Críticas del Servidor
+
+Cuando ejecutes tareas complejas en el servidor que interactúan con APIs externas, bases de datos remotas o generación de archivos mediante librerías pesadas (ej. DomPDF generando PDFs multi-página de gran volumen), existe el riesgo de fallos temporales debido a picos en el consumo de recursos (RAM agotada momentáneamente, bloqueos de I/O en disco, bloqueos transaccionales).
+
+Para mitigar esto, implementa el **Patrón de Reintentos (Retry Loop)**:
+1. Intenta la operación dentro de un bucle `while` con un número máximo de intentos (usualmente 3).
+2. Si la operación falla, captura el error, espera unos segundos con `sleep()`, libera memoria y vuelve a intentar.
+3. **Regla de Oro:** Si el proceso tiene una fase destructiva (por ejemplo, depurar/eliminar los datos de origen una vez exportados), ejecuta esa acción **ÚNICAMENTE** si la operación anterior fue completamente exitosa y no lanzó excepciones.
+
+```php
+// ✅ PATRÓN CORRECTO: Reintentos en Procesamiento de Servidor
+$maxAttempts = 3;
+$attempt = 0;
+$operationSuccess = false;
+$lastExceptionMessage = '';
+
+while ($attempt < $maxAttempts && !$operationSuccess) {
+    $attempt++;
+    try {
+        // 1. Operación con riesgo de fallo por recursos / red
+        $pdf = Pdf::loadView('reports.logs_layout', compact('data'))
+            ->setOption('enable_javascript', false)
+            ->setOption('enable_remote', false);
+
+        $filePath = "exportados/reporte_semanal.pdf";
+        Storage::disk('local')->put($filePath, $pdf->output());
+
+        // 2. Liberar recursos explícitamente si tiene éxito
+        unset($pdf);
+        gc_collect_cycles();
+        
+        $operationSuccess = true; // Salir del bucle
+
+    } catch (\Throwable $e) {
+        $lastExceptionMessage = $e->getMessage();
+        
+        Log::warning("[GIS-Proceso] Intento {$attempt}/{$maxAttempts} fallido. Error: " . $lastExceptionMessage);
+        
+        // 3. Liberar recursos y esperar antes del reintento
+        unset($pdf);
+        gc_collect_cycles();
+        
+        sleep(2); // Pausa de 2 segundos para liberar carga del CPU/Disco
+    }
+}
+
+// 4. Ejecutar acción destructiva SOLO tras éxito garantizado
+if ($operationSuccess) {
+    // Es seguro eliminar o cambiar el estado en la base de datos
+    $eliminados = RegistroOriginal::whereIn('id', $ids)->delete();
+    Log::info("[GIS-Proceso] Exportado correctamente. Eliminados {$eliminados} registros.");
+} else {
+    // Si todos los intentos fallaron, registrar el fallo técnico y no tocar los datos originales
+    Log::error("[GIS-Proceso] Fallo técnico al procesar el lote tras {$maxAttempts} intentos. Error: {$lastExceptionMessage}");
+    
+    // Alerta opcional para la UI del administrador
+    SystemLog::create([
+        'action' => 'Error de Sistema',
+        'details' => 'No se pudo exportar el lote. Detalles: ' . substr($lastExceptionMessage, 0, 250),
+        'maquina' => 'Sistema'
+    ]);
+}
+```
+
+

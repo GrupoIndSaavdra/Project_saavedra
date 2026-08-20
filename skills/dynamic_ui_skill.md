@@ -1,12 +1,15 @@
-# Real-time Table Updates & Dynamic UI Rendering (Avoid location.reload)
+# Guía de UI Dinámica — Actualización sin Recargar Página (Dynamic UI Skill)
 
-## The Problem
-When performing CRUD operations (like creating folders, uploading PDFs, or deleting files), it is common practice to simply do `setTimeout(() => window.location.reload(), 1500);` after a successful API response to refresh the view. However, this causes a full page reload, leading to a slow and clunky user experience.
+> **Directorio de Referencia:** `resources/js/` — Funciones de renderizado dinámico del proyecto.
+> *Evita `location.reload()` cuando puedas actualizar el DOM quirúrgicamente.*
 
-## The Solution
-Instead of reloading the page, we use a **Local State Management Pattern** using `window` objects (like `window.estructura`, `window.historiales`, `window.todasLasOTs`, etc.) that act as our "Source of Truth".
+## El Problema
+Al hacer operaciones CRUD (crear carpetas, subir PDFs, eliminar archivos), la práctica común es hacer `setTimeout(() => window.location.reload(), 1500);` después de una respuesta exitosa. Sin embargo, esto provoca una recarga total de la página, generando una experiencia lenta y torpe.
 
-### 1. Update the Backend (Controller)
+## La Solución
+En vez de recargar la página, se usa el **Patrón de Estado Local** con objetos `window` (como `window.estructura`, `window.historiales`, `window.todasLasOTs`, etc.) que actúan como "Fuente de Verdad".
+
+### 1. Actualizar el Backend (Controlador)
 Ensure your controller returns the necessary identifiers in the JSON response, so the frontend knows exactly what was created, deleted, or modified.
 
 **Example for creating a folder:**
@@ -33,8 +36,8 @@ if ($request->expectsJson()) {
 }
 ```
 
-### 2. Update the Frontend (JavaScript)
-In the `.then(data => { ... })` block of your `fetch` request, parse the identifiers sent by the controller and update the global `window.*` objects accordingly. Then, call the rendering functions to surgically update the DOM.
+### 2. Actualizar el Frontend (JavaScript)
+En el bloque `.then(data => { ... })` de tu `fetch`, parsea los identificadores enviados por el controlador y actualiza los objetos globales `window.*` según corresponda. Luego llama a las funciones de renderizado para actualizar el DOM quirúrgicamente.
 
 **Example for Folder Creation:**
 ```javascript
@@ -76,11 +79,11 @@ if (data.success) {
 }
 ```
 
-### Key Principles
-1. **Never use `location.reload()`** if you can easily update the DOM dynamically.
-2. **Never refetch the entire structure** from the server (`fetch(routes['doc.estructura'])`) unless absolutely necessary, as it can be very slow if there are many directories.
-3. Always make sure the backend returns the specific identifiers (`ot`, `clase`, `proceso`, `ayudasLinked`) needed to update the `window.*` cache.
-4. **Abstract rendering logic** into reusable functions like `renderEstructuraTable()` and `renderAlertasTable()` so that you can call them from anywhere in the script once the state is updated.
+### Principios Clave
+1. **Nunca usar `location.reload()`** si puedes actualizar el DOM dinámicamente.
+2. **Nunca re-solicitar toda la estructura** al servidor (`fetch(routes['doc.estructura'])`) a menos que sea absolutamente necesario — puede ser muy lento si hay muchos directorios.
+3. Siempre asegúrate de que el backend devuelva los identificadores específicos (`ot`, `clase`, `proceso`, `ayudasLinked`) necesarios para actualizar el caché de `window.*`.
+4. **Abstrae la lógica de renderizado** en funciones reutilizables como `renderEstructuraTable()` y `renderAlertasTable()` para poder llamarlas desde cualquier parte del script una vez actualizado el estado.
 
 ---
 

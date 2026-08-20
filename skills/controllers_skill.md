@@ -276,10 +276,10 @@ Model::where('columna', '=', $valor, 'and')->get();
 Model::where('col1', '=', $val1, 'and')
     ->where('col2', '!=', $val2, 'and')
     ->get();
-```
 
 // ✅ BIEN: whereIn() también necesita los 4 argumentos
 Model::whereIn('columna', [1, 2, 3], 'and', false)->get();
+```
 
 El 4° argumento `'and'` es el valor por defecto de Laravel — no cambia el comportamiento en runtime.
 El `whereIn()` también necesita `$boolean = 'and'` y `$not = false` explícitos.
