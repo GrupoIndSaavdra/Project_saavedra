@@ -1662,10 +1662,10 @@ class AlmacenFundicionController extends Controller
             </div>
         </div>";
 
-            $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com');
+            $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : config('services.fundicion.calidad', 'inspecciontec@grupoindsaavedra.com');
             $destCalidad = array_filter(array_map('trim', explode(',', $destCalidadStr)));
 
-            $destProveedorStr = !empty($destinatario) ? $destinatario : env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx');
+            $destProveedorStr = !empty($destinatario) ? $destinatario : config('services.fundicion.proveedor_modelos', 'produccion@ssmetalf.mx');
             $destProveedor = array_filter(array_map('trim', explode(',', $destProveedorStr)));
 
             // Buscar dibujos y ayudas visuales para adjuntar a Calidad
@@ -3276,11 +3276,12 @@ class AlmacenFundicionController extends Controller
                         break;
                     }
                 }
-                $defaultEmail = $isJacarandas ? env('EMAIL_PRODUCCION_JACARANDAS', 'ventas_jacarandas@prodigy.net.mx,requisicionestec@grupoindsaavedra.com') : env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx');
+                $defaultEmail = $isJacarandas
+                    ? config('services.fundicion.produccion_jacarandas', 'ventas_jacarandas@prodigy.net.mx')
+                    : config('services.fundicion.produccion_ss', 'produccion@ssmetalf.mx');
 
                 // Para Casting: enviar a Proveedores de Casting y CC General
-                $destinosStr = !empty($destinatario) ? $destinatario : $defaultEmail . ',' .
-                    env('EMAIL_CC_GENERAL', 'alejandross@grupoindsaavedra.com,analilia@grupoindsaavedra.com,blanca@grupoindsaavedra.com,juanss@grupoindsaavedra.com,abraham@grupoindsaavedra.com,inspecciontec@grupoindsaavedra.com,requisicionestec@grupoindsaavedra.com,auxadmtec@grupoindsaavedra.com,producciontec@grupoindsaavedra.com');
+                $destinosStr = !empty($destinatario) ? $destinatario : $defaultEmail . ',' . config('services.fundicion.cc_general', 'alejandross@grupoindsaavedra.com');
                 $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
 
                 Mail::send([], [], function ($message) use ($destinatarios, $asunto, $cuerpo, $attachments) {
@@ -3299,7 +3300,7 @@ class AlmacenFundicionController extends Controller
                 });
 
                 // Enviar también a compras si la variable de entorno está definida y hay adjuntos escaneados
-                $destinatarioCompras = env('EMAIL_COMPRAS');
+                $destinatarioCompras = config('services.fundicion.compras', 'analilia@grupoindsaavedra.com');
                 if (!empty($destinatarioCompras)) {
                     $destinatariosCompras = array_filter(array_map('trim', explode(',', $destinatarioCompras)));
                     
@@ -3344,10 +3345,10 @@ class AlmacenFundicionController extends Controller
                 }
             } else {
                 // Para Modelo: Enviar correo completo a Calidad, y correo filtrado a Proveedores
-                $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com');
+                $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : config('services.fundicion.calidad', 'inspecciontec@grupoindsaavedra.com');
                 $destCalidad = array_filter(array_map('trim', explode(',', $destCalidadStr)));
 
-                $destProveedorStr = !empty($destinatario) ? $destinatario : env('EMAIL_PROVEEDOR_MODELOS', 'produccion@ssmetalf.mx,asistenteprod@ssmetalf.mx');
+                $destProveedorStr = !empty($destinatario) ? $destinatario : config('services.fundicion.proveedor_modelos', 'produccion@ssmetalf.mx');
                 $destProveedor = array_filter(array_map('trim', explode(',', $destProveedorStr)));
 
                 // Enviar a Calidad con TODOS los adjuntos

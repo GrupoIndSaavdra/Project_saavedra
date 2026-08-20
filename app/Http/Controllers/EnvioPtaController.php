@@ -95,8 +95,9 @@ class EnvioPtaController extends Controller
         $claseNombre = $clase->nombre . ($clase->tamanio ? " ({$clase->tamanio})" : '');
 
         // ── 1. Construir lista de destinatarios ──────────────────────────────
-        // Los correos fijos siempre van primero (DESTINATARIO puede ser string o array)
-        $destinatarios = (array) self::DESTINATARIO;
+        // Los correos fijos siempre van primero
+        $configPtaEmails = config('services.pta.email', 'acabadosmex@grupoindsaavedra.com,alejandross@grupoindsaavedra.com');
+        $destinatarios = array_filter(array_map('trim', explode(',', $configPtaEmails)));
 
         $extraRaw = $request->input('destinatarios_extra', '');
         if ($extraRaw) {

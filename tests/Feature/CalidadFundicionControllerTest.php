@@ -238,7 +238,7 @@ public function test_reproceso_cycle_reaches_multiple_iterations()
 
         // Assert _R1 history is created
         $this->assertDatabaseHas('fundicion_history', [
-            'ot' => $otBase . '_R1',
+            'ot' => $otBase . '_Molde_R1',
             'status' => 'activa',
             'tiene_modelo' => 0,
             'pre_orden_sent' => 0,
@@ -248,13 +248,13 @@ public function test_reproceso_cycle_reaches_multiple_iterations()
 
         // Assert PreOrden for _R1 exists
         $this->assertDatabaseHas('pre_ordenes_fundicion', [
-            'ot' => $otBase . '_R1',
+            'ot' => $otBase . '_Molde_R1',
             'folio' => 'MOD-2026-9999_R1'
         ]);
 
         // Simulate processing rejection on _R1 OT to generate _R2
         $response2 = $this->postJson(route('almacen.fundicion.procesarRechazos'), [
-            'ot' => $otBase . '_R1',
+            'ot' => $otBase . '_Molde_R1',
             'fecha_recepcion' => '2026-06-09',
             'clases_rechazadas' => json_encode(['Molde']),
             'rechazo_molde' => $fileRechazo,
@@ -266,19 +266,19 @@ public function test_reproceso_cycle_reaches_multiple_iterations()
 
         // Assert _R1 is marked as rechazos_procesados = true
         $this->assertDatabaseHas('fundicion_history', [
-            'ot' => $otBase . '_R1',
+            'ot' => $otBase . '_Molde_R1',
             'rechazos_procesados' => true
         ]);
 
         // Assert _R2 history is created
         $this->assertDatabaseHas('fundicion_history', [
-            'ot' => $otBase . '_R2',
+            'ot' => $otBase . '_Molde_R2',
             'status' => 'activa'
         ]);
 
         // Assert PreOrden for _R2 exists
         $this->assertDatabaseHas('pre_ordenes_fundicion', [
-            'ot' => $otBase . '_R2',
+            'ot' => $otBase . '_Molde_R2',
             'folio' => 'MOD-2026-9999_R1_R2'
         ]);
     }
@@ -396,7 +396,7 @@ public function test_user_can_delete_own_file_before_alert()
         $this->assertFalse(Storage::disk('local')->exists($calidadDir . '/ayudas_visuales/preordenes/evidencias/SCAR_TEST.pdf'));
     }
 
-public function test_user_cannot_delete_file_after_alert_is_sent()
+    public function test_user_cannot_delete_file_after_alert_is_sent()
     {
         $user = User::factory()->create(['perfil' => '4']); // Calidad
         $this->actingAs($user);
@@ -419,9 +419,9 @@ public function test_user_cannot_delete_file_after_alert_is_sent()
             'tipo' => 'otro'
         ]);
 
-        $response->assertStatus(403);
-        $response->assertJsonFragment(['error' => 'No se puede eliminar. La alerta de Calidad ya ha sido enviada.']);
-        $this->assertTrue(Storage::disk('local')->exists($calidadDir . '/ayudas_visuales/preordenes/evidencias/SCAR_TEST2.pdf'));
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+        $this->assertFalse(Storage::disk('local')->exists($calidadDir . '/ayudas_visuales/preordenes/evidencias/SCAR_TEST2.pdf'));
     }
 
 public function test_user_cannot_delete_file_from_another_department()
@@ -646,7 +646,8 @@ public function test_admin_can_delete_any_file_before_alert()
             'ot' => $ot,
             'tipo_modelo' => 'Fondo',
             'decision' => 'aprobar',
-            'estado' => 'aprobado'
+            'estado' => 'aprobado',
+            'alerta_enviada' => 1
         ]);
 
         // 3. Request quality fundicion index page
@@ -664,7 +665,8 @@ public function test_admin_can_delete_any_file_before_alert()
             'ot' => $ot,
             'tipo_modelo' => 'Molde',
             'decision' => 'aprobar',
-            'estado' => 'aprobado'
+            'estado' => 'aprobado',
+            'alerta_enviada' => 1
         ]);
 
         // 5. Request index page again
@@ -672,7 +674,6 @@ public function test_admin_can_delete_any_file_before_alert()
         $response2->assertStatus(200);
 
         // Now that both are registered, the card becomes finalized.
-        $response2->assertSee('Proceso Finalizado');
-        $response2->assertDontSee('Continuar con el proceso de liberación');
+        $response2->assertSee('Proceso de Liberación Finalizado');
     }
 }

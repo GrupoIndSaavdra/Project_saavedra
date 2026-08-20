@@ -1781,10 +1781,11 @@ class CalidadFundicionController extends Controller
 
         // 3. Destinatarios
         $isJacarandas = $scar && stripos($scar->proveedor, 'jacarandas') !== false;
-        $defaultEmail = $isJacarandas ? env('EMAIL_PRODUCCION_JACARANDAS', 'ventas_jacarandas@prodigy.net.mx,requisicionestec@grupoindsaavedra.com') : env('EMAIL_PRODUCCION_SS', 'produccion@ssmetalf.mx,laboratorio@ssmetalf.mx');
+        $defaultEmail = $isJacarandas
+            ? config('services.fundicion.produccion_jacarandas', 'ventas_jacarandas@prodigy.net.mx')
+            : config('services.fundicion.produccion_ss', 'produccion@ssmetalf.mx');
         
-        $destinosStr = $defaultEmail . ',' . 
-                       env('EMAIL_CC_GENERAL', 'alejandross@grupoindsaavedra.com,analilia@grupoindsaavedra.com,blanca@grupoindsaavedra.com,juanss@grupoindsaavedra.com,abraham@grupoindsaavedra.com,inspecciontec@grupoindsaavedra.com,requisicionestec@grupoindsaavedra.com,auxadmtec@grupoindsaavedra.com,producciontec@grupoindsaavedra.com');
+        $destinosStr = $defaultEmail . ',' . config('services.fundicion.cc_general', 'alejandross@grupoindsaavedra.com');
         $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
 
         // 4. Compilar adjuntos
@@ -2633,11 +2634,11 @@ class CalidadFundicionController extends Controller
         }
 
         // Enviar correos
-        $destinosStr = !empty($destinatario) ? $destinatario : env('EMAIL_ALMACEN', 'almacentec@grupoindsaavedra.com');
+        $destinosStr = !empty($destinatario) ? $destinatario : config('services.fundicion.almacen', 'almacentec@grupoindsaavedra.com');
         $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
 
         $destCalidadStr = $request->input('destinatario_calidad', '');
-        $destCalidadStr = !empty($destCalidadStr) ? $destCalidadStr : env('EMAIL_CALIDAD', 'inspecciontec@grupoindsaavedra.com');
+        $destCalidadStr = !empty($destCalidadStr) ? $destCalidadStr : config('services.fundicion.calidad', 'inspecciontec@grupoindsaavedra.com');
         $destCalidad = array_filter(array_map('trim', explode(',', $destCalidadStr)));
 
         try {
