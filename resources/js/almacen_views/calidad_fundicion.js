@@ -7610,24 +7610,14 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                 };
                 // Filtro base para aprobados (excluyendo rechazados de calidad y SCAR)
                 const baseAprob = (data.archivos || []).filter((f) => {
-                    const nombre = (f.nombre || "").toLowerCase();
-                    const tipo = (f.tipo || "").toLowerCase();
+                    const nombre = (f.nombre || "").toLowerCase().replace(/\\/g, "/");
                     if (
                         nombre.includes("rechazado") ||
                         nombre.includes("scar") ||
                         nombre.includes("documentos_rechazados")
                     )
                         return false;
-                    return (
-                        tipo === "ayuda" ||
-                        tipo === "dibujo" ||
-                        tipo === "aprobado" ||
-                        tipo === "preorden" ||
-                        nombre.includes("ayudas_visuales") ||
-                        nombre.includes("dibujo") ||
-                        nombre.includes("documentos_aprobados") ||
-                        nombre.includes("preordenes/")
-                    );
+                    return true;
                 });
                 const archivosAprob = filtrarPorClasesActivas(
                     baseAprob,
@@ -7645,7 +7635,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                 }
                 // Filtro base para rechazados (excluyendo aprobados y preordenes de casting)
                 const baseRech = (data.archivos || []).filter((f) => {
-                    const nombre = (f.nombre || "").toLowerCase();
+                    const nombre = (f.nombre || "").toLowerCase().replace(/\\/g, "/");
                     if (
                         nombre.includes("aprobado") ||
                         (nombre.includes("pre-orden") &&

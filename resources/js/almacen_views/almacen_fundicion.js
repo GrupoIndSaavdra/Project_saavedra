@@ -7750,7 +7750,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                 };
                 // Filtro base para aprobados (excluye documentos_rechazados y SCAR)
                 const baseAprob = (data.archivos || []).filter((f) => {
-                    const nombre = (f.nombre || "").toLowerCase();
+                    const nombre = (f.nombre || "").toLowerCase().replace(/\\/g, "/");
                     if (
                         nombre.includes("documentos_rechazados") ||
                         nombre.includes("scar")
@@ -7773,7 +7773,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                 }
                 // Filtro base para rechazados (excluye preordenes de casting; incluye SCAR y rechazados)
                 const baseRech = (data.archivos || []).filter((f) => {
-                    const nombre = (f.nombre || "").toLowerCase();
+                    const nombre = (f.nombre || "").toLowerCase().replace(/\\/g, "/");
                     // Excluir preordenes de casting (no de modelo)
                     if (
                         nombre.includes("pre-orden") &&
