@@ -885,16 +885,63 @@ function generarHtmlCategorizadoArchivos(archivos, ot, baseUrl, inputNameMode) {
                     ayudasPdfs.push(f);
                 } else {
                     const lower = f.nombre.toLowerCase();
-                    if (lower.includes("escaneado_fundicion")) {
-                        aprobadosPdfs.push(f);
-                    } else if (
-                        lower.includes("documentos_rechazados") ||
+                    const originField = (f.origin || "").toLowerCase();
+
+                    // ── Clasificación por nombre de archivo — nomenclaturas viejas y nuevas ─────
+                    // Rechazado: RDM / SCAR / documentos_rechazados / fdrdm / F-CCL-RDM
+                    const esRechazado =
+                        originField === "rechazado" ||
+                        /documentos.rechazados/.test(lower) ||
                         lower.includes("rechazado") ||
-                        lower.includes("scar")
-                    ) {
+                        /[_\-.\s]scar[_\-.\s]/.test(lower) ||
+                        lower.startsWith("scar") ||
+                        lower.includes("/scar/") ||
+                        lower.includes("f_ccl_scar") ||
+                        lower.includes("f-ccl-scar") ||
+                        lower.includes("f_ccl_rdm") ||
+                        lower.includes("f-ccl-rdm") ||
+                        lower.includes("fdrdm") ||
+                        (/[_\-.\/]rdm[_\-.\/]/.test(lower) && !lower.includes("standard")) ||
+                        lower.includes("/fdrdm/");
+
+                    // Aprobado: LDM firmado / documentos_aprobados / ConfirmacionModelo / escaneado
+                    const esAprobado =
+                        originField === "aprobado" ||
+                        /documentos.aprobados/.test(lower) ||
+                        lower.includes("f_ccl_ldm") ||
+                        lower.includes("f-ccl-ldm") ||
+                        lower.includes("fdldm") ||
+                        lower.includes("/fdldm/") ||
+                        lower.includes("confirmacionmodelo") ||
+                        lower.includes("confirmacion_modelo") ||
+                        lower.includes("confirmacion-modelo") ||
+                        lower.includes("escaneado");
+
+                    // Pre-órdenes: PFC, PFM, CFM, EFM, EFC — cualquier variante con - o _
+                    const esPreOrden =
+                        lower.includes("pre-orden") ||
+                        lower.includes("preorden") ||
+                        lower.includes("preorden_casting") ||
+                        lower.includes("preorden_modelo") ||
+                        lower.includes("preorden-casting") ||
+                        lower.includes("preorden-modelo") ||
+                        /[_\-.]pfc[_\-.]/.test(lower) || lower.endsWith("_pfc.pdf") || lower.endsWith("-pfc.pdf") ||
+                        /[_\-.]pfm[_\-.]/.test(lower) || lower.endsWith("_pfm.pdf") || lower.endsWith("-pfm.pdf") ||
+                        /[_\-.]cfm[_\-.]/.test(lower) || lower.endsWith("_cfm.pdf") || lower.endsWith("-cfm.pdf") ||
+                        /[_\-.]efm[_\-.]/.test(lower) || lower.endsWith("_efm.pdf") || lower.endsWith("-efm.pdf") ||
+                        /[_\-.]efc[_\-.]/.test(lower) || lower.endsWith("_efc.pdf") || lower.endsWith("-efc.pdf") ||
+                        lower.includes("f_alm_pfc") || lower.includes("f-alm-pfc") ||
+                        lower.includes("f_alm_pfm") || lower.includes("f-alm-pfm") ||
+                        lower.includes("f_alm_cfm") || lower.includes("f-alm-cfm") ||
+                        lower.includes("f_alm_efm") || lower.includes("f-alm-efm") ||
+                        lower.includes("f_alm_efc") || lower.includes("f-alm-efc");
+
+                    if (esRechazado) {
                         rechazadosPdfs.push(f);
-                    } else {
+                    } else if (esAprobado || esPreOrden) {
                         aprobadosPdfs.push(f);
+                    } else {
+                        otrosPdfs.push(f);
                     }
                 }
             }
@@ -6913,7 +6960,23 @@ function generarHtmlCategorizadoCastingAprobados(
                     tipo === "preorden" ||
                     tipo === "otro" ||
                     nombre.includes(targetFolder) ||
-                    nombre.includes("preordenes/")
+                    nombre.includes("preorden") ||
+                    nombre.includes("pre-orden") ||
+                    nombre.includes("fdldm") ||
+                    nombre.includes("fdrdm") ||
+                    nombre.includes("f_ccl_ldm") ||
+                    nombre.includes("f-ccl-ldm") ||
+                    nombre.includes("f_ccl_rdm") ||
+                    nombre.includes("f-ccl-rdm") ||
+                    nombre.includes("f_ccl_scar") ||
+                    nombre.includes("f-ccl-scar") ||
+                    nombre.includes("scar") ||
+                    nombre.includes("pfc") ||
+                    nombre.includes("pfm") ||
+                    nombre.includes("cfm") ||
+                    nombre.includes("efm") ||
+                    nombre.includes("efc") ||
+                    nombre.includes("escaneado")
                 );
             }
             return sec.tipos.includes(tipo);
