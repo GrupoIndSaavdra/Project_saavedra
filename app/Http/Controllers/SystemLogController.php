@@ -42,16 +42,18 @@ class SystemLogController extends Controller
 
         // 3. ESTANDARIZACIÓN DE NOMENCLATURA (Catálogo Maestro)
         $otString = $request->ot;
-        if ($request->id_ot) {
-            $otModel = Orden_trabajo::query()->with('moldura')->where('id', $request->id_ot)->first();
+        $idOtSanitized = is_numeric($request->id_ot) ? (int)$request->id_ot : null;
+        if ($idOtSanitized) {
+            $otModel = Orden_trabajo::query()->with('moldura')->where('id', $idOtSanitized)->first();
             if ($otModel && $otModel->moldura) {
                 $otString = "{$otModel->id} - {$otModel->moldura->nombre}";
             }
         }
 
         $claseString = $request->clase;
-        if ($request->id_clase) {
-            $claseModel = Clase::query()->where('id', $request->id_clase)->first();
+        $idClaseSanitized = is_numeric($request->id_clase) ? (int)$request->id_clase : null;
+        if ($idClaseSanitized) {
+            $claseModel = Clase::query()->where('id', $idClaseSanitized)->first();
             if ($claseModel) {
                 $claseString = $claseModel->nombre;
             }
@@ -202,7 +204,7 @@ class SystemLogController extends Controller
         // ESCRITURA BLINDADA: DB::transaction + try-catch + Log::error fallback
         try {
             DB::transaction(function () use (
-                $action, $details, $otString, $claseString,
+                $action, $details, $otString, $idOtSanitized, $claseString, $idClaseSanitized,
                 $maquina, $h_inicio, $h_termino, $request, $n_pieza
             ) {
                 SystemLog::create([
@@ -210,9 +212,9 @@ class SystemLogController extends Controller
                     'action' => $action,
                     'details' => $details,
                     'ot' => $otString,
-                    'id_ot' => $request->id_ot,
+                    'id_ot' => $idOtSanitized,
                     'clase' => $claseString,
-                    'id_clase' => $request->id_clase,
+                    'id_clase' => $idClaseSanitized,
                     'proceso' => $request->proceso,
                     'maquina' => $maquina,
                     'n_pieza' => $n_pieza ?? $request->n_pieza,

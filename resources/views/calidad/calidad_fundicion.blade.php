@@ -1361,6 +1361,7 @@
                                                                     'ot' => $otName,
                                                                     'origin' => $origin,
                                                                     'owner' => 'calidad',
+                                                                    'tipo_origen' => 'digital',
                                                                 ];
                                                                 if ($isRechazado) {
                                                                     $rechazadosOtros[] = $itemData;
@@ -1394,6 +1395,7 @@
                                                                     'ot' => $otName,
                                                                     'origin' => 'rechazado',
                                                                     'owner' => 'calidad',
+                                                                    'tipo_origen' => 'digital',
                                                                 ];
                                                                 $rechazadosOtros[] = $itemData;
                                                                 $baseNames[] = $base;
@@ -1635,7 +1637,8 @@
                                                 $isQualityFinalized = $hasFinalStatus && $todosGuardados;
                                                 $showQualityCard =
                                                     in_array(Auth::user()->perfil, ['1', '3', '4', 1, 3, 4]) &&
-                                                    $estado === 'activa';
+                                                    $estado === 'activa' &&
+                                                    $targetReg->calidad_revision_status !== 'casting_aprobado';
                                                 $hasFilesOrControl = $count > 0 || $showQualityCard;
                                                 // ── CALCULAR APROBADOS Y RECHAZADOS DEL ÁšLTIMO VEREDICTO DE CADA CLASE ──
                                                 $liberacionesAll = \App\Models\LiberacionModeloFundicion::whereIn(
@@ -2278,6 +2281,23 @@
 
                                                             {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
                                                             @if (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $estado === 'activa')
+                                                                @if ($targetReg->calidad_revision_status === 'casting_aprobado')
+                                                                    {{-- Banner informativo de casting_aprobado --}}
+                                                                    <div class="lib-calidad-card" style="background:#f3e8ff; border:2px solid #9333ea;">
+                                                                        <div class="lib-calidad-card-header" style="background:linear-gradient(135deg,#9333ea,#7c3aed);border-bottom:2px solid rgba(147,51,234,0.4);">
+                                                                            <img src="{{ asset('images/Proveedor.png') }}" alt="Proveedor" class="cal-width-38px cal-height-38px cal-object-fit-contain cal-flex-shrink-0 cal-filter-brightness-0-invert-1">
+                                                                            <div class="cal-overflow-hidden cal-flex-1">
+                                                                                <span class="lib-calidad-card-title cal-color-ffffff">Pre-Orden de Casting &mdash; Enviado al Proveedor</span>
+                                                                                <span class="lib-calidad-card-ot cal-color-rgba-255-255-255-0-9">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="lib-calidad-card-body" style="padding:18px 22px;text-align:center;background:#faf5ff;">
+                                                                            <img src="{{ asset('images/Proveedor.png') }}" alt="Proveedor" style="width:52px;height:52px;margin-bottom:10px;">
+                                                                            <h4 style="color:#7c3aed;font-size:1.05rem;font-weight:700;margin:0 0 8px 0;font-family:'Poppins',sans-serif;">Proceso Finalizado &mdash; Enviado al Proveedor</h4>
+                                                                            <p style="color:#4c1d95;font-size:0.9rem;margin:0;font-family:'Poppins',sans-serif;">La pre-orden de casting fue generada y enviada al proveedor. No se requieren acciones adicionales de Calidad para esta OT.</p>
+                                                                        </div>
+                                                                    </div>
+                                                                @else
                                                                 <div class="lib-calidad-card">
                                                                     <div class="lib-calidad-card-header">
                                                                         <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
@@ -2959,6 +2979,21 @@
                                                                                         </div>
                                                                                     @endif
                                                                                 </div>
+                                                                            @elseif ($targetReg->tiene_modelo)
+                                                                                <div class="lib-calidad-finalizado-banner"
+                                                                                    style="background: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08);">
+                                                                                    <div style="display: flex; align-items: center; gap: 20px;">
+                                                                                        <img src="{{ asset('images/Espera.png') }}" style="width: 54px; height: 54px; flex-shrink: 0;" alt="Casting">
+                                                                                        <div>
+                                                                                            <h4 class="lib-calidad-card-prompt" style="color: #0369a1; margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.1rem; font-family: 'Poppins', sans-serif;">
+                                                                                                Proceso de Casting Iniciado
+                                                                                            </h4>
+                                                                                            <p style="color: #0c4a6e; margin: 0; font-size: 0.95rem; font-weight: 500; font-family: 'Poppins', sans-serif;">
+                                                                                                El modelo se encuentra en proceso de casting por parte de Almacén. No se requiere acción adicional de Calidad en esta etapa.
+                                                                                            </p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
                                                                             @else
                                                                                 <div class="lib-calidad-action-row"
                                                                                     style="display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%;">
@@ -3089,6 +3124,7 @@
                                                                         </div>
                                                                     @endif
                                                                 </div>
+                                                            @endif
                                                             @endif
                                                             @if (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $isQualityFinalized)
                                                                 @php

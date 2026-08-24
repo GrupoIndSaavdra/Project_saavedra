@@ -480,4 +480,39 @@ if ($operationSuccess) {
 }
 ```
 
+---
+
+## 16. Blindaje de Consultas Encadenadas (Null-Safety) y Optimización de Índices Compuestos
+
+### A. Null-Safety en Consultas Encadenadas (Evitar "Attempt to read property on null")
+Cuando se realicen búsquedas de registros padre para luego consultar tablas hijas usando el ID obtenido (ej. buscar el ID de un proceso para encontrar la pieza asociada), siempre se debe comprobar explícitamente que el registro padre no sea `null` antes de acceder a sus atributos.
+
+```php
+// ❌ PÉSIMO (Si no existe el proceso, lanzará error Fatal de PHP al intentar leer ->id):
+$proceso = Cepillado::where('id_proceso', $idString)->first();
+$pieza = Pza_cepillado::where('id_proceso', $proceso->id)->first();
+
+// ✅ EXCELENTE (Protección explícita mediante condicional):
+$proceso = Cepillado::where('id_proceso', $idString)->first();
+$pieza = null;
+if ($proceso) {
+    $pieza = Pza_cepillado::where('id_proceso', $proceso->id)->first();
+}
+
+// ✅ EXCELENTE (Utilizando el operador Null-safe de PHP 8 si se encadena directamente):
+$idProceso = Cepillado::where('id_proceso', $idString)->first()?->id;
+```
+
+### B. Indexación Compuesta para Optimización de Consultas en Planta
+En consultas con múltiples filtros en cascada (como buscar piezas por `id_ot`, `id_clase`, `id_operador` y `proceso` en la tabla `piezas` que contiene más de 76,000 registros), la base de datos requiere índices compuestos. 
+Al crear migraciones para tablas de telemetría o de gran volumen, define índices que agrupen estas columnas de filtrado frecuente para evitar escaneos de tabla completa (Full Table Scan).
+
+```php
+Schema::table('piezas', function (Blueprint $table) {
+    // Índice compuesto para acelerar consultas de datos de producción
+    $table->index(['id_ot', 'id_clase', 'id_operador', 'proceso'], 'piezas_prod_composite_index');
+});
+```
+
+
 

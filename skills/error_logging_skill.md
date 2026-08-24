@@ -156,3 +156,35 @@ $modulos = DB::table('system_logs')
     ->pluck('modulo');
 ```
 
+---
+
+## 8. Sanitización de Parámetros en `SystemLog` (Evitar Fallos por Tipos de Datos)
+
+### A. Sanitizar IDs de Relaciones (id_ot, id_clase)
+La tabla `system_logs` tiene columnas de tipo entero para almacenar relaciones de negocio, tales como `id_ot` e `id_clase`. Si el frontend o un entorno de pruebas envía una cadena de texto (ej. `'OT-LOG-TEST'`) en lugar de un ID numérico, la base de datos MySQL arrojará un error de formato (`Incorrect integer value`).
+
+Para blindar la escritura de auditoría, siempre sanitiza estos valores usando `is_numeric()` antes de crear el registro de log:
+
+```php
+// ✅ CORRECTO: Sanitizar y convertir antes de insertar en system_logs
+$idOt = is_numeric($request->id_ot) ? (int)$request->id_ot : null;
+$idClase = is_numeric($request->id_clase) ? (int)$request->id_clase : null;
+
+SystemLog::create([
+    'user_matricula' => auth()->user()->matricula ?? null,
+    'action' => $action,
+    'details' => $details,
+    'ot' => $otString,
+    'id_ot' => $idOt,
+    'clase' => $claseString,
+    'id_clase' => $idClase,
+    'proceso' => $request->proceso,
+    'maquina' => $maquina,
+    'n_pieza' => $n_pieza,
+    'h_inicio' => $h_inicio,
+    'h_termino' => $h_termino,
+]);
+```
+
+```
+

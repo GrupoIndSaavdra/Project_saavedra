@@ -7139,7 +7139,9 @@ window.cargarInputsCasting = function (ot, files) {
                     const nameUpper = (f.nombre || "").toUpperCase();
                     const cleanClass = c.toUpperCase();
                     const isLdmDoc = nameUpper.includes("FDLDM") || nameUpper.includes("F_CCL_LDM") || nameUpper.includes("F-CCL-LDM") || nameUpper.includes("LDM");
-                    return isLdmDoc && nameUpper.includes(cleanClass);
+                    // Bug Fix: Solo detectar como cargado si esta guardado en la carpeta especifica de FDLDM para evitar coincidir con el PDF digital del sistema.
+                    const isUserUploaded = nameUpper.includes("/FDLDM/") && !nameUpper.includes("_APROBADO.PDF") && !nameUpper.includes("_RECHAZADO.PDF");
+                    return isLdmDoc && nameUpper.includes(cleanClass) && isUserUploaded;
                 });
             }
             const label = c.charAt(0).toUpperCase() + c.slice(1);
@@ -7314,25 +7316,21 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                 existingRechazo = files.find((f) => {
                     const nameLower = (f.nombre || "").toLowerCase();
                     const filename = nameLower.split("/").pop();
+                    // Bug Fix: Detectar formatos de rechazo usando prefijo nuevo F_CCL_RDM, F-CCL-RDM o rechazo_
                     return (
                         nameLower.includes("documentos_rechazados/fdrdm/") &&
-                        filename.startsWith(
-                            "rechazo_" +
-                            c.toLowerCase() +
-                            "_" +
-                            sanitizedOt +
-                            ".",
-                        )
+                        (filename.startsWith("f_ccl_rdm_") || filename.startsWith("f-ccl-rdm_") || filename.startsWith("rechazo_")) &&
+                        filename.includes(c.toLowerCase()) && !filename.includes("_rechazado.pdf")
                     );
                 });
                 existingScar = files.find((f) => {
                     const nameLower = (f.nombre || "").toLowerCase();
                     const filename = nameLower.split("/").pop();
+                    // Bug Fix: Detectar SCAR usando prefijo nuevo F_CCL_SCAR, F-CCL-SCAR o scar_
                     return (
                         nameLower.includes("documentos_rechazados/scar/") &&
-                        filename.startsWith(
-                            "scar_" + c.toLowerCase() + "_" + sanitizedOt + ".",
-                        )
+                        (filename.startsWith("f_ccl_scar_") || filename.startsWith("f-ccl-scar_") || filename.startsWith("scar_") || filename.includes("scar")) &&
+                        filename.includes(c.toLowerCase()) && !filename.includes("_rechazado.pdf")
                     );
                 });
             }
