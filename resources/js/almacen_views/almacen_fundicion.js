@@ -7327,7 +7327,12 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                     const nameLower = (f.nombre || "").toLowerCase();
                     const filename = nameLower.split("/").pop();
                     // Bug Fix: Detectar SCAR usando prefijo nuevo F_CCL_SCAR, F-CCL-SCAR o scar_
+                    // Solo detectar como cargado si es subido por el usuario (directamente en la carpeta SCAR, no en la subcarpeta de clase /scar/clase/)
+                    const pathNorm = nameLower.replace(/\\/g, "/");
+                    const parts = pathNorm.split("/");
+                    const isUserUploaded = parts[parts.length - 2] === "scar";
                     return (
+                        isUserUploaded &&
                         nameLower.includes("documentos_rechazados/scar/") &&
                         (filename.startsWith("f_ccl_scar_") || filename.startsWith("f-ccl-scar_") || filename.startsWith("scar_") || filename.includes("scar")) &&
                         filename.includes(c.toLowerCase()) && !filename.includes("_rechazado.pdf")
