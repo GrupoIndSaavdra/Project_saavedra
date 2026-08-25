@@ -86,6 +86,7 @@ function get_inputAttributes(workOrder, molding, value = null) {
                 class: "selects",
             },
             options: tamanios,
+            currentValue: value == null ? null : value.tamanio,
         },
         composicionQuimica: {
             label: "Composición Química",
@@ -327,6 +328,15 @@ function insertWOButtons(fragment) {
     });
 }
 
+function getSizeLabel(size) {
+    const sizeLabels = {
+        "Chico": "CHICO -  Altra 4´´ a 7´´ y Diametro de 4´´ a 5´´",
+        "Mediano": "MEDIANO -  Altra 7´´ a 10´ y Diametro de 5´´ a 6´´",
+        "Grande": "GRANDE -  Altra 10´´ a 13´´ y Diametro de 6´´ a 8´´"
+    };
+    return sizeLabels[size] || size;
+}
+
 function createSelectOrInput(element, attributesArray, nameInput) {
     let htmlTag = document.createElement(element);
     for (let attribute in attributesArray[element]) {
@@ -344,7 +354,7 @@ function createSelectOrInput(element, attributesArray, nameInput) {
         for (let i = 0; i < options.length; i++) {
             let option = document.createElement("option");
             option.value = options[i];
-            option.text = options[i];
+            option.text = nameInput === "size" ? getSizeLabel(options[i]) : options[i];
             if (currentValue && options[i] === currentValue) {
                 option.selected = true;
             }
@@ -395,7 +405,7 @@ function createSelect(className) {
     for (let i = 0; i < 3; i++) {
         let option = document.createElement("option");
         option.value = options[i];
-        option.text = options[i];
+        option.text = getSizeLabel(options[i]);
         select.add(option);
     }
     fragment.appendChild(label);
