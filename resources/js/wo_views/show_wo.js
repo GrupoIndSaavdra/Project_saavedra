@@ -345,6 +345,14 @@ function createSelectOrInput(element, attributesArray, nameInput) {
             htmlTag.disabled = true;
         }
     }
+    
+    if (window.profile != 5 && nameInput == "pieces") {
+        htmlTag.disabled = true;
+        if (htmlTag.value === "" || htmlTag.value === "null" || htmlTag.value == null) {
+            htmlTag.value = 0;
+        }
+    }
+    
     htmlTag.classList.add("form-control"); //Se añade la clase "form-control al input correspondiente"
 
     //Si el elemento es un select, se añaden las opciones correspondientes

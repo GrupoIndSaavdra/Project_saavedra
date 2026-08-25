@@ -104,7 +104,7 @@ class ClassController extends Controller
         $class->id_ot = $request->input('workOrder');
         $class->nombre = $request->input('class');
         $class->pedido = $request->input('order');
-        $class->piezas = $request->input('pieces');
+        $class->piezas = $request->input('pieces') ?? 0;
         $class->fecha_inicio = $request->input('start_date');
         $class->hora_inicio = $request->input('start_time');
         $class->tamanio = $request->input('size');
@@ -151,7 +151,7 @@ class ClassController extends Controller
 
         if (!in_array(auth()->user()->perfil, [5]) && $request->input('from_almacen') != 1) {
             $class->pedido = $request->input('order');
-            $class->piezas = $request->input('pieces');
+            $class->piezas = $request->input('pieces') !== null ? $request->input('pieces') : $class->piezas;
             $class->fecha_inicio = $request->input('start_date');
             $class->hora_inicio = $request->input('start_time');
             $class->tamanio = $request->input('size');
@@ -173,7 +173,7 @@ class ClassController extends Controller
             $class->tipo_soldadura = $request->input('tipo_soldadura');
             $class->seccion = null;
         } else {
-            $class->piezas = $request->input('pieces');
+            $class->piezas = $request->input('pieces') !== null ? $request->input('pieces') : $class->piezas;
             $class->pedido = $request->input('order');
         }
         $class->save(); //Guardo los cambios.
