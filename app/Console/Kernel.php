@@ -32,6 +32,13 @@ class Kernel extends ConsoleKernel
             ->onOneServer()
             ->appendOutputTo(storage_path('logs/reporte_diario.log'));
 
+        // ── Alerta Pre-órdenes de Entrega — 08:00 ────────
+        $schedule->command('alert:preorden-entrega')
+            ->dailyAt('08:00')
+            ->withoutOverlapping()
+            ->onOneServer()
+            ->appendOutputTo(storage_path('logs/alert_preorden_entrega.log'));
+
         // ── Latido de Monitoreo — cada minuto ──────────────────────────
         $schedule->command('app:heartbeat')
             ->everyMinute()
