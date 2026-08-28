@@ -3,7 +3,7 @@
 on:
   push:
     branches:
-      - main # Si tu rama principal se llama master, cambia main por master
+      - feat/v2.0.0
 
 jobs:
   web-deploy:
