@@ -416,20 +416,15 @@ function createSelectOrInput(element, attributesArray, nameInput) {
             htmlTag.setAttribute(attribute, attributesArray[element][attribute]);
         }
     }
-<<<<<<< HEAD
     if (window.profile == 5 && nameInput != "order" && nameInput != "pieces") {
         htmlTag.disabled = true;
     }
-=======
-    
     if (window.profile != 5 && nameInput == "pieces") {
         htmlTag.disabled = true;
         if (htmlTag.value === "" || htmlTag.value === "null" || htmlTag.value == null) {
             htmlTag.value = 0;
         }
     }
-    
->>>>>>> 5ed26ce74719fee3b768915c2e2cc5880e7064f3
     htmlTag.classList.add("form-control"); //Se añade la clase "form-control al input correspondiente"
 
     if (element === "input" && attributesArray.input && attributesArray.input.disabled && attributesArray.input.name) {

@@ -101,14 +101,9 @@ class ClassController extends Controller
         $class = new Clase();
         $class->id_ot = $request->input('workOrder');
         $class->nombre = $request->input('class');
-<<<<<<< HEAD
         $class->material = $request->input('material');
         $class->pedido = $request->input('order') ?? ($workOrderModel ? $workOrderModel->cantidad : 0);
         $class->piezas = $request->input('pieces') ?? $class->pedido;
-=======
-        $class->pedido = $request->input('order');
-        $class->piezas = $request->input('pieces') ?? 0;
->>>>>>> 5ed26ce74719fee3b768915c2e2cc5880e7064f3
         $class->fecha_inicio = $request->input('start_date');
         $class->hora_inicio = $request->input('start_time');
         $class->tamanio = $request->input('size') ?? 'Chico';
@@ -154,7 +149,6 @@ class ClassController extends Controller
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
         if (!in_array(auth()->user()->perfil, [5]) && $request->input('from_almacen') != 1) {
-<<<<<<< HEAD
             $class->pedido = $request->input('order') ?? $class->pedido;
             $class->piezas = $request->input('pieces') ?? $request->input('order') ?? $class->piezas;
             $class->material = $request->input('material') ?? $class->material;
@@ -162,13 +156,6 @@ class ClassController extends Controller
             $class->hora_inicio = $request->input('start_time') ?? $class->hora_inicio;
             $class->tamanio = $request->input('size') ?? $class->tamanio;
             
-=======
-            $class->pedido = $request->input('order');
-            $class->piezas = $request->input('pieces') !== null ? $request->input('pieces') : $class->piezas;
-            $class->fecha_inicio = $request->input('start_date');
-            $class->hora_inicio = $request->input('start_time');
-            $class->tamanio = $request->input('size');
->>>>>>> 5ed26ce74719fee3b768915c2e2cc5880e7064f3
             $comp = $request->input('composicion_quimica');
             if (!is_array($comp)) {
                 $comp = $comp ? [$comp] : [];
@@ -188,13 +175,8 @@ class ClassController extends Controller
             }
             $class->seccion = null;
         } else {
-<<<<<<< HEAD
             $class->piezas = $request->input('pieces') ?? $class->piezas;
             $class->pedido = $request->input('order') ?? $class->pedido;
-=======
-            $class->piezas = $request->input('pieces') !== null ? $request->input('pieces') : $class->piezas;
-            $class->pedido = $request->input('order');
->>>>>>> 5ed26ce74719fee3b768915c2e2cc5880e7064f3
         }
         $class->save(); //Guardo los cambios.
 
