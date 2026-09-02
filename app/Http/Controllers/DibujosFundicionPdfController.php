@@ -46,7 +46,7 @@ class DibujosFundicionPdfController extends Controller
 
         // OTs activas (que tienen al menos una clase NO finalizada)
         try {
-            $todasLasOTs = Orden_trabajo::with('moldura')
+            $todasLasOTs = Orden_trabajo::with(['moldura', 'clases.procesos'])
                 ->whereHas('clases', fn($q) => $q->where('finalizada', '=', 0))
                 ->orderBy('id', 'asc')
                 ->get();
@@ -238,7 +238,24 @@ class DibujosFundicionPdfController extends Controller
                 } else {
                     // No está en enviadas, verificamos si tiene archivos
                     $currentHash = self::computeClassHash($h->ot, $clase);
-                    $alertasEnviadas[$normName][$clase] = ($currentHash === "") ? 'vacio' : 'pendiente';
+                    $estadoInicial = ($currentHash === "") ? 'vacio' : 'pendiente';
+                    
+                    // Si está pendiente, pero la clase ya tiene un registro en procesos, forzamos a 'enviada' para bloquear envío
+                    if ($estadoInicial === 'pendiente') {
+                        $otMatch = $todasLasOTs->first(function($otM) use ($normName) {
+                            $label1 = self::normalizeOTName("OT " . $otM->id . ($otM->moldura ? " - " . $otM->moldura->nombre : ""));
+                            $label2 = self::normalizeOTName("OT " . $otM->id);
+                            return $label1 === $normName || $label2 === $normName;
+                        });
+                        if ($otMatch) {
+                            $claseFisica = $otMatch->clases->first(fn($c) => strtolower(trim($c->nombre)) === strtolower(trim($clase)));
+                            if ($claseFisica && $claseFisica->procesos) {
+                                $estadoInicial = 'enviada';
+                            }
+                        }
+                    }
+
+                    $alertasEnviadas[$normName][$clase] = $estadoInicial;
                 }
             }
         }

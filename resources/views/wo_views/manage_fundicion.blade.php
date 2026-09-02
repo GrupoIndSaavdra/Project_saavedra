@@ -537,7 +537,7 @@
         window.todasLasOTs = {!! json_encode($todasLasOTs->map(fn($o) => [
             'id' => $o->id,
             'moldura_nombre' => $o->moldura?->nombre,
-            'clases' => $o->clases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])->values()
+            'clases' => $o->clases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre, 'tiene_procesos' => $c->procesos ? true : false])->values()
         ])) !!};
         window.todasLasClases = {!! json_encode($todasLasClases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])) !!};
         window.historiales = {!! json_encode($historiales) !!};
