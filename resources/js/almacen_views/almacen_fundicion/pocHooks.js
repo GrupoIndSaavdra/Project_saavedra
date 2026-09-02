@@ -210,33 +210,8 @@ window.updatePocAddRowButtonState = function () {
         }
     }
 
-    if (totalAvailable <= 0) {
-        if (btn1) btn1.style.display = "inline-flex";
-        if (btn2) btn2.style.display = "inline-flex";
-        return;
-    }
-
-    const filasP1 = window.pocState.page1.filas || [];
-    const filasP2 = window.pocState.has_page2 ? (window.pocState.page2.filas || []) : [];
-
-    const totalUsed = filasP1.length + filasP2.length;
-    const allAssigned = totalUsed >= totalAvailable;
-
-    if (btn1) {
-        if (allAssigned || filasP1.length >= totalAvailable) {
-            btn1.style.display = "none";
-        } else {
-            btn1.style.display = "inline-flex";
-        }
-    }
-
-    if (btn2) {
-        if (allAssigned || filasP2.length >= totalAvailable) {
-            btn2.style.display = "none";
-        } else {
-            btn2.style.display = "inline-flex";
-        }
-    }
+    if (btn1) btn1.style.display = "inline-flex";
+    if (btn2) btn2.style.display = "inline-flex";
 };
 
 window.agregarPocPagina2 = function() {

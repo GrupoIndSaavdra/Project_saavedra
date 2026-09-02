@@ -279,7 +279,7 @@
                                                                 });
                                                                 $clTagId = $clTagReal ? $clTagReal->id : $al;
                                                                 $isThisClass = ($al === $claseName);
-                                                                $estadoClase = $alertasEnviadas[$otName][$al] ?? 'pendiente';
+                                                                $estadoClase = $alertasEnviadas[$otName][$al] ?? ($alertasEnviadas[$otName][strtoupper($al)] ?? ($alertasEnviadas[$otName][ucfirst(strtolower($al))] ?? 'pendiente'));
                                                                 $tagClass = '';
                                                                 if ($estadoClase === 'enviada') $tagClass = 'alerta-enviada-tag';
                                                                 elseif ($estadoClase === 'modificada') $tagClass = 'alerta-modificada-tag';
@@ -382,7 +382,7 @@
                                                         } else {
                                                             $clTagId = 'null';
                                                         }
-                                                        $estadoClase = $alertasEnviadas[$otName][$al] ?? 'pendiente';
+                                                        $estadoClase = $alertasEnviadas[$otName][$al] ?? ($alertasEnviadas[$otName][strtoupper($al)] ?? ($alertasEnviadas[$otName][ucfirst(strtolower($al))] ?? 'pendiente'));
                                                         $tagClass = '';
                                                         if ($estadoClase === 'enviada') $tagClass = 'alerta-enviada-tag';
                                                         elseif ($estadoClase === 'modificada') $tagClass = 'alerta-modificada-tag';

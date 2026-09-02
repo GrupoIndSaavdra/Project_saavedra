@@ -176,13 +176,119 @@ class DibujosFundicionPdfController extends Controller
         try {
             $todasLasClases = Clase::all();
             $historialesRaw = FundicionHistory::all();
+            // Cargar PreOrdenes enviadas agrupadas por OT para verificación multi-nivel
+            $preOrdenesEnviadasPorOT = \App\Models\PreOrdenFundicion::where('is_sent', 1)
+                ->get(['ot', 'filas'])
+                ->groupBy('ot');
+            // Cargar liberaciones de modelo agrupadas por OT
+            $liberacionesPorOT = \App\Models\LiberacionModeloFundicion::whereNotNull('tipo_modelo')
+                ->where('tipo_modelo', '!=', '')
+                ->get(['ot', 'tipo_modelo', 'tipo_origen', 'created_at'])
+                ->groupBy('ot');
         } catch (\Throwable $dbe) {
             Log::warning('Error DB en showManage (Clase/FundicionHistory): ' . $dbe->getMessage());
             $todasLasClases = collect();
             $historialesRaw = collect();
+            $preOrdenesEnviadasPorOT = collect();
+            $liberacionesPorOT = collect();
         }
         $historiales = [];
         $alertasEnviadas = [];
+
+        /**
+         * Determina si una clase de una OT ya tiene actividad en producción (preorden/casting/liberación).
+         * Esto se usa para bloquear el botón de reenvío si no hay cambios reales en archivos.
+         */
+        $claseYaEnProduccion = function(string $otName, string $claseNombre) use ($preOrdenesEnviadasPorOT, $liberacionesPorOT): bool {
+            // 1. Verificar si hay preorden enviada que incluya esta clase
+            $preOrdenesPorEstaOT = $preOrdenesEnviadasPorOT->get($otName, collect());
+            foreach ($preOrdenesPorEstaOT as $po) {
+                $filas = $po->filas;
+                if (is_array($filas)) {
+                    foreach ($filas as $f) {
+                        $claseEnFila = $f['clase'] ?? $f['clase_nombre'] ?? null;
+                        if ($claseEnFila && strtolower(trim($claseEnFila)) === strtolower(trim($claseNombre))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            // 2. Verificar si hay liberación de modelo registrada para esta clase
+            $liberacionesPorEstaOT = $liberacionesPorOT->get($otName, collect());
+            foreach ($liberacionesPorEstaOT as $lib) {
+                if (strtolower(trim($lib->tipo_modelo)) === strtolower(trim($claseNombre))) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        /**
+         * Determina el estado final de una clase basado en:
+         * 1. Hash de archivos físicos vs hash guardado en FundicionHistory::clases_enviadas
+         * 2. Si tiene actividad en preorden/liberación (producción activa) y no hay archivos nuevos
+         * 3. Si tiene procesos en la tabla `clases.procesos` con fecha_inicio
+         */
+        $calcularEstado = function(
+            string $otRaw,        // Nombre real de la OT (para buscar en disco)
+            string $clase,        // Nombre en MAYÚSCULAS (del historial, para buscar carpeta física)
+            string $claseKey,     // Nombre Title Case (de BD, para mostrar en UI)
+            ?string $storedHash,  // Hash guardado en clases_enviadas (null = nunca enviado)
+            ?object $claseFisica, // Objeto Clase de BD (con procesos, fecha_inicio)
+            ?object $historial,   // Objeto FundicionHistory completo
+        ) use ($claseYaEnProduccion): string {
+
+            // Calcular hash actual de los archivos en disco
+            $currentHash = self::computeClassHash($otRaw, $clase);
+
+            // Sin archivos → vacío
+            if ($currentHash === "") {
+                return 'vacio';
+            }
+
+            // CASO 1: Ya tiene historial de envío (clases_enviadas tiene esta clase)
+            if ($storedHash !== null) {
+                if ($storedHash === $currentHash || $storedHash === "") {
+                    return 'enviada'; // Sin cambios desde el último envío
+                }
+                return 'modificada'; // Los archivos cambiaron → permitir reenvío
+            }
+
+            // CASO 2: Sin historial de envío (clases_enviadas es null para esta clase)
+            // Verificar si ya entró en producción por alguna de las 3 fuentes:
+
+            // 2a. FundicionHistory flags: pre_orden_sent o casting_pdf_generated
+            $enProduccionPorFlags = $historial && ($historial->pre_orden_sent || $historial->casting_pdf_generated);
+
+            // 2b. Preórdenes enviadas o liberaciones en la BD
+            $enProduccionPorTablas = $claseYaEnProduccion($otRaw, $clase);
+
+            // 2c. Tabla procesos (registro directo de maquinado)
+            $enProduccionPorProcesos = $claseFisica && $claseFisica->procesos;
+
+            $enProduccion = $enProduccionPorFlags || $enProduccionPorTablas || $enProduccionPorProcesos;
+
+            if ($enProduccion) {
+                // Calcular límite de tiempo para isFileModifiedAfter
+                // Usar la fecha más temprana disponible: fecha_inicio de procesos o created_at del historial
+                $limitTime = null;
+                if ($claseFisica && $claseFisica->fecha_inicio) {
+                    $limitTime = strtotime($claseFisica->fecha_inicio . ' ' . ($claseFisica->hora_inicio ?: '00:00:00'));
+                } elseif ($historial && $historial->created_at) {
+                    $limitTime = $historial->created_at->timestamp;
+                }
+
+                if ($limitTime) {
+                    $hasNewFiles = self::isFileModifiedAfter($otRaw, $clase, $limitTime);
+                    if ($hasNewFiles) {
+                        return 'modificada'; // Archivos subidos después de que empezó la producción → permitir envío
+                    }
+                }
+                return 'enviada'; // En producción sin archivos nuevos → bloquear
+            }
+
+            return 'pendiente'; // Sin producción y sin envío → permitir envío
+        };
 
         // Pre-procesar estructura keys para búsqueda rápida
         $estructuraOTs = array_map(function ($ot) {
@@ -211,51 +317,74 @@ class DibujosFundicionPdfController extends Controller
                     $enviadasDict[$key] = $val;
                 }
             }
-
             if (!isset($alertasEnviadas[$normName])) {
                 $alertasEnviadas[$normName] = [];
             }
 
-            // Calcular estado para cada clase vinculada
+            // Calcular estado para cada clase vinculada al historial
             $vinculadas = $h->ayudas_config ?? [];
             foreach ($vinculadas as $clase) {
-                if (isset($enviadasDict[$clase])) {
-                    $storedHash = $enviadasDict[$clase];
-                    $currentHash = self::computeClassHash($h->ot, $clase);
+                // Buscar el nombre canónico de la BD (Title Case) para display
+                $otMatch = $todasLasOTs->first(function($otM) use ($normName) {
+                    $label1 = self::normalizeOTName("OT " . $otM->id . ($otM->moldura ? " - " . $otM->moldura->nombre : ""));
+                    $label2 = self::normalizeOTName("OT " . $otM->id);
+                    return $label1 === $normName || $label2 === $normName;
+                });
+                $claseFisica = $otMatch ? $otMatch->clases->first(fn($c) => strtolower(trim($c->nombre)) === strtolower(trim($clase))) : null;
+                $claseKey = $claseFisica ? $claseFisica->nombre : $clase;
 
-                    if ($currentHash === "") {
-                        // Si no hay archivos (hash vacío), la marcamos como vacía para no mostrarla en la tabla
-                        $alertasEnviadas[$normName][$clase] = 'vacio';
-                    } else if ($storedHash === $currentHash) {
-                        // Hash exacto = no hubo modificaciones
-                        $alertasEnviadas[$normName][$clase] = 'enviada';
-                    } else if ($storedHash === "") {
-                        // Legacy
-                        $alertasEnviadas[$normName][$clase] = 'modificada';
-                    } else {
-                        $alertasEnviadas[$normName][$clase] = 'modificada';
+                // Buscar storedHash de forma case-insensitive
+                $storedHash = null;
+                foreach ($enviadasDict as $k => $v) {
+                    if (strtolower(trim($k)) === strtolower(trim($clase))) {
+                        $storedHash = $v;
+                        break;
                     }
-                } else {
-                    // No está en enviadas, verificamos si tiene archivos
-                    $currentHash = self::computeClassHash($h->ot, $clase);
-                    $estadoInicial = ($currentHash === "") ? 'vacio' : 'pendiente';
-                    
-                    // Si está pendiente, pero la clase ya tiene un registro en procesos, forzamos a 'enviada' para bloquear envío
-                    if ($estadoInicial === 'pendiente') {
-                        $otMatch = $todasLasOTs->first(function($otM) use ($normName) {
-                            $label1 = self::normalizeOTName("OT " . $otM->id . ($otM->moldura ? " - " . $otM->moldura->nombre : ""));
-                            $label2 = self::normalizeOTName("OT " . $otM->id);
-                            return $label1 === $normName || $label2 === $normName;
-                        });
-                        if ($otMatch) {
-                            $claseFisica = $otMatch->clases->first(fn($c) => strtolower(trim($c->nombre)) === strtolower(trim($clase)));
-                            if ($claseFisica && $claseFisica->procesos) {
-                                $estadoInicial = 'enviada';
-                            }
+                }
+
+                $st = $calcularEstado(
+                    $h->ot, $clase, $claseKey, $storedHash, $claseFisica, $h
+                );
+                $alertasEnviadas[$normName][$claseKey] = $st;
+                $alertasEnviadas[$normName][strtoupper($claseKey)] = $st;
+                $alertasEnviadas[$normName][$clase] = $st;
+            }
+        }
+
+        // Procesar TODAS las OTs de la BD para detectar clases que no tienen historial aún
+        foreach ($todasLasOTs as $ot) {
+            $fullOtName = "OT " . $ot->id . ($ot->moldura ? " - " . $ot->moldura->nombre : "");
+            $normName = self::normalizeOTName($fullOtName);
+            // Buscar el historial para esta OT (para pasarle los flags)
+            $historialDeEstaOT = $historialesRaw->first(fn($hh) => self::normalizeOTName($hh->ot) === $normName);
+
+            if (!isset($alertasEnviadas[$normName])) {
+                $alertasEnviadas[$normName] = [];
+            }
+            if ($ot->clases) {
+                foreach ($ot->clases as $claseObj) {
+                    $claseKey = $claseObj->nombre;
+                    // Saltar si ya fue calculada (case-insensitive)
+                    $existingKey = null;
+                    foreach (array_keys($alertasEnviadas[$normName]) as $k) {
+                        if (strtolower(trim($k)) === strtolower(trim($claseKey))) {
+                            $existingKey = $k;
+                            break;
                         }
                     }
+                    if ($existingKey) {
+                        continue;
+                    }
 
-                    $alertasEnviadas[$normName][$clase] = $estadoInicial;
+                    // Clase no procesada aún → calcular estado
+                    // Usar nombre en mayúsculas para buscar carpeta en disco
+                    $claseUppercase = strtoupper($claseKey);
+                    $st = $calcularEstado(
+                        $fullOtName, $claseUppercase, $claseKey, null, $claseObj, $historialDeEstaOT
+                    );
+                    $alertasEnviadas[$normName][$claseKey] = $st;
+                    $alertasEnviadas[$normName][strtoupper($claseKey)] = $st;
+                    $alertasEnviadas[$normName][$claseUppercase] = $st;
                 }
             }
         }
@@ -1925,5 +2054,34 @@ class DibujosFundicionPdfController extends Controller
 
         sort($filesData);
         return empty($filesData) ? "" : md5(implode('|', array_unique($filesData)));
+    }
+
+    public static function isFileModifiedAfter(string $otName, string $claseName, int $limitTime): bool
+    {
+        $otNorm = self::normalizeOTName($otName);
+        $instance = new self();
+        $dirsToScan = [
+            $instance->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $otNorm . '/' . $claseName),
+            $instance->resolveCaseInsensitivePath(self::OLD_BASE_DIR . '/' . $otNorm . '/' . $claseName)
+        ];
+
+        foreach ($dirsToScan as $dir) {
+            if ($dir && Storage::disk('local')->exists($dir)) {
+                $absDir = Storage::disk('local')->path($dir);
+                $allFiles = array_merge(
+                    glob($absDir . '/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [],
+                    glob($absDir . '/*/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [],
+                    glob($absDir . '/*/*/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: []
+                );
+                foreach ($allFiles as $f) {
+                    if (is_file($f)) {
+                        if (filemtime($f) > $limitTime) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
