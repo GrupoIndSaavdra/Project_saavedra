@@ -128,12 +128,12 @@ if (empty($activeClassesForOt)) {
         }
     }
 }
-// Filtrar clases activas basándose en las decisiones de Calidad (solo si no se determinaron previamente)
+// Filtrar clases activas basándose en las decisiones de Calidad o liberaciones registradas
 if (empty($activeClassesForOt)) {
     $isReproceso = preg_match('/_R\d+$/i', $reg->ot);
     if ($isReproceso) {
         $classesInCurrentOtRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
-            ->where('decision', '!=', 'pendiente')
+            ->whereNotNull('tipo_modelo')
             ->pluck('tipo_modelo')
             ->toArray();
 
@@ -142,8 +142,14 @@ if (empty($activeClassesForOt)) {
             $parts = explode(',', strtolower($dc));
             foreach ($parts as $p) {
                 $p = trim($p);
-                if ($p !== '')
-                    $parsedCurrent[] = $p;
+                if ($p !== '') {
+                    foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                        if (strpos($p, $kc) !== false) {
+                            $parsedCurrent[] = $kc;
+                            break;
+                        }
+                    }
+                }
             }
         }
 
@@ -164,8 +170,14 @@ if (empty($activeClassesForOt)) {
                 $parts = explode(',', strtolower($dc));
                 foreach ($parts as $p) {
                     $p = trim($p);
-                    if ($p !== '')
-                        $parsedPrev[] = $p;
+                    if ($p !== '') {
+                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                            if (strpos($p, $kc) !== false) {
+                                $parsedPrev[] = $kc;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
             if (!empty($parsedPrev)) {
@@ -173,25 +185,48 @@ if (empty($activeClassesForOt)) {
             }
         }
     } else {
-        $hasLiberaciones = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)->exists();
-        if ($hasLiberaciones) {
-            $decidedClassesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
-                ->where('decision', '!=', 'pendiente')
-                ->pluck('tipo_modelo')
-                ->toArray();
+        $classesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
+            ->whereNotNull('tipo_modelo')
+            ->pluck('tipo_modelo')
+            ->toArray();
 
-            $parsedDecided = [];
-            foreach ($decidedClassesRaw as $dc) {
-                $parts = explode(',', strtolower($dc));
-                foreach ($parts as $p) {
-                    $p = trim($p);
-                    if ($p !== '')
-                        $parsedDecided[] = $p;
+        $parsedClasses = [];
+        foreach ($classesRaw as $dc) {
+            $parts = explode(',', strtolower($dc));
+            foreach ($parts as $p) {
+                $p = trim($p);
+                if ($p !== '') {
+                    foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                        if (strpos($p, $kc) !== false) {
+                            $parsedClasses[] = $kc;
+                            break;
+                        }
+                    }
                 }
             }
+        }
 
-            if (!empty($parsedDecided)) {
-                $activeClassesForOt = array_unique($parsedDecided);
+        if (!empty($parsedClasses)) {
+            $activeClassesForOt = array_unique($parsedClasses);
+        }
+    }
+} else {
+    // Si ya teníamos clases en ayudas_config o preorden, asegurar también incluir cualquier tipo registrado en LiberacionModeloFundicion
+    $classesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
+        ->whereNotNull('tipo_modelo')
+        ->pluck('tipo_modelo')
+        ->toArray();
+    foreach ($classesRaw as $dc) {
+        $parts = explode(',', strtolower($dc));
+        foreach ($parts as $p) {
+            $p = trim($p);
+            if ($p !== '') {
+                foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                    if (strpos($p, $kc) !== false && !in_array($kc, $activeClassesForOt)) {
+                        $activeClassesForOt[] = $kc;
+                        break;
+                    }
+                }
             }
         }
     }
@@ -257,11 +292,29 @@ foreach ($relatedRecords as $relRec) {
     foreach ($relArchivos as $archivo) {
         $base = basename($archivo);
         $fileLower = strtolower($archivo);
-        if (
+        $baseLower = strtolower($base);
+
+        $isNonDrawing = (
             strpos($fileLower, 'ayudas_visuales') !== false ||
             strpos($fileLower, 'ayudas-visuales') !== false ||
-            strpos($fileLower, 'preordenes') !== false
-        ) {
+            strpos($fileLower, 'preordenes') !== false ||
+            strpos($fileLower, 'preorden') !== false ||
+            strpos($fileLower, 'escaneados') !== false ||
+            strpos($fileLower, 'documentos_aprobados') !== false ||
+            strpos($fileLower, 'documentos_rechazados') !== false ||
+            strpos($baseLower, 'f_alm_') !== false ||
+            strpos($baseLower, 'f_ccl_') !== false ||
+            strpos($baseLower, 'cfm') !== false ||
+            strpos($baseLower, 'efm') !== false ||
+            strpos($baseLower, 'pfm') !== false ||
+            strpos($baseLower, 'pfc') !== false ||
+            strpos($baseLower, 'efc') !== false ||
+            strpos($baseLower, 'ldm') !== false ||
+            strpos($baseLower, 'rdm') !== false ||
+            strpos($baseLower, 'scar') !== false
+        );
+
+        if ($isNonDrawing) {
             continue;
         }
         $knownClasses = [
@@ -705,6 +758,22 @@ foreach ($allOtNames as $otName) {
         $variants = array_unique([$cUnderscore, $cUpper, $cTitle]);
 
         foreach ($variants as $vDir) {
+            // Dibujos / DWG (nueva estructura y legacy)
+            foreach (['DIBUJOS', 'Dibujos', 'dibujos', 'DIBUJOS_FUNDICION', 'Dibujos_Fundicion'] as $dibSub) {
+                $newDirs[] = [
+                    'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . $dibSub,
+                    'origin' => 'dibujo',
+                    'prefix' => $vDir . '/' . $dibSub . '/',
+                    'owner' => 'almacen'
+                ];
+                $newDirs[] = [
+                    'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . $dibSub,
+                    'origin' => 'dibujo',
+                    'prefix' => $vDir . '/' . $dibSub . '/',
+                    'owner' => 'calidad'
+                ];
+            }
+
             // Preordenes (nueva estructura)
             $newDirs[] = [
                 'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Preordenes',
@@ -819,6 +888,25 @@ foreach ($allOtNames as $otName) {
                     ];
                 }
             }
+
+            // --- FALLBACK PARA OTs DE REPROCESO: Buscar dibujos en carpeta de OT Padre Heredada ---
+            $parentOtSanitized = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $otNameSanitized);
+            if ($parentOtSanitized && $parentOtSanitized !== $otNameSanitized) {
+                foreach (['DIBUJOS', 'Dibujos', 'dibujos', 'DIBUJOS_FUNDICION', 'Dibujos_Fundicion'] as $dibSub) {
+                    $newDirs[] = [
+                        'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $parentOtSanitized . '/' . $vDir . '/' . $dibSub,
+                        'origin' => 'dibujo',
+                        'prefix' => $vDir . '/' . $dibSub . '/',
+                        'owner' => 'almacen'
+                    ];
+                    $newDirs[] = [
+                        'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $parentOtSanitized . '/' . $vDir . '/' . $dibSub,
+                        'origin' => 'dibujo',
+                        'prefix' => $vDir . '/' . $dibSub . '/',
+                        'owner' => 'calidad'
+                    ];
+                }
+            }
         }
     }
 
@@ -844,7 +932,8 @@ foreach ($allOtNames as $otName) {
                     'gif',
                     'webp',
                 ]);
-                if (!$isPdf && !$isImage) {
+                $isDwg = $ext === 'dwg';
+                if (!$isPdf && !$isImage && !$isDwg) {
                     continue;
                 }
                 $fNorm = str_replace('\\', '/', $f);
@@ -890,16 +979,54 @@ foreach ($allOtNames as $otName) {
                     if ($hasInactiveClass) {
                         continue;
                     }
-                    // NO clasificar por clase rechazada aquí: el $origin viene del directorio escaneado.
-                    // Un ConfirmacionModelo en Documentos_Aprobados/ SIEMPRE es aprobado, aunque
-                    // mencione una clase rechazada en su nombre.
                 } else {
                     if ($otName !== $reg->ot) {
                         continue;
                     }
                 }
+                $baseLower = strtolower($base);
+                $isNonDrawingFile = (
+                    strpos($fileLower, 'ayudas_visuales') !== false ||
+                    strpos($fileLower, 'ayudas-visuales') !== false ||
+                    strpos($fileLower, 'preordenes') !== false ||
+                    strpos($fileLower, 'preorden') !== false ||
+                    strpos($fileLower, 'escaneados') !== false ||
+                    strpos($fileLower, 'documentos_aprobados') !== false ||
+                    strpos($fileLower, 'documentos_rechazados') !== false ||
+                    strpos($baseLower, 'f_alm_') !== false ||
+                    strpos($baseLower, 'f_ccl_') !== false ||
+                    strpos($baseLower, 'cfm') !== false ||
+                    strpos($baseLower, 'efm') !== false ||
+                    strpos($baseLower, 'pfm') !== false ||
+                    strpos($baseLower, 'pfc') !== false ||
+                    strpos($baseLower, 'efc') !== false ||
+                    strpos($baseLower, 'ldm') !== false ||
+                    strpos($baseLower, 'rdm') !== false ||
+                    strpos($baseLower, 'scar') !== false
+                );
+
                 $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
-                if (!in_array($normBase, $normBaseNames)) {
+                if (($origin === 'dibujo' || $isDwg || strpos(strtolower($targetDir), 'dibujo') !== false) && !$isNonDrawingFile) {
+                    if (!in_array($base, $dibujoBaseNames)) {
+                        $relativePathWithPrefix = $prefix . $relativePath;
+                        $archivos[] = [
+                            'nombre' => $relativePathWithPrefix,
+                            'url' => route('calidad.fundicion.serve', [
+                                'ot' => $otName,
+                                'archivo' => $relativePathWithPrefix,
+                                'tipo' => 'dibujo',
+                                'origin' => 'dibujo',
+                            ]),
+                            'tipo' => 'dibujo',
+                            'ot' => $otName,
+                            'origin' => 'dibujo',
+                            'owner' => $dirInfo['owner'],
+                        ];
+                        $dibujoBaseNames[] = $base;
+                        $baseNames[] = $base;
+                        $normBaseNames[] = $normBase;
+                    }
+                } elseif (!in_array($normBase, $normBaseNames)) {
                     $relativePathWithPrefix = $prefix . $relativePath;
                     $otrosArchivos[] = [
                         'nombre' => $relativePathWithPrefix,

@@ -283,7 +283,16 @@
             <td class="gen-label">Moldura</td>
             <td class="gen-value" colspan="3">{{ $data['moldura'] }}</td>
             <td class="gen-label">Orden de Trabajo</td>
-            <td class="gen-value">{{ preg_replace('/[^0-9]/', '', $data['ot']) ?: $data['ot'] }}</td>
+            @php
+                $rawOtVal = $data['ot'] ?? '';
+                $otPartClean = trim(explode(' - ', $rawOtVal)[0]);
+                if (preg_match('/(?:OT\s*)?(\d+(?:_[rR]\d+)?)/i', $otPartClean, $mOtMatch)) {
+                    $otDisplayVal = $mOtMatch[1];
+                } else {
+                    $otDisplayVal = preg_replace('/^OT\s*/i', '', $otPartClean);
+                }
+            @endphp
+            <td class="gen-value">{{ $otDisplayVal ?: $rawOtVal }}</td>
         </tr>
     </table>
 
