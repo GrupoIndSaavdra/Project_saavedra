@@ -518,3 +518,17 @@ function applyAllFilters() {
 }
 ```
 
+---
+
+## 16. Normalización de Rutas y Filtros de Archivos en Windows/Linux
+
+Cuando proceses nombres o rutas de archivos obtenidos dinámicamente en JavaScript (especialmente en entornos de desarrollo basados en Windows donde las barras inclinadas invertidas `\` se usan comúnmente en la base de datos o en el sistema de archivos), siempre normaliza las rutas reemplazando los backslashes por barras inclinadas hacia adelante `/` antes de cualquier validación:
+
+```javascript
+// ✅ PATRÓN CORRECTO: Normalización de backslashes
+const pathNorm = (f.nombre || "").toLowerCase().replace(/\\/g, "/");
+const parts = pathNorm.split("/");
+const isUserUploadedScar = parts[parts.length - 2] === "scar";
+```
+```
+

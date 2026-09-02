@@ -95,7 +95,8 @@ class DibujoFundicionAlertMail extends Mailable
         if ($otPath && Storage::disk('local')->exists($otPath)) {
             $allFiles = Storage::disk('local')->allFiles($otPath);
             foreach ($allFiles as $file) {
-                if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) !== 'pdf') {
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if (!in_array($ext, ['pdf', 'dwg'])) {
                     continue;
                 }
 
@@ -120,9 +121,10 @@ class DibujoFundicionAlertMail extends Mailable
                     }
                 }
 
+                $mime = $ext === 'pdf' ? 'application/pdf' : 'application/octet-stream';
                 $attachments[] = Attachment::fromPath(storage_path('app/' . $file))
                     ->as(basename($file))
-                    ->withMime('application/pdf');
+                    ->withMime($mime);
             }
         }
 

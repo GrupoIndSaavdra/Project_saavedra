@@ -136,8 +136,8 @@
 
                         <div class="dibujos-form-group">
                             <label class="dibujos-file-label" for="d-upload-file">
-                                <span id="d-upload-file-label-text">Seleccionar archivo PDF</span>
-                                <input type="file" id="d-upload-file" accept=".pdf" multiple>
+                                <span id="d-upload-file-label-text">Selecciona el archivo PDF/DWG</span>
+                                <input type="file" id="d-upload-file" accept=".pdf,.dwg" multiple>
                             </label>
                             <span class="dibujos-file-name" id="d-upload-file-name"></span>
                         </div>
@@ -232,17 +232,26 @@
 
                                     @foreach($displayClases as $claseName)
                                         @php
-                                            $esRaiz = is_null($claseName);
+                                            $esRaiz = is_null($claseName) || $claseName === '--';
                                             $claseLabel = $esRaiz ? 'Raíz OT' : $claseName;
-                                            $claseReal = (!$esRaiz && $otReal) ? $otReal->clases->firstWhere('nombre', $claseName) : null;
+                                            $claseIdBD = '--';
 
-                                            // Si no hay clase en BD pero es una de nuestras clases virtuales, usamos el nombre como ID
-                                            if ($claseReal) {
-                                                $claseIdBD = $claseReal->id;
-                                            } elseif (in_array($claseName, ['Pistones', 'Guías', 'Guias'])) {
-                                                $claseIdBD = $claseName;
-                                            } else {
-                                                $claseIdBD = 'null';
+                                            if (!$esRaiz) {
+                                                $claseReal = $otReal ? $otReal->clases->first(function($c) use ($claseName) {
+                                                    return strtolower(trim($c->nombre)) === strtolower(trim($claseName));
+                                                }) : null;
+
+                                                if (!$claseReal && isset($todasLasClases)) {
+                                                    $claseReal = $todasLasClases->first(function($c) use ($claseName) {
+                                                        return strtolower(trim($c->nombre)) === strtolower(trim($claseName));
+                                                    });
+                                                }
+
+                                                if ($claseReal) {
+                                                    $claseIdBD = $claseReal->id;
+                                                } else {
+                                                    $claseIdBD = $claseName;
+                                                }
                                             }
 
                                             $badgeId = "badge-" . Str::slug($otName) . "-" . Str::slug($claseLabel);
@@ -265,14 +274,10 @@
                                                                 if ($al !== $claseName && !$esRaiz)
                                                                     continue;
 
-                                                                $clTagReal = $todasLasClases->firstWhere('nombre', $al);
-                                                                if ($clTagReal) {
-                                                                    $clTagId = $clTagReal->id;
-                                                                } elseif (in_array($al, ['Pistones', 'Guías', 'Guias'])) {
-                                                                    $clTagId = $al;
-                                                                } else {
-                                                                    $clTagId = 'null';
-                                                                }
+                                                                $clTagReal = $todasLasClases->first(function($c) use ($al) {
+                                                                    return strtolower(trim($c->nombre)) === strtolower(trim($al));
+                                                                });
+                                                                $clTagId = $clTagReal ? $clTagReal->id : $al;
                                                                 $isThisClass = ($al === $claseName);
                                                                 $estadoClase = $alertasEnviadas[$otName][$al] ?? 'pendiente';
                                                                 $tagClass = '';
@@ -297,7 +302,7 @@
                                             <td class="d-text-center">
                                                 <div class="td-actions">
                                                     <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
-                                                        onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($otIdBD ? $claseIdBD : ($esRaiz ? null : $claseName)) }}, {{ $otIdBD ? 'true' : 'false' }})">
+                                                        onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($claseIdBD) }}, {{ $otIdBD ? 'true' : 'false' }})">
                                                         <img src="{{ asset('images/documento.png') }}" alt="Ver">
                                                         <span>Ver PDF's</span>
                                                     </button>
@@ -406,14 +411,22 @@
                                                 $valEstados = collect($clasesEnviadas)->filter(fn($st) => $st !== 'vacio');
                                                 $hasPendingOrMod = $valEstados->contains(fn($st) => in_array($st, ['pendiente', 'modificada']));
                                                 $hasEnviadas = $valEstados->contains(fn($st) => $st === 'enviada');
-                                                $isBtnDisabled = $hasEnviadas && !$hasPendingOrMod;
-                                                $btnTitle = $isBtnDisabled ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : ($hasEnviadas ? 'Enviar correo de actualización de dibujos modificados/nuevos' : 'Enviar correo de alerta global');
-                                                $btnText = $isBtnDisabled ? 'Correo Enviado' : ($hasEnviadas ? 'Enviar Actualización' : 'Enviar Correo');
+                                                $allEmpty = $valEstados->isEmpty();
+
+                                                $isBtnDisabled = ($hasEnviadas && !$hasPendingOrMod) || $allEmpty;
+
+                                                if ($allEmpty) {
+                                                    $btnTitle = 'No hay dibujos subidos para enviar alerta';
+                                                    $btnText = 'Sin Dibujos';
+                                                } else {
+                                                    $btnTitle = ($hasEnviadas && !$hasPendingOrMod) ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : ($hasEnviadas ? 'Enviar correo de actualización de dibujos modificados/nuevos' : 'Enviar correo de alerta global');
+                                                    $btnText = ($hasEnviadas && !$hasPendingOrMod) ? 'Correo Enviado' : ($hasEnviadas ? 'Enviar Actualización' : 'Enviar Correo');
+                                                }
                                             @endphp
-                                            <button class="btn-action-icon btn-alerta-fund @if($isBtnDisabled) btn-alerta-enviada btn-alerta-disabled @endif"
+                                            <button class="btn-action-icon btn-alerta-fund @if($isBtnDisabled && !$allEmpty) btn-alerta-enviada btn-alerta-disabled @endif"
                                                 title="{{ $btnTitle }}"
-                                                @if($isBtnDisabled) disabled style="pointer-events: none;" @else onclick="enviarAlertaFundicion(null, '{{ $otName }}', this)" @endif>
-                                                <img src="{{ asset('images/enviando.png') }}" alt="Alerta" style="filter: none !important;">
+                                                @if($isBtnDisabled) disabled style="pointer-events: none; opacity: 0.7; @if($allEmpty) background-color: #6c757d !important; border-color: #5a6268 !important; color: white !important; @endif" @else onclick="enviarAlertaFundicion(null, '{{ $otName }}', this)" @endif>
+                                                <img src="{{ asset('images/enviando.png') }}" alt="Alerta" style="@if($allEmpty) filter: grayscale(100%) !important; @else filter: none !important; @endif">
                                                 <span>{{ $btnText }}</span>
                                             </button>
                                         </div>
@@ -522,7 +535,7 @@
         window.estructura = @json($estructura);
 
         window.todasLasOTs = {!! json_encode($todasLasOTs->map(fn($o) => [
-            'id' => $o->id, 
+            'id' => $o->id,
             'moldura_nombre' => $o->moldura?->nombre,
             'clases' => $o->clases->map(fn($c) => ['id' => $c->id, 'nombre' => $c->nombre])->values()
         ])) !!};

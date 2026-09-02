@@ -1201,32 +1201,42 @@ body {
     font-weight: 800;
     text-transform: uppercase;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .btn-confirm-cancel:hover {
-    background: var(--gis-blue);
-    transform: scale(1.05);
+    background: #475569;
+    color: #ffffff;
+    transform: scale(1.03) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.35);
+}
+
+.btn-confirm-cancel:active {
+    transform: scale(0.97) translateY(0);
 }
 
 .btn-confirm-danger {
     background: var(--gis-red);
-    color: #000;
+    color: #fff;
     padding: 1em 2em;
     border-radius: 8px;
     border: none;
     font-weight: 800;
     text-transform: uppercase;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     box-shadow: 0 4px 15px rgba(156, 3, 0, 0.2);
 }
 
 .btn-confirm-danger:hover {
     background: #ff0000;
     color: #fff;
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(255, 0, 0, 0.5);
+    transform: scale(1.03) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 0, 0, 0.5);
+}
+
+.btn-confirm-danger:active {
+    transform: scale(0.97) translateY(0);
 }
 /* ── Ayudas Visuales Pills ── */
 .ayudas-grid {

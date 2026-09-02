@@ -30,7 +30,7 @@ window.compararClasesSurgico = function (claseA, claseB) {
     const wordsA = normA.split(/\s+/).map(w => w.replace(/s$/, ""));
     const wordsB = normB.split(/\s+/).map(w => w.replace(/s$/, ""));
     
-    return wordsA.some(wA => wA.length > 2 && wordsB.some(wB => wB === wA || wA.includes(wB) || wB.includes(wA)));
+    return wordsA.some(wA => wA.length > 2 && wordsB.some(wB => wB === wA || (wB.length > 2 && wA.includes(wB)) || (wA.length > 2 && wB.includes(wA))));
 };
 
 // ── Helper: crea una card visual para un File object local ─────────────────────
@@ -45,8 +45,11 @@ window.crearFileCard = function (file, index, removeFnName, accentColor) {
         : (window.baseUrl || "/");
     const ext = file.name.split(".").pop().toLowerCase();
     const esImg = ["png", "jpg", "jpeg", "gif", "webp", "bmp"].includes(ext);
-    const iconDefault = esImg ? "galeria-shadow.png" : "pdf-view-shadow.png";
-    const iconHover   = esImg ? "galeria.png"        : "pdf-view.png";
+    const isDwg = ext === "dwg";
+    const iconDefault = isDwg ? "dwg-shadow.png" : (esImg ? "galeria-shadow.png" : "pdf-view-shadow.png");
+    const iconHover   = isDwg ? "dwg.png" : (esImg ? "galeria.png"        : "pdf-view.png");
+    const titleAttr   = isDwg ? "Descargar DWG" : "Abrir archivo";
+    const btnText     = isDwg ? "Descargar" : "Ver";
     const sizeKb = (file.size / 1024).toFixed(1);
     const shortName = file.name.length > 28 ? file.name.substring(0, 26) + "…" : file.name;
 
@@ -73,16 +76,16 @@ window.crearFileCard = function (file, index, removeFnName, accentColor) {
         border-left-color: ${color};
     `;
     card.innerHTML = `
-        <div class="file-icon-wrapper cal-cursor-pointer" style="cursor:pointer; margin-top:10px;" title="Ver archivo">
+        <div class="file-icon-wrapper cal-cursor-pointer" style="cursor:pointer; margin-top:10px;" title="${titleAttr}">
             <img src="${baseUrl}images/${iconDefault}" class="file-icon icon-default" style="width:48px;height:auto;">
             <img src="${baseUrl}images/${iconHover}"   class="file-icon icon-hover"   style="width:48px;height:auto;">
         </div>
-        <div class="file-name cal-cursor-pointer" style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;" title="${file.name}">
+        <div class="file-name cal-cursor-pointer" style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;" title="${titleAttr}">
             ${shortName}
         </div>
         <div style="font-size:0.7em; color:#64748b; font-family:'Poppins',sans-serif; margin-bottom: 4px;">${sizeKb} KB</div>
         <div class="file-actions" style="width:100%; margin-top:auto; display:flex; gap:5px;">
-            <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;" title="Ver archivo">Ver</button>
+            <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;" title="${titleAttr}">${btnText}</button>
             <button type="button" class="btn-dibujos btn-dibujos-sm btn-eliminar" style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;" onclick="${removeFnName}(${index})" title="Quitar archivo">Quitar</button>
         </div>
     `;
@@ -134,69 +137,68 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
     if (Array.isArray(archivos)) {
         archivos.forEach((f) => {
             const ext = f.nombre.split(".").pop().toLowerCase();
-            if (!["pdf","png","jpg","jpeg","gif","webp","bmp"].includes(ext)) return;
+            if (!["pdf","png","jpg","jpeg","gif","webp","bmp","dwg"].includes(ext)) return;
 
-            if (f.tipo === "dibujo") {
-                dibujosPdfs.push(f);
-            } else if (f.tipo === "ayuda") {
+            const lower = f.nombre.toLowerCase().replace(/\\/g, "/");
+            const origin = (f.origin || "").toLowerCase();
+
+            // ── Clasificación por nombre de archivo — nomenclaturas viejas y nuevas ─────
+            // Rechazado: RDM / SCAR / documentos_rechazados / fdrdm / F-CCL-RDM
+            const esRechazado =
+                origin === "rechazado" ||
+                /documentos.rechazados/.test(lower) ||
+                /[_\-.\s]scar[_\-.\s]/.test(lower) ||
+                lower.startsWith("scar") ||
+                lower.includes("/scar/") ||
+                lower.includes("f_ccl_scar") ||
+                lower.includes("f-ccl-scar") ||
+                lower.includes("f_ccl_rdm") ||
+                lower.includes("f-ccl-rdm") ||
+                lower.includes("fdrdm") ||
+                (/[_\-.\/]rdm[_\-.\/]/.test(lower) && !lower.includes("standard")) ||
+                lower.includes("/fdrdm/");
+
+            // Aprobado: LDM firmado / documentos_aprobados / ConfirmacionModelo
+            const esAprobado =
+                origin === "aprobado" ||
+                /documentos.aprobados/.test(lower) ||
+                lower.includes("f_ccl_ldm") ||
+                lower.includes("f-ccl-ldm") ||
+                lower.includes("fdldm") ||
+                lower.includes("/fdldm/") ||
+                lower.includes("confirmacionmodelo") ||
+                lower.includes("confirmacion_modelo") ||
+                lower.includes("confirmacion-modelo");
+
+            // Pre-órdenes: PFC, PFM, CFM, EFM, EFC — cualquier variante con - o _
+            const esPreOrden =
+                lower.includes("pre-orden") ||
+                lower.includes("preorden") ||
+                lower.includes("preorden_casting") ||
+                lower.includes("preorden_modelo") ||
+                lower.includes("preorden-casting") ||
+                lower.includes("preorden-modelo") ||
+                /[_\-.]pfc[_\-.]/.test(lower) || lower.endsWith("_pfc.pdf") || lower.endsWith("-pfc.pdf") ||
+                /[_\-.]pfm[_\-.]/.test(lower) || lower.endsWith("_pfm.pdf") || lower.endsWith("-pfm.pdf") ||
+                /[_\-.]cfm[_\-.]/.test(lower) || lower.endsWith("_cfm.pdf") || lower.endsWith("-cfm.pdf") ||
+                /[_\-.]efm[_\-.]/.test(lower) || lower.endsWith("_efm.pdf") || lower.endsWith("-efm.pdf") ||
+                /[_\-.]efc[_\-.]/.test(lower) || lower.endsWith("_efc.pdf") || lower.endsWith("-efc.pdf") ||
+                lower.includes("f_alm_pfc") || lower.includes("f-alm-pfc") ||
+                lower.includes("f_alm_pfm") || lower.includes("f-alm-pfm") ||
+                lower.includes("f_alm_cfm") || lower.includes("f-alm-cfm") ||
+                lower.includes("f_alm_efm") || lower.includes("f-alm-efm") ||
+                lower.includes("f_alm_efc") || lower.includes("f-alm-efc");
+
+            if (esRechazado) {
+                rechazadosPdfs.push(f);
+            } else if (esAprobado || esPreOrden) {
+                aprobadosPdfs.push(f);
+            } else if (f.tipo === "ayuda" || lower.includes("ayudas_visuales") || lower.includes("ayuda_visual")) {
                 ayudasPdfs.push(f);
+            } else if (f.tipo === "dibujo" || lower.includes("dibujos_fundicion") || lower.includes("dibujo") || ext === "dwg") {
+                dibujosPdfs.push(f);
             } else {
-                const lower = f.nombre.toLowerCase();
-                const origin = (f.origin || "").toLowerCase();
-
-                // ── Clasificación por nombre de archivo — nomenclaturas viejas y nuevas ─────
-                // Rechazado: RDM / SCAR / documentos_rechazados / fdrdm / F-CCL-RDM
-                const esRechazado =
-                    origin === "rechazado" ||
-                    /documentos.rechazados/.test(lower) ||
-                    // SCAR (cualquier variante de separador)
-                    /[_\-.\s]scar[_\-.\s]/.test(lower) ||
-                    lower.startsWith("scar") ||
-                    lower.includes("/scar/") ||
-                    lower.includes("f_ccl_scar") ||
-                    lower.includes("f-ccl-scar") ||
-                    // RDM (cualquier variante)
-                    lower.includes("f_ccl_rdm") ||
-                    lower.includes("f-ccl-rdm") ||
-                    lower.includes("fdrdm") ||
-                    (/[_\-.\/]rdm[_\-.\/]/.test(lower) && !lower.includes("standard")) ||
-                    lower.includes("/fdrdm/");
-
-                // Aprobado: LDM firmado / documentos_aprobados / ConfirmacionModelo / escaneado
-                const esAprobado =
-                    origin === "aprobado" ||
-                    /documentos.aprobados/.test(lower) ||
-                    lower.includes("f_ccl_ldm") ||
-                    lower.includes("f-ccl-ldm") ||
-                    lower.includes("fdldm") ||
-                    lower.includes("/fdldm/") ||
-                    lower.includes("confirmacionmodelo") ||
-                    lower.includes("confirmacion_modelo") ||
-                    lower.includes("confirmacion-modelo") ||
-                    lower.includes("escaneado");
-
-                // Pre-órdenes: PFC, PFM, CFM, EFM, EFC — cualquier variante con - o _
-                const esPreOrden =
-                    lower.includes("pre-orden") ||
-                    lower.includes("preorden") ||
-                    lower.includes("preorden_casting") ||
-                    lower.includes("preorden_modelo") ||
-                    lower.includes("preorden-casting") ||
-                    lower.includes("preorden-modelo") ||
-                    /[_\-.]pfc[_\-.]/.test(lower) || lower.endsWith("_pfc.pdf") || lower.endsWith("-pfc.pdf") ||
-                    /[_\-.]pfm[_\-.]/.test(lower) || lower.endsWith("_pfm.pdf") || lower.endsWith("-pfm.pdf") ||
-                    /[_\-.]cfm[_\-.]/.test(lower) || lower.endsWith("_cfm.pdf") || lower.endsWith("-cfm.pdf") ||
-                    /[_\-.]efm[_\-.]/.test(lower) || lower.endsWith("_efm.pdf") || lower.endsWith("-efm.pdf") ||
-                    /[_\-.]efc[_\-.]/.test(lower) || lower.endsWith("_efc.pdf") || lower.endsWith("-efc.pdf") ||
-                    lower.includes("f_alm_pfc") || lower.includes("f-alm-pfc") ||
-                    lower.includes("f_alm_pfm") || lower.includes("f-alm-pfm") ||
-                    lower.includes("f_alm_cfm") || lower.includes("f-alm-cfm") ||
-                    lower.includes("f_alm_efm") || lower.includes("f-alm-efm") ||
-                    lower.includes("f_alm_efc") || lower.includes("f-alm-efc");
-
-                if (esRechazado) rechazadosPdfs.push(f);
-                else if (esAprobado || esPreOrden) aprobadosPdfs.push(f);
-                else otrosPdfs.push(f); // default: Otros
+                otrosPdfs.push(f);
             }
         });
     }
@@ -225,8 +227,11 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
             const cleanName = f.nombre.split("/").pop();
             const ext = f.nombre.split(".").pop().toLowerCase();
             const esImg = ["png","jpg","jpeg","gif","webp","bmp"].includes(ext);
-            const defaultIcon = esImg ? "galeria-shadow.png" : "pdf-view-shadow.png";
-            const hoverIcon   = esImg ? "galeria.png"        : "pdf-view.png";
+            const isDwg = ext === "dwg";
+            const defaultIcon = isDwg ? "dwg-shadow.png" : (esImg ? "galeria-shadow.png" : "pdf-view-shadow.png");
+            const hoverIcon   = isDwg ? "dwg.png" : (esImg ? "galeria.png"        : "pdf-view.png");
+            const titleAttr   = isDwg ? "Descargar DWG" : "Abrir Archivo";
+            const btnText     = isDwg ? "Descargar" : "Ver";
 
             const isConfirmacion = cleanName.toLowerCase().includes("confirmacionmodelo");
             const shouldCheck = !(inputNameMode === "preorden" && isConfirmacion);
@@ -271,20 +276,20 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
                     </div>
                     <div class="file-icon-wrapper"
                          onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')"
-                         style="cursor:pointer;margin-top:10px;" title="Abrir Archivo">
+                         style="cursor:pointer;margin-top:10px;" title="${titleAttr}">
                         <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width:48px;height:auto;">
                         <img src="${baseUrl}images/${hoverIcon}"   class="file-icon icon-hover"   style="width:48px;height:auto;">
                     </div>
                     <div class="file-name"
                          style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;"
-                         title="Abrir Archivo"
+                         title="${titleAttr}"
                          onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')">
                         ${cleanName}
                     </div>
                     <div class="file-actions" style="width:100%;margin-top:auto;display:flex;gap:5px;">
                         <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color"
                                 style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;"
-                                onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')">Ver</button>
+                                onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')">${btnText}</button>
                         ${mostrarEliminar ? `
                         <button type="button" class="btn-dibujos btn-dibujos-sm"
                                 style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;background:#dc2626;color:white;border:none;cursor:pointer;"
@@ -295,14 +300,15 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
         }).join("");
 
         return `
-            <div style="width:100%;">
-                <h4 style="font-family:'Poppins',sans-serif;font-weight:700;color:#1e293b;font-size:1.05em;margin-top:10px;margin-bottom:12px;border-left:4px solid ${borderColor};padding-left:8px;text-align:left;">
+            <div style="margin-bottom: 15px;">
+                <h4 style="margin: 0 0 10px 0; color: #033966; font-size: 0.95em; border-bottom: 2px solid ${borderColor}; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px;">
                     ${title}
                 </h4>
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;justify-items:center;width:100%;box-sizing:border-box;">
+                <div class="alm-pdf-grid" style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
                     ${cards}
                 </div>
-            </div>`;
+            </div>
+        `;
     };
 
     // ── Nombres de campos según modo ─────────────────────────────────────────────
@@ -313,20 +319,24 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
     };
     const n = NAMES[inputNameMode] || NAMES.default;
 
+    // ── Orden estándar de secciones (igual en TODOS los modales) ───────────────
+    // 1. Dibujos de Fundición
+    // 2. Ayudas Visuales
+    // 3. Pre-órdenes / Documentos Aprobados
+    // 4. Documentos Rechazados (SCAR / RDM)
+    // 5. Otros (solo en modos que lo necesiten)
     let html = "";
-    html += makeCategorySection("Ayudas Visuales",     ayudasPdfs,     n.ayudas,     "card-ayuda");
-    html += makeCategorySection("Dibujos de Fundición", dibujosPdfs,   n.dibujos,    "card-plano");
-    html += makeCategorySection("Documentos Aprobados", aprobadosPdfs, n.aprobados,  "card-ayuda");
+    html += makeCategorySection("Dibujos de Fundición",  dibujosPdfs,   n.dibujos,    "card-plano");
+    html += makeCategorySection("Ayudas Visuales",       ayudasPdfs,    n.ayudas,     "card-ayuda");
+    html += makeCategorySection("Pre-órdenes / Documentos Aprobados", aprobadosPdfs, n.aprobados, "card-ayuda");
 
-    const isReproceso   = /_[rR]\d+/.test(ot);
-    const hideRechazados = inputNameMode === "preorden" && !isReproceso;
-    if (!hideRechazados) {
-        const tituloRech = inputNameMode === "calidad"
-            ? "Documentos Rechazados"
-            : "Documentos Rechazados (SCAR)";
-        html += makeCategorySection(tituloRech, rechazadosPdfs, n.rechazados, "card-ayuda");
-    }
-    if (inputNameMode !== "calidad") {
+    const tituloRech = inputNameMode === "calidad"
+        ? "Documentos Rechazados"
+        : "Documentos Rechazados (SCAR / RDM)";
+    html += makeCategorySection(tituloRech, rechazadosPdfs, n.rechazados, "card-ayuda");
+
+    // Otros: sólo en modo general (no preorden, no scar, no calidad)
+    if (inputNameMode !== "preorden" && inputNameMode !== "scar" && inputNameMode !== "calidad") {
         html += makeCategorySection("Otros Documentos", otrosPdfs, n.otros, "card-ayuda");
     }
 

@@ -26,7 +26,10 @@ class DeleteParentTest extends TestCase
 
         $otNorm = 'OT 2102 - TEST';
         Storage::disk('local')->makeDirectory('DOCUMENTACION_GIS/DIBUJOS_FUNDICION/' . $otNorm);
+        Storage::disk('local')->put('DOCUMENTACION_GIS/DIBUJOS_FUNDICION/' . $otNorm . '/dibujo1.pdf', 'content');
+        
         Storage::disk('local')->makeDirectory('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNorm);
+        Storage::disk('local')->put('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNorm . '/archivo1.pdf', 'content');
 
         // Create a history record
         $history = FundicionHistory::create([
@@ -44,26 +47,87 @@ class DeleteParentTest extends TestCase
         $response->assertStatus(200);
         $response->assertJson(['success' => true]);
 
-        // Verify physical directories
+        // Verify physical directories are removed from active locations
         $this->assertFalse(Storage::disk('local')->exists('DOCUMENTACION_GIS/DIBUJOS_FUNDICION/' . $otNorm));
+        $this->assertFalse(Storage::disk('local')->exists('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNorm));
         
-        // The Almacen folder should be renamed with a timestamp extension (preceded by '_')
-        $dirs = Storage::disk('local')->directories('DOCUMENTACION_GIS/ALMACEN_FUNDICION');
-        $foundRename = false;
-        foreach ($dirs as $dir) {
-            if (str_contains($dir, $otNorm . '_')) {
-                $foundRename = true;
+        // The folders should be moved to the respective INACTIVAS folder
+        $inactiveDibujosDirs = Storage::disk('local')->directories('DOCUMENTACION_GIS/DIBUJOS_FUNDICION/INACTIVAS');
+        $foundDibujosArchive = false;
+        $dibujosArchivePath = '';
+        foreach ($inactiveDibujosDirs as $dir) {
+            if (str_contains($dir, $otNorm)) {
+                $foundDibujosArchive = true;
+                if (!str_starts_with($dir, 'DOCUMENTACION_GIS/DIBUJOS_FUNDICION/INACTIVAS')) {
+                    $dibujosArchivePath = 'DOCUMENTACION_GIS/DIBUJOS_FUNDICION/INACTIVAS/' . $dir;
+                } else {
+                    $dibujosArchivePath = $dir;
+                }
                 break;
             }
         }
-        $this->assertTrue($foundRename, "Almacen folder should be renamed with timestamp");
+        $this->assertTrue($foundDibujosArchive, "DIBUJOS folder should be moved to DIBUJOS_FUNDICION/INACTIVAS folder");
 
+        $inactiveAlmacenDirs = Storage::disk('local')->directories('DOCUMENTACION_GIS/ALMACEN_FUNDICION/INACTIVAS');
+        $foundAlmacenArchive = false;
+        $almacenArchivePath = '';
+        foreach ($inactiveAlmacenDirs as $dir) {
+            if (str_contains($dir, $otNorm)) {
+                $foundAlmacenArchive = true;
+                if (!str_starts_with($dir, 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/INACTIVAS')) {
+                    $almacenArchivePath = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/INACTIVAS/' . $dir;
+                } else {
+                    $almacenArchivePath = $dir;
+                }
+                break;
+            }
+        }
+        $this->assertTrue($foundAlmacenArchive, "ALMACEN folder should be moved to ALMACEN_FUNDICION/INACTIVAS folder");
+        
+        // Check that the archived directory contains the backed up files
+        $this->assertTrue(Storage::disk('local')->exists($dibujosArchivePath . '/dibujo1.pdf'));
+        $this->assertTrue(Storage::disk('local')->exists($almacenArchivePath . '/archivo1.pdf'));
+ 
         // Database record should be renamed and status set to 'inactiva'
         $updatedHistory = FundicionHistory::where('id', $history->id)->first();
         $this->assertEquals('inactiva', $updatedHistory->status);
         $this->assertNotEquals($otNorm, $updatedHistory->ot);
         $this->assertStringContainsString($otNorm, $updatedHistory->ot);
     }
+
+    public function test_delete_empty_parent_fundicion()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $otNorm = 'OT 2102 - TEST';
+        // Create only empty folders
+        Storage::disk('local')->makeDirectory('DOCUMENTACION_GIS/DIBUJOS_FUNDICION/' . $otNorm);
+        Storage::disk('local')->makeDirectory('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNorm);
+
+        $history = FundicionHistory::create([
+            'ot' => $otNorm,
+            'status' => 'activa',
+            'tiene_modelo' => false,
+            'pre_orden_sent' => false,
+            'pre_orden_email_sent' => false,
+        ]);
+
+        $response = $this->postJson(route('fundicion.deleteParent'), [
+            'ot' => $otNorm
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+
+        // Verify physical directories are completely removed from active locations
+        $this->assertFalse(Storage::disk('local')->exists('DOCUMENTACION_GIS/DIBUJOS_FUNDICION/' . $otNorm));
+        $this->assertFalse(Storage::disk('local')->exists('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNorm));
+
+        $updatedHistory = FundicionHistory::where('id', $history->id)->first();
+        $this->assertEquals('inactiva', $updatedHistory->status);
+    }
+
 
     public function test_delete_parent_dibujos()
     {

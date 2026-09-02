@@ -634,7 +634,7 @@ public function test_admin_can_delete_any_file_before_alert()
         $history = FundicionHistory::create([
             'ot' => $ot,
             'status' => 'activa',
-            'tiene_modelo' => true,
+            'tiene_modelo' => false,
             'alert_sent_at' => now(),
             'ayudas_config' => ['Fondo', 'Molde'],
             'calidad_revision_status' => 'calidad_aprobado',
@@ -652,7 +652,6 @@ public function test_admin_can_delete_any_file_before_alert()
 
         // 3. Request quality fundicion index page
         $response = $this->get(route('calidad.fundicion.index'));
-
         $response->assertStatus(200);
         
         // Assert that the page contains the active card start / edit release process text

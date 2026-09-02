@@ -34,16 +34,16 @@ window.irACarpeta = function (p1, p2, isId = false) {
     const url = new URL(window.location.href);
 
     if (module === 'dibujos' || module === 'fundicion') {
-        url.searchParams.set('ot_id', p1);
-        if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
-        else url.searchParams.delete('clase_id');
+        if (p1 && p1 !== 'null' && p1 !== 'undefined') url.searchParams.set('ot_id', p1);
+        if (p2 && p2 !== 'null' && p2 !== 'undefined') url.searchParams.set('clase_id', p2);
+        else url.searchParams.set('clase_id', '--');
     } else if (module === 'manuales') {
-        url.searchParams.set('proceso_id', p1);
+        if (p1 && p1 !== 'null' && p1 !== 'undefined') url.searchParams.set('proceso_id', p1);
     } else if (module === 'ayudas') {
-        if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
-        url.searchParams.set('proceso_id', p1);
+        if (p2 && p2 !== 'null' && p2 !== 'undefined') url.searchParams.set('clase_id', p2);
+        if (p1 && p1 !== 'null' && p1 !== 'undefined') url.searchParams.set('proceso_id', p1);
     } else if (module === 'ayudas_fundicion') {
-        if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
+        if (p2 && p2 !== 'null' && p2 !== 'undefined') url.searchParams.set('clase_id', p2);
     }
 
     window.location.href = url.toString();
@@ -200,6 +200,8 @@ function updateAdminUI() {
     const uploadNotReadyContent = document.getElementById('upload-not-ready-content');
     const alertUploadNoFolder = document.getElementById('alert-upload-no-folder');
     const btnSubir = document.getElementById('btn-subir-pdf');
+    // Tarjeta completa de "Subir PDF"
+    const uploadCard = uploadReadyContent ? uploadReadyContent.closest('.dibujos-card') : null;
 
     if (ready) {
         let label = '';
@@ -265,23 +267,35 @@ function updateAdminUI() {
             else if (module === 'ayudas_fundicion') { btnCrear.dataset.clase = p2; btnCrear.dataset.folderParam1 = p1; btnCrear.dataset.folderParam2 = p2; }
         }
 
-        // Visibilidad Panel Derecha (Subir)
-        if (uploadNotReadyContent) { uploadNotReadyContent.removeAttribute('hidden'); uploadNotReadyContent.classList.toggle("hidden", true); }
-        if (uploadReadyContent) { uploadReadyContent.removeAttribute('hidden'); uploadReadyContent.classList.toggle("hidden", false); }
-        if (alertUploadNoFolder) { alertUploadNoFolder.removeAttribute('hidden'); alertUploadNoFolder.classList.toggle("hidden", existe); }
+        // Visibilidad Panel Derecha (Subir PDF)
+        // La tarjeta completa se oculta si la carpeta NO existe todavía;
+        // solo aparece cuando ya fue creada en el servidor.
+        if (uploadCard) {
+            uploadCard.classList.toggle('hidden', !existe);
+        }
 
-        const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
-        if (fileFormGroup) fileFormGroup.classList.remove("hidden");
+        if (existe) {
+            // Carpeta existe: mostrar contenido de subida, ocultar el placeholder
+            if (uploadNotReadyContent) { uploadNotReadyContent.removeAttribute('hidden'); uploadNotReadyContent.classList.toggle('hidden', true); }
+            if (uploadReadyContent)    { uploadReadyContent.removeAttribute('hidden');    uploadReadyContent.classList.toggle('hidden', false); }
+            // La nota "carpeta no existe" ya no aplica aquí
+            if (alertUploadNoFolder)  { alertUploadNoFolder.classList.add('hidden'); }
 
-        const fileInput = document.getElementById('d-upload-file');
+            const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
+            if (fileFormGroup) fileFormGroup.classList.remove('hidden');
 
-        if (btnSubir) {
-            btnSubir.removeAttribute('hidden');
-            btnSubir.classList.remove("hidden");
-            if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
-            else if (module === 'manuales') { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
-            else if (module === 'ayudas') { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
-            else if (module === 'ayudas_fundicion') { btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
+            if (btnSubir) {
+                btnSubir.removeAttribute('hidden');
+                btnSubir.classList.remove('hidden');
+                if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
+                else if (module === 'manuales')      { btnSubir.dataset.proceso = p1; btnSubir.dataset.folderParam1 = p1; }
+                else if (module === 'ayudas')        { btnSubir.dataset.proceso = p1; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
+                else if (module === 'ayudas_fundicion') { btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
+            }
+        } else {
+            // Carpeta no existe: la tarjeta completa ya está oculta (ver uploadCard toggle arriba)
+            if (uploadNotReadyContent) { uploadNotReadyContent.removeAttribute('hidden'); uploadNotReadyContent.classList.toggle('hidden', true); }
+            if (uploadReadyContent)    { uploadReadyContent.removeAttribute('hidden');    uploadReadyContent.classList.toggle('hidden', false); }
         }
 
         cargarArchivosEnPanel(p1, p2);
@@ -304,8 +318,10 @@ function updateAdminUI() {
         if (alertReadyNotExists) { alertReadyNotExists.removeAttribute('hidden'); alertReadyNotExists.classList.toggle("hidden", true); }
         if (btnCrear) { btnCrear.removeAttribute('hidden'); btnCrear.classList.toggle("hidden", true); }
 
-        if (uploadNotReadyContent) { uploadNotReadyContent.removeAttribute('hidden'); uploadNotReadyContent.classList.toggle("hidden", false); }
-        if (uploadReadyContent) { uploadReadyContent.removeAttribute('hidden'); uploadReadyContent.classList.toggle("hidden", true); }
+        // No hay selección completa: ocultar la tarjeta completa de subida
+        if (uploadCard) { uploadCard.classList.add('hidden'); }
+        if (uploadNotReadyContent) { uploadNotReadyContent.removeAttribute('hidden'); uploadNotReadyContent.classList.toggle('hidden', false); }
+        if (uploadReadyContent)    { uploadReadyContent.removeAttribute('hidden');    uploadReadyContent.classList.toggle('hidden', true); }
     }
 }
 
@@ -546,23 +562,33 @@ function renderArchivosGrid(data, param1, param2) {
         let deleteParams = `'${archivo.nombre}', '${param1}'`;
         if (param2) deleteParams += `, '${param2}'`;
 
+        const isDwg = archivo.nombre.toLowerCase().endsWith('.dwg');
+        const imgShadow = isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png';
+        const imgHover = isDwg ? 'dwg.png' : 'pdf-view.png';
+        const titleAttr = isDwg ? 'Descargar DWG' : 'Abrir PDF';
+        const btnText = isDwg ? 'Descargar' : 'Ver';
+
         card.innerHTML = `
-            <div class="file-icon-wrapper" onclick="abrirPdf('${archivo.url}')" style="cursor: pointer;" title="Abrir PDF">
-                <img src="${window.baseUrl}/images/pdf-view-shadow.png" class="file-icon icon-default">
-                <img src="${window.baseUrl}/images/pdf-view.png" class="file-icon icon-hover">
+            <div class="file-icon-wrapper" onclick="abrirPdf('${archivo.url}', event)" style="cursor: pointer;" title="${titleAttr}">
+                <img src="${window.baseUrl}/images/${imgShadow}" class="file-icon icon-default">
+                <img src="${window.baseUrl}/images/${imgHover}" class="file-icon icon-hover">
             </div>
-            <div class="file-name" style="cursor: pointer;" title="Abrir PDF">${escapeHTML(archivo.nombre)}</div>
+            <div class="file-name" onclick="abrirPdf('${archivo.url}', event)" style="cursor: pointer;" title="${titleAttr}">${escapeHTML(archivo.nombre)}</div>
             <div class="file-actions">
-                <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="abrirPdf('${archivo.url}')">Ver</button>
-                <button class="btn-dibujos btn-dibujos-sm btn-reemplazar" onclick="prepararReemplazo(${deleteParams}, this)">Reemplazar</button>
-                <button class="btn-dibujos btn-dibujos-sm btn-dibujos-danger btn-eliminar" onclick="eliminarPdf(${deleteParams})">Eliminar</button>
+                <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" onclick="abrirPdf('${archivo.url}', event)">${btnText}</button>
+                <button type="button" class="btn-dibujos btn-dibujos-sm btn-reemplazar" onclick="prepararReemplazo(${deleteParams}, this)">Reemplazar</button>
+                <button type="button" class="btn-dibujos btn-dibujos-sm btn-dibujos-danger btn-eliminar" onclick="eliminarPdf(${deleteParams})">Eliminar</button>
             </div>`;
 
         grid.appendChild(card);
     });
 }
 
-window.abrirPdf = function (url) {
+window.abrirPdf = function (url, event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
     window.open(url, '_blank');
 };
 
@@ -1178,13 +1204,12 @@ function eliminarCarpetaAJAX(folder) {
 }
 
 window.enviarAlertaFundicion = function (archivo, ot, btnEl) {
-    const originalContent = btnEl.innerHTML;
-
-    // Check if we already have the spinner to prevent multiple clicks
-    if (btnEl.disabled) return;
-
-    btnEl.disabled = true;
-    btnEl.innerHTML = '<span class="dibujos-spinner dibujos-spinner-sm"></span>...';
+    const originalContent = btnEl ? btnEl.innerHTML : '';
+    if (btnEl) {
+        if (btnEl.disabled) return;
+        btnEl.disabled = true;
+        btnEl.innerHTML = '<span class="dibujos-spinner dibujos-spinner-sm"></span>...';
+    }
 
     fetch(window.routes['fundicion.send_alert'] || '/fundicion/send-alert', {
         method: 'POST',
@@ -1193,7 +1218,7 @@ window.enviarAlertaFundicion = function (archivo, ot, btnEl) {
             'Content-Type': 'application/json',
             'Accept': 'application/json',
         },
-        body: JSON.stringify({ ot: ot, archivo: archivo || null })
+        body: JSON.stringify({ ot: ot, archivo: archivo || null, mode: 'reemplazar' })
     })
         .then(r => r.json())
         .then(data => {
@@ -1201,57 +1226,62 @@ window.enviarAlertaFundicion = function (archivo, ot, btnEl) {
                 mostrarNotificacion(data.message || 'Alerta enviada correctamente.');
                 loadAuditLog();
                 
-                // Cambiar el color de las clases de esta fila y actualizar JS
-                const row = btnEl.closest('tr');
-                if (row) {
-                    const tags = row.querySelectorAll('.badge-ayuda-tag:not(.alerta-vacia-tag)');
-                    tags.forEach(tag => {
-                        tag.classList.remove('alerta-modificada-tag');
-                        tag.classList.add('alerta-enviada-tag');
-                    });
-                    
-                    if (window.alertasEnviadas === undefined) window.alertasEnviadas = {};
-                    if (!window.alertasEnviadas[ot]) window.alertasEnviadas[ot] = {};
-                    
-                    const currentTags = Array.from(tags).map(t => t.innerText.trim());
-                    currentTags.forEach(t => {
-                        window.alertasEnviadas[ot][t] = 'enviada';
-                    });
-
-                    // Actualizar también la tabla superior (Estructura Actual)
-                    const upperTableRows = document.querySelectorAll(`#tabla-estructura tr[data-ot="${ot}"]`);
-                    upperTableRows.forEach(uRow => {
-                        const uTags = uRow.querySelectorAll('.badge-ayuda-tag');
-                        uTags.forEach(uTag => {
-                            if (currentTags.includes(uTag.innerText.trim())) {
-                                uTag.classList.remove('alerta-modificada-tag');
-                                uTag.classList.add('alerta-enviada-tag');
-                            }
+                if (btnEl) {
+                    const row = btnEl.closest('tr');
+                    if (row) {
+                        const tags = row.querySelectorAll('.badge-ayuda-tag:not(.alerta-vacia-tag)');
+                        tags.forEach(tag => {
+                            tag.classList.remove('alerta-modificada-tag');
+                            tag.classList.add('alerta-enviada-tag');
                         });
-                    });
-                }
+                        
+                        if (window.alertasEnviadas === undefined) window.alertasEnviadas = {};
+                        if (!window.alertasEnviadas[ot]) window.alertasEnviadas[ot] = {};
+                        
+                        const currentTags = Array.from(tags).map(t => t.innerText.trim());
+                        currentTags.forEach(t => {
+                            window.alertasEnviadas[ot][t] = 'enviada';
+                        });
 
-                // Bloquear botón tras envío exitoso y cambiar a Verde
-                btnEl.disabled = true;
-                btnEl.style.pointerEvents = 'none';
-                btnEl.classList.add('btn-alerta-enviada', 'btn-alerta-disabled');
-                btnEl.title = 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)';
-                btnEl.removeAttribute('onclick');
-                btnEl.innerHTML = `<img src="${window.baseUrl}/images/enviando.png" style="filter: none !important;" alt="Alerta"><span>Correo Enviado</span>`;
+                        // Actualizar también la tabla superior (Estructura Actual)
+                        const upperTableRows = document.querySelectorAll(`#tabla-estructura tr[data-ot="${ot}"]`);
+                        upperTableRows.forEach(uRow => {
+                            const uTags = uRow.querySelectorAll('.badge-ayuda-tag');
+                            uTags.forEach(uTag => {
+                                if (currentTags.includes(uTag.innerText.trim())) {
+                                    uTag.classList.remove('alerta-modificada-tag');
+                                    uTag.classList.add('alerta-enviada-tag');
+                                }
+                            });
+                        });
+                    }
+
+                    // Bloquear botón tras envío exitoso y cambiar a Verde
+                    btnEl.disabled = true;
+                    btnEl.style.pointerEvents = 'none';
+                    btnEl.classList.add('btn-alerta-enviada', 'btn-alerta-disabled');
+                    btnEl.title = 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)';
+                    btnEl.removeAttribute('onclick');
+                    btnEl.innerHTML = `<img src="${window.baseUrl}/images/enviando.png" style="filter: none !important;" alt="Alerta"><span>Correo Enviado</span>`;
+                }
             } else {
                 mostrarNotificacion(data.message || 'No se pudo enviar la alerta.', true);
+                if (btnEl) {
+                    btnEl.disabled = false;
+                    btnEl.style.pointerEvents = 'auto';
+                    btnEl.style.opacity = '1';
+                    btnEl.innerHTML = originalContent;
+                }
+            }
+        })
+        .catch(() => {
+            mostrarNotificacion('Error de conexión al enviar alerta.', true);
+            if (btnEl) {
                 btnEl.disabled = false;
                 btnEl.style.pointerEvents = 'auto';
                 btnEl.style.opacity = '1';
                 btnEl.innerHTML = originalContent;
             }
-        })
-        .catch(() => {
-            mostrarNotificacion('Error de conexión al enviar alerta.', true);
-            btnEl.disabled = false;
-            btnEl.style.pointerEvents = 'auto';
-            btnEl.style.opacity = '1';
-            btnEl.innerHTML = originalContent;
         });
 };
 
@@ -1650,7 +1680,7 @@ function renderEstructuraTable() {
 
                 // Botones de acción
                 const p1Param = otIdBD || otName;
-                const p2ParamVer = otIdBD ? claseIdBD : (esRaiz ? null : claseName);
+                const p2ParamVer = (esRaiz || !claseIdBD || claseIdBD === 'null') ? '--' : claseIdBD;
                 const isIdParam = otIdBD ? 'true' : 'false';
 
                 const p2ParamEliminar = esRaiz ? null : claseName;
