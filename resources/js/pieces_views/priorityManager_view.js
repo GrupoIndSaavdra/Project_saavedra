@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let items = Array.isArray(window.otPriorities) ? [...window.otPriorities] : [];
     let dragSrcIndex = null;
     let isSaving = false;
+    let savePending = false;
 
     // ── Render inicial ───────────────────────────────────────────
     renderList();
@@ -38,12 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
         countLabel.innerHTML = `Hay <strong>${total}</strong> orden${total !== 1 ? 'es' : ''} de trabajo en progreso.`;
 
         items.forEach((ot, index) => {
-            const li = buildCard(ot, index);
+            const li = buildCard(ot, index, total);
             list.appendChild(li);
         });
     }
 
-    function buildCard(ot, index) {
+    function buildCard(ot, index, total) {
         const li = document.createElement('li');
         li.className = 'pm-card';
         li.dataset.otId  = ot.ot_id;
@@ -70,23 +71,6 @@ document.addEventListener('DOMContentLoaded', () => {
         badge.innerHTML = `
             <span class="pm-priority-num">${prioridad}</span>
             <img src="${imgPath}" alt="Prioridad ${prioridad}" class="pm-priority-img">
-        `;
-
-        // — Handle de arrastre —
-        const handle = document.createElement('div');
-        handle.className = 'pm-drag-handle';
-        handle.setAttribute('aria-hidden', 'true');
-        handle.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"/>
-                <circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"/>
-                <circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"/>
-                <circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"/>
-                <circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"/>
-                <circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"/>
-            </svg>
         `;
 
         // — Cuerpo de la tarjeta —
@@ -130,14 +114,109 @@ document.addEventListener('DOMContentLoaded', () => {
         body.appendChild(top);
         body.appendChild(clasesEl);
 
+        // — Contenedor de Acciones Rápidas (Posición / Subir / Bajar / Arrastrar) —
+        const actions = document.createElement('div');
+        actions.className = 'pm-card-actions';
+
+        // 1. Selector rápido de posición directa
+        const posPicker = document.createElement('div');
+        posPicker.className = 'pm-pos-picker';
+        posPicker.title = 'Mover directamente a una posición';
+
+        const posLabel = document.createElement('span');
+        posLabel.className = 'pm-pos-label';
+        posLabel.textContent = 'Posición:';
+
+        const posSelect = document.createElement('select');
+        posSelect.className = 'pm-pos-select';
+        posSelect.setAttribute('aria-label', `Posición de OT ${ot.ot_id}`);
+
+        for (let p = 1; p <= total; p++) {
+            const opt = document.createElement('option');
+            opt.value = p - 1; // 0-indexed destination
+            opt.text = `#${p}`;
+            if (p === prioridad) {
+                opt.selected = true;
+            }
+            posSelect.appendChild(opt);
+        }
+
+        posSelect.addEventListener('change', (e) => {
+            const targetPos = parseInt(e.target.value, 10);
+            moveItem(index, targetPos);
+        });
+
+        posPicker.appendChild(posLabel);
+        posPicker.appendChild(posSelect);
+
+        // 2. Botones de Mover Arriba / Abajo
+        const btnsGroup = document.createElement('div');
+        btnsGroup.className = 'pm-btns-move-group';
+
+        const btnUp = document.createElement('button');
+        btnUp.type = 'button';
+        btnUp.className = 'pm-btn-move';
+        btnUp.innerHTML = '▲';
+        btnUp.title = 'Subir 1 posición';
+        btnUp.disabled = (index === 0);
+        btnUp.addEventListener('click', (e) => {
+            e.stopPropagation();
+            moveItem(index, index - 1);
+        });
+
+        const btnDown = document.createElement('button');
+        btnDown.type = 'button';
+        btnDown.className = 'pm-btn-move';
+        btnDown.innerHTML = '▼';
+        btnDown.title = 'Bajar 1 posición';
+        btnDown.disabled = (index === total - 1);
+        btnDown.addEventListener('click', (e) => {
+            e.stopPropagation();
+            moveItem(index, index + 1);
+        });
+
+        btnsGroup.appendChild(btnUp);
+        btnsGroup.appendChild(btnDown);
+
+        // 3. Handle de arrastre lateral
+        const handle = document.createElement('div');
+        handle.className = 'pm-drag-handle';
+        handle.setAttribute('role', 'button');
+        handle.setAttribute('tabindex', '0');
+        handle.title = 'Sujeta y arrastra aquí para mover la OT libremente';
+        handle.innerHTML = `
+            <span class="pm-drag-handle-text">Arrastrar</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24"
+                 fill="none" stroke="currentColor" stroke-width="2.5"
+                 stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="5" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="9" cy="19" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="15" cy="5" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/>
+                <circle cx="15" cy="19" r="1.5" fill="currentColor" stroke="none"/>
+            </svg>
+        `;
+
+        // Activar arrastre al interactuar con el mango lateral
+        handle.addEventListener('mousedown', () => {
+            li.draggable = true;
+        });
+        handle.addEventListener('touchstart', () => {
+            li.draggable = true;
+        }, { passive: true });
+
+        actions.appendChild(posPicker);
+        actions.appendChild(btnsGroup);
+        actions.appendChild(handle);
+
         li.appendChild(badge);
         li.appendChild(body);
-        li.appendChild(handle);
+        li.appendChild(actions);
 
         // ── Eventos de Drag-and-Drop ─────────────────────────────
         li.addEventListener('dragstart', onDragStart);
         li.addEventListener('dragover',  onDragOver);
-        li.addEventListener('dragenter', onDragEnter);
         li.addEventListener('dragleave', onDragLeave);
         li.addEventListener('drop',      onDrop);
         li.addEventListener('dragend',   onDragEnd);
@@ -163,57 +242,108 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ══════════════════════════════════════════════════════════════
-    // DRAG-AND-DROP — Lógica nativa HTML5
+    // MOVER ITEMS (Reordenar y Autoguardar)
+    // ══════════════════════════════════════════════════════════════
+
+    function moveItem(fromIndex, toIndex) {
+        if (fromIndex < 0 || fromIndex >= items.length) return;
+        if (toIndex < 0 || toIndex >= items.length) return;
+        if (fromIndex === toIndex) return;
+
+        const [moved] = items.splice(fromIndex, 1);
+        items.splice(toIndex, 0, moved);
+
+        renderList();
+        autoSavePriorities();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // DRAG-AND-DROP — Lógica fluida con indicador superior / inferior
     // ══════════════════════════════════════════════════════════════
 
     function onDragStart(e) {
-        dragSrcIndex = parseInt(e.currentTarget.dataset.index, 10);
-        e.currentTarget.classList.add('is-dragging');
+        const card = e.currentTarget;
+        dragSrcIndex = parseInt(card.dataset.index, 10);
+        card.classList.add('is-dragging');
 
         e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', dragSrcIndex);
+        e.dataTransfer.setData('text/plain', String(dragSrcIndex));
     }
 
     function onDragOver(e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
-    }
 
-    function onDragEnter(e) {
-        e.preventDefault();
         const card = e.currentTarget;
-        if (parseInt(card.dataset.index, 10) !== dragSrcIndex) {
-            card.classList.add('drag-over');
+        const targetIndex = parseInt(card.dataset.index, 10);
+
+        if (targetIndex === dragSrcIndex) {
+            card.classList.remove('drag-over-top', 'drag-over-bottom');
+            return;
+        }
+
+        const rect = card.getBoundingClientRect();
+        const isBottom = e.clientY > (rect.top + rect.height / 2);
+
+        if (isBottom) {
+            card.classList.remove('drag-over-top');
+            card.classList.add('drag-over-bottom');
+        } else {
+            card.classList.remove('drag-over-bottom');
+            card.classList.add('drag-over-top');
         }
     }
 
     function onDragLeave(e) {
-        e.currentTarget.classList.remove('drag-over');
+        const card = e.currentTarget;
+        const rect = card.getBoundingClientRect();
+
+        // Verificar si el cursor realmente salió de los límites de la tarjeta
+        if (
+            e.clientX < rect.left ||
+            e.clientX >= rect.right ||
+            e.clientY < rect.top ||
+            e.clientY >= rect.bottom
+        ) {
+            card.classList.remove('drag-over-top', 'drag-over-bottom');
+        }
     }
 
     function onDrop(e) {
         e.preventDefault();
         e.stopPropagation();
 
-        const targetIndex = parseInt(e.currentTarget.dataset.index, 10);
-        e.currentTarget.classList.remove('drag-over');
+        const card = e.currentTarget;
+        const targetIndex = parseInt(card.dataset.index, 10);
+        card.classList.remove('drag-over-top', 'drag-over-bottom');
 
         if (dragSrcIndex === null || dragSrcIndex === targetIndex) return;
 
-        // Reordenar el array en memoria
-        const moved = items.splice(dragSrcIndex, 1)[0];
-        items.splice(targetIndex, 0, moved);
+        const rect = card.getBoundingClientRect();
+        const isBottom = e.clientY > (rect.top + rect.height / 2);
 
-        // Re-renderizar lista
+        // Extraer elemento movido
+        const [movedItem] = items.splice(dragSrcIndex, 1);
+
+        // Calcular índice exacto de inserción
+        let insertIndex = targetIndex;
+        if (dragSrcIndex < targetIndex) {
+            insertIndex = isBottom ? targetIndex : targetIndex - 1;
+        } else {
+            insertIndex = isBottom ? targetIndex + 1 : targetIndex;
+        }
+
+        insertIndex = Math.max(0, Math.min(insertIndex, items.length));
+        items.splice(insertIndex, 0, movedItem);
+
+        dragSrcIndex = null;
         renderList();
-
-        // Guardar automáticamente
         autoSavePriorities();
     }
 
     function onDragEnd(e) {
         document.querySelectorAll('.pm-card').forEach(card => {
-            card.classList.remove('is-dragging', 'drag-over');
+            card.classList.remove('is-dragging', 'drag-over-top', 'drag-over-bottom');
         });
         dragSrcIndex = null;
     }
@@ -223,8 +353,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // ══════════════════════════════════════════════════════════════
 
     async function autoSavePriorities() {
-        if (isSaving) return;
+        if (isSaving) {
+            savePending = true;
+            return;
+        }
         isSaving = true;
+        savePending = false;
 
         updateStatusIndicator('saving');
 
@@ -264,6 +398,9 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast('✗ Error de conexión. Cambios no guardados.', 'error');
         } finally {
             isSaving = false;
+            if (savePending) {
+                autoSavePriorities();
+            }
         }
     }
 

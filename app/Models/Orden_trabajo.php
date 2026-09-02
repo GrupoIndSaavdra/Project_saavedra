@@ -30,6 +30,20 @@ class Orden_trabajo extends Model
         'hora_inicio',
         'hora_termino',
         'prioridad',
+        'fecha_compra',
+        'orden_compra',
+        'cliente',
+        'nombre_producto',
+        'cantidad',
+        'proveedor_material',
+        'material',
+        'fecha_entrega_fundicion',
+        'semana_entrega_cliente',
+        'fecha_entrega_cliente',
+        'fecha_real',
+        'forma_grabados',
+        'entrega_tecamac',
+        'observaciones_prioridad',
     ];
 
     /**

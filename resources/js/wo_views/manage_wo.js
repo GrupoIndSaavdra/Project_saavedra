@@ -12,7 +12,7 @@ function createButtonsAdd_Select() {
     };
 
     for (let name in bttnText) {
-        if (!(profile == 5 && name == "add")) {
+        if (!((profile == 5 || profile == 1 || profile == 3) && name == "add")) {
             let bttn = document.createElement("button");
             bttn.id = `bttn-${name}`;
             bttn.className = "bttns-add-select";
@@ -33,6 +33,14 @@ function createButtonsAdd_Select() {
         }
     }
     div_bttns.appendChild(fragment);
+
+    // Si es admin (1), almacén (5) o master (3), auto-cargar la vista de seleccionar OT
+    if (profile == 1 || profile == 5 || profile == 3) {
+        let form = document.querySelector(".form");
+        if (form) {
+            form.appendChild(createDiv("select", window.workOrders, window.moldings));
+        }
+    }
 }
 
 function createButtonAccept() {

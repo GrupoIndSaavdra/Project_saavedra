@@ -88,6 +88,8 @@
         createMolding: @json(route('createMolding')),
         editMolding: @json(route('editMolding')),
         manageWO: @json(route('manageWO')),
+        createMasterWO: @json(route('createMasterWO')),
+        masterPriorities: @json(route('master.priorities')),
         show_panelWO: @json(route('show_panelWO')),
         users: @json(route('users')), // PENDING
         createUser: @json(route('createUser')),

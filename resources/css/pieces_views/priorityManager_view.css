@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -246,8 +246,8 @@
 
 /* Estado de arrastre fluido */
 .pm-card.is-dragging {
-    opacity: 0.8;
-    transform: scale(1.008);
+    opacity: 0.45;
+    transform: scale(0.99);
     background: rgba(2, 38, 68, 0.98);
     border-color: var(--color-primary-green);
     border-left-color: var(--color-primary-green);
@@ -257,9 +257,16 @@
     cursor: grabbing;
 }
 
-.pm-card.drag-over {
-    border-top: 2.5px solid var(--color-primary-green);
-    transform: translateY(2px);
+.pm-card.drag-over-top {
+    border-top: 4px solid #22c55e !important;
+    box-shadow: 0 -8px 20px rgba(34, 197, 94, 0.5) !important;
+    transform: translateY(3px);
+}
+
+.pm-card.drag-over-bottom {
+    border-bottom: 4px solid #22c55e !important;
+    box-shadow: 0 8px 20px rgba(34, 197, 94, 0.5) !important;
+    transform: translateY(-3px);
 }
 
 /* ── Badge de Prioridad ─────────────────────────────────────────── */
@@ -296,25 +303,150 @@
     z-index: 2;
 }
 
-/* ── Handle de Arrastre ─────────────────────────────────────────── */
+/* ── Contenedor de Acciones de Tarjeta ────────────────────────────── */
+.pm-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+/* Selector Rápido de Posición */
+.pm-pos-picker {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 4px 10px;
+    transition: var(--transition-fluid);
+}
+
+.pm-pos-picker:hover {
+    border-color: var(--color-accent-blue);
+    background: rgba(56, 189, 248, 0.15);
+}
+
+.pm-pos-label {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pm-pos-select {
+    background: rgba(3, 45, 82, 0.95);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    border-radius: 6px;
+    padding: 3px 6px;
+    font-size: 0.9rem;
+    font-weight: 800;
+    cursor: pointer;
+    outline: none;
+    font-family: inherit;
+    transition: var(--transition-fluid);
+}
+
+.pm-pos-select:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.6);
+}
+
+/* Botones Mover Arriba / Abajo */
+.pm-btns-move-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.pm-btn-move {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-radius: 5px;
+    width: 26px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    cursor: pointer;
+    transition: var(--transition-fluid);
+}
+
+.pm-btn-move:hover:not(:disabled) {
+    background: var(--color-accent-blue);
+    color: #022644;
+    border-color: var(--color-accent-blue);
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.8);
+    transform: scale(1.1);
+}
+
+.pm-btn-move:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+}
+
+/* ── Handle de Arrastre Lateral (Mango) ─────────────────────────── */
 .pm-drag-handle {
-    color: rgba(255, 255, 255, 0.45);
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.1);
+    border: 1.5px solid rgba(56, 189, 248, 0.35);
+    border-radius: 8px;
+    padding: 6px 12px;
     cursor: grab;
     flex-shrink: 0;
     display: flex;
     align-items: center;
-    padding: 10px;
+    gap: 6px;
+    transition: var(--transition-fluid);
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.pm-drag-handle-text {
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: #cbd5e1;
     transition: var(--transition-fluid);
 }
 
 .pm-drag-handle svg {
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
+    color: #38bdf8;
+    transition: var(--transition-fluid);
 }
 
+.pm-drag-handle:hover,
 .pm-card:hover .pm-drag-handle {
-    color: var(--color-accent-blue);
-    transform: scale(1.1);
+    color: #ffffff;
+    background: rgba(56, 189, 248, 0.25);
+    border-color: #38bdf8;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.55);
+    transform: scale(1.04);
+}
+
+.pm-drag-handle:hover .pm-drag-handle-text,
+.pm-card:hover .pm-drag-handle-text {
+    color: #ffffff;
+}
+
+.pm-drag-handle:active,
+.pm-card.is-dragging .pm-drag-handle {
+    cursor: grabbing;
+    background: rgba(34, 197, 94, 0.25);
+    border-color: #22c55e;
+    color: #4ade80;
+    box-shadow: 0 0 14px rgba(34, 197, 94, 0.6);
+}
+
+.pm-card.is-dragging .pm-drag-handle svg,
+.pm-card.is-dragging .pm-drag-handle-text {
+    color: #4ade80;
 }
 
 /* ── Distribución Horizontal de la Información ──────────────────── */

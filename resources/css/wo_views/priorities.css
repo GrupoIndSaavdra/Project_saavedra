@@ -1,0 +1,552 @@
+.priorities-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    font-family: Arial, sans-serif;
+    font-size: 11px; /* Smaller font to fit more data */
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+/* Toolbar Styles */
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fff;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.filters-form {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.filter-group label {
+    font-weight: bold;
+    font-size: 13px;
+}
+
+.filter-group input, .filter-group select {
+    padding: 6px 12px;
+    border: 1px solid #404040;
+    border-radius: 4px;
+    font-size: 13px;
+    background-color: #fcfcfc;
+    color: #000;
+    font-family: inherit;
+}
+.filter-group input:focus, .filter-group select:focus {
+    outline: none;
+    border-color: #033966;
+    box-shadow: 0 0 0 2px rgba(3,57,102, 0.2);
+}
+
+.filter-group input[type="number"] {
+    width: 60px;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-filter, .btn-clear, .btn-export-excel, .btn-export-pdf {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-filter {
+    background-color: #033966; /* Azul Corporativo */
+    color: white;
+}
+
+.btn-clear {
+    background-color: #404040; /* Gris Oscuro Corporativo */
+    color: white;
+}
+
+.export-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-export-excel {
+    background-color: #0A8504; /* Verde Corporativo */
+    color: white;
+}
+
+.btn-export-pdf {
+    background-color: #9C0303; /* Rojo Corporativo */
+    color: white;
+}
+
+/* Hover effects */
+.btn-filter:hover { background-color: #022542; }
+.btn-clear:hover { background-color: #2a2a2a; }
+.btn-export-excel:hover { background-color: #075a03; }
+.btn-export-pdf:hover { background-color: #6b0202; }
+
+/* Existing Styles */
+
+.excel-header {
+    display: flex;
+    border: 2px solid #000;
+    margin-bottom: -1px; /* Overlap border with table */
+    background-color: #fff; /* Base background */
+}
+
+.header-logo {
+    width: 250px;
+    background-color: #fff;
+    padding: 10px;
+    border-right: 2px solid #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-logo img {
+    max-width: 150px;
+}
+
+.header-title {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 2px solid #000;
+    background-color: #033966; /* Azul Corporativo */
+    color: #ffffff;
+}
+
+.header-title h1 {
+    font-family: "Times New Roman", Times, serif; /* Serifs like screenshot */
+    letter-spacing: 15px;
+    font-size: 36px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.header-week {
+    width: 200px;
+    border-right: 2px solid #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background-color: #0A8504; /* Verde Corporativo */
+    color: #ffffff;
+}
+
+.header-week h2 {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 0 0 5px 0;
+}
+
+.header-week p {
+    font-size: 12px;
+    margin: 0;
+}
+
+.header-date {
+    width: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background-color: #404040; /* Gris Oscuro Corporativo */
+    color: #ffffff;
+}
+
+.header-date h3 {
+    font-size: 16px;
+    font-weight: normal;
+    margin: 0;
+}
+
+.excel-table-container {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.excel-table {
+    width: 100%;
+    border-collapse: collapse;
+    border: 2px solid #000;
+    table-layout: fixed; /* Help with column widths */
+}
+
+.excel-table th, .excel-table td {
+    border: 1px solid #000;
+    padding: 5px;
+    vertical-align: middle;
+}
+
+.date-input {
+    border: none;
+    background: transparent;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: bold;
+    outline: none;
+    color: inherit;
+}
+
+.excel-table th {
+    background-color: #e0e0e0;
+    font-weight: bold;
+    text-align: center;
+    font-size: 10px;
+}
+
+/* Specific column widths for better fit */
+.col-drag { width: 38px; }
+.col-num { width: 25px; }
+.col-ot { width: 65px; }
+.col-compra { width: 95px; }
+.col-cliente { width: 85px; }
+.col-producto { width: 170px; }
+.col-cantidades { width: 75px; }
+.col-piezas { width: 110px; }
+.col-forma { width: 65px; }
+.col-prov { width: 85px; }
+.col-material { width: 80px; }
+.col-fecha-fund { width: 85px; }
+.col-fecha-tec { width: 85px; }
+.col-semana { width: 55px; }
+.col-fecha-mex { width: 85px; }
+.col-fecha-prom { width: 85px; }
+.col-obs { width: 90px; }
+.col-pzas { width: 45px; }
+.col-cav { width: 45px; }
+
+/* ── Mango Lateral de Arrastre en Tabla ── */
+.cell-drag {
+    width: 38px;
+    padding: 2px !important;
+    text-align: center;
+    vertical-align: middle;
+}
+
+.table-drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: rgba(3, 57, 102, 0.12);
+    border: 1px solid rgba(3, 57, 102, 0.3);
+    color: #033966;
+    cursor: grab;
+    transition: all 0.2s ease;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+.table-drag-handle:hover {
+    background: #033966;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(3, 57, 102, 0.6);
+    transform: scale(1.1);
+}
+
+.table-drag-handle:active,
+.is-row-dragging .table-drag-handle {
+    cursor: grabbing;
+    background: #0A8504;
+    border-color: #0A8504;
+    color: #ffffff;
+    box-shadow: 0 0 10px rgba(10, 133, 4, 0.8);
+}
+
+/* ── Estados de Arrastre de Filas ── */
+tr.is-row-dragging {
+    opacity: 0.45;
+    background-color: #e2e8f0 !important;
+}
+
+tr.drag-over-top td {
+    border-top: 3.5px solid #0A8504 !important;
+}
+
+tr.drag-over-bottom td {
+    border-bottom: 3.5px solid #0A8504 !important;
+}
+
+/* ── Badge de Estado de Sincronización ── */
+.pm-table-status-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(10, 133, 4, 0.12);
+    color: #0A8504;
+    border: 1.5px solid rgba(10, 133, 4, 0.35);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: bold;
+    user-select: none;
+}
+
+.pm-table-status-badge.pm-status-saving {
+    background: rgba(3, 57, 102, 0.12);
+    color: #033966;
+    border-color: #033966;
+}
+
+.pm-table-status-badge.pm-status-saved {
+    background: rgba(10, 133, 4, 0.2);
+    color: #0A8504;
+    border-color: #0A8504;
+}
+
+.pm-table-status-badge.pm-status-error {
+    background: rgba(156, 3, 3, 0.15);
+    color: #9C0303;
+    border-color: #9C0303;
+}
+
+.pm-table-spinner {
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(3, 57, 102, 0.2);
+    border-top-color: #033966;
+    border-radius: 50%;
+    animation: pm-spin 0.6s linear infinite;
+}
+
+@keyframes pm-spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Styling classes */
+.text-center { text-align: center; }
+.font-bold { font-weight: bold; }
+.font-large { font-size: 16px; }
+.p-0 { padding: 0 !important; }
+.text-uppercase { text-transform: uppercase; }
+
+.cell-ot-val {
+    font-size: 13px !important;
+    font-weight: bold !important;
+}
+
+.cell-producto-val {
+    font-size: 12px !important;
+    font-weight: bold !important;
+}
+
+.cell-cliente-val {
+    white-space: nowrap;
+}
+
+.subcell-row {
+    padding: 5px 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24px;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.excel-table td.p-0 .subcell-row:not(:last-child) {
+    border-bottom: 1px solid #000;
+}
+
+/* Background colors for the Week column */
+.bg-week-0 { background-color: #a4d872; } /* Greenish */
+.bg-week-1 { background-color: #72a4d8; } /* Bluish */
+.bg-week-2 { background-color: #d8a472; } /* Orangeish */
+.bg-week-3 { background-color: #d872a4; } /* Pinkish */
+.bg-week-4 { background-color: #a472d8; } /* Purplish */
+
+.cell-semana {
+    background-color: #a4d872; /* Default */
+}
+
+/* Print Styles for PDF Export */
+@media print {
+    @page {
+        size: landscape;
+        margin: 5mm;
+    }
+    
+    html, body {
+        background-color: #fff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    /* Hide non-printable UI elements */
+    header, .open-menu, .filter-opacity, nav, .toolbar, .no-print, button, .btn-clear {
+        display: none !important;
+    }
+    
+    .priorities-wrapper {
+        padding: 0 !important;
+        box-shadow: none !important;
+        width: 100% !important;
+        margin: 0 !important;
+    }
+
+    .excel-header {
+        width: 100% !important;
+        box-sizing: border-box !important;
+        background-color: #fff !important;
+        display: flex !important;
+        margin-bottom: 0 !important;
+    }
+
+    .header-logo {
+        width: 150px !important;
+        padding: 6px !important;
+    }
+
+    .header-logo img {
+        max-width: 110px !important;
+    }
+
+    .header-title {
+        flex-grow: 1 !important;
+        background-color: #033966 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .header-title h1 {
+        font-size: 24px !important;
+        letter-spacing: 6px !important;
+        white-space: nowrap !important;
+        margin: 0 !important;
+        color: #ffffff !important;
+    }
+
+    .header-week {
+        width: 140px !important;
+        padding: 6px !important;
+        background-color: #0A8504 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .header-week h2 {
+        font-size: 15px !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        color: #ffffff !important;
+    }
+
+    .header-week p {
+        font-size: 10px !important;
+        margin: 0 !important;
+        white-space: nowrap !important;
+        color: #ffffff !important;
+    }
+
+    .header-date {
+        width: 200px !important;
+        padding: 6px !important;
+        background-color: #404040 !important;
+        color: #ffffff !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .header-date h3 {
+        font-size: 12px !important;
+        white-space: nowrap !important;
+        margin: 0 !important;
+        color: #ffffff !important;
+    }
+    
+    .excel-table-container {
+        overflow: visible !important;
+        width: 100% !important;
+    }
+
+    .excel-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        font-size: 9.5px !important;
+        table-layout: auto !important;
+    }
+
+    /* Column sizing for print */
+    .col-num, .col-ot, .col-compra, .col-cliente, .col-producto, 
+    .col-cantidades, .col-piezas, .col-forma, .col-prov, .col-material, 
+    .col-fecha-fund, .col-fecha-tec, .col-semana, .col-fecha-mex, 
+    .col-fecha-prom, .col-obs, .col-pzas, .col-cav {
+        width: auto !important;
+        max-width: none !important;
+        min-width: 0 !important;
+    }
+
+    .cell-ot-val {
+        font-size: 12px !important;
+        font-weight: bold !important;
+    }
+
+    .cell-producto-val {
+        font-size: 11px !important;
+        font-weight: bold !important;
+    }
+
+    .subcell-row {
+        padding: 2px 2px !important;
+        min-height: 18px !important;
+    }
+
+    .excel-table th, .excel-table td {
+        padding: 3px 3px !important;
+        word-break: break-word !important;
+        overflow-wrap: break-word !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .excel-table th {
+        background-color: #e0e0e0 !important;
+        font-size: 9px !important;
+    }
+
+    thead {
+        display: table-header-group;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+}

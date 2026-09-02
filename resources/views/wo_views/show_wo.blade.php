@@ -30,6 +30,10 @@
             <div class="div-rows">
                 <!--Los campos y lase insertan atraves del archivo JavaScript vinculado-->
             </div>
+
+            <div class="div-btns">
+                <button type="submit" class="btn-addClass btn hidden" hidden form="form">Guardar Clase</button>
+            </div>
         </div>
 
         <!--Segunda parte del formulario-->
@@ -41,9 +45,6 @@
         </div>
     </div>
 </form>
-<div class="div-btns">
-    <button type="submit" class="btn-addClass btn hidden" hidden form="form">Guardar</button>
-</div>
 <script>
     window.workOrder = @json($workOrder);
     window.molding = @json($molding);

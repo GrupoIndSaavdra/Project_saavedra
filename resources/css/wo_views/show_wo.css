@@ -22,6 +22,10 @@
     background: #ffffff;
     box-shadow: 0px 0px 8px #000000;
 }
+.main-layout:not(:has(.div-boxes:not(.hidden))) .wrapper {
+    width: 800px;
+    max-width: 95vw;
+}
 /* Scrollbar webkit — Safari, Chrome antiguo */
 .wrapper::-webkit-scrollbar { width: 6px; }
 .wrapper::-webkit-scrollbar-track { background: #f1f1f1; }
@@ -98,7 +102,7 @@ label {
     text-align: center;
 }
 .t-title {
-    width: 150px;
+    width: 33.33%;
     border: 2px solid #000000;
     background-color: #fffa;
     font-size: 1em;
@@ -249,11 +253,7 @@ label {
 /* Estilos para los botones accion de las clases*/
 
 .div-btns {
-    position: absolute;
-    bottom: 2em;
-    left: 50%;
-    transform: translate(-50%);
-    z-index: 10;
+    margin: 20px 0 10px 0;
     display: flex;
     gap: 15px;
     justify-content: center;

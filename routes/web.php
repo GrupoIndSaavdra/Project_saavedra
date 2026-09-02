@@ -79,6 +79,11 @@ Route::controller(MoldingController::class)->group(function () {
 Route::controller(WOController::class)->group(function () {
     Route::get('/manageWO', 'manage')->name('manageWO');
     Route::post('/storeWO', 'store')->name('storeWO');
+    Route::get('/master/createWO', 'createMasterWO')->name('createMasterWO');
+    Route::post('/master/storeWO', 'storeMasterWO')->name('storeMasterWO');
+    Route::post('/master/updateWO', 'updateMasterWO')->name('updateMasterWO');
+    Route::get('/master/prioridades', 'prioritiesView')->name('master.priorities');
+    Route::post('/master/prioridades/autosave', 'autosavePriority')->name('master.priorities.autosave');
     Route::get('/showWO/{workOrder}', 'show')->name('showWO');
     Route::get('/destroyWO/{wo}', 'destroy')->name('destroyWO');
     Route::get('/generatePDFWO/{wo}', 'generatePDF')->name('generatePDFWO');

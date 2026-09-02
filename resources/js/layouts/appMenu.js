@@ -335,6 +335,12 @@ function getRoutes(profile) {
                     routes: [routeHome],
                 },
                 {
+                    title: "Prioridades",
+                    routes: [
+                        ["masterPriorities", "Prioridades GIS"],
+                    ],
+                },
+                {
                     title: "Molduras",
                     routes: [
                         ["createMolding", "Crear nueva moldura"],
@@ -344,7 +350,7 @@ function getRoutes(profile) {
                 {
                     title: "Orden de Trabajo",
                     routes: [
-                        ["manageWO", "Crear o Modificar O.T"],
+                        ["manageWO", "Programación de O.T"],
                         ["piecesInProgress", "Orden de Trabajo en Progreso"],
                         ["priorityManager", "Prioridad de Órdenes de Trabajo"],
                         ["showPiecesReport_view", "Reporte de piezas"],
@@ -428,6 +434,12 @@ function getRoutes(profile) {
                     routes: [routeHome],
                 },
                 {
+                    title: "Prioridades",
+                    routes: [
+                        ["masterPriorities", "Prioridades GIS"],
+                    ],
+                },
+                {
                     title: "Administración",
                     routes: [
                         {
@@ -440,7 +452,8 @@ function getRoutes(profile) {
                         {
                             title: "Orden de Trabajo",
                             routes: [
-                                ["manageWO", "Crear o Modificar O.T"],
+                                ["createMasterWO", "Crear o Modificar Orden de Trabajo (Master)"],
+                                ["manageWO", "Programación de O.T"],
                                 ["piecesInProgress", "Orden de Trabajo en Progreso"],
                                 ["priorityManager", "Prioridad de Órdenes de Trabajo"],
                                 ["showPiecesReport_view", "Reporte de piezas"],

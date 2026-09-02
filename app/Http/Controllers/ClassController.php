@@ -6,6 +6,7 @@ use App\Models\Clase;
 use App\Models\Fecha_proceso;
 use App\Models\Metas;
 use App\Models\Orden_trabajo;
+use App\Models\Pieza;
 use App\Models\Procesos;
 use App\Models\tiempoproduccion;
 use Carbon\Carbon;
@@ -83,11 +84,7 @@ class ClassController extends Controller
             $composiciones = array_merge($composiciones, $otros_array);
         }
 
-        if (empty($composiciones)) {
-            return redirect()->back()->with('error', '¡Debe seleccionar al menos una Composición Química o escribir otra!');
-        }
-
-        $composicion = implode('/', $composiciones);
+        $composicion = !empty($composiciones) ? implode('/', $composiciones) : null;
 
         // Verificar si la clase ya existe en esta OT
         $foundClass = Clase::query()
@@ -100,14 +97,16 @@ class ClassController extends Controller
         }
 
         // Almacenar los datos ingresados de la clase.
+        $workOrderModel = Orden_trabajo::find($request->input('workOrder'));
         $class = new Clase();
         $class->id_ot = $request->input('workOrder');
         $class->nombre = $request->input('class');
-        $class->pedido = $request->input('order');
-        $class->piezas = $request->input('pieces');
+        $class->material = $request->input('material');
+        $class->pedido = $request->input('order') ?? ($workOrderModel ? $workOrderModel->cantidad : 0);
+        $class->piezas = $request->input('pieces') ?? $class->pedido;
         $class->fecha_inicio = $request->input('start_date');
         $class->hora_inicio = $request->input('start_time');
-        $class->tamanio = $request->input('size');
+        $class->tamanio = $request->input('size') ?? 'Chico';
         $class->composicion_quimica = $composicion;
         $class->tipo_soldadura = $request->input('tipo_soldadura');
         $class->seccion = null;
@@ -131,7 +130,7 @@ class ClassController extends Controller
         SystemLog::create([
             'user_matricula' => auth()->user()->matricula,
             'action' => 'Cargo de Clase de OT',
-            'details' => "Se registró la clase {$class->nombre} (Composición: {$composicion}) en la OT {$request->input('workOrder')} con {$class->piezas} piezas.",
+            'details' => "Se registró la clase {$class->nombre} en la OT {$request->input('workOrder')} con {$class->piezas} piezas.",
             'ot' => $request->input('workOrder'),
             'clase' => $class->nombre,
             'id_ot' => $request->input('workOrder'),
@@ -140,7 +139,7 @@ class ClassController extends Controller
         return redirect()->route('showWO', ['workOrder' => $request->input('workOrder')])->with('success', "¡La clase se ha registrado con éxito!");
     }
 
-        /**
+    /**
      * @param int|string $idClass
      * @param mixed $request
      */
@@ -150,11 +149,13 @@ class ClassController extends Controller
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
         if (!in_array(auth()->user()->perfil, [5]) && $request->input('from_almacen') != 1) {
-            $class->pedido = $request->input('order');
-            $class->piezas = $request->input('pieces');
-            $class->fecha_inicio = $request->input('start_date');
-            $class->hora_inicio = $request->input('start_time');
-            $class->tamanio = $request->input('size');
+            $class->pedido = $request->input('order') ?? $class->pedido;
+            $class->piezas = $request->input('pieces') ?? $request->input('order') ?? $class->piezas;
+            $class->material = $request->input('material') ?? $class->material;
+            $class->fecha_inicio = $request->input('start_date') ?? $class->fecha_inicio;
+            $class->hora_inicio = $request->input('start_time') ?? $class->hora_inicio;
+            $class->tamanio = $request->input('size') ?? $class->tamanio;
+            
             $comp = $request->input('composicion_quimica');
             if (!is_array($comp)) {
                 $comp = $comp ? [$comp] : [];
@@ -165,16 +166,17 @@ class ClassController extends Controller
                 $comp = array_merge($comp, $otros_array);
             }
 
-            if (empty($comp)) {
-                return redirect()->back()->with('error', '¡Debe seleccionar al menos una Composición Química o escribir otra!');
+            if (!empty($comp)) {
+                $class->composicion_quimica = implode('/', $comp);
             }
 
-            $class->composicion_quimica = implode('/', $comp);
-            $class->tipo_soldadura = $request->input('tipo_soldadura');
+            if ($request->has('tipo_soldadura')) {
+                $class->tipo_soldadura = $request->input('tipo_soldadura');
+            }
             $class->seccion = null;
         } else {
-            $class->piezas = $request->input('pieces');
-            $class->pedido = $request->input('order');
+            $class->piezas = $request->input('pieces') ?? $class->piezas;
+            $class->pedido = $request->input('order') ?? $class->pedido;
         }
         $class->save(); //Guardo los cambios.
 
@@ -193,10 +195,8 @@ class ClassController extends Controller
 
         //Actualizar los procesos de la clase
         $process = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();
-        if ($request->input('operations') != null) { //Si se seleccionaron procesos
-            if (!$process) {
-                $process = new Procesos();
-            }
+        if (!$process) {
+            $process = new Procesos();
         }
         $this->storeProcess($class, $request->input('operations'), $request->input('machines'), $process); //Verifico las casillas.
         
@@ -230,11 +230,14 @@ class ClassController extends Controller
         }
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']); //Busco la OT ingresada
 
-        //Si existen metas asociadas a la clase no se elimina
-        $text = "La clase {$class->nombre} no se puede eliminar porque ya tiene metas asociadas";
-        $param = "error";
+        // Si existen piezas o metas asociadas a la clase no se elimina
+        $hasPieces = Pieza::query()->where('id_clase', $class->id)->exists();
         $goals = Metas::query()->where('id_clase', $class->id)->get();
-        if (count($goals) == 0) {
+
+        if ($hasPieces || count($goals) > 0) {
+            $text = "La clase {$class->nombre} no se puede eliminar porque ya tiene piezas o metas asociadas";
+            $param = "error";
+        } else {
             $process = Procesos::query()->where('id_clase', $class->id)->first();
             //Si el proceso existe.
             if ($process) {
@@ -262,39 +265,38 @@ class ClassController extends Controller
      * @param mixed $machines
      * @param mixed $process
      */
-    public function storeProcess($class, $dataProcess, $machines, $process)
+    public function storeProcess($class, $dataProcess, $machines, $process = null)
     {
+        if (!$process) {
+            $process = Procesos::query()->where('id_clase', '=', $class->id)->first() ?? new Procesos();
+        }
+
         //Obtener la clase que sera registrada por su id único
         $class = Clase::query()->find($class->id);
 
         $processNames = [];
-        //Asignar los procesos por los que pasara la clase
-        switch ($class->nombre) {
-            case "Bombillo":
+        $clLower = strtolower($class->nombre ?? '');
+        $isExcluded = str_contains($clLower, 'base') || str_contains($clLower, 'tip') || str_contains($clLower, 'roll pin') || str_contains($clLower, 'porta') || str_contains($clLower, 'pastilla') || str_contains($clLower, 'canastilla');
+
+        //Asignar los procesos por los que pasara la clase únicamente a las 9 clases permitidas
+        if (!$isExcluded) {
+            if (str_contains($clLower, 'bombillo')) {
                 $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
-                break;
-            case "Molde":
+            } elseif (str_contains($clLower, 'molde')) {
                 $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
-                break;
-            case "Fondo":
-            case "Obturador":
+            } elseif (str_contains($clLower, 'fondo') || str_contains($clLower, 'obturador')) {
                 $processNames = array("operacionEquipo", "soldadura", "soldaduraPTA"); //Asigno los procesos.
-                break;
-            case "Corona":
+            } elseif (str_contains($clLower, 'corona')) {
                 $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
-                break;
-            case "Plato":
+            } elseif (str_contains($clLower, 'plato')) {
                 $processNames = array("barreno_maniobra", "operacionEquipo");
-                break;
-            case "Embudo":
+            } elseif (str_contains($clLower, 'embudo')) {
                 $processNames = array("operacionEquipo", "embudoCM");
-                break;
-            case "Cabeza de Soplo":
+            } elseif (str_contains($clLower, 'cabeza de soplo')) {
                 $processNames = array("primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo");
-                break;
-            case "Candado Obturador":
+            } elseif (str_contains($clLower, 'candado')) {
                 $processNames = array("operacionEquipo");
-                break;
+            }
         }
 
         $process->id_clase = $class->id;

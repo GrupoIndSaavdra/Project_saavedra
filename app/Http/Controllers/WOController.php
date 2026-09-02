@@ -122,6 +122,362 @@ class WOController extends Controller
     }
 
     /**
+     * Vista exclusiva para el perfil Master para crear una Orden de Trabajo con datos generales.
+     */
+    public function createMasterWO()
+    {
+        $moldings = Moldura::all();
+        $workOrdersAll = Orden_trabajo::with(['clases', 'moldura'])->orderByDesc('created_at')->get();
+        return view('wo_views.create_master_wo', compact('moldings', 'workOrdersAll'));
+    }
+
+    /**
+     * Registrar la Orden de Trabajo creada por el perfil Master.
+     */
+    public function storeMasterWO(Request $request)
+    {
+        $request->validate([
+            'workOrder' => 'required|digits_between:1,5|unique:orden_trabajo,id',
+            'moldingSelected' => 'required|exists:molduras,id',
+            'fecha_compra' => 'required|date',
+            'orden_compra' => 'required|string|max:25|regex:/^[A-Za-z0-9-]+$/',
+            'cliente' => 'required|string',
+            'proveedor_material' => 'required|string',
+            'semana_entrega_cliente' => 'required|string',
+            'fecha_entrega_cliente' => 'required|date',
+        ], [
+            'workOrder.unique' => 'La Orden de Trabajo ingresada ya existe.',
+            'workOrder.required' => 'El número de Orden de Trabajo es obligatorio.',
+            'workOrder.digits_between' => 'La Orden de Trabajo debe ser numérica y tener un máximo de 5 dígitos.',
+            'moldingSelected.required' => 'Debe seleccionar una moldura.',
+            'fecha_compra.required' => 'La Fecha de Compra es obligatoria.',
+            'orden_compra.required' => 'La Orden de Compra es obligatoria.',
+            'orden_compra.max' => 'La Orden de Compra no puede exceder los 25 caracteres.',
+            'orden_compra.regex' => 'La Orden de Compra solo admite números, letras y guiones, sin espacios.',
+            'cliente.required' => 'El nombre del cliente es obligatorio.',
+            'proveedor_material.required' => 'El proveedor de material es obligatorio.',
+            'semana_entrega_cliente.required' => 'El No. de Semana es obligatorio.',
+            'fecha_entrega_cliente.required' => 'La Fecha Entrega Comprometida con Cliente es obligatoria.',
+        ]);
+
+        $molding = Moldura::find($request->input('moldingSelected'));
+
+        $fixDate = function ($dateStr) {
+            if (!$dateStr) return null;
+            if (preg_match('/(\d{4}-\d{2}-\d{2})$/', $dateStr, $matches)) {
+                return $matches[1];
+            }
+            try {
+                return \Carbon\Carbon::parse($dateStr)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return substr($dateStr, -10);
+            }
+        };
+
+        $fechaCompra = $fixDate($request->input('fecha_compra'));
+        $fechaEntrega = $fixDate($request->input('fecha_entrega_cliente'));
+
+        $ot = new Orden_trabajo();
+        $ot->id = trim($request->input('workOrder'));
+        $ot->id_moldura = $request->input('moldingSelected');
+        $ot->fecha_compra = $fechaCompra;
+        $ot->orden_compra = strtoupper(str_replace(' ', '', trim($request->input('orden_compra'))));
+        $ot->cliente = $request->input('cliente');
+        $ot->nombre_producto = $molding ? $molding->nombre : $request->input('nombre_producto');
+        $ot->cantidad = 0;
+        $ot->proveedor_material = $request->input('proveedor_material');
+        $ot->semana_entrega_cliente = $request->input('semana_entrega_cliente');
+        $ot->fecha_entrega_cliente = $fechaEntrega;
+        $ot->save();
+
+        SystemLog::create([
+            'user_matricula' => auth()->user()->matricula,
+            'action' => 'Alta de OT Master',
+            'details' => "El Master registró la OT {$ot->id} para el cliente {$ot->cliente} del producto {$ot->nombre_producto}.",
+            'ot' => $ot->id,
+            'id_ot' => $ot->id,
+        ]);
+
+        return redirect()->route('showWO', $ot->id)->with('success', "¡Orden de Trabajo {$ot->id} creada exitosamente! Ahora puede dar de alta sus clases.");
+    }
+
+    /**
+     * Modificar datos generales y/o cantidades de clases de una OT por el perfil Master.
+     */
+    public function updateMasterWO(Request $request)
+    {
+        $request->validate([
+            'workOrderSelect' => 'required|exists:orden_trabajo,id',
+            'fecha_compra' => 'required|date',
+            'orden_compra' => 'required|string|max:25|regex:/^[A-Za-z0-9-]+$/',
+            'cliente' => 'required|string',
+            'proveedor_material' => 'required|string',
+            'semana_entrega_cliente' => 'required|string',
+            'fecha_entrega_cliente' => 'required|date',
+        ], [
+            'workOrderSelect.required' => 'Debe seleccionar una Orden de Trabajo a modificar.',
+            'fecha_compra.required' => 'La Fecha de Compra es obligatoria.',
+            'orden_compra.required' => 'La Orden de Compra es obligatoria.',
+            'orden_compra.max' => 'La Orden de Compra no puede exceder los 25 caracteres.',
+            'orden_compra.regex' => 'La Orden de Compra solo admite números, letras y guiones, sin espacios.',
+            'cliente.required' => 'El nombre del cliente es obligatorio.',
+            'proveedor_material.required' => 'El proveedor de material es obligatorio.',
+            'semana_entrega_cliente.required' => 'El No. de Semana es obligatorio.',
+            'fecha_entrega_cliente.required' => 'La F. Compromertida con el Cliente es obligatoria.',
+        ]);
+
+        $fixDate = function ($dateStr) {
+            if (!$dateStr) return null;
+            if (preg_match('/(\d{4}-\d{2}-\d{2})$/', $dateStr, $matches)) {
+                return $matches[1];
+            }
+            try {
+                return \Carbon\Carbon::parse($dateStr)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return substr($dateStr, -10);
+            }
+        };
+
+        $fechaCompra = $fixDate($request->input('fecha_compra'));
+        $fechaEntrega = $fixDate($request->input('fecha_entrega_cliente'));
+
+        $ot = Orden_trabajo::findOrFail($request->input('workOrderSelect'));
+        $ot->fecha_compra = $fechaCompra;
+        $ot->orden_compra = strtoupper(str_replace(' ', '', trim($request->input('orden_compra'))));
+        $ot->cliente = $request->input('cliente');
+        $ot->proveedor_material = $request->input('proveedor_material');
+        $ot->semana_entrega_cliente = $request->input('semana_entrega_cliente');
+        $ot->fecha_entrega_cliente = $fechaEntrega;
+        $ot->save();
+
+        $hasUpdates = $ot->wasChanged();
+        $addedClassesCount = 0;
+        $deletedClassesCount = 0;
+        $failedDeletes = [];
+
+        // Eliminar clases
+        if ($request->has('deleted_classes') && is_array($request->input('deleted_classes'))) {
+            foreach ($request->input('deleted_classes') as $delClassId) {
+                $classToDel = Clase::find($delClassId);
+                if ($classToDel && $classToDel->id_ot == $ot->id) {
+                    $hasPieces = \App\Models\Pieza::where('id_clase', $classToDel->id)->exists();
+                    $goals = \App\Models\Metas::where('id_clase', $classToDel->id)->exists();
+                    
+                    if ($hasPieces || $goals) {
+                        $failedDeletes[] = $classToDel->nombre;
+                    } else {
+                        $process = \App\Models\Procesos::where('id_clase', $classToDel->id)->first();
+                        if ($process) {
+                            $process->delete();
+                            \App\Models\Fecha_proceso::where('clase', $classToDel->id)->delete();
+                        }
+                        $classToDel->delete();
+                        $deletedClassesCount++;
+                        $hasUpdates = true;
+                    }
+                }
+            }
+        }
+
+        if ($request->has('class_orders') && is_array($request->input('class_orders'))) {
+            $materials = $request->input('class_materials', []);
+            foreach ($request->input('class_orders') as $classId => $qty) {
+                $clase = Clase::find($classId);
+                if ($clase && $clase->id_ot == $ot->id) {
+                    $newQty = max(0, (int)$qty);
+                    $newMat = isset($materials[$classId]) && trim($materials[$classId]) !== '' ? trim($materials[$classId]) : null;
+                    $classChanged = false;
+
+                    if ($clase->pedido != $newQty || $clase->piezas != $newQty) {
+                        $clase->pedido = $newQty;
+                        $clase->piezas = $newQty;
+                        $classChanged = true;
+                    }
+
+                    if ($clase->material != $newMat) {
+                        $clase->material = $newMat;
+                        $classChanged = true;
+                    }
+
+                    if ($classChanged) {
+                        $clase->save();
+                        $hasUpdates = true;
+                    }
+                }
+            }
+        }
+
+        if ($request->has('new_classes') && is_array($request->input('new_classes'))) {
+            $classController = new \App\Http\Controllers\ClassController();
+            foreach ($request->input('new_classes') as $newClass) {
+                $nombre = $newClass['nombre'] ?? null;
+                $cantidad = (int)($newClass['cantidad'] ?? 0);
+                $material = isset($newClass['material']) && trim($newClass['material']) !== '' ? trim($newClass['material']) : null;
+                
+                if ($nombre && $cantidad > 0) {
+                    // Check if class already exists
+                    $exists = Clase::where('id_ot', $ot->id)->where('nombre', $nombre)->exists();
+                    if (!$exists) {
+                        $class = new Clase();
+                        $class->id_ot = $ot->id;
+                        $class->nombre = $nombre;
+                        $class->pedido = $cantidad;
+                        $class->piezas = $cantidad;
+                        $class->tamanio = 'Chico';
+                        $class->material = $material;
+                        $class->save();
+        
+                        $controllerProductionTime = new \App\Http\Controllers\TiemposProduccionController();
+                        $controllerProductionTime->setProductionTimes($class);
+                        
+                        $process = new \App\Models\Procesos();
+                        $classController->storeProcess($class, null, null, $process);
+                        
+                        $addedClassesCount++;
+                        $hasUpdates = true;
+                    }
+                }
+            }
+        }
+
+        SystemLog::create([
+            'user_matricula' => auth()->user()->matricula,
+            'action' => 'Modificación de OT Master',
+            'details' => "El Master modificó los datos generales, composiciones y/o cantidades de la OT {$ot->id}.",
+            'ot' => $ot->id,
+            'id_ot' => $ot->id,
+        ]);
+
+        $successMsg = "¡La Orden de Trabajo {$ot->id} fue procesada exitosamente!";
+        $details = [];
+        if ($hasUpdates) $details[] = "Se actualizaron los datos generales/composiciones/cantidades.";
+        if ($addedClassesCount > 0) $details[] = "Se agregaron $addedClassesCount nuevas clases.";
+        if ($deletedClassesCount > 0) $details[] = "Se eliminaron $deletedClassesCount clases.";
+        
+        $finalMsg = $successMsg . " " . implode(" ", $details);
+        
+        $redirect = redirect()->route('createMasterWO', ['mode' => 'modify', 'ot_id' => $ot->id])->with('success', $finalMsg);
+        
+        if (count($failedDeletes) > 0) {
+            $redirect->with('error', "No se pudieron eliminar las siguientes clases porque ya tienen piezas o metas registradas: " . implode(", ", $failedDeletes));
+        }
+
+        return $redirect;
+    }
+
+    /**
+     * Vista de Prioridades (Dashboard Master)
+     */
+    public function prioritiesView(Request $request)
+    {
+        $startWeek = $request->input('start_week');
+        $endWeek = $request->input('end_week');
+        $otId = $request->input('ot_id');
+
+        $query = Orden_trabajo::with(['moldura', 'clases']);
+
+        if (!empty($otId)) {
+            $query->where('id', $otId);
+        }
+
+        $workOrders = $query
+            ->orderByRaw('CASE WHEN prioridad IS NULL OR prioridad = 0 THEN 999999 ELSE prioridad END ASC')
+            ->orderByRaw('CAST(semana_entrega_cliente AS UNSIGNED) ASC')
+            ->orderBy('id', 'ASC')
+            ->get();
+
+        // Agrupar por semana y aplicar filtrado manual de rango (ya que la DB podría tener texto mezclado)
+        $groupedWOs = [];
+        foreach ($workOrders as $wo) {
+            $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
+            
+            if (!empty($startWeek) && !empty($semanaRaw)) {
+                if ((int)$semanaRaw < (int)$startWeek) continue;
+            }
+            if (!empty($endWeek) && !empty($semanaRaw)) {
+                if ((int)$semanaRaw > (int)$endWeek) continue;
+            }
+
+            $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
+            $groupedWOs[$semana][] = $wo;
+        }
+
+        // Ordenar las llaves (semanas)
+        uksort($groupedWOs, function($a, $b) {
+            if ($a === 'Sin Semana') return 1;
+            if ($b === 'Sin Semana') return -1;
+            return (int)$a - (int)$b;
+        });
+
+        // Obtener lista de OTs para el select con sus molduras
+        $allOts = Orden_trabajo::with('moldura')->orderBy('id', 'desc')->get();
+
+        // Obtener lista de semanas únicas para los selects
+        $allWeeksRaw = Orden_trabajo::select('semana_entrega_cliente')
+            ->whereNotNull('semana_entrega_cliente')
+            ->where('semana_entrega_cliente', '!=', '')
+            ->distinct()
+            ->get()
+            ->map(function($ot) {
+                return (int)preg_replace('/[^0-9]/', '', $ot->semana_entrega_cliente);
+            })
+            ->filter(function($week) {
+                return $week > 0;
+            })
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        return view('wo_views.priorities', compact('groupedWOs', 'allOts', 'allWeeksRaw', 'startWeek', 'endWeek', 'otId'));
+    }
+
+    /**
+     * Autoguardado AJAX para campos vacíos en la vista de Prioridades
+     */
+    public function autosavePriority(Request $request)
+    {
+        $request->validate([
+            'ot_id' => 'required|exists:orden_trabajo,id',
+            'field' => 'required|string',
+            'value' => 'nullable|string'
+        ]);
+
+        $allowedFields = [
+            'fecha_real', 
+            'forma_grabados', 
+            'entrega_tecamac', 
+            'observaciones_prioridad',
+            'fecha_entrega_fundicion'
+        ];
+
+        if (!in_array($request->field, $allowedFields)) {
+            return response()->json(['success' => false, 'message' => 'Campo no permitido.'], 403);
+        }
+
+        $value = $request->value;
+
+        if ($request->field === 'fecha_entrega_fundicion' && !empty($value)) {
+            try {
+                // Replace slashes with dashes to help Carbon parse DD/MM/YYYY better
+                $cleanValue = str_replace('/', '-', $value);
+                $value = \Carbon\Carbon::parse($cleanValue)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return response()->json(['success' => false, 'message' => 'Formato de fecha inválido.'], 400);
+            }
+        }
+
+        $wo = Orden_trabajo::find($request->ot_id);
+        if ($wo) {
+            $wo->{$request->field} = $value;
+            $wo->save();
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => 'OT no encontrada.'], 404);
+    }
+
+    /**
      * @param mixed $workOrder
      */
     public function show($workOrder)

@@ -32,10 +32,13 @@ export default defineConfig({
                 //Views OT
                 "resources/css/wo_views/manage_wo.css",
                 "resources/css/wo_views/show_wo.css",
-                "resources/css/wo_views/show_wo_almacen.css",
+                'resources/css/wo_views/show_wo_almacen.css',
+                'resources/css/wo_views/create_master_wo.css',
+                'resources/css/wo_views/priorities.css',
                 'resources/js/wo_views/manage_wo.js',
                 'resources/js/wo_views/show_wo.js',
                 'resources/js/wo_views/show_wo_almacen.js',
+                'resources/js/wo_views/create_master_wo.js',
 
                 //Views pieces
                 "resources/css/pieces_views/piecesInProgress_view.css",

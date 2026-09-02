@@ -1,3 +1,87 @@
+const CLASS_OPTIONS = [
+    "1 - MOLDES",
+    "2 - FONDOS",
+    "3 - BOMBILLOS",
+    "4 - OBTURADORES",
+    "5 - EMBUDOS",
+    "6 - CORONA",
+    "7 - GUIA VIAJERA",
+    "8 - GUIA LIMITADORA",
+    "9 - CABEZA DE SOPLO",
+    "10 - PISTONES",
+    "11 - ENFRIADORES",
+    "12 - BASES P/OBTURAD",
+    "13 - INSERTOS",
+    "14 - PIPETAS",
+    "15 - PLACAS",
+    "16 - CENTRALIZADOR",
+    "17 - GAUGE",
+    "18 - MOUL",
+    "23 - NECKRING",
+    "28 - TIP P/ OBTURADOR",
+    "29 - CARCAZA",
+    "30 - CASQUILLO",
+    "31 - RONDANA",
+    "32 - LOTE",
+    "33 - PLATO MOLDE",
+    "34 - PLATO BOMBILLO",
+    "35 - 1/2 CAÑA",
+    "36 - CAMISA DE",
+    "37 - INSERTO DE CARBURO",
+    "39 - BIAS UNIT",
+    "40 - CUERPO",
+    "41 - BLOCK",
+    "42 - SEMI",
+    "43 - TOP PLATE",
+    "44 - POSTIZO",
+    "45 - TUBO",
+    "46 - FLETE",
+    "47 - DOMMI",
+    "48 - SERVICIO",
+    "61 - ANILLO DE CEDASO 3\"",
+    "65 - FUNDICION DE",
+    "66 - FUNDICION DE",
+    "67 - 1/2 CAÑA LADO MACHO",
+    "68 - 1/2 CAÑA LADO",
+    "71 - CENTRALIZADOR 3.4",
+    "72 - CENTRALIZADOR 3.875",
+    "74 - DEDOS",
+    "76 - KINKER",
+    "79 - LAINA",
+    "80 - REPARACION",
+    "83 - VARIOS",
+    "86 - PERNOS DE",
+    "87 - ARRASTRADORES",
+    "89 - CADENA INDUSTRIAL",
+    "91 - RESORTE",
+    "92 - CANDADO",
+    "94 - ANILLO",
+    "95 - PORTA CORONA",
+    "97 - TEJO",
+    "99 - BASE PARA PISTON",
+    "100 - CANASTILLA PORTA",
+    "101 - FABRICACION",
+    "102 - BASE PARADORA",
+    "103 - BASE PORTA MOLDE",
+    "104 - CALIBRADOR",
+    "106 - MOLDE SEMI",
+    "107 - PLATO MOLDE SEMI",
+    "108 - BOMBILLO SEMI",
+    "109 - PLATO BOMBILLO",
+    "110 - CORONA SEMI",
+    "111 - PASTILLAS CORONA",
+    "112 - PISTON SEMI",
+    "113 - FONDO SEMI",
+    "114 - GUIA VIAJERA SEMI",
+    "115 - CASQUILLO ALTURA",
+    "116 - RONDANA ALUMINIO",
+    "117 - SEGURO OMEGA 1",
+    "118 - SEGURO OMEGA 2",
+    "119 - VALVULA HEXAGONAL",
+    "120 - SELLO",
+    "121 - ROLL PIN OBTURADOR"
+];
+
 //Ejecución de la función para la creación del formulario de la clase
 createForm(); //Creación del formulario de la clase
 
@@ -11,13 +95,14 @@ document.getElementById("form").addEventListener("submit", function (event) {
         let checkedChips = document.querySelectorAll(".chemical-composition-input:checked");
         let otroInput = document.querySelector('input[name="composicion_quimica_otro"]');
         let hasOtro = otroInput && otroInput.value.trim() !== "";
+        let hasChemInput = (document.querySelectorAll(".chemical-composition-input").length > 0 || otroInput);
 
         // Normalizar el campo "otro" al enviar (solo admin=1 y master=3)
         if (otroInput && (window.profile == 1 || window.profile == 3)) {
             otroInput.value = normalizeChemicalInput(otroInput.value);
         }
 
-        if (checkedChips.length === 0 && !hasOtro) {
+        if (hasChemInput && checkedChips.length === 0 && !hasOtro) {
             event.preventDefault();
             alert("Por favor, seleccione al menos una Composición Química o especifique otra.");
             return false;
@@ -77,80 +162,79 @@ function get_inputAttributes(workOrder, molding, value = null) {
                 name: "class",
                 class: "classes",
             },
-            options: ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo", "Candado Obturador"],
+            options: CLASS_OPTIONS,
         },
-        size: {
-            label: "Seleccione el tamaño",
-            select: {
-                name: "size",
-                class: "selects",
+            size: {
+                label: "Seleccione el tamaño",
+                select: {
+                    name: "size",
+                    class: "selects",
+                },
+                options: tamanios,
+                currentValue: value == null ? null : value.tamanio,
             },
-            options: tamanios,
-            currentValue: value == null ? null : value.tamanio,
-        },
-        composicionQuimica: {
-            label: "Composición Química",
-            fullWidth: true,
-            required: true,
-            options: ["HGSS10", "HGSS50V", "HG", "MINOX", "HG/MINOX", "DAMERON", "HG CR - NI", "VERMICULAR", "ACERO", "HG/METZ"],
-            currentValue: value == null ? null : value.composicion_quimica,
-            tipoSoldadura: value == null ? null : value.tipo_soldadura,
-        },
-        order: {
-            label: "Pedido Total",
-            input: {
-                type: "number",
-                name: "order",
-                required: true,
-                value: value == null ? null : value.pedido,
+            tipoSoldadura: {
+                label: "Tipo de Soldadura",
+                select: {
+                    name: "tipo_soldadura",
+                    class: "selects",
+                },
+                optionsMap: [
+                    { value: "", label: "-- Seleccionar --" },
+                    { value: "1", label: "P1 - 3" },
+                    { value: "2", label: "P2 - 2.5" },
+                    { value: "3", label: "P3 - 2" },
+                    { value: "4", label: "P4 - 1.5" },
+                ],
+                currentValue: value == null ? null : (value.tipo_soldadura ? String(value.tipo_soldadura) : ""),
             },
-        },
-        pieces: {
-            label: "Piezas con consignación",
-            input: {
-                type: "number",
-                name: "pieces",
-                required: true,
-                value: value == null ? null : value.piezas,
+            order: {
+                label: "Pedido Total",
+                input: {
+                    type: "number",
+                    name: "order",
+                    required: true,
+                    disabled: true,
+                    value: value == null ? (window.workOrder && window.workOrder.cantidad ? window.workOrder.cantidad : "") : value.pedido,
+                },
             },
-        },
-        startDate: {
-            label: "Fecha de inicio",
-            input: {
-                type: "date",
-                name: "start_date",
-                required: true,
-                value: value == null ? null : value.fecha_inicio,
+            startDate: {
+                label: "Fecha de inicio",
+                input: {
+                    type: "date",
+                    name: "start_date",
+                    required: true,
+                    value: value == null ? null : value.fecha_inicio,
+                },
             },
-        },
-        startTime: {
-            label: "Hora de inicio",
-            input: {
-                type: "time",
-                name: "start_time",
-                required: true,
-                value: value == null ? null : value.hora_inicio,
+            startTime: {
+                label: "Hora de inicio",
+                input: {
+                    type: "time",
+                    name: "start_time",
+                    required: true,
+                    value: value == null ? null : value.hora_inicio,
+                },
             },
-        },
-        finishDate: {
-            label: "Fecha de termino",
-            input: {
-                type: "date",
-                name: "finish_date",
-                disabled: true,
-                value: value == null ? null : value.fecha_termino,
+            finishDate: {
+                label: "Fecha de termino",
+                input: {
+                    type: "date",
+                    name: "finish_date",
+                    disabled: true,
+                    value: value == null ? null : value.fecha_termino,
+                },
             },
-        },
-        finishTime: {
-            label: "Hora de termino",
-            input: {
-                type: "time",
-                name: "finish_time",
-                disabled: true,
-                value: value == null ? null : value.hora_termino,
-            },
-        },
-    };
+                finishTime: {
+                    label: "Hora de termino",
+                    input: {
+                        type: "time",
+                        name: "finish_time",
+                        disabled: true,
+                        value: value == null ? null : value.hora_termino,
+                    },
+                },
+            };
     //Eliminacion de valor del id de la clase en el input de tipo hidden
     let inputClassId = document.getElementById("idClass");
     if (inputClassId) {
@@ -298,15 +382,6 @@ function createRowsForm(formInputs) {
 function insertWOButtons(fragment) {
     let div = document.createElement("div");
     div.className = "container-WOButtons";
-    //Creación del botón de eliminar orden de trabajo
-    let buttonDelete = document.createElement("a");
-    buttonDelete.className = "btn-deleteWO action-btns";
-    buttonDelete.textContent = "Eliminar orden de trabajo";
-    buttonDelete.addEventListener("click", function () {
-        event.preventDefault();
-        let container_form = document.querySelector(".container-form");
-        container_form.appendChild(mostrarDiv(`../destroyWO/${window.workOrder.id}`));
-    });
 
     //Creación del botón de generar PDF de la orden de trabajo
     let buttonPDF = document.createElement("a");
@@ -314,18 +389,8 @@ function insertWOButtons(fragment) {
     buttonPDF.textContent = "Generar PDF";
     buttonPDF.href = `../generatePDFWO/${window.workOrder.id}`;
 
-    let elements = [];
-    if (window.profile != 5) {
-        elements[1] = createCheckboxAddClass(); //Creación del checkbox de agregar clase
-        div.appendChild(buttonDelete);
-    }
     div.appendChild(buttonPDF);
-    elements[0] = div;
-
-    //Inserción de los botones en el div contenedor
-    elements.forEach((element) => {
-        fragment.appendChild(element);
-    });
+    fragment.appendChild(div);
 }
 
 function getSizeLabel(size) {
@@ -337,28 +402,62 @@ function getSizeLabel(size) {
     return sizeLabels[size] || size;
 }
 
+function getTipoSoldaduraLabel(val) {
+    const map = { "1": "P1 - 3", "2": "P2 - 2.5", "3": "P3 - 2", "4": "P4 - 1.5" };
+    return map[String(val)] ?? (val ? "Tipo " + val : "Sin información");
+}
+
 function createSelectOrInput(element, attributesArray, nameInput) {
     let htmlTag = document.createElement(element);
     for (let attribute in attributesArray[element]) {
-        htmlTag.setAttribute(attribute, attributesArray[element][attribute]); //Insertar los atributos correspondientes al input
-        if (window.profile == 5 && nameInput != "order" && nameInput != "pieces") {
-            htmlTag.disabled = true;
+        if (attribute === "disabled") {
+            htmlTag.disabled = Boolean(attributesArray[element][attribute]);
+        } else {
+            htmlTag.setAttribute(attribute, attributesArray[element][attribute]);
         }
+    }
+    if (window.profile == 5 && nameInput != "order" && nameInput != "pieces") {
+        htmlTag.disabled = true;
     }
     htmlTag.classList.add("form-control"); //Se añade la clase "form-control al input correspondiente"
 
+    if (element === "input" && attributesArray.input && attributesArray.input.disabled && attributesArray.input.name) {
+        let frag = document.createDocumentFragment();
+        let hidden = document.createElement("input");
+        hidden.type = "hidden";
+        hidden.name = attributesArray.input.name;
+        hidden.value = attributesArray.input.value ?? "";
+        frag.appendChild(htmlTag);
+        frag.appendChild(hidden);
+        return frag;
+    }
+
     //Si el elemento es un select, se añaden las opciones correspondientes
     if (element == "select") {
-        let options = attributesArray["options"];
-        let currentValue = attributesArray["currentValue"] ?? null;
-        for (let i = 0; i < options.length; i++) {
-            let option = document.createElement("option");
-            option.value = options[i];
-            option.text = nameInput === "size" ? getSizeLabel(options[i]) : options[i];
-            if (currentValue && options[i] === currentValue) {
-                option.selected = true;
+        if (attributesArray["optionsMap"]) {
+            let optionsMap = attributesArray["optionsMap"];
+            let currentValue = attributesArray["currentValue"] ?? null;
+            optionsMap.forEach((opt) => {
+                let option = document.createElement("option");
+                option.value = opt.value;
+                option.text = opt.label;
+                if (currentValue !== null && String(opt.value) === String(currentValue)) {
+                    option.selected = true;
+                }
+                htmlTag.add(option);
+            });
+        } else {
+            let options = attributesArray["options"];
+            let currentValue = attributesArray["currentValue"] ?? null;
+            for (let i = 0; i < options.length; i++) {
+                let option = document.createElement("option");
+                option.value = options[i];
+                option.text = nameInput === "size" ? getSizeLabel(options[i]) : options[i];
+                if (currentValue && options[i] === currentValue) {
+                    option.selected = true;
+                }
+                htmlTag.add(option);
             }
-            htmlTag.add(option);
         }
         if (nameInput == "classType") {
             //Si el select es el de tipo de clase, se añade un evento para modificar el select
@@ -366,7 +465,18 @@ function createSelectOrInput(element, attributesArray, nameInput) {
                 modifySelect(htmlTag.value);
                 createOperationsCheckBox(htmlTag.value, null, true);
                 toggleWeldingTypeVisibility(htmlTag.value);
+                showformHidden(true, htmlTag.value);
             });
+        }
+        if (attributesArray.select && attributesArray.select.disabled && attributesArray.select.name) {
+            let frag = document.createDocumentFragment();
+            let hidden = document.createElement("input");
+            hidden.type = "hidden";
+            hidden.name = attributesArray.select.name;
+            hidden.value = attributesArray.currentValue ?? htmlTag.value ?? "";
+            frag.appendChild(htmlTag);
+            frag.appendChild(hidden);
+            return frag;
         }
     }
     return htmlTag;
@@ -375,6 +485,7 @@ function createSelectOrInput(element, attributesArray, nameInput) {
 function modifySelect(className) {
     //Obtención del los elementos del select correspondiente
     let sizeSelect = document.querySelector(".selects");
+    if (!sizeSelect || !sizeSelect.previousElementSibling) return;
     let label = sizeSelect.previousElementSibling.textContent;
 
     //If para verificart si es necesario modificar el select de tamaño dependendiendo del tipo de clase
@@ -435,7 +546,7 @@ function createTableClasses(classes) {
     table.className = "table"; //Clase de la tabla
 
     //Creación de la fila de títulos
-    let titles = ["Clase", "Tamaño", "Piezas con consignación", "Pedido"];
+    let titles = ["Clase", "Pedido Total", "Material"];
     let tr = document.createElement("tr");
     titles.forEach((title) => {
         let th = document.createElement("th");
@@ -446,32 +557,21 @@ function createTableClasses(classes) {
     table.appendChild(tr);
     fragment.appendChild(table);
 
-    //Creación de la fila de títulos
+    //Creación de las filas de clases
     classes.forEach((classArray) => {
         //Se recorren las clases
         let button = document.createElement("button");
         button.value = classArray["id"];
         button.className = "btnClass";
 
-        for (let field in classArray) {
-            //Se recorren los campos de cada clase
-            switch (
-            field //Switch para insertar los campos correspondientes en la tabla
-            ) {
-                case "nombre":
-                case "tamanio":
-                case "seccion":
-                case "piezas":
-                case "pedido":
-                    if (classArray[field] != null) {
-                        let div_td = document.createElement("div");
-                        div_td.className = "div-td td-" + field;
-                        div_td.textContent = classArray[field];
-                        button.appendChild(div_td);
-                    }
-                    break;
-            }
-        }
+        let fields = ["nombre", "pedido", "material"];
+        fields.forEach((field) => {
+            let div_td = document.createElement("div");
+            div_td.className = "div-td td-" + field;
+            let val = classArray[field];
+            div_td.textContent = val ?? "-";
+            button.appendChild(div_td);
+        });
 
         //Agregar evento al boton
         button.addEventListener("click", function () {
@@ -498,7 +598,7 @@ function createTableClasses(classes) {
 
             createOperationsCheckBox(classArray["nombre"], window.processes[button.value], false); //Crear las casillas de los procesos
             //Mostrar el formulario de la clase junto con sus procesos
-            showformHidden(true);
+            showformHidden(true, classArray["nombre"]);
         });
 
         fragment.appendChild(button);
@@ -510,14 +610,8 @@ function setOrDelete_ClassButtons(idClass, action) {
     let btn_addClass = document.querySelector(".btn-addClass"); //Obtener el boton de agregar clase
     let containerCheckbox = document.querySelector(".container-checkbox");
 
-    //Eliminar el boton de eliminar clase si ya existe uno
-    if (document.querySelector(".btn-deleteClass") != null) {
-        document.querySelector(".btn-deleteClass").remove();
-        document.querySelector(".btn-editClass").remove();
-    }
-    if (document.getElementById("btn-saveClass") != null) {
-        document.getElementById("btn-saveClass").remove();
-    }
+    //Eliminar botones de acción anteriores si ya existen
+    document.querySelectorAll(".btn-deleteClass, .btn-editClass, #btn-saveClass").forEach((btn) => btn.remove());
 
     //Crear el boton de eliminar clase dirigiendolo a la ruta correspondiente con el id de la clase que se desea eliminar
     if (!action) {
@@ -534,12 +628,8 @@ function setOrDelete_ClassButtons(idClass, action) {
                 btn_addClass.classList.add("hidden");
             }
 
-            //Creacion del boton de eliminar clase
+            //Creacion del boton de editar clase
             createButtons(idClass).forEach((button) => {
-                if (window.profile == 5 && button.innerHTML == "Eliminar Clase") {
-                    button.hidden = true;
-                    button.classList.add("hidden");
-                }
                 div_btns.appendChild(button);
             });
         } else {
@@ -585,16 +675,6 @@ function setOrDelete_ClassButtons(idClass, action) {
 }
 
 function createButtons(idClass) {
-    //Creacion del boton eliminar
-    let btn_deleteClass = document.createElement("button");
-    btn_deleteClass.innerHTML = "Eliminar Clase";
-    btn_deleteClass.className = "btn-deleteClass action-btns";
-    btn_deleteClass.addEventListener("click", function () {
-        event.preventDefault();
-        let container_form = document.querySelector(".container-form");
-        container_form.appendChild(mostrarDiv(`../destroyClass/${idClass}`));
-    });
-
     //Creacion del boton editar
     let btn_editClass = document.createElement("button");
     btn_editClass.className = "btn-editClass action-btns";
@@ -604,7 +684,18 @@ function createButtons(idClass) {
         enableEditClass(idClass);
     });
 
-    return [btn_deleteClass, btn_editClass];
+    //Creacion del boton eliminar clase
+    let btn_deleteClass = document.createElement("a");
+    btn_deleteClass.className = "btn-deleteClass action-btns";
+    btn_deleteClass.innerHTML = "Eliminar Clase";
+    btn_deleteClass.href = `../destroyClass/${idClass}`;
+    btn_deleteClass.addEventListener("click", function (e) {
+        if (!confirm("¿Estás seguro de que deseas eliminar esta clase?")) {
+            e.preventDefault();
+        }
+    });
+
+    return [btn_editClass, btn_deleteClass];
 }
 
 function enableEditClass(idClass) {
@@ -623,9 +714,13 @@ function enableEditClass(idClass) {
         }
     }
 
-    let className = document.querySelector(".classes").value;
-    createOperationsCheckBox(className, window.processes[idClass], true); //Creación de las casillas de los procesos
-    toggleWeldingTypeVisibility(className);
+    let classElem = document.querySelector(".classes");
+    if (classElem) {
+        let className = classElem.value;
+        createOperationsCheckBox(className, window.processes[idClass], true); //Creación de las casillas de los procesos
+        toggleWeldingTypeVisibility(className);
+        showformHidden(true, className);
+    }
 }
 
 function setClassInfo(classesObject = null, classSelected) {
@@ -655,30 +750,23 @@ function setClassInfo(classesObject = null, classSelected) {
                     label: "Tamaño",
                     input: {
                         type: "text",
-                        value: classesObject[classObject].tamanio,
+                        value: getSizeLabel(classesObject[classObject].tamanio),
                         disabled: true,
                     },
                 },
-                composicionQuimica: {
-                    label: "Composición Química",
-                    fullWidth: true,
-                    isTags: true,
-                    value: classesObject[classObject].composicion_quimica ?? "-",
-                    tipoSoldadura: classesObject[classObject].tipo_soldadura ?? null,
+                tipoSoldadura: {
+                    label: "Tipo de Soldadura",
+                    input: {
+                        type: "text",
+                        value: getTipoSoldaduraLabel(classesObject[classObject].tipo_soldadura),
+                        disabled: true,
+                    },
                 },
                 order: {
                     label: "Pedido Total",
                     input: {
                         type: "number",
                         value: classesObject[classObject].pedido,
-                        disabled: true,
-                    },
-                },
-                pieces: {
-                    label: "Piezas con consignación",
-                    input: {
-                        type: "number",
-                        value: classesObject[classObject].piezas,
                         disabled: true,
                     },
                 },
@@ -740,8 +828,7 @@ function createCheckboxAddClass() {
     checkbox.type = "checkbox";
     checkbox.className = "checkbox-add-class";
 
-    //Añadir evento al checkbox
-    checkbox.addEventListener("change", function () {
+    const triggerAddClass = function () {
         if (checkbox.checked) {
             // Guardar la clase que se estaba visualizando para restaurarla si se desmarca el checkbox
             let activeBtn = null;
@@ -765,14 +852,17 @@ function createCheckboxAddClass() {
             setOrDelete_ClassButtons(null, true);
 
             let div_rowsHidden = document.querySelector(".div-rows-hidden");
-            div_rowsHidden.innerHTML = "";
-            div_rowsHidden.appendChild(
-                createRowsForm(get_inputAttributes(window.workOrder.id, window.molding.nombre)[1])
-            );
+            if (div_rowsHidden) {
+                div_rowsHidden.innerHTML = "";
+                div_rowsHidden.appendChild(
+                    createRowsForm(get_inputAttributes(window.workOrder.id, window.molding.nombre)[1])
+                );
+            }
 
             let className = document.querySelector(".classes").value;
             createOperationsCheckBox(className, null, true); //Creación de las casillas de los procesos
             toggleWeldingTypeVisibility(className);
+            showformHidden(true, className);
         } else {
             // Si desmarca, restaurar la clase seleccionada si existía
             if (window.selectedClassId) {
@@ -783,21 +873,66 @@ function createCheckboxAddClass() {
                 }
             }
             setOrDelete_ClassButtons(null, false);
+            showformHidden(false);
         }
-        showformHidden(checkbox.checked);
-    });
+    };
+
+    //Añadir evento al checkbox
+    checkbox.addEventListener("change", triggerAddClass);
 
     div.appendChild(label);
     div.appendChild(checkbox);
+
     return div;
 }
 
-function showformHidden(value) {
+function isClassWithProcesses(className) {
+    if (!className) return false;
+    let clLower = className.toLowerCase().trim();
+
+    // Exclusiones: bases, accesorios, tips, pernos, etc.
+    if (
+        clLower.includes("base") ||
+        clLower.includes("tip") ||
+        clLower.includes("roll pin") ||
+        clLower.includes("porta") ||
+        clLower.includes("pastilla") ||
+        clLower.includes("canastilla")
+    ) {
+        return false;
+    }
+
+    const allowed = [
+        "molde",
+        "fondo",
+        "bombillo",
+        "obturador",
+        "cabeza de soplo",
+        "plato",
+        "candado",
+        "embudo",
+        "corona"
+    ];
+
+    return allowed.some(item => clLower.includes(item));
+}
+
+function showformHidden(value, currentClassName = null) {
     let div_rowsHidden = document.querySelector(".div-rows-hidden");
     let div_boxes = document.querySelector(".div-boxes");
+
+    if (!currentClassName) {
+        let classInput = document.querySelector(".classes");
+        if (classInput) currentClassName = classInput.value;
+    }
+
+    let hasProcesses = isClassWithProcesses(currentClassName);
+
     if (div_boxes) {
-        div_boxes.hidden = !value;
-        div_boxes.classList.toggle("hidden", !value);
+        let shouldShowBoxes = value && hasProcesses;
+        div_boxes.hidden = !shouldShowBoxes;
+        div_boxes.classList.toggle("hidden", !shouldShowBoxes);
+        div_boxes.style.display = shouldShowBoxes ? "" : "none";
     }
     if (div_rowsHidden) {
         div_rowsHidden.hidden = !value;
@@ -806,91 +941,108 @@ function showformHidden(value) {
 }
 
 function createOperationsCheckBox(className, markedProcesses, edit) {
-    //Obtener el div en donde se insertaran las casillas de los procesos
+    let div_boxes = document.querySelector(".div-boxes");
     let sections = document.querySelector(".sections");
-    sections.innerHTML = "";
+    if (sections) sections.innerHTML = "";
+
+    if (!isClassWithProcesses(className)) {
+        if (div_boxes) {
+            div_boxes.hidden = true;
+            div_boxes.classList.add("hidden");
+            div_boxes.style.display = "none";
+        }
+        return;
+    }
+
+    if (div_boxes) {
+        div_boxes.hidden = false;
+        div_boxes.classList.remove("hidden");
+        div_boxes.style.display = "";
+    }
+
     //Obtener los titulos de los checkbox y su name atraves de arrays
     let operations = get_operationsArray(className);
     let operationsArray = operations[1];
     operations = operations[0];
 
-    crearCasillas(operations, operationsArray, markedProcesses, edit);
+    if (operations.length > 0) {
+        crearCasillas(operations, operationsArray, markedProcesses, edit);
+    }
 }
 
 function get_operationsArray(className) {
     let operations = [];
     let operationsArray = [];
-    switch (className) {
-        case "Bombillo":
-        case "Molde":
-            operations = [
-                "Cepillado",
-                "Desbaste exterior",
-                "Revision Laterales",
-                "1ra Operación",
-                "Barreno maniobra",
-                "2da Operación",
-                "Soldadura",
-                "Soldadura PTA",
-                "Rectificado",
-                "Asentado",
-                "Calificado",
-                "Acabado " + className,
-                "Barreno profundidad",
-                "Cavidades",
-                "Copiado",
-                "Offset",
-                "Palomas",
-                "Rebajes",
-                "Grabado",
-            ];
-            operationsArray = [
-                "cepillado",
-                "desbaste_exterior",
-                "revision_laterales",
-                "pOperacion",
-                "barreno_maniobra",
-                "sOperacion",
-                "soldadura",
-                "soldaduraPTA",
-                "rectificado",
-                "asentado",
-                "calificado",
-                "acabado" + className,
-                "barreno_profundidad",
-                "cavidades",
-                "copiado",
-                "offSet",
-                "palomas",
-                "rebajes",
-                "grabado",
-            ];
-            break;
-        case "Obturador":
-        case "Fondo":
-            operations = ["1ra y 2da Operación Equipo", "Soldadura", "Soldadura PTA"];
-            operationsArray = ["operacionEquipo", "soldadura", "soldaduraPTA"];
-            break;
-        case "Corona":
-            operations = ["Cepillado", "Desbaste exterior", "1ra Operacion", "2da Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado"];
-            operationsArray = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
-            break;
-        case "Plato":
-            operations = ["Barreno Maniobra", "1ra y 2da Operación Equipo"];
-            operationsArray = ["barreno_maniobra", "operacionEquipo"];
-            break;
-        case "Embudo":
-            operations = ["1ra y 2da Operación Equipo", "Embudo C.M."];
-            operationsArray = ["operacionEquipo", "embudoCM"];
-            break;
-        case "Cabeza de Soplo":
-            operations = ["Primera Operacion", "Segunda Operacion"];
-            operationsArray = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
-            break;
-        case "Candado Obturador":
-            operations = ["1ra y 2da Operación Equipo"];
-            operationsArray = ["operacionEquipo"];
-            break;
+    if (!isClassWithProcesses(className)) {
+        return [[], []];
+    }
+    let clLower = (className || "").toLowerCase();
+
+    if (clLower.includes("bombillo") || clLower.includes("molde")) {
+        let labelName = clLower.includes("bombillo") ? "Bombillo" : "Molde";
+        operations = [
+            "Cepillado",
+            "Desbaste exterior",
+            "Revision Laterales",
+            "1ra Operación",
+            "Barreno maniobra",
+            "2da Operación",
+            "Soldadura",
+            "Soldadura PTA",
+            "Rectificado",
+            "Asentado",
+            "Calificado",
+            "Acabado " + labelName,
+            "Barreno profundidad",
+            "Cavidades",
+            "Copiado",
+            "Offset",
+            "Palomas",
+            "Rebajes",
+            "Grabado",
+        ];
+        operationsArray = [
+            "cepillado",
+            "desbaste_exterior",
+            "revision_laterales",
+            "pOperacion",
+            "barreno_maniobra",
+            "sOperacion",
+            "soldadura",
+            "soldaduraPTA",
+            "rectificado",
+            "asentado",
+            "calificado",
+            "acabado" + labelName,
+            "barreno_profundidad",
+            "cavidades",
+            "copiado",
+            "offSet",
+            "palomas",
+            "rebajes",
+            "grabado",
+        ];
+    } else if (clLower.includes("obturador") || clLower.includes("fondo")) {
+        operations = ["1ra y 2da Operación Equipo", "Soldadura", "Soldadura PTA"];
+        operationsArray = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+    } else if (clLower.includes("corona")) {
+        operations = ["Cepillado", "Desbaste exterior", "1ra Operacion", "2da Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado"];
+        operationsArray = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+    } else if (clLower.includes("plato")) {
+        operations = ["Barreno Maniobra", "1ra y 2da Operación Equipo"];
+        operationsArray = ["barreno_maniobra", "operacionEquipo"];
+    } else if (clLower.includes("embudo")) {
+        operations = ["1ra y 2da Operación Equipo", "Embudo C.M."];
+        operationsArray = ["operacionEquipo", "embudoCM"];
+    } else if (clLower.includes("cabeza de soplo")) {
+        operations = ["Primera Operacion", "Segunda Operacion"];
+        operationsArray = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+    } else if (clLower.includes("candado")) {
+        operations = ["1ra y 2da Operación Equipo"];
+        operationsArray = ["operacionEquipo"];
+    } else {
+        operations = [];
+        operationsArray = [];
     }
     return [operations, operationsArray];
 }
@@ -1413,11 +1565,13 @@ function normalizeChemicalInput(value) {
  * Las clases que aplican son: Molde, Fondo, Bombillo, Obturador, Corona.
  */
 function toggleWeldingTypeVisibility(className) {
-    const weldingClasses = ["Molde", "Fondo", "Bombillo", "Obturador", "Corona"];
+    if (!className) return;
+    let clLower = className.toLowerCase();
+    const weldingClasses = ["molde", "fondo", "bombillo", "obturador", "corona"];
     let wrapper = document.getElementById("welding-type-wrapper");
     if (!wrapper) return;
 
-    let shouldShow = weldingClasses.includes(className);
+    let shouldShow = weldingClasses.some(wc => clLower.includes(wc));
     if (shouldShow) {
         wrapper.hidden = false;
     } else {
