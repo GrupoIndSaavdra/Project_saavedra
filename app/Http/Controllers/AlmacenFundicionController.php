@@ -1473,83 +1473,6 @@ class AlmacenFundicionController extends Controller
             \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false, $clasesSeleccionadas);
         }
 
-        // ── ELIMINAR OTs DE REPROCESO VINCULADAS A LAS CLASES REINICIADAS ──
-        $baseOtClean = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $ot);
-
-        // Buscar todas las OTs de reproceso en BD que se deriven de esta OT base
-        $reprocesosHist = FundicionHistory::where(function ($q) use ($baseOtClean) {
-            $q->where('ot', 'LIKE', $baseOtClean . '_%_R%')
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%');
-        })->get();
-
-        foreach ($reprocesosHist as $reproHist) {
-            $reproOt = $reproHist->ot;
-            $reproOtLow = strtolower($reproOt);
-
-            // Verificar si este reproceso pertenece a alguna de las clases seleccionadas/reiniciadas
-            $perteneceAClaseReiniciada = $esReinicioTotal;
-
-            if (!$perteneceAClaseReiniciada) {
-                foreach ($clasesSeleccionadasNorm as $clNorm) {
-                    if (empty($clNorm))
-                        continue;
-                    if (str_contains($reproOtLow, '_' . $clNorm . '_r') || str_contains($reproOtLow, '_' . $clNorm . 'r')) {
-                        $perteneceAClaseReiniciada = true;
-                        break;
-                    }
-                    $cfg = is_array($reproHist->ayudas_config) ? $reproHist->ayudas_config : [];
-                    foreach ($cfg as $c) {
-                        if (strtolower(trim($c)) === $clNorm) {
-                            $perteneceAClaseReiniciada = true;
-                            break;
-                        }
-                    }
-                    if ($perteneceAClaseReiniciada)
-                        break;
-                }
-            }
-
-            if ($perteneceAClaseReiniciada) {
-                // 1. Eliminar carpetas en Storage (Almacén y Calidad)
-                $reproFolder = $this->sanitizePath($this->normalizeOTName($reproOt));
-                $dirsToDelete = [
-                    self::ALMACEN_DIR . '/' . $reproFolder,
-                    self::CALIDAD_DIR . '/' . $reproFolder,
-                    'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $reproFolder,
-                    'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $reproFolder,
-                    'DOCUMENTACION_GIS/Fundicion_Calidad/' . $reproFolder,
-                ];
-                foreach ($dirsToDelete as $dirToDelete) {
-                    $resolvedDir = $this->resolveCaseInsensitivePath($dirToDelete);
-                    if (!empty($resolvedDir) && Storage::disk('local')->exists($resolvedDir)) {
-                        Storage::disk('local')->deleteDirectory($resolvedDir);
-                    }
-                }
-
-                // 2. Eliminar registros en BD para la OT de reproceso
-                PreOrdenFundicion::where('ot', '=', $reproOt)->delete();
-                LiberacionModeloFundicion::where('ot', '=', $reproOt)->delete();
-                ScarModelo::where('ot', '=', $reproOt)->delete();
-                PreOrdenLog::where('ot', '=', $reproOt)->delete();
-                RechazoLog::where('ot', '=', $reproOt)->delete();
-
-                // 3. Eliminar el registro en FundicionHistory
-                $reproHist->delete();
-            }
-        }
-
-        // Si ya no quedan reprocesos activos en BD para la OT base, restablecer rechazos_procesados en la OT principal
-        $remainingReprocesos = FundicionHistory::where(function ($q) use ($baseOtClean) {
-            $q->where('ot', 'LIKE', $baseOtClean . '_%_R%')
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%');
-        })->count();
-
-        if ($remainingReprocesos === 0) {
-            FundicionHistory::where('ot', '=', $baseOtClean)
-                ->orWhere('ot', '=', $ot)
-                ->update(['rechazos_procesados' => false]);
-        }
-
         // ── Guardar archivos de recepción adjuntos (Bloque 2) ──────────────────
         // NOTA: Se ejecuta DESPUÉS de la limpieza previa para evitar que copyToAlmacen los elimine
         if ($request->hasFile('archivos')) {
@@ -2463,10 +2386,18 @@ class AlmacenFundicionController extends Controller
         }
 
         // OT completa para búsquedas
-        $otRaw = $data['ot_raw'] ?? null;
-        $otClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['ot']);
+        $otRaw = !empty($data['ot_raw']) ? $data['ot_raw'] : ($data['ot'] ?? null);
+        $otClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['ot'] ?? '');
 
-        if (empty($otRaw)) {
+        if (!empty($otRaw)) {
+            $exactHist = FundicionHistory::where('ot', '=', $otRaw)->first();
+            if ($exactHist) {
+                $otRaw = $exactHist->ot;
+            } else {
+                $history = FundicionHistory::where('ot', 'LIKE', '%OT ' . $otClean . '%', 'and')->first();
+                $otRaw = $history ? $history->ot : ('OT ' . $otClean);
+            }
+        } else {
             $history = FundicionHistory::where('ot', 'LIKE', '%OT ' . $otClean . '%', 'and')->first();
             $otRaw = $history ? $history->ot : ('OT ' . $otClean);
         }

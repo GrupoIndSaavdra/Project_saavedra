@@ -490,7 +490,26 @@
                     if (empty($clasesActivas)) {
                         $todosGuardados = false;
                     }
-                    // Determinar si hay al menos una clase con decisión de rechazo pendiente de enviar
+                    // Determinar si hay al menos una clase con decisión de rechazo pendiente de enviar o con formato SCAR pendiente
+                    $clasesAlertadasArr = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
+                        ->where('alerta_enviada', '=', 1)
+                        ->pluck('tipo_modelo')
+                        ->map(fn($item) => strtolower(trim($item)))
+                        ->toArray();
+
+                    $scarsOTAll = \App\Models\ScarModelo::where('ot', '=', $targetReg->ot)->get();
+                    $scarsOT = $scarsOTAll->filter(function ($sc) use ($clasesAlertadasArr) {
+                        if (strtolower((string) $sc->estatus) === 'alertado') {
+                            return false;
+                        }
+                        if ($sc->tipo_modelo && in_array(strtolower(trim($sc->tipo_modelo)), $clasesAlertadasArr)) {
+                            return false;
+                        }
+                        return true;
+                    });
+                    $hasScar = $scarsOT->isNotEmpty();
+                    $scarTipos = $scarsOT->pluck('tipo_modelo')->filter()->map(fn($t) => strtolower(trim($t)))->toArray();
+
                     $hasRechazoBorrador = \App\Models\LiberacionModeloFundicion::where(
                         'ot',
                         '=',
@@ -498,7 +517,8 @@
                     )
                         ->where('decision', '=', 'rechazar')
                         ->where('alerta_enviada', '=', 0)
-                        ->exists();
+                        ->exists() || $hasScar;
+
                     $hasAprobadoBorrador = \App\Models\LiberacionModeloFundicion::where(
                         'ot',
                         '=',
@@ -507,15 +527,7 @@
                         ->where('decision', '=', 'aprobar')
                         ->where('alerta_enviada', '=', 0)
                         ->exists();
-                    $decisionGlobal = 'aprobar';
-                    if (
-                        $hasRechazoBorrador &&
-                        $hasAprobadoBorrador
-                    ) {
-                        $decisionGlobal = 'mixto';
-                    } elseif ($hasRechazoBorrador) {
-                        $decisionGlobal = 'rechazar';
-                    }
+
                     $borradorRechazado = \App\Models\LiberacionModeloFundicion::where(
                         'ot',
                         '=',
@@ -524,6 +536,7 @@
                         ->where('decision', '=', 'rechazar')
                         ->where('alerta_enviada', '=', 0)
                         ->first();
+
                     $tiposGuardados = \App\Models\LiberacionModeloFundicion::where(
                         'ot',
                         '=',
@@ -531,28 +544,53 @@
                     )
                         ->where('alerta_enviada', '=', 0)
                         ->get(['tipo_modelo', 'decision']);
-                    $tiposLabel = implode(
-                        ', ',
-                        $tiposGuardados
-                            ->pluck('tipo_modelo')
-                            ->toArray(),
-                    );
-                    $tiposAprobadosArr = $tiposGuardados
-                        ->where('decision', 'aprobar')
-                        ->pluck('tipo_modelo')
-                        ->values()
-                        ->toArray();
-                    $tiposRechazadosArr = $tiposGuardados
-                        ->where('decision', 'rechazar')
-                        ->pluck('tipo_modelo')
-                        ->values()
-                        ->toArray();
-                    $tiposAprobadosJson = json_encode(
-                        $tiposAprobadosArr,
-                    );
-                    $tiposRechazadosJson = json_encode(
-                        $tiposRechazadosArr,
-                    );
+
+                    $tiposAprobadosArr = [];
+                    $tiposRechazadosArr = [];
+
+                    foreach ($tiposGuardados as $tg) {
+                        if (!$tg->tipo_modelo) continue;
+                        $tLow = strtolower(trim($tg->tipo_modelo));
+                        if ($tg->decision === 'aprobar') {
+                            $tiposAprobadosArr[] = $tg->tipo_modelo;
+                        } elseif ($tg->decision === 'rechazar' || in_array($tLow, $scarTipos)) {
+                            $tiposRechazadosArr[] = $tg->tipo_modelo;
+                        }
+                    }
+
+                    foreach ($scarsOT as $sc) {
+                        if ($sc->tipo_modelo && !in_array($sc->tipo_modelo, $tiposRechazadosArr)) {
+                            $tiposRechazadosArr[] = $sc->tipo_modelo;
+                        }
+                    }
+
+                    $tiposAprobadosArr = array_values(array_unique($tiposAprobadosArr));
+                    $tiposRechazadosArr = array_values(array_unique($tiposRechazadosArr));
+
+                    if (!empty($tiposAprobadosArr) && !empty($tiposRechazadosArr)) {
+                        $decisionGlobal = 'mixto';
+                    } elseif (!empty($tiposRechazadosArr) || $hasRechazoBorrador) {
+                        $decisionGlobal = 'rechazar';
+                    } else {
+                        $decisionGlobal = 'aprobar';
+                    }
+
+                    // Fallback de seguridad: si ambos arreglos están vacíos pero hay clases pendientes de alertar
+                    if (empty($tiposAprobadosArr) && empty($tiposRechazadosArr) && !empty($clasesActivas)) {
+                        foreach ($clasesActivas as $cAct) {
+                            $cLow = strtolower(trim($cAct));
+                            if (!in_array($cLow, $clasesAlertadasArr)) {
+                                if ($decisionGlobal === 'rechazar') {
+                                    $tiposRechazadosArr[] = $cAct;
+                                } else {
+                                    $tiposAprobadosArr[] = $cAct;
+                                }
+                            }
+                        }
+                    }
+
+                    $tiposAprobadosJson = json_encode(array_values(array_unique($tiposAprobadosArr)));
+                    $tiposRechazadosJson = json_encode(array_values(array_unique($tiposRechazadosArr)));
 
                     // Verificar si todas las clases activas ya fueron alertadas (proceso enviado a la siguiente etapa)
                     $clasesAlertadas = \App\Models\LiberacionModeloFundicion::where(
@@ -782,7 +820,15 @@
                                     </button>
                                 @endif
                                 @if ($contClasesConDatos > 0)
-                                    @if ($hasRechazoBorrador)
+                                    @if (empty($clasesPendientesAlertar))
+                                        <button class="btn-calidad-action btn-calidad-email cal-background-color-059669 cal-color-white"
+                                            disabled
+                                            style="pointer-events: none; opacity: 0.85; cursor: not-allowed; background-color: #059669 !important; border: 2px solid #047857 !important;"
+                                            title="El correo de alerta ya ha sido enviado para estas clases">
+                                            <img src="{{ asset('images/enviando.png') }}" alt="" style="filter: none !important;" />
+                                            <span>Correo Enviado</span>
+                                        </button>
+                                    @elseif ($hasRechazoBorrador)
                                         @if (!$scarModelo)
                                             <button class="btn-calidad-action btn-calidad-borrador"
                                                 onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"

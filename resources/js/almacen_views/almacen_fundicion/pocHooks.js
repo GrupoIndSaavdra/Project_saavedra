@@ -22,7 +22,10 @@ window.abrirModalPreOrdenCasting = function(ot) {
     window.materialesCastingPersonalizados = [];
     
     const subtitle = document.getElementById("poc-modal-subtitle");
-    if (subtitle) subtitle.textContent = "OT: " + ot;
+    if (subtitle) {
+        const hasOtPrefix = /^OT\s*:/i.test(ot) || /^OT\s+/i.test(ot);
+        subtitle.textContent = hasOtPrefix ? (ot.startsWith("OT:") ? ot : "OT: " + ot.replace(/^OT\s*/i, "")) : "OT: " + ot;
+    }
     
     document.getElementById("poc-has-page2").value = "0";
     
@@ -295,7 +298,11 @@ window.loadPocPage = function(pageNum) {
     if (provEl) provEl.value = pData.proveedor || "";
     if (folioEl) folioEl.value = pData.folio || window.pocState.page1.folio || "";
     if (obsEl) obsEl.value = pData.observaciones || "";
-    if (otEl) otEl.value = window.pocState.ot_raw || "";
+    if (otEl) {
+        const rawOt = window.pocState.ot_raw || "";
+        const cleanOt = rawOt.split(" - ")[0].trim();
+        otEl.value = cleanOt || rawOt;
+    }
     if (molduraEl) molduraEl.value = window.pocState.moldura || "";
     if (fechaEl) fechaEl.value = (pData.fecha && pData.fecha !== 'undefined') ? String(pData.fecha).split(/[ T]/)[0] : "";
 

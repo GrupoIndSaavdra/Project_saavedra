@@ -890,6 +890,7 @@ window.abrirModalFinalizarCalidad = function (
         .then((data) => {
             if (data.existe && data.archivos?.length > 0) {
                 const archivoPerteneceAModelos = (nombre, modelosActivos) => {
+                    if (!modelosActivos || modelosActivos.length === 0) return true;
                     const pl = nombre.toLowerCase();
                     if (pl.includes("_anterior_n")) return false;
                     const todosModelosPosibles = [
@@ -897,11 +898,17 @@ window.abrirModalFinalizarCalidad = function (
                         "embudo", "corona", "plato", "molde", "fondo", "pistones", "guías", "guias"
                     ];
                     const modelosEncontrados = todosModelosPosibles.filter((m) => pl.includes(m));
-                    if (modelosEncontrados.length === 0) return false;
+                    if (modelosEncontrados.length === 0) return true;
                     const modelosActivosLower = modelosActivos.map((m) => m.toLowerCase().trim().replace(/^modelo\s+/i, ""));
                     return modelosEncontrados.some((m) => modelosActivosLower.includes(m));
                 };
-                const allRelevantModels = [...arrAprobados, ...arrRechazados];
+                let modelsApro = arrAprobados;
+                let modelsRech = arrRechazados;
+                if (modelsApro.length === 0 && modelsRech.length === 0 && window._currentClasesActivas && window._currentClasesActivas.length > 0) {
+                    if (decision === "rechazar") modelsRech = window._currentClasesActivas;
+                    else modelsApro = window._currentClasesActivas;
+                }
+                const allRelevantModels = [...modelsApro, ...modelsRech];
                 const filteredFiles = data.archivos.filter((f) => {
                     const pl = f.nombre.toLowerCase();
                     if (pl.includes("_anterior_n")) return false;
@@ -909,11 +916,11 @@ window.abrirModalFinalizarCalidad = function (
                     
                     if (decision === "aprobar") {
                         if (isRechazadoFile) return false;
-                        return archivoPerteneceAModelos(f.nombre, arrAprobados);
+                        return archivoPerteneceAModelos(f.nombre, modelsApro);
                     }
                     if (decision === "rechazar") {
-                        if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, arrRechazados);
-                        return archivoPerteneceAModelos(f.nombre, arrRechazados);
+                        if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, modelsRech);
+                        return archivoPerteneceAModelos(f.nombre, modelsRech);
                     }
                     return archivoPerteneceAModelos(f.nombre, allRelevantModels);
                 });

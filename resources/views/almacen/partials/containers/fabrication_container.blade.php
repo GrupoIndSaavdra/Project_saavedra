@@ -165,7 +165,7 @@
 
         $controlDisabled = ((count($clasesFabricacion) > 0 || $esReinicioParcial)) ? '' : (($targetReg->tiene_modelo || $targetReg->pre_orden_sent || $targetReg->pre_orden_email_sent) ? 'opacity: 0.5; pointer-events: none;' : '');
         $hideControlCard = (count($clasesFabricacion) > 0 || $esReinicioParcial) ? '' : ((($tieneAprobados || $tieneRechazados) && !$esReproceso) ? 'display: none;' : ((count($clasesFabricacion) === 0 && !$esReproceso && !$targetReg->tiene_modelo && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) ? 'display: none;' : ''));
-        $hideTengoModelo = ($todasClasesProcesadas || $poPendienteEnvioFab !== null) ? 'display: none;' : '';
+        $hideTengoModelo = ($todasClasesProcesadas || $targetReg->tiene_modelo) ? 'display: none;' : '';
         $hideGenerarFormato = ($todasClasesProcesadas || $poPendienteEnvioFab !== null || $esReproceso) ? 'display: none;' : '';
         $hideReprocesoPreOrden = ($esReproceso && !$tienePreOrdenFab) ? '' : 'display: none;';
         $hideEditPreOrden = ($tienePreOrdenFab && $poPendienteEnvioFab !== null) ? '' : 'display: none;';

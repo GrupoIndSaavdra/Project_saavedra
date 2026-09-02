@@ -180,16 +180,13 @@
                                         }
                                     }
                                 }
-                                // Filtrar clases activas basándose en las decisiones de Calidad
+                                // Filtrar clases activas basándose en las decisiones de Calidad o liberaciones registradas
                                 /** @var \App\Models\FundicionHistory $reg */
                                 $isReproceso = preg_match('/_R\d+$/i', $reg->ot);
                                 if (empty($activeClassesForOt)) {
                                     if ($isReproceso) {
-                                        // Para reprocesos: usar TODAS las clases con decisión en la OT ACTUAL
-                                        // (tanto aprobadas como rechazadas), para que los archivos de todas
-                                        // las clases evaluadas aparezcan en el scan del filesystem.
                                         $classesInCurrentOtRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
-                                            ->where('decision', '!=', 'pendiente')
+                                            ->whereNotNull('tipo_modelo')
                                             ->pluck('tipo_modelo')
                                             ->toArray();
 
@@ -198,17 +195,20 @@
                                             $parts = explode(',', strtolower($dc));
                                             foreach ($parts as $p) {
                                                 $p = trim($p);
-                                                if ($p !== '')
-                                                    $parsedCurrent[] = $p;
+                                                if ($p !== '') {
+                                                    foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                                                        if (strpos($p, $kc) !== false) {
+                                                            $parsedCurrent[] = $kc;
+                                                            break;
+                                                        }
+                                                    }
+                                                }
                                             }
                                         }
 
                                         if (!empty($parsedCurrent)) {
-                                            // Usar las clases de la OT actual (aprobadas + rechazadas)
                                             $activeClassesForOt = array_unique($parsedCurrent);
                                         } else {
-                                            // Fallback: si la OT actual aún no tiene decisiones, mostrar las
-                                            // rechazadas de la OT anterior (las que se están re-procesando)
                                             $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $reg->ot);
                                             $latestRechazo = \App\Models\LiberacionModeloFundicion::where('ot', 'LIKE', $baseOt . '%', 'and')
                                                 ->where('ot', '!=', $reg->ot, 'and')
@@ -226,8 +226,14 @@
                                                 $parts = explode(',', strtolower($dc));
                                                 foreach ($parts as $p) {
                                                     $p = trim($p);
-                                                    if ($p !== '')
-                                                        $parsedPrev[] = $p;
+                                                    if ($p !== '') {
+                                                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                                                            if (strpos($p, $kc) !== false) {
+                                                                $parsedPrev[] = $kc;
+                                                                break;
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                             if (!empty($parsedPrev)) {
@@ -235,28 +241,48 @@
                                             }
                                         }
                                     } else {
-                                        /** @var \App\Models\FundicionHistory $reg */
-                                        $hasLiberaciones = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)->exists();
-                                        if ($hasLiberaciones) {
-                                            $decidedClassesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
-                                                ->where('decision', '!=', 'pendiente')
-                                                ->pluck('tipo_modelo')
-                                                ->toArray();
+                                        $classesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
+                                            ->whereNotNull('tipo_modelo')
+                                            ->pluck('tipo_modelo')
+                                            ->toArray();
 
-                                            $parsedDecided = [];
-                                            foreach ($decidedClassesRaw as $dc) {
-                                                $parts = explode(',', strtolower($dc));
-                                                foreach ($parts as $p) {
-                                                    $p = trim($p);
-                                                    if ($p !== '')
-                                                        $parsedDecided[] = $p;
+                                        $parsedClasses = [];
+                                        foreach ($classesRaw as $dc) {
+                                            $parts = explode(',', strtolower($dc));
+                                            foreach ($parts as $p) {
+                                                $p = trim($p);
+                                                if ($p !== '') {
+                                                    foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                                                        if (strpos($p, $kc) !== false) {
+                                                            $parsedClasses[] = $kc;
+                                                            break;
+                                                        }
+                                                    }
                                                 }
                                             }
+                                        }
 
-                                            if (!empty($parsedDecided)) {
-                                                $activeClassesForOt = array_unique($parsedDecided);
+                                        if (!empty($parsedClasses)) {
+                                            $activeClassesForOt = array_unique($parsedClasses);
+                                        }
+                                    }
+                                } else {
+                                    $classesRaw = \App\Models\LiberacionModeloFundicion::where('ot', '=', $reg->ot)
+                                        ->whereNotNull('tipo_modelo')
+                                        ->pluck('tipo_modelo')
+                                        ->toArray();
+                                    foreach ($classesRaw as $dc) {
+                                        $parts = explode(',', strtolower($dc));
+                                        foreach ($parts as $p) {
+                                            $p = trim($p);
+                                            if ($p !== '') {
+                                                foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                                                    if (strpos($p, $kc) !== false && !in_array($kc, $activeClassesForOt)) {
+                                                        $activeClassesForOt[] = $kc;
+                                                        break;
+                                                    }
+                                                }
                                             }
-                                            // Si está vacío (solo pendientes), conservamos el activeClassesForOt poblado previamente (fallback normal)
                                         }
                                     }
                                 }
@@ -317,9 +343,32 @@
                                     foreach ($relArchivos as $archivo) {
                                         $base = basename($archivo);
                                         $fileLower = strtolower($archivo);
-                                        if (strpos($fileLower, 'ayudas_visuales') !== false || strpos($fileLower, 'ayudas-visuales') !== false || strpos($fileLower, 'preordenes') !== false) {
+                                        $baseLower = strtolower($base);
+
+                                        $isNonDrawing = (
+                                            strpos($fileLower, 'ayudas_visuales') !== false ||
+                                            strpos($fileLower, 'ayudas-visuales') !== false ||
+                                            strpos($fileLower, 'preordenes') !== false ||
+                                            strpos($fileLower, 'preorden') !== false ||
+                                            strpos($fileLower, 'escaneados') !== false ||
+                                            strpos($fileLower, 'documentos_aprobados') !== false ||
+                                            strpos($fileLower, 'documentos_rechazados') !== false ||
+                                            strpos($baseLower, 'f_alm_') !== false ||
+                                            strpos($baseLower, 'f_ccl_') !== false ||
+                                            strpos($baseLower, 'cfm') !== false ||
+                                            strpos($baseLower, 'efm') !== false ||
+                                            strpos($baseLower, 'pfm') !== false ||
+                                            strpos($baseLower, 'pfc') !== false ||
+                                            strpos($baseLower, 'efc') !== false ||
+                                            strpos($baseLower, 'ldm') !== false ||
+                                            strpos($baseLower, 'rdm') !== false ||
+                                            strpos($baseLower, 'scar') !== false
+                                        );
+
+                                        if ($isNonDrawing) {
                                             continue;
                                         }
+
                                         $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo'];
                                         $hasKnownClass = false;
                                         $foundClass = null;
@@ -382,6 +431,30 @@
                                                 $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
                                                 if ($ext === 'pdf') {
                                                     $base = basename($f);
+                                                    $fileLower = strtolower($f);
+                                                    $baseLower = strtolower($base);
+                                                    $isNonDrawingFile = (
+                                                        strpos($fileLower, 'ayudas_visuales') !== false ||
+                                                        strpos($fileLower, 'ayudas-visuales') !== false ||
+                                                        strpos($fileLower, 'preordenes') !== false ||
+                                                        strpos($fileLower, 'preorden') !== false ||
+                                                        strpos($fileLower, 'escaneados') !== false ||
+                                                        strpos($fileLower, 'documentos_aprobados') !== false ||
+                                                        strpos($fileLower, 'documentos_rechazados') !== false ||
+                                                        strpos($baseLower, 'f_alm_') !== false ||
+                                                        strpos($baseLower, 'f_ccl_') !== false ||
+                                                        strpos($baseLower, 'cfm') !== false ||
+                                                        strpos($baseLower, 'efm') !== false ||
+                                                        strpos($baseLower, 'pfm') !== false ||
+                                                        strpos($baseLower, 'pfc') !== false ||
+                                                        strpos($baseLower, 'efc') !== false ||
+                                                        strpos($baseLower, 'ldm') !== false ||
+                                                        strpos($baseLower, 'rdm') !== false ||
+                                                        strpos($baseLower, 'scar') !== false
+                                                    );
+                                                    if ($isNonDrawingFile) {
+                                                        continue;
+                                                    }
                                                     $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
                                                     if (!in_array($normBase, $normAyudasBaseNames)) {
                                                         $ayudaData = [
@@ -746,7 +819,7 @@
                                                         'prefix' => $cVariant . '/' . $eSub . '/',
                                                         'owner' => 'calidad'
                                                     ];
-                                                    foreach (['Almacen', 'Calidad', 'ALMACEN', 'CALIDAD'] as $dept) {
+                                                    foreach (['Almacen', 'Calidad'] as $dept) {
                                                         $newDirs[] = [
                                                             'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $cVariant . '/' . $eSub . '/' . $dept,
                                                             'origin' => 'aprobado',
@@ -757,6 +830,25 @@
                                                             'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $cVariant . '/' . $cVariant . '/' . $eSub . '/' . $dept,
                                                             'origin' => 'aprobado',
                                                             'prefix' => $cVariant . '/' . $eSub . '/' . $dept . '/',
+                                                            'owner' => 'calidad'
+                                                        ];
+                                                    }
+                                                }
+
+                                                // --- FALLBACK PARA OTs DE REPROCESO: Buscar dibujos en carpeta de OT Padre Heredada ---
+                                                $parentOtSanitized = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $otNameSanitized);
+                                                if ($parentOtSanitized && $parentOtSanitized !== $otNameSanitized) {
+                                                    foreach (['DIBUJOS', 'Dibujos', 'dibujos', 'DIBUJOS_FUNDICION', 'Dibujos_Fundicion'] as $dibSub) {
+                                                        $newDirs[] = [
+                                                            'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $parentOtSanitized . '/' . $cVariant . '/' . $dibSub,
+                                                            'origin' => 'dibujo',
+                                                            'prefix' => $cVariant . '/' . $dibSub . '/',
+                                                            'owner' => 'almacen'
+                                                        ];
+                                                        $newDirs[] = [
+                                                            'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $parentOtSanitized . '/' . $cVariant . '/' . $dibSub,
+                                                            'origin' => 'dibujo',
+                                                            'prefix' => $cVariant . '/' . $dibSub . '/',
                                                             'owner' => 'calidad'
                                                         ];
                                                     }
@@ -813,7 +905,22 @@
                                                     }
 
                                                     $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
-                                                    if (!in_array($normBase, $normBaseNames)) {
+                                                    if ($origin === 'dibujo' || $isDwg || strpos(strtolower($targetDir), 'dibujo') !== false) {
+                                                        if (!in_array($base, $dibujoBaseNames)) {
+                                                            $relativePathWithPrefix = $prefix . $relativePath;
+                                                            $archivos[] = [
+                                                                'nombre' => $relativePathWithPrefix,
+                                                                'url' => route('almacen.fundicion.serve', ['ot' => $otName, 'archivo' => $relativePathWithPrefix, 'tipo' => 'dibujo', 'origin' => 'dibujo']),
+                                                                'tipo' => 'dibujo',
+                                                                'ot' => $otName,
+                                                                'origin' => 'dibujo',
+                                                                'owner' => $dirInfo['owner'],
+                                                            ];
+                                                            $dibujoBaseNames[] = $base;
+                                                            $baseNames[] = $base;
+                                                            $normBaseNames[] = $normBase;
+                                                        }
+                                                    } elseif (!in_array($normBase, $normBaseNames)) {
                                                         $relativePathWithPrefix = $prefix . $relativePath;
                                                         $otrosArchivos[] = [
                                                             'nombre' => $relativePathWithPrefix,
@@ -830,7 +937,6 @@
                                             }
                                         }
 
-                                        // 3. Buscar PDFs generados en public/liberaciones_pdf (LDM y SCAR)
                                         $otSanitizada = preg_replace('/[^\w\s\-]/', '', $otName);
                                         $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
 
