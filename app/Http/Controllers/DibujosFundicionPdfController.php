@@ -46,7 +46,7 @@ class DibujosFundicionPdfController extends Controller
 
         // OTs activas (que tienen al menos una clase NO finalizada)
         try {
-            $todasLasOTs = Orden_trabajo::with('moldura')
+            $todasLasOTs = Orden_trabajo::with(['moldura', 'clases.procesos'])
                 ->whereHas('clases', fn($q) => $q->where('finalizada', '=', 0))
                 ->orderBy('id', 'asc')
                 ->get();
@@ -176,13 +176,119 @@ class DibujosFundicionPdfController extends Controller
         try {
             $todasLasClases = Clase::all();
             $historialesRaw = FundicionHistory::all();
+            // Cargar PreOrdenes enviadas agrupadas por OT para verificación multi-nivel
+            $preOrdenesEnviadasPorOT = \App\Models\PreOrdenFundicion::where('is_sent', 1)
+                ->get(['ot', 'filas'])
+                ->groupBy('ot');
+            // Cargar liberaciones de modelo agrupadas por OT
+            $liberacionesPorOT = \App\Models\LiberacionModeloFundicion::whereNotNull('tipo_modelo')
+                ->where('tipo_modelo', '!=', '')
+                ->get(['ot', 'tipo_modelo', 'tipo_origen', 'created_at'])
+                ->groupBy('ot');
         } catch (\Throwable $dbe) {
             Log::warning('Error DB en showManage (Clase/FundicionHistory): ' . $dbe->getMessage());
             $todasLasClases = collect();
             $historialesRaw = collect();
+            $preOrdenesEnviadasPorOT = collect();
+            $liberacionesPorOT = collect();
         }
         $historiales = [];
         $alertasEnviadas = [];
+
+        /**
+         * Determina si una clase de una OT ya tiene actividad en producción (preorden/casting/liberación).
+         * Esto se usa para bloquear el botón de reenvío si no hay cambios reales en archivos.
+         */
+        $claseYaEnProduccion = function(string $otName, string $claseNombre) use ($preOrdenesEnviadasPorOT, $liberacionesPorOT): bool {
+            // 1. Verificar si hay preorden enviada que incluya esta clase
+            $preOrdenesPorEstaOT = $preOrdenesEnviadasPorOT->get($otName, collect());
+            foreach ($preOrdenesPorEstaOT as $po) {
+                $filas = $po->filas;
+                if (is_array($filas)) {
+                    foreach ($filas as $f) {
+                        $claseEnFila = $f['clase'] ?? $f['clase_nombre'] ?? null;
+                        if ($claseEnFila && strtolower(trim($claseEnFila)) === strtolower(trim($claseNombre))) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            // 2. Verificar si hay liberación de modelo registrada para esta clase
+            $liberacionesPorEstaOT = $liberacionesPorOT->get($otName, collect());
+            foreach ($liberacionesPorEstaOT as $lib) {
+                if (strtolower(trim($lib->tipo_modelo)) === strtolower(trim($claseNombre))) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        /**
+         * Determina el estado final de una clase basado en:
+         * 1. Hash de archivos físicos vs hash guardado en FundicionHistory::clases_enviadas
+         * 2. Si tiene actividad en preorden/liberación (producción activa) y no hay archivos nuevos
+         * 3. Si tiene procesos en la tabla `clases.procesos` con fecha_inicio
+         */
+        $calcularEstado = function(
+            string $otRaw,        // Nombre real de la OT (para buscar en disco)
+            string $clase,        // Nombre en MAYÚSCULAS (del historial, para buscar carpeta física)
+            string $claseKey,     // Nombre Title Case (de BD, para mostrar en UI)
+            ?string $storedHash,  // Hash guardado en clases_enviadas (null = nunca enviado)
+            ?object $claseFisica, // Objeto Clase de BD (con procesos, fecha_inicio)
+            ?object $historial,   // Objeto FundicionHistory completo
+        ) use ($claseYaEnProduccion): string {
+
+            // Calcular hash actual de los archivos en disco
+            $currentHash = self::computeClassHash($otRaw, $clase);
+
+            // Sin archivos → vacío
+            if ($currentHash === "") {
+                return 'vacio';
+            }
+
+            // CASO 1: Ya tiene historial de envío (clases_enviadas tiene esta clase)
+            if ($storedHash !== null) {
+                if ($storedHash === $currentHash || $storedHash === "") {
+                    return 'enviada'; // Sin cambios desde el último envío
+                }
+                return 'modificada'; // Los archivos cambiaron → permitir reenvío
+            }
+
+            // CASO 2: Sin historial de envío (clases_enviadas es null para esta clase)
+            // Verificar si ya entró en producción por alguna de las 3 fuentes:
+
+            // 2a. FundicionHistory flags: pre_orden_sent o casting_pdf_generated
+            $enProduccionPorFlags = $historial && ($historial->pre_orden_sent || $historial->casting_pdf_generated);
+
+            // 2b. Preórdenes enviadas o liberaciones en la BD
+            $enProduccionPorTablas = $claseYaEnProduccion($otRaw, $clase);
+
+            // 2c. Tabla procesos (registro directo de maquinado)
+            $enProduccionPorProcesos = $claseFisica && $claseFisica->procesos;
+
+            $enProduccion = $enProduccionPorFlags || $enProduccionPorTablas || $enProduccionPorProcesos;
+
+            if ($enProduccion) {
+                // Calcular límite de tiempo para isFileModifiedAfter
+                // Usar la fecha más temprana disponible: fecha_inicio de procesos o created_at del historial
+                $limitTime = null;
+                if ($claseFisica && $claseFisica->fecha_inicio) {
+                    $limitTime = strtotime($claseFisica->fecha_inicio . ' ' . ($claseFisica->hora_inicio ?: '00:00:00'));
+                } elseif ($historial && $historial->created_at) {
+                    $limitTime = $historial->created_at->timestamp;
+                }
+
+                if ($limitTime) {
+                    $hasNewFiles = self::isFileModifiedAfter($otRaw, $clase, $limitTime);
+                    if ($hasNewFiles) {
+                        return 'modificada'; // Archivos subidos después de que empezó la producción → permitir envío
+                    }
+                }
+                return 'enviada'; // En producción sin archivos nuevos → bloquear
+            }
+
+            return 'pendiente'; // Sin producción y sin envío → permitir envío
+        };
 
         // Pre-procesar estructura keys para búsqueda rápida
         $estructuraOTs = array_map(function ($ot) {
@@ -211,34 +317,74 @@ class DibujosFundicionPdfController extends Controller
                     $enviadasDict[$key] = $val;
                 }
             }
-
             if (!isset($alertasEnviadas[$normName])) {
                 $alertasEnviadas[$normName] = [];
             }
 
-            // Calcular estado para cada clase vinculada
+            // Calcular estado para cada clase vinculada al historial
             $vinculadas = $h->ayudas_config ?? [];
             foreach ($vinculadas as $clase) {
-                if (isset($enviadasDict[$clase])) {
-                    $storedHash = $enviadasDict[$clase];
-                    $currentHash = self::computeClassHash($h->ot, $clase);
+                // Buscar el nombre canónico de la BD (Title Case) para display
+                $otMatch = $todasLasOTs->first(function($otM) use ($normName) {
+                    $label1 = self::normalizeOTName("OT " . $otM->id . ($otM->moldura ? " - " . $otM->moldura->nombre : ""));
+                    $label2 = self::normalizeOTName("OT " . $otM->id);
+                    return $label1 === $normName || $label2 === $normName;
+                });
+                $claseFisica = $otMatch ? $otMatch->clases->first(fn($c) => strtolower(trim($c->nombre)) === strtolower(trim($clase))) : null;
+                $claseKey = $claseFisica ? $claseFisica->nombre : $clase;
 
-                    if ($currentHash === "") {
-                        // Si no hay archivos (hash vacío), la marcamos como vacía para no mostrarla en la tabla
-                        $alertasEnviadas[$normName][$clase] = 'vacio';
-                    } else if ($storedHash === $currentHash) {
-                        // Hash exacto = no hubo modificaciones
-                        $alertasEnviadas[$normName][$clase] = 'enviada';
-                    } else if ($storedHash === "") {
-                        // Legacy
-                        $alertasEnviadas[$normName][$clase] = 'modificada';
-                    } else {
-                        $alertasEnviadas[$normName][$clase] = 'modificada';
+                // Buscar storedHash de forma case-insensitive
+                $storedHash = null;
+                foreach ($enviadasDict as $k => $v) {
+                    if (strtolower(trim($k)) === strtolower(trim($clase))) {
+                        $storedHash = $v;
+                        break;
                     }
-                } else {
-                    // No está en enviadas, verificamos si tiene archivos
-                    $currentHash = self::computeClassHash($h->ot, $clase);
-                    $alertasEnviadas[$normName][$clase] = ($currentHash === "") ? 'vacio' : 'pendiente';
+                }
+
+                $st = $calcularEstado(
+                    $h->ot, $clase, $claseKey, $storedHash, $claseFisica, $h
+                );
+                $alertasEnviadas[$normName][$claseKey] = $st;
+                $alertasEnviadas[$normName][strtoupper($claseKey)] = $st;
+                $alertasEnviadas[$normName][$clase] = $st;
+            }
+        }
+
+        // Procesar TODAS las OTs de la BD para detectar clases que no tienen historial aún
+        foreach ($todasLasOTs as $ot) {
+            $fullOtName = "OT " . $ot->id . ($ot->moldura ? " - " . $ot->moldura->nombre : "");
+            $normName = self::normalizeOTName($fullOtName);
+            // Buscar el historial para esta OT (para pasarle los flags)
+            $historialDeEstaOT = $historialesRaw->first(fn($hh) => self::normalizeOTName($hh->ot) === $normName);
+
+            if (!isset($alertasEnviadas[$normName])) {
+                $alertasEnviadas[$normName] = [];
+            }
+            if ($ot->clases) {
+                foreach ($ot->clases as $claseObj) {
+                    $claseKey = $claseObj->nombre;
+                    // Saltar si ya fue calculada (case-insensitive)
+                    $existingKey = null;
+                    foreach (array_keys($alertasEnviadas[$normName]) as $k) {
+                        if (strtolower(trim($k)) === strtolower(trim($claseKey))) {
+                            $existingKey = $k;
+                            break;
+                        }
+                    }
+                    if ($existingKey) {
+                        continue;
+                    }
+
+                    // Clase no procesada aún → calcular estado
+                    // Usar nombre en mayúsculas para buscar carpeta en disco
+                    $claseUppercase = strtoupper($claseKey);
+                    $st = $calcularEstado(
+                        $fullOtName, $claseUppercase, $claseKey, null, $claseObj, $historialDeEstaOT
+                    );
+                    $alertasEnviadas[$normName][$claseKey] = $st;
+                    $alertasEnviadas[$normName][strtoupper($claseKey)] = $st;
+                    $alertasEnviadas[$normName][$claseUppercase] = $st;
                 }
             }
         }
@@ -303,14 +449,14 @@ class DibujosFundicionPdfController extends Controller
             $baseDir = self::BASE_DIR . '/' . $otNorm;
             if (Storage::disk('local')->exists($baseDir)) {
                 $total += collect(Storage::disk('local')->allFiles($baseDir))
-                    ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+                    ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']))->count();
             }
 
             // 2. Dibujos en directorio legado
             $oldBaseDir = self::OLD_BASE_DIR . '/' . $otNorm;
             if (Storage::disk('local')->exists($oldBaseDir)) {
                 $total += collect(Storage::disk('local')->allFiles($oldBaseDir))
-                    ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+                    ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']))->count();
             }
 
             // 3. Ayudas Visuales vinculadas
@@ -336,7 +482,7 @@ class DibujosFundicionPdfController extends Controller
                     foreach ($candidates as $ayudaDir) {
                         if (Storage::disk('local')->exists($ayudaDir)) {
                             $total += collect(Storage::disk('local')->files($ayudaDir))
-                                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf')->count();
+                                ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']))->count();
                         }
                     }
                 }
@@ -413,13 +559,13 @@ class DibujosFundicionPdfController extends Controller
 
             // --- Buscar en Clase seleccionada ---
             if (!empty($clase)) {
-                $files = array_merge($files, glob($newClasePath . '/*.{pdf,PDF}', GLOB_BRACE) ?: []);
-                $files = array_merge($files, glob($oldClasePath . '/*.{pdf,PDF}', GLOB_BRACE) ?: []);
+                $files = array_merge($files, glob($newClasePath . '/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: []);
+                $files = array_merge($files, glob($oldClasePath . '/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: []);
             }
 
             // --- Buscar en Raíz de la OT (Archivos que no tienen clase aún) ---
-            $rootFilesNew = glob($newRootPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
-            $rootFilesOld = glob($oldRootPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $rootFilesNew = glob($newRootPath . '/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [];
+            $rootFilesOld = glob($oldRootPath . '/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [];
 
             $files = array_merge($files, $rootFilesNew, $rootFilesOld);
 
@@ -540,9 +686,13 @@ class DibujosFundicionPdfController extends Controller
         $disk = Storage::disk('local');
         $fullPath = $disk->path($foundFile);
 
+        $ext = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));
+        $mimeType = $ext === 'pdf' ? 'application/pdf' : 'application/octet-stream';
+        $disposition = $ext === 'pdf' ? 'inline' : 'attachment';
+
         return response()->file($fullPath, [
-            'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $archivo . '"',
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => $disposition . '; filename="' . basename($archivo) . '"',
         ]);
     }
 
@@ -568,10 +718,13 @@ class DibujosFundicionPdfController extends Controller
             $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
             $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
+            $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+            if (empty($claseClean)) $claseClean = 'GENERAL';
+
             if ($clase === '--') {
                 $dirPath = self::BASE_DIR . '/' . $otFolderName;
             } else {
-                $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+                $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $claseClean;
             }
 
             if (Storage::disk('local')->exists($dirPath)) {
@@ -587,20 +740,20 @@ class DibujosFundicionPdfController extends Controller
 
             // VINCULACIÓN AUTOMÁTICA: Agregar clase a ayudas_config si no existe
             $ayudas = $history->ayudas_config ?? [];
-            if (!in_array($clase, $ayudas)) {
-                $ayudas[] = $clase;
+            if ($clase !== '--' && !in_array($claseClean, $ayudas)) {
+                $ayudas[] = $claseClean;
                 $history->ayudas_config = $ayudas;
                 $history->save();
                 $this->copyToAlmacen($otFolderName); // Sincronizar inmediatamente
             }
 
-            $this->logAction('crear_carpeta', $otFolderName . '/' . $clase, "Creación de Clase con Vinculación Automática");
+            $this->logAction('crear_carpeta', $otFolderName . '/' . $claseClean, "Creación de Clase con Vinculación Automática");
 
             return response()->json([
                 'success' => true,
-                'message' => "Carpeta {$otFolderName}/{$clase} creada correctamente.",
+                'message' => "Carpeta {$otFolderName}/{$claseClean} creada correctamente.",
                 'ot' => $otFolderName,
-                'clase' => $clase,
+                'clase' => $claseClean,
             ]);
         } catch (\Exception $e) {
             Log::error("Error en DibujosFundicionPdfController@createFolder: " . $e->getMessage());
@@ -619,7 +772,7 @@ class DibujosFundicionPdfController extends Controller
         $request->validate([
             'ot_id' => 'required|exists:orden_trabajo,id',
             'clase' => 'nullable|string|max:100',
-            'pdf' => 'required|file|mimes:pdf',
+            'pdf' => 'required|file|mimes:pdf,dwg',
         ]);
 
         $otId = $request->input('ot_id');
@@ -629,10 +782,13 @@ class DibujosFundicionPdfController extends Controller
         $otFolderName = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
         $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
+        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+        if (empty($claseClean)) $claseClean = 'GENERAL';
+
         if ($clase === '--') {
             $dirPath = self::BASE_DIR . '/' . $otFolderName;
         } else {
-            $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $clase;
+            $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $claseClean;
         }
 
         if (!Storage::disk('local')->exists($dirPath)) {
@@ -643,8 +799,8 @@ class DibujosFundicionPdfController extends Controller
 
         // VINCULACIÓN AUTOMÁTICA: Si se sube a una clase, vincularla
         $ayudas = $history->ayudas_config ?? [];
-        if (!empty($clase) && $clase !== '--' && !in_array($clase, $ayudas)) {
-            $ayudas[] = $clase;
+        if (!empty($clase) && $clase !== '--' && !in_array($claseClean, $ayudas)) {
+            $ayudas[] = $claseClean;
             $history->ayudas_config = $ayudas;
             $history->save();
             $this->copyToAlmacen($otFolderName);
@@ -689,9 +845,13 @@ class DibujosFundicionPdfController extends Controller
         $request->validate([
             'ot' => 'required|string|max:200',
             'archivo' => 'nullable|string|max:300',
+            'mode' => 'nullable|string|in:reemplazar,reiniciar',
         ]);
 
         $rawOt = $request->input('ot');
+        $mode = $request->input('mode', 'reemplazar');
+        $resetFlags = ($mode === 'reiniciar');
+
         $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
         if ($otModel) {
             $otLabel = "OT " . $otModel->id . ($otModel->moldura ? " - " . $otModel->moldura->nombre : "");
@@ -702,10 +862,10 @@ class DibujosFundicionPdfController extends Controller
         $originalName = $request->input('archivo') ? $this->sanitizeFileName($request->input('archivo')) : null;
 
         try {
-            $this->sendAlertInternal($otFolderName, $originalName);
-            $descLog = $originalName ? "Envío de archivo: {$originalName}" : "Múltiples archivos";
+            $this->sendAlertInternal($otFolderName, $originalName, $resetFlags);
+            $descLog = $originalName ? "Envío de archivo ({$mode}): {$originalName}" : "Múltiples archivos ({$mode})";
             $this->logAction('enviar_alerta', $otFolderName, $descLog);
-            $msg = $originalName ? "Correo de alerta enviado para {$originalName}." : "Correo de alerta enviado para la OT {$otFolderName}.";
+            $msg = $resetFlags ? "OT {$otFolderName} reiniciada por completo y alerta enviada a Almacén." : ($originalName ? "Correo de alerta enviado para {$originalName}." : "Correo de alerta enviado para la OT {$otFolderName}.");
             return response()->json([
                 'success' => true,
                 'message' => $msg
@@ -721,21 +881,37 @@ class DibujosFundicionPdfController extends Controller
     /**
      * @param mixed $otName
      * @param mixed $fileName
+     * @param bool $resetFlags
      */
-    private function sendAlertInternal($otName, $fileName): void
+    private function sendAlertInternal($otName, $fileName, bool $resetFlags = false): void
     {
-        $historyCheck = FundicionHistory::where('ot', '=', $otName, 'and')->first();
-        $isFirstTime = $historyCheck && empty($historyCheck->clases_enviadas);
-
         // ─── 3. Enviar correo (incluyendo info de ayudas visuales) ───────────────
-        $history = FundicionHistory::where('ot', '=', $otName, 'and')->first();
-        $ayudas = $history ? ($history->ayudas_config ?? []) : [];
+        $history = FundicionHistory::firstOrCreate(['ot' => $otName]);
+        $ayudas = is_array($history->ayudas_config) ? $history->ayudas_config : [];
+
+        // Descubrir clases físicas en disco para asegurar que no se omita ninguna clase de la OT
+        $srcDir = $this->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $otName);
+        if (Storage::disk('local')->exists($srcDir)) {
+            $subdirs = Storage::disk('local')->directories($srcDir);
+            foreach ($subdirs as $sd) {
+                $bName = strtoupper(trim(basename($sd)));
+                if (!in_array(strtolower($bName), ['ayudas_visuales', 'documentos_aprobados', 'documentos_rechazados', 'preordenes', 'dwg_fundicion'])) {
+                    if (!in_array($bName, $ayudas)) {
+                        $ayudas[] = $bName;
+                    }
+                }
+            }
+        }
+
         $clasesEnviadasNuevas = [];
         $clasesAEnviar = [];
+
+        $isFirstTime = true;
 
         if ($history) {
             $history->alert_sent_at = now();
             $enviadasPrevias = is_array($history->clases_enviadas) ? $history->clases_enviadas : [];
+            $isFirstTime = empty($enviadasPrevias);
 
             // Normalizar a formato diccionario
             $enviadasDict = [];
@@ -791,8 +967,8 @@ class DibujosFundicionPdfController extends Controller
             $history->save();
         }
 
-        // Llamamos a copyToAlmacen DESPUÉS de guardar pending_almacen_changes
-        $this->copyToAlmacen($otName, $isFirstTime);
+        // Llamamos a copyToAlmacen con el resetFlags indicado (reemplazar = false, reiniciar = true)
+        $this->copyToAlmacen($otName, $resetFlags);
 
         // Si no hay clases nuevas/modificadas, podríamos abortar, pero tal vez quieran reenviar si $fileName no está vacío.
         // Si no hay cambios pero se forzó el envío, enviamos todas por defecto para no romper UX.
@@ -822,7 +998,7 @@ class DibujosFundicionPdfController extends Controller
      *
      * @param string $otName
      */
-    public static function copyToAlmacen(string $otName, bool $resetFlags = true, ?array $onlyClasses = null): void
+    public static function copyToAlmacen(string $otName, bool $resetFlags = false, ?array $onlyClasses = null): void
     {
         $otName = self::normalizeOTName($otName);
         $instance = new self();
@@ -840,7 +1016,7 @@ class DibujosFundicionPdfController extends Controller
 
             // Obtener todos los PDFs organizados por clase (subcarpetas directas de la OT)
             $srcFilesFull = collect(Storage::disk('local')->allFiles($srcDir))
-                ->filter(fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf');
+                ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']));
 
             // Mapear rutas relativas al directorio fuente de la OT
             $srcFilesRel = $srcFilesFull->map(fn($f) => str_replace(str_replace('\\', '/', $srcDir) . '/', '', str_replace('\\', '/', $f)))->toArray();
@@ -854,7 +1030,7 @@ class DibujosFundicionPdfController extends Controller
                         && !str_starts_with($rel, 'ayudas_visuales/')
                         && !str_starts_with($rel, 'Documentos_Aprobados/')
                         && !str_starts_with($rel, 'Documentos_Rechazados/')
-                        && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
+                        && in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
                 });
 
             $dstFilesRel = $dstFilesFull->map(fn($f) => str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f)))->toArray();
@@ -909,10 +1085,17 @@ class DibujosFundicionPdfController extends Controller
                         if (!$claseMatch) continue;
                     }
 
-                    if (in_array($clase, $pendingChanges))
+                    $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+                    if (empty($claseClean)) $claseClean = 'GENERAL';
+
+                    if (in_array($claseClean, $pendingChanges))
                         continue; // IGNORAR SI LA CLASE TIENE CAMBIOS PENDIENTES
-                    // Nueva ruta: {Clase}/Dibujos/{archivo}
-                    $dstPath = $dstDir . '/' . $clase . '/' . FundicionPaths::DIBUJOS . '/' . $archivo;
+                    
+                    if (str_ends_with(strtolower($archivo), '.dwg')) {
+                        $dstPath = $dstDir . '/' . $claseClean . '/' . FundicionPaths::DIBUJOS . '/' . FundicionPaths::DWG_FUNDICION . '/' . $archivo;
+                    } else {
+                        $dstPath = $dstDir . '/' . $claseClean . '/' . FundicionPaths::DIBUJOS . '/' . $archivo;
+                    }
                 } else {
                     // Archivo en raíz de la OT (sin clase) → lo dejamos tal cual
                     $dstPath = $dstDir . '/' . $sfRel;
@@ -950,11 +1133,14 @@ class DibujosFundicionPdfController extends Controller
                     if (!$claseMatch) continue;
                 }
 
-                if (in_array($clase, $pendingChanges))
+                $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+                if (empty($claseClean)) $claseClean = 'GENERAL';
+
+                if (in_array($claseClean, $pendingChanges))
                     continue; // IGNORAR SI LA CLASE TIENE CAMBIOS PENDIENTES
 
                 // Nueva ruta de destino: {OT}/{Clase}/Ayudas_Visuales/
-                $claseDstDir = $dstDir . '/' . $clase . '/' . FundicionPaths::AYUDAS_VISUALES;
+                $claseDstDir = $dstDir . '/' . $claseClean . '/' . FundicionPaths::AYUDAS_VISUALES;
                 if (!Storage::disk('local')->exists($claseDstDir)) {
                     Storage::disk('local')->makeDirectory($claseDstDir);
                 }
@@ -971,7 +1157,7 @@ class DibujosFundicionPdfController extends Controller
                         if (Storage::disk('local')->exists($srcClaseDir)) {
                             $fList = Storage::disk('local')->files($srcClaseDir);
                             foreach ($fList as $f) {
-                                if (strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf') {
+                                if (in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg'])) {
                                     $masterFiles[basename($f)] = $f;
                                 }
                             }
@@ -986,7 +1172,7 @@ class DibujosFundicionPdfController extends Controller
                     if (!isset($masterFiles[$fa])) {
                         Storage::disk('local')->delete($claseDstDir . '/' . $fa);
                         $calidadDir = self::CALIDAD_DIR . '/' . $otName;
-                        $calidadAyudaDst = $calidadDir . '/' . $clase . '/' . FundicionPaths::AYUDAS_VISUALES . '/' . $fa;
+                        $calidadAyudaDst = $calidadDir . '/' . $claseClean . '/' . FundicionPaths::AYUDAS_VISUALES . '/' . $fa;
                         Storage::disk('local')->delete($calidadAyudaDst);
                     }
                 }
@@ -1013,7 +1199,7 @@ class DibujosFundicionPdfController extends Controller
                         && !str_starts_with($rel, 'ayudas_visuales/')
                         && !str_starts_with($rel, 'Documentos_Aprobados/')
                         && !str_starts_with($rel, 'Documentos_Rechazados/')
-                        && strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf';
+                        && in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
                 })
                 ->map(fn($f) => str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f)))
                 ->values()
@@ -1023,7 +1209,7 @@ class DibujosFundicionPdfController extends Controller
         // 4. Limpiar los registros antiguos de Almacén y Calidad si se indica
         // Esto garantiza que al reiniciar el proceso se empiece desde 0 (borrón y cuenta nueva)
         if ($resetFlags) {
-            $baseOtName = preg_replace('/_R\d+$/i', '', $otName);
+            $baseOtName = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $otName);
 
             \App\Models\PreOrdenFundicion::query()
                 ->where('ot', '=', $otName)
@@ -1266,8 +1452,11 @@ class DibujosFundicionPdfController extends Controller
         $otNorm = $this->normalizeOTName($ot);
         $clase = $this->sanitizePath($request->input('clase'));
 
-        $dirPath = self::BASE_DIR . '/' . $otNorm . '/' . $clase;
-        $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm . '/' . $clase;
+        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+        if (empty($claseClean)) $claseClean = 'GENERAL';
+
+        $dirPath = self::BASE_DIR . '/' . $otNorm . '/' . $claseClean;
+        $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm . '/' . $claseClean;
 
         $existsBase = Storage::disk('local')->exists($dirPath);
         $existsOld = Storage::disk('local')->exists($oldDirPath);
@@ -1283,14 +1472,14 @@ class DibujosFundicionPdfController extends Controller
             Storage::disk('local')->deleteDirectory($oldDirPath);
         }
 
-        $this->logAction('eliminar_carpeta', $otNorm . '/' . $clase, 'Eliminación de Clase');
+        $this->logAction('eliminar_carpeta', $otNorm . '/' . $claseClean, 'Eliminación de Clase');
 
         // Sincronizar con histórico (eliminar vinculación si existe)
         $history = FundicionHistory::where('ot', '=', $otNorm, 'and')->first();
         if ($history) {
             $ayudas = $history->ayudas_config ?? [];
-            if (in_array($clase, $ayudas)) {
-                $ayudas = array_values(array_filter($ayudas, fn($a) => $a !== $clase));
+            if (in_array($claseClean, $ayudas)) {
+                $ayudas = array_values(array_filter($ayudas, fn($a) => $a !== $claseClean));
                 $history->update(['ayudas_config' => $ayudas]);
                 $this->copyToAlmacen($otNorm);
             }
@@ -1309,85 +1498,146 @@ class DibujosFundicionPdfController extends Controller
     {
         $request->validate(['ot' => 'required|string|max:200']);
         $ot = $this->sanitizePath($request->input('ot'));
-        $otNorm = $this->normalizeOTName($ot);
-
+        
+        $otNorm = self::normalizeOTName($ot);
         $dirPath = self::BASE_DIR . '/' . $otNorm;
         $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm;
 
-        $existsBase = Storage::disk('local')->exists($dirPath);
-        $existsOld = Storage::disk('local')->exists($oldDirPath);
-
-        if (!$existsBase && !$existsOld) {
+        if (!Storage::disk('local')->exists($dirPath) && !Storage::disk('local')->exists($oldDirPath)) {
             return response()->json(['success' => false, 'message' => 'La carpeta no existe.'], 404);
         }
 
-        // 1. Eliminar carpetas de trabajo físicas en Ingeniería
-        if ($existsBase) {
-            Storage::disk('local')->deleteDirectory($dirPath);
-        }
-        if ($existsOld) {
-            Storage::disk('local')->deleteDirectory($oldDirPath);
-        }
-
-        // 2. Renombrar la carpeta en Almacén en vez de eliminarla para guardar precedentes
-        $timestamp = date('_Ymd_His_del');
-        $almacenPath = self::ALMACEN_DIR . '/' . $otNorm;
-        if (Storage::disk('local')->exists($almacenPath)) {
-            Storage::disk('local')->move($almacenPath, $almacenPath . $timestamp);
-        }
-
-        $this->logAction('eliminar_carpeta', $otNorm, 'Eliminación de Directorio Raíz OT (Conservando Almacén como precedente)');
-
-        // 3. Respaldar registros de historial, pre-orden y liberación renombrando el OT para liberar el original
-        FundicionHistory::where('ot', '=', $otNorm, 'and')
-            ->update([
-                'ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')"),
-                'status' => 'inactiva'
-                // Se conserva almacen_archivos intacto para el registro de archivos
-            ]);
-        \App\Models\PreOrdenFundicion::where('ot', '=', $otNorm, 'and')
-            ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')")]);
-        \App\Models\LiberacionModeloFundicion::where('ot', '=', $otNorm, 'and')
-            ->update(['ot' => \Illuminate\Support\Facades\DB::raw("CONCAT(ot, '{$timestamp}')")]);
-
-        // Si es la OT Original (sin R1, R2, etc.), también desactivamos y renombrarmos todos sus reprocesos
-        $isOriginal = !preg_match('/_R\d+$/i', $otNorm);
-        if ($isOriginal) {
-            $reprocessHistories = FundicionHistory::where('ot', 'LIKE', $otNorm . '_R%', 'and')->get();
-            foreach ($reprocessHistories as $rh) {
-                // Eliminar físicamente los directorios de los reprocesos en Ingeniería
-                $rDirPath = self::BASE_DIR . '/' . $rh->ot;
-                $rOldDirPath = self::OLD_BASE_DIR . '/' . $rh->ot;
-
-                if (Storage::disk('local')->exists($rDirPath)) {
-                    Storage::disk('local')->deleteDirectory($rDirPath);
-                }
-                if (Storage::disk('local')->exists($rOldDirPath)) {
-                    Storage::disk('local')->deleteDirectory($rOldDirPath);
-                }
-
-                // Renombrar copia en Almacén del reproceso en vez de eliminarla
-                $rAlmacenPath = self::ALMACEN_DIR . '/' . $rh->ot;
-                if (Storage::disk('local')->exists($rAlmacenPath)) {
-                    Storage::disk('local')->move($rAlmacenPath, $rAlmacenPath . $timestamp);
-                }
-
-                FundicionHistory::where('id', '=', $rh->id, 'and')->update([
-                    'ot' => $rh->ot . $timestamp,
-                    'status' => 'inactiva'
-                    // Se conserva almacen_archivos intacto
-                ]);
-                \App\Models\PreOrdenFundicion::where('ot', '=', $rh->ot, 'and')
-                    ->update(['ot' => $rh->ot . $timestamp]);
-                \App\Models\LiberacionModeloFundicion::where('ot', '=', $rh->ot, 'and')
-                    ->update(['ot' => $rh->ot . $timestamp]);
-            }
-        }
+        self::deactivateOtAndArchive($ot);
 
         return response()->json([
             'success' => true,
             'message' => "Directorio raíz '{$ot}' eliminado correctamente.",
         ]);
+    }
+
+    /**
+     * Inactiva la OT y archiva físicamente sus directorios.
+     *
+     * @param string $ot
+     * @return bool
+     */
+    public static function deactivateOtAndArchive(string $ot): bool
+    {
+        $otNorm = self::normalizeOTName($ot);
+
+        $dirPath    = self::BASE_DIR . '/' . $otNorm;
+        $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm;
+
+        // ─────────────────────────────────────────────────────────────────────
+        // 1. Archivar EN UNA SOLA CARPETA INACTIVAS al nivel de DOCUMENTACION_GIS
+        //    Estructura: DOCUMENTACION_GIS/INACTIVAS/{OT}_{timestamp}/
+        //                    INGENIERIA/        <- viene de DIBUJOS_FUNDICION
+        //                    INGENIERIA_LEGACY/ <- viene de FUNDICION_GIS (legacy)
+        //                    ALMACEN/           <- viene de ALMACEN_FUNDICION
+        //                    CALIDAD/           <- viene de CALIDAD_FUNDICION
+        // ─────────────────────────────────────────────────────────────────────
+        $timestamp     = date('_Ymd_His') . '_del';
+        $inactivasRoot = 'DOCUMENTACION_GIS/INACTIVAS';
+
+        // Helper: copia todos los archivos de $source a $dest/{subdir}/ y luego
+        //         elimina el directorio origen.
+        $archiveToInactivas = function (string $source, string $otArchiveDir, string $subdir): void {
+            if (!Storage::disk('local')->exists($source)) {
+                return;
+            }
+            $dest = $otArchiveDir . '/' . $subdir;
+            if (!Storage::disk('local')->exists($dest)) {
+                Storage::disk('local')->makeDirectory($dest);
+            }
+            foreach (Storage::disk('local')->allFiles($source) as $file) {
+                $relPath    = ltrim(str_replace(str_replace('\\', '/', $source), '', str_replace('\\', '/', $file)), '/');
+                $targetPath = $dest . '/' . $relPath;
+                $targetDir  = dirname($targetPath);
+                if (!Storage::disk('local')->exists($targetDir)) {
+                    Storage::disk('local')->makeDirectory($targetDir);
+                }
+                Storage::disk('local')->copy($file, $targetPath);
+            }
+            Storage::disk('local')->deleteDirectory($source);
+        };
+
+        // Crear carpeta raíz de inactivas si no existe
+        if (!Storage::disk('local')->exists($inactivasRoot)) {
+            Storage::disk('local')->makeDirectory($inactivasRoot);
+        }
+
+        $otArchiveDir = $inactivasRoot . '/' . $otNorm . $timestamp;
+
+        $archiveToInactivas($dirPath,                                          $otArchiveDir, 'INGENIERIA');
+        $archiveToInactivas($oldDirPath,                                       $otArchiveDir, 'INGENIERIA_LEGACY');
+        $archiveToInactivas(self::ALMACEN_DIR . '/' . $otNorm,                $otArchiveDir, 'ALMACEN');
+        $archiveToInactivas('DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNorm, $otArchiveDir, 'CALIDAD');
+        $archiveToInactivas('DOCUMENTACION_GIS/Fundicion_Calidad/' . $otNorm, $otArchiveDir, 'CALIDAD_LEGACY');
+
+        // Limpiar subcarpetas INACTIVAS en Almacén y Dibujos si existían de ejecuciones pasadas
+        $legacySubDirs = [
+            'DOCUMENTACION_GIS/DIBUJOS_FUNDICION/INACTIVAS',
+            'DOCUMENTACION_GIS/ALMACEN_FUNDICION/INACTIVAS',
+            'DOCUMENTACION_GIS/CALIDAD_FUNDICION/INACTIVAS',
+        ];
+        foreach ($legacySubDirs as $lsd) {
+            if (Storage::disk('local')->exists($lsd)) {
+                Storage::disk('local')->deleteDirectory($lsd);
+            }
+        }
+
+        self::logActionStatic('eliminar_carpeta', $otNorm, 'OT archivada en INACTIVAS: ' . $otArchiveDir);
+
+        // ─────────────────────────────────────────────────────────────────────
+        // 2. Eliminar completamente registros en BD (Almacén y Calidad)
+        // ─────────────────────────────────────────────────────────────────────
+        $baseOtClean = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $otNorm);
+
+        $otsToDelete = [$otNorm, $baseOtClean];
+
+        // ─────────────────────────────────────────────────────────────────────
+        // 3. Eliminar físicamente y en BD la OT original y todos sus reprocesos
+        // ─────────────────────────────────────────────────────────────────────
+        $reprocessHistories = FundicionHistory::where(function ($q) use ($otNorm, $baseOtClean) {
+            $q->where('ot', '=', $otNorm)
+                ->orWhere('ot', 'LIKE', $baseOtClean . '_%_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%')
+                ->orWhere('ot', 'LIKE', $otNorm . '%_del')
+                ->orWhere('ot', 'LIKE', $baseOtClean . '%_del');
+        })->get();
+
+        foreach ($reprocessHistories as $rh) {
+            $otsToDelete[] = $rh->ot;
+            $rTimestamp   = date('_Ymd_His') . '_del';
+            $rArchiveDir  = $inactivasRoot . '/' . $rh->ot . $rTimestamp;
+
+            $archiveToInactivas(self::BASE_DIR    . '/' . $rh->ot,                          $rArchiveDir, 'INGENIERIA');
+            $archiveToInactivas(self::OLD_BASE_DIR . '/' . $rh->ot,                         $rArchiveDir, 'INGENIERIA_LEGACY');
+            $archiveToInactivas(self::ALMACEN_DIR  . '/' . $rh->ot,                         $rArchiveDir, 'ALMACEN');
+            $archiveToInactivas('DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $rh->ot,           $rArchiveDir, 'CALIDAD');
+            $archiveToInactivas('DOCUMENTACION_GIS/Fundicion_Calidad/' . $rh->ot,           $rArchiveDir, 'CALIDAD_LEGACY');
+        }
+
+        $otsToDelete = array_values(array_unique(array_filter($otsToDelete)));
+
+        foreach ($otsToDelete as $otTarget) {
+            FundicionHistory::where('ot', '=', $otTarget)->orWhere('ot', 'LIKE', $otTarget . '%_del')->delete();
+            \App\Models\PreOrdenFundicion::where('ot', '=', $otTarget)->orWhere('ot', 'LIKE', $otTarget . '%_del')->delete();
+            \App\Models\LiberacionModeloFundicion::where('ot', '=', $otTarget)->orWhere('ot', 'LIKE', $otTarget . '%_del')->delete();
+            \App\Models\ScarModelo::where('ot', '=', $otTarget)->orWhere('ot', 'LIKE', $otTarget . '%_del')->delete();
+            \App\Models\PreOrdenLog::where('ot', '=', $otTarget)->orWhere('ot', 'LIKE', $otTarget . '%_del')->delete();
+            \App\Models\RechazoLog::where('ot', '=', $otTarget)->orWhere('ot', 'LIKE', $otTarget . '%_del')->delete();
+        }
+
+        // Limpiar también cualquier registro huérfano con status 'inactiva' o '_del' en BD
+        FundicionHistory::where('status', '=', 'inactiva')->orWhere('ot', 'LIKE', '%_del%')->delete();
+        \App\Models\PreOrdenFundicion::where('ot', 'LIKE', '%_del%')->delete();
+        \App\Models\LiberacionModeloFundicion::where('ot', 'LIKE', '%_del%')->delete();
+        \App\Models\ScarModelo::where('ot', 'LIKE', '%_del%')->delete();
+
+        return true;
+
+        return true;
     }
 
     /**
@@ -1399,7 +1649,7 @@ class DibujosFundicionPdfController extends Controller
             'ot' => 'required|string|max:200',
             'clase' => 'nullable|string|max:100',
             'archivo_anterior' => 'required|string|max:300',
-            'pdf' => 'required|file|mimes:pdf',
+            'pdf' => 'required|file|mimes:pdf,dwg',
         ]);
 
         $ot = $this->sanitizePath($request->input('ot'));
@@ -1549,7 +1799,12 @@ class DibujosFundicionPdfController extends Controller
                 $otDirs = glob($basePath . '/*', GLOB_ONLYDIR);
                 if ($otDirs) {
                     foreach ($otDirs as $otDir) {
-                        $otName = $this->toUtf8($this->normalizeOTName(basename($otDir)));
+                        $folderBaseName = basename($otDir);
+                        if (strtoupper(trim($folderBaseName)) === 'INACTIVAS') {
+                            continue;
+                        }
+
+                        $otName = $this->toUtf8($this->normalizeOTName($folderBaseName));
 
                         $clases = [];
 
@@ -1585,6 +1840,11 @@ class DibujosFundicionPdfController extends Controller
      * @param string|null $archivo
      */
     private function logAction(string $action, string $ruta, ?string $archivo): void
+    {
+        self::logActionStatic($action, $ruta, $archivo);
+    }
+
+    public static function logActionStatic(string $action, string $ruta, ?string $archivo): void
     {
         $user = Auth::user();
         $userName = null;
@@ -1773,15 +2033,18 @@ class DibujosFundicionPdfController extends Controller
         foreach ($dirsToScan as $dir) {
             if ($dir && Storage::disk('local')->exists($dir)) {
                 $absDir = Storage::disk('local')->path($dir);
-                // Usar glob para los PDF en el directorio principal y en un nivel de subdirectorios
-                $pdfs = glob($absDir . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
-                $subPdfs = glob($absDir . '/*/*.{pdf,PDF}', GLOB_BRACE) ?: [];
-                $allPdfs = array_merge($pdfs, $subPdfs);
+                // Escanear archivos PDF y DWG en el directorio de la clase y subdirectorios (ej: DWG_FUNDICION)
+                $files1 = glob($absDir . '/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [];
+                $files2 = glob($absDir . '/*/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [];
+                $files3 = glob($absDir . '/*/*/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [];
+                $allFiles = array_merge($files1, $files2, $files3);
 
-                foreach ($allPdfs as $f) {
+                foreach ($allFiles as $f) {
+                    if (!is_file($f))
+                        continue;
                     $size = filesize($f);
                     $mtime = filemtime($f);
-                    $name = basename($f);
+                    $name = strtolower(basename($f));
 
                     // Combinamos Nombre + Tamaño en Bytes + Fecha de Modificación
                     $filesData[] = "{$name}_{$size}_{$mtime}";
@@ -1790,6 +2053,35 @@ class DibujosFundicionPdfController extends Controller
         }
 
         sort($filesData);
-        return empty($filesData) ? "" : md5(implode('|', $filesData));
+        return empty($filesData) ? "" : md5(implode('|', array_unique($filesData)));
+    }
+
+    public static function isFileModifiedAfter(string $otName, string $claseName, int $limitTime): bool
+    {
+        $otNorm = self::normalizeOTName($otName);
+        $instance = new self();
+        $dirsToScan = [
+            $instance->resolveCaseInsensitivePath(self::BASE_DIR . '/' . $otNorm . '/' . $claseName),
+            $instance->resolveCaseInsensitivePath(self::OLD_BASE_DIR . '/' . $otNorm . '/' . $claseName)
+        ];
+
+        foreach ($dirsToScan as $dir) {
+            if ($dir && Storage::disk('local')->exists($dir)) {
+                $absDir = Storage::disk('local')->path($dir);
+                $allFiles = array_merge(
+                    glob($absDir . '/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [],
+                    glob($absDir . '/*/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: [],
+                    glob($absDir . '/*/*/*.{pdf,PDF,dwg,DWG}', GLOB_BRACE) ?: []
+                );
+                foreach ($allFiles as $f) {
+                    if (is_file($f)) {
+                        if (filemtime($f) > $limitTime) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 }

@@ -521,19 +521,24 @@ class WOController extends Controller
                 if ($isOriginal) {
                     $histories = FundicionHistory::query()
                         ->where('ot', 'LIKE', "OT {$idWOrder}%", 'and')
+                        ->where('ot', 'NOT LIKE', '%_del%', 'and')
+                        ->where('status', '!=', 'inactiva')
                         ->get();
                     foreach ($histories as $history) {
                         $pattern = '/^OT\s*' . preg_quote($idWOrder, '/') . '(?:\b|_R\d+|$)/i';
                         if (preg_match($pattern, $history->ot)) {
                             // Sincronizar y copiar dibujos a la carpeta protegida de Almacén antes de inactivar
                             DibujosFundicionPdfController::copyToAlmacen($history->ot);
-                            $history->update(['status' => 'inactiva']);
+                            // Archivar físicamente e inactivar registros en BD
+                            DibujosFundicionPdfController::deactivateOtAndArchive($history->ot);
                         }
                     }
                 } else {
-                    $baseId = preg_replace('/_R\d+$/i', '', $idWOrder);
+                    $baseId = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $idWOrder);
                     $histories = FundicionHistory::query()
                         ->where('ot', 'LIKE', "OT {$baseId}%", 'and')
+                        ->where('ot', 'NOT LIKE', '%_del%', 'and')
+                        ->where('status', '!=', 'inactiva')
                         ->get();
                     foreach ($histories as $history) {
                         preg_match('/_R\d+$/i', $idWOrder, $suffixMatch);
@@ -541,7 +546,8 @@ class WOController extends Controller
                         if (!empty($suffix) && str_contains($history->ot, $suffix)) {
                             // Sincronizar y copiar dibujos a la carpeta protegida de Almacén antes de inactivar
                             DibujosFundicionPdfController::copyToAlmacen($history->ot);
-                            $history->update(['status' => 'inactiva']);
+                            // Archivar físicamente e inactivar registros en BD
+                            DibujosFundicionPdfController::deactivateOtAndArchive($history->ot);
                         }
                     }
                 }

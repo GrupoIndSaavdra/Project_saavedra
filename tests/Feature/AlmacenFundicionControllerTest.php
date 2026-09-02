@@ -475,13 +475,17 @@ class AlmacenFundicionControllerTest extends TestCase
         FundicionHistory::create([
             'ot' => $ot,
             'tiene_modelo' => true,
-            'status' => 'activa'
+            'status' => 'activa',
+            'ayudas_config' => ['Fondo', 'Obturador'],
+            'clases_enviadas' => ['Fondo' => 'hash', 'Obturador' => 'hash']
         ]);
 
         FundicionHistory::create([
             'ot' => $otR1,
             'tiene_modelo' => true,
-            'status' => 'activa'
+            'status' => 'activa',
+            'ayudas_config' => ['Fondo', 'Obturador'],
+            'clases_enviadas' => ['Fondo' => 'hash', 'Obturador' => 'hash']
         ]);
 
         // 2. Create model pre-order for _R1, which only has 'Obturador' active
@@ -680,7 +684,8 @@ class AlmacenFundicionControllerTest extends TestCase
             'pre_orden_email_sent' => false,
             'status' => 'activa',
             'alert_sent_at' => now(),
-            'ayudas_config' => ['bombillo']
+            'ayudas_config' => ['bombillo'],
+            'clases_enviadas' => ['bombillo' => 'hash']
         ]);
 
         $response = $this->get(route('almacen.fundicion.index'));
@@ -723,10 +728,10 @@ class AlmacenFundicionControllerTest extends TestCase
         $newBaseDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $folderNameNew;
 
         // Create base files in fake storage
-        Storage::disk('local')->put($originalBaseDir . '/bombillo/Dibujos/Bombillo_dibujo.pdf', 'bombillo drawing pdf');
-        Storage::disk('local')->put($originalBaseDir . '/fondo/Dibujos/Fondo_dibujo.pdf', 'fondo drawing pdf');
-        Storage::disk('local')->put($originalBaseDir . '/bombillo/Ayudas_Visuales/Bombillo_ayuda.pdf', 'bombillo visual aid pdf');
-        Storage::disk('local')->put($originalBaseDir . '/fondo/Ayudas_Visuales/Fondo_ayuda.pdf', 'fondo visual aid pdf');
+        Storage::disk('local')->put($originalBaseDir . '/bombillo/DIBUJOS_FUNDICION/Bombillo_dibujo.pdf', 'bombillo drawing pdf');
+        Storage::disk('local')->put($originalBaseDir . '/fondo/DIBUJOS_FUNDICION/Fondo_dibujo.pdf', 'fondo drawing pdf');
+        Storage::disk('local')->put($originalBaseDir . '/bombillo/AYUDAS_VISUALES_FUNDICION/Bombillo_ayuda.pdf', 'bombillo visual aid pdf');
+        Storage::disk('local')->put($originalBaseDir . '/fondo/AYUDAS_VISUALES_FUNDICION/Fondo_ayuda.pdf', 'fondo visual aid pdf');
         Storage::disk('local')->put($originalBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Fundicion-MOD-1234_OT_2102.pdf', 'pre-orden fundicion model pdf');
         Storage::disk('local')->put($originalBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Casting-MOD-1234_OT_2102.pdf', 'pre-orden casting pdf');
         Storage::disk('local')->put($originalBaseDir . '/Documentos_Aprobados/FDLDM/F-CCL-LDM_FONDO_APROBADO.pdf', 'approved ldm pdf');
@@ -803,25 +808,26 @@ class AlmacenFundicionControllerTest extends TestCase
 
         // Check file copies in the new OT (_R1) folder
         // 1. Bombillo drawings and visual aids SHOULD be copied (as they belong to the rejected class 'bombillo')
-        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/bombillo/Dibujos/Bombillo_dibujo.pdf'));
-        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/bombillo/Ayudas_Visuales/Bombillo_ayuda.pdf'));
+        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/BOMBILLO/DIBUJOS_FUNDICION/Bombillo_dibujo.pdf'));
+        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/BOMBILLO/AYUDAS_VISUALES_FUNDICION/Bombillo_ayuda.pdf'));
 
         // 2. Fondo drawings and visual aids SHOULD NOT be copied (class 'fondo' was not rejected)
-        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/fondo/Dibujos/Fondo_dibujo.pdf'));
-        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/fondo/Ayudas_Visuales/Fondo_ayuda.pdf'));
+        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/FONDO/DIBUJOS_FUNDICION/Fondo_dibujo.pdf'));
+        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/FONDO/AYUDAS_VISUALES_FUNDICION/Fondo_ayuda.pdf'));
 
-        // 3. Rejected files matching class 'bombillo' SHOULD be copied
-        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/Documentos_Rechazados/FDRDM/Rechazo_BOMBILLO_OT-REPROCESO-COPY-TEST.pdf'));
+        // 3. New Pre-Order generated for the rejected class SHOULD exist
+        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/BOMBILLO/PREORDENES/F_ALM_PFM_Bombillo.pdf'));
 
-        // 4. Rejected files matching class 'fondo' SHOULD NOT be copied
-        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/Documentos_Rechazados/FDRDM/Rechazo_FONDO_OT-REPROCESO-COPY-TEST.pdf'));
+        // 4. Pre-Order for the non-rejected class SHOULD NOT exist
+        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/FONDO/PREORDENES/F_ALM_PFM_Fondo.pdf'));
 
-        // 5. Approved files: first pre-order (starts with Pre-Orden_Fundicion-) SHOULD be copied
-        $this->assertTrue(Storage::disk('local')->exists($newBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Fundicion-MOD-1234_OT_2102.pdf'));
-
-        // 6. Approved files: casting pre-order (starts with Pre-Orden_Casting-) and other files (like FDLDM approval) SHOULD NOT be copied
-        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/Documentos_Aprobados/preordenes/Pre-Orden_Casting-MOD-1234_OT_2102.pdf'));
-        $this->assertFalse(Storage::disk('local')->exists($newBaseDir . '/Documentos_Aprobados/FDLDM/F-CCL-LDM_FONDO_APROBADO.pdf'));
+        // 5. Verify that the new history record has the correct mapped paths in `almacen_archivos`
+        $newHistory = FundicionHistory::where('ot', 'LIKE', $otBase . '%_R1')->first();
+        $this->assertNotNull($newHistory);
+        $this->assertContains(
+            'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $newHistory->ot . '/BOMBILLO/DIBUJOS_FUNDICION/Bombillo_dibujo.pdf',
+            $newHistory->almacen_archivos
+        );
     }
 
     public function test_get_files_with_todo_parameter_returns_all_files_ignoring_active_class_filters()
@@ -832,10 +838,15 @@ class AlmacenFundicionControllerTest extends TestCase
         $ot = 'OT-TODO-TEST';
 
         // Create history records
+        // Note: ayudas_config must include the clases_enviadas keys,
+        // because the FundicionHistory booted() hook clears clases_enviadas
+        // for classes not present in ayudas_config.
         FundicionHistory::create([
             'ot' => $ot,
             'tiene_modelo' => true,
-            'status' => 'activa'
+            'status' => 'activa',
+            'ayudas_config' => ['Fondo', 'Obturador'],
+            'clases_enviadas' => ['Fondo' => 'hash', 'Obturador' => 'hash'],
         ]);
 
         // Create approved liberacion record for Fondo class
@@ -858,23 +869,24 @@ class AlmacenFundicionControllerTest extends TestCase
         $baseAlmacenDir = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot;
 
         // Fondo drawing (approved class)
-        Storage::disk('local')->put($baseAlmacenDir . '/Fondo/Dibujos/Fondo_dibujo.pdf', 'dummy content');
+        Storage::disk('local')->put($baseAlmacenDir . '/Fondo/DIBUJOS_FUNDICION/Fondo_dibujo.pdf', 'dummy content');
         // Obturador drawing (rejected class)
-        Storage::disk('local')->put($baseAlmacenDir . '/Obturador/Dibujos/Obturador_dibujo.pdf', 'dummy content');
+        Storage::disk('local')->put($baseAlmacenDir . '/Obturador/DIBUJOS_FUNDICION/Obturador_dibujo.pdf', 'dummy content');
 
         // Request files without todo parameter (should only return Fondo, the approved class)
         $response1 = $this->getJson(route('almacen.fundicion.archivos', ['ot' => $ot]));
+
         $response1->assertStatus(200);
         $fileNames1 = array_column($response1->json('archivos'), 'nombre');
-        $this->assertTrue(in_array('Fondo/Dibujos/Fondo_dibujo.pdf', $fileNames1));
-        $this->assertFalse(in_array('Obturador/Dibujos/Obturador_dibujo.pdf', $fileNames1));
+        $this->assertTrue(in_array('Fondo/DIBUJOS_FUNDICION/Fondo_dibujo.pdf', $fileNames1));
+        $this->assertFalse(in_array('Obturador/DIBUJOS_FUNDICION/Obturador_dibujo.pdf', $fileNames1));
 
         // Request files with todo=1 parameter (should return both Fondo and Obturador)
         $response2 = $this->getJson(route('almacen.fundicion.archivos', ['ot' => $ot, 'todo' => '1']));
         $response2->assertStatus(200);
         $fileNames2 = array_column($response2->json('archivos'), 'nombre');
-        $this->assertTrue(in_array('Fondo/Dibujos/Fondo_dibujo.pdf', $fileNames2));
-        $this->assertTrue(in_array('Obturador/Dibujos/Obturador_dibujo.pdf', $fileNames2));
+        $this->assertTrue(in_array('Fondo/DIBUJOS_FUNDICION/Fondo_dibujo.pdf', $fileNames2));
+        $this->assertTrue(in_array('Obturador/DIBUJOS_FUNDICION/Obturador_dibujo.pdf', $fileNames2));
     }
 
     public function test_uploaded_file_name_sanitization()
@@ -913,13 +925,13 @@ class AlmacenFundicionControllerTest extends TestCase
 
         // Verify that the file name is sanitized on disk and can be served
         $sanitizedName = 'Escaneado_Fundicion-DOCUMENTO _1_ - COPIA.pdf';
-        $fullPath = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/Documentos_Aprobados/Preorden_Modelo/' . $sanitizedName;
+        $fullPath = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/GENERAL/PREORDENES/' . $sanitizedName;
         $this->assertTrue(Storage::disk('local')->exists($fullPath));
 
         // Verify we can serve it without 404
         $serveResponse = $this->get(route('almacen.fundicion.serve', [
             'ot' => $ot,
-            'archivo' => 'Documentos_Aprobados/Preorden_Modelo/' . $sanitizedName,
+            'archivo' => 'GENERAL/PREORDENES/' . $sanitizedName,
             'tipo' => 'otro',
             'origin' => 'aprobado'
         ]));
@@ -1052,5 +1064,62 @@ class AlmacenFundicionControllerTest extends TestCase
             }
             Storage::disk('local')->deleteDirectory('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $folderName);
         }
+    }
+
+    public function test_store_pre_orden_reproceso_with_class_suffix_validates_scar_on_base_ot()
+    {
+        $user = User::factory()->create(['perfil' => '5']); // Almacen profile
+        $this->actingAs($user);
+
+        $baseOt = 'OT 99999 - UNIQUE_TEST_OT';
+        $otRaw = 'OT 99999 - UNIQUE_TEST_OT_Bombillo_R1';
+
+        // Create the base OT SCAR
+        ScarModelo::create([
+            'ot' => $baseOt,
+            'tipo_modelo' => 'Bombillo',
+            'decision' => 'rechazar',
+            'estado' => 'guardado',
+            'no_scar' => 'SCAR-0001'
+        ]);
+
+        // Create the history record for the reproceso
+        $history = FundicionHistory::create([
+            'ot' => $otRaw,
+            'tiene_modelo' => false,
+            'status' => 'activa'
+        ]);
+
+        // Call storePreOrden
+        $response = $this->postJson(route('almacen.fundicion.storePreOrden'), [
+            'ot' => $otRaw,
+            'ot_raw' => $otRaw,
+            'tipo' => 'modelo', // pre-orden de modelo
+            'proveedor' => 'SS Metal Foundry, S. de R. L. de C. V.',
+            'fecha_creacion' => '2026-08-31',
+            'folio' => 'MOD-2026-0001',
+            'moldura' => 'ESPOLON 75 CL IS6180',
+            'fecha_entrega' => '2026-06-20',
+            'filas' => [
+                [
+                    'codigo_modelo' => 'MOD-123',
+                    'tipo_modelo' => 'Bombillo',
+                    'cantidad' => 1,
+                    'clase_nombre' => 'Bombillo',
+                    'clase' => 'Bombillo',
+                    'impresiones' => '1'
+                ]
+            ]
+        ]);
+
+        // Assert validation succeeds and returns JSON with success = true
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringContainsString('%PDF-', $response->getContent());
+        
+        // Clean up DB records
+        $history->delete();
+        ScarModelo::where('ot', '=', $baseOt, 'and')->delete();
+        PreOrdenFundicion::where('ot', '=', $otRaw, 'and')->delete();
     }
 }

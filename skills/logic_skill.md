@@ -514,5 +514,11 @@ Schema::table('piezas', function (Blueprint $table) {
 });
 ```
 
+---
+
+## 17. Compatibilidad de Firmas en Controladores (Type Hinting de Requests)
+
+Cuando llames a métodos de controladores desde scripts externos, comandos Artisan personalizados o código de depuración (ej. `scratch_list_files.php`), recuerda que los métodos que procesan peticiones HTTP esperan una instancia de `Illuminate\Http\Request` como primer argumento. Pasar un string simple en lugar de un objeto `Request` lanzará un error fatal de PHP (`TypeError`). Si necesitas invocar el método manualmente, crea una instancia ficticia de Request usando `Illuminate\Http\Request::create()` o `request()`.
+
 
 

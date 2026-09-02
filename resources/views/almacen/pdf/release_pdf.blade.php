@@ -197,17 +197,29 @@
     @php
         $tipoRaw = strtolower(trim($liberacion->tipo_modelo ?? ''));
         $tipo = $liberacion->tipo_modelo ?? '';
-        if (str_contains($tipoRaw, 'candado obturador')) { $tipo = 'Candado Obturador'; }
-        elseif (str_contains($tipoRaw, 'cabeza de soplo')) { $tipo = 'Cabeza de Soplo'; }
-        elseif (str_contains($tipoRaw, 'embudo')) { $tipo = 'Embudo'; }
-        elseif (str_contains($tipoRaw, 'corona')) { $tipo = 'Corona'; }
-        elseif (str_contains($tipoRaw, 'plato')) { $tipo = 'Plato'; }
-        elseif (str_contains($tipoRaw, 'obturador')) { $tipo = 'Obturador'; }
-        elseif (str_contains($tipoRaw, 'fondo')) { $tipo = 'Fondo'; }
-        elseif (str_contains($tipoRaw, 'molde')) { $tipo = 'Molde'; }
-        elseif (str_contains($tipoRaw, 'bombillo')) { $tipo = 'Bombillo'; }
-        elseif (str_contains($tipoRaw, 'pistones')) { $tipo = 'Pistones'; }
-        elseif (str_contains($tipoRaw, 'guías') || str_contains($tipoRaw, 'guias')) { $tipo = 'Guías'; }
+        if (str_contains($tipoRaw, 'candado obturador')) {
+            $tipo = 'Candado Obturador';
+        } elseif (str_contains($tipoRaw, 'cabeza de soplo')) {
+            $tipo = 'Cabeza de Soplo';
+        } elseif (str_contains($tipoRaw, 'embudo')) {
+            $tipo = 'Embudo';
+        } elseif (str_contains($tipoRaw, 'corona')) {
+            $tipo = 'Corona';
+        } elseif (str_contains($tipoRaw, 'plato')) {
+            $tipo = 'Plato';
+        } elseif (str_contains($tipoRaw, 'obturador')) {
+            $tipo = 'Obturador';
+        } elseif (str_contains($tipoRaw, 'fondo')) {
+            $tipo = 'Fondo';
+        } elseif (str_contains($tipoRaw, 'molde')) {
+            $tipo = 'Molde';
+        } elseif (str_contains($tipoRaw, 'bombillo')) {
+            $tipo = 'Bombillo';
+        } elseif (str_contains($tipoRaw, 'pistones')) {
+            $tipo = 'Pistones';
+        } elseif (str_contains($tipoRaw, 'guías') || str_contains($tipoRaw, 'guias')) {
+            $tipo = 'Guías';
+        }
 
         $activas = \App\Models\LiberacionModeloFundicion::tablasActivas($tipo);
 
@@ -257,7 +269,7 @@
                 $molduraName = '';
             }
         }
-        
+
         $estadoDisplay = ($liberacion->decision === 'aprobar') ? 'aprobado' : (($liberacion->decision === 'rechazar') ? 'rechazado' : $liberacion->estado);
         $esRechazo = ($estadoDisplay === 'rechazado' || !empty(trim($liberacion->motivo_rechazo ?? '')));
     @endphp
@@ -351,7 +363,9 @@
                     <tr>
                         <td style="width: 35%; vertical-align: top; padding-right: 5px;">
 
-                            <div class="section-title">{{ in_array($tipo, ['Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías']) ? strtoupper($tipo) : 'FONDO' }}</div>
+                            <div class="section-title">
+                                {{ in_array($tipo, ['Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías']) ? strtoupper($tipo) : 'FONDO' }}
+                            </div>
                             <table class="data-table">
                                 <thead>
                                     <tr>

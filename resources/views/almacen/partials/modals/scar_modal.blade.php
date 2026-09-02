@@ -162,7 +162,7 @@
                                 <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Solo archivos de imagen</span>
                             </div>
                         </div>
-                        <div id="scar-fotos-list" class="alm-display-none cal-display-none" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; justify-items: center; width: 100%; box-sizing: border-box;"></div>
+                        <div id="scar-fotos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; justify-items: center; width: 100%; box-sizing: border-box;"></div>
                     </div>
 
                     {{-- UPLOAD DE OTROS ARCHIVOS --}}
@@ -178,7 +178,7 @@
                                 <span style="font-size: 0.7em; color: #64748b; margin-top: 2px;">Cualquier tipo de archivo</span>
                             </div>
                         </div>
-                        <div id="scar-otro-archivos-list" class="alm-display-none cal-display-none" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; justify-items: center; width: 100%; box-sizing: border-box;"></div>
+                        <div id="scar-otro-archivos-list" style="margin-top: 15px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; max-height: 420px; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; justify-items: center; width: 100%; box-sizing: border-box;"></div>
                     </div>
 
                     {{-- ARCHIVOS EVIDENCIA DEL SERVIDOR --}}

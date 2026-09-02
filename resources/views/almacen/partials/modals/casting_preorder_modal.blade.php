@@ -23,7 +23,7 @@
                 </button>
 
                 <button type="button" id="btn-add-poc-page-2" onclick="agregarPocPagina2()" class="btns btn-add-tab" style="align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255, 255, 255, 0.2); border: 2px dashed rgba(255, 255, 255, 0.6); border-radius: 30px; color: #ffffff; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.95em; font-weight: 600; transition: all 0.2s ease; margin-left: 15px;">
-                    <img src="{{ asset('images/anadir.png') }}" style="width: 16px !important; height: 16px !important; filter: brightness(0) invert(1);" alt=""> Agregar Proveedor 2
+                    <img src="{{ asset('images/anadir.png') }}" style="width: 16px !important; height: 16px !important;" alt=""> Agregar Proveedor 2
                 </button>
                 <button type="button" id="btn-remove-poc-page-2" onclick="removerPocPagina2()" class="btns btn-remove-tab alm-display-none cal-display-none" style="align-items: center; gap: 8px; padding: 10px 20px; background: #dc2626; border: 1.5px solid #b91c1c; border-radius: 30px; color: #ffffff; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.95em; font-weight: 600; transition: all 0.2s ease; margin-left: 15px;">
                     Remover Proveedor 2
@@ -88,7 +88,7 @@
                             </tbody>
                         </table>
                         <div style="margin: 16px 0; text-align: center;">
-                            <button type="button" onclick="agregarFilaPoc(1)" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #f0f9ff; border: 2px dashed #0284c7; border-radius: 30px; color: #0284c7; font-weight: 700; font-family: 'Poppins', sans-serif; font-size: 0.92em; cursor: pointer; transition: all 0.2s ease;">
+                            <button type="button" id="btn-add-row-poc-p1" onclick="agregarFilaPoc(1)" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #f0f9ff; border: 2px dashed #0284c7; border-radius: 30px; color: #0284c7; font-weight: 700; font-family: 'Poppins', sans-serif; font-size: 0.92em; cursor: pointer; transition: all 0.2s ease;">
                                 <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 18px; height: 18px;">
                                 <span>+ Añadir otra clase / modelo</span>
                             </button>
@@ -152,7 +152,7 @@
                             </tbody>
                         </table>
                         <div style="margin: 16px 0; text-align: center;">
-                            <button type="button" onclick="agregarFilaPoc(2)" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #f0f9ff; border: 2px dashed #0284c7; border-radius: 30px; color: #0284c7; font-weight: 700; font-family: 'Poppins', sans-serif; font-size: 0.92em; cursor: pointer; transition: all 0.2s ease;">
+                            <button type="button" id="btn-add-row-poc-p2" onclick="agregarFilaPoc(2)" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #f0f9ff; border: 2px dashed #0284c7; border-radius: 30px; color: #0284c7; font-weight: 700; font-family: 'Poppins', sans-serif; font-size: 0.92em; cursor: pointer; transition: all 0.2s ease;">
                                 <img src="{{ asset('images/anadir.png') }}" alt="Añadir" style="width: 18px; height: 18px;">
                                 <span>+ Añadir otra clase / modelo</span>
                             </button>
