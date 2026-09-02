@@ -480,6 +480,12 @@
     border-color: var(--gis-blue) !important;
     box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12) !important;
 }
+.lib-num-input::placeholder,
+.lib-num-input-sm::placeholder {
+    color: #bdc5d1;
+    font-weight: 500;
+    font-style: italic;
+}
 .lib-num-input-sm {
     width: 125px;
     padding: 7px 8px !important;

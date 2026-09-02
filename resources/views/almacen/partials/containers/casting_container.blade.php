@@ -49,7 +49,7 @@
                 }
             }
 
-            if ($allCastingPres->isEmpty()) {
+            if (count($allCastingPres) === 0) {
                 foreach ($almacenPreordenesCasting as $docCasting) {
                     $docNameLow = strtolower(basename($docCasting['nombre']));
                     if (str_contains($docNameLow, '_anterior_n'))
@@ -272,24 +272,26 @@
 
                 {{-- Dibujos de Casting --}}
                 @if (count($dibujosCastingPendientes) > 0)
-                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Dibujos de Fundición
-                        (Casting)</h4>
+                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Dibujos de Fundición</h4>
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($dibujosCastingPendientes as $archivoInfo)
+                            @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                             <div class="dibujos-file-card"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        class="file-icon icon-default">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        class="file-icon icon-hover">
                                 </div>
-                                <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                     onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
                                     {{ basename($archivoInfo['nombre']) }}
                                 </div>
                                 <div class="file-actions">
                                     <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
+                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                 </div>
                             </div>
                         @endforeach
@@ -298,25 +300,27 @@
 
                 {{-- Ayudas Visuales de Casting --}}
                 @if (count($ayudasCastingPendientes) > 0)
-                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Ayudas Visuales (Casting)
-                    </h4>
+                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Ayudas Visuales</h4>
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($ayudasCastingPendientes as $archivoInfo)
                             @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
+                            @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                             <div class="dibujos-file-card card-ayuda"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        class="file-icon icon-default">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        class="file-icon icon-hover">
                                 </div>
-                                <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                     onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
                                     {{ basename($archivoInfo['nombre']) }}
                                 </div>
                                 <div class="file-actions">
                                     <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
+                                        onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                 </div>
                             </div>
                         @endforeach
@@ -353,19 +357,22 @@
                                     }
                                 }
                             @endphp
+                            @php $isDwg = strtolower(pathinfo($otroArchivo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                             <div class="dibujos-file-card card-otro"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        class="file-icon icon-default">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        class="file-icon icon-hover">
                                 </div>
-                                <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                     {{ basename($otroArchivo['nombre']) }}
                                 </div>
                                 <div class="file-actions alm-flex-gap-5">
                                     <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-155724 alm-color-white"
-                                        onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                        onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                     @if ($canDelete)
                                         <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white"
                                             onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
@@ -376,25 +383,28 @@
                     </div>
                 @endif
 
-                {{-- Pre-órdenes de Modelo (Casting) --}}
+                {{-- Pre-órdenes de Modelo --}}
                 @if (count($preordenesCastingPendientes) > 0)
                     <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Pre-órdenes de Casting</h4>
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($preordenesCastingPendientes as $archivoInfo)
+                            @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                             <div class="dibujos-file-card"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        class="file-icon icon-default">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        class="file-icon icon-hover">
                                 </div>
-                                <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                     onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
                                     {{ basename($archivoInfo['nombre']) }}
                                 </div>
                                 <div class="file-actions">
                                     <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">Ver</button>
+                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                 </div>
                             </div>
                         @endforeach
@@ -438,8 +448,9 @@
                                     onclick="abrirModalGestionVeredicto('{{ $targetReg->ot }}', {{ json_encode($aprobadosPendientesCasting ?: $aprobados) }}, [])"
                                     title="Subir los formatos F-CCL-LDM firmados para iniciar el casting"
                                     style="{{ ($hasCastingPre || $hasLdmSubidoCasting) ? 'display: none;' : '' }}">
-                                    <img src="{{ asset('images/upload_icon.png') }}" alt="Subir LDM">
-                                    <span>Subir Formatos LDM</span>
+                                    <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado">
+                                    <span>Procesar Aceptados
+                                        ({{ implode(', ', array_map('ucfirst', $aprobadosPendientesCasting ?: $aprobados)) }})</span>
                                 </button>
 
                                 {{-- Paso 2: Generar Pre-Orden PFC (solo cuando los LDMs ya se subieron en Almacén y no hay
@@ -497,24 +508,26 @@
 
                 {{-- Dibujos Procesados --}}
                 @if (count($dibujosCastingProcesados) > 0)
-                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Dibujos de Fundición
-                        (Casting)</h4>
+                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Dibujos de Fundición</h4>
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($dibujosCastingProcesados as $archivoInfo)
+                            @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                             <div class="dibujos-file-card"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #15803d;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        class="file-icon icon-default">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        class="file-icon icon-hover">
                                 </div>
-                                <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                     onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
                                     {{ basename($archivoInfo['nombre']) }}
                                 </div>
                                 <div class="file-actions">
                                     <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
+                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                 </div>
                             </div>
                         @endforeach
@@ -523,25 +536,27 @@
 
                 {{-- Ayudas Visuales Procesadas --}}
                 @if (count($ayudasCastingProcesadas) > 0)
-                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Ayudas Visuales (Casting)
-                    </h4>
+                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Ayudas Visuales</h4>
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($ayudasCastingProcesadas as $archivoInfo)
                             @php $ayudaUrl = $archivoInfo['url'] ?? ''; @endphp
+                            @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                             <div class="dibujos-file-card card-ayuda"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #15803d;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        class="file-icon icon-default">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        class="file-icon icon-hover">
                                 </div>
-                                <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                     onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">
                                     {{ basename($archivoInfo['nombre']) }}
                                 </div>
                                 <div class="file-actions">
                                     <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">Ver</button>
+                                        onclick="almacenAbrirArchivo('{{ $ayudaUrl }}', '{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'ayuda')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                 </div>
                             </div>
                         @endforeach
@@ -554,19 +569,22 @@
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($ldmCastingProcesados as $otroArchivo)
+                            @php $isDwg = strtolower(pathinfo($otroArchivo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                             <div class="dibujos-file-card card-otro"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #15803d;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        class="file-icon icon-default">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        class="file-icon icon-hover">
                                 </div>
-                                <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                     onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                     {{ basename($otroArchivo['nombre']) }}
                                 </div>
                                 <div class="file-actions alm-flex-gap-5">
                                     <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">Ver</button>
+                                        onclick="almacenVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                 </div>
                             </div>
                         @endforeach
@@ -579,19 +597,22 @@
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($preordenesCastingProcesadas as $archivoInfo)
+                            @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                             <div class="dibujos-file-card"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #15803d;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        class="file-icon icon-default">
+                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        class="file-icon icon-hover">
                                 </div>
-                                <div class="file-name alm-cursor-pointer" title="Abrir PDF"
+                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                     onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
                                     {{ basename($archivoInfo['nombre']) }}
                                 </div>
                                 <div class="file-actions">
                                     <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">Ver</button>
+                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                 </div>
                             </div>
                         @endforeach

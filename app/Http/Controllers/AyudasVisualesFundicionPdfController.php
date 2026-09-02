@@ -247,7 +247,10 @@ class AyudasVisualesFundicionPdfController extends Controller
             ]);
 
             $clase   = $this->sanitizePath($request->input('clase'));
-            $dirPath = self::BASE_DIR . '/' . $clase;
+            $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+            if (empty($claseClean)) $claseClean = 'GENERAL';
+
+            $dirPath = self::BASE_DIR . '/' . $claseClean;
 
             if (Storage::disk('local')->exists($dirPath)) {
                 return response()->json([
@@ -258,13 +261,13 @@ class AyudasVisualesFundicionPdfController extends Controller
 
             Storage::disk('local')->makeDirectory($dirPath);
 
-            AyudaVisualFundicionHistory::firstOrCreate(['proceso' => 'Fundicion', 'clase' => $clase]);
-            $this->logAction('crear_carpeta', $clase, null);
+            AyudaVisualFundicionHistory::firstOrCreate(['proceso' => 'Fundicion', 'clase' => $claseClean]);
+            $this->logAction('crear_carpeta', $claseClean, null);
 
             return response()->json([
                 'success' => true,
-                'message' => "Carpeta para la clase {$clase} creada correctamente.",
-                'clase'   => $clase,
+                'message' => "Carpeta para la clase {$claseClean} creada correctamente.",
+                'clase'   => $claseClean,
             ]);
         } catch (\Exception $e) {
             Log::error("Error en AyudasVisualesFundicionPdfController@createFolder: " . $e->getMessage());
@@ -286,17 +289,20 @@ class AyudasVisualesFundicionPdfController extends Controller
         ]);
 
         $clase   = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $clase;
+        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+        if (empty($claseClean)) $claseClean = 'GENERAL';
+
+        $dirPath = self::BASE_DIR . '/' . $claseClean;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
-            AyudaVisualFundicionHistory::firstOrCreate(['proceso' => 'Fundicion', 'clase' => $clase]);
+            AyudaVisualFundicionHistory::firstOrCreate(['proceso' => 'Fundicion', 'clase' => $claseClean]);
         }
 
         $file         = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
         
-        $prefix = $clase . ' - ';
+        $prefix = $claseClean . ' - ';
         $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix . $originalName;
 
         if (Storage::disk('local')->exists($dirPath . '/' . $finalName)) {
@@ -308,14 +314,14 @@ class AyudasVisualesFundicionPdfController extends Controller
 
         $file->storeAs($dirPath, $finalName, 'local');
 
-        $this->logAction('subir_pdf', $clase, $finalName);
+        $this->logAction('subir_pdf', $claseClean, $finalName);
 
         return response()->json([
             'success'  => true,
             'message'  => "PDF '{$finalName}' subido correctamente.",
             'nombre'   => $finalName,
-            'url'      => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($clase) . '&archivo=' . urlencode($finalName),
-            'clase'    => $clase,
+            'url'      => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($claseClean) . '&archivo=' . urlencode($finalName),
+            'clase'    => $claseClean,
         ]);
     }
 
@@ -330,20 +336,23 @@ class AyudasVisualesFundicionPdfController extends Controller
         ]);
 
         $clase   = $this->sanitizePath($request->input('clase'));
+        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+        if (empty($claseClean)) $claseClean = 'GENERAL';
+
         $archivo = $this->sanitizeFileName($request->input('archivo'));
 
         // Buscar en las tres posibles ubicaciones (directorios)
         $candidateDirs = [
-            self::BASE_DIR     . '/' . $clase,
-            self::BASE_DIR     . '/' . $clase . '/Fundicion',
-            self::OLD_BASE_DIR . '/' . $clase . '/Fundicion',
+            self::BASE_DIR     . '/' . $claseClean,
+            self::BASE_DIR     . '/' . $claseClean . '/Fundicion',
+            self::OLD_BASE_DIR . '/' . $claseClean . '/Fundicion',
         ];
 
         $found = null;
+        $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($candidateDirs as $dir) {
             if (Storage::disk('local')->exists($dir)) {
                 $files = Storage::disk('local')->files($dir);
-                $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
                 foreach ($files as $f) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
@@ -372,12 +381,12 @@ class AyudasVisualesFundicionPdfController extends Controller
         }
 
         Storage::disk('local')->delete($found);
-        $this->logAction('eliminar_pdf', $clase, $archivo);
+        $this->logAction('eliminar_pdf', $claseClean, $archivo);
 
         return response()->json([
             'success' => true,
             'message' => "Archivo '{$archivo}' eliminado correctamente.",
-            'clase'   => $clase,
+            'clase'   => $claseClean,
         ]);
     }
 
@@ -394,8 +403,11 @@ class AyudasVisualesFundicionPdfController extends Controller
         ]);
 
         $clase     = $this->sanitizePath($request->input('clase'));
-        $dirPath   = self::BASE_DIR . '/' . $clase;
-        $legacyDir = self::BASE_DIR . '/' . $clase . '/Fundicion'; // Ruta intermedia legacy
+        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+        if (empty($claseClean)) $claseClean = 'GENERAL';
+
+        $dirPath   = self::BASE_DIR . '/' . $claseClean;
+        $legacyDir = self::BASE_DIR . '/' . $claseClean . '/Fundicion'; // Ruta intermedia legacy
 
         if (!Storage::disk('local')->exists($dirPath)) {
             return response()->json([
@@ -417,22 +429,22 @@ class AyudasVisualesFundicionPdfController extends Controller
             if (Storage::disk('local')->exists($legacyDir) && count(Storage::disk('local')->files($legacyDir)) === 0) {
                 Storage::disk('local')->deleteDirectory($legacyDir);
             }
-            $this->logAction('vaciar_carpeta', $clase, null);
+            $this->logAction('vaciar_carpeta', $claseClean, null);
             return response()->json([
                 'success' => true,
-                'message' => "Se eliminaron " . count($allFiles) . " archivos de la clase '{$clase}'.",
-                'clase'   => $clase,
+                'message' => "Se eliminaron " . count($allFiles) . " archivos de la clase '{$claseClean}'.",
+                'clase'   => $claseClean,
                 'vaciada' => true,
             ]);
         }
 
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_carpeta', $clase, null);
+        $this->logAction('eliminar_carpeta', $claseClean, null);
 
         return response()->json([
             'success' => true,
-            'message' => "La carpeta de la clase '{$clase}' fue eliminada correctamente.",
-            'clase'   => $clase,
+            'message' => "La carpeta de la clase '{$claseClean}' fue eliminada correctamente.",
+            'clase'   => $claseClean,
         ]);
     }
 
@@ -449,7 +461,10 @@ class AyudasVisualesFundicionPdfController extends Controller
         ]);
 
         $clase = $this->sanitizePath($request->input('proceso')); // Padre es la Clase
-        $dirPath = self::BASE_DIR . '/' . $clase;
+        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+        if (empty($claseClean)) $claseClean = 'GENERAL';
+
+        $dirPath = self::BASE_DIR . '/' . $claseClean;
 
         if (!Storage::disk('local')->exists($dirPath)) {
             return response()->json([
@@ -477,12 +492,12 @@ class AyudasVisualesFundicionPdfController extends Controller
         }
 
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_carpeta', $clase, null);
+        $this->logAction('eliminar_carpeta', $claseClean, null);
 
         return response()->json([
             'success' => true,
-            'message' => "La carpeta de la clase '{$clase}' fue eliminada correctamente.",
-            'clase'   => $clase,
+            'message' => "La carpeta de la clase '{$claseClean}' fue eliminada correctamente.",
+            'clase'   => $claseClean,
         ]);
     }
 
@@ -498,8 +513,11 @@ class AyudasVisualesFundicionPdfController extends Controller
         ]);
 
         $clase           = $this->sanitizePath($request->input('clase'));
+        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+        if (empty($claseClean)) $claseClean = 'GENERAL';
+
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
-        $dirPath         = self::BASE_DIR . '/' . $clase;
+        $dirPath         = self::BASE_DIR . '/' . $claseClean;
         
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         $foundFile = null;
@@ -521,19 +539,19 @@ class AyudasVisualesFundicionPdfController extends Controller
         $file         = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
         
-        $prefix = $clase . ' - ';
+        $prefix = $claseClean . ' - ';
         $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix . $originalName;
 
         $file->storeAs($dirPath, $finalName, 'local');
 
-        $this->logAction('reemplazar_pdf', $clase, "{$archivoAnterior} → {$finalName}");
+        $this->logAction('reemplazar_pdf', $claseClean, "{$archivoAnterior} → {$finalName}");
 
         return response()->json([
             'success'  => true,
             'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$finalName}'.",
             'nombre'   => $finalName,
-            'url'      => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($clase) . '&archivo=' . urlencode($finalName),
-            'clase'    => $clase,
+            'url'      => url('/ayudas_fundicion/serve') . '?clase=' . urlencode($claseClean) . '&archivo=' . urlencode($finalName),
+            'clase'    => $claseClean,
         ]);
     }
 

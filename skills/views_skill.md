@@ -232,3 +232,7 @@ Siempre cárgalos con `@vite` en el `@section('head')` de la vista:
 3. **Escapado de HTML**:
  - Por defecto, `{{ $variable }}` escapa de manera segura los caracteres HTML para prevenir ataques XSS.
  - Si tienes variables generadas por el controlador que contienen etiquetas HTML con estilos (ej. `<span class="lvl-1">Proceso</span>`), **debes** usar `{!! $variable !!}` en Blade para que el navegador renderice los colores y estilos en vez de mostrar las etiquetas de texto plano crudas.
+
+## 13. Prevención de Vistas No Encontradas (View Not Found)
+
+Cuando utilices directivas `@include` o `@component`, asegúrate de que el archivo Blade de destino exista exactamente en la ruta indicada. Un error común al refactorizar o mover archivos de calidad a almacén (o viceversa) es dejar referencias rotas como `@include('almacen.partials._modal_liberacion_modelos')` cuando el archivo fue renombrado o movido. Siempre verifica la estructura de carpetas física antes de apuntar a una plantilla parcial.

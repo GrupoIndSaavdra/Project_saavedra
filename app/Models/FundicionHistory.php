@@ -108,7 +108,7 @@ class FundicionHistory extends Model
         $esReproceso = (bool) preg_match('/_R\d+$/i', $this->ot);
         $previousOtForRechazo = $this->ot;
         if ($esReproceso) {
-            $baseOt = preg_replace('/_R\d+$/i', '', $this->ot);
+            $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $this->ot);
             $latestRechazo = \App\Models\LiberacionModeloFundicion::where('ot', 'LIKE', $baseOt . '%', 'and')
                 ->where('ot', '!=', $this->ot, 'and')
                 ->where('decision', '=', 'rechazar', 'and')

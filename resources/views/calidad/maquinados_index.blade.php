@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Calidad — Dibujos y Ayudas de Maquinados | GIS</title>
@@ -206,16 +206,17 @@
                                                 Dibujos de Maquinados</h4>
                                             <div class="alm-pdf-grid">
                                                 @foreach ($docs as $doc)
+                                                    @php $isDwg = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION)) === 'dwg'; @endphp
                                                     <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="Abrir PDF">
-                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}" class="file-icon icon-hover">
                                                         </div>
-                                                        <div class="file-name cal-maq-cursor-pointer" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                        <div class="file-name cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
                                                         </div>
                                                         <div class="file-actions">
-                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calmaqVerArchivo({{ $doc->id }})">Ver</button>
+                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calmaqVerArchivo({{ $doc->id }})">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                                         </div>
                                                     </div>
                                                 @endforeach
@@ -304,16 +305,17 @@
                                                 Ayudas Visuales de Maquinados</h4>
                                             <div class="alm-pdf-grid">
                                                 @foreach ($docs as $doc)
+                                                    @php $isDwg = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION)) === 'dwg'; @endphp
                                                     <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="Abrir PDF">
-                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}" class="file-icon icon-hover">
                                                         </div>
-                                                        <div class="file-name cal-maq-cursor-pointer" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                        <div class="file-name cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
                                                         </div>
                                                         <div class="file-actions">
-                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calmaqVerArchivo({{ $doc->id }})">Ver</button>
+                                                            <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calmaqVerArchivo({{ $doc->id }})">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                                         </div>
                                                     </div>
                                                 @endforeach
@@ -374,7 +376,7 @@
                                 @php
                                     [$tipo, $ot, $clase, $proceso] = explode('|', $key);
                                     $isAyuda = ($tipo === 'ayuda');
-                                    
+
                                     // Limpiar guiones y convertirlos en N/A si es necesario
                                     $otText      = (trim($ot)      === '—' || !$ot)      ? 'N/A' : $ot;
                                     $claseText   = (trim($clase)   === '—' || !$clase)   ? 'N/A' : $clase;
@@ -419,19 +421,20 @@
                                             </h4>
                                             <div class="alm-pdf-grid">
                                                 @foreach ($docs as $doc)
+                                                    @php $isDwg = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION)) === 'dwg'; @endphp
                                                     <div class="dibujos-file-card {{ $isAyuda ? 'card-ayuda' : '' }}" style="animation-delay: {{ $loop->index * 0.05 }}s;">
-                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="Abrir PDF">
-                                                            <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                                            <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                                        <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}" class="file-icon icon-hover">
                                                         </div>
-                                                        <div class="file-name cal-maq-cursor-pointer" title="Abrir PDF" onclick="calmaqVerArchivo({{ $doc->id }})">
+                                                        <div class="file-name cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
                                                         </div>
                                                         <div class="file-actions">
                                                             @if($isAyuda)
-                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calmaqVerArchivo({{ $doc->id }})">Ver</button>
+                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" onclick="calmaqVerArchivo({{ $doc->id }})">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                                             @else
-                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calmaqVerArchivo({{ $doc->id }})">Ver</button>
+                                                                <button class="btn-dibujos btn-dibujos-sm btn-ver" onclick="calmaqVerArchivo({{ $doc->id }})">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                                             @endif
                                                         </div>
                                                     </div>
