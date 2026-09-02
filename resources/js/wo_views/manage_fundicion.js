@@ -1654,7 +1654,15 @@ function renderEstructuraTable() {
 
                         const isThisClass = (al === claseName);
                         const clasesEnviadas = (window.alertasEnviadas && window.alertasEnviadas[otName]) ? window.alertasEnviadas[otName] : {};
-                        const estadoClase = clasesEnviadas[al] || 'pendiente';
+                        let estadoClase = clasesEnviadas[al] || 'pendiente';
+                        
+                        // Validar con la BD si la clase ya tiene procesos iniciados
+                        if (estadoClase === 'pendiente' && otReal && otReal.clases) {
+                            const claseFisica = otReal.clases.find(c => (c.nombre || '').toLowerCase() === al.toLowerCase());
+                            if (claseFisica && claseFisica.tiene_procesos) {
+                                estadoClase = 'enviada';
+                            }
+                        }
                         
                         let tagClass = '';
                         if (estadoClase === 'enviada') tagClass = 'alerta-enviada-tag';
@@ -1777,8 +1785,17 @@ function renderAlertasTable() {
                         clTagId = al;
                     }
 
-                    const estadoClase = clasesEnviadas[al] || 'pendiente';
-                    const tagClass = estadoClase === 'enviada' ? 'alerta-enviada-tag' : (estadoClase === 'modificada' ? 'alerta-modificada-tag' : '');
+                    let estadoClase = clasesEnviadas[al] || 'pendiente';
+                    
+                    // Validar con la BD si la clase ya tiene procesos iniciados
+                    if (estadoClase === 'pendiente' && otReal && otReal.clases) {
+                        const claseFisica = otReal.clases.find(c => (c.nombre || '').toLowerCase() === al.toLowerCase());
+                        if (claseFisica && claseFisica.tiene_procesos) {
+                            estadoClase = 'enviada';
+                        }
+                    }
+
+                    const tagClass = estadoClase === 'enviada' ? 'alerta-enviada-tag' : (estadoClase === 'modificada' ? 'alerta-modificada-tag' : (estadoClase === 'vacio' ? 'alerta-vacia-tag' : ''));
 
                     htmlAyudas += `
                         <span class="badge-ayuda-tag clickable-tag ${tagClass}" title="Ir a esta carpeta"
