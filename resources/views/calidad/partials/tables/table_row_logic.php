@@ -698,118 +698,126 @@ foreach ($allOtNames as $otName) {
     ];
     // --- NUEVO: ESCANEAR PREORDENES Y DOCUMENTOS POR CLASE ---
     foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo', 'Pistones', 'Guías', 'Guias'] as $claseDir) {
-        // Preordenes (nueva estructura)
-        $newDirs[] = [
-            'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Preordenes',
-            'origin' => 'aprobado',
-            'prefix' => $claseDir . '/Preordenes/',
-            'owner' => 'almacen'
-        ];
-        $newDirs[] = [
-            'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Preordenes',
-            'origin' => 'aprobado',
-            'prefix' => $claseDir . '/Preordenes/',
-            'owner' => 'calidad'
-        ];
-        // Preordenes (legacy Preordenes_Fundicion)
-        $newDirs[] = [
-            'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Preordenes_Fundicion',
-            'origin' => 'aprobado',
-            'prefix' => $claseDir . '/Preordenes_Fundicion/',
-            'owner' => 'almacen'
-        ];
-        $newDirs[] = [
-            'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Preordenes_Fundicion',
-            'origin' => 'aprobado',
-            'prefix' => $claseDir . '/Preordenes_Fundicion/',
-            'owner' => 'calidad'
-        ];
+        $cUnderscore = strtoupper(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $claseDir));
+        $cUpper = strtoupper($claseDir);
+        $cTitle = $claseDir;
 
-        // Documentos Aprobados (nueva estructura)
-        $newDirs[] = [
-            'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Documentos_Aprobados',
-            'origin' => 'aprobado',
-            'prefix' => $claseDir . '/Documentos_Aprobados/',
-            'owner' => 'almacen'
-        ];
-        $newDirs[] = [
-            'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Documentos_Aprobados',
-            'origin' => 'aprobado',
-            'prefix' => $claseDir . '/Documentos_Aprobados/',
-            'owner' => 'calidad'
-        ];
-        // Documentos Aprobados (legacy /Almacen y /Calidad)
-        foreach (['Almacen', 'Calidad'] as $dept) {
+        $variants = array_unique([$cUnderscore, $cUpper, $cTitle]);
+
+        foreach ($variants as $vDir) {
+            // Preordenes (nueva estructura)
             $newDirs[] = [
-                'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Documentos_Aprobados/' . $dept,
+                'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Preordenes',
                 'origin' => 'aprobado',
-                'prefix' => $claseDir . '/Documentos_Aprobados/' . $dept . '/',
+                'prefix' => $vDir . '/Preordenes/',
                 'owner' => 'almacen'
             ];
             $newDirs[] = [
-                'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Documentos_Aprobados/' . $dept,
+                'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Preordenes',
                 'origin' => 'aprobado',
-                'prefix' => $claseDir . '/Documentos_Aprobados/' . $dept . '/',
+                'prefix' => $vDir . '/Preordenes/',
                 'owner' => 'calidad'
             ];
-        }
-
-        // Documentos Rechazados (nueva estructura)
-        $newDirs[] = [
-            'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Documentos_Rechazados',
-            'origin' => 'rechazado',
-            'prefix' => $claseDir . '/Documentos_Rechazados/',
-            'owner' => 'almacen'
-        ];
-        $newDirs[] = [
-            'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Documentos_Rechazados',
-            'origin' => 'rechazado',
-            'prefix' => $claseDir . '/Documentos_Rechazados/',
-            'owner' => 'calidad'
-        ];
-        // Documentos Rechazados (legacy)
-        foreach (['Almacen', 'Calidad'] as $dept) {
+            // Preordenes (legacy Preordenes_Fundicion)
             $newDirs[] = [
-                'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Documentos_Rechazados/' . $dept,
-                'origin' => 'rechazado',
-                'prefix' => $claseDir . '/Documentos_Rechazados/' . $dept . '/',
+                'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Preordenes_Fundicion',
+                'origin' => 'aprobado',
+                'prefix' => $vDir . '/Preordenes_Fundicion/',
                 'owner' => 'almacen'
             ];
             $newDirs[] = [
-                'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/Documentos_Rechazados/' . $dept,
-                'origin' => 'rechazado',
-                'prefix' => $claseDir . '/Documentos_Rechazados/' . $dept . '/',
+                'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . $vDir . '/Preordenes_Fundicion',
+                'origin' => 'aprobado',
+                'prefix' => $vDir . '/Preordenes_Fundicion/',
                 'owner' => 'calidad'
             ];
-        }
 
-        // Documentos Escaneados (nueva estructura)
-        foreach (['ESCANEADOS', 'Escaneados', 'escaneados', 'DOCUMENTOS_ESCANEADOS', 'Documentos_Escaneados', 'documentos_escaneados'] as $eSub) {
+            // Documentos Aprobados (nueva estructura)
             $newDirs[] = [
-                'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/' . $eSub,
+                'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Documentos_Aprobados',
                 'origin' => 'aprobado',
-                'prefix' => $claseDir . '/' . $eSub . '/',
+                'prefix' => $vDir . '/Documentos_Aprobados/',
                 'owner' => 'almacen'
             ];
             $newDirs[] = [
-                'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/' . $eSub,
+                'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Documentos_Aprobados',
                 'origin' => 'aprobado',
-                'prefix' => $claseDir . '/' . $eSub . '/',
+                'prefix' => $vDir . '/Documentos_Aprobados/',
                 'owner' => 'calidad'
             ];
+            // Documentos Aprobados (legacy /Almacen y /Calidad)
             foreach (['Almacen', 'Calidad'] as $dept) {
                 $newDirs[] = [
-                    'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/' . $eSub . '/' . $dept,
+                    'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Documentos_Aprobados/' . $dept,
                     'origin' => 'aprobado',
-                    'prefix' => $claseDir . '/' . $eSub . '/' . $dept . '/',
+                    'prefix' => $vDir . '/Documentos_Aprobados/' . $dept . '/',
                     'owner' => 'almacen'
                 ];
                 $newDirs[] = [
-                    'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $claseDir . '/' . $eSub . '/' . $dept,
+                    'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Documentos_Aprobados/' . $dept,
                     'origin' => 'aprobado',
-                    'prefix' => $claseDir . '/' . $eSub . '/' . $dept . '/',
+                    'prefix' => $vDir . '/Documentos_Aprobados/' . $dept . '/',
                     'owner' => 'calidad'
                 ];
+            }
+
+            // Documentos Rechazados (nueva estructura)
+            $newDirs[] = [
+                'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Documentos_Rechazados',
+                'origin' => 'rechazado',
+                'prefix' => $vDir . '/Documentos_Rechazados/',
+                'owner' => 'almacen'
+            ];
+            $newDirs[] = [
+                'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Documentos_Rechazados',
+                'origin' => 'rechazado',
+                'prefix' => $vDir . '/Documentos_Rechazados/',
+                'owner' => 'calidad'
+            ];
+            // Documentos Rechazados (legacy)
+            foreach (['Almacen', 'Calidad'] as $dept) {
+                $newDirs[] = [
+                    'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Documentos_Rechazados/' . $dept,
+                    'origin' => 'rechazado',
+                    'prefix' => $vDir . '/Documentos_Rechazados/' . $dept . '/',
+                    'owner' => 'almacen'
+                ];
+                $newDirs[] = [
+                    'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/Documentos_Rechazados/' . $dept,
+                    'origin' => 'rechazado',
+                    'prefix' => $vDir . '/Documentos_Rechazados/' . $dept . '/',
+                    'owner' => 'calidad'
+                ];
+            }
+
+            // Documentos Escaneados (nueva estructura)
+            foreach (['ESCANEADOS', 'Escaneados', 'escaneados', 'DOCUMENTOS_ESCANEADOS', 'Documentos_Escaneados', 'documentos_escaneados'] as $eSub) {
+                $newDirs[] = [
+                    'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . $eSub,
+                    'origin' => 'aprobado',
+                    'prefix' => $vDir . '/' . $eSub . '/',
+                    'owner' => 'almacen'
+                ];
+                $newDirs[] = [
+                    'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . $eSub,
+                    'origin' => 'aprobado',
+                    'prefix' => $vDir . '/' . $eSub . '/',
+                    'owner' => 'calidad'
+                ];
+                foreach (['Almacen', 'Calidad'] as $dept) {
+                    $newDirs[] = [
+                        'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . $eSub . '/' . $dept,
+                        'origin' => 'aprobado',
+                        'prefix' => $vDir . '/' . $eSub . '/' . $dept . '/',
+                        'owner' => 'almacen'
+                    ];
+                    $newDirs[] = [
+                        'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . $vDir . '/' . $eSub . '/' . $dept,
+                        'origin' => 'aprobado',
+                        'prefix' => $vDir . '/' . $eSub . '/' . $dept . '/',
+                        'owner' => 'calidad'
+                    ];
+                }
             }
         }
     }
@@ -1002,11 +1010,10 @@ if ($userPerfil != 1 && $userPerfil != 2 && $userPerfil != 3) {
                 strpos($nameLow, 'rdm') === false &&
                 strpos($nameLow, 'scar') === false &&
                 strpos($nameLow, 'confirmacion') === false &&
-                strpos($nameLow, 'liberacion') === false) ||
-            strpos($nameLow, 'escaneado') !== false;
+                strpos($nameLow, 'cfm') === false &&
+                strpos($nameLow, 'liberacion') === false);
         if ($userPerfil == 4 || $userPerfil == 3) {
             // Calidad o Master
-            // Calidad solo ve preordenes si pre_orden_email_sent es true
             if (!$isPreorden) {
                 $filteredOtros[] = $archivo;
             } else {
@@ -1014,9 +1021,15 @@ if ($userPerfil != 1 && $userPerfil != 2 && $userPerfil != 3) {
                     'ot',
                     $archivo['ot'],
                 );
+                $hasPoInDb = \App\Models\PreOrdenFundicion::where('ot', $archivo['ot'])->exists();
                 if (
-                    $fileHistory &&
-                    $fileHistory->pre_orden_email_sent
+                    $fileHistory && (
+                        $fileHistory->pre_orden_email_sent ||
+                        $fileHistory->pre_orden_sent ||
+                        $fileHistory->tiene_modelo ||
+                        !empty($fileHistory->alert_sent_at) ||
+                        $hasPoInDb
+                    )
                 ) {
                     $filteredOtros[] = $archivo;
                 }

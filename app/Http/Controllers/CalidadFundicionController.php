@@ -345,7 +345,8 @@ class CalidadFundicionController extends Controller
 
                 // --- RUTAS EXCLUSIVAMENTE ESPECÍFICAS DE CADA CLASE ---
                 foreach ($activeClasses as $clase) {
-                    $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+                    $cLow = trim(preg_replace('/^modelo\s+/i', '', strtolower($clase)));
+                    $claseClean = strtoupper(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $cLow));
                     if (empty($claseClean)) $claseClean = 'GENERAL';
 
                     // Almacen dirs

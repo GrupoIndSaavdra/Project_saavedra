@@ -1654,15 +1654,9 @@ function renderEstructuraTable() {
 
                         const isThisClass = (al === claseName);
                         const clasesEnviadas = (window.alertasEnviadas && window.alertasEnviadas[otName]) ? window.alertasEnviadas[otName] : {};
-                        let estadoClase = clasesEnviadas[al] || 'pendiente';
-                        
-                        // Validar con la BD si la clase ya tiene procesos iniciados
-                        if (estadoClase === 'pendiente' && otReal && otReal.clases) {
-                            const claseFisica = otReal.clases.find(c => (c.nombre || '').toLowerCase() === al.toLowerCase());
-                            if (claseFisica && claseFisica.tiene_procesos) {
-                                estadoClase = 'enviada';
-                            }
-                        }
+                        // Búsqueda case-insensitive: 'al' puede estar en MAYÚSCULAS (del historial) pero la llave en alertasEnviadas es Title Case (de BD)
+                        const estadoClaseEntry = Object.entries(clasesEnviadas).find(([k]) => k.toLowerCase().trim() === al.toLowerCase().trim());
+                        let estadoClase = estadoClaseEntry ? estadoClaseEntry[1] : 'pendiente';
                         
                         let tagClass = '';
                         if (estadoClase === 'enviada') tagClass = 'alerta-enviada-tag';
@@ -1785,15 +1779,9 @@ function renderAlertasTable() {
                         clTagId = al;
                     }
 
-                    let estadoClase = clasesEnviadas[al] || 'pendiente';
-                    
-                    // Validar con la BD si la clase ya tiene procesos iniciados
-                    if (estadoClase === 'pendiente' && otReal && otReal.clases) {
-                        const claseFisica = otReal.clases.find(c => (c.nombre || '').toLowerCase() === al.toLowerCase());
-                        if (claseFisica && claseFisica.tiene_procesos) {
-                            estadoClase = 'enviada';
-                        }
-                    }
+                    // Búsqueda case-insensitive: 'al' puede estar en MAYÚSCULAS (del historial) pero la llave en alertasEnviadas es Title Case (de BD)
+                    const estadoClaseEntry2 = Object.entries(clasesEnviadas).find(([k]) => k.toLowerCase().trim() === al.toLowerCase().trim());
+                    let estadoClase = estadoClaseEntry2 ? estadoClaseEntry2[1] : 'pendiente';
 
                     const tagClass = estadoClase === 'enviada' ? 'alerta-enviada-tag' : (estadoClase === 'modificada' ? 'alerta-modificada-tag' : (estadoClase === 'vacio' ? 'alerta-vacia-tag' : ''));
 

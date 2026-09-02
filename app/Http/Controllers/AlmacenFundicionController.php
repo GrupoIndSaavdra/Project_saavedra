@@ -3451,6 +3451,8 @@ class AlmacenFundicionController extends Controller
             }
         }
 
+        $this->syncAlmacenToCalidad($folderName);
+
         // Enviar Email
         try {
             // ── AUTO-ADJUNTOS: Si es re-proceso (_R1, _R2...), adjuntar docs de toda la historia (Omitir si es pre-orden de casting)
