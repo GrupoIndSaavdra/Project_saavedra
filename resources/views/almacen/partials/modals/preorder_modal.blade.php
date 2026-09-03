@@ -31,7 +31,7 @@
                         <div class="form-group po-folio-group">
                             <label for="po-folio">Folio:</label>
                             <input type="text" id="po-folio" name="folio" class="form-control" readonly
-                                value="MOD-{{ date('Y') }}-0000">
+                                value="PFM-{{ date('Y') }}-0000">
                         </div>
                         <div class="form-group po-moldura-group">
                             <label for="po-moldura">Moldura:</label>

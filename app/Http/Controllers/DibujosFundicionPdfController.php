@@ -1896,7 +1896,7 @@ class DibujosFundicionPdfController extends Controller
     private function resolveCaseInsensitivePath(string $path): string
     {
         // Optimización masiva: si la ruta exacta ya existe, devolverla inmediatamente
-        if (Storage::disk('local')->exists($path)) {
+        if (Storage::disk('local')->exists($path) || Storage::disk('local')->directoryExists($path)) {
             return $path;
         }
 
@@ -1910,12 +1910,12 @@ class DibujosFundicionPdfController extends Controller
             $currentSearch = $resolved ? $resolved : '.';
 
             $exactPath = $resolved ? $resolved . '/' . $part : $part;
-            if (Storage::disk('local')->exists($exactPath)) {
+            if (Storage::disk('local')->exists($exactPath) || Storage::disk('local')->directoryExists($exactPath)) {
                 $resolved = $exactPath;
                 continue;
             }
 
-            if (!Storage::disk('local')->exists($currentSearch)) {
+            if (!Storage::disk('local')->exists($currentSearch) && !Storage::disk('local')->directoryExists($currentSearch)) {
                 $resolved = $exactPath;
                 continue;
             }
