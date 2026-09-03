@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Prioridad de Órdenes de Trabajo</title>
@@ -29,14 +29,10 @@
             <div class="pm-header-titles">
                 <h1 class="pm-title">Prioridad de Órdenes de Trabajo</h1>
                 <p class="pm-subtitle">
-                    Arrastra las OTs para definir el orden en que aparecen en la vista de producción.
+                    Consulta del orden de prioridad en que aparecen las OTs en la vista de producción.
                 </p>
             </div>
         </div>
-        <button id="pm-save-btn" class="pm-save-btn" disabled>
-            <span class="pm-spinner"></span>
-            <span class="pm-btn-text">Autoguardado Activo</span>
-        </button>
     </div>
 
     {{-- ── Banner informativo ────────────────────────────────── --}}
@@ -49,8 +45,7 @@
         </svg>
         <div class="pm-flex-col-100">
             <span class="pm-info-text-main">
-                El orden definido aquí se reflejará en la vista <strong>Orden de Trabajo en Progreso</strong>
-                en el próximo refresco. Las OTs se ordenan de mayor a menor urgencia (de arriba hacia abajo).
+                El orden mostrado aquí se administra desde el dashboard de <strong>Prioridades GIS</strong>. Las OTs se muestran de mayor a menor urgencia (de arriba hacia abajo).
             </span>
             <div class="pm-stats-row">
                 <div class="pm-stat-item">
@@ -60,17 +55,6 @@
                 <div class="pm-stat-item">
                     <img src="{{ asset('images/plata.png') }}" alt="Plata" class="pm-info-icon-small">
                     <span class="pm-info-text-small"><strong>6 en adelante:</strong> Prioridad Normal (Plata)</span>
-                </div>
-                <div class="pm-stat-item">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="pm-info-icon-small pm-svg-drag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="9" cy="5" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="9" cy="12" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="9" cy="19" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="15" cy="5" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="15" cy="12" r="1" fill="currentColor" stroke="none"></circle>
-                        <circle cx="15" cy="19" r="1" fill="currentColor" stroke="none"></circle>
-                    </svg>
-                    <span class="pm-info-text-small"><strong>Mango lateral:</strong> Arrastra para reordenar</span>
                 </div>
             </div>
         </div>

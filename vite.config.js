@@ -35,6 +35,7 @@ export default defineConfig({
                 'resources/css/wo_views/show_wo_almacen.css',
                 'resources/css/wo_views/create_master_wo.css',
                 'resources/css/wo_views/priorities.css',
+                'resources/js/wo_views/priorities_pdf.js',
                 'resources/js/wo_views/manage_wo.js',
                 'resources/js/wo_views/show_wo.js',
                 'resources/js/wo_views/show_wo_almacen.js',

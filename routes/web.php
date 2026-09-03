@@ -83,6 +83,7 @@ Route::controller(WOController::class)->group(function () {
     Route::post('/master/storeWO', 'storeMasterWO')->name('storeMasterWO');
     Route::post('/master/updateWO', 'updateMasterWO')->name('updateMasterWO');
     Route::get('/master/prioridades', 'prioritiesView')->name('master.priorities');
+    Route::get('/master/prioridades/pdf', 'downloadPrioritiesPdf')->name('master.priorities.pdf');
     Route::post('/master/prioridades/autosave', 'autosavePriority')->name('master.priorities.autosave');
     Route::get('/showWO/{workOrder}', 'show')->name('showWO');
     Route::get('/destroyWO/{wo}', 'destroy')->name('destroyWO');

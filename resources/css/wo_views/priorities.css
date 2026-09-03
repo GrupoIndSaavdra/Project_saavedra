@@ -1,61 +1,80 @@
+@import "../global.css";
+
+body {
+    overflow: hidden !important;
+}
+
 .priorities-wrapper {
     width: 100%;
-    overflow-x: auto;
-    font-family: Arial, sans-serif;
-    font-size: 11px; /* Smaller font to fit more data */
-    padding: 10px;
+    height: calc(100vh - 80px); /* 80px para el header */
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 11px;
+    padding: 10px 20px 20px 20px;
     box-sizing: border-box;
 }
 
-/* Toolbar Styles */
+/* ── Toolbar (Glassmorphism Identidad GIS) ─────────────────────── */
 .toolbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background-color: #fff;
-    padding: 15px;
+    background: linear-gradient(135deg, rgba(2, 38, 68, 0.98), rgba(3, 57, 102, 0.95));
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 16px 24px;
     margin-bottom: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 14px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
     flex-wrap: wrap;
-    gap: 15px;
+    gap: 16px;
+    color: #ffffff;
 }
 
 .filters-form {
     display: flex;
     align-items: center;
-    gap: 15px;
+    gap: 16px;
     flex-wrap: wrap;
 }
 
 .filter-group {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
 }
 
 .filter-group label {
-    font-weight: bold;
+    font-weight: 700;
     font-size: 13px;
+    color: #e2e8f0;
 }
 
-.filter-group input, .filter-group select {
-    padding: 6px 12px;
-    border: 1px solid #404040;
-    border-radius: 4px;
+.filter-group input, 
+.filter-group select {
+    padding: 8px 14px;
+    border: 1.5px solid rgba(56, 189, 248, 0.4);
+    border-radius: 8px;
     font-size: 13px;
-    background-color: #fcfcfc;
-    color: #000;
+    font-weight: 600;
+    background-color: rgba(3, 45, 82, 0.9);
+    color: #ffffff;
     font-family: inherit;
+    transition: all 0.2s ease;
 }
-.filter-group input:focus, .filter-group select:focus {
+
+.filter-group input:focus, 
+.filter-group select:focus {
     outline: none;
-    border-color: #033966;
-    box-shadow: 0 0 0 2px rgba(3,57,102, 0.2);
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
 }
 
 .filter-group input[type="number"] {
-    width: 60px;
+    width: 65px;
 }
 
 .filter-actions {
@@ -63,71 +82,95 @@
     gap: 10px;
 }
 
-.btn-filter, .btn-clear, .btn-export-excel, .btn-export-pdf {
-    padding: 6px 12px;
+.btn-filter, .btn-clear, .btn-export-excel, .btn-export-pdf, .btn-print {
+    padding: 8px 16px;
     border: none;
-    border-radius: 4px;
+    border-radius: 8px;
     cursor: pointer;
-    font-weight: bold;
+    font-weight: 700;
     text-decoration: none;
     font-size: 13px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                background-color 0.2s ease;
 }
 
 .btn-filter {
-    background-color: #033966; /* Azul Corporativo */
+    background-color: var(--gis-blue);
     color: white;
+    box-shadow: 0 4px 6px var(--shadow-blue);
+}
+
+.btn-print {
+    background-color: #f97316; /* Vibrant Orange */
+    color: white;
+    box-shadow: 0 4px 6px rgba(249, 115, 22, 0.4);
 }
 
 .btn-clear {
-    background-color: #404040; /* Gris Oscuro Corporativo */
+    background-color: var(--gis-gray);
     color: white;
+    box-shadow: 0 4px 6px rgba(64, 64, 64, 0.3);
 }
 
 .export-actions {
     display: flex;
-    gap: 10px;
+    align-items: center;
+    gap: 12px;
 }
 
 .btn-export-excel {
-    background-color: #0A8504; /* Verde Corporativo */
+    background-color: var(--gis-green);
     color: white;
+    box-shadow: 0 4px 6px var(--shadow-green);
 }
 
 .btn-export-pdf {
-    background-color: #9C0303; /* Rojo Corporativo */
+    background-color: var(--gis-red);
     color: white;
+    box-shadow: 0 4px 6px var(--shadow-red);
 }
 
-/* Hover effects */
-.btn-filter:hover { background-color: #022542; }
-.btn-clear:hover { background-color: #2a2a2a; }
-.btn-export-excel:hover { background-color: #075a03; }
-.btn-export-pdf:hover { background-color: #6b0202; }
+/* Hover effects con transformaciones fluida */
+.btn-filter:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(3, 57, 102, 0.5); }
+.btn-clear:hover { transform: translateY(-2px); background-color: #2a2a2a; }
+.btn-print:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(249, 115, 22, 0.6); background-color: #ea580c; }
+.btn-export-excel:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(10, 133, 4, 0.5); }
+.btn-export-pdf:hover { transform: translateY(-2px); box-shadow: 0 8px 15px rgba(156, 3, 3, 0.5); }
 
-/* Existing Styles */
-
+/* ── Encabezado Estilo Excel GIS ────────────────────────────────── */
+/* ── Encabezado Estilo Excel GIS ────────────────────────────────── */
 .excel-header {
     display: flex;
-    border: 2px solid #000;
-    margin-bottom: -1px; /* Overlap border with table */
-    background-color: #fff; /* Base background */
+    border: 2px solid #000000;
+    margin-bottom: -1px;
+    background-color: #ffffff;
+    border-radius: 10px 10px 0 0;
+    overflow: hidden;
+    height: 56px;
+    box-sizing: border-box;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
 .header-logo {
-    width: 250px;
-    background-color: #fff;
-    padding: 10px;
-    border-right: 2px solid #000;
+    width: 220px;
+    background-color: #ffffff;
+    padding: 6px 10px;
+    border-right: 2px solid #000000;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .header-logo img {
-    max-width: 150px;
+    max-width: 140px;
+    max-height: 40px;
 }
 
 .header-title {
@@ -135,74 +178,122 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-right: 2px solid #000;
-    background-color: #033966; /* Azul Corporativo */
+    border-right: 2px solid #000000;
+    background-color: var(--gis-blue);
     color: #ffffff;
 }
 
 .header-title h1 {
-    font-family: "Times New Roman", Times, serif; /* Serifs like screenshot */
-    letter-spacing: 15px;
-    font-size: 36px;
-    font-weight: bold;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 10px;
+    font-size: 26px;
+    font-weight: 800;
     margin: 0;
 }
 
 .header-week {
-    width: 200px;
-    border-right: 2px solid #000;
+    width: 190px;
+    border-right: 2px solid #000000;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 10px;
-    background-color: #0A8504; /* Verde Corporativo */
+    padding: 6px;
+    background-color: var(--gis-green);
     color: #ffffff;
 }
 
 .header-week h2 {
-    font-size: 20px;
-    font-weight: bold;
-    margin: 0 0 5px 0;
+    font-size: 16px;
+    font-weight: 800;
+    margin: 0 0 2px 0;
 }
 
 .header-week p {
-    font-size: 12px;
+    font-size: 11px;
+    font-weight: 600;
     margin: 0;
+    letter-spacing: 1px;
 }
 
 .header-date {
-    width: 300px;
+    width: 280px;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
-    background-color: #404040; /* Gris Oscuro Corporativo */
+    padding: 6px;
+    background-color: var(--gis-gray);
     color: #ffffff;
 }
 
 .header-date h3 {
-    font-size: 16px;
-    font-weight: normal;
+    font-size: 14px;
+    font-weight: 600;
     margin: 0;
 }
 
 .excel-table-container {
     width: 100%;
-    overflow-x: auto;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 12px;
+    box-shadow: none;
+    background-color: transparent;
+    position: relative;
+}
+
+.excel-table-container::-webkit-scrollbar { width: 8px; height: 8px; }
+.excel-table-container::-webkit-scrollbar-track { background: #f1f1f1; }
+.excel-table-container::-webkit-scrollbar-thumb { background: var(--gis-blue); border-radius: 4px; }
+@supports (scrollbar-width: thin) {
+    .excel-table-container { scrollbar-width: thin; scrollbar-color: var(--gis-blue) #f1f1f1; }
 }
 
 .excel-table {
     width: 100%;
     border-collapse: collapse;
-    border: 2px solid #000;
-    table-layout: fixed; /* Help with column widths */
+    border: 2px solid #000000;
+    table-layout: fixed;
+    font-family: 'Poppins', sans-serif;
 }
 
 .excel-table th, .excel-table td {
-    border: 1px solid #000;
-    padding: 5px;
+    border: 1px solid #000000;
+    padding: 6px 4px;
     vertical-align: middle;
+}
+
+.excel-table thead {
+    position: sticky;
+    top: 53px; /* Stick justo debajo del excel-header */
+    z-index: 90;
+    background-color: #000000; /* Fondo negro absoluto para tapar rendijas internas de las filas (PZAS/CAV) */
+}
+
+.excel-table thead tr {
+    background-color: #000000;
+}
+
+.excel-table thead th {
+    background-color: var(--gis-blue) !important;
+    box-shadow: 0 -4px 0 0 #000000, 0 2px 4px rgba(0, 0, 0, 0.15);
+    background-clip: padding-box; /* Previene fugas de color de fondo */
+}
+
+.excel-table th {
+    background-color: var(--gis-blue);
+    color: #ffffff;
+    font-weight: 700;
+    text-align: center;
+    font-size: 10.5px;
+    letter-spacing: 0.5px;
+}
+
+.excel-table th.col-fecha-prom {
+    background-color: #d97706 !important;
+    color: #ffffff !important;
 }
 
 .date-input {
@@ -218,17 +309,10 @@
     color: inherit;
 }
 
-.excel-table th {
-    background-color: #e0e0e0;
-    font-weight: bold;
-    text-align: center;
-    font-size: 10px;
-}
-
-/* Specific column widths for better fit */
+/* Ancho de columnas */
 .col-drag { width: 38px; }
-.col-num { width: 25px; }
-.col-ot { width: 65px; }
+.col-num { width: 28px; }
+.col-ot { width: 68px; }
 .col-compra { width: 95px; }
 .col-cliente { width: 85px; }
 .col-producto { width: 170px; }
@@ -239,14 +323,14 @@
 .col-material { width: 80px; }
 .col-fecha-fund { width: 85px; }
 .col-fecha-tec { width: 85px; }
-.col-semana { width: 55px; }
+.col-semana { width: 58px; }
 .col-fecha-mex { width: 85px; }
 .col-fecha-prom { width: 85px; }
 .col-obs { width: 90px; }
 .col-pzas { width: 45px; }
 .col-cav { width: 45px; }
 
-/* ── Mango Lateral de Arrastre en Tabla ── */
+/* ── Mango Lateral de Arrastre ──────────────────────────────────── */
 .cell-drag {
     width: 38px;
     padding: 2px !important;
@@ -261,83 +345,84 @@
     width: 28px;
     height: 28px;
     border-radius: 6px;
-    background: rgba(3, 57, 102, 0.12);
-    border: 1px solid rgba(3, 57, 102, 0.3);
-    color: #033966;
+    background: rgba(3, 57, 102, 0.15);
+    border: 1px solid rgba(3, 57, 102, 0.4);
+    color: var(--gis-blue);
     cursor: grab;
     transition: all 0.2s ease;
-    user-select: none;
     -webkit-user-select: none;
+    user-select: none;
 }
 
 .table-drag-handle:hover {
-    background: #033966;
+    background: var(--gis-blue);
     color: #ffffff;
-    box-shadow: 0 0 8px rgba(3, 57, 102, 0.6);
+    box-shadow: 0 0 10px rgba(3, 57, 102, 0.6);
     transform: scale(1.1);
 }
 
 .table-drag-handle:active,
 .is-row-dragging .table-drag-handle {
     cursor: grabbing;
-    background: #0A8504;
-    border-color: #0A8504;
+    background: var(--gis-green);
+    border-color: var(--gis-green);
     color: #ffffff;
-    box-shadow: 0 0 10px rgba(10, 133, 4, 0.8);
+    box-shadow: 0 0 12px rgba(10, 133, 4, 0.8);
 }
 
-/* ── Estados de Arrastre de Filas ── */
+/* ── Estados de Arrastre de Filas ───────────────────────────────── */
 tr.is-row-dragging {
     opacity: 0.45;
     background-color: #e2e8f0 !important;
 }
 
 tr.drag-over-top td {
-    border-top: 3.5px solid #0A8504 !important;
+    border-top: 3.5px solid var(--gis-green) !important;
 }
 
 tr.drag-over-bottom td {
-    border-bottom: 3.5px solid #0A8504 !important;
+    border-bottom: 3.5px solid var(--gis-green) !important;
 }
 
-/* ── Badge de Estado de Sincronización ── */
+/* ── Badge de Estado de Autoguardado ────────────────────────────── */
 .pm-table-status-badge {
     display: flex;
     align-items: center;
     gap: 8px;
-    background: rgba(10, 133, 4, 0.12);
-    color: #0A8504;
-    border: 1.5px solid rgba(10, 133, 4, 0.35);
-    border-radius: 6px;
+    background: rgba(34, 197, 94, 0.15);
+    color: #22c55e;
+    border: 1.5px solid rgba(34, 197, 94, 0.4);
+    border-radius: 8px;
     padding: 6px 14px;
     font-size: 12px;
-    font-weight: bold;
+    font-weight: 700;
+    -webkit-user-select: none;
     user-select: none;
 }
 
 .pm-table-status-badge.pm-status-saving {
-    background: rgba(3, 57, 102, 0.12);
-    color: #033966;
-    border-color: #033966;
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.5);
 }
 
 .pm-table-status-badge.pm-status-saved {
-    background: rgba(10, 133, 4, 0.2);
-    color: #0A8504;
-    border-color: #0A8504;
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+    border-color: #22c55e;
 }
 
 .pm-table-status-badge.pm-status-error {
-    background: rgba(156, 3, 3, 0.15);
-    color: #9C0303;
-    border-color: #9C0303;
+    background: rgba(248, 113, 113, 0.2);
+    color: #f87171;
+    border-color: #f87171;
 }
 
 .pm-table-spinner {
     width: 12px;
     height: 12px;
-    border: 2px solid rgba(3, 57, 102, 0.2);
-    border-top-color: #033966;
+    border: 2px solid rgba(56, 189, 248, 0.3);
+    border-top-color: #38bdf8;
     border-radius: 50%;
     animation: pm-spin 0.6s linear infinite;
 }
@@ -346,21 +431,21 @@ tr.drag-over-bottom td {
     to { transform: rotate(360deg); }
 }
 
-/* Styling classes */
+/* Clases utilitarias de texto */
 .text-center { text-align: center; }
 .font-bold { font-weight: bold; }
-.font-large { font-size: 16px; }
+.font-large { font-size: 15px; }
 .p-0 { padding: 0 !important; }
 .text-uppercase { text-transform: uppercase; }
 
 .cell-ot-val {
     font-size: 13px !important;
-    font-weight: bold !important;
+    font-weight: 800 !important;
 }
 
 .cell-producto-val {
     font-size: 12px !important;
-    font-weight: bold !important;
+    font-weight: 700 !important;
 }
 
 .cell-cliente-val {
@@ -378,107 +463,125 @@ tr.drag-over-bottom td {
 }
 
 .excel-table td.p-0 .subcell-row:not(:last-child) {
-    border-bottom: 1px solid #000;
+    border-bottom: 1px solid #000000;
 }
-
-/* Background colors for the Week column */
-.bg-week-0 { background-color: #a4d872; } /* Greenish */
-.bg-week-1 { background-color: #72a4d8; } /* Bluish */
-.bg-week-2 { background-color: #d8a472; } /* Orangeish */
-.bg-week-3 { background-color: #d872a4; } /* Pinkish */
-.bg-week-4 { background-color: #a472d8; } /* Purplish */
 
 .cell-semana {
-    background-color: #a4d872; /* Default */
+    font-weight: 800;
 }
 
-/* Print Styles for PDF Export */
+/* ── Estilos de Impresión / Exportación ─────────────────────────── */
 @media print {
     @page {
-        size: landscape;
-        margin: 5mm;
+        size: letter landscape;
+        margin: 4mm;
     }
     
     html, body {
-        background-color: #fff !important;
+        background-color: #ffffff !important;
         margin: 0 !important;
         padding: 0 !important;
         width: 100% !important;
+        height: auto !important;
+        overflow: visible !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
     
-    /* Hide non-printable UI elements */
     header, .open-menu, .filter-opacity, nav, .toolbar, .no-print, button, .btn-clear {
         display: none !important;
     }
     
     .priorities-wrapper {
+        display: block !important;
         padding: 0 !important;
         box-shadow: none !important;
         width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
         margin: 0 !important;
     }
 
     .excel-header {
         width: 100% !important;
         box-sizing: border-box !important;
-        background-color: #fff !important;
+        background-color: #ffffff !important;
         display: flex !important;
         margin-bottom: 0 !important;
+        border-radius: 0 !important;
+        position: static !important;
+        top: auto !important;
+        border: 2px solid #000000 !important;
+        page-break-after: avoid !important;
+        break-after: avoid !important;
     }
 
     .header-logo {
-        width: 150px !important;
-        padding: 6px !important;
+        width: 15% !important;
+        padding: 2px !important;
+        border-right: 2px solid #000000 !important;
     }
 
     .header-logo img {
-        max-width: 110px !important;
+        max-width: 80px !important;
     }
 
     .header-title {
-        flex-grow: 1 !important;
+        width: 45% !important;
+        flex-grow: 0 !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
         background-color: #033966 !important;
         color: #ffffff !important;
+        border-right: 2px solid #000000 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
     .header-title h1 {
-        font-size: 24px !important;
-        letter-spacing: 6px !important;
+        font-size: 16px !important;
+        letter-spacing: 4px !important;
         white-space: nowrap !important;
         margin: 0 !important;
         color: #ffffff !important;
     }
 
     .header-week {
-        width: 140px !important;
-        padding: 6px !important;
+        width: 15% !important;
+        padding: 2px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
         background-color: #0A8504 !important;
         color: #ffffff !important;
+        border-right: 2px solid #000000 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
     .header-week h2 {
-        font-size: 15px !important;
+        font-size: 12px !important;
         margin: 0 !important;
         white-space: nowrap !important;
         color: #ffffff !important;
     }
 
     .header-week p {
-        font-size: 10px !important;
+        font-size: 8px !important;
         margin: 0 !important;
         white-space: nowrap !important;
         color: #ffffff !important;
     }
 
     .header-date {
-        width: 200px !important;
-        padding: 6px !important;
+        width: 25% !important;
+        padding: 2px !important;
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
         background-color: #404040 !important;
         color: #ffffff !important;
         -webkit-print-color-adjust: exact !important;
@@ -486,7 +589,7 @@ tr.drag-over-bottom td {
     }
 
     .header-date h3 {
-        font-size: 12px !important;
+        font-size: 10px !important;
         white-space: nowrap !important;
         margin: 0 !important;
         color: #ffffff !important;
@@ -495,58 +598,202 @@ tr.drag-over-bottom td {
     .excel-table-container {
         overflow: visible !important;
         width: 100% !important;
+        height: auto !important;
+        max-height: none !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        position: static !important;
+        display: block !important;
     }
 
     .excel-table {
         width: 100% !important;
         border-collapse: collapse !important;
-        font-size: 9.5px !important;
-        table-layout: auto !important;
+        font-size: 7.5px !important;
+        table-layout: fixed !important;
+        page-break-after: auto !important;
     }
 
-    /* Column sizing for print */
-    .col-num, .col-ot, .col-compra, .col-cliente, .col-producto, 
-    .col-cantidades, .col-piezas, .col-forma, .col-prov, .col-material, 
-    .col-fecha-fund, .col-fecha-tec, .col-semana, .col-fecha-mex, 
-    .col-fecha-prom, .col-obs, .col-pzas, .col-cav {
-        width: auto !important;
-        max-width: none !important;
-        min-width: 0 !important;
+    tr, td, th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
+
+    .col-drag { display: none !important; }
+    .col-num { width: 2% !important; }
+    .col-ot { width: 5% !important; }
+    .col-compra { width: 8% !important; }
+    .col-cliente { width: 7% !important; }
+    .col-producto { width: 14% !important; }
+    .col-cantidades { width: 5.5% !important; }
+    .col-piezas { width: 8% !important; }
+    .col-forma { width: 4.5% !important; }
+    .col-prov { width: 6% !important; }
+    .col-material { width: 5.5% !important; }
+    .col-fecha-fund { width: 6% !important; }
+    .col-fecha-tec { width: 6% !important; }
+    .col-semana { width: 4% !important; }
+    .col-fecha-mex { width: 6% !important; }
+    .col-fecha-prom { width: 6% !important; }
+    .col-obs { width: 6.5% !important; }
+    .col-pzas { width: 3.25% !important; }
+    .col-cav { width: 3.25% !important; }
 
     .cell-ot-val {
-        font-size: 12px !important;
+        font-size: 9px !important;
         font-weight: bold !important;
     }
 
     .cell-producto-val {
-        font-size: 11px !important;
+        font-size: 8.5px !important;
         font-weight: bold !important;
     }
 
     .subcell-row {
-        padding: 2px 2px !important;
-        min-height: 18px !important;
+        padding: 1px 1px !important;
+        min-height: 14px !important;
+    }
+
+    .cell-cliente-val {
+        white-space: normal !important;
     }
 
     .excel-table th, .excel-table td {
-        padding: 3px 3px !important;
+        padding: 1px 2px !important;
+        line-height: 1.1 !important;
         word-break: break-word !important;
-        overflow-wrap: break-word !important;
+        overflow-wrap: anywhere !important;
+        word-wrap: break-word !important;
+        white-space: normal !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
 
     .excel-table th {
-        background-color: #e0e0e0 !important;
-        font-size: 9px !important;
+        background-color: #033966 !important;
+        color: #ffffff !important;
+        font-size: 7px !important;
+        position: static !important;
+        top: auto !important;
     }
 
-    thead {
-        display: table-header-group;
+    .excel-table thead, thead {
+        display: table-header-group !important;
+        position: static !important;
+        top: auto !important;
+        transform: none !important;
     }
 
     tr {
-        page-break-inside: avoid;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
 }
+
+/* ── Estilos de Modales SweetAlert2 (Identidad GIS Glassmorphism) ── */
+.swal2-container.swal2-backdrop-show {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    background: rgba(0, 15, 30, 0.75) !important;
+}
+
+.gis-swal-popup,
+.swal2-popup {
+    background: linear-gradient(135deg, rgba(2, 38, 68, 0.98), rgba(3, 57, 102, 0.98)) !important;
+    border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+    border-radius: 18px !important;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 25px rgba(56, 189, 248, 0.25) !important;
+    color: #ffffff !important;
+    font-family: 'Poppins', sans-serif !important;
+    padding: 2rem !important;
+}
+
+.gis-swal-title,
+.swal2-title {
+    color: #ffffff !important;
+    font-size: 1.55rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.01em !important;
+    margin-bottom: 0.75rem !important;
+}
+
+.gis-swal-html,
+.swal2-html-container {
+    color: #cbd5e1 !important;
+    font-size: 1rem !important;
+    line-height: 1.6 !important;
+}
+
+.gis-swal-select,
+.swal2-select {
+    background-color: rgba(3, 45, 82, 0.95) !important;
+    color: #38bdf8 !important;
+    border: 1.5px solid rgba(56, 189, 248, 0.4) !important;
+    border-radius: 10px !important;
+    padding: 10px 16px !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    font-family: 'Poppins', sans-serif !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+    margin: 1.2rem auto !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+}
+
+.gis-swal-select:focus,
+.swal2-select:focus {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 12px rgba(56, 189, 248, 0.6) !important;
+}
+
+.swal2-actions {
+    gap: 14px !important;
+    margin-top: 1.5rem !important;
+}
+
+.gis-swal-confirm,
+.swal2-confirm.swal2-styled {
+    background-color: var(--gis-green) !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    padding: 12px 24px !important;
+    box-shadow: 0 4px 12px var(--shadow-green) !important;
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.gis-swal-confirm:hover,
+.swal2-confirm.swal2-styled:hover {
+    transform: translateY(-2px) scale(1.03) !important;
+    box-shadow: 0 8px 18px rgba(10, 133, 4, 0.6) !important;
+}
+
+.gis-swal-confirm:active,
+.swal2-confirm.swal2-styled:active {
+    transform: translateY(1px) scale(0.98) !important;
+}
+
+.gis-swal-cancel,
+.swal2-cancel.swal2-styled {
+    background-color: var(--gis-red) !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    padding: 12px 24px !important;
+    box-shadow: 0 4px 12px var(--shadow-red) !important;
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.gis-swal-cancel:hover,
+.swal2-cancel.swal2-styled:hover {
+    transform: translateY(-2px) scale(1.03) !important;
+    box-shadow: 0 8px 18px rgba(156, 3, 3, 0.6) !important;
+}
+
+.gis-swal-cancel:active,
+.swal2-cancel.swal2-styled:active {
+    transform: translateY(1px) scale(0.98) !important;
+}
+

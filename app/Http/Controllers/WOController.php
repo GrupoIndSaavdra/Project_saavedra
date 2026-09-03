@@ -163,7 +163,8 @@ class WOController extends Controller
         $molding = Moldura::find($request->input('moldingSelected'));
 
         $fixDate = function ($dateStr) {
-            if (!$dateStr) return null;
+            if (!$dateStr)
+                return null;
             if (preg_match('/(\d{4}-\d{2}-\d{2})$/', $dateStr, $matches)) {
                 return $matches[1];
             }
@@ -227,7 +228,8 @@ class WOController extends Controller
         ]);
 
         $fixDate = function ($dateStr) {
-            if (!$dateStr) return null;
+            if (!$dateStr)
+                return null;
             if (preg_match('/(\d{4}-\d{2}-\d{2})$/', $dateStr, $matches)) {
                 return $matches[1];
             }
@@ -260,16 +262,16 @@ class WOController extends Controller
             foreach ($request->input('deleted_classes') as $delClassId) {
                 $classToDel = Clase::find($delClassId);
                 if ($classToDel && $classToDel->id_ot == $ot->id) {
-                    $hasPieces = \App\Models\Pieza::where('id_clase', $classToDel->id)->exists();
-                    $goals = \App\Models\Metas::where('id_clase', $classToDel->id)->exists();
-                    
+                    $hasPieces = Pieza::where('id_clase', $classToDel->id)->exists();
+                    $goals = Metas::where('id_clase', $classToDel->id)->exists();
+
                     if ($hasPieces || $goals) {
                         $failedDeletes[] = $classToDel->nombre;
                     } else {
-                        $process = \App\Models\Procesos::where('id_clase', $classToDel->id)->first();
+                        $process = Procesos::where('id_clase', $classToDel->id)->first();
                         if ($process) {
                             $process->delete();
-                            \App\Models\Fecha_proceso::where('clase', $classToDel->id)->delete();
+                            Fecha_proceso::where('clase', $classToDel->id)->delete();
                         }
                         $classToDel->delete();
                         $deletedClassesCount++;
@@ -284,7 +286,7 @@ class WOController extends Controller
             foreach ($request->input('class_orders') as $classId => $qty) {
                 $clase = Clase::find($classId);
                 if ($clase && $clase->id_ot == $ot->id) {
-                    $newQty = max(0, (int)$qty);
+                    $newQty = max(0, (int) $qty);
                     $newMat = isset($materials[$classId]) && trim($materials[$classId]) !== '' ? trim($materials[$classId]) : null;
                     $classChanged = false;
 
@@ -311,9 +313,9 @@ class WOController extends Controller
             $classController = new \App\Http\Controllers\ClassController();
             foreach ($request->input('new_classes') as $newClass) {
                 $nombre = $newClass['nombre'] ?? null;
-                $cantidad = (int)($newClass['cantidad'] ?? 0);
+                $cantidad = (int) ($newClass['cantidad'] ?? 0);
                 $material = isset($newClass['material']) && trim($newClass['material']) !== '' ? trim($newClass['material']) : null;
-                
+
                 if ($nombre && $cantidad > 0) {
                     // Check if class already exists
                     $exists = Clase::where('id_ot', $ot->id)->where('nombre', $nombre)->exists();
@@ -326,13 +328,13 @@ class WOController extends Controller
                         $class->tamanio = 'Chico';
                         $class->material = $material;
                         $class->save();
-        
+
                         $controllerProductionTime = new \App\Http\Controllers\TiemposProduccionController();
                         $controllerProductionTime->setProductionTimes($class);
-                        
-                        $process = new \App\Models\Procesos();
+
+                        $process = new Procesos();
                         $classController->storeProcess($class, null, null, $process);
-                        
+
                         $addedClassesCount++;
                         $hasUpdates = true;
                     }
@@ -350,14 +352,17 @@ class WOController extends Controller
 
         $successMsg = "¡La Orden de Trabajo {$ot->id} fue procesada exitosamente!";
         $details = [];
-        if ($hasUpdates) $details[] = "Se actualizaron los datos generales/composiciones/cantidades.";
-        if ($addedClassesCount > 0) $details[] = "Se agregaron $addedClassesCount nuevas clases.";
-        if ($deletedClassesCount > 0) $details[] = "Se eliminaron $deletedClassesCount clases.";
-        
+        if ($hasUpdates)
+            $details[] = "Se actualizaron los datos generales/composiciones/cantidades.";
+        if ($addedClassesCount > 0)
+            $details[] = "Se agregaron $addedClassesCount nuevas clases.";
+        if ($deletedClassesCount > 0)
+            $details[] = "Se eliminaron $deletedClassesCount clases.";
+
         $finalMsg = $successMsg . " " . implode(" ", $details);
-        
+
         $redirect = redirect()->route('createMasterWO', ['mode' => 'modify', 'ot_id' => $ot->id])->with('success', $finalMsg);
-        
+
         if (count($failedDeletes) > 0) {
             $redirect->with('error', "No se pudieron eliminar las siguientes clases porque ya tienen piezas o metas registradas: " . implode(", ", $failedDeletes));
         }
@@ -390,20 +395,26 @@ class WOController extends Controller
         $groupedWOs = [];
         foreach ($workOrders as $wo) {
             $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
-            
+
+            if (empty($semanaRaw) && (!empty($startWeek) || !empty($endWeek))) {
+                continue;
+            }
+
             if (!empty($startWeek) && !empty($semanaRaw)) {
-                if ((int)$semanaRaw < (int)$startWeek) continue;
+                if ((int) $semanaRaw < (int) $startWeek)
+                    continue;
             }
             if (!empty($endWeek) && !empty($semanaRaw)) {
-                if ((int)$semanaRaw > (int)$endWeek) continue;
+                if ((int) $semanaRaw > (int) $endWeek)
+                    continue;
             }
 
             $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
             $groupedWOs[$semana][] = $wo;
         }
 
-        // Ordenar las llaves (semanas)
-        uksort($groupedWOs, function($a, $b) {
+        // Ordenar estrictamente las semanas de menor a mayor (ascendente)
+        uksort($groupedWOs, function ($a, $b) {
             if ($a === 'Sin Semana') return 1;
             if ($b === 'Sin Semana') return -1;
             return (int)$a - (int)$b;
@@ -418,10 +429,10 @@ class WOController extends Controller
             ->where('semana_entrega_cliente', '!=', '')
             ->distinct()
             ->get()
-            ->map(function($ot) {
-                return (int)preg_replace('/[^0-9]/', '', $ot->semana_entrega_cliente);
+            ->map(function ($ot) {
+                return (int) preg_replace('/[^0-9]/', '', $ot->semana_entrega_cliente);
             })
-            ->filter(function($week) {
+            ->filter(function ($week) {
                 return $week > 0;
             })
             ->unique()
@@ -430,6 +441,63 @@ class WOController extends Controller
             ->toArray();
 
         return view('wo_views.priorities', compact('groupedWOs', 'allOts', 'allWeeksRaw', 'startWeek', 'endWeek', 'otId'));
+    }
+
+    /**
+     * Descarga de Prioridades en PDF (Dashboard Master)
+     */
+    public function downloadPrioritiesPdf(Request $request)
+    {
+        $startWeek = $request->input('start_week');
+        $endWeek = $request->input('end_week');
+        $otId = $request->input('ot_id');
+
+        $query = Orden_trabajo::with(['moldura', 'clases']);
+
+        if (!empty($otId)) {
+            $query->where('id', $otId);
+        }
+
+        $workOrders = $query
+            ->orderByRaw('CASE WHEN prioridad IS NULL OR prioridad = 0 THEN 999999 ELSE prioridad END ASC')
+            ->orderByRaw('CAST(semana_entrega_cliente AS UNSIGNED) ASC')
+            ->orderBy('id', 'ASC')
+            ->get();
+
+        $groupedWOs = [];
+        foreach ($workOrders as $wo) {
+            $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
+
+            if (empty($semanaRaw) && (!empty($startWeek) || !empty($endWeek))) {
+                continue;
+            }
+
+            if (!empty($startWeek) && !empty($semanaRaw)) {
+                if ((int) $semanaRaw < (int) $startWeek)
+                    continue;
+            }
+            if (!empty($endWeek) && !empty($semanaRaw)) {
+                if ((int) $semanaRaw > (int) $endWeek)
+                    continue;
+            }
+
+            $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
+            $groupedWOs[$semana][] = $wo;
+        }
+
+        // Ordenar estrictamente las semanas de menor a mayor (ascendente)
+        uksort($groupedWOs, function ($a, $b) {
+            if ($a === 'Sin Semana') return 1;
+            if ($b === 'Sin Semana') return -1;
+            return (int)$a - (int)$b;
+        });
+
+        $pdf = FacadePdf::loadView('wo_views.priorities_pdf_export', compact('groupedWOs', 'startWeek', 'endWeek'));
+
+        $pdf->getDomPDF()->set_option('isPhpEnabled', true);
+        $pdf->setPaper('letter', 'landscape');
+
+        return $pdf->download('Prioridades_GIS.pdf');
     }
 
     /**
@@ -444,11 +512,12 @@ class WOController extends Controller
         ]);
 
         $allowedFields = [
-            'fecha_real', 
-            'forma_grabados', 
-            'entrega_tecamac', 
+            'fecha_real',
+            'forma_grabados',
+            'entrega_tecamac',
             'observaciones_prioridad',
-            'fecha_entrega_fundicion'
+            'fecha_entrega_fundicion',
+            'semana_entrega_cliente'
         ];
 
         if (!in_array($request->field, $allowedFields)) {
@@ -1232,7 +1301,7 @@ class WOController extends Controller
             }
         }
 
-        $userProfile = (int)(auth()->user()->perfil ?? 0);
+        $userProfile = (int) (auth()->user()->perfil ?? 0);
         if ($userProfile === 4 || ($userProfile === 3 && request('sec') === 'calidad')) {
             [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         } else {
@@ -1269,7 +1338,6 @@ class WOController extends Controller
         }
 
         // Traer todas las OTs activas (con al menos una clase no finalizada)
-        // ordenadas por prioridad actual para mostrarlas en el panel.
         $workOrders = Orden_trabajo::query()
             ->whereHas('clases', function ($q) {
                 $q->where('finalizada', 0);
@@ -1282,20 +1350,48 @@ class WOController extends Controller
                     $q->select('id', 'nombre');
                 }
             ])
-            ->orderByRaw('prioridad IS NULL ASC')
-            ->orderBy('prioridad')
-            ->orderBy('id')
-            ->get(['id', 'id_moldura', 'prioridad']);
+            ->get();
 
-        // Transformar a array plano para el frontend
-        $otPriorities = $workOrders->map(function ($ot, $index) {
+        // Agrupar por semana idéntico a prioritiesView
+        $groupedWOs = [];
+        foreach ($workOrders as $wo) {
+            $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
+            $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
+            $groupedWOs[$semana][] = $wo;
+        }
+
+        // Ordenar semanas de menor a mayor (ascendente)
+        uksort($groupedWOs, function ($a, $b) {
+            if ($a === 'Sin Semana') return 1;
+            if ($b === 'Sin Semana') return -1;
+            return (int)$a - (int)$b;
+        });
+
+        // Aplanar ordenando OTs dentro de cada semana por prioridad
+        $flatOrderedWorkOrders = collect();
+        foreach ($groupedWOs as $semana => $wos) {
+            $sortedWeekWOs = collect($wos)->sort(function ($a, $b) {
+                $pA = ($a->prioridad === null || $a->prioridad == 0) ? 999999 : (int)$a->prioridad;
+                $pB = ($b->prioridad === null || $b->prioridad == 0) ? 999999 : (int)$b->prioridad;
+                if ($pA === $pB) {
+                    return strcmp((string)$a->id, (string)$b->id);
+                }
+                return $pA <=> $pB;
+            });
+            foreach ($sortedWeekWOs as $wo) {
+                $flatOrderedWorkOrders->push($wo);
+            }
+        }
+
+        // Transformar a array plano para el frontend con prioridad idéntica a su posición en pantalla
+        $otPriorities = $flatOrderedWorkOrders->values()->map(function ($ot, $index) {
             return [
                 'ot_id' => $ot->id,
                 'moldura' => $ot->moldura ? $ot->moldura->nombre : '—',
                 'clases' => $ot->clases->pluck('nombre')->toArray(),
-                'prioridad' => $ot->prioridad ?? ($index + 1),
+                'prioridad' => $index + 1,
             ];
-        })->values()->toArray();
+        })->toArray();
 
         return view('pieces_views.priorityManager_view', compact('otPriorities'));
     }
@@ -1324,11 +1420,12 @@ class WOController extends Controller
             DB::transaction(function () use ($priorities) {
                 foreach ($priorities as $item) {
                     // Validar que los campos necesarios existen
-                    if (!isset($item['ot_id']) || !isset($item['prioridad'])) {
-                        continue;
+                    $updateData = ['prioridad' => (int) $item['prioridad']];
+                    if (isset($item['semana_entrega_cliente']) && $item['semana_entrega_cliente'] !== '') {
+                        $updateData['semana_entrega_cliente'] = $item['semana_entrega_cliente'];
                     }
                     Orden_trabajo::query()->where('id', '=', $item['ot_id'], 'and')
-                        ->update(['prioridad' => (int) $item['prioridad']]);
+                        ->update($updateData);
                 }
             });
 
