@@ -143,8 +143,22 @@
             </tr>
         </thead>
         <tbody>
-            @php $rowCount = 1; @endphp
-            @foreach($groupedWOs as $semana => $wos)
+            @php 
+                $rowCount = 1; 
+                $totalWosCount = 0;
+                foreach($groupedWOs as $semana => $wos) {
+                    $totalWosCount += count($wos);
+                }
+            @endphp
+            @if($totalWosCount === 0)
+                <tr>
+                    <td colspan="17" style="padding: 30px 15px; background-color: #ffffff; text-align: center;">
+                        <img src="{{ public_path('images/calendario.png') }}" width="45" height="auto" style="margin-bottom: 6px;"><br>
+                        <strong style="color: #dc2626; font-size: 11px;">Esta semana o consulta no tiene ninguna Orden de Trabajo asignada actualmente.</strong>
+                    </td>
+                </tr>
+            @else
+                @foreach($groupedWOs as $semana => $wos)
                 @php $rowColor = getPastelColorForWeek($semana); @endphp
                 @foreach($wos as $wo)
                     @php
@@ -268,6 +282,7 @@
                     </tr>
                 @endforeach
             @endforeach
+            @endif
         </tbody>
     </table>
 

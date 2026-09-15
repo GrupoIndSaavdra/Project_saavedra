@@ -9,13 +9,13 @@
     display: flex;
     width: 96vw;
     max-width: 1800px;
-    margin: 15px auto;
-    height: calc(100vh - 90px);
-    max-height: calc(100vh - 90px);
+    margin: 8px auto;
+    height: calc(100vh - 78px);
+    max-height: calc(100vh - 78px);
     justify-content: center;
     align-items: stretch;
     box-sizing: border-box;
-    gap: 20px;
+    gap: 16px;
 }
 .wrapper {
     display: flex;
@@ -24,11 +24,12 @@
     max-height: 100%;
     width: 50%;
     max-width: 880px;
-    padding: 1.1em 1.4em;
+    padding: 1.1em 1.3em;
     overflow-y: auto;
     overflow-x: hidden;
     background: #ffffff;
-    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.18);
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(3, 57, 102, 0.1);
     border-radius: 12px;
     box-sizing: border-box;
     transition: width 0.3s ease;
@@ -48,9 +49,9 @@
 }
 h3 {
     text-align: center;
-    font-size: 1.25em;
+    font-size: 1.2em;
     color: var(--gis-gray);
-    padding: 8px 0 12px 0;
+    padding: 4px 0 10px 0;
     margin: 0;
     font-weight: 600;
 }
@@ -60,25 +61,36 @@ h3 {
 .column {
     display: flex;
     flex-direction: column;
-    padding: 0.4em 0.5em;
+    padding: 0.22em 0.35em;
     width: 50%;
-}
-.form-control {
-    border-radius: 5px;
-    border: 1px solid #00000033;
-    font-size: 0.88em;
-    padding: 0.5em 0.65em;
-    transition: 0.2s;
-    background: #03396610;
-    width: 100%;
     box-sizing: border-box;
 }
+.form-control {
+    border-radius: 6px;
+    border: 1px solid rgba(3, 57, 102, 0.22);
+    font-size: 0.85em;
+    font-weight: 500;
+    height: 36px;
+    min-height: 36px;
+    line-height: normal;
+    padding: 6px 10px;
+    transition: all 0.2s ease;
+    background: rgba(3, 57, 102, 0.04);
+    width: 100%;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+select.form-control {
+    padding: 4px 8px;
+    line-height: normal;
+}
 .form-control:disabled {
-    background-color: #0339660c !important;
-    color: var(--gis-blue);
-    border: 1px solid #0339662b !important;
+    background-color: rgba(3, 57, 102, 0.05) !important;
+    color: var(--gis-blue) !important;
+    border: 1px solid rgba(3, 57, 102, 0.18) !important;
     cursor: not-allowed;
     opacity: 1;
+    font-weight: 600;
 }
 .form-control:hover:not(:disabled) {
     border: 1px solid #0a8504;
@@ -93,7 +105,7 @@ label {
     flex-shrink: 0;
 }
 .wrapper > .scrollabe-table {
-    flex-shrink: 1;
+    flex-shrink: 0;
 }
 /* .div-rows-hidden: Oculto mediante la clase .hidden */
 
@@ -102,15 +114,19 @@ label {
 ═══════════════════════════════════════════════════*/
 .scrollabe-table {
     box-sizing: border-box;
-    margin: 14px 0 8px 0;
-    border-radius: 12px;
+    margin: 8px 0 4px 0;
+    border-radius: 10px;
     background: transparent;
     overflow-y: auto;
+    overflow-x: hidden;
     padding: 0;
-    flex-grow: 1;
-    min-height: 50px;
-    box-shadow: 0 2px 12px rgba(3, 57, 102, 0.09);
+    width: 100%;
+    height: auto;
+    max-height: 280px;
+    flex-shrink: 0;
+    box-shadow: 0 2px 10px rgba(3, 57, 102, 0.08);
     border: 1px solid rgba(3, 57, 102, 0.12);
+    transition: max-height 0.2s ease, height 0.2s ease;
 }
 /* Scrollbar webkit — Safari, Chrome antiguo */
 .scrollabe-table::-webkit-scrollbar { width: 5px; height: 5px; }
@@ -300,20 +316,20 @@ label {
 /*Estilos para la seccion de las casillas*/
 .div-boxes {
     position: relative;
-    /* Oculto mediante la clase .hidden */
     width: 50%;
     max-width: 880px;
-    height: auto;
+    height: 100%;
     max-height: 100%;
     display: flex;
     flex-direction: column;
-    background-color: #fff;
-    padding: 1.4em 1.8em;
+    background-color: #ffffff;
+    padding: 1.2em 1.5em;
     justify-content: flex-start;
     overflow-y: auto;
     overflow-x: hidden;
     border-radius: 12px;
-    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.18);
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(3, 57, 102, 0.1);
     box-sizing: border-box;
 }
 /* Scrollbar webkit — Safari, Chrome antiguo */
@@ -326,11 +342,11 @@ label {
 }
 .div-boxes h3 {
     text-align: center;
-    font-size: 1.25em;
-    color: var(--gis-gray);
-    padding: 4px 0 20px 0;
+    font-size: 1.15em;
+    color: var(--gis-blue, #033966);
+    padding: 2px 0 12px 0;
     margin: 0;
-    font-weight: bold;
+    font-weight: 700;
 }
 .sections {
     width: 100%;
@@ -338,9 +354,16 @@ label {
     flex-direction: row;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 20px;
+    gap: 14px;
     margin-top: 4px;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.sections.single-column-sections {
+    justify-content: center;
 }
 
 .section1,
@@ -351,30 +374,64 @@ label {
     padding: 0;
     flex: 1 1 0%;
     min-width: 0;
-    gap: 12px;
+    gap: 10px;
+}
+
+.section1.full-width-section {
+    width: 100% !important;
+    max-width: 650px;
+    margin: 0 auto;
+    flex: 1 1 100% !important;
 }
 
 /* Estilo para la casilla de verificación */
 .checkbox-container {
     display: flex;
     align-items: center;
-    padding: 4px 6px;
-    gap: 6px;
-    min-width: 0;
-    border-radius: 6px;
-    background: transparent;
-    transition: background 0.15s ease;
+    justify-content: space-between;
+    padding: 9px 14px;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    border-radius: 8px;
+    background: #ffffff;
+    border: 1px solid rgba(3, 57, 102, 0.14);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.04);
+    transition: all 0.18s ease;
 }
 
 .checkbox-container:hover {
-    background: #f1f5f9;
+    background: #f8fafc;
+    border-color: rgba(3, 57, 102, 0.32);
+    box-shadow: 0 3px 8px rgba(3, 57, 102, 0.08);
+}
+
+.checkbox-container:has(.checkbox:checked) {
+    background: rgba(3, 57, 102, 0.035);
+    border-color: rgba(3, 57, 102, 0.28);
+}
+
+.process-info-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+}
+
+.process-machine-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 .checkbox,
 .checkbox-soldaduras,
 .checkboxAll {
-    transform: scale(1.2);
-    margin: 0 6px 0 4px;
+    width: 18px;
+    height: 18px;
+    margin: 0;
     cursor: pointer;
     accent-color: var(--gis-blue);
     flex-shrink: 0;
@@ -382,65 +439,69 @@ label {
 
 .checkbox-label {
     cursor: pointer;
-    font-size: 0.92em;
+    font-size: 0.88em;
     font-weight: 600;
     color: #1e293b;
     white-space: normal;
     word-break: break-word;
     line-height: 1.25;
+    margin: 0;
 }
 
 .div-checkboxAll {
     display: flex;
     align-items: center;
+    justify-content: center;
     align-self: flex-end;
-    margin-top: 18px;
-    margin-bottom: 6px;
+    margin-top: auto;
+    margin-bottom: 4px;
     gap: 8px;
-    padding: 5px 12px;
+    padding: 6px 14px;
     background: #f8fafc;
-    border-radius: 6px;
-    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    border: 1px solid rgba(3, 57, 102, 0.18);
     cursor: pointer;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
 .div-checkboxAll:hover {
-    background: #e2e8f0;
-    border-color: #94a3b8;
+    background: #f1f5f9;
+    border-color: rgba(3, 57, 102, 0.35);
 }
 
 .div-checkboxAll .checkbox-label {
     font-weight: 700;
-    font-size: 0.95em;
+    font-size: 0.85em;
     color: var(--gis-blue);
     white-space: nowrap;
 }
 
 .label-machine {
     font-weight: 600;
-    font-size: 0.92em;
-    color: var(--gis-blue);
+    font-size: 0.78em;
+    color: #64748b;
     padding: 0;
     white-space: nowrap;
-    margin-right: 2px;
+    margin: 0;
     flex-shrink: 0;
 }
 
 .input-machine,
 .input-machine-soldaduras {
-    width: 50px;
-    height: 32px;
-    padding: 1px 4px;
-    margin-right: 4px;
+    width: 44px;
+    height: 28px;
+    padding: 2px 4px;
     border-radius: 5px;
-    border: 1px solid #94a3b8;
+    border: 1px solid #cbd5e1;
     text-align: center;
-    font-size: 0.95em;
-    font-weight: 600;
-    color: #1e293b;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--gis-blue);
+    background-color: #ffffff;
     box-sizing: border-box;
     flex-shrink: 0;
+    transition: all 0.15s ease;
 }
 
 /* Estilos para los botones accion de las clases*/

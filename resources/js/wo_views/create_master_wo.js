@@ -309,7 +309,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const FOUNDRY_PROVIDERS = [
         "SS Metal Foundry, S. de R. L. de C. V.",
         "SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS",
-        "EXTERNO"
+        "EXTERNO",
+        "Sin proveedor"
     ];
 
     if (woSelect && window.workOrdersData) {

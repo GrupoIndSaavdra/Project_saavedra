@@ -332,7 +332,7 @@ body {
 
 /* ── Mango Lateral de Arrastre ──────────────────────────────────── */
 .cell-drag {
-    width: 38px;
+    width: 46px;
     padding: 2px !important;
     text-align: center;
     vertical-align: middle;
@@ -342,11 +342,11 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+    width: 34px;
+    height: 34px;
+    border-radius: 7px;
     background: rgba(3, 57, 102, 0.15);
-    border: 1px solid rgba(3, 57, 102, 0.4);
+    border: 1.5px solid rgba(3, 57, 102, 0.45);
     color: var(--gis-blue);
     cursor: grab;
     transition: all 0.2s ease;
@@ -354,11 +354,17 @@ body {
     user-select: none;
 }
 
+.table-drag-handle svg {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+}
+
 .table-drag-handle:hover {
     background: var(--gis-blue);
     color: #ffffff;
     box-shadow: 0 0 10px rgba(3, 57, 102, 0.6);
-    transform: scale(1.1);
+    transform: scale(1.12);
 }
 
 .table-drag-handle:active,
@@ -438,8 +444,14 @@ tr.drag-over-bottom td {
 .p-0 { padding: 0 !important; }
 .text-uppercase { text-transform: uppercase; }
 
-.excel-table td:not([contenteditable="true"]):not(.date-cell) {
+.excel-table td:not([contenteditable="true"]):not(.date-cell):not(.cell-suppliers) {
     font-weight: 700 !important;
+}
+
+.excel-table td.cell-suppliers,
+.excel-table td.cell-suppliers .subcell-row:not(.subcell-class-label),
+.supplier-cell {
+    font-weight: 500 !important;
 }
 
 .cell-ot-val {
@@ -456,16 +468,36 @@ tr.drag-over-bottom td {
     white-space: nowrap;
 }
 
-.subcell-row {
-    padding: 5px 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 24px;
-    box-sizing: border-box;
-    text-align: center;
+.excel-table td.cell-subcells {
+    padding: 0 !important;
+    vertical-align: stretch !important;
+    height: 1px !important;
 }
 
+.subcell-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.subcell-row {
+    flex: 1 1 auto;
+    min-height: 24px;
+    padding: 4px 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    text-align: center;
+    word-break: break-word;
+    line-height: 1.15;
+    font-size: 10.5px;
+}
+
+.subcell-container > .subcell-row:not(:last-child),
 .excel-table td.p-0 .subcell-row:not(:last-child) {
     border-bottom: 1px solid #000000;
 }
@@ -908,5 +940,30 @@ tr.drag-over-bottom td {
 .date-single-box .date-display,
 span.date-display {
     font-weight: 500 !important;
+}
+
+/* Indicadores e Iconos para Campos Editables Vacíos */
+.empty-date-svg {
+    transition: stroke 0.2s ease, opacity 0.2s ease, transform 0.2s ease;
+}
+
+td:hover .empty-date-svg,
+.date-cell:hover .empty-date-svg,
+.date-single-box:hover .empty-date-svg {
+    stroke: #033966 !important;
+    opacity: 1 !important;
+    transform: scale(1.2);
+}
+
+.empty-editable-ph {
+    transition: color 0.2s ease;
+}
+
+td[contenteditable="true"]:hover .empty-editable-ph {
+    color: #033966 !important;
+}
+
+td[contenteditable="true"]:hover .empty-editable-ph svg {
+    stroke: #033966 !important;
 }
 

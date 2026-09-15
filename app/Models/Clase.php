@@ -5,6 +5,24 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int              $id
+ * @property string           $id_ot
+ * @property string           $nombre
+ * @property string|null      $tamanio
+ * @property string|null      $material
+ * @property string|null      $proveedor
+ * @property string|null      $composicion_quimica
+ * @property string|null      $tipo_soldadura
+ * @property string|null      $seccion
+ * @property int|null         $piezas
+ * @property int|null         $pedido
+ * @property int              $finalizada
+ * @property string|null      $fecha_entrega_fundicion
+ * @property string|null      $entrega_tecamac
+ * @property string|null      $fecha_real
+ * @property Procesos|null    $procesos
+ */
 class Clase extends Model
 {
     use HasFactory;

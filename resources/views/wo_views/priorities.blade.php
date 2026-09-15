@@ -33,6 +33,24 @@
         }
     }
 
+    function renderDateDisplayOrIcon($value)
+    {
+        $parsed = safeDateParseDisplay($value);
+        if (!empty($parsed)) {
+            return e($parsed);
+        }
+        return '<span class="empty-date-icon-wrap" title="Hacer clic para asignar fecha"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-date-svg" style="vertical-align: middle; opacity: 0.65;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>';
+    }
+
+    function renderEditableTextOrIcon($value)
+    {
+        $clean = trim($value ?? '');
+        if (!empty($clean) && $clean !== '-') {
+            return e($clean);
+        }
+        return '<span class="empty-editable-ph" style="color: #94a3b8; font-size: 0.85em; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" title="Hacer clic para editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>-</span>';
+    }
+
     function getPastelColorForWeek($weekString)
     {
         // Una paleta curada de 20 colores pasteles profesionales y armoniosos
@@ -185,248 +203,317 @@
                     <tr>
                         <th class="col-pzas">PZAS</th>
                         <th class="col-cav">CAV</th>
-                    </tr>
                 </thead>
                 <tbody>
                     @php
                         $rowCount = 1;
                         $wosJsData = [];
+                        $totalWosCount = 0;
+                        foreach($groupedWOs as $semana => $wos) {
+                            $totalWosCount += count($wos);
+                        }
                     @endphp
-                    @foreach($groupedWOs as $semana => $wos)
-                        @php
-                            $rowColor = getPastelColorForWeek($semana);
-                        @endphp
-                        @foreach($wos as $wo)
+                    @if($totalWosCount === 0)
+                        <tr>
+                            <td colspan="18" class="text-center p-4" style="background-color: #ffffff; padding: 48px 20px !important;">
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                                    <img src="{{ asset('images/calendario.png') }}" alt="Calendario" style="width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.25));">
+                                    <span style="color: #dc2626; font-size: 1.15em; font-weight: 700; letter-spacing: 0.3px;">
+                                        Esta semana o consulta no tiene ninguna Orden de Trabajo asignada actualmente.
+                                    </span>
+                                    <span style="color: #64748b; font-size: 0.88em; font-weight: 500;">
+                                        Intenta seleccionando otro número de semana o limpiando los filtros de búsqueda.
+                                    </span>
+                                </div>
+                            </td>
+                        </tr>
+                    @else
+                        @foreach($groupedWOs as $semana => $wos)
                             @php
-                                $isInactive = ($wo->clases->where('finalizada', 0)->count() === 0);
-                                $rowColor = $isInactive ? '#d6d6d6' : getPastelColorForWeek($semana);
-
-                                $rawClases = $wo->clases ?? collect();
-                                if ($rawClases->count() > 0) {
-                                    $sortedClases = $rawClases->sortBy(function($cl) use ($wo) {
-                                        return !empty($cl->fecha_entrega_fundicion) ? trim($cl->fecha_entrega_fundicion) : (!empty($wo->fecha_entrega_fundicion) ? trim($wo->fecha_entrega_fundicion) : '');
-                                    })->values();
-                                } else {
-                                    $sortedClases = collect();
-                                }
-
-                                $clasesJsArr = [];
-                                foreach($sortedClases as $cl) {
-                                    $clasesJsArr[] = [
-                                        'id' => $cl->id,
-                                        'nombre' => $cl->nombre,
-                                        'pedido' => $cl->pedido,
-                                        'fecha_entrega_fundicion' => safeDateParse(!empty($cl->fecha_entrega_fundicion) ? $cl->fecha_entrega_fundicion : $wo->fecha_entrega_fundicion)
-                                    ];
-                                }
-
-                                $wosJsData[$wo->id] = [
-                                    'id' => $wo->id,
-                                    'cliente' => $wo->cliente ?? 'Sin Cliente',
-                                    'moldura' => $wo->moldura ? $wo->moldura->nombre : ($wo->nombre_producto ?? 'Sin Moldura'),
-                                    'fecha_entrega_fundicion' => safeDateParse($wo->fecha_entrega_fundicion),
-                                    'clases' => $clasesJsArr
-                                ];
+                                $rowColor = getPastelColorForWeek($semana);
                             @endphp
-                            <tr class="pm-table-row {{ $isInactive ? 'is-inactive-ot' : '' }}" data-ot-id="{{ $wo->id }}" data-is-inactive="{{ $isInactive ? '1' : '0' }}" style="background-color: {{ $rowColor }};">
-                                <td class="text-center no-print cell-drag">
-                                    <div class="table-drag-handle" title="Sujeta y arrastra para mover de posición la OT">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                                            fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <circle cx="9" cy="5" r="1.5" fill="currentColor" />
-                                            <circle cx="9" cy="12" r="1.5" fill="currentColor" />
-                                            <circle cx="9" cy="19" r="1.5" fill="currentColor" />
-                                            <circle cx="15" cy="5" r="1.5" fill="currentColor" />
-                                            <circle cx="15" cy="12" r="1.5" fill="currentColor" />
-                                            <circle cx="15" cy="19" r="1.5" fill="currentColor" />
-                                        </svg>
-                                    </div>
-                                </td>
-                                <td class="text-center font-bold font-large cell-row-num">{{ $rowCount++ }}</td>
-                                <td class="text-center font-bold cell-ot-val">{{ $wo->id }}</td>
-                                <td class="text-center font-bold">
-                                    @if($wo->fecha_compra)
-                                        {{ \Carbon\Carbon::parse($wo->fecha_compra)->format('d/m/Y') }}<br>
-                                    @endif
-                                    {{ $wo->orden_compra }}
-                                </td>
-                                <td class="text-center font-bold cell-cliente-val">{{ $wo->cliente }}</td>
-                                <td class="text-center font-bold cell-producto-val">
-                                    {{ $wo->moldura ? $wo->moldura->nombre : $wo->nombre_producto }}
-                                </td>
-                                <td class="text-center p-0 font-bold">
-                                    @if($sortedClases->count() > 0)
-                                        @foreach($sortedClases as $cl)
-                                            <div class="subcell-row font-bold">{{ $cl->pedido }}</div>
-                                        @endforeach
-                                    @else
-                                        <div class="subcell-row font-bold">{{ $wo->cantidad }}</div>
-                                    @endif
-                                </td>
-                                <td class="text-center p-0 text-uppercase font-bold">
-                                    @if($sortedClases->count() > 0)
-                                        @foreach($sortedClases as $cl)
-                                            <div class="subcell-row font-bold">{{ $cl->nombre }}</div>
-                                        @endforeach
-                                    @else
-                                        <div class="subcell-row font-bold">-</div>
-                                    @endif
-                                </td>
-                                <td class="text-center" contenteditable="true"
-                                    onblur="autosaveField({{ $wo->id }}, 'forma_grabados', this)">{{ $wo->forma_grabados }}</td>
+                            @foreach($wos as $wo)
                                 @php
-                                    $classSuppliers = $sortedClases->map(function($cl) use ($wo) {
-                                        return !empty($cl->proveedor) ? trim($cl->proveedor) : (!empty($wo->proveedor_material) ? trim($wo->proveedor_material) : '');
-                                    })->filter();
-                                    $uniqueSuppliers = $classSuppliers->unique();
-                                @endphp
-                                @if($sortedClases->count() > 0 && $uniqueSuppliers->count() > 1)
-                                    <td class="text-center p-0 cell-suppliers font-bold">
-                                        @foreach($sortedClases as $cl)
-                                            <div class="subcell-row font-bold">{{ !empty($cl->proveedor) ? $cl->proveedor : (!empty($wo->proveedor_material) ? $wo->proveedor_material : '-') }}</div>
-                                        @endforeach
-                                    </td>
-                                @else
-                                    <td class="text-center font-bold">{{ $uniqueSuppliers->first() ?? $wo->proveedor_material ?? '-' }}</td>
-                                @endif
-                                <td class="text-center p-0 cell-materials font-bold">
-                                    @if($sortedClases->count() > 0)
-                                        @foreach($sortedClases as $cl)
-                                            <div class="subcell-row font-bold">{{ $cl->material ?? '-' }}</div>
-                                        @endforeach
-                                    @else
-                                        <div class="subcell-row font-bold">{{ $wo->material }}</div>
-                                    @endif
-                                </td>
-                                @php
-                                    $fundDateBlocks = [];
-                                    if ($sortedClases->count() > 0) {
-                                        $currentBlock = null;
-                                        foreach ($sortedClases as $cl) {
-                                            $rawDate = !empty($cl->fecha_entrega_fundicion) ? $cl->fecha_entrega_fundicion : $wo->fecha_entrega_fundicion;
-                                            $clFundDate = safeDateParse($rawDate);
-                                            $rawName = $cl->nombre ?? 'Clase';
-                                            $cleanName = trim(preg_replace('/^[0-9]+\s*-\s*/', '', $rawName));
-                                            if (empty($cleanName)) { $cleanName = $rawName; }
+                                    $isInactive = ($wo->clases->where('finalizada', 0)->count() === 0);
+                                    $rowColor = $isInactive ? '#d6d6d6' : getPastelColorForWeek($semana);
 
-                                            if ($currentBlock === null) {
-                                                $currentBlock = ['date' => $clFundDate, 'count' => 1, 'clases' => [$cleanName]];
-                                            } elseif ($currentBlock['date'] === $clFundDate) {
-                                                $currentBlock['count']++;
-                                                $currentBlock['clases'][] = $cleanName;
-                                            } else {
-                                                $fundDateBlocks[] = $currentBlock;
-                                                $currentBlock = ['date' => $clFundDate, 'count' => 1, 'clases' => [$cleanName]];
-                                            }
-                                        }
-                                        if ($currentBlock !== null) {
-                                            $fundDateBlocks[] = $currentBlock;
-                                        }
+                                    $rawClases = $wo->clases ?? collect();
+                                    if ($rawClases->count() > 0) {
+                                        $sortedClases = $rawClases->sortBy(function($cl) use ($wo) {
+                                            return !empty($cl->fecha_entrega_fundicion) ? trim($cl->fecha_entrega_fundicion) : (!empty($wo->fecha_entrega_fundicion) ? trim($wo->fecha_entrega_fundicion) : '');
+                                        })->values();
                                     } else {
-                                        $fundDateBlocks[] = ['date' => safeDateParse($wo->fecha_entrega_fundicion ?? ''), 'count' => 1, 'clases' => []];
+                                        $sortedClases = collect();
                                     }
-                                    $singleClass = $sortedClases->count() === 1 ? $sortedClases->first() : null;
-                                    $singleFundDate = $singleClass ? ($singleClass->fecha_entrega_fundicion ?: $wo->fecha_entrega_fundicion) : $wo->fecha_entrega_fundicion;
+
+                                    $clasesJsArr = [];
+                                    foreach($sortedClases as $cl) {
+                                        $clasesJsArr[] = [
+                                            'id' => $cl->id,
+                                            'nombre' => $cl->nombre,
+                                            'pedido' => $cl->pedido,
+                                            'proveedor' => !empty($cl->proveedor) ? trim($cl->proveedor) : (!empty($wo->proveedor_material) ? trim($wo->proveedor_material) : ''),
+                                            'fecha_entrega_fundicion' => safeDateParse(!empty($cl->fecha_entrega_fundicion) ? $cl->fecha_entrega_fundicion : $wo->fecha_entrega_fundicion)
+                                        ];
+                                    }
+
+                                    $wosJsData[$wo->id] = [
+                                        'id' => $wo->id,
+                                        'cliente' => $wo->cliente ?? 'Sin Cliente',
+                                        'moldura' => $wo->moldura ? $wo->moldura->nombre : ($wo->nombre_producto ?? 'Sin Moldura'),
+                                        'proveedor_material' => $wo->proveedor_material ?? '',
+                                        'fecha_entrega_fundicion' => safeDateParse($wo->fecha_entrega_fundicion),
+                                        'clases' => $clasesJsArr
+                                    ];
                                 @endphp
-                                @if($sortedClases->count() <= 1)
-                                    <td class="text-center p-0 date-cell" style="cursor: pointer; vertical-align: middle;" onclick="openDatePicker(this)" title="Hacer clic para seleccionar fecha de fundición">
-                                        <div class="date-single-box" style="padding: 6px; width: 100%; box-sizing: border-box;">
-                                            <span class="date-display" style="font-size: 11px; color: #000000; font-weight: 500;">{{ safeDateParseDisplay($singleFundDate) }}</span>
-                                            <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
-                                                value="{{ safeDateParse($singleFundDate) }}"
-                                                onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_entrega_fundicion'{{ $singleClass ? ', '.$singleClass->id : '' }})">
+                                <tr class="pm-table-row {{ $isInactive ? 'is-inactive-ot' : '' }}" data-ot-id="{{ $wo->id }}" data-is-inactive="{{ $isInactive ? '1' : '0' }}" style="background-color: {{ $rowColor }};">
+                                    <td class="text-center no-print cell-drag">
+                                        <div class="table-drag-handle" title="Sujeta y arrastra para mover de posición la OT">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                                stroke-linejoin="round">
+                                                <circle cx="9" cy="5" r="1.5" fill="currentColor" />
+                                                <circle cx="9" cy="12" r="1.5" fill="currentColor" />
+                                                <circle cx="9" cy="19" r="1.5" fill="currentColor" />
+                                                <circle cx="15" cy="5" r="1.5" fill="currentColor" />
+                                                <circle cx="15" cy="12" r="1.5" fill="currentColor" />
+                                                <circle cx="15" cy="19" r="1.5" fill="currentColor" />
+                                            </svg>
                                         </div>
                                     </td>
-                                @else
-                                    <td class="text-center p-0 date-cell-group" style="cursor: pointer; vertical-align: stretch; height: 1px;" onclick="openFundicionModal({{ $wo->id }})" title="Hacer clic para abrir gestor de fechas de fundición">
-                                        <div style="display: flex; flex-direction: column; height: 100%; width: 100%; box-sizing: border-box;">
-                                            @foreach($fundDateBlocks as $bIdx => $block)
-                                                <div class="subcell-row date-cell" style="flex: 1 1 0px; min-height: 24px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 5px 3px; box-sizing: border-box; {{ $bIdx < count($fundDateBlocks) - 1 ? 'border-bottom: 1px solid #000;' : '' }}">
-                                                    @if(!empty($block['clases']) && count($fundDateBlocks) > 1 && count($fundDateBlocks) < $sortedClases->count())
-                                                        <span class="subcell-class-label font-bold" style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
-                                                            {{ implode(', ', $block['clases']) }}
-                                                        </span>
-                                                    @endif
-                                                    <span class="date-display" style="font-size: 11px; color: #000000; font-weight: 500; line-height: 1.1;">{{ safeDateParseDisplay($block['date']) }}</span>
+                                    <td class="text-center font-bold font-large cell-row-num">{{ $rowCount++ }}</td>
+                                    <td class="text-center font-bold cell-ot-val">{{ $wo->id }}</td>
+                                    <td class="text-center font-bold">
+                                        @if($wo->fecha_compra)
+                                            {{ \Carbon\Carbon::parse($wo->fecha_compra)->format('d/m/Y') }}<br>
+                                        @endif
+                                        {{ $wo->orden_compra }}
+                                    </td>
+                                    <td class="text-center font-bold cell-cliente-val">{{ $wo->cliente }}</td>
+                                    <td class="text-center font-bold cell-producto-val">
+                                        {{ $wo->moldura ? $wo->moldura->nombre : $wo->nombre_producto }}
+                                    </td>
+                                    <td class="text-center p-0 font-bold cell-subcells" style="vertical-align: stretch; height: 1px;">
+                                        <div class="subcell-container">
+                                            @if($sortedClases->count() > 0)
+                                                @foreach($sortedClases as $cl)
+                                                    <div class="subcell-row font-bold">{{ $cl->pedido }}</div>
+                                                @endforeach
+                                            @else
+                                                <div class="subcell-row font-bold">{{ $wo->cantidad }}</div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="text-center p-0 text-uppercase font-bold cell-subcells" style="vertical-align: stretch; height: 1px;">
+                                        <div class="subcell-container">
+                                            @if($sortedClases->count() > 0)
+                                                @foreach($sortedClases as $cl)
+                                                    <div class="subcell-row font-bold">{{ $cl->nombre }}</div>
+                                                @endforeach
+                                            @else
+                                                <div class="subcell-row font-bold">-</div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td class="text-center" contenteditable="true"
+                                        onblur="autosaveField({{ $wo->id }}, 'forma_grabados', this)">{!! renderEditableTextOrIcon($wo->forma_grabados) !!}</td>
+                                    @php
+                                        $supplierBlocks = [];
+                                        if ($sortedClases->count() > 0) {
+                                            $currentBlock = null;
+                                            foreach ($sortedClases as $cl) {
+                                                $clProv = !empty($cl->proveedor) ? trim($cl->proveedor) : (!empty($wo->proveedor_material) ? trim($wo->proveedor_material) : '-');
+                                                $rawName = $cl->nombre ?? 'Clase';
+                                                $cleanName = trim(preg_replace('/^[0-9]+\s*-\s*/', '', $rawName));
+                                                if (empty($cleanName)) { $cleanName = $rawName; }
+
+                                                if ($currentBlock === null) {
+                                                    $currentBlock = ['supplier' => $clProv, 'count' => 1, 'clases' => [$cleanName]];
+                                                } elseif ($currentBlock['supplier'] === $clProv) {
+                                                    $currentBlock['count']++;
+                                                    $currentBlock['clases'][] = $cleanName;
+                                                } else {
+                                                    $supplierBlocks[] = $currentBlock;
+                                                    $currentBlock = ['supplier' => $clProv, 'count' => 1, 'clases' => [$cleanName]];
+                                                }
+                                            }
+                                            if ($currentBlock !== null) {
+                                                $supplierBlocks[] = $currentBlock;
+                                            }
+                                        } else {
+                                            $supplierBlocks[] = ['supplier' => $wo->proveedor_material ?? '-', 'count' => 1, 'clases' => []];
+                                        }
+                                    @endphp
+                                    @if($sortedClases->count() <= 1)
+                                        <td class="text-center cell-suppliers" style="cursor: pointer; font-weight: 500;" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para seleccionar proveedor de fundición">
+                                            {{ $supplierBlocks[0]['supplier'] ?? $wo->proveedor_material ?? '-' }}
+                                        </td>
+                                    @elseif(count($supplierBlocks) === 1)
+                                        <td class="text-center cell-suppliers" style="cursor: pointer; font-weight: 500;" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para abrir gestor de proveedor de fundición">
+                                            {{ $supplierBlocks[0]['supplier'] }}
+                                        </td>
+                                    @else
+                                        <td class="text-center p-0 cell-suppliers cell-subcells" style="cursor: pointer; vertical-align: stretch; height: 1px; font-weight: 500;" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para abrir gestor de proveedor de fundición">
+                                            <div class="subcell-container">
+                                                @foreach($supplierBlocks as $bIdx => $block)
+                                                    <div class="subcell-row supplier-cell" style="flex: {{ $block['count'] }} {{ $block['count'] }} auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; box-sizing: border-box; min-height: 28px; font-weight: 500;">
+                                                        @if(!empty($block['clases']) && count($supplierBlocks) > 1 && count($supplierBlocks) < $sortedClases->count())
+                                                            <span class="subcell-class-label font-bold" style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
+                                                                {{ implode(', ', $block['clases']) }}
+                                                            </span>
+                                                        @endif
+                                                        <span style="font-weight: 500;">{{ $block['supplier'] }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                    @endif
+                                    <td class="text-center p-0 cell-materials font-bold cell-subcells" style="vertical-align: stretch; height: 1px;">
+                                        <div class="subcell-container">
+                                            @if($sortedClases->count() > 0)
+                                                @foreach($sortedClases as $cl)
+                                                    <div class="subcell-row font-bold">{{ $cl->material ?? '-' }}</div>
+                                                @endforeach
+                                            @else
+                                                <div class="subcell-row font-bold">{{ $wo->material }}</div>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    @php
+                                        $fundDateBlocks = [];
+                                        if ($sortedClases->count() > 0) {
+                                            $currentBlock = null;
+                                            foreach ($sortedClases as $cl) {
+                                                $rawDate = !empty($cl->fecha_entrega_fundicion) ? $cl->fecha_entrega_fundicion : $wo->fecha_entrega_fundicion;
+                                                $clFundDate = safeDateParse($rawDate);
+                                                $rawName = $cl->nombre ?? 'Clase';
+                                                $cleanName = trim(preg_replace('/^[0-9]+\s*-\s*/', '', $rawName));
+                                                if (empty($cleanName)) { $cleanName = $rawName; }
+
+                                                if ($currentBlock === null) {
+                                                    $currentBlock = ['date' => $clFundDate, 'count' => 1, 'clases' => [$cleanName]];
+                                                } elseif ($currentBlock['date'] === $clFundDate) {
+                                                    $currentBlock['count']++;
+                                                    $currentBlock['clases'][] = $cleanName;
+                                                } else {
+                                                    $fundDateBlocks[] = $currentBlock;
+                                                    $currentBlock = ['date' => $clFundDate, 'count' => 1, 'clases' => [$cleanName]];
+                                                }
+                                            }
+                                            if ($currentBlock !== null) {
+                                                $fundDateBlocks[] = $currentBlock;
+                                            }
+                                        } else {
+                                            $fundDateBlocks[] = ['date' => safeDateParse($wo->fecha_entrega_fundicion ?? ''), 'count' => 1, 'clases' => []];
+                                        }
+                                        $singleClass = $sortedClases->count() === 1 ? $sortedClases->first() : null;
+                                        $singleFundDate = $singleClass ? ($singleClass->fecha_entrega_fundicion ?: $wo->fecha_entrega_fundicion) : $wo->fecha_entrega_fundicion;
+                                    @endphp
+                                    @if($sortedClases->count() <= 1)
+                                        <td class="text-center p-0 date-cell cell-subcells" style="cursor: pointer; vertical-align: stretch; height: 1px;" onclick="openDatePicker(this)" title="Hacer clic para seleccionar fecha de fundición">
+                                            <div class="subcell-container">
+                                                <div class="date-single-box subcell-row" style="padding: 6px; width: 100%; box-sizing: border-box;">
+                                                    <span class="date-display" style="font-size: 11px; color: #000000; font-weight: 500;">{!! renderDateDisplayOrIcon($singleFundDate) !!}</span>
+                                                    <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                                        value="{{ safeDateParse($singleFundDate) }}"
+                                                        onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_entrega_fundicion'{{ $singleClass ? ', '.$singleClass->id : '' }})">
                                                 </div>
-                                            @endforeach
-                                        </div>
-                                    </td>
-                                @endif
-                                @php
-                                    $classTecDates = $sortedClases->map(function($cl) use ($wo) {
-                                        return !empty($cl->entrega_tecamac) ? trim($cl->entrega_tecamac) : (!empty($wo->entrega_tecamac) ? trim($wo->entrega_tecamac) : '');
-                                    })->filter();
-                                    $uniqueTecDates = $classTecDates->unique();
-                                @endphp
-                                @if($sortedClases->count() > 0 && $uniqueTecDates->count() > 1)
-                                    <td class="text-center p-0">
-                                        @foreach($sortedClases as $cl)
-                                            @php
-                                                $clTecDate = !empty($cl->entrega_tecamac) ? $cl->entrega_tecamac : $wo->entrega_tecamac;
-                                            @endphp
-                                            <div class="subcell-row date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
-                                                <span class="date-display" style="font-weight: 500;">{{ safeDateParseDisplay($clTecDate) }}</span>
-                                                <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
-                                                    value="{{ safeDateParse($clTecDate) }}"
-                                                    onchange="handleDateChange(this, {{ $wo->id }}, 'entrega_tecamac', {{ $cl->id }})">
                                             </div>
-                                        @endforeach
-                                    </td>
-                                @else
-                                    @php
-                                        $singleTecDate = $uniqueTecDates->first() ?? $wo->entrega_tecamac;
-                                    @endphp
-                                    <td class="text-center p-0 date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
-                                        <span class="date-display" style="font-weight: 500;">{{ safeDateParseDisplay($singleTecDate) }}</span>
-                                        <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
-                                            value="{{ safeDateParse($singleTecDate) }}"
-                                            onchange="handleDateChange(this, {{ $wo->id }}, 'entrega_tecamac')">
-                                    </td>
-                                @endif
-                                <td class="text-center font-large font-bold cell-semana">{{ $wo->semana_entrega_cliente }}</td>
-                                @php
-                                    $classMexDates = $sortedClases->map(function($cl) use ($wo) {
-                                        return !empty($cl->fecha_real) ? trim($cl->fecha_real) : (!empty($wo->fecha_real) ? trim($wo->fecha_real) : '');
-                                    })->filter();
-                                    $uniqueMexDates = $classMexDates->unique();
-                                @endphp
-                                @if($sortedClases->count() > 0 && $uniqueMexDates->count() > 1)
-                                    <td class="text-center p-0">
-                                        @foreach($sortedClases as $cl)
-                                            @php
-                                                $clMexDate = !empty($cl->fecha_real) ? $cl->fecha_real : $wo->fecha_real;
-                                            @endphp
-                                            <div class="subcell-row date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
-                                                <span class="date-display" style="font-weight: 500;">{{ safeDateParseDisplay($clMexDate) }}</span>
-                                                <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
-                                                    value="{{ safeDateParse($clMexDate) }}"
-                                                    onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_real', {{ $cl->id }})">
+                                        </td>
+                                    @else
+                                        <td class="text-center p-0 date-cell-group cell-subcells" style="cursor: pointer; vertical-align: stretch; height: 1px;" onclick="openFundicionModal({{ $wo->id }})" title="Hacer clic para abrir gestor de fechas de fundición">
+                                            <div class="subcell-container">
+                                                @foreach($fundDateBlocks as $bIdx => $block)
+                                                    <div class="subcell-row date-cell" style="flex: {{ $block['count'] }} {{ $block['count'] }} auto;">
+                                                        @if(!empty($block['clases']) && count($fundDateBlocks) > 1 && count($fundDateBlocks) < $sortedClases->count())
+                                                            <span class="subcell-class-label font-bold" style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
+                                                                {{ implode(', ', $block['clases']) }}
+                                                            </span>
+                                                        @endif
+                                                        <span class="date-display" style="font-size: 11px; color: #000000; font-weight: 500; line-height: 1.1;">{!! renderDateDisplayOrIcon($block['date']) !!}</span>
+                                                    </div>
+                                                @endforeach
                                             </div>
-                                        @endforeach
-                                    </td>
-                                @else
+                                        </td>
+                                    @endif
                                     @php
-                                        $singleMexDate = $uniqueMexDates->first() ?? $wo->fecha_real;
+                                        $classTecDates = $sortedClases->map(function($cl) use ($wo) {
+                                            return !empty($cl->entrega_tecamac) ? trim($cl->entrega_tecamac) : (!empty($wo->entrega_tecamac) ? trim($wo->entrega_tecamac) : '');
+                                        })->filter();
+                                        $uniqueTecDates = $classTecDates->unique();
                                     @endphp
-                                    <td class="text-center p-0 date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
-                                        <span class="date-display" style="font-weight: 500;">{{ safeDateParseDisplay($singleMexDate) }}</span>
-                                        <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
-                                            value="{{ safeDateParse($singleMexDate) }}"
-                                            onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_real')">
+                                    @if($sortedClases->count() > 0 && $uniqueTecDates->count() > 1)
+                                        <td class="text-center p-0 cell-subcells" style="vertical-align: stretch; height: 1px;">
+                                            <div class="subcell-container">
+                                                @foreach($sortedClases as $cl)
+                                                    @php
+                                                        $clTecDate = !empty($cl->entrega_tecamac) ? $cl->entrega_tecamac : $wo->entrega_tecamac;
+                                                    @endphp
+                                                    <div class="subcell-row date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
+                                                        <span class="date-display" style="font-weight: 500;">{!! renderDateDisplayOrIcon($clTecDate) !!}</span>
+                                                        <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                                            value="{{ safeDateParse($clTecDate) }}"
+                                                            onchange="handleDateChange(this, {{ $wo->id }}, 'entrega_tecamac', {{ $cl->id }})">
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                    @else
+                                        @php
+                                            $singleTecDate = $uniqueTecDates->first() ?? $wo->entrega_tecamac;
+                                        @endphp
+                                        <td class="text-center p-0 date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
+                                            <span class="date-display" style="font-weight: 500;">{!! renderDateDisplayOrIcon($singleTecDate) !!}</span>
+                                            <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                                value="{{ safeDateParse($singleTecDate) }}"
+                                                onchange="handleDateChange(this, {{ $wo->id }}, 'entrega_tecamac')">
+                                        </td>
+                                    @endif
+                                    <td class="text-center font-large font-bold cell-semana">{{ $wo->semana_entrega_cliente }}</td>
+                                    @php
+                                        $classMexDates = $sortedClases->map(function($cl) use ($wo) {
+                                            return !empty($cl->fecha_real) ? trim($cl->fecha_real) : (!empty($wo->fecha_real) ? trim($wo->fecha_real) : '');
+                                        })->filter();
+                                        $uniqueMexDates = $classMexDates->unique();
+                                    @endphp
+                                    @if($sortedClases->count() > 0 && $uniqueMexDates->count() > 1)
+                                        <td class="text-center p-0 cell-subcells" style="vertical-align: stretch; height: 1px;">
+                                            <div class="subcell-container">
+                                                @foreach($sortedClases as $cl)
+                                                    @php
+                                                        $clMexDate = !empty($cl->fecha_real) ? $cl->fecha_real : $wo->fecha_real;
+                                                    @endphp
+                                                    <div class="subcell-row date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
+                                                        <span class="date-display" style="font-weight: 500;">{!! renderDateDisplayOrIcon($clMexDate) !!}</span>
+                                                        <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                                            value="{{ safeDateParse($clMexDate) }}"
+                                                            onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_real', {{ $cl->id }})">
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                    @else
+                                        @php
+                                            $singleMexDate = $uniqueMexDates->first() ?? $wo->fecha_real;
+                                        @endphp
+                                        <td class="text-center p-0 date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
+                                            <span class="date-display" style="font-weight: 500;">{!! renderDateDisplayOrIcon($singleMexDate) !!}</span>
+                                            <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                                value="{{ safeDateParse($singleMexDate) }}"
+                                                onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_real')">
+                                        </td>
+                                    @endif
+                                    <td class="text-center font-bold">
+                                        {{ safeDateParseDisplay($wo->fecha_entrega_cliente) }}
                                     </td>
-                                @endif
-                                <td class="text-center font-bold">
-                                    {{ safeDateParseDisplay($wo->fecha_entrega_cliente) }}
-                                </td>
-                                <td class="text-center" contenteditable="true"
-                                    onblur="autosaveField({{ $wo->id }}, 'observaciones_prioridad', this)" colspan="2">
-                                    {{ $wo->observaciones_prioridad }}</td>
-                            </tr>
+                                    <td class="text-center" contenteditable="true"
+                                        onblur="autosaveField({{ $wo->id }}, 'observaciones_prioridad', this)" colspan="2">
+                                        {!! renderEditableTextOrIcon($wo->observaciones_prioridad) !!}</td>
+                                </tr>
+                            @endforeach
                         @endforeach
-                    @endforeach
-                </tbody>
+                    @endif
+                </tbody>   </tbody>
             </table>
         </div>
     </div>
@@ -612,13 +699,242 @@
                 inp.value = val;
             });
         };
+
+        const FOUNDRY_PROVIDERS_LIST = [
+            "SS Metal Foundry, S. de R. L. de C. V.",
+            "SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS",
+            "EXTERNO",
+            "Sin proveedor actual"
+        ];
+
+        window.openSupplierModal = function(otId) {
+            var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
+            if (!woData) return;
+
+            var clases = woData.clases || [];
+            var currentSupplier = woData.proveedor_material || '';
+
+            function buildSupplierOptions(selectedVal) {
+                var opts = `<option value="">-- Seleccione Proveedor --</option>`;
+                FOUNDRY_PROVIDERS_LIST.forEach(function(p) {
+                    var sel = (selectedVal === p) ? 'selected' : '';
+                    opts += `<option value="${p}" ${sel}>${p}</option>`;
+                });
+                if (selectedVal && !FOUNDRY_PROVIDERS_LIST.includes(selectedVal)) {
+                    opts += `<option value="${selectedVal}" selected>${selectedVal}</option>`;
+                }
+                return opts;
+            }
+
+            if (clases.length <= 1) {
+                var singleSupplier = (clases.length === 1 && clases[0].proveedor) ? clases[0].proveedor : currentSupplier;
+                var selectHtml = `<select id="swal-single-supplier" class="gis-date-input-clean" style="width: 100%; box-sizing: border-box;">
+                    ${buildSupplierOptions(singleSupplier)}
+                </select>`;
+
+                Swal.fire({
+                    title: 'Proveedor de Fundición',
+                    html: `<strong>OT ${otId}</strong> - ${woData.moldura || ''}<br><br>Selecciona el proveedor:<br><br>${selectHtml}`,
+                    width: '420px',
+                    showCancelButton: true,
+                    confirmButtonText: 'Guardar Proveedor',
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        popup: 'gis-date-modal-popup',
+                        title: 'gis-date-modal-title',
+                        confirmButton: 'gis-swal-confirm',
+                        cancelButton: 'gis-swal-cancel'
+                    }
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        var val = document.getElementById('swal-single-supplier')?.value || '';
+                        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                        fetch("{{ route('master.priorities.autosave') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                            body: JSON.stringify({ ot_id: otId, field: 'proveedor', value: val, apply_to_all: true })
+                        }).then(function(r) { return r.json(); }).then(function(d) {
+                            if (d.success) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                });
+                return;
+            }
+
+            var firstProv = clases[0].proveedor || '';
+            var allSame = clases.every(function(c) { return (c.proveedor || '') === firstProv; });
+            var masterProv = allSame ? firstProv : (firstProv || woData.proveedor_material || '');
+
+            var rowsHtml = '';
+            clases.forEach(function(c, index) {
+                var cProv = c.proveedor || '';
+                rowsHtml += `
+                    <tr>
+                        <td style="font-weight: 700;">${index + 1}</td>
+                        <td style="font-weight: 700; text-align: left;">${c.nombre}</td>
+                        <td style="font-weight: 700;">${c.pedido}</td>
+                        <td>
+                            <select class="swal-class-supplier-select gis-date-input-clean" data-clase-id="${c.id}" style="width: 100%; box-sizing: border-box; ${allSame ? 'opacity: 0.5; cursor: not-allowed;' : ''}" ${allSame ? 'disabled' : ''}>
+                                ${buildSupplierOptions(cProv)}
+                            </select>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            var modalHtml = `
+                <div class="gis-date-modal-info-card">
+                    <div class="gis-date-modal-info-item">
+                        <span class="gis-date-modal-info-label">OT</span>
+                        <span class="gis-date-modal-info-val" style="color: #033966;">#${woData.id}</span>
+                    </div>
+                    <div class="gis-date-modal-info-item">
+                        <span class="gis-date-modal-info-label">Cliente</span>
+                        <span class="gis-date-modal-info-val">${woData.cliente}</span>
+                    </div>
+                    <div class="gis-date-modal-info-item">
+                        <span class="gis-date-modal-info-label">Producto / Moldura</span>
+                        <span class="gis-date-modal-info-val">${woData.moldura}</span>
+                    </div>
+                </div>
+
+                <div class="gis-date-modal-mode-box">
+                    <div style="font-size: 0.72rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 8px;">Asignación de Proveedor</div>
+                    <div style="display: flex; gap: 24px; align-items: center;">
+                        <label>
+                            <input type="radio" name="swal_supplier_mode" value="same" ${allSame ? 'checked' : ''} onchange="window.toggleSwalSupplierMode('same')">
+                            Mismo proveedor para todas las clases
+                        </label>
+                        <label>
+                            <input type="radio" name="swal_supplier_mode" value="diff" ${!allSame ? 'checked' : ''} onchange="window.toggleSwalSupplierMode('diff')">
+                            Proveedores diferentes por clase
+                        </label>
+                    </div>
+                </div>
+
+                <div id="swal-master-supplier-container" style="margin-bottom: 16px; text-align: left; ${allSame ? '' : 'display: none;'}">
+                    <label style="font-size: 0.72rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Proveedor General (Aplica a todas las clases)</label>
+                    <select id="swal-master-supplier" class="gis-date-input-clean" style="width: 100%; box-sizing: border-box;" onchange="window.applyMasterSupplierToAllClasses(this.value)">
+                        ${buildSupplierOptions(masterProv)}
+                    </select>
+                </div>
+
+                <div class="gis-date-modal-table-wrap">
+                    <table class="gis-date-modal-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 45px;">Nº</th>
+                                <th style="text-align: left;">Clase</th>
+                                <th style="width: 60px;">Cant.</th>
+                                <th style="width: 250px;">Proveedor de Fundición</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            Swal.fire({
+                title: 'Proveedor de Fundición',
+                html: modalHtml,
+                width: '740px',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar Proveedor',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    popup: 'gis-date-modal-popup',
+                    title: 'gis-date-modal-title',
+                    confirmButton: 'gis-swal-confirm',
+                    cancelButton: 'gis-swal-cancel'
+                },
+                allowOutsideClick: false
+            }).then(function(result) {
+                if (result.isConfirmed) {
+                    var mode = document.querySelector('input[name="swal_supplier_mode"]:checked')?.value || 'same';
+                    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                    if (mode === 'same') {
+                        var val = document.getElementById('swal-master-supplier')?.value || '';
+                        fetch("{{ route('master.priorities.autosave') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                            body: JSON.stringify({ ot_id: otId, field: 'proveedor', value: val, apply_to_all: true })
+                        }).then(function(r) { return r.json(); }).then(function(d) {
+                            if (d.success) {
+                                window.location.reload();
+                            }
+                        });
+                    } else {
+                        var batch = [];
+                        document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
+                            var cId = inp.dataset.claseId;
+                            batch.push({ clase_id: cId, proveedor: inp.value });
+                        });
+                        fetch("{{ route('master.priorities.autosave') }}", {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
+                            body: JSON.stringify({ ot_id: otId, field: 'proveedor', batch_suppliers: batch })
+                        }).then(function(r) { return r.json(); }).then(function(d) {
+                            if (d.success) {
+                                window.location.reload();
+                            }
+                        });
+                    }
+                }
+            });
+        };
+
+        window.toggleSwalSupplierMode = function(mode) {
+            var masterContainer = document.getElementById('swal-master-supplier-container');
+            if (masterContainer) {
+                masterContainer.style.display = mode === 'same' ? 'block' : 'none';
+            }
+            var isSame = mode === 'same';
+            document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
+                inp.disabled = isSame;
+                if (isSame) {
+                    inp.style.opacity = '0.5';
+                    inp.style.cursor = 'not-allowed';
+                } else {
+                    inp.style.opacity = '1';
+                    inp.style.cursor = 'pointer';
+                }
+            });
+            if (isSame) {
+                var masterVal = document.getElementById('swal-master-supplier')?.value || '';
+                window.applyMasterSupplierToAllClasses(masterVal);
+            }
+        };
+
+        window.applyMasterSupplierToAllClasses = function(val) {
+            document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
+                inp.value = val;
+            });
+        };
     </script>
 
     <!-- Menú Contextual para Liberar Piezas -->
 
     <script>
+        document.addEventListener('focusin', function(e) {
+            if (e.target && e.target.getAttribute('contenteditable') === 'true') {
+                if (e.target.querySelector('.empty-editable-ph')) {
+                    e.target.innerText = '';
+                }
+            }
+        });
+
         function autosaveField(otId, fieldName, element) {
             var value = element.innerText.trim();
+            if (value === '' || value === '-') {
+                element.innerHTML = '<span class="empty-editable-ph" style="color: #94a3b8; font-size: 0.85em; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" title="Hacer clic para editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>-</span>';
+                value = '';
+            }
             _doAutosave(otId, fieldName, value, element);
         }
 
@@ -643,7 +959,7 @@
                 var parts = value.split('-');
                 span.innerText = parts[2] + '/' + parts[1] + '/' + parts[0];
             } else {
-                span.innerText = '';
+                span.innerHTML = '<span class="empty-date-icon-wrap" title="Hacer clic para asignar fecha"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-date-svg" style="vertical-align: middle; opacity: 0.65;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>';
             }
 
             _doAutosave(otId, fieldName, value, td, claseId);
@@ -850,87 +1166,135 @@
                     var wPrev = extractWeek(prevRow);
                     var wNext = extractWeek(nextRow);
 
-                        function applyRowBg(r, week) {
-                            if (r.dataset.isInactive === '1') {
-                                r.style.backgroundColor = '#d6d6d6';
-                            } else {
-                                r.style.backgroundColor = getJsPastelColor(week);
-                            }
-                        }
-
-                        if (wPrev !== null && wNext !== null && wPrev === wNext) {
-                            // Auto-asignar misma semana sin preguntar
-                            if (semanaCell) {
-                                semanaCell.textContent = wPrev;
-                            }
-                            applyRowBg(activeDragRow, wPrev);
-                            autoSaveTablePriorities(otId, wPrev);
-                            return;
-                        }
-
-                    var weekOptions = {};
-                    var initialWeekVal = null;
-                    var currentW = parseInt(String(currentWeekRaw).replace(/[^0-9]/g, ''), 10);
-
-                    if (wPrev !== null && wNext !== null && wPrev !== wNext) {
-                        // Colocado entre dos semanas distintas: incluir todas las semanas en el rango entre ambas (inclusive)
-                        var minW = Math.min(wPrev, wNext);
-                        var maxW = Math.max(wPrev, wNext);
-                        for (var w = minW; w <= maxW; w++) {
-                            weekOptions[w] = 'Semana ' + w;
-                        }
-                        if (!isNaN(currentW) && currentW >= minW && currentW <= maxW) {
-                            initialWeekVal = currentW;
+                    function applyRowBg(r, week) {
+                        if (r.dataset.isInactive === '1') {
+                            r.style.backgroundColor = '#d6d6d6';
                         } else {
-                            initialWeekVal = wPrev;
-                        }
-                    } else if (wPrev === null && wNext === null) {
-                        // Colocado entre semanas sin número de semana: preguntar a qué semana pertenecerá
-                        for (var w = 1; w <= 52; w++) {
-                            weekOptions[w] = 'Semana ' + w;
-                        }
-                        if (!isNaN(currentW) && currentW >= 1 && currentW <= 52) {
-                            initialWeekVal = currentW;
-                        } else {
-                            initialWeekVal = 1;
-                        }
-                    } else {
-                        // Una celda tiene semana y la otra no
-                        for (var w = 1; w <= 52; w++) {
-                            weekOptions[w] = 'Semana ' + w;
-                        }
-                        var nonNullW = wPrev !== null ? wPrev : wNext;
-                        if (!isNaN(currentW) && currentW >= 1 && currentW <= 52) {
-                            initialWeekVal = currentW;
-                        } else {
-                            initialWeekVal = nonNullW;
+                            r.style.backgroundColor = getJsPastelColor(week);
                         }
                     }
 
+                    var currentW = parseInt(String(currentWeekRaw).replace(/[^0-9]/g, ''), 10);
+                    if (isNaN(currentW) || currentW <= 0) currentW = null;
+
+                    var sameTargetWeek = (wPrev !== null && wNext !== null && wPrev === wNext) ? wPrev : null;
+
+                    // Si se movió estrictamente DENTRO de su misma semana (los vecinos pertenecen a su misma semana original)
+                    if (sameTargetWeek !== null && currentW !== null && sameTargetWeek === currentW) {
+                        if (semanaCell) {
+                            semanaCell.textContent = currentW;
+                        }
+                        applyRowBg(activeDragRow, currentW);
+                        autoSaveTablePriorities(otId, currentW);
+                        return;
+                    }
+
+                    var targetW = sameTargetWeek || wNext || wPrev || currentW || 1;
+
+                    // Calcular rango lógico permitido de semanas para la posición donde se soltó la OT
+                    var startW = 1;
+                    var endW = 52;
+
+                    if (wPrev !== null && wNext !== null) {
+                        var minB = Math.min(wPrev, wNext);
+                        var maxB = Math.max(wPrev, wNext);
+                        if (currentW) {
+                            startW = Math.min(minB, currentW);
+                            endW = Math.max(maxB, currentW);
+                        } else {
+                            startW = minB;
+                            endW = maxB;
+                        }
+                    } else {
+                        // Si se coloca como primera, antes de la semana 1, o junto a una fila con "-", permitir todas las semanas (1-52)
+                        startW = 1;
+                        endW = 52;
+                    }
+
+                    var optionsHtml = '';
+                    for (var w = startW; w <= endW; w++) {
+                        var isOrigin = (currentW && w === currentW);
+                        var isTarget = (w === targetW || w === wPrev || w === wNext);
+                        var isSelected = (w === targetW);
+
+                        var optionStyle = '';
+                        if (isOrigin || isTarget) {
+                            optionStyle = 'background-color: #e0f2fe; color: #033966; font-weight: 800; padding: 6px;';
+                        } else {
+                            optionStyle = 'color: #1e293b; font-weight: 500;';
+                        }
+
+                        var selAttr = isSelected ? 'selected' : '';
+                        optionsHtml += `<option value="${w}" ${selAttr} style="${optionStyle}">Semana ${w}</option>`;
+                    }
+
+                    var origLabel = currentW ? `Semana ${currentW}` : 'Sin Semana';
+                    var targetLabel = targetW ? `Semana ${targetW}` : 'Sin Semana';
+
+                    var modalHtml = `
+                        <div style="background: #f8fafc; border: 1.5px solid rgba(3, 57, 102, 0.2); border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed rgba(3, 57, 102, 0.25);">
+                                <span style="font-size: 0.88em; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">Orden de Trabajo</span>
+                                <span style="font-size: 1.35em; font-weight: 800; color: #033966;">OT #${otId}</span>
+                            </div>
+                            <div style="display: flex; gap: 14px; align-items: center; justify-content: space-between;">
+                                <div style="flex: 1; background: #ffffff; border: 1.5px solid #cbd5e1; border-radius: 10px; padding: 12px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                    <span style="display: block; font-size: 0.78em; text-transform: uppercase; color: #64748b; font-weight: 700; margin-bottom: 4px;">Semana Anterior</span>
+                                    <span style="font-size: 1.2em; font-weight: 800; color: #334155;">${origLabel}</span>
+                                </div>
+                                <div style="color: #033966; font-weight: 900; font-size: 1.5em; flex-shrink: 0;">➔</div>
+                                <div style="flex: 1; background: #e0f2fe; border: 2px solid #033966; border-radius: 10px; padding: 12px; text-align: center; box-shadow: 0 2px 6px rgba(3, 57, 102, 0.12);">
+                                    <span style="display: block; font-size: 0.78em; text-transform: uppercase; color: #033966; font-weight: 800; margin-bottom: 4px;">Nueva Semana</span>
+                                    <span id="swal-target-week-badge" style="font-size: 1.2em; font-weight: 800; color: #033966;">${targetLabel}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="text-align: left; margin-bottom: 6px;">
+                            <label for="swal-week-select" style="display: block; font-size: 0.95em; font-weight: 700; color: #033966; margin-bottom: 8px;">
+                                Selecciona el número de semana definitivo para la O.T.:
+                            </label>
+                            <select id="swal-week-select" onchange="var b=document.getElementById('swal-target-week-badge'); if(b) b.innerText='Semana '+this.value;" style="width: 100%; height: 44px; padding: 6px 14px; font-size: 1.05em; font-weight: 700; color: #033966; background-color: #ffffff; border: 1.5px solid #033966; border-radius: 8px; cursor: pointer; outline: none; box-sizing: border-box; font-family: inherit;">
+                                ${optionsHtml}
+                            </select>
+                        </div>
+                    `;
+
                     if (typeof Swal !== 'undefined') {
                         Swal.fire({
-                            title: 'Actualizar Número de Semana',
-                            html: `Has cambiado de posición la <strong>OT ${otId}</strong>.<br><br>Ingresa o confirma el <strong>Número de Semana</strong> de entrega:`,
-                            input: 'select',
-                            inputOptions: weekOptions,
-                            inputValue: initialWeekVal,
+                            title: 'Asignación de Número de Semana',
+                            html: modalHtml,
+                            width: '540px',
                             showCancelButton: true,
                             confirmButtonText: 'Guardar Orden y Semana',
                             cancelButtonText: 'Cancelar Cambio',
                             customClass: {
-                                popup: 'gis-swal-popup',
-                                title: 'gis-swal-title',
-                                htmlContainer: 'gis-swal-html',
-                                input: 'gis-swal-select',
+                                popup: 'gis-date-modal-popup',
+                                title: 'gis-date-modal-title',
                                 confirmButton: 'gis-swal-confirm',
                                 cancelButton: 'gis-swal-cancel'
                             },
                             allowOutsideClick: false,
                             allowEscapeKey: false,
-                            inputValidator: function (value) {
-                                if (!value) {
-                                    return 'Debes seleccionar un número de semana obligatorio';
+                            didOpen: function() {
+                                var sel = document.getElementById('swal-week-select');
+                                if (sel) {
+                                    sel.addEventListener('change', function() {
+                                        var badge = document.getElementById('swal-target-week-badge');
+                                        if (badge) {
+                                            badge.innerText = 'Semana ' + this.value;
+                                        }
+                                    });
                                 }
+                            },
+                            preConfirm: function() {
+                                var sel = document.getElementById('swal-week-select');
+                                var val = sel ? parseInt(sel.value, 10) : null;
+                                if (!val || isNaN(val)) {
+                                    Swal.showValidationMessage('Debes seleccionar un número de semana válido.');
+                                    return false;
+                                }
+                                return val;
                             }
                         }).then(function (result) {
                             if (result.isConfirmed && result.value) {
@@ -951,7 +1315,7 @@
                             }
                         });
                     } else {
-                        var promptWeek = prompt("Has movido la OT " + otId + ". Ingresa el número de semana (1-52):", initialWeekVal);
+                        var promptWeek = prompt("Has movido la OT " + otId + ". Ingresa el número de semana (1-52):", targetW);
                         if (promptWeek && promptWeek.trim() !== '') {
                             var parsedW = parseInt(promptWeek.replace(/[^0-9]/g, ''), 10);
                             if (parsedW > 0 && parsedW <= 52) {
@@ -1042,6 +1406,9 @@
                     .then(function (data) {
                         if (data && data.success) {
                             updateTableStatus('saved');
+                            setTimeout(function () {
+                                window.location.reload();
+                            }, 300);
                         } else {
                             updateTableStatus('error');
                         }

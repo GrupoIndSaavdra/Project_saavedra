@@ -258,15 +258,7 @@ class WOController extends Controller
         $ot->nombre_producto = $molding ? $molding->nombre : $request->input('nombre_producto');
         $ot->cantidad = 0;
         $ot->proveedor_material = $request->input('proveedor_material');
-        if ($fechaEntrega) {
-            try {
-                $ot->semana_entrega_cliente = (string) (int) \Carbon\Carbon::parse($fechaEntrega)->format('W');
-            } catch (\Exception $e) {
-                $ot->semana_entrega_cliente = $request->input('semana_entrega_cliente');
-            }
-        } else {
-            $ot->semana_entrega_cliente = $request->input('semana_entrega_cliente');
-        }
+        $ot->semana_entrega_cliente = $request->input('semana_entrega_cliente');
         $ot->fecha_entrega_cliente = $fechaEntrega;
         $ot->save();
 
@@ -327,14 +319,8 @@ class WOController extends Controller
         if ($request->filled('proveedor_material')) {
             $ot->proveedor_material = $request->input('proveedor_material');
         }
-        if ($fechaEntrega) {
-            try {
-                $ot->semana_entrega_cliente = (string) (int) \Carbon\Carbon::parse($fechaEntrega)->format('W');
-            } catch (\Exception $e) {
-                if ($request->filled('semana_entrega_cliente')) {
-                    $ot->semana_entrega_cliente = $request->input('semana_entrega_cliente');
-                }
-            }
+        if ($request->has('semana_entrega_cliente')) {
+            $ot->semana_entrega_cliente = $request->input('semana_entrega_cliente');
         }
         $ot->fecha_entrega_cliente = $fechaEntrega;
         $ot->save();
@@ -347,6 +333,7 @@ class WOController extends Controller
         // Eliminar clases
         if ($request->has('deleted_classes') && is_array($request->input('deleted_classes'))) {
             foreach ($request->input('deleted_classes') as $delClassId) {
+                /** @var Clase|null $classToDel */
                 $classToDel = Clase::find($delClassId);
                 if ($classToDel && $classToDel->id_ot == $ot->id) {
                     $hasPieces = Pieza::where('id_clase', $classToDel->id)->exists();
@@ -355,10 +342,11 @@ class WOController extends Controller
                     if ($hasPieces || $goals) {
                         $failedDeletes[] = $classToDel->nombre;
                     } else {
-                        $process = Procesos::where('id_clase', $classToDel->id)->first();
+                        /** @var Procesos|null $process */
+                        $process = Procesos::where('id_clase', '=', $classToDel->id, 'and')->first();
                         if ($process) {
                             $process->delete();
-                            Fecha_proceso::where('clase', $classToDel->id)->delete();
+                            Fecha_proceso::where('clase', '=', $classToDel->id, 'and')->delete();
                         }
                         $classToDel->delete();
                         $deletedClassesCount++;
@@ -518,6 +506,18 @@ class WOController extends Controller
             return (int) $a - (int) $b;
         });
 
+        // Para OTs sin semana asignada ("Sin Semana"), ordenarlas por fecha de creación de la más reciente a la menos reciente (DESC)
+        if (isset($groupedWOs['Sin Semana'])) {
+            usort($groupedWOs['Sin Semana'], function ($a, $b) {
+                $timeA = $a->created_at ? $a->created_at->timestamp : 0;
+                $timeB = $b->created_at ? $b->created_at->timestamp : 0;
+                if ($timeA === $timeB) {
+                    return (int) $b->id <=> (int) $a->id;
+                }
+                return $timeB <=> $timeA;
+            });
+        }
+
         // Obtener lista de OTs para el select con sus molduras
         $allOts = Orden_trabajo::with('moldura')->orderBy('id', 'desc')->get();
 
@@ -592,6 +592,18 @@ class WOController extends Controller
             return (int) $a - (int) $b;
         });
 
+        // Para OTs sin semana asignada ("Sin Semana"), ordenarlas por fecha de creación de la más reciente a la menos reciente (DESC)
+        if (isset($groupedWOs['Sin Semana'])) {
+            usort($groupedWOs['Sin Semana'], function ($a, $b) {
+                $timeA = $a->created_at ? $a->created_at->timestamp : 0;
+                $timeB = $b->created_at ? $b->created_at->timestamp : 0;
+                if ($timeA === $timeB) {
+                    return (int) $b->id <=> (int) $a->id;
+                }
+                return $timeB <=> $timeA;
+            });
+        }
+
         $pdf = FacadePdf::loadView('wo_views.priorities_pdf_export', compact('groupedWOs', 'startWeek', 'endWeek'));
 
         $pdf->setOption(['isPhpEnabled' => true]);
@@ -618,16 +630,21 @@ class WOController extends Controller
             'entrega_tecamac',
             'observaciones_prioridad',
             'fecha_entrega_fundicion',
-            'semana_entrega_cliente'
+            'semana_entrega_cliente',
+            'proveedor',
+            'proveedor_material'
         ];
 
-        if (!in_array($request->field, $allowedFields)) {
+        $field = (string) $request->input('field');
+        $value = $request->input('value');
+        $otId = $request->input('ot_id');
+        $claseId = $request->input('clase_id');
+
+        if (!in_array($field, $allowedFields)) {
             return response()->json(['success' => false, 'message' => 'Campo no permitido.'], 403);
         }
 
-        $value = $request->value;
-
-        if ($request->field === 'fecha_entrega_fundicion' && !empty($value)) {
+        if ($field === 'fecha_entrega_fundicion' && !empty($value)) {
             try {
                 // Replace slashes with dashes to help Carbon parse DD/MM/YYYY better
                 $cleanValue = str_replace('/', '-', $value);
@@ -638,21 +655,27 @@ class WOController extends Controller
         }
 
         if ($request->boolean('apply_to_all') || $request->input('apply_to_all') == '1') {
-            $wo = Orden_trabajo::find($request->ot_id);
+            $wo = Orden_trabajo::find($otId);
             if ($wo) {
-                if (in_array($request->field, ['fecha_entrega_fundicion', 'entrega_tecamac', 'fecha_real'])) {
-                    $wo->{$request->field} = $value;
+                if (in_array($field, ['fecha_entrega_fundicion', 'entrega_tecamac', 'fecha_real'])) {
+                    $wo->{$field} = $value;
                     $wo->save();
-                    Clase::where('id_ot', $wo->id)->update([$request->field => $value]);
+                    Clase::where('id_ot', '=', $wo->id, 'and')->update([$field => $value]);
+                    return response()->json(['success' => true]);
+                }
+                if (in_array($field, ['proveedor', 'proveedor_material'])) {
+                    $wo->proveedor_material = $value;
+                    $wo->save();
+                    Clase::where('id_ot', '=', $wo->id, 'and')->update(['proveedor' => $value]);
                     return response()->json(['success' => true]);
                 }
             }
         }
 
-        if ($request->has('batch_dates') && is_array($request->batch_dates)) {
-            $field = $request->field;
+        $batchDates = $request->input('batch_dates');
+        if ($request->has('batch_dates') && is_array($batchDates)) {
             if (in_array($field, ['fecha_entrega_fundicion', 'entrega_tecamac', 'fecha_real'])) {
-                foreach ($request->batch_dates as $item) {
+                foreach ($batchDates as $item) {
                     if (isset($item['clase_id'])) {
                         $val = !empty($item['fecha']) ? str_replace('/', '-', $item['fecha']) : null;
                         if ($val) {
@@ -662,27 +685,59 @@ class WOController extends Controller
                                 $val = null;
                             }
                         }
-                        Clase::where('id', $item['clase_id'])->update([$field => $val]);
+                        Clase::where('id', '=', $item['clase_id'], 'and')->update([$field => $val]);
                     }
                 }
                 return response()->json(['success' => true]);
             }
         }
 
-        if ($request->filled('clase_id')) {
-            $clase = Clase::find($request->clase_id);
+        $batchSuppliers = $request->input('batch_suppliers');
+        if ($request->has('batch_suppliers') && is_array($batchSuppliers)) {
+            $firstSupplier = null;
+            foreach ($batchSuppliers as $item) {
+                if (isset($item['clase_id'])) {
+                    $val = isset($item['proveedor']) && trim($item['proveedor']) !== '' ? trim($item['proveedor']) : null;
+                    Clase::where('id', '=', $item['clase_id'], 'and')->update(['proveedor' => $val]);
+                    if ($firstSupplier === null && $val !== null) {
+                        $firstSupplier = $val;
+                    }
+                }
+            }
+            if (!empty($otId)) {
+                $wo = Orden_trabajo::find($otId);
+                if ($wo && $firstSupplier !== null) {
+                    $wo->proveedor_material = $firstSupplier;
+                    $wo->save();
+                }
+            }
+            return response()->json(['success' => true]);
+        }
+
+        if (!empty($claseId)) {
+            $clase = Clase::find($claseId);
             if ($clase) {
-                if (in_array($request->field, ['fecha_entrega_fundicion', 'entrega_tecamac', 'fecha_real'])) {
-                    $clase->{$request->field} = $value;
+                if (in_array($field, ['fecha_entrega_fundicion', 'entrega_tecamac', 'fecha_real'])) {
+                    $clase->{$field} = $value;
+                    $clase->save();
+                    return response()->json(['success' => true]);
+                }
+                if (in_array($field, ['proveedor', 'proveedor_material'])) {
+                    $clase->proveedor = $value;
                     $clase->save();
                     return response()->json(['success' => true]);
                 }
             }
         }
 
-        $wo = Orden_trabajo::find($request->ot_id);
+        $wo = Orden_trabajo::find($otId);
         if ($wo) {
-            $wo->{$request->field} = $value;
+            if ($field === 'proveedor' || $field === 'proveedor_material') {
+                $wo->proveedor_material = $value;
+                $wo->save();
+                return response()->json(['success' => true]);
+            }
+            $wo->{$field} = $value;
             $wo->save();
             return response()->json(['success' => true]);
         }
@@ -735,6 +790,7 @@ class WOController extends Controller
             foreach ($classes as $class) { //Recorro las clases de la OT
                 $this->classController->destroy($class->id, $idWOrder); //Elimino las clases
             }
+            /** @var Orden_trabajo|null $workOrder */
             $workOrder = Orden_trabajo::query()->find($idWOrder, ['*']);
             if ($workOrder) {
                 // Desactivar en FundicionHistory (bandeja de Almacén/Calidad) para mantener históricos

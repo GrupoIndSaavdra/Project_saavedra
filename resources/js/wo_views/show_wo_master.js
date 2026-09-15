@@ -40,7 +40,8 @@ const MATERIAL_OPTIONS = [
 const FOUNDRY_PROVIDERS = [
     "SS Metal Foundry, S. de R. L. de C. V.",
     "SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS",
-    "EXTERNO"
+    "EXTERNO",
+    "Sin proveedor actual"
 ];
 
 // ── Estado global: siempre modo Master ──
@@ -148,7 +149,7 @@ function resetBtnsToDefault() {
     // Asegurar que el botón de Agregar Nueva Clase vuelva a aparecer siempre que se restablece la vista
     let btn_openNewClass = document.getElementById("btn-openNewClass");
     if (btn_openNewClass) {
-        btn_openNewClass.style.display = ""; 
+        btn_openNewClass.style.display = "";
     }
 }
 
@@ -381,7 +382,7 @@ function createScrollableTable(classes = null) {
         let emptyDiv = document.createElement("div");
         emptyDiv.style.cssText = `
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 32px 16px; color: #94a3b8; text-align: center; gap: 10px;`;
+            padding: 24px 16px; color: #94a3b8; text-align: center; gap: 8px;`;
         emptyDiv.innerHTML = `
             <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none"
                  stroke="#cbd5e1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -427,13 +428,13 @@ function createTableClasses(classes) {
         button.type = "button";
 
         let fields = [
-            { key: "nombre",   val: classArray["nombre"]   ?? "-" },
-            { key: "pedido",   val: classArray["pedido"]   ?? "-" },
+            { key: "nombre", val: classArray["nombre"] ?? "-" },
+            { key: "pedido", val: classArray["pedido"] ?? "-" },
             { key: "material", val: classArray["material"] ?? "-" },
             {
                 key: "proveedor",
                 val: (classArray["proveedor"] && String(classArray["proveedor"]).trim() !== "")
-                     ? classArray["proveedor"] : "-"
+                    ? classArray["proveedor"] : "-"
             }
         ];
 
@@ -485,9 +486,9 @@ function setClassInfo(classesObject = null, classSelected) {
         if (classesObject[classObject].id == classSelected) {
             let cls = classesObject[classObject];
             let formInputs = {
-                classType: { label: "Clase",    input: { type: "text",   value: cls.nombre,  disabled: true } },
-                order:     { label: "Cantidad",  input: { type: "number", value: cls.pedido,  disabled: true } },
-                material:  { label: "Material",  input: { type: "text",   value: cls.material ?? "-", disabled: true } },
+                classType: { label: "Clase", input: { type: "text", value: cls.nombre, disabled: true } },
+                order: { label: "Cantidad", input: { type: "number", value: cls.pedido, disabled: true } },
+                material: { label: "Material", input: { type: "text", value: cls.material ?? "-", disabled: true } },
                 proveedor_fundicion: {
                     label: "Proveedor de Fundición",
                     input: {

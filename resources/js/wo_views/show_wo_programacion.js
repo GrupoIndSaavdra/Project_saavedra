@@ -830,41 +830,97 @@ function get_operationsArray(className) {
 
 function crearCasillas(operations, operationsArray, markedProcesses, edit) {
     let sections = document.querySelector(".sections");
-    let section1 = document.createElement("div"); section1.className = "section1";
-    let section2 = document.createElement("div"); section2.className = "section2";
+    if (!sections) return;
 
-    for (let i = 0; i < operations.length; i++) {
-        let div = createProcessBox(operations[i], i + 1, operationsArray[i], markedProcesses, edit);
-        if (i < parseInt(operations.length / 2)) {
+    sections.innerHTML = "";
+
+    // Si son 5 o menos procesos, los acomodamos en 1 sola hilera (columna completa)
+    if (operations.length <= 5) {
+        sections.classList.add("single-column-sections");
+        let section1 = document.createElement("div");
+        section1.className = "section1 full-width-section";
+
+        for (let i = 0; i < operations.length; i++) {
+            let div = createProcessBox(operations[i], i + 1, operationsArray[i], markedProcesses, edit);
             section1.appendChild(div);
-        } else {
-            section2.appendChild(div);
         }
+        sections.appendChild(section1);
+    } else {
+        // Si son más de 5 procesos, los dividimos en 2 hileras (columnas)
+        sections.classList.remove("single-column-sections");
+        let section1 = document.createElement("div"); section1.className = "section1";
+        let section2 = document.createElement("div"); section2.className = "section2";
+
+        let mid = Math.ceil(operations.length / 2);
+        for (let i = 0; i < operations.length; i++) {
+            let div = createProcessBox(operations[i], i + 1, operationsArray[i], markedProcesses, edit);
+            if (i < mid) {
+                section1.appendChild(div);
+            } else {
+                section2.appendChild(div);
+            }
+        }
+        sections.appendChild(section1);
+        sections.appendChild(section2);
     }
-    sections.appendChild(section1);
-    sections.appendChild(section2);
 
     if (window.profile != 5) createCheckboxAll(edit);
 }
 
 function createProcessBox(operation, processIndex, operationName, markedProcesses, edit) {
-    let div = document.createElement("div"); div.className = "checkbox-container";
-    let label = document.createElement("label"); label.className = "checkbox-label"; label.innerHTML = operation;
-    let labelMachine = document.createElement("label"); labelMachine.textContent = "Máquinas: "; labelMachine.classList.add("class", "label-machine");
-    let machineInput = document.createElement("input"); machineInput.type = "number"; machineInput.name = "machines[]"; machineInput.className = "input-machine"; machineInput.id = `process-${processIndex}`;
-    let checkbox = document.createElement("input"); checkbox.type = "checkbox"; checkbox.name = "operations[]"; checkbox.value = operationName; checkbox.className = "checkbox";
+    let div = document.createElement("div");
+    div.className = "checkbox-container";
+
+    let processInfoGroup = document.createElement("div");
+    processInfoGroup.className = "process-info-group";
+
+    let checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.name = "operations[]";
+    checkbox.value = operationName;
+    checkbox.className = "checkbox";
+    checkbox.id = `proc-cb-${processIndex}`;
+
+    let label = document.createElement("label");
+    label.className = "checkbox-label";
+    label.htmlFor = `proc-cb-${processIndex}`;
+    label.innerHTML = operation;
+
+    processInfoGroup.appendChild(checkbox);
+    processInfoGroup.appendChild(label);
+
+    let machineGroup = document.createElement("div");
+    machineGroup.className = "process-machine-group";
+
+    let labelMachine = document.createElement("label");
+    labelMachine.textContent = "Máquinas:";
+    labelMachine.className = "label-machine";
+    labelMachine.htmlFor = `process-${processIndex}`;
+
+    let machineInput = document.createElement("input");
+    machineInput.type = "number";
+    machineInput.name = "machines[]";
+    machineInput.className = "input-machine";
+    machineInput.id = `process-${processIndex}`;
+    machineInput.min = "1";
 
     let elements = automateCheckbox(checkbox, machineInput, operationName, markedProcesses, edit);
-    checkbox = elements[0]; machineInput = elements[1];
+    checkbox = elements[0];
+    machineInput = elements[1];
 
-    div.appendChild(labelMachine); div.appendChild(machineInput); div.appendChild(checkbox); div.appendChild(label);
+    machineGroup.appendChild(labelMachine);
+    machineGroup.appendChild(machineInput);
+
+    div.appendChild(processInfoGroup);
+    div.appendChild(machineGroup);
+
     return div;
 }
 
 function createCheckboxAll(edit) {
     let existingDiv = document.querySelector(".div-checkboxAll");
     if (existingDiv != null) existingDiv.remove();
-    if (window.profile == 5) return;
+    if (window.profile == 5 || !edit) return;
 
     let div_boxes = document.querySelector(".div-boxes");
     if (!div_boxes) return;
@@ -1084,6 +1140,14 @@ document.addEventListener("DOMContentLoaded", function () {
         if (placeholder) sel.appendChild(placeholder);
         dataOptions.forEach(opt => sel.appendChild(opt));
     }
+
+    // Auto-seleccionar la primera clase si está disponible para mostrar inmediatamente la información y panel de procesos
+    setTimeout(() => {
+        let firstClassBtn = document.querySelector(".btnClass");
+        if (firstClassBtn && !document.querySelector(".swo-btn-selected")) {
+            firstClassBtn.click();
+        }
+    }, 50);
 });
 
 let isSubmittingForm = false;

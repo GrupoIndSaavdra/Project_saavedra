@@ -27,20 +27,20 @@
     <div class="main-layout">
         {{-- Panel izquierdo: información y listado de clases --}}
         <div class="wrapper">
-            <div style="text-align: center; margin-bottom: 1.5rem;">
+            <div class="header-panel" style="text-align: center; margin-bottom: 0.5rem; flex-shrink: 0;">
                 <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra"
-                     style="width: 180px; filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.08));">
-                <h2 style="font-size: 1.4em; color: rgb(3, 57, 102); font-weight: 700; margin-top: 10px; margin-bottom: 0;">
+                     style="width: 140px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.08));">
+                <h2 style="font-size: 1.25em; color: rgb(3, 57, 102); font-weight: 700; margin-top: 4px; margin-bottom: 0;">
                     Programación de O.T.
                 </h2>
             </div>
 
-            <h3>Información de la orden de trabajo</h3>
+            <h3 style="margin-top: 2px;">Información de la orden de trabajo</h3>
 
             {{-- Selector rápido de O.T. en su propio contenedor de ancho completo entre el título y los inputs de OT/Moldura --}}
             @if(isset($allWorkOrders) && $allWorkOrders->count() > 0)
-                <div class="quick-wo-full-container" style="width: 100%; margin: 6px 0 14px 0; box-sizing: border-box;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; background: transparent; padding: 4px 0; width: 100%; box-sizing: border-box;">
+                <div class="quick-wo-full-container" style="width: 100%; margin: 6px 0 12px 0; box-sizing: border-box;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; background: transparent; padding: 2px 0; width: 100%; box-sizing: border-box;">
                         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#033966" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M8 3 4 7l4 4"/>
@@ -52,7 +52,7 @@
                                 Seleccionar otra Orden de Trabajo:
                             </label>
                         </div>
-                        <select id="quickWoSelect" class="form-control" style="flex-grow: 1; max-width: 65%; background-color: #ffffff; color: #1e293b; font-weight: 600; font-size: 0.88em; border-radius: 5px; border: 1px solid rgba(3, 57, 102, 0.28); height: 36px; padding: 4px 10px; cursor: pointer; outline: none;" onchange="handleQuickWoChange(this, '{{ url('/showWO') }}');">
+                        <select id="quickWoSelect" class="form-control" style="flex-grow: 1; max-width: 65%; background-color: #ffffff; color: #1e293b; font-weight: 600; font-size: 0.88em; border-radius: 5px; border: 1px solid rgba(3, 57, 102, 0.28); height: 34px; padding: 4px 10px; cursor: pointer; outline: none;" onchange="handleQuickWoChange(this, '{{ url('/showWO') }}');">
                             @foreach($allWorkOrders as $woItem)
                                 @php
                                     $isCurrent = (string)$woItem->id === (string)$workOrder->id;
@@ -123,7 +123,16 @@
 
         {{-- Panel derecho: procesos y máquinas --}}
         <div class="div-boxes hidden" hidden id="casillas">
-            <h3>Procesos y número de máquinas disponibles</h3>
+            <div class="header-panel" style="text-align: center; margin-bottom: 0.5rem; flex-shrink: 0;">
+                <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra"
+                     style="width: 140px; filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.08));">
+                <h2 style="font-size: 1.25em; color: rgb(3, 57, 102); font-weight: 700; margin-top: 4px; margin-bottom: 0;">
+                    Programación de O.T.
+                </h2>
+            </div>
+
+            <h3 style="margin-top: 2px;">Procesos y número de máquinas disponibles</h3>
+
             <div class="sections">
                 {{-- El JS inserta aquí las casillas de procesos --}}
             </div>
