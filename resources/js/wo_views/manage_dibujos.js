@@ -914,7 +914,10 @@ function renderEstructuraTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td colspan="4" class="d-text-center d-text-subtle">
-                No hay carpetas creadas aun.
+                <div class="dibujos-empty-state">
+                    <img src="${window.baseUrl}/images/Sin_Carpetas.png" alt="Sin carpetas" class="empty-folder-icon">
+                    <p>No hay carpetas creadas aun.</p>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);

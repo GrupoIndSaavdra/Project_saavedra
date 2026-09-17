@@ -101,6 +101,8 @@
         window.imgEditPieces = "{{ asset('images/editPieces.png') }}";
         window.imgQualityCheck = "{{ asset('images/Quality.png') }}";
         window.imgDraws = "{{ asset('images/DrawsProduction.png') }}";
+        window.imgProgramsCNC = "{{ asset('images/ProgramsCNC.png') }}";
+        window.imgProgramsShadow = "{{ asset('images/ProgramsCNC-Shadow.png') }}";
         window.imgTechDocs = "{{ asset('images/manual.png') }}";
     </script>
     @isset($arrayData)

@@ -47,7 +47,7 @@ class ProcessProductionController extends Controller
             }
         }
     }
-        /**
+    /**
      * @param mixed $returnArray
      */
     public function show($returnArray = null)
@@ -61,15 +61,23 @@ class ProcessProductionController extends Controller
                 if (count($classes) > 0) {
                     foreach ($classes as $key => $class) {
                         if ($class->finalizada == 0) {
-                            if (!array_key_exists($workOrder->id, $workOrders)) {
-                                $workOrders[$workOrder->id] = array();
-                                // Moldura ya cargada (0 queries)
-                                $workOrders[$workOrder->id]['moldura'] = $workOrder->moldura ? $workOrder->moldura->nombre : 'Moldura no encontrada';
-                            }
-                            $processes = Procesos::query()->where('id_clase', $class->id)->first();
-                            if ($processes) {
-                                $workOrders[$workOrder->id][$class->nombre] = array();
-                                $workOrders[$workOrder->id][$class->nombre] = $this->setOrderedProcess($class);
+                            $baseType = $class->getBaseType();
+                            if (!empty($baseType)) {
+                                $processes = Procesos::query()->where('id_clase', $class->id)->first();
+                                if (!$processes) {
+                                    $processes = new Procesos();
+                                    $processes->id_clase = $class->id;
+                                    $processes->save();
+                                }
+                                $orderedProcesses = $this->setOrderedProcess($class);
+                                if (!empty($orderedProcesses)) {
+                                    if (!array_key_exists($workOrder->id, $workOrders)) {
+                                        $workOrders[$workOrder->id] = array();
+                                        // Moldura ya cargada (0 queries)
+                                        $workOrders[$workOrder->id]['moldura'] = $workOrder->moldura ? $workOrder->moldura->nombre : 'Moldura no encontrada';
+                                    }
+                                    $workOrders[$workOrder->id][$baseType] = $orderedProcesses;
+                                }
                             }
                         }
                     }
@@ -83,7 +91,7 @@ class ProcessProductionController extends Controller
         return view('processes_views.processProduction_view', compact('workOrders'));
     }
 
-        /**
+    /**
      * @param mixed $class
      */
     public function setOrderedProcess($class)
@@ -141,6 +149,10 @@ class ProcessProductionController extends Controller
                 case "Molde":
                     $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde"];
                     break;
+                case "Obturador":
+                case "Fondo":
+                    $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                    break;
                 case "Corona":
                     $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
                     break;
@@ -152,6 +164,9 @@ class ProcessProductionController extends Controller
                     break;
                 case "Cabeza de Soplo":
                     $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                    break;
+                case "Candado Obturador":
+                    $processesInOrder = ["operacionEquipo"];
                     break;
                 default:
                     $processesInOrder = [];
@@ -167,7 +182,7 @@ class ProcessProductionController extends Controller
         return $processesInOrder;
     }
 
-        /**
+    /**
      * @param mixed $meta
      * @param mixed $process
      * @param mixed $edit
@@ -254,20 +269,21 @@ class ProcessProductionController extends Controller
                     ->groupBy('n_pieza')
                 : collect();
 
+            $displayClass = $class->getBaseType() ?: $class->nombre;
             $ptaTableHtml = view('processes_views.soldaduraPTA_table_partial', [
                 'piezasGroup' => $piezasGroupHistory,
                 'piezasGroupActivas' => $piezasGroupActivas,
                 'modo' => ($edit == 2) ? 'captura' : 'reporte',
                 'ptaLiberacion' => $ptaLiberacion,
-                'esJuegoCompleto' => in_array(strtoupper($class->nombre), ['OBTURADOR', 'FONDO']),
-                'claseNombre' => $class->nombre,
+                'esJuegoCompleto' => in_array(strtoupper($displayClass), ['OBTURADOR', 'FONDO']),
+                'claseNombre' => $displayClass,
             ])->render();
         }
 
         return [
             'operator' => $this->getOperatorName(),
             'workOrder' => $workOrder->id . ' - ' . $molding->nombre,
-            'class'     => $class->nombre,
+            'class' => $class->getBaseType() ?: $class->nombre,
             'process' => $process,
             'subprocess' => $subprocess,
             'startTime' => $meta->h_inicio,
@@ -297,7 +313,7 @@ class ProcessProductionController extends Controller
         $user = auth()->user();
         return $user->matricula . ' - ' . $user->a_paterno . ' ' . $user->a_materno . ' ' . $user->nombre;
     }
-        /**
+    /**
      * @param mixed $processName
      * @param mixed $availableAssemblies
      * @param mixed $meta
@@ -344,7 +360,7 @@ class ProcessProductionController extends Controller
             }
 
             //Si no hay piezas vacias asociadas a la meta, se crea una nueva pieza solamente si el proceso es "Cepillado"
-            $isCandadoOpeEquipo = $processString === "Operacion Equipo" && $class && $class->nombre === "Candado Obturador";
+            $isCandadoOpeEquipo = $processString === "Operacion Equipo" && $class && ($class->getBaseType() === "Candado Obturador" || $class->nombre === "Candado Obturador");
             if ($processString == "Cepillado" || $isCandadoOpeEquipo) {
                 if (count($availableAssemblies) > 0) {
                     $assembly = $availableAssemblies[0];
@@ -450,7 +466,7 @@ class ProcessProductionController extends Controller
             return "NoPreviousPieces";
         }
     }
-        /**
+    /**
      * @param mixed $piece
      * @param mixed $class
      * @param mixed $processName
@@ -475,7 +491,7 @@ class ProcessProductionController extends Controller
         }
         return false;
     }
-        /**
+    /**
      * @param mixed $class
      * @param mixed $process
      * @param mixed $subprocess
@@ -492,7 +508,7 @@ class ProcessProductionController extends Controller
         }
     }
 
-        /**
+    /**
      * @param mixed $process
      * @param mixed $param
      */
@@ -502,7 +518,7 @@ class ProcessProductionController extends Controller
         return isset($subprocess[$param]) ? $subprocess[$param] : null;
     }
 
-        /**
+    /**
      * @param mixed $passwordEntered
      */
     public function validatePasswordAdmin($passwordEntered)
@@ -518,7 +534,7 @@ class ProcessProductionController extends Controller
         }
         return false;
     }
-        /**
+    /**
      * @param Request $request
      */
     public function verifiedPasswordAdmin(Request $request)
@@ -552,7 +568,7 @@ class ProcessProductionController extends Controller
         }
         return redirect()->back()->with('error', 'Contraseña incorrecta, intenta de nuevo');
     }
-        /**
+    /**
      * @param mixed $meta
      */
     public function verifyNumbersOfPieces($meta)
@@ -573,7 +589,7 @@ class ProcessProductionController extends Controller
         $piecesCount = $model::query()->where('id_meta', $meta->id)->count();
         return $piecesCount;
     }
-        /**
+    /**
      * @param Request $request
      */
     public function storePiece(Request $request)
@@ -597,7 +613,7 @@ class ProcessProductionController extends Controller
             return redirect()->route('processProduction')->with('error', 'La máquina ha sido liberada. Por favor, crea una nueva meta para continuar registrando piezas.');
         }
     }
-        /**
+    /**
      * @param mixed $class
      * @param mixed $processName
      * @param mixed $request
@@ -741,7 +757,7 @@ class ProcessProductionController extends Controller
         }
         $pieceInPiezas->save();
     }
-        /**
+    /**
      * @param Request $request
      */
     public function selectAssembly(Request $request)
@@ -845,7 +861,7 @@ class ProcessProductionController extends Controller
             } else {
                 $esJuegoCompleto = false;
                 if ($processString === 'Soldadura PTA') {
-                    $esJuegoCompleto = in_array(strtoupper($class->nombre), ['OBTURADOR', 'FONDO']);
+                    $esJuegoCompleto = in_array(strtoupper($class->getBaseType() ?: $class->nombre), ['OBTURADOR', 'FONDO']);
                 }
                 $maxMitades = $esJuegoCompleto ? 1 : 2;
 
@@ -903,21 +919,38 @@ class ProcessProductionController extends Controller
                             $claseNormPTA = strtolower(trim($class->nombre ?? ''));
                             $ptaDefaults = in_array($claseNormPTA, ['molde', 'bombillo', 'obturador', 'fondo', 'plato']) ? [
                                 'D_Conexion_pico' => [
-                                    'vl' => 2.000, 'sold_inicial' => 3.000, 'sold_aplicada' => 8.000,
-                                    'sold_final' => 6.000, 'corr_inicial' => 45.000, 'corr_aplicada' => 60.000,
-                                    'corr_final' => 60.000, 'gas_argon' => 2.200, 'precalentamiento' => 415,
+                                    'vl' => 2.000,
+                                    'sold_inicial' => 3.000,
+                                    'sold_aplicada' => 8.000,
+                                    'sold_final' => 6.000,
+                                    'corr_inicial' => 45.000,
+                                    'corr_aplicada' => 60.000,
+                                    'corr_final' => 60.000,
+                                    'gas_argon' => 2.200,
+                                    'precalentamiento' => 415,
                                     'd_conexion_pico' => 0,
                                 ],
                                 'D_Conexion_obt' => [
-                                    'vl' => 2.000, 'sold_inicial' => 3.000, 'sold_aplicada' => 8.000,
-                                    'sold_final' => 6.000, 'corr_inicial' => 45.000, 'corr_aplicada' => 60.000,
-                                    'corr_final' => 70.000, 'gas_argon' => 2.200,
+                                    'vl' => 2.000,
+                                    'sold_inicial' => 3.000,
+                                    'sold_aplicada' => 8.000,
+                                    'sold_final' => 6.000,
+                                    'corr_inicial' => 45.000,
+                                    'corr_aplicada' => 60.000,
+                                    'corr_final' => 70.000,
+                                    'gas_argon' => 2.200,
                                     'd_conexion_obt' => 0,
                                 ],
                                 'Perfilado' => [
-                                    'vl' => "0.000", 'sold_inicial' => "0.000", 'sold_aplicada' => "0.000",
-                                    'sold_final' => "0.000", 'corr_inicial' => "0.000", 'corr_aplicada' => "0.000",
-                                    'corr_final' => "0.000", 'gas_argon' => "0.000", 'velocidad_calculada' => "0.000",
+                                    'vl' => "0.000",
+                                    'sold_inicial' => "0.000",
+                                    'sold_aplicada' => "0.000",
+                                    'sold_final' => "0.000",
+                                    'corr_inicial' => "0.000",
+                                    'corr_aplicada' => "0.000",
+                                    'corr_final' => "0.000",
+                                    'gas_argon' => "0.000",
+                                    'velocidad_calculada' => "0.000",
                                     'perfilado' => "0.000",
                                 ],
                             ] : [];
@@ -982,7 +1015,7 @@ class ProcessProductionController extends Controller
         }
         return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->input('process'), "edit" => 0])->with($param, $message);
     }
-        /**
+    /**
      * @param Request $request
      */
     public function editPieces(Request $request)
@@ -1021,14 +1054,21 @@ class ProcessProductionController extends Controller
         //Retornar pieza siguiente
         return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $request->input('process'), "edit" => 0])->with('success', 'Piezas editadas correctamente.');
     }
-        /**
+    /**
      * @param Request $request
      */
     public function editMeta(Request $request)
     {
         // Verificar que la clase ingresada exista
         $workOrder = strtok($request->input('workOrder'), ' ');
-        $class = Clase::query()->where('id_ot', $workOrder)->where('nombre', $request->input('class'))->first(); //Obtener el id de la clase
+        $targetClassInput = $request->input('class');
+        $class = Clase::query()->where('id_ot', $workOrder)
+            ->get()
+            ->first(function ($c) use ($targetClassInput) {
+                return $c->nombre === $targetClassInput
+                    || $c->getBaseType() === $targetClassInput
+                    || (Clase::normalizeClassName($c->nombre) !== '' && Clase::normalizeClassName($c->nombre) === Clase::normalizeClassName($targetClassInput));
+            });
         if ($class) {
             $foundedMeta = Metas::query()->find($request->input('meta'));
             if ($foundedMeta) {
@@ -1042,12 +1082,14 @@ class ProcessProductionController extends Controller
                 //Verificar si ya hay piezas registradas de esa meta
                 if ($this->verifyNumbersOfPieces($foundedMeta) == 0) {
                     // Verificar si la maquina no esta siendo ocupada
+                    /** @var Maquinas|null $machineOccupied */
                     $machineOccupied = Maquinas::query()->where('maquina', $request->input('machine'))->where('proceso', $request->input('process'))->first();
                     if (!$machineOccupied || $machineOccupied->id_meta === $foundedMeta->id) {
                         // Si la máquina ocupada es la misma que habia creado, se elimina
                         if ($machineOccupied) {
                             $machineOccupied->delete();
                         } else {
+                            /** @var Maquinas|null $oldMachine */
                             $oldMachine = Maquinas::query()->where('maquina', $foundedMeta->maquina)->where('proceso', $foundedMeta->proceso)->first();
                             if ($oldMachine) {
                                 $oldMachine->delete(); // Eliminar la máquina ocupada anterior
@@ -1068,6 +1110,7 @@ class ProcessProductionController extends Controller
 
                         if ($existingMeta && $existingMeta->id != $foundedMeta->id) { // Si existe la meta y es diferente a la anterior
                             // Si existe, borrar la meta
+                            /** @var Metas $foundedMeta */
                             $foundedMeta->delete();
                             $this->storeMachine($request, $existingMeta); // Si la máquina no existe, se crea una nueva máquina ocupada asociada a la meta
                             $successMessage = 'Se ha ingresado correctamente a la meta de ' . auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre;
@@ -1096,14 +1139,21 @@ class ProcessProductionController extends Controller
         }
         return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
     }
-        /**
+    /**
      * @param StoreHeaderProcessRequest $request
      */
     public function storeHeaderdata(StoreHeaderProcessRequest $request)
     {
         $validatedData = $request->validated(); //Validación de los datos ingresados.
         // Verificar que la clase ingresada exista
-        $class = Clase::query()->where('id_ot', $request->input('workOrder'))->where('nombre', $request->input('class'))->first();
+        $targetClassInput = $request->input('class');
+        $class = Clase::query()->where('id_ot', $request->input('workOrder'))
+            ->get()
+            ->first(function ($c) use ($targetClassInput) {
+                return $c->nombre === $targetClassInput
+                    || $c->getBaseType() === $targetClassInput
+                    || (Clase::normalizeClassName($c->nombre) !== '' && Clase::normalizeClassName($c->nombre) === Clase::normalizeClassName($targetClassInput));
+            });
         if ($class) {
             // Verificar si la maquina no esta siendo ocupada
             $machineOccupied = Maquinas::query()->where('maquina', $request->input('machine'))->where('proceso', $request->input('process'))->first();
@@ -1133,14 +1183,14 @@ class ProcessProductionController extends Controller
                     SystemLog::create([
                         'user_matricula' => auth()->user()->matricula,
                         'action' => 'Ingreso a Meta Existente',
-                        'details' => $successMessage . " (OT: {$request->workOrder}, Clase: {$class->nombre}, Maquina: {$request->machine})",
-                        'ot' => $request->workOrder,
+                        'details' => $successMessage . " (OT: {$request->input('workOrder')}, Clase: {$class->nombre}, Maquina: {$request->input('machine')})",
+                        'ot' => $request->input('workOrder'),
                         'clase' => $class->nombre,
-                        'maquina' => $request->machine,
+                        'maquina' => $request->input('machine'),
                         'proceso' => $processString,
                         'h_inicio' => now()->format('H:i:s'),
                         'h_termino' => now()->format('H:i:s'),
-                        'id_ot' => $request->workOrder
+                        'id_ot' => $request->input('workOrder')
                     ]);
                 } else { // Si la máquina no existe y tampoco una meta con esos datos, se crea una nueva meta y maquina
                     $meta = $this->storeMeta($request, $class, $startTime, $endTime, $date);
@@ -1151,14 +1201,14 @@ class ProcessProductionController extends Controller
                     SystemLog::create([
                         'user_matricula' => auth()->user()->matricula,
                         'action' => 'Nueva Meta Creada',
-                        'details' => $successMessage . " (OT: {$request->workOrder}, Clase: {$class->nombre}, Maquina: {$request->machine})",
-                        'ot' => $request->workOrder,
+                        'details' => $successMessage . " (OT: {$request->input('workOrder')}, Clase: {$class->nombre}, Maquina: {$request->input('machine')})",
+                        'ot' => $request->input('workOrder'),
                         'clase' => $class->nombre,
-                        'maquina' => $request->machine,
+                        'maquina' => $request->input('machine'),
                         'proceso' => $processString,
                         'h_inicio' => now()->format('H:i:s'),
                         'h_termino' => now()->format('H:i:s'),
-                        'id_ot' => $request->workOrder
+                        'id_ot' => $request->input('workOrder')
                     ]);
                 }
                 return redirect()->route('showReportFormat', ["meta" => $meta, "process" => $processString, "edit" => 0])->with('success', $successMessage);
@@ -1168,7 +1218,7 @@ class ProcessProductionController extends Controller
         return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
     }
 
-        /**
+    /**
      * @param mixed $request
      * @param mixed $class
      * @param mixed $startTime
@@ -1195,7 +1245,7 @@ class ProcessProductionController extends Controller
         return $meta;
     }
 
-        /**
+    /**
      * @param mixed $request
      * @param mixed $newMeta
      * @param mixed $machineOccupied
@@ -1212,7 +1262,7 @@ class ProcessProductionController extends Controller
         $machineOccupied->save();
     }
 
-        /**
+    /**
      * @param mixed $meta
      */
     public function finishReport($meta)
@@ -1234,6 +1284,7 @@ class ProcessProductionController extends Controller
 
             $class = Clase::query()->find($meta->id_clase);
             // Desocupar la maquina
+            /** @var Maquinas|null $machineOccupied */
             $machineOccupied = Maquinas::query()->where('id_meta', $meta->id)->first();
             if ($machineOccupied) {
                 $machineOccupied->delete();
@@ -1270,7 +1321,7 @@ class ProcessProductionController extends Controller
         return redirect()->route('home')->with('error', 'Meta no encontrada.');
     }
 
-        /**
+    /**
      * @param mixed $process
      * @param mixed $class
      * @param mixed $meta
@@ -1312,7 +1363,7 @@ class ProcessProductionController extends Controller
         ];
         return $arrayData;
     }
-        /**
+    /**
      * @param mixed $process
      * @param mixed $class
      */
@@ -1375,7 +1426,7 @@ class ProcessProductionController extends Controller
 
         return [$availableAssemblies, $remainingPieces, $totalGood];
     }
-        /**
+    /**
      * @param mixed $process
      * @param mixed $class
      */
@@ -1450,7 +1501,7 @@ class ProcessProductionController extends Controller
         return [$availableAssemblies, $remainingPieces, $totalGood];
     }
 
-        /**
+    /**
      * @param mixed $reverseProcess
      * @param mixed $class
      * @param mixed &$availableAssemblies
@@ -1479,7 +1530,7 @@ class ProcessProductionController extends Controller
             }
         }
     }
-        /**
+    /**
      * @param mixed $metaId
      */
     public function updateMeta($metaId)
@@ -1503,7 +1554,7 @@ class ProcessProductionController extends Controller
         $meta->save();
     }
     // //Se actualiza las piezas de cada proceso para verificar que este correcta
-        /**
+    /**
      * @param mixed $process
      * @param mixed $subprocess
      * @param mixed $meta
@@ -1595,7 +1646,7 @@ class ProcessProductionController extends Controller
             }
         }
     }
-        /**
+    /**
      * @param mixed $process
      * @param mixed $class
      */
@@ -1637,7 +1688,7 @@ class ProcessProductionController extends Controller
         };
     }
 
-        /**
+    /**
      * @param mixed $arrayPiecesInMeta
      * @param mixed $class
      * @param mixed $process
@@ -1715,7 +1766,7 @@ class ProcessProductionController extends Controller
         }
         return $total;
     }
-        /**
+    /**
      * @param mixed $halfPiece
      */
     public function verifyPiece($halfPiece)
@@ -1752,7 +1803,7 @@ class ProcessProductionController extends Controller
         }
         return false;
     }
-        /**
+    /**
      * @param mixed $meta
      */
     public function get_machinedPiecesInMeta($meta)
@@ -1791,7 +1842,7 @@ class ProcessProductionController extends Controller
         }
         return null;
     }
-        /**
+    /**
      * @param mixed $class
      * @param mixed $processName
      */
@@ -1897,7 +1948,7 @@ class ProcessProductionController extends Controller
         return $previousProcess;
     }
 
-        /**
+    /**
      * @param mixed $processName
      */
     public function get_processNameDB($processName)
@@ -1931,7 +1982,7 @@ class ProcessProductionController extends Controller
         return $process;
     }
 
-        /**
+    /**
      * @param mixed $process
      * @param mixed $previousProcess
      * @param mixed $class
@@ -2048,7 +2099,7 @@ class ProcessProductionController extends Controller
         }
         return [$availableAssemblies, $remainingPieces, $totalGood];
     }
-        /**
+    /**
      * @param mixed $process
      * @param mixed $previousProcess
      * @param mixed $class
@@ -2185,7 +2236,7 @@ class ProcessProductionController extends Controller
         return [$availableAssemblies, $remainingPieces, $totalGood];
     }
 
-        /**
+    /**
      * @param mixed $processName
      * @param mixed $class
      */
@@ -2240,7 +2291,7 @@ class ProcessProductionController extends Controller
         }
         return [$occupiedAssemblies, $machinedPieces];
     }
-        /**
+    /**
      * @param mixed $process
      * @param mixed $class
      */
@@ -2275,7 +2326,7 @@ class ProcessProductionController extends Controller
         };
         return "App\Models\\" . $modelProcess;
     }
-        /**
+    /**
      * @param mixed $process
      * @param mixed $class
      */
@@ -2333,7 +2384,7 @@ class ProcessProductionController extends Controller
 
         return [$cNominal, $tolerance];
     }
-        /**
+    /**
      * @param mixed $process
      * @param mixed $class
      */
@@ -2369,7 +2420,7 @@ class ProcessProductionController extends Controller
         return "App\Models\\" . $modelProcess;
     }
 
-        /**
+    /**
      * @param mixed $h_inicio
      * @param mixed $h_termino
      */
@@ -2392,7 +2443,7 @@ class ProcessProductionController extends Controller
         }
         return $diferencia; //Retorno las horas trabajadas.
     }
-        /**
+    /**
      * @param mixed &$meta
      * @param mixed $h_inicio
      * @param mixed $h_termino
@@ -2416,7 +2467,7 @@ class ProcessProductionController extends Controller
         $meta->save();
     }
 
-        /**
+    /**
      * @param mixed $process
      */
     public function nameProcess($process)
@@ -2450,7 +2501,7 @@ class ProcessProductionController extends Controller
         };
         return $nameProcess;
     }
-        /**
+    /**
      * @param mixed $process
      */
     public function convertProcessToString($process)
@@ -2533,7 +2584,7 @@ class ProcessProductionController extends Controller
         $qualityUser = $this->validatePasswordQuality($password);
 
         if ($qualityUser) {
-            $meta = Metas::query()->find($request->meta);
+            $meta = Metas::query()->find($request->input('meta'));
             if (!$meta) {
                 return response()->json([
                     'success' => false,
@@ -2782,7 +2833,7 @@ class ProcessProductionController extends Controller
 
                             // Guardar el número de juego limpio (solo el número + J)
                             if (isset($statusPieceNumbers[$action])) {
-                                $cleanNum = preg_replace('/[a-zA-Z]/', '', (string)$piece->n_pieza);
+                                $cleanNum = preg_replace('/[a-zA-Z]/', '', (string) $piece->n_pieza);
                                 if ($cleanNum) {
                                     $statusPieceNumbers[$action][] = $cleanNum . "J";
                                 }
@@ -2828,9 +2879,12 @@ class ProcessProductionController extends Controller
         if (count($statusMessagesToast) > 0) {
             // --- CONSTRUCCIÓN DE MENSAJE SIMPLIFICADO PARA EL TOAST (OPERADOR) ---
             $actionsPerformed = [];
-            if ($statusCounts[1] > 0) $actionsPerformed[] = "liberaciones";
-            if ($statusCounts[2] > 0) $actionsPerformed[] = "rechazos";
-            if ($statusCounts[5] > 0) $actionsPerformed[] = "registro de incompletos";
+            if ($statusCounts[1] > 0)
+                $actionsPerformed[] = "liberaciones";
+            if ($statusCounts[2] > 0)
+                $actionsPerformed[] = "rechazos";
+            if ($statusCounts[5] > 0)
+                $actionsPerformed[] = "registro de incompletos";
 
             $actionsText = "";
             if (count($actionsPerformed) === 1) {
@@ -2918,7 +2972,7 @@ class ProcessProductionController extends Controller
 
             // Obtener h_inicio del usuario (prioridad: inicio de solicitud de calidad -> inicio producción)
             $user = auth()->user();
-            $h_inicio = $request->h_inicio_solicitud ?: ($user->prod_start_at ? Carbon::parse($user->prod_start_at)->format('H:i:s') : 'N/A');
+            $h_inicio = $request->input('h_inicio_solicitud') ?: ($user->prod_start_at ? Carbon::parse($user->prod_start_at)->format('H:i:s') : 'N/A');
             $h_termino = now()->format('H:i:s');
 
             // --- LOG 1: CIERRE DE INTERFAZ (Abandono de Liberación) ---
@@ -2991,7 +3045,7 @@ class ProcessProductionController extends Controller
         ]);
     }
 
-        /**
+    /**
      * @param mixed $class
      */
     public function getProcessHistory($class)
@@ -3032,7 +3086,7 @@ class ProcessProductionController extends Controller
         return $processes;
     }
 
-        /**
+    /**
      * @param mixed $class
      * @param mixed $processName
      * @param mixed &$piecesBadData
@@ -3175,7 +3229,7 @@ class ProcessProductionController extends Controller
         return $piecesArray;
     }
 
-        /**
+    /**
      * @param mixed $piece
      * @param mixed $rechazada
      * @param mixed $operation

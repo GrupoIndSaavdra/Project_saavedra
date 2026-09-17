@@ -1880,3 +1880,28 @@ body:has(.is-verifying) .production-actions > *:not(.is-verifying) {
     z-index: 1000000 !important;
 }
 
+/* =========================================================================
+   MODAL DE PROGRAMAS CNC (Estilos Verdes)
+   ========================================================================= */
+
+.card-programas:hover {
+    border-color: var(--cnc-green, #0a7c42);
+    background: #f2fcf7;
+    box-shadow: 0 20px 40px rgba(10, 124, 66, 0.15);
+}
+
+.card-programas:hover::before {
+    background: var(--cnc-green, #0a7c42);
+}
+
+.card-programas .prod-viewer-filename {
+    color: var(--cnc-green, #0a7c42) !important;
+}
+
+.card-programas .prod-viewer-action {
+    color: var(--cnc-green, #0a7c42);
+}
+
+.card-programas:hover .prod-viewer-action {
+    color: #065c30;
+}

@@ -530,5 +530,68 @@ const pathNorm = (f.nombre || "").toLowerCase().replace(/\\/g, "/");
 const parts = pathNorm.split("/");
 const isUserUploadedScar = parts[parts.length - 2] === "scar";
 ```
+
+---
+
+## 17. Visores de Documentos desde Producción: Autoselección y Bloqueo de Filtros
+
+Cuando un operador abre un visor (como Dibujos o Programas CNC) directamente desde una fila activa en la vista de producción (`processProduction.js`), el modal debe enfocar estrictamente el contexto de la pieza seleccionada:
+
+1. **Pre-selección inteligente (`isMatchClase`)**: Comparar prefijos numéricos o tipos base (ej: `"1 - MOLDES"` concuerda con `"Molde"` o `"MOLDES"`).
+2. **Bloqueo explícito de Selects (`select.disabled = true`)**: Evita que los operadores alteren los filtros y visualicen archivos pertenecientes a otras OTs, Clases o Procesos durante la fabricación.
+
+```javascript
+// ✅ PATRÓN CORRECTO: Auto-selección y bloqueo de filtros en visor de producción
+function openProgramasViewer(otVal, claseVal, procesoVal) {
+    const selOT = document.getElementById('p-viewer-ot');
+    const selClase = document.getElementById('p-viewer-clase');
+    const selProceso = document.getElementById('p-viewer-proceso');
+
+    if (selOT && otVal) {
+        selOT.value = otVal;
+        selOT.disabled = true; // Bloqueado para operadores
+    }
+    if (selClase && claseVal) {
+        // Encontrar opción coincidente mediante matching de prefijo o tipo base
+        for (let opt of selClase.options) {
+            if (isMatchClase(claseVal, opt.value)) {
+                selClase.value = opt.value;
+                break;
+            }
+        }
+        selClase.disabled = true;
+    }
+    if (selProceso && procesoVal) {
+        selProceso.value = procesoVal;
+        selProceso.disabled = true;
+    }
+}
 ```
+
+---
+
+## 18. Representación de Archivos Técnicos NC/CNC con Transición de Íconos Hover
+
+Para diferenciar rápidamente la extensión del archivo y dar retroalimentación visual al usuario en las tarjetas de archivos:
+
+1. **Estado por Defecto**: Renderizar la versión con sombra (`ProgramsNC-Shadow.png` / `ProgramsCNC-Shadow.png`).
+2. **Estado Hover**: Transicionar dinámicamente mediante eventos `mouseenter` / `mouseleave` al ícono a color completo (`ProgramsNC.png` / `ProgramsCNC.png`).
+
+```javascript
+// ✅ PATRÓN CORRECTO: Cambio dinámico de imagen shadow/color al hacer hover
+function renderFileCardIcon(ext) {
+    const isNC = ext.toUpperCase() === 'NC';
+    const shadowSrc = isNC ? window.imgProgramsNCShadow : window.imgProgramsCNCShadow;
+    const colorSrc = isNC ? window.imgProgramsNC : window.imgProgramsCNC;
+
+    return `
+        <div class="archivo-card" 
+             onmouseenter="this.querySelector('.file-icon-img').src='${colorSrc}'"
+             onmouseleave="this.querySelector('.file-icon-img').src='${shadowSrc}'">
+            <img class="file-icon-img" src="${shadowSrc}" alt="${ext}" />
+        </div>
+    `;
+}
+```
+
 

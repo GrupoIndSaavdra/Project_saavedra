@@ -117,6 +117,7 @@
         'reportes.reenvio': @json(route('reportes.reenvio')),
         'reportes.pta': @json(route('reportes.pta')),
         'dibujos.manage': @json(route('dibujos.manage')),
+        'programas.manage': @json(route('programas.manage')),
         'fundicion.manage': @json(route('fundicion.manage')),
         'manuales.manage': @json(route('manuales.manage')),
         'ayudas.manage': @json(route('ayudas.manage')),

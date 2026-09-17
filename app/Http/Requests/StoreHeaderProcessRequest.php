@@ -4,6 +4,16 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * @property-read string $workOrder
+ * @property-read string $class
+ * @property-read string $process
+ * @property-read string|null $subprocess
+ * @property-read string $startTime
+ * @property-read string $endTime
+ * @property-read string $date
+ * @property-read string $machine
+ */
 class StoreHeaderProcessRequest extends FormRequest
 {
     /**

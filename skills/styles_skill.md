@@ -531,3 +531,32 @@ card.style.cssText = 'border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05
 const card = document.createElement('div');
 card.classList.add('alm-card-base', 'alm-card-warning');
 ```
+
+---
+
+## 16. Estándar Visual para Íconos de Estado Vacío (Sin Carpetas/Sin Archivos)
+
+En las 6 vistas de administración de documentos (`manage_dibujos`, `manage_ayudas`, `manage_ayudas_fundicion`, `manage_fundicion`, `manage_manuales`, `manage_programas`), los contenedores vacíos deben renderizar la imagen de estado con reglas CSS estrictas y estáticas para mantener consistencia visual perfecta:
+
+1. **Dimensiones fijas**: `width: 120px` y `max-width: 120px`.
+2. **Opacidad sobria**: `opacity: 0.75` (sin deslumbrar ni competir con otros elementos).
+3. **Sin animaciones en hover**: Desactivar cualquier `transform: scale(...)` o animación mediante `transform: none !important` y `transition: none !important`.
+
+```css
+/* ✅ PATRÓN OBLIGATORIO: Estado vacío estático en vistas de administración */
+.dibujos-empty-state img.empty-folder-icon,
+.ayudas-empty-state img.empty-folder-icon,
+.programas-empty-state img.empty-folder-icon {
+    width: 120px;
+    max-width: 120px;
+    height: auto;
+    opacity: 0.75;
+    transform: none !important;
+    transition: none !important;
+}
+
+.dibujos-empty-state img.empty-folder-icon:hover {
+    transform: none !important;
+    opacity: 0.75 !important;
+}
+```

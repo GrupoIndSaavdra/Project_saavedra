@@ -171,6 +171,7 @@
 
             @if(count($estructura) === 0)
                 <div class="dibujos-empty-state">
+                    <img src="{{ asset('images/Sin_Carpetas.png') }}" alt="Sin carpetas" class="empty-folder-icon">
                     <p>No hay carpetas creadas aun.</p>
                 </div>
             @else

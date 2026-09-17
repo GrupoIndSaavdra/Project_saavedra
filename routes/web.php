@@ -29,6 +29,7 @@ use App\Http\Controllers\EnvioPtaController;
 // use App\Http\Controllers\MeasurementsWebController;
 use App\Http\Controllers\PtaResultsController;
 use App\Http\Controllers\HerramientasTecamacController;
+use App\Http\Controllers\ProgramasCncController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -422,6 +423,29 @@ Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(func
     Route::get('/log', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getLog'])->name('log');
     Route::post('/deleteFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteFolder'])->name('deleteFolder');
     Route::post('/deleteParent', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'deleteParent'])->name('deleteParent');
+});
+
+/* ===========================
+   Módulo de Programas CNC (PROGRAMAS_MAQUINADOS)
+=========================== */
+
+// ── Rutas públicas (lectura, operadores y admins) ──
+Route::prefix('programas')->name('programas.')->group(function () {
+    Route::get('/estructura',       [ProgramasCncController::class, 'getStructure'])->name('estructura');
+    Route::get('/archivos',         [ProgramasCncController::class, 'getFiles'])->name('archivos');
+    Route::get('/serve',            [ProgramasCncController::class, 'serveFile'])->name('serve');
+    Route::get('/procesos-clase',   [ProgramasCncController::class, 'getProcesosForClase'])->name('procesos_clase');
+});
+
+// ── Rutas protegidas (CRUD, solo admins/master) ──
+Route::middleware(['auth'])->prefix('programas')->name('programas.')->group(function () {
+    Route::get('/manage',           [ProgramasCncController::class, 'showManage'])->name('manage');
+    Route::get('/log',              [ProgramasCncController::class, 'getLog'])->name('log');
+    Route::post('/createFolder',    [ProgramasCncController::class, 'createFolder'])->name('createFolder');
+    Route::post('/upload',          [ProgramasCncController::class, 'uploadProgram'])->name('upload');
+    Route::post('/delete',          [ProgramasCncController::class, 'deleteProgram'])->name('delete');
+    Route::post('/deleteFolder',    [ProgramasCncController::class, 'deleteFolder'])->name('deleteFolder');
+    Route::post('/deleteParent',    [ProgramasCncController::class, 'deleteParent'])->name('deleteParent');
 });
 
 /* ===========================

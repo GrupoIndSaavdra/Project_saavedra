@@ -283,3 +283,40 @@ Model::whereIn('columna', [1, 2, 3], 'and', false)->get();
 
 El 4° argumento `'and'` es el valor por defecto de Laravel — no cambia el comportamiento en runtime.
 El `whereIn()` también necesita `$boolean = 'and'` y `$not = false` explícitos.
+
+---
+
+## 13. Resolución Fuzzy de Directorios de Servidor y Auditoría de Archivos
+
+Cuando se manejen carpetas en disco organizadas jerárquicamente (`OT` -> `Clase` -> `Proceso`), el nombre de las carpetas físicamente en el servidor puede diferir sutilmente de las cadenas enviadas por el frontend o de los nombres cortos de los modelos (ej: la carpeta en disco es `"1 - MOLDES"` o `"OT 8890 — JOSE CUERVO"`, pero el cliente consulta `"Molde"` o `"8890 - JOSE CUERVO"`).
+
+#### Patrón Recomendado:
+1. **Búsqueda Fuzzy e Insensible a Mayúsculas (`resolveCaseInsensitivePath`)**:
+   Empareja partes de ruta normalizando espacios, guiones largos (`—` vs `-`), y usando `Clase::normalizeClassName()` o regex de ID numérico para OTs (`preg_match('/(?:OT\s*)?(\d+)/i')`).
+2. **Auditoría Obligatoria de Eventos de Archivo**:
+   Toda creación de directorio, subida de archivo o eliminación debe registrarse en la tabla de auditoría dedicada (ej. `programas_maquinados_file_log`) registrando matrícula del usuario, IP, OT, Clase, Proceso y tipo de acción (`CREAR_CARPETA`, `SUBIR_ARCHIVO`, `ELIMINAR_ARCHIVO`).
+
+```php
+// Ejemplo de resolución case-insensitive y normalizada de carpetas:
+private function resolveCaseInsensitivePath(string $basePath, array $pathSegments): ?string {
+    $current = rtrim($basePath, '/\\');
+    foreach ($pathSegments as $segment) {
+        if (!is_dir($current)) return null;
+        $entries = scandir($current);
+        $found = null;
+        $targetNorm = mb_strtolower(trim(preg_replace('/\s+/', ' ', $segment)));
+        
+        foreach ($entries as $entry) {
+            if ($entry === '.' || $entry === '..') continue;
+            $entryNorm = mb_strtolower(trim(preg_replace('/\s+/', ' ', $entry)));
+            if ($entryNorm === $targetNorm || Clase::normalizeClassName($entry) === Clase::normalizeClassName($segment)) {
+                $found = $entry;
+                break;
+            }
+        }
+        if (!$found) return null;
+        $current .= DIRECTORY_SEPARATOR . $found;
+    }
+    return $current;
+}
+```

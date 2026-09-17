@@ -79,6 +79,7 @@ class Clase extends Model
         $isExcluded = str_contains($clLower, 'base') || str_contains($clLower, 'tip') || str_contains($clLower, 'roll pin') || str_contains($clLower, 'porta') || str_contains($clLower, 'pastilla') || str_contains($clLower, 'canastilla');
         if ($isExcluded) return '';
 
+        if (str_contains($clLower, 'candado')) return 'Candado Obturador';
         if (str_contains($clLower, 'bombillo')) return 'Bombillo';
         if (str_contains($clLower, 'molde')) return 'Molde';
         if (str_contains($clLower, 'obturador')) return 'Obturador';
@@ -86,8 +87,7 @@ class Clase extends Model
         if (str_contains($clLower, 'corona')) return 'Corona';
         if (str_contains($clLower, 'plato')) return 'Plato';
         if (str_contains($clLower, 'embudo')) return 'Embudo';
-        if (str_contains($clLower, 'cabeza de soplo')) return 'Cabeza de Soplo';
-        if (str_contains($clLower, 'candado')) return 'Candado Obturador';
+        if (str_contains($clLower, 'cabeza de soplo') || str_contains($clLower, 'soplo')) return 'Cabeza de Soplo';
 
         return '';
     }

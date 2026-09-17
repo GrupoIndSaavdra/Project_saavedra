@@ -4,7 +4,7 @@ import { Process } from "./Process.js";
 window.currentPieceStartTime = null;
 
 // Función global para actualizar el inicio de la pieza y los inputs del formulario
-window.refreshPieceStartTime = function() {
+window.refreshPieceStartTime = function () {
     window.currentPieceStartTime = new Date().toLocaleTimeString('it-IT');
     // Actualizar todos los inputs h_inicio_solicitud que existan en el DOM
     document.querySelectorAll('input[name="h_inicio_solicitud"]').forEach(input => {
@@ -1268,7 +1268,46 @@ function insertProductionActions() {
     let hasReleasedPieces = window.arrayData["machinedPiecesInMeta"] &&
         window.arrayData["machinedPiecesInMeta"].some(p => p.piece.liberacion === 1);
 
-    // 1. Botón de Dibujos (Siempre habilitado)
+    // 1. Botón de Programas CNC (Se habilita dinámicamente si hay archivos)
+    let btnProgramas = createActionButton(
+        window.imgProgramsCNC || window.baseUrl + '/images/ProgramsCNC.png',
+        "Programas",
+        "Ver Programas CNC",
+        true, // Bloqueado por defecto
+        () => {
+            const activeOT = window.arrayData && window.arrayData.workOrder ? window.arrayData.workOrder : 'Sin OT';
+            const activeClase = window.arrayData ? (window.arrayData.class || 'Sin Clase') : 'Sin Clase';
+            const activeProceso = window.arrayData ? (window.arrayData.process || 'Sin Proceso') : 'Sin Proceso';
+            window.logUserAction("Consulta Programas CNC", `El operador revisó los programas CNC de ${activeOT} - ${activeClase} - ${activeProceso}`);
+            window.openProgramasViewer();
+        }
+    );
+    btnProgramas.classList.add("btn-programas");
+    let imgBtnProgramas = btnProgramas.querySelector('img');
+    actionsContainer.appendChild(btnProgramas);
+
+    // Fetch silencioso para verificar si existen archivos .NC/.CNC en la carpeta específica
+    const actOT = window.arrayData && window.arrayData.workOrder ? window.arrayData.workOrder : '';
+    const actClase = window.arrayData ? window.arrayData.class : '';
+    const actProc = window.arrayData ? window.arrayData.process : '';
+
+    if (actOT && actClase && actProc) {
+        const checkFilesUrl = `${window.baseUrl}/programas/archivos?ot=${encodeURIComponent(actOT)}&clase=${encodeURIComponent(actClase)}&proceso=${encodeURIComponent(actProc)}`;
+        fetch(checkFilesUrl, { headers: { 'Accept': 'application/json' }, cache: 'no-store' })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.archivos && Array.isArray(data.archivos) && data.archivos.length > 0) {
+                    if (imgBtnProgramas) imgBtnProgramas.classList.remove('btn-disabled');
+                } else {
+                    if (imgBtnProgramas) imgBtnProgramas.classList.add('btn-disabled');
+                }
+            })
+            .catch(() => {
+                if (imgBtnProgramas) imgBtnProgramas.classList.add('btn-disabled');
+            });
+    }
+
+    // 1.5 Botón de Dibujos (Siempre habilitado)
     let btnDrawings = createActionButton(
         window.imgDraws,
         "Dibujos",
@@ -1283,8 +1322,6 @@ function insertProductionActions() {
     );
     btnDrawings.classList.add("btn-drawings");
     actionsContainer.appendChild(btnDrawings);
-
-
     // 2. Botón de Calidad (Bloqueado si no hay piezas registradas)
     let qualityDisabled = !hasPieces;
     actionsContainer.appendChild(createActionButton(
@@ -1319,9 +1356,11 @@ function createActionButton(src, label, title, disabled, callback) {
     img.title = title;
     img.alt = label;
 
-    if (!disabled) {
-        img.onclick = (e) => callback(e);
-    }
+    img.onclick = (e) => {
+        if (!img.classList.contains('btn-disabled')) {
+            callback(e);
+        }
+    };
 
     let lbl = document.createElement("div");
     lbl.className = "action-label";
@@ -1886,7 +1925,7 @@ function createHistoricalTable(history) {
     processSection.appendChild(limitLabel);
 
     const goodCount = processData ? (processData.pieces.good || 0) : 0;
-    const badCount  = processData ? (processData.pieces.bad  || 0) : 0;
+    const badCount = processData ? (processData.pieces.bad || 0) : 0;
 
     // Si no hay piezas procesadas, oscurecer
     if (goodCount === 0 && badCount === 0) {
@@ -1943,10 +1982,10 @@ function createHistoricalTable(history) {
 
         let progress = document.createElement("div");
         progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
-        
+
         let percentage = consignmentPieces > 0 ? (pieces[i] * 100) / consignmentPieces : 0;
         progress.style.width = `${Math.min(percentage, 100)}%`;
-        
+
         // Color de fill específico pedido por el usuario (solo para buenas, malas usa CSS global)
         if (i === 0) {
             progress.style.backgroundColor = "rgb(52, 163, 0)";
@@ -2294,13 +2333,18 @@ window.openDibujosViewer = function (otId = null, claseNombre = null) {
                 selOT.value = exactActiveOT;
                 selOT.dispatchEvent(new Event('change'));
                 setTimeout(() => {
-                    const opt = Array.from(selClase.options).find(o => window.eq(o.value, activeClase));
+                    const opt = Array.from(selClase.options).find(o => window.eq(o.value, activeClase) || window.eq(o.value.replace(/^\d+\s*-\s*/, ''), activeClase));
                     if (opt) {
                         opt.selected = true;
                         const otText = selOT.options[selOT.selectedIndex].text;
                         _dibujosCargarArchivos(exactActiveOT, opt.value, contentDiv, otText);
                     }
+                    selOT.disabled = true;
+                    selClase.disabled = true;
                 }, 50);
+            } else {
+                selOT.disabled = true;
+                selClase.disabled = true;
             }
         })
         .catch((err) => {
@@ -2411,6 +2455,267 @@ function _dibujosRenderArchivos(archivos, otDisplay, clase, contentDiv) {
 function _dibujosShowEmpty(contentDiv) {
     contentDiv.innerHTML = '<p style="text-align:center; padding: 2em; color: #666; font-style: italic;">No se encontraron archivos en este directorio.</p>';
     toastpremium('No hay archivos disponibles en esta categoría. Favor de reportar con el departamento de Programacion CNC o de Software.', 'error');
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// VISOR DE PROGRAMAS CNC — Acceso del Operador
+// ────────────────────────────────────────────────────────────────────────────
+
+window.openProgramasViewer = function (otId = null, claseNombre = null, procesoNombre = null) {
+    const activeOT = otId || (window.arrayData && window.arrayData.workOrder ? window.arrayData.workOrder.split(' - ')[0] : '');
+    const activeClase = claseNombre || (window.arrayData ? (window.arrayData.class || '') : '');
+    const activeProceso = procesoNombre || (window.arrayData ? (window.arrayData.process || '') : '');
+
+    const divOpacity = document.createElement('div');
+    divOpacity.className = 'prod-viewer-portal';
+    divOpacity.id = 'div-opacity-programas';
+
+    // REGLA DE ORO: INICIO DE RANGO (OPCIÓN 1)
+    const startTimeDoc = new Date().toLocaleTimeString('it-IT');
+
+    const modal = document.createElement('div');
+    modal.className = 'prod-viewer-modal';
+
+    const closeAndViewerLog = (action, details) => {
+        const endTimeDoc = new Date().toLocaleTimeString('it-IT');
+        window.logUserAction(action, details, { h_inicio: startTimeDoc, h_termino: endTimeDoc });
+        divOpacity.remove();
+    };
+
+    const headerDiv = document.createElement('div');
+    headerDiv.className = 'prod-viewer-header';
+
+    const divCerrar = document.createElement('div');
+    divCerrar.className = 'div-cerrar';
+    const btnCerrar = document.createElement('button');
+    btnCerrar.className = 'btn-cerrar';
+    btnCerrar.onclick = () => closeAndViewerLog("Consulta Programas CNC", `El operador finalizó la revisión de programas.`);
+    const imgCerrar = document.createElement('img');
+    imgCerrar.className = 'img-cerrar';
+    imgCerrar.src = window.cerrarImgUrl;
+    btnCerrar.appendChild(imgCerrar);
+    divCerrar.appendChild(btnCerrar);
+
+    const titulo = document.createElement('h3');
+    titulo.textContent = 'Visor de Programas CNC';
+
+    const navDiv = document.createElement('div');
+    navDiv.classList.add("prod-nav-div");
+
+    const selOTWrap = _dibujosSelectGroup('Orden de Trabajo', 'p-viewer-ot');
+    const selClaseWrap = _dibujosSelectGroup('Clase', 'p-viewer-clase');
+    const selProcesoWrap = _dibujosSelectGroup('Proceso', 'p-viewer-proceso');
+
+    navDiv.appendChild(selOTWrap);
+    navDiv.appendChild(selClaseWrap);
+    navDiv.appendChild(selProcesoWrap);
+
+    headerDiv.appendChild(divCerrar);
+    headerDiv.appendChild(titulo);
+    headerDiv.appendChild(navDiv);
+
+    const contentDiv = document.createElement('div');
+    contentDiv.id = 'viewer-content-programas';
+    contentDiv.className = 'prod-viewer-body';
+
+    modal.appendChild(headerDiv);
+    modal.appendChild(contentDiv);
+    divOpacity.appendChild(modal);
+    document.body.appendChild(divOpacity);
+
+    divOpacity.addEventListener('click', (e) => {
+        if (e.target === divOpacity) closeAndViewerLog("Consulta Programas CNC", `El operador finalizó la revisión de programas.`);
+    });
+
+    const selOT = document.getElementById('p-viewer-ot');
+    const selClase = document.getElementById('p-viewer-clase');
+    const selProceso = document.getElementById('p-viewer-proceso');
+
+    fetch(window.baseUrl + '/programas/estructura', { headers: { 'Accept': 'application/json' }, cache: 'no-store' })
+        .then(r => r.json())
+        .then(estructura => {
+            let exactActiveOT = activeOT;
+            let otNumMatch = activeOT ? activeOT.match(/\d+/) : null;
+            let otNum = otNumMatch ? otNumMatch[0] : activeOT;
+
+            if (activeOT && !Object.keys(estructura).some(k => window.eq(k, activeOT))) {
+                const foundKey = Object.keys(estructura).find(key => key.includes("OT " + otNum) || window.eq(key, activeOT));
+                if (foundKey) exactActiveOT = foundKey;
+            } else {
+                exactActiveOT = Object.keys(estructura).find(k => window.eq(k, activeOT)) || activeOT;
+            }
+
+            selOT.innerHTML = '<option value="">— Seleccionar OT —</option>';
+            Object.keys(estructura).sort().forEach(ot => {
+                let label = ot;
+                if (window.workOrders && window.workOrders[ot] && window.workOrders[ot].moldura) {
+                    label = `${ot} — ${window.workOrders[ot].moldura}`;
+                }
+                const opt = document.createElement('option');
+                opt.value = ot;
+                opt.textContent = label;
+                if (window.eq(ot, exactActiveOT)) opt.selected = true;
+                selOT.appendChild(opt);
+            });
+
+            const isMatchClase = (c1, c2) => {
+                if (!c1 || !c2) return false;
+                if (window.eq(c1, c2)) return true;
+                const c1Clean = String(c1).replace(/^\d+\s*-\s*/, '').toLowerCase().trim();
+                const c2Clean = String(c2).replace(/^\d+\s*-\s*/, '').toLowerCase().trim();
+                if (c1Clean === c2Clean) return true;
+                if (c1Clean.replace(/s$/, '') === c2Clean.replace(/s$/, '')) return true;
+                return c1Clean.includes(c2Clean) || c2Clean.includes(c1Clean);
+            };
+
+            const updateClases = () => {
+                const ot = selOT.value;
+                selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
+                selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+                selProceso.disabled = true;
+
+                if (ot && estructura[ot]) {
+                    Object.keys(estructura[ot]).forEach(clase => {
+                        const opt = document.createElement('option');
+                        opt.value = clase;
+                        opt.textContent = clase;
+                        if (isMatchClase(clase, activeClase)) opt.selected = true;
+                        selClase.appendChild(opt);
+                    });
+                    selClase.disabled = false;
+                } else {
+                    selClase.disabled = true;
+                }
+            };
+
+            const updateProcesos = () => {
+                const ot = selOT.value;
+                const clase = selClase.value;
+                selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
+
+                if (ot && clase && estructura[ot] && estructura[ot][clase]) {
+                    estructura[ot][clase].forEach(proc => {
+                        const opt = document.createElement('option');
+                        opt.value = proc;
+                        opt.textContent = proc;
+                        if (window.eq(proc, activeProceso)) opt.selected = true;
+                        selProceso.appendChild(opt);
+                    });
+                    selProceso.disabled = false;
+                } else {
+                    selProceso.disabled = true;
+                }
+            };
+
+            selOT.addEventListener('change', () => {
+                updateClases();
+                updateProcesos();
+                if (selOT.value && selClase.value && selProceso.value) {
+                    const otText = selOT.options[selOT.selectedIndex]?.text || selOT.value;
+                    _programasCargarArchivos(selOT.value, selClase.value, selProceso.value, contentDiv, otText);
+                }
+            });
+
+            selClase.addEventListener('change', () => {
+                updateProcesos();
+                if (selOT.value && selClase.value && selProceso.value) {
+                    const otText = selOT.options[selOT.selectedIndex]?.text || selOT.value;
+                    _programasCargarArchivos(selOT.value, selClase.value, selProceso.value, contentDiv, otText);
+                }
+            });
+
+            selProceso.addEventListener('change', () => {
+                if (selOT.value && selClase.value && selProceso.value) {
+                    const otText = selOT.options[selOT.selectedIndex]?.text || selOT.value;
+                    _programasCargarArchivos(selOT.value, selClase.value, selProceso.value, contentDiv, otText);
+                }
+            });
+
+            // Carga inicial automática
+            if (exactActiveOT && Object.keys(estructura).some(k => window.eq(k, exactActiveOT))) {
+                selOT.value = exactActiveOT;
+                updateClases();
+                const optClase = Array.from(selClase.options).find(o => isMatchClase(o.value, activeClase));
+                if (optClase) {
+                    optClase.selected = true;
+                    updateProcesos();
+                    const optProc = Array.from(selProceso.options).find(o => window.eq(o.value, activeProceso));
+                    if (optProc) {
+                        optProc.selected = true;
+                        const otText = selOT.options[selOT.selectedIndex]?.text || exactActiveOT;
+                        _programasCargarArchivos(exactActiveOT, optClase.value, optProc.value, contentDiv, otText);
+                    }
+                }
+            }
+
+            // Bloquear los filtros para que los operadores no puedan cambiarlos
+            selOT.disabled = true;
+            selClase.disabled = true;
+            selProceso.disabled = true;
+        })
+        .catch((err) => {
+            contentDiv.innerHTML = '<p style="color:#d9534f;text-align:center;padding:2em;">ERROR AL CARGAR LA ESTRUCTURA DE PROGRAMAS CNC. ' + err.message + '</p>';
+        });
+};
+
+function _programasCargarArchivos(ot, clase, proceso, contentDiv, otText = '') {
+    contentDiv.innerHTML = '<p style="color:#666;text-align:center;">Cargando programas...</p>';
+    const url = `${window.baseUrl}/programas/archivos?ot=${encodeURIComponent(ot)}&clase=${encodeURIComponent(clase)}&proceso=${encodeURIComponent(proceso)}`;
+
+    fetch(url, { headers: { 'Accept': 'application/json' } })
+        .then(r => r.json())
+        .then(data => {
+            if (!data.existe || !data.archivos || data.archivos.length === 0) {
+                contentDiv.innerHTML = '<p style="text-align:center; padding: 2em; color: #666; font-style: italic;">No hay programas para este proceso.</p>';
+                return;
+            }
+
+            contentDiv.innerHTML = '';
+
+            const breadcrumb = document.createElement('div');
+            breadcrumb.className = 'prod-viewer-breadcrumb';
+            breadcrumb.innerHTML = `
+                <span class="path-label">PROGRAMAS_MAQUINADOS</span>
+                <span class="path-ot">${otText || ot}</span> <span style="opacity:0.5">/</span>
+                <span class="path-clase">${clase}</span> <span style="opacity:0.5">/</span>
+                <span class="path-proceso">${proceso}</span>
+                <span class="path-count">${data.archivos.length} PROG</span>
+            `;
+            contentDiv.appendChild(breadcrumb);
+
+            const grid = document.createElement('div');
+            grid.className = 'prod-viewer-grid';
+            contentDiv.appendChild(grid);
+
+            data.archivos.forEach((archivo, i) => {
+                const extUpper = String(archivo.extension || '').toUpperCase();
+                const isNC     = extUpper === 'NC';
+
+                const iconDefault = isNC
+                    ? (window.imgProgramsNCShadow || (window.baseUrl + '/images/ProgramsNC-Shadow.png'))
+                    : (window.imgProgramsCNCShadow || (window.baseUrl + '/images/ProgramsCNC-Shadow.png'));
+
+                const iconHover = isNC
+                    ? (window.imgProgramsNC || (window.baseUrl + '/images/ProgramsNC.png'))
+                    : (window.imgProgramsCNC || (window.baseUrl + '/images/ProgramsCNC.png'));
+
+                const card = document.createElement('div');
+                card.className = 'prod-viewer-card card-programas';
+                card.style.animationDelay = `${(i % 8) * 0.05}s`;
+                card.innerHTML = `
+                    <div class="file-icon-wrapper">
+                        <img src="${iconDefault}" class="prod-viewer-icon icon-default">
+                        <img src="${iconHover}" class="prod-viewer-icon icon-hover">
+                    </div>
+                    <div class="prod-viewer-filename" style="color:#0a7c42;">${archivo.nombre}</div>
+                    <div class="prod-viewer-action">Clic para Descargar</div>`;
+                card.onclick = () => window.open(archivo.url, '_blank');
+                grid.appendChild(card);
+            });
+        })
+        .catch(() => {
+            contentDiv.innerHTML = '<p style="color:#d9534f;text-align:center;padding:2em;">Error de conexión.</p>';
+        });
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -2599,7 +2904,7 @@ window.openAyudasViewer = function () {
         .then(r => r.json())
         .then(estructura => {
             let ayuProcs = [...new Set(Object.values(estructura).flat())];
-            
+
             selProceso.innerHTML = '<option value="">— Seleccionar Proceso —</option>';
             ayuProcs.sort().forEach(proc => {
                 const opt = document.createElement('option');
@@ -2738,7 +3043,7 @@ window.openTechDocsModal = function () {
 
         let matchedProc = activeProcess;
         let found = manualEstructura.find(p => window.eq(p, matchedProc));
-        
+
         if (!found && activeProcess && activeProcess.includes('_')) {
             matchedProc = activeProcess.split('_')[0];
             found = manualEstructura.find(p => window.eq(p, matchedProc));
@@ -2747,7 +3052,7 @@ window.openTechDocsModal = function () {
                 found = manualEstructura.find(p => window.eq(p, matchedProc));
             }
         }
-        
+
         if (found) {
             matchedProc = found;
         }
@@ -2830,7 +3135,7 @@ window.openTechDocsModal = function () {
                     selProcesoWrap.hidden = false;
                     let matchedProc = activeProcess;
                     let ayuProcs = [...new Set(Object.values(ayudasEstructura).flat())];
-                    
+
                     let found = ayuProcs.find(p => window.eq(p, matchedProc));
                     if (!found && activeProcess && activeProcess.includes('_')) {
                         matchedProc = activeProcess.split('_')[0];
@@ -2948,7 +3253,7 @@ window.openTechDocsModal = function () {
 window.mostrarNotificacion = toastpremium;
 
 // Manejadores para el selector de material de soldadura con opción "Otro"
-window.handlePTAMaterialSelectChange = function(idWidget) {
+window.handlePTAMaterialSelectChange = function (idWidget) {
     const selectEl = document.getElementById('select_' + idWidget);
     const otroWrap = document.getElementById('otro_wrap_' + idWidget);
     const inputEl = document.getElementById('input_' + idWidget);
@@ -2966,7 +3271,7 @@ window.handlePTAMaterialSelectChange = function(idWidget) {
     }
 };
 
-window.handlePTAMaterialBackClick = function(idWidget, originalName) {
+window.handlePTAMaterialBackClick = function (idWidget, originalName) {
     const selectEl = document.getElementById('select_' + idWidget);
     const otroWrap = document.getElementById('otro_wrap_' + idWidget);
     const inputEl = document.getElementById('input_' + idWidget);

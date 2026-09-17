@@ -1016,7 +1016,10 @@ function renderEstructuraTable() {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td colspan="3" class="d-text-center d-text-subtle">
-                No hay carpetas de procesos registradas en el servidor.
+                <div class="dibujos-empty-state">
+                    <img src="${window.baseUrl}/images/Sin_Carpetas.png" alt="Sin carpetas" class="empty-folder-icon">
+                    <p>No hay carpetas de procesos registradas en el servidor.</p>
+                </div>
             </td>
         `;
         tbody.appendChild(tr);
