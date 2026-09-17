@@ -147,7 +147,7 @@ export default defineConfig({
             refresh: true,
         }),
     ],
-    // build: {
-    //     b1ase: 'http://192.168.1.106:80/',
-    // },
+    build: {
+        chunkSizeWarningLimit: 1500,
+    },
 });

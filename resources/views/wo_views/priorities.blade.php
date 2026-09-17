@@ -8,84 +8,94 @@
 @endsection
 
 @php
-    function safeDateParse($value)
-    {
-        if (empty($value))
-            return '';
-        try {
-            // Handle common formats before parsing
-            $clean = str_replace('/', '-', $value);
-            return \Carbon\Carbon::parse($clean)->format('Y-m-d');
-        } catch (\Exception $e) {
-            return ''; // If it's text like "FGF", return empty for the datepicker
+    if (!function_exists('safeDateParse')) {
+        function safeDateParse($value)
+        {
+            if (empty($value))
+                return '';
+            try {
+                // Handle common formats before parsing
+                $clean = str_replace('/', '-', $value);
+                return \Carbon\Carbon::parse($clean)->format('Y-m-d');
+            } catch (\Exception $e) {
+                return ''; // If it's text like "FGF", return empty for the datepicker
+            }
         }
     }
 
-    function safeDateParseDisplay($value)
-    {
-        if (empty($value))
-            return '';
-        try {
-            $clean = str_replace('/', '-', $value);
-            return \Carbon\Carbon::parse($clean)->format('d/m/Y');
-        } catch (\Exception $e) {
-            return $value; // If it's text, just display the text
+    if (!function_exists('safeDateParseDisplay')) {
+        function safeDateParseDisplay($value)
+        {
+            if (empty($value))
+                return '';
+            try {
+                $clean = str_replace('/', '-', $value);
+                return \Carbon\Carbon::parse($clean)->format('d/m/Y');
+            } catch (\Exception $e) {
+                return $value; // If it's text, just display the text
+            }
         }
     }
 
-    function renderDateDisplayOrIcon($value)
-    {
-        $parsed = safeDateParseDisplay($value);
-        if (!empty($parsed)) {
-            return e($parsed);
+    if (!function_exists('renderDateDisplayOrIcon')) {
+        function renderDateDisplayOrIcon($value)
+        {
+            $parsed = safeDateParseDisplay($value);
+            if (!empty($parsed)) {
+                return e($parsed);
+            }
+            return '<span class="empty-date-icon-wrap" title="Hacer clic para asignar fecha"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-date-svg" style="vertical-align: middle; opacity: 0.65;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>';
         }
-        return '<span class="empty-date-icon-wrap" title="Hacer clic para asignar fecha"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-date-svg" style="vertical-align: middle; opacity: 0.65;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>';
     }
 
-    function renderEditableTextOrIcon($value)
-    {
-        $clean = trim($value ?? '');
-        if (!empty($clean) && $clean !== '-') {
-            return e($clean);
+    if (!function_exists('renderEditableTextOrIcon')) {
+        function renderEditableTextOrIcon($value)
+        {
+            $clean = trim($value ?? '');
+            if (!empty($clean) && $clean !== '-') {
+                return e($clean);
+            }
+            return '<span class="empty-editable-ph" style="color: #94a3b8; font-size: 0.85em; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" title="Hacer clic para editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>-</span>';
         }
-        return '<span class="empty-editable-ph" style="color: #94a3b8; font-size: 0.85em; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" title="Hacer clic para editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>-</span>';
     }
 
-    function getPastelColorForWeek($weekString)
-    {
-        // Una paleta curada de 20 colores pasteles profesionales y armoniosos
-        $premiumPastels = [
-            '#d4f0f0', // Cyan claro
-            '#ffdfd3', // Peach
-            '#e2f0cb', // Menta suave
-            '#f3e5f5', // Lila
-            '#ffebd2', // Naranja suave
-            '#d6e4ff', // Azul bebe
-            '#ffe5e5', // Rosa claro
-            '#e8f4d9', // Verde te
-            '#f0e6ff', // Lavanda
-            '#fff2cc', // Amarillo pastel
-            '#d9f0f9', // Celeste
-            '#fbe4e4', // Rosa palido
-            '#e0f7fa', // Cyan
-            '#f5f5dc', // Beige
-            '#e6e6fa', // Lavanda gris
-            '#ffefd5', // Papaya
-            '#e0e8f5', // Azul lavanda
-            '#f0fff0', // Honeydew
-            '#fff0f5', // Lavender blush
-            '#fdf5e6'  // Old lace
-        ];
+    if (!function_exists('getPastelColorForWeek')) {
+        function getPastelColorForWeek($weekString)
+        {
+            // Una paleta curada de 20 colores pasteles profesionales y armoniosos
+            $premiumPastels = [
+                '#d4f0f0', // Cyan claro
+                '#ffdfd3', // Peach
+                '#e2f0cb', // Menta suave
+                '#f3e5f5', // Lila
+                '#ffebd2', // Naranja suave
+                '#d6e4ff', // Azul bebe
+                '#ffe5e5', // Rosa claro
+                '#e8f4d9', // Verde te
+                '#f0e6ff', // Lavanda
+                '#fff2cc', // Amarillo pastel
+                '#d9f0f9', // Celeste
+                '#fbe4e4', // Rosa palido
+                '#e0f7fa', // Cyan
+                '#f5f5dc', // Beige
+                '#e6e6fa', // Lavanda gris
+                '#ffefd5', // Papaya
+                '#e0e8f5', // Azul lavanda
+                '#f0fff0', // Honeydew
+                '#fff0f5', // Lavender blush
+                '#fdf5e6'  // Old lace
+            ];
 
-        $weekNum = (int) preg_replace('/[^0-9]/', '', $weekString);
-        if ($weekNum === 0) {
-            $weekNum = crc32($weekString) % count($premiumPastels);
+            $weekNum = (int) preg_replace('/[^0-9]/', '', $weekString);
+            if ($weekNum === 0) {
+                $weekNum = crc32($weekString) % count($premiumPastels);
+            }
+
+            // Usar el número de semana como índice (haciendo un wrap-around si es mayor a 20)
+            $index = $weekNum % count($premiumPastels);
+
+            return $premiumPastels[$index];
         }
-
-        // Usar el número de semana como índice (haciendo un wrap-around si es mayor a 20)
-        $index = $weekNum % count($premiumPastels);
-
-        return $premiumPastels[$index];
     }
 @endphp
 

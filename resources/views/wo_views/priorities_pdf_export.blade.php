@@ -62,30 +62,34 @@
 </head>
 <body>
     @php
-    function safeDateParseDisplay($value) {
-        if (empty($value)) return '';
-        try {
-            return \Carbon\Carbon::parse($value)->format('d/m/Y');
-        } catch (\Exception $e) {
-            return $value;
+    if (!function_exists('safeDateParseDisplay')) {
+        function safeDateParseDisplay($value) {
+            if (empty($value)) return '';
+            try {
+                return \Carbon\Carbon::parse($value)->format('d/m/Y');
+            } catch (\Exception $e) {
+                return $value;
+            }
         }
     }
 
-    function getPastelColorForWeek($weekString) {
-        $premiumPastels = [
-            '#d4f0f0', '#ffdfd3', '#e2f0cb', '#f3e5f5', '#ffebd2',
-            '#d6e4ff', '#ffe5e5', '#e8f4d9', '#f0e6ff', '#fff2cc',
-            '#d9f0f9', '#fbe4e4', '#e0f7fa', '#f5f5dc', '#e6e6fa',
-            '#ffefd5', '#e0e8f5', '#f0fff0', '#fff0f5', '#fdf5e6'
-        ];
+    if (!function_exists('getPastelColorForWeek')) {
+        function getPastelColorForWeek($weekString) {
+            $premiumPastels = [
+                '#d4f0f0', '#ffdfd3', '#e2f0cb', '#f3e5f5', '#ffebd2',
+                '#d6e4ff', '#ffe5e5', '#e8f4d9', '#f0e6ff', '#fff2cc',
+                '#d9f0f9', '#fbe4e4', '#e0f7fa', '#f5f5dc', '#e6e6fa',
+                '#ffefd5', '#e0e8f5', '#f0fff0', '#fff0f5', '#fdf5e6'
+            ];
 
-        $weekNum = (int) preg_replace('/[^0-9]/', '', $weekString);
-        if ($weekNum === 0) {
-            $weekNum = crc32($weekString) % count($premiumPastels);
+            $weekNum = (int) preg_replace('/[^0-9]/', '', $weekString);
+            if ($weekNum === 0) {
+                $weekNum = crc32($weekString) % count($premiumPastels);
+            }
+            
+            $index = $weekNum % count($premiumPastels);
+            return $premiumPastels[$index];
         }
-        
-        $index = $weekNum % count($premiumPastels);
-        return $premiumPastels[$index];
     }
     @endphp
 

@@ -1,6 +1,3 @@
-import html2canvas from "html2canvas";
-import { jsPDF } from "jspdf";
-
 document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById("org-search-input");
     const plantaBtns = document.querySelectorAll(".planta-filter-btn");
@@ -327,6 +324,12 @@ document.addEventListener("DOMContentLoaded", function () {
             exportContainer.appendChild(treeClone);
 
             document.body.appendChild(exportContainer);
+
+            // Carga dinámica de librerías PDF bajo demanda
+            const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
+                import("html2canvas"),
+                import("jspdf"),
+            ]);
 
             // Esperar que el navegador renderice nodos e imágenes
             await new Promise((resolve) => setTimeout(resolve, 350));
