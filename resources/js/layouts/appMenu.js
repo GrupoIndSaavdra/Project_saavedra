@@ -187,6 +187,14 @@ function isPathMatching(currentPath, aHref) {
             }
         }
 
+        // Sub-rutas de Salida de Molduras
+        if (currentPath.startsWith('/calidad/salida-molduras/')) {
+            if (window.routes && window.routes['calidad.salida_molduras.index']) {
+                const salidaMoldurasPath = new URL(window.routes['calidad.salida_molduras.index'], window.location.origin).pathname;
+                if (linkPath === salidaMoldurasPath) return true;
+            }
+        }
+
         return false;
     } catch (e) {
         return false;
@@ -430,6 +438,12 @@ function getRoutes(profile) {
                         ["herramientas.tecamac.index", "Herramientas Tecamac"],
                     ],
                 },
+                {
+                    title: "Calidad — Reportes",
+                    routes: [
+                        ["calidad.salida_molduras.index", "Salida de Molduras"],
+                    ],
+                },
             ];
             break;
         case "2":
@@ -558,6 +572,12 @@ function getRoutes(profile) {
                                 ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados"],
                             ],
                         },
+                        {
+                            title: "Calidad — Reportes",
+                            routes: [
+                                ["calidad.salida_molduras.index", "Salida de Molduras"],
+                            ],
+                        },
                     ],
                 },
                 {
@@ -619,6 +639,12 @@ function getRoutes(profile) {
                     routes: [
                         ["calidad.fundicion.index", "Dibujos y Ayudas de Fundición"],
                         ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados"],
+                    ],
+                },
+                {
+                    title: "Calidad — Reportes",
+                    routes: [
+                        ["calidad.salida_molduras.index", "Salida de Molduras"],
                     ],
                 },
             ];

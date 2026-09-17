@@ -126,6 +126,7 @@
         'calidad.fundicion.index': @json(route('calidad.fundicion.index')),
         'calidad.maquinados.index': @json(route('calidad.maquinados.index')),
         'herramientas.tecamac.index': @json(route('herramientas.tecamac.index')),
+        'calidad.salida_molduras.index': @json(route('calidad.salida_molduras.index')),
         systemLogsReport: @json(route('systemLogsReport')),
         adminLogsReport: @json(route('systemLogsReport', ['admin_only' => 1]))
     };

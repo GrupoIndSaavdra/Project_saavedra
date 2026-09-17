@@ -136,6 +136,10 @@ export default defineConfig({
                 'resources/css/calidad_views/calidad_maquinados.css',
                 'resources/js/calidad_views/calidad_maquinados.js',
 
+                // Vista Calidad — Salida de Molduras
+                'resources/css/calidad_views/salida_molduras.css',
+                'resources/js/calidad_views/salida_molduras.js',
+
                 // Views systemLogs
                 "resources/css/reports/systemLogs.css",
                 "resources/js/reports/systemLogs.js",

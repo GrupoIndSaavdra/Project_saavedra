@@ -1,0 +1,1519 @@
+/* ==========================================================
+   Salida de Molduras — CSS del Módulo
+   Calidad Fundición | Grupo Industrial Saavedra
+   Importa global.css para la paleta GIS y utilidades base.
+   ========================================================== */
+
+@import "../global.css";
+
+body {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+}
+
+/* ── Contenedor principal ── */
+.alm-wrapper {
+    max-width: 98%;
+    margin: 1.5em auto;
+    padding: 0 1em 4em;
+}
+
+/* ────────────────────────────────────────────────────
+   HEADER PRINCIPAL
+──────────────────────────────────────────────────── */
+.alm-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 10px;
+    margin-bottom: 1.5em;
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.4);
+    gap: 1.2em;
+    flex-wrap: wrap;
+}
+
+.sm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.sm-header-center {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.sm-header-filter-group {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 8px;
+    padding: 3px 4px 3px 10px;
+    gap: 8px;
+    transition: all var(--trans);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.sm-header-filter-group:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+.sm-header-badge-label {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.sm-header-select-compact {
+    background: #ffffff;
+    color: #033966;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    transition: all var(--trans);
+    max-width: 220px;
+}
+
+.sm-header-select-compact:hover,
+.sm-header-select-compact:focus {
+    background: #ffffff;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    transform: translateY(-1px);
+}
+
+.alm-header-icon {
+    width: 95px;
+    height: 95px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sm-header-icon-img {
+    max-width: 75px;
+    max-height: 75px;
+    height: auto;
+}
+
+.alm-header-text h1 {
+    font-size: 1.55em;
+    font-weight: 800;
+    letter-spacing: 1px;
+    line-height: 1.2;
+    margin: 0;
+}
+
+.alm-header-text p {
+    font-size: 0.85em;
+    opacity: 0.85;
+    margin-top: 4px;
+    margin-bottom: 0;
+}
+
+.sm-codigo-box {
+    margin-left: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 0.8em 1.2em;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.sm-codigo-box strong {
+    font-weight: 800;
+}
+
+.sm-action-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+/* ─── BARRA DE ACCIÓN (reporte) ────────────────────────── */
+.sm-btn-back {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    padding: 8px 18px;
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: var(--gis-white);
+    border-radius: 8px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 700;
+    transition: all var(--trans);
+}
+
+.sm-btn-back:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateX(-2px);
+    color: #fff;
+}
+
+/* ─── INDICADOR DE GUARDADO DINÁMICO ───────────────────── */
+
+.sm-save-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    padding: 7px 16px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    white-space: nowrap;
+}
+
+.sm-save-indicator__dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: #28a745;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+}
+
+.sm-save-indicator--idle {
+    background: rgba(40, 167, 69, 0.18);
+    border-color: rgba(40, 167, 69, 0.4);
+}
+.sm-save-indicator--idle .sm-save-indicator__dot {
+    background: #28a745;
+    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+}
+
+.sm-save-indicator--saving {
+    background: rgba(255, 193, 7, 0.22);
+    border-color: rgba(255, 193, 7, 0.6);
+    color: #fff8e1;
+}
+.sm-save-indicator--saving .sm-save-indicator__dot {
+    background: #ffc107;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.8);
+    animation: pulse-dot 0.8s infinite alternate;
+}
+
+.sm-save-indicator--saved {
+    background: rgba(40, 167, 69, 0.25);
+    border-color: rgba(40, 167, 69, 0.6);
+    color: #e8f5e9;
+}
+.sm-save-indicator--saved .sm-save-indicator__dot {
+    background: #28a745;
+    box-shadow: 0 0 8px rgba(40, 167, 69, 0.8);
+}
+
+.sm-save-indicator--error {
+    background: rgba(220, 53, 69, 0.25);
+    border-color: rgba(220, 53, 69, 0.6);
+    color: #ffebee;
+}
+.sm-save-indicator--error .sm-save-indicator__dot {
+    background: #dc3545;
+    box-shadow: 0 0 8px rgba(220, 53, 69, 0.8);
+}
+
+@keyframes pulse-dot {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+}
+
+/* ────────────────────────────────────────────────────
+   TABLA / CARDS
+──────────────────────────────────────────────────── */
+.alm-table-card {
+    background: #ffffff;
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(3, 57, 102, 0.08);
+    overflow: hidden;
+    margin-bottom: 2em;
+    transition: box-shadow 0.3s ease;
+}
+
+.alm-table-card:hover {
+    box-shadow: 0 6px 20px rgba(3, 57, 102, 0.12);
+}
+
+.alm-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.95em 1.4em;
+    background: linear-gradient(135deg, #033966 0%, #002244 100%);
+    color: #fff;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+}
+
+.alm-table-header.sm-header-with-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 20px;
+    padding: 0.85em 1.4em;
+}
+
+.alm-table-header h2,
+.sm-header-title-box h2 {
+    font-size: 1.2em;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.sm-header-bulk-tools {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px 18px;
+    flex-wrap: wrap;
+}
+
+.sm-header-bulk-tools .sm-bulk-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.sm-header-bulk-tools .sm-bulk-filter-group label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.sm-header-bulk-tools .sm-bulk-input {
+    width: 75px !important;
+    height: 32px !important;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.85rem !important;
+    color: #033966 !important;
+    background: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 6px !important;
+    outline: none !important;
+    padding: 2px 6px !important;
+    transition: all 0.2s ease;
+}
+
+.sm-header-bulk-tools .sm-bulk-input:focus {
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
+}
+
+.sm-header-bulk-tools .sm-bulk-btn-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* ── Botones estilizados de acciones masivas ── */
+.sm-btn-bulk {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 14px;
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    border-radius: 6px;
+    cursor: pointer;
+    border: none;
+    line-height: 1.2;
+    white-space: nowrap;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sm-btn-bulk:active {
+    transform: scale(0.97);
+}
+
+/* ── ESTADOS DINÁMICOS DE INTERRUPTOR PARA BOTONES MASIVOS ── */
+
+/* Estado Inactivo (Estilo neutro en el header azul) */
+.sm-header-bulk-tools .sm-btn-inactive {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: none !important;
+    opacity: 0.75;
+}
+.sm-header-bulk-tools .sm-btn-inactive:hover {
+    background: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+    opacity: 1;
+}
+
+/* Estado Activo Verde (Seleccionar Todo o ✔) */
+.sm-header-bulk-tools .sm-btn-active--green {
+    background: #16a34a !important;
+    color: #ffffff !important;
+    border: 1px solid #15803d !important;
+    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35) !important;
+    opacity: 1 !important;
+}
+.sm-header-bulk-tools .sm-btn-active--green:hover {
+    background: #15803d !important;
+    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.45) !important;
+    transform: translateY(-1px);
+}
+
+/* Estado Activo Rojo (Desmarcar Todo o ✘) */
+.sm-header-bulk-tools .sm-btn-active--red {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    border: 1px solid #b91c1c !important;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35) !important;
+    opacity: 1 !important;
+}
+.sm-header-bulk-tools .sm-btn-active--red:hover {
+    background: #b91c1c !important;
+    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.45) !important;
+    transform: translateY(-1px);
+}
+
+.alm-table-scroll {
+    overflow-x: auto;
+}
+
+table.alm-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.alm-table thead th {
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 0.85em 1em;
+    text-align: left;
+    font-size: 0.85em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid #022847;
+    white-space: nowrap;
+}
+
+.alm-table tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: background 0.2s ease;
+}
+
+.alm-table tbody tr:last-child {
+    border-bottom: none;
+}
+
+.alm-table tbody tr:nth-child(even) {
+    background: #f5f9ff;
+}
+
+.alm-table tbody tr:hover {
+    background: #e8f2ff;
+}
+
+.alm-table tbody td {
+    padding: 0.5em;
+    vertical-align: middle;
+    font-size: 0.95em;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.sm-table-container {
+    display: none; /* Ocultamos las tablas que ya no se usan */
+}
+.sm-table-sticky th {
+    display: none;
+}
+
+/* OT label */
+.alm-ot-label {
+    font-weight: 700;
+    color: var(--gis-blue);
+    font-size: 0.95em;
+}
+
+.alm-clase-label {
+    font-weight: 700;
+    color: #555;
+    font-size: 0.95em;
+}
+
+.alm-table-card {
+    background: #ffffff;
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    border-radius: 8px;
+    box-shadow: 0 3px 10px rgba(3, 57, 102, 0.06);
+    overflow: hidden;
+    margin-bottom: 0.75em;
+    transition: box-shadow 0.3s ease;
+}
+
+.alm-table-card:hover {
+    box-shadow: 0 5px 14px rgba(3, 57, 102, 0.1);
+}
+
+/* Badges de formato */
+.badge-tipo-dibujo {
+    background: #e8f2ff;
+    color: var(--gis-blue);
+    border: 1px solid var(--gis-blue);
+    padding: 0.2em 0.7em;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 700;
+}
+
+.badge-tipo-ayuda {
+    background: #eafaf2;
+    color: #027a3a;
+    border: 1px solid #027a3a;
+    padding: 0.2em 0.7em;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 700;
+}
+
+.badge-pdf-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gis-blue);
+    color: #fff;
+    font-size: 0.75em;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+}
+
+.btn-toggle-files {
+    background: #005194;
+    color: #fff;
+    padding: 0.45em 1.1em;
+    font-size: 0.82em;
+    font-weight: 700;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.btn-toggle-files:hover {
+    background: var(--gis-green);
+    color: #fff;
+    box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
+}
+
+/* ─── BOTONES DE ACCIÓN (PDF / ENVÍO) ────── */
+
+.sm-btn-action-custom {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    padding: 1em;
+    min-width: 120px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    position: relative;
+}
+
+.sm-btn-action-custom span {
+    font-size: 0.85em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sm-btn-action-custom img {
+    width: 44px;
+    height: 44px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.sm-btn-action-custom.disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.sm-btn-action-custom:active:not(.disabled) {
+    transform: scale(0.9);
+}
+
+/* Tema Verde (Envío) */
+.sm-btn-action--green {
+    background: #027a3a;
+    border-color: #015c2c;
+    color: #fff;
+}
+
+.sm-btn-action--green img {
+    filter: brightness(0) invert(1);
+}
+
+.sm-btn-action--green:hover:not(.disabled) {
+    background: #eafaf2;
+    color: #027a3a;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(2, 122, 58, 0.15);
+}
+
+.sm-btn-action--green:hover:not(.disabled) img {
+    filter: none;
+}
+
+/* Tema Azul (PDF) */
+.sm-btn-action--blue {
+    background: var(--gis-blue, #033966);
+    border-color: #022847;
+    color: #fff;
+}
+
+.sm-btn-action--blue img {
+    filter: brightness(0) invert(1);
+}
+
+.sm-btn-action--blue:hover:not(.disabled) {
+    background: #e8f2ff;
+    color: var(--gis-blue, #033966);
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
+}
+
+.sm-btn-action--blue:hover:not(.disabled) img {
+    filter: none;
+}
+
+.sm-btn-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: #dc3545;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    border: 2px solid white;
+    z-index: 2;
+}
+
+/* ─── CUSTOM SWEETALERT MODAL ESTILO SISTEMA ────── */
+
+.sm-swal-popup {
+    padding-top: 0 !important;
+    border-radius: 16px !important;
+    overflow: hidden;
+    border: 2px solid var(--gis-blue, #033966) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+}
+
+.sm-swal-title {
+    background: var(--gis-blue, #033966);
+    color: white !important;
+    width: 100%;
+    margin: 0 0 20px 0 !important;
+    padding: 15px 20px !important;
+    font-size: 1.3rem !important;
+    box-sizing: border-box;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.sm-swal-btn {
+    border: none;
+    border-radius: 8px;
+    padding: 12px 28px;
+    font-size: 1.05em;
+    font-weight: bold;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 0 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.sm-swal-btn:active {
+    transform: scale(0.95);
+}
+
+.sm-swal-btn-confirm {
+    background: #015c2c !important; /* Verde oscuro */
+}
+
+.sm-swal-btn-confirm:hover:not([disabled]) {
+    background: #16a34a !important; /* Verde claro */
+    box-shadow: 0 6px 15px rgba(22, 163, 74, 0.4);
+}
+
+.sm-swal-btn-confirm:disabled,
+.sm-swal-btn-confirm[disabled] {
+    background: #6c757d !important; /* Gris */
+    color: #d1d5db !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+    opacity: 0.8 !important;
+}
+
+.sm-swal-btn-cancel {
+    background: #8b0000 !important; /* Rojo oscuro */
+}
+
+.sm-swal-btn-cancel:hover {
+    background: #dc3545 !important; /* Rojo claro */
+    box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
+}
+
+/* ─── ENCABEZADO DEL REPORTE (header físico compacto) ────── */
+
+.sm-reporte-header {
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    background: var(--gis-white);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.sm-header-top {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    padding: 5px 12px;
+    background: var(--gis-white);
+    border-bottom: 1.5px solid var(--gis-blue);
+}
+
+.sm-logo-img {
+    height: 38px;
+    width: auto;
+    object-fit: contain;
+}
+
+.sm-header-title h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--gis-blue);
+    text-align: center;
+    margin: 0;
+}
+
+.sm-codigo-table {
+    border-collapse: collapse;
+    font-size: 0.72rem;
+}
+
+.sm-codigo-table td {
+    padding: 1px 4px;
+    border: 1px solid rgba(64, 64, 64, 0.35);
+}
+
+.sm-codigo-label {
+    font-weight: 600;
+    color: var(--gis-gray);
+    background: rgba(64, 64, 64, 0.05);
+}
+
+.sm-codigo-val {
+    font-weight: 700;
+    color: var(--gis-blue);
+    white-space: nowrap;
+}
+
+.sm-header-row {
+    display: flex;
+    flex-wrap: wrap;
+    border-bottom: 1px solid rgba(64, 64, 64, 0.16);
+    background: var(--gis-white);
+}
+
+.sm-header-row:last-of-type {
+    border-bottom: none;
+}
+
+.sm-header-cell {
+    display: flex;
+    flex-direction: column;
+    padding: 3px 8px;
+    border-right: 1px solid rgba(64, 64, 64, 0.16);
+    min-width: 0;
+}
+
+.sm-header-cell:last-child { border-right: none; }
+.sm-header-cell--sm  { flex: 1 1 110px; }
+.sm-header-cell--md  { flex: 1 1 160px; }
+.sm-header-cell--lg  { flex: 2 1 240px; }
+
+.sm-header-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--gis-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 0px;
+    line-height: 1.1;
+}
+
+.sm-header-value {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--gis-blue);
+    word-break: break-word;
+    line-height: 1.15;
+}
+
+.sm-header-input {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--gis-blue);
+    border: none;
+    border-bottom: 1.5px solid var(--gis-blue);
+    background: transparent;
+    padding: 1px 3px;
+    width: 100%;
+    outline: none;
+    font-family: 'Poppins', sans-serif;
+    transition: border-color var(--trans);
+}
+
+.sm-header-input:focus {
+    border-bottom-color: var(--gis-green);
+    background: rgba(10, 133, 4, 0.04);
+}
+
+.sm-header-input--number {
+    max-width: 80px;
+}
+
+.sm-header-total {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-xs);
+    padding: 8px 12px;
+    background: rgba(3, 57, 102, 0.05);
+    border-top: 1px solid rgba(3, 57, 102, 0.15);
+    font-size: 0.85rem;
+    color: var(--gis-gray);
+}
+
+.sm-header-total strong {
+    font-size: 1.1rem;
+    color: var(--gis-blue);
+}
+
+.sm-header-total__formula {
+    color: rgba(64, 64, 64, 0.6);
+    font-size: 0.78rem;
+}
+
+/* ─── GRID CONTENEDOR ──────────────────────────────────── */
+
+.sm-reporte-body {
+    background: var(--gis-white);
+    border-radius: 12px;
+    border: 1px solid rgba(3, 57, 102, 0.15);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sm-grid {
+    width: 100%;
+}
+
+.sm-grid__row {
+    display: grid;
+    border-bottom: 1px solid rgba(64, 64, 64, 0.12);
+}
+
+.sm-grid__row:last-child {
+    border-bottom: none;
+}
+
+/* ─── TABLAS MODERNAS (4 PIEZAS POR FILA) ───────────── */
+
+.sm-table-wrapper-unique {
+    width: 100%;
+    overflow-x: auto;
+    background: #fff;
+    margin-top: 0;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+.sm-table-modern {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
+    font-family: 'Poppins', sans-serif;
+    min-width: 1550px;
+}
+
+.sm-table-modern thead th {
+    background: linear-gradient(180deg, #033966 0%, #012242 100%);
+    color: #ffffff;
+    padding: 12px 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    border-bottom: 3px solid rgba(0,0,0,0.25);
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.sm-table-modern thead th.sm-group-divider-head {
+    border-right: 3px solid rgba(255, 255, 255, 0.45) !important;
+}
+
+.sm-table-modern tbody tr {
+    transition: background 0.15s ease;
+}
+
+.sm-table-modern tbody tr:nth-child(even) {
+    background: rgba(245, 248, 252, 0.7);
+}
+
+.sm-table-modern tbody tr:hover {
+    background: rgba(3, 57, 102, 0.07);
+}
+
+.sm-table-modern td {
+    border-bottom: 1px solid rgba(3, 57, 102, 0.12);
+    vertical-align: middle;
+    padding: 8px 6px;
+}
+
+.sm-group-divider {
+    border-right: 3px solid rgba(3, 57, 102, 0.25) !important;
+}
+
+.sm-td-center {
+    text-align: center;
+    padding: 8px 6px;
+}
+
+.sm-td-input {
+    padding: 6px;
+}
+
+.sm-td-blank {
+    background: rgba(240, 243, 246, 0.4);
+}
+
+/* ── Badge elegante para número de pieza ── */
+.sm-badge-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 36px;
+    height: 30px;
+    padding: 0 8px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    transition: all 0.2s ease;
+}
+
+.sm-badge-num--green {
+    background: #e6f4ea;
+    color: #1e7e34;
+    border: 1.5px solid #b7e1cd;
+    box-shadow: 0 1px 4px rgba(30, 126, 52, 0.18);
+}
+
+.sm-badge-num--red {
+    background: #fce8e6;
+    color: #d93025;
+    border: 1.5px solid #f8cbad;
+    box-shadow: 0 1px 4px rgba(217, 48, 37, 0.18);
+}
+
+.sm-badge-num--blue {
+    background: rgba(3, 57, 102, 0.08);
+    color: #033966;
+    border: 1.5px solid rgba(3, 57, 102, 0.2);
+}
+
+/* ── Custom Checkbox Estilizado (Más Grande) ── */
+.custom-checkbox-styled {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #0a8504;
+    border-radius: 5px;
+    margin: 0 auto;
+    display: block;
+    transition: transform 0.15s ease;
+}
+
+.custom-checkbox-styled:hover {
+    transform: scale(1.2);
+}
+
+/* ── Inputs estilizados para la tabla (Más Anchos y Cómodos) ── */
+.sm-styled-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid rgba(3, 57, 102, 0.2);
+    border-radius: 8px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.88rem;
+    color: var(--gis-blue);
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+    box-sizing: border-box;
+}
+
+.sm-styled-input:focus {
+    border-color: var(--gis-blue);
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.15);
+}
+
+.sm-styled-input::placeholder {
+    color: #94a3b8;
+    font-size: 0.82rem;
+    font-style: italic;
+}
+
+.sm-styled-input--num {
+    text-align: center;
+    font-weight: 700;
+}
+
+/* Estado de inputs (saving/saved/error) */
+.sm-celda__input--saving, .sm-desc-molde--saving { background: rgba(200, 140, 0, 0.12) !important; border-color: #d97706 !important; }
+.sm-celda__input--saved, .sm-desc-molde--saved, .sm-b-input--saved { background: rgba(40, 167, 69, 0.1) !important; border-color: #28a745 !important; }
+.sm-celda__input--error, .sm-desc-molde--error, .sm-b-input--error { background: rgba(220, 53, 69, 0.12) !important; border-color: #dc3545 !important; }
+
+/* ─── CELDA VACÍA ──────────────────────────────────────── */
+
+.sm-celda--empty {
+    background: rgba(64, 64, 64, 0.03);
+    border-right: 1px solid rgba(64, 64, 64, 0.12);
+    min-height: 38px;
+}
+
+.sm-celda--empty:last-child { border-right: none; }
+
+/* ─── OBSERVACIONES ────────────────────────────────────── */
+
+.sm-obs-container {
+    background: var(--gis-white);
+    border-radius: 12px;
+    border: 1px solid rgba(3, 57, 102, 0.15);
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.sm-obs-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    background: rgba(3, 57, 102, 0.04);
+    border-bottom: 1px solid rgba(3, 57, 102, 0.12);
+}
+
+.sm-obs-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--gis-blue);
+    margin: 0;
+}
+
+.sm-obs-counter {
+    font-size: 0.8rem;
+    color: var(--gis-gray);
+    font-weight: 600;
+}
+
+.sm-obs-textarea {
+    width: 100%;
+    border: none;
+    resize: vertical;
+    padding: 12px 16px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    color: var(--gis-gray);
+    min-height: 100px;
+    outline: none;
+    transition: background var(--trans);
+    box-sizing: border-box;
+}
+
+.sm-obs-textarea:focus {
+    background: rgba(10, 133, 4, 0.02);
+}
+
+.sm-obs-footer {
+    padding: 6px 16px;
+    border-top: 1px solid rgba(64, 64, 64, 0.08);
+    min-height: 28px;
+    display: flex;
+    align-items: center;
+}
+
+.sm-obs-status {
+    font-size: 0.78rem;
+    color: var(--gis-green);
+    font-weight: 600;
+}
+
+/* ─── PANEL DE LOG DE AUDITORÍA Y FILTROS ───────────────── */
+
+/* ─── PANEL DE LOG DE AUDITORÍA Y FILTROS (TEMA GRIS / SLATE) ──── */
+
+.sm-log-panel {
+    background: #ffffff;
+    border: 1px solid rgba(100, 116, 139, 0.22);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(30, 41, 59, 0.06);
+    overflow: hidden;
+    margin-bottom: 2.5em;
+    width: 100%;
+}
+
+.sm-log-toggle {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1em 1.5em;
+    background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+    border: none;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.15em;
+    font-weight: 800;
+    color: #fff;
+    text-align: left;
+    transition: background var(--trans);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+.sm-log-toggle:hover {
+    background: linear-gradient(135deg, #334155 0%, #0f172a 100%);
+}
+
+.sm-log-toggle__arrow {
+    font-size: 0.85rem;
+    transition: transform 0.25s ease;
+}
+
+.sm-log-toggle--open .sm-log-toggle__arrow {
+    transform: rotate(180deg);
+}
+
+.sm-log-body {
+    padding: 1.2em 1.5em;
+    background: #ffffff;
+}
+
+.sm-log-loading {
+    display: flex;
+    align-items: center;
+    gap: var(--sp-sm);
+    padding: 1.5em;
+    color: var(--gis-gray);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+/* ── Barra de Filtros del Log ── */
+.sm-log-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px 20px;
+    padding: 12px 16px;
+    background: rgba(71, 85, 105, 0.04);
+    border: 1px solid rgba(71, 85, 105, 0.15);
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.sm-log-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sm-log-filter-group label {
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: #475569;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sm-log-filter-input {
+    padding: 6px 10px;
+    border: 1.5px solid rgba(71, 85, 105, 0.25);
+    border-radius: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.83rem;
+    color: #1e293b;
+    background: #ffffff;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.sm-log-filter-input:focus {
+    border-color: #475569;
+    box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15);
+}
+
+.sm-log-filter-group--search {
+    flex: 1 1 240px;
+}
+
+.sm-log-filter-group--search input {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sm-btn-reset-filter {
+    padding: 6px 14px;
+    background: #64748b;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+}
+
+.sm-btn-reset-filter:hover {
+    background: #475569;
+}
+
+/* ── Tabla Scrolleable 100% Ancho ── */
+.sm-log-scroll-wrapper {
+    max-height: 480px;
+    overflow-y: auto;
+    overflow-x: auto;
+    width: 100%;
+    border: 1px solid rgba(71, 85, 105, 0.2);
+    border-radius: 8px;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.sm-log-scroll-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
+.sm-log-scroll-wrapper::-webkit-scrollbar-track { background: #f1f5f9; }
+.sm-log-scroll-wrapper::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.35); border-radius: 4px; }
+
+.sm-log-table-full {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+}
+
+.sm-log-table-full thead th {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: linear-gradient(180deg, #475569 0%, #1e293b 100%);
+    color: #ffffff;
+    padding: 10px 12px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid rgba(0,0,0,0.25);
+    text-align: left;
+}
+
+.sm-log-table-full tbody tr {
+    transition: background 0.15s ease;
+}
+
+.sm-log-table-full tbody tr:nth-child(even) {
+    background: rgba(248, 250, 252, 0.8);
+}
+
+.sm-log-table-full tbody tr:hover {
+    background: rgba(71, 85, 105, 0.07);
+}
+
+.sm-log-table-full td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.12);
+    vertical-align: middle;
+}
+
+/* Badges y Tags para los campos del log */
+.log-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+}
+
+.log-tag--header {
+    background: #e2e8f0;
+    color: #1e293b;
+    font-weight: 700;
+    border: 1px solid #cbd5e1;
+}
+
+.log-tag--pieza {
+    background: rgba(71, 85, 105, 0.08);
+    color: #334155;
+    font-weight: 500;
+    border: 1px solid rgba(71, 85, 105, 0.2);
+}
+
+.log-badge-accion {
+    background: #f1f5f9;
+    color: #334155;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    border: 1px solid #cbd5e1;
+    display: inline-block;
+}
+
+.log-tag--ot {
+    background: #e2e8f0;
+    color: #334155;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    border: 1px solid #cbd5e1;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.log-badge-val {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 0.82rem;
+}
+
+.log-badge-val--ok {
+    background: #e6f4ea;
+    color: #1e7e34;
+    border: 1px solid #b7e1cd;
+}
+
+.log-badge-val--no {
+    background: #fce8e6;
+    color: #d93025;
+    border: 1px solid #f8cbad;
+}
+
+.log-val-empty {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+.sm-table-wrapper {
+    overflow-x: auto;
+    border-radius: 8px;
+}
+
+/* Scrollbar para el wrapper de tablas */
+.sm-table-wrapper::-webkit-scrollbar       { width: 6px; height: 6px; }
+.sm-table-wrapper::-webkit-scrollbar-track { background: transparent; }
+.sm-table-wrapper::-webkit-scrollbar-thumb { background: rgba(3, 57, 102, 0.35); border-radius: 3px; }
+
+@supports (scrollbar-width: thin) {
+    .sm-table-wrapper { scrollbar-width: thin; scrollbar-color: var(--gis-blue) transparent; }
+}
+
+.sm-log-table td {
+    font-size: 0.8rem;
+    max-width: 200px;
+    word-break: break-all;
+}
+
+.sm-log-empty {
+    text-align: center;
+    color: var(--gis-gray);
+    font-size: 0.9rem;
+    padding: var(--sp-lg);
+}
+
+/* ─── FORMULARIO BUSCADOR REACTIVO ─────────────────────── */
+
+.sm-search-form-wrapper {
+    padding: 1.25em 1.5em;
+}
+
+.sm-search-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.2em 2em;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.sm-form-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4em;
+    min-width: 280px;
+    flex: 1 1 300px;
+}
+
+.sm-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+}
+
+.select-filter {
+    width: 100%;
+    border-radius: 5px;
+    padding: 0.8em 0.5em;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85em;
+    font-weight: 600;
+    background: var(--gis-blue);
+    border: 5px solid #033966d4;
+    color: #ffffff;
+    outline: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.select-filter:hover, .select-filter:focus {
+    border-color: #005194;
+    background: #055a9e;
+    box-shadow: 0 0 12px rgba(3, 57, 102, 0.3);
+}
+
+.select-filter option {
+    background: #fff;
+    color: var(--gis-blue);
+}
+
+.btns {
+    padding: 12px 24px;
+    background-color: var(--gis-green);
+    box-shadow: 0 2px 5px rgba(10, 133, 4, 0.4);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1em;
+    font-weight: 700;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btns:hover:not(:disabled) {
+    background-color: var(--gis-green);
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.4);
+}
+
+.btns:disabled {
+    background-color: #6c757d;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* ─── RESPONSIVO ────────────────────────────────────────── */
+
+@media (max-width: 768px) {
+    .alm-header { flex-direction: column; text-align: center; }
+    .sm-action-right { align-items: center; margin-left: 0; }
+    .sm-codigo-box { margin-left: 0; align-items: center; }
+    
+    .sm-header-top  { grid-template-columns: auto 1fr; }
+    .sm-codigo-table { display: none; }
+
+    .sm-grid--moldes .sm-grid__row,
+    .sm-grid--bombillos .sm-grid__row {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .sm-search-form { flex-direction: column; }
+}
+
+@media (max-width: 480px) {
+    .sm-grid--moldes .sm-grid__row,
+    .sm-grid--bombillos .sm-grid__row {
+        grid-template-columns: 1fr;
+    }
+
+    .alm-wrapper { padding: var(--sp-md) var(--sp-sm); }
+}
