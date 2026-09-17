@@ -29,66 +29,97 @@
                in_array($puesto, ['JEFE DE PLANTA', 'GERENTE', 'DIRECTOR', 'JEFE PLANTA']);
     });
 
-    // Definición estándar de Áreas
+    // Definición estándar de Áreas (Herramentistas al mismo nivel que Supervisores de Software/Programación)
     $areaDefinitions = [
         'PRODUCCIÓN' => [
             'aliases' => ['PRODUCCIÓN', 'PRODUCCION'],
-            'label' => 'Producción',
+            'exclude_puestos' => ['HERRAMENTISTA'], // Herramentista se eleva al nivel 2 independiente
+            'label' => 'PRODUCCIÓN',
         ],
-        'CALIDAD' => [
-            'aliases' => ['CALIDAD', 'METROLOGIA'],
-            'label' => 'Calidad',
-        ],
-        'ALMACÉN' => [
-            'aliases' => ['ALMACÉN', 'ALMACEN'],
-            'label' => 'Almacén',
-        ],
-        'SOLDADURA' => [
-            'aliases' => ['SOLDADURA', 'SOLDADOR'],
-            'label' => 'Soldadura',
-        ],
-        'MANTENIMIENTO' => [
-            'aliases' => ['MANTENIMIENTO'],
-            'label' => 'Mantenimiento',
-        ],
-        'SOFTWARE' => [
-            'aliases' => ['SOFTWARE', 'SISTEMAS'],
-            'label' => 'Software / Sistemas',
+        'HERRAMENTISTAS' => [
+            'aliases' => ['HERRAMENTISTA', 'HERRAMENTALES'],
+            'puesto_match' => ['HERRAMENTISTA'],
+            'label' => 'HERRAMENTISTAS',
+            'is_specialist' => true,
         ],
         'PROGRAMACIÓN' => [
             'aliases' => ['PROGRAMACIÓN', 'PROGRAMACION'],
-            'label' => 'Programación',
+            'label' => 'PROGRAMACIÓN',
+        ],
+        'SOFTWARE' => [
+            'aliases' => ['SOFTWARE', 'SISTEMAS'],
+            'label' => 'SOFTWARE / SISTEMAS',
+        ],
+        'CALIDAD' => [
+            'aliases' => ['CALIDAD', 'METROLOGIA'],
+            'label' => 'CALIDAD',
+        ],
+        'SOLDADURA' => [
+            'aliases' => ['SOLDADURA', 'SOLDADOR'],
+            'label' => 'SOLDADURA',
+        ],
+        'ALMACÉN' => [
+            'aliases' => ['ALMACÉN', 'ALMACEN'],
+            'label' => 'ALMACÉN',
+        ],
+        'MANTENIMIENTO' => [
+            'aliases' => ['MANTENIMIENTO'],
+            'label' => 'MANTENIMIENTO',
         ],
         'ADMINISTRACIÓN' => [
             'aliases' => ['ADMINISTRACIÓN', 'ADMINISTRACION', 'ADMIN'],
-            'label' => 'Administración',
+            'label' => 'ADMINISTRACIÓN',
         ],
     ];
 
-    // Clasificar usuarios por cada área activa
+    // Clasificar usuarios por cada rama activa
     $areaData = [];
     foreach ($areaDefinitions as $areaKey => $def) {
         $usersInArea = $assignedUsers->filter(function($u) use ($def, $director) {
             if ($director && $u->id === $director->id) return false;
             $uArea = strtoupper(trim($u->area ?? ''));
+            $uPuesto = strtoupper(trim($u->puesto ?? ''));
+
+            // Verificar exclusión explícita (ej: herramentistas en producción)
+            if (!empty($def['exclude_puestos'])) {
+                foreach ($def['exclude_puestos'] as $exp) {
+                    if (str_contains($uPuesto, $exp) || str_contains($uArea, $exp)) return false;
+                }
+            }
+
+            // Coincidencia por puesto explícito (ej: HERRAMENTISTA)
+            if (!empty($def['puesto_match'])) {
+                foreach ($def['puesto_match'] as $pm) {
+                    if (str_contains($uPuesto, $pm) || str_contains($uArea, $pm)) return true;
+                }
+            }
+
+            // Coincidencia por área o por puesto (ej: SUPERVISOR DE PRODUCCIÓN con área SUPERVISOR)
             foreach ($def['aliases'] as $alias) {
-                if (str_contains($uArea, $alias)) return true;
+                if (str_contains($uArea, $alias) || str_contains($uPuesto, $alias)) return true;
             }
             return false;
         });
 
         // Solo incluir el área en el organigrama si cuenta con personal asignado
         if ($usersInArea->isNotEmpty()) {
-            // Supervisor del área
-            $supervisor = $usersInArea->first(function($u) {
-                $puesto = strtoupper(trim($u->puesto ?? ''));
-                return str_contains($puesto, 'SUPERVISOR') || str_contains($puesto, 'JEFE') || str_contains($puesto, 'ENCARGAD');
-            });
+            if (!empty($def['is_specialist'])) {
+                // Para Herramentistas: el primero toma la cabecera del nivel 2 y los demás como sub-equipo
+                $supervisor = $usersInArea->first();
+                $team = $usersInArea->skip(1);
+            } else {
+                // Supervisor del área: puesto que contenga SUPERVISOR / JEFE / ENCARGADO o área SUPERVISOR
+                $supervisor = $usersInArea->first(function($u) {
+                    $puesto = strtoupper(trim($u->puesto ?? ''));
+                    $area = strtoupper(trim($u->area ?? ''));
+                    return str_contains($puesto, 'SUPERVISOR') || str_contains($puesto, 'JEFE') || str_contains($puesto, 'ENCARGAD') || $area === 'SUPERVISOR';
+                });
 
-            // Equipo operativo bajo el supervisor
-            $team = $usersInArea->filter(function($u) use ($supervisor) {
-                return !$supervisor || $u->id !== $supervisor->id;
-            });
+                // Equipo operativo bajo el supervisor
+                $team = $usersInArea->filter(function($u) use ($supervisor) {
+                    return !$supervisor || $u->id !== $supervisor->id;
+                });
+            }
 
             $areaData[$areaKey] = [
                 'label' => $def['label'],
@@ -116,6 +147,9 @@
         </div>
 
         <div class="org-header-controls">
+            <button type="button" id="btn-export-pdf" class="btn-header-action btn-action-pdf" title="Descargar organigrama en PDF">
+                📄 Descargar PDF
+            </button>
             <a href="{{ route('users') }}" class="btn-header-action btn-action-table" title="Ver tabla de usuarios">
                 📋 Tabla de Usuarios
             </a>
@@ -180,14 +214,25 @@
         </div>
 
         <div class="zoom-controls">
-            <button type="button" class="btn-zoom" id="btn-zoom-in" title="Acercar (Zoom In)">+</button>
+            <button type="button" class="btn-zoom" id="btn-zoom-fit" title="Ajustar organigrama a la pantalla" style="font-size: 0.76rem; width: auto; padding: 0 10px; gap: 4px; font-weight: 800;">
+                🎯 Ajustar
+            </button>
             <button type="button" class="btn-zoom" id="btn-zoom-out" title="Alejar (Zoom Out)">−</button>
-            <button type="button" class="btn-zoom" id="btn-zoom-reset" title="Restablecer vista" style="font-size: 0.75rem; width: auto; padding: 0 8px;">100%</button>
+            <button type="button" class="btn-zoom" id="btn-zoom-reset" title="Restablecer 100%" style="font-size: 0.75rem; width: auto; padding: 0 8px;">100%</button>
+            <button type="button" class="btn-zoom" id="btn-zoom-in" title="Acercar (Zoom In)">+</button>
         </div>
     </div>
 
     {{-- ── LIENZO DEL ORGANIGRAMA EN ÁRBOL CONECTADO ── --}}
     <div class="org-canvas-container" id="org-canvas">
+        {{-- Mensaje cuando no hay personal para el filtro seleccionado (ej: Planta CDMX) --}}
+        <div id="org-empty-filter-msg" class="org-empty-filter-box" style="display: none;">
+            <div class="empty-filter-icon">📍</div>
+            <h3 class="empty-filter-title" id="empty-filter-title">No hay personal registrado en esta ubicación</h3>
+            <p class="empty-filter-subtitle" id="empty-filter-details">Actualmente no se encuentran colaboradores asignados a los filtros seleccionados.</p>
+            <button type="button" class="btn-reset-filters-org" id="btn-reset-empty-filters">Mostrar Todas las Plantas</button>
+        </div>
+
         <div class="org-tree-root" id="org-tree-root">
 
             @if($assignedUsers->isEmpty())
@@ -205,25 +250,27 @@
                                 @include('users_views.partials.org_node', ['user' => $director, 'isDirector' => true, 'isSupervisor' => false])
                             @else
                                 <div class="org-node org-node-director">
-                                    <div class="org-avatar-circle">
-                                        <span style="font-size:1.8rem;">🏢</span>
+                                    <div class="org-avatar-wrapper">
+                                        <div class="org-avatar-circle">
+                                            <img src="{{ asset('images/gerente.png') }}" alt="Gerente" class="org-avatar-img">
+                                        </div>
                                     </div>
                                     <div class="org-name">DIRECCIÓN GENERAL</div>
-                                    <div class="org-role">Jefatura de Planta</div>
+                                    <div class="org-role">JEFATURA DE PLANTA</div>
                                 </div>
                             @endif
 
-                            {{-- ── RAMAS A CADA ÁREA ACTIVA ── --}}
+                            {{-- ── RAMAS A CADA ÁREA ACTIVA (SUPERVISORES Y HERRAMENTISTAS EN NIVEL 2) ── --}}
                             @if(!empty($areaData))
                                 <ul>
                                     @foreach($areaData as $areaKey => $area)
                                         <li>
-                                            {{-- Titulo del Área --}}
-                                            <div class="area-branch-title">{{ $area['label'] }}</div>
+                                            {{-- Titulo del Área / Rama --}}
+                                            <div class="area-branch-title">{{ mb_strtoupper($area['label'], 'UTF-8') }}</div>
 
-                                            {{-- NODO SUPERVISOR --}}
+                                            {{-- NODO SUPERVISOR / HERRAMENTISTA LÍDER --}}
                                             @if($area['supervisor'])
-                                                @include('users_views.partials.org_node', ['user' => $area['supervisor'], 'isDirector' => false, 'isSupervisor' => true])
+                                                @include('users_views.partials.org_node', ['user' => $area['supervisor'], 'isDirector' => false, 'isSupervisor' => true, 'areaLabel' => $area['label']])
                                             @else
                                                 <div class="org-node org-node-supervisor node-inactivo" data-search="{{ strtolower($area['label']) }}">
                                                     <div class="org-avatar-wrapper">
@@ -232,12 +279,12 @@
                                                         </div>
                                                     </div>
                                                     <div class="org-name" style="color:#b91c1c;">FALTA SUPERVISOR</div>
-                                                    <div class="org-role">Encargado de {{ $area['label'] }}</div>
+                                                    <div class="org-role">ENCARGADO DE {{ mb_strtoupper($area['label'], 'UTF-8') }}</div>
                                                     <div class="badge-falta-alert">🔴 VACANTE</div>
                                                 </div>
                                             @endif
 
-                                            {{-- SUB-RAMAS DE EQUIPO AGRUPADAS POR PUESTO (Torno CNC, Centro de Maquinados, Ayudante General, etc.) --}}
+                                            {{-- SUB-RAMAS DE EQUIPO (Torno CNC, Centro de Maquinados, Ayudante General, Becarios, etc.) --}}
                                             @if($area['team']->isNotEmpty())
                                                 @php
                                                     $teamByPuesto = $area['team']->groupBy(function($u) {
@@ -261,8 +308,8 @@
                                                 <ul>
                                                     @foreach($teamByPuesto as $puestoName => $membersInPuesto)
                                                         <li>
-                                                            <div class="sub-role-branch-title">{{ $puestoName }}</div>
-                                                            <div class="puesto-nodes-column">
+                                                            <div class="sub-role-branch-title">{{ mb_strtoupper($puestoName, 'UTF-8') }}</div>
+                                                            <div class="puesto-nodes-column {{ $membersInPuesto->count() >= 2 ? 'nodes-grid-2col' : '' }}">
                                                                 @foreach($membersInPuesto as $member)
                                                                     @include('users_views.partials.org_node', ['user' => $member, 'isDirector' => false, 'isSupervisor' => false])
                                                                 @endforeach

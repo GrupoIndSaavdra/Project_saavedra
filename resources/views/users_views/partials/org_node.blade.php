@@ -1,24 +1,81 @@
 @php
     $isInactive = !$user->estatus;
-    $fullName = trim($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno));
-    $puesto = $user->puesto ?: ($isDirector ? 'Jefe de Planta / Dirección' : ($isSupervisor ? 'Supervisor de Área' : 'Puesto Operativo'));
+    $fullName = mb_strtoupper(trim($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno)), 'UTF-8');
+    
+    $rawPuesto = trim($user->puesto ?? '');
+    if ($isDirector) {
+        $puesto = $rawPuesto ?: 'JEFE DE PLANTA / DIRECCIÓN GENERAL';
+    } elseif ($isSupervisor) {
+        if (empty($rawPuesto) || strtoupper($rawPuesto) === 'SUPERVISOR') {
+            $puesto = !empty($areaLabel) ? 'SUPERVISOR DE ' . $areaLabel : (!empty($user->area) ? 'SUPERVISOR DE ' . $user->area : 'SUPERVISOR DE ÁREA');
+        } else {
+            $puesto = $rawPuesto;
+        }
+    } else {
+        $puesto = $rawPuesto ?: 'PUESTO OPERATIVO';
+    }
+
+    $puesto = mb_strtoupper($puesto, 'UTF-8');
     $nodeTypeClass = $isDirector ? 'org-node-director' : ($isSupervisor ? 'org-node-supervisor' : '');
     
-    // Asignación de avatar estilizado según puesto / tipo
+    // Asignación de imagen según rol / puesto
     $puestoUpper = strtoupper($puesto);
-    $avatarType = 'male_1';
-    if ($isDirector) {
-        $avatarType = 'director';
-    } elseif (str_contains($puestoUpper, 'SUPERVISOR')) {
-        $avatarType = 'supervisor';
-    } elseif (str_contains($puestoUpper, 'BECARI') || str_contains($puestoUpper, 'ADMIN') || str_contains(strtoupper($fullName), 'NATALI') || str_contains(strtoupper($fullName), 'ALE')) {
-        $avatarType = 'female_1';
-    } elseif (str_contains($puestoUpper, 'CALIDAD') || str_contains($puestoUpper, 'INSPECC')) {
-        $avatarType = 'female_2';
-    } elseif (str_contains($puestoUpper, 'HERRAMENTISTA')) {
-        $avatarType = 'male_2';
-    } else {
-        $avatarType = 'male_1';
+    $areaUpper = strtoupper($user->area ?? '');
+    $nameUpper = strtoupper($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno));
+    
+    $isFemale = false;
+    $femaleKeywords = [
+        'NATALI', 'NATALIA', 'LORENA', 'ALEJANDRA', 'MARIA', 'FERNANDA', 'LAURA', 'ANA', 'LIZ', 'LIZBETH', 
+        'VALERIA', 'DANIELA', 'CAROLINA', 'GABRIELA', 'PAOLA', 'KAREN', 'JESSICA', 'ANDREA', 
+        'DIANA', 'PATRICIA', 'CLAUDIA', 'MONICA', 'LILIANA', 'SUSANA', 'BRENDA', 'YADIRA', 
+        'KARINA', 'GUADALUPE', 'LUPITA', 'ADRIANA', 'SILVIA', 'VERONICA', 'BEATRIZ', 'ESTEFANIA', 
+        'FATIMA', 'ALMA', 'MARIANA', 'IVONNE', 'MIRIAM', 'VANESSA', 'XIMENA', 'DENISSE', 'SANDRA', 
+        'ROSA', 'CARMEN', 'TERESA', 'GLORIA', 'MARTHA', 'LETICIA', 'ARACELI', 'SOCORRO', 'IRMA', 
+        'CECILIA', 'ELIZABETH', 'ANGELICA', 'MAYRA', 'TANIA', 'LUCIA', 'VICTORIA', 'ROCIO', 'MONTSERRAT',
+        'ISABEL', 'JACQUELINE', 'ABIGAIL', 'EVELYN', 'JOCELYN', 'ITZELL', 'ITZEL', 'BLANCA'
+    ];
+    foreach ($femaleKeywords as $fw) {
+        if (str_contains($nameUpper, $fw)) {
+            $isFemale = true;
+            break;
+        }
+    }
+
+    $avatarImg = null;
+    $avatarAlt = '';
+
+    if ($isDirector || str_contains($puestoUpper, 'GERENTE') || str_contains($puestoUpper, 'DIRECTOR') || str_contains($puestoUpper, 'JEFE DE PLANTA') || str_contains($puestoUpper, 'JEFE PLANTA') || str_contains($areaUpper, 'GERENCIA') || str_contains($areaUpper, 'JEFE PLANTA') || str_contains($areaUpper, 'DIRECCION')) {
+        $avatarImg = asset('images/gerente.png');
+        $avatarAlt = 'Gerente / Jefe de Planta';
+    } elseif (str_contains($puestoUpper, 'SUPERVISORA') || str_contains($puestoUpper, 'ENCARGADA') || str_contains($puestoUpper, 'JEFA')) {
+        $avatarImg = asset('images/supervisora.png');
+        $avatarAlt = 'Supervisora';
+    } elseif ($isSupervisor || str_contains($puestoUpper, 'SUPERVISOR') || str_contains($puestoUpper, 'JEFE') || str_contains($puestoUpper, 'ENCARGAD') || str_contains($puestoUpper, 'LIDER') || str_contains($puestoUpper, 'LÍDER') || $areaUpper === 'SUPERVISOR') {
+        if ($isFemale) {
+            $avatarImg = asset('images/supervisora.png');
+            $avatarAlt = 'Supervisora';
+        } else {
+            $avatarImg = asset('images/supervisor.png');
+            $avatarAlt = 'Supervisor';
+        }
+    } elseif (str_contains($puestoUpper, 'BECARI') || str_contains($puestoUpper, 'PRACTICANTE') || str_contains($puestoUpper, 'RESIDENTE') || str_contains($puestoUpper, 'SERVICIO SOCIAL') || str_contains($areaUpper, 'BECARI')) {
+        $avatarImg = asset('images/becario.png');
+        $avatarAlt = 'Becario';
+    } elseif (str_contains($puestoUpper, 'AYUDANTE') || str_contains($puestoUpper, 'AUXILIAR') || str_contains($areaUpper, 'AYUDANTE')) {
+        $avatarImg = asset('images/ayudante general.png');
+        $avatarAlt = 'Ayudante General';
+    } elseif (str_contains($puestoUpper, 'SOLDAD') || str_contains($areaUpper, 'SOLDAD')) {
+        $avatarImg = asset('images/soldador.png');
+        $avatarAlt = 'Soldador';
+    } elseif (str_contains($puestoUpper, 'INSPECC') || str_contains($puestoUpper, 'CALIDAD') || str_contains($puestoUpper, 'METROLOG') || str_contains($areaUpper, 'CALIDAD')) {
+        $avatarImg = asset('images/inspeccion.png');
+        $avatarAlt = 'Inspección de Calidad';
+    } elseif (str_contains($puestoUpper, 'CENTRO') || str_contains($puestoUpper, 'MAQUINAD')) {
+        $avatarImg = asset('images/operador centro de maquinado .png');
+        $avatarAlt = 'Operador Centro de Maquinados';
+    } elseif (str_contains($puestoUpper, 'TORNO') || str_contains($puestoUpper, 'CNC') || str_contains($puestoUpper, 'OPERADOR') || str_contains($puestoUpper, 'HERRAMENTISTA')) {
+        $avatarImg = asset('images/operador_cnc.png');
+        $avatarAlt = 'Operador CNC';
     }
 @endphp
 
@@ -30,76 +87,33 @@
     data-search="{{ strtolower($fullName . ' ' . $user->matricula . ' ' . $puesto . ' ' . ($user->area ?? '') . ' ' . ($user->planta ?? '')) }}"
     title="{{ $fullName }} - {{ $puesto }} (Matrícula: {{ $user->matricula }})"
 >
-    {{-- Avatar Ilustrado --}}
+    {{-- Avatar / Imagen Asignada --}}
     <div class="org-avatar-wrapper">
         <div class="org-avatar-circle">
-            @if($avatarType === 'director')
-                {{-- Director Avatar (Beard / Brown Hair - Igual que la imagen de referencia) --}}
-                <svg class="org-avatar-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="32" cy="32" r="30" fill="#fed7aa" />
-                    <!-- Hair -->
-                    <path d="M22 24C22 16 26 12 32 12C38 12 42 16 42 24C42 26 40 24 38 24C36 24 35 22 32 22C29 22 28 24 26 24C24 24 22 26 22 24Z" fill="#9a3412" />
-                    <!-- Head -->
-                    <path d="M24 24C24 28.4 27.6 32 32 32C36.4 32 40 28.4 40 24V22H24V24Z" fill="#fed7aa" />
-                    <!-- Beard -->
-                    <path d="M24 28C24 36 28 40 32 40C36 40 40 36 40 28H24Z" fill="#9a3412" />
-                    <path d="M28 32C29 33 31 33 32 33C33 33 35 33 36 32C36 34 34 36 32 36C30 36 28 34 28 32Z" fill="#fed7aa" />
-                    <!-- Shirt -->
-                    <path d="M16 54C16 44 23 42 32 42C41 42 48 44 48 54V60H16V54Z" fill="#f59e0b" />
-                </svg>
-            @elseif($avatarType === 'female_1')
-                {{-- Female Avatar (Red/Orange Hair - Igual que imagen de referencia) --}}
-                <svg class="org-avatar-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="32" cy="32" r="30" fill="#fbcfe8" />
-                    <!-- Long Hair Back -->
-                    <path d="M20 24C20 14 25 10 32 10C39 10 44 14 44 24C44 34 42 42 42 42H22C22 42 20 34 20 24Z" fill="#ea580c" />
-                    <!-- Head -->
-                    <circle cx="32" cy="26" r="10" fill="#fde047" />
-                    <!-- Shirt -->
-                    <path d="M18 54C18 44 24 40 32 40C40 40 46 44 46 54V60H18V54Z" fill="#ec4899" />
-                </svg>
-            @elseif($avatarType === 'female_2')
-                {{-- Female Avatar (Dark Hair / Glasses) --}}
+            @if($avatarImg)
+                <img src="{{ $avatarImg }}" alt="{{ $avatarAlt }}" class="org-avatar-img" loading="lazy">
+            @elseif(str_contains($puestoUpper, 'CALIDAD') || str_contains($puestoUpper, 'INSPECC'))
+                {{-- Female / Dark Hair avatar for Calidad / Inspección --}}
                 <svg class="org-avatar-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="32" cy="32" r="30" fill="#ccfbf1" />
-                    <!-- Hair -->
                     <path d="M20 22C20 12 25 10 32 10C39 10 44 12 44 22C44 32 40 38 40 38H24C24 38 20 32 20 22Z" fill="#0f172a" />
-                    <!-- Head -->
                     <circle cx="32" cy="26" r="10" fill="#fcd34d" />
-                    <!-- Shirt -->
                     <path d="M18 54C18 44 24 40 32 40C40 40 46 44 46 54V60H18V54Z" fill="#0d9488" />
                 </svg>
-            @elseif($avatarType === 'supervisor')
-                {{-- Supervisor Avatar (Blue Shirt) --}}
-                <svg class="org-avatar-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="32" cy="32" r="30" fill="#e0f2fe" />
-                    <!-- Hair -->
-                    <path d="M22 22C22 14 26 12 32 12C38 12 42 14 42 22C42 24 40 22 36 22C32 22 28 22 22 22Z" fill="#1e293b" />
-                    <!-- Head -->
-                    <circle cx="32" cy="26" r="10" fill="#fed7aa" />
-                    <!-- Shirt -->
-                    <path d="M16 54C16 44 23 40 32 40C41 40 48 44 48 54V60H16V54Z" fill="#0284c7" />
-                </svg>
-            @elseif($avatarType === 'male_2')
-                {{-- Herramentista / Technical (Orange Hair) --}}
+            @elseif(str_contains($puestoUpper, 'HERRAMENTISTA'))
+                {{-- Herramentista / Especialista --}}
                 <svg class="org-avatar-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="32" cy="32" r="30" fill="#ffedd5" />
-                    <!-- Hair -->
                     <path d="M22 22C22 14 26 11 32 11C38 11 42 14 42 22C42 24 39 23 35 22C30 22 25 24 22 22Z" fill="#c2410c" />
-                    <!-- Head -->
                     <circle cx="32" cy="26" r="10" fill="#fde68a" />
-                    <!-- Shirt -->
                     <path d="M16 54C16 44 23 40 32 40C41 40 48 44 48 54V60H16V54Z" fill="#0f766e" />
                 </svg>
             @else
-                {{-- Standard Operative Avatar --}}
+                {{-- Operadores Pendientes (Torno CNC, Centro Maquinados, Soldador, etc.) --}}
                 <svg class="org-avatar-svg" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="32" cy="32" r="30" fill="#f1f5f9" />
-                    <!-- Hair -->
                     <path d="M22 22C22 14 26 12 32 12C38 12 42 14 42 22C42 24 38 23 35 22C30 22 25 24 22 22Z" fill="#334155" />
-                    <!-- Head -->
                     <circle cx="32" cy="26" r="10" fill="#fcd34d" />
-                    <!-- Shirt -->
                     <path d="M16 54C16 44 23 40 32 40C41 40 48 44 48 54V60H16V54Z" fill="#3b82f6" />
                 </svg>
             @endif

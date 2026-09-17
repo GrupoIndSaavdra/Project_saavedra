@@ -330,47 +330,68 @@
     // ── Matriz de Puestos por Área ───────────────────────────────
     const puestosPorAreaModal = {
         'JEFE PLANTA': [
+            'JEFE DE PLANTA',
+            'GERENTE DE PLANTA',
             'SUPERVISOR'
         ],
         'SUPERVISOR': [
-            'SUPERVISOR DE PRODUCCIÓN'
+            'SUPERVISOR DE PRODUCCIÓN',
+            'SUPERVISOR DE CALIDAD',
+            'SUPERVISOR DE SOLDADURA',
+            'SUPERVISOR DE MANTENIMIENTO',
+            'SUPERVISOR DE SOFTWARE',
+            'SUPERVISOR DE PROGRAMACIÓN',
+            'SUPERVISOR DE ALMACÉN',
+            'SUPERVISOR DE ADMINISTRACIÓN',
+            'SUPERVISOR GENERAL',
+            'SUPERVISOR DE PLANTA'
         ],
         'PRODUCCIÓN': [
+            'SUPERVISOR DE PRODUCCIÓN',
             'HERRAMENTISTA',
             'AYUDANTE GENERAL',
             'CENTRO DE MAQUINADOS',
             'OPERADOR TORNO CNC',
-            'BECARIO'
+            'BECARIO',
+            'SUPERVISOR'
         ],
         'SOLDADURA': [
+            'SUPERVISOR DE SOLDADURA',
             'SOLDADOR',
             'SUPERVISOR'
         ],
         'CALIDAD': [
-            'SUPERVISOR',
-            'INSPECCIÓN'
+            'SUPERVISOR DE CALIDAD',
+            'INSPECCIÓN',
+            'SUPERVISOR'
         ],
         'MANTENIMIENTO': [
-            'SUPERVISOR',
-            'AUX MANTENIMIENTO'
+            'SUPERVISOR DE MANTENIMIENTO',
+            'AUX MANTENIMIENTO',
+            'SUPERVISOR'
         ],
         'SOFTWARE': [
-            'SUPERVISOR',
-            'BECARIO'
+            'SUPERVISOR DE SOFTWARE',
+            'SUPERVISOR DE SISTEMAS',
+            'BECARIO',
+            'SUPERVISOR'
         ],
         'ALMACÉN': [
+            'SUPERVISOR DE ALMACÉN',
             'ALMACÉN',
             'SUPERVISOR'
         ],
         'PROGRAMACIÓN': [
-            'SUPERVISOR',
-            'BECARIO'
+            'SUPERVISOR DE PROGRAMACIÓN',
+            'BECARIO',
+            'SUPERVISOR'
         ],
         'ADMINISTRACIÓN': [
-            'SUPERVISOR',
+            'SUPERVISOR DE ADMINISTRACIÓN',
             'BECARIO',
             'CHOFER',
-            'INTENDENCIA'
+            'INTENDENCIA',
+            'SUPERVISOR'
         ]
     };
 
