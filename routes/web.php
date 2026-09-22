@@ -691,7 +691,7 @@ Route::middleware(['auth'])->prefix('herramientas/tecamac')->name('herramientas.
 /* ===========================
    Vista Calidad — Salida de Molduras
    Registro de trazabilidad de piezas enviadas a RAZA.
-   Acceso: Administrador (1) y Calidad (4).
+   Acceso: Administrador (1), Master (3) y Calidad (4).
 =========================== */
 Route::middleware(['auth'])->prefix('calidad/salida-molduras')->name('calidad.salida_molduras.')->group(function () {
     // Vista principal: buscador de OT + tabla de reportes existentes

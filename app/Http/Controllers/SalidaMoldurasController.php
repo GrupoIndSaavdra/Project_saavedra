@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Perfiles con acceso:
  *   1 = Administrador  (lectura + escritura)
+ *   3 = Master         (lectura + escritura)
  *   4 = Calidad        (lectura + escritura)
  *
  * Código de formato: F PRO CPT | Versión 6 | Fecha Rev: 22/04/2026
@@ -34,7 +35,7 @@ class SalidaMoldurasController extends Controller
     public function index(Request $request)
     {
         // Solo perfiles autorizados
-        if (!in_array(auth()->user()->perfil, [1, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -77,7 +78,7 @@ class SalidaMoldurasController extends Controller
 
     public function show(string $ot, string $clase)
     {
-        if (!in_array(auth()->user()->perfil, [1, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -191,7 +192,7 @@ class SalidaMoldurasController extends Controller
 
     public function autosave(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -262,7 +263,7 @@ class SalidaMoldurasController extends Controller
 
     public function updateObservaciones(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -313,7 +314,7 @@ class SalidaMoldurasController extends Controller
 
     public function updateHeader(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -393,7 +394,7 @@ class SalidaMoldurasController extends Controller
 
     public function getLog(int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -426,7 +427,7 @@ class SalidaMoldurasController extends Controller
 
     public function bulkUpdate(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -494,6 +495,10 @@ class SalidaMoldurasController extends Controller
 
     public function generatePdf(int $id)
     {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+
         $reporte = clone SalidaMoldura::findOrFail($id);
         
         if (!$reporte->enviado) {
@@ -516,6 +521,10 @@ class SalidaMoldurasController extends Controller
 
     public function sendReport(int $id)
     {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+            return response()->json(['error' => 'Sin permisos'], 403);
+        }
+
         $reporte = SalidaMoldura::findOrFail($id);
 
         if ($reporte->enviado) {
