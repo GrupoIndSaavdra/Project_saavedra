@@ -8,23 +8,23 @@
     Variables requeridas:
         $reporte → SalidaMoldura
 --}}
-<div class="sm-obs-container">
-    <div class="sm-obs-header">
-        <h3 class="sm-obs-title">Observaciones:</h3>
-        <span class="sm-obs-counter">
+<div class="ri-obs-container">
+    <div class="ri-obs-header">
+        <h3 class="ri-obs-title">Observaciones:</h3>
+        <span class="ri-obs-counter">
             <span id="obs-chars-used">{{ strlen($reporte->observaciones ?? '') }}</span>/250
         </span>
     </div>
     <textarea
         id="campo-observaciones"
-        class="sm-obs-textarea"
+        class="ri-obs-textarea"
         maxlength="250"
         rows="4"
         placeholder="Escribe aquí las observaciones generales del reporte..."
         data-reporte-id="{{ $reporte->id }}"
-        {{ $reporte->enviado ? 'disabled' : '' }}
+
     >{{ $reporte->observaciones ?? '' }}</textarea>
-    <div class="sm-obs-footer">
-        <span class="sm-obs-status" id="obs-status"></span>
+    <div class="ri-obs-footer">
+        <span class="ri-obs-status" id="obs-status"></span>
     </div>
 </div>

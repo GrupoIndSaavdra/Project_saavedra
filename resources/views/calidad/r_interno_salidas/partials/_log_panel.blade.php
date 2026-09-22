@@ -6,56 +6,56 @@
     Variables requeridas:
         $reporte → SalidaMoldura
 --}}
-<div class="sm-log-panel" id="log-panel">
+<div class="ri-log-panel" id="log-panel">
 
-    <button class="sm-log-toggle" id="btn-toggle-log" aria-expanded="false">
-        <span class="sm-log-toggle__text">Historial de Ediciones y Auditoría</span>
-        <span class="sm-log-toggle__arrow" id="log-arrow">&#9660;</span>
+    <button class="ri-log-toggle" id="btn-toggle-log" aria-expanded="false">
+        <span class="ri-log-toggle__text">Historial de Ediciones y Auditoría</span>
+        <span class="ri-log-toggle__arrow" id="log-arrow">&#9660;</span>
     </button>
 
-    <div class="sm-log-body hidden" id="log-body">
+    <div class="ri-log-body hidden" id="log-body">
 
-        <div class="sm-log-loading hidden" id="log-loading">
+        <div class="ri-log-loading hidden" id="log-loading">
             <div class="spinner"></div>
             <span>Cargando historial de ediciones...</span>
         </div>
 
-        <div class="sm-log-content hidden" id="log-content">
+        <div class="ri-log-content hidden" id="log-content">
             {{-- Barra de Filtros --}}
-            <div class="sm-log-filters">
-                <div class="sm-log-filter-group">
+            <div class="ri-log-filters">
+                <div class="ri-log-filter-group">
                     <label for="filter-log-usuario">Usuario:</label>
-                    <select id="filter-log-usuario" class="sm-log-filter-input">
+                    <select id="filter-log-usuario" class="ri-log-filter-input">
                         <option value="">Todos los usuarios</option>
                     </select>
                 </div>
 
-                <div class="sm-log-filter-group">
+                <div class="ri-log-filter-group">
                     <label for="filter-log-desde">Desde:</label>
-                    <input type="date" id="filter-log-desde" class="sm-log-filter-input">
+                    <input type="date" id="filter-log-desde" class="ri-log-filter-input">
                 </div>
 
-                <div class="sm-log-filter-group">
+                <div class="ri-log-filter-group">
                     <label for="filter-log-hasta">Hasta:</label>
-                    <input type="date" id="filter-log-hasta" class="sm-log-filter-input">
+                    <input type="date" id="filter-log-hasta" class="ri-log-filter-input">
                 </div>
 
-                <div class="sm-log-filter-group sm-log-filter-group--search">
+                <div class="ri-log-filter-group ri-log-filter-group--search">
                     <label for="filter-log-search">Búsqueda rápida:</label>
-                    <input type="text" id="filter-log-search" class="sm-log-filter-input" placeholder="Buscar por pieza, acción o detalle...">
+                    <input type="text" id="filter-log-search" class="ri-log-filter-input" placeholder="Buscar por pieza, acción o detalle...">
                 </div>
 
-                <div class="sm-log-filter-group sm-log-filter-group--btn">
+                <div class="ri-log-filter-group ri-log-filter-group--btn">
                     <label>&nbsp;</label>
-                    <button type="button" id="btn-reset-log-filter" class="sm-btn-bulk sm-btn-bulk--none" title="Limpiar filtros">
+                    <button type="button" id="btn-reset-log-filter" class="ri-btn-bulk ri-btn-bulk--none" title="Limpiar filtros">
                         Limpiar
                     </button>
                 </div>
             </div>
 
             {{-- Tabla Scrolleable al 100% de Ancho --}}
-            <div class="sm-log-scroll-wrapper">
-                <table class="sm-log-table-full" id="tabla-log">
+            <div class="ri-log-scroll-wrapper">
+                <table class="ri-log-table-full" id="tabla-log">
                     <thead>
                         <tr>
                             <th style="width: 4%; text-align: center;">#</th>
@@ -74,7 +74,7 @@
                 </table>
             </div>
 
-            <p class="sm-log-empty hidden" id="log-empty">
+            <p class="ri-log-empty hidden" id="log-empty">
                 Sin ediciones registradas que coincidan con los filtros.
             </p>
         </div>

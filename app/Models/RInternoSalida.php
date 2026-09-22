@@ -22,14 +22,15 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property \Carbon\Carbon $updated_at
  * @property \Carbon\Carbon|null $deleted_at
  * @property User|null $inspector
- * @property \Illuminate\Database\Eloquent\Collection|SalidaMolduraPieza[] $piezas
- * @property \Illuminate\Database\Eloquent\Collection|SalidaMolduraLog[]   $logs
+ * @property \Illuminate\Database\Eloquent\Collection|RInternoSalidaPieza[] $piezas
+ * @property \Illuminate\Database\Eloquent\Collection|RInternoSalidaLog[]   $logs
+ * @property \Illuminate\Database\Eloquent\Collection|RInternoSalidaPdf[]   $pdfs
  */
-class SalidaMoldura extends Model
+class RInternoSalida extends Model
 {
     use HasFactory, SoftDeletes;
 
-    protected $table = 'salida_molduras';
+    protected $table = 'r_interno_salidas';
 
     protected $fillable = [
         'ot_id',
@@ -42,7 +43,7 @@ class SalidaMoldura extends Model
         'fecha_inicio',
         'observaciones',
         'formato',
-        'enviado',
+
         'pdf_generado_count',
     ];
 
@@ -61,17 +62,24 @@ class SalidaMoldura extends Model
     }
 
     /** Piezas registradas en este reporte */
-    public function piezas()
+    public function piezas(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(SalidaMolduraPieza::class, 'salida_moldura_id')
+        return $this->hasMany(RInternoSalidaPieza::class, 'r_interno_salida_id')
                     ->orderBy('numero_pieza');
     }
 
     /** Historial de auditoría de ediciones de este reporte */
-    public function logs()
+    public function logs(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->hasMany(SalidaMolduraLog::class, 'salida_moldura_id')
+        return $this->hasMany(RInternoSalidaLog::class, 'r_interno_salida_id')
                     ->orderBy('created_at', 'desc');
+    }
+
+    /** Historial de PDFs generados */
+    public function pdfs(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(RInternoSalidaPdf::class, 'r_interno_salida_id')
+                    ->orderBy('version', 'desc');
     }
 
     // ─── Scopes ────────────────────────────────────────────────────
@@ -113,6 +121,10 @@ class SalidaMoldura extends Model
         if (str_contains($claseUpper, 'BOMBILLO') || str_contains($claseUpper, 'BOMBILLOS')) {
             return 'bombillos';
         }
-        return 'moldes';
+        if (str_contains($claseUpper, 'MOLDE') || str_contains($claseUpper, 'MOLDES') ||
+            str_contains($claseUpper, 'FONDO') || str_contains($claseUpper, 'OBTURADOR') || str_contains($claseUpper, 'EMBUDO')) {
+            return 'moldes';
+        }
+        return 'moldes'; // Por defecto
     }
 }

@@ -137,8 +137,8 @@ export default defineConfig({
                 'resources/js/calidad_views/calidad_maquinados.js',
 
                 // Vista Calidad — Salida de Molduras
-                'resources/css/calidad_views/salida_molduras.css',
-                'resources/js/calidad_views/salida_molduras.js',
+                'resources/css/calidad_views/r_interno_salidas.css',
+                'resources/js/calidad_views/r_interno_salidas.js',
 
                 // Views systemLogs
                 "resources/css/reports/systemLogs.css",

@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  * NO tiene SoftDeletes ni updated_at por diseño (log inmutable).
  *
  * @property int         $id
- * @property int         $salida_moldura_id
+ * @property int         $r_interno_salida_id
  * @property int         $user_id
  * @property string      $accion
  * @property string|null $campo_editado
@@ -17,18 +17,18 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $valor_nuevo
  * @property string|null $ip
  * @property \Carbon\Carbon $created_at
- * @property SalidaMoldura $reporte
+ * @property RInternoSalida $reporte
  * @property User          $usuario
  */
-class SalidaMolduraLog extends Model
+class RInternoSalidaLog extends Model
 {
     // Sin updated_at — los registros de log son inmutables
     const UPDATED_AT = null;
 
-    protected $table = 'salida_molduras_log';
+    protected $table = 'r_interno_salidas_log';
 
     protected $fillable = [
-        'salida_moldura_id',
+        'r_interno_salida_id',
         'user_id',
         'accion',
         'campo_editado',
@@ -40,9 +40,9 @@ class SalidaMolduraLog extends Model
     // ─── Relaciones ────────────────────────────────────────────────
 
     /** Reporte al que pertenece este log */
-    public function reporte()
+    public function reporte(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(SalidaMoldura::class, 'salida_moldura_id');
+        return $this->belongsTo(RInternoSalida::class, 'r_interno_salida_id');
     }
 
     /** Usuario que realizó la edición */
@@ -72,7 +72,7 @@ class SalidaMolduraLog extends Model
         ?string $ip        = null
     ): void {
         static::create([
-            'salida_moldura_id' => $reporteId,
+            'r_interno_salida_id' => $reporteId,
             'user_id'           => auth()->id(),
             'accion'            => $accion,
             'campo_editado'     => $campo,

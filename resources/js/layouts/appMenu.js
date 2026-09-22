@@ -188,9 +188,9 @@ function isPathMatching(currentPath, aHref) {
         }
 
         // Sub-rutas de Salida de Molduras
-        if (currentPath.startsWith('/calidad/salida-molduras/')) {
-            if (window.routes && window.routes['calidad.salida_molduras.index']) {
-                const salidaMoldurasPath = new URL(window.routes['calidad.salida_molduras.index'], window.location.origin).pathname;
+        if (currentPath.startsWith('/calidad/r-interno-salidas/')) {
+            if (window.routes && window.routes['calidad.r_interno_salidas.index']) {
+                const salidaMoldurasPath = new URL(window.routes['calidad.r_interno_salidas.index'], window.location.origin).pathname;
                 if (linkPath === salidaMoldurasPath) return true;
             }
         }
@@ -441,7 +441,7 @@ function getRoutes(profile) {
                 {
                     title: "Calidad — Reportes",
                     routes: [
-                        ["calidad.salida_molduras.index", "Salida de Molduras"],
+                        ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
                     ],
                 },
             ];
@@ -575,7 +575,7 @@ function getRoutes(profile) {
                         {
                             title: "Calidad — Reportes",
                             routes: [
-                                ["calidad.salida_molduras.index", "Salida de Molduras"],
+                                ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
                             ],
                         },
                     ],
@@ -644,7 +644,7 @@ function getRoutes(profile) {
                 {
                     title: "Calidad — Reportes",
                     routes: [
-                        ["calidad.salida_molduras.index", "Salida de Molduras"],
+                        ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
                     ],
                 },
             ];

@@ -7,23 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @property int         $id
- * @property int         $salida_moldura_id
+ * @property int         $r_interno_salida_id
  * @property int         $numero_pieza
  * @property string|null $valor_simple   Solo formato MOLDES
  * @property string|null $valor_90       Solo formato BOMBILLOS
  * @property string|null $valor_lp       Solo formato BOMBILLOS
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
- * @property SalidaMoldura $reporte
+ * @property RInternoSalida $reporte
  */
-class SalidaMolduraPieza extends Model
+class RInternoSalidaPieza extends Model
 {
     use HasFactory;
 
-    protected $table = 'salida_molduras_piezas';
+    protected $table = 'r_interno_salidas_piezas';
 
     protected $fillable = [
-        'salida_moldura_id',
+        'r_interno_salida_id',
         'numero_pieza',
         'valor_simple',
         'valor_90',
@@ -38,8 +38,8 @@ class SalidaMolduraPieza extends Model
     // ─── Relaciones ────────────────────────────────────────────────
 
     /** Reporte al que pertenece esta pieza */
-    public function reporte()
+    public function reporte(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $this->belongsTo(SalidaMoldura::class, 'salida_moldura_id');
+        return $this->belongsTo(RInternoSalida::class, 'r_interno_salida_id');
     }
 }

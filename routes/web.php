@@ -30,7 +30,7 @@ use App\Http\Controllers\EnvioPtaController;
 use App\Http\Controllers\PtaResultsController;
 use App\Http\Controllers\HerramientasTecamacController;
 use App\Http\Controllers\ProgramasCncController;
-use App\Http\Controllers\SalidaMoldurasController;
+use App\Http\Controllers\RInternoSalidasController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -689,54 +689,51 @@ Route::middleware(['auth'])->prefix('herramientas/tecamac')->name('herramientas.
 });
 
 /* ===========================
-   Vista Calidad — Salida de Molduras
+   Vista Calidad — RInternoSalidas
    Registro de trazabilidad de piezas enviadas a RAZA.
    Acceso: Administrador (1), Master (3) y Calidad (4).
 =========================== */
-Route::middleware(['auth'])->prefix('calidad/salida-molduras')->name('calidad.salida_molduras.')->group(function () {
+Route::middleware(['auth'])->prefix('calidad/r-interno-salidas')->name('calidad.r_interno_salidas.')->group(function () {
     // Vista principal: buscador de OT + tabla de reportes existentes
-    Route::get('/', [SalidaMoldurasController::class, 'index'])
+    Route::get('/', [RInternoSalidasController::class, 'index'])
         ->name('index');
 
     // AJAX: obtener log de auditoría del reporte (debe ir antes que /{ot}/{clase})
-    Route::get('/{id}/log', [SalidaMoldurasController::class, 'getLog'])
+    Route::get('/{id}/log', [RInternoSalidasController::class, 'getLog'])
         ->where('id', '[0-9]+')
         ->name('log');
 
 
     // AJAX: autoguardado de celda individual
-    Route::post('/autosave', [SalidaMoldurasController::class, 'autosave'])
+    Route::post('/autosave', [RInternoSalidasController::class, 'autosave'])
         ->name('autosave');
 
     // AJAX: guardar observaciones
-    Route::post('/observaciones', [SalidaMoldurasController::class, 'updateObservaciones'])
+    Route::post('/observaciones', [RInternoSalidasController::class, 'updateObservaciones'])
         ->name('observaciones');
 
     // AJAX: actualizar encabezado (consignación, fecha)
-    Route::post('/update-header', [SalidaMoldurasController::class, 'updateHeader'])
+    Route::post('/update-header', [RInternoSalidasController::class, 'updateHeader'])
         ->name('updateHeader');
 
     // AJAX: actualización masiva por rango de piezas
-    Route::post('/bulk-update', [SalidaMoldurasController::class, 'bulkUpdate'])
+    Route::post('/bulk-update', [RInternoSalidasController::class, 'bulkUpdate'])
         ->name('bulk');
 
     // Generar PDF y descargar
-    Route::get('/{id}/pdf', [SalidaMoldurasController::class, 'generatePdf'])
+    Route::get('/{id}/pdf', [RInternoSalidasController::class, 'generatePdf'])
         ->where('id', '[0-9]+')
         ->name('pdf');
 
-    // Enviar Reporte (correo + PDF)
-    Route::post('/{id}/send', [SalidaMoldurasController::class, 'sendReport'])
-        ->where('id', '[0-9]+')
-        ->name('send');
+    // Descargar un PDF específico
+    Route::get('/{id}/pdf/{pdf_id}/download', [RInternoSalidasController::class, 'downloadPdf'])
+        ->where(['id' => '[0-9]+', 'pdf_id' => '[0-9]+'])
+        ->name('pdf.download');
 
-    // Desbloquear reporte    // Desbloqueo Master
-    Route::post('/{id}/unlock', [SalidaMoldurasController::class, 'unlockMaster'])
-        ->where('id', '[0-9]+')
-        ->name('unlock');
+
 
     // Vista del reporte específico (crea o carga según OT + clase) - DEBE IR AL FINAL
-    Route::get('/{ot}/{clase}', [SalidaMoldurasController::class, 'show'])
+    Route::get('/{ot}/{clase}', [RInternoSalidasController::class, 'show'])
         ->name('show');
 });
 

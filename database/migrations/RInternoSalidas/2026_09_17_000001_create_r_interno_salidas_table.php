@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Migración: Tabla principal de reportes "Salida de Molduras".
+ * Migración: Tabla principal de reportes "RInternoSalidas".
  * Registra la información general del formato por OT y clase.
  * Código de formato: F PRO CPT | Versión 6 | Fecha Rev: 22/04/2026
  */
@@ -13,7 +13,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('salida_molduras', function (Blueprint $table) {
+        Schema::create('r_interno_salidas', function (Blueprint $table) {
             $table->id();
 
             // Relación con la Orden de Trabajo (string, no FK estricta por arquitectura del proyecto)
@@ -44,19 +44,19 @@ return new class extends Migration
             $table->enum('formato', ['moldes', 'bombillos'])
                   ->comment('Formato: moldes = grid simple | bombillos = grid con 90° y LP');
 
-            $table->boolean('enviado')->default(false)->comment('Indica si el reporte ya fue enviado por correo');
+
             $table->integer('pdf_generado_count')->default(0)->comment('Contador de veces que se ha generado el PDF');
 
             $table->timestamps();
             $table->softDeletes();
 
             // Índice para búsquedas frecuentes por OT y clase
-            $table->index(['ot_id', 'clase'], 'salida_molduras_ot_clase_idx');
+            $table->index(['ot_id', 'clase'], 'r_interno_salidas_ot_clase_idx');
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('salida_molduras');
+        Schema::dropIfExists('r_interno_salidas');
     }
 };

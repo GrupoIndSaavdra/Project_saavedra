@@ -1,5 +1,5 @@
 /**
- * salida_molduras.js
+ * r_interno_salidas.js
  * Módulo JavaScript para la vista "Salida de Molduras" — Calidad Fundición
  * Grupo Industrial Saavedra
  *
@@ -54,14 +54,14 @@
             saveStatusTimer = null;
         }
 
-        indicator.className = 'sm-save-indicator';
+        indicator.className = 'ri-save-indicator';
 
         const estados = {
-            idle:   { cls: 'sm-save-indicator--idle',   txt: 'Listo' },
-            dirty:  { cls: 'sm-save-indicator--saving', txt: 'Hay cambios sin guardar...' },
-            saving: { cls: 'sm-save-indicator--saving', txt: 'Hay cambios sin guardar...' },
-            saved:  { cls: 'sm-save-indicator--saved',  txt: 'Cambios guardados correctamente' },
-            error:  { cls: 'sm-save-indicator--error',  txt: 'Error al guardar cambios' },
+            idle:   { cls: 'ri-save-indicator--idle',   txt: 'Listo' },
+            dirty:  { cls: 'ri-save-indicator--saving', txt: 'Hay cambios sin guardar...' },
+            saving: { cls: 'ri-save-indicator--saving', txt: 'Hay cambios sin guardar...' },
+            saved:  { cls: 'ri-save-indicator--saved',  txt: 'Cambios guardados correctamente' },
+            error:  { cls: 'ri-save-indicator--error',  txt: 'Error al guardar cambios' },
         };
 
         const cfg = estados[estado] ?? estados.idle;
@@ -71,6 +71,16 @@
         // Auto-volver a "Listo" después de 3.5s si fue exitoso
         if (estado === 'saved') {
             saveStatusTimer = setTimeout(() => setSaveIndicator('idle'), 3500);
+        }
+
+        // Habilitar el botón de PDF dinámicamente si se detectan cambios
+        if (estado === 'dirty' || estado === 'saving' || estado === 'saved') {
+            const btnPdf = document.getElementById('btn-generate-pdf');
+            if (btnPdf) {
+                btnPdf.onclick = window.generateReportPdf;
+                btnPdf.style.opacity = '1';
+                btnPdf.style.cursor = 'pointer';
+            }
         }
     }
 
@@ -82,9 +92,9 @@
     function setInputEstado(input, estado) {
         if (!input || input.type === 'checkbox') return;
         
-        input.classList.remove('sm-celda__input--saving', 'sm-celda__input--saved', 'sm-celda__input--error');
+        input.classList.remove('ri-celda__input--saving', 'ri-celda__input--saved', 'ri-celda__input--error');
         if (estado) {
-            input.classList.add(`sm-celda__input--${estado}`);
+            input.classList.add(`ri-celda__input--${estado}`);
         }
     }
 
@@ -101,7 +111,7 @@
         
         let valor;
         if (input.type === 'checkbox') {
-            valor = input.checked ? '1' : null;
+            valor = input.checked ? input.value : null;
         } else {
             valor = input.value.trim() || null;
         }
@@ -112,7 +122,7 @@
         setSaveIndicator('saving');
 
         try {
-            const response = await fetch(window.routes['calidad.salida_molduras.autosave'], {
+            const response = await fetch(window.routes['calidad.r_interno_salidas.autosave'], {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -139,7 +149,7 @@
             setTimeout(() => setInputEstado(input, null), 2500);
 
         } catch (error) {
-            console.error('[SalidaMolduras][guardarCelda]', error);
+            console.error('[RInternoSalidas][guardarCelda]', error);
             setInputEstado(input, 'error');
             setSaveIndicator('error');
         }
@@ -155,7 +165,7 @@
     function initAutoguardadoCeldas() {
         // Delegación sobre el body para capturar grids de ambos formatos (inputs de texto/número)
         document.addEventListener('input', function (e) {
-            const input = e.target.closest('.sm-input-autosave');
+            const input = e.target.closest('.ri-input-autosave');
             if (!input || input.type === 'checkbox') return;
 
             setSaveIndicator('dirty');
@@ -165,31 +175,57 @@
 
         // Delegación para checkboxes
         document.addEventListener('change', function (e) {
-            const input = e.target.closest('.sm-input-autosave');
+            const input = e.target.closest('.ri-input-autosave');
             if (!input || input.type !== 'checkbox') return;
 
             setSaveIndicator('dirty');
             setInputEstado(input, 'saving');
+
+            // ── Lógica de exclusión mutua para ✔ y ✘ ──
+            const num = input.dataset.num || input.getAttribute('data-num');
+            const isAprobado = input.classList.contains('ri-checkbox-aprobado');
+            const isRechazado = input.classList.contains('ri-checkbox-rechazado');
+
+            if (input.checked) {
+                // Desmarcar el otro checkbox
+                if (isAprobado) {
+                    const cbRechazado = document.querySelector(`.ri-checkbox-rechazado[data-num="${num}"]`);
+                    if (cbRechazado) cbRechazado.checked = false;
+                } else if (isRechazado) {
+                    const cbAprobado = document.querySelector(`.ri-checkbox-aprobado[data-num="${num}"]`);
+                    if (cbAprobado) cbAprobado.checked = false;
+                }
+            }
+
             guardarCelda(input);
 
             // ── Lógica UI especial para los Checkboxes (Moldes / Bombillos) ──
-            if (input.classList.contains('sm-checkbox-molde')) {
-                const isChecked = input.checked;
-                const num = input.dataset.num || input.getAttribute('data-num');
-                const header = document.getElementById(`molde-num-${num}`);
-                const input90 = document.getElementById(`pieza-${num}-90`);
-                const inputLp = document.getElementById(`pieza-${num}-lp`);
+            const cbAprobado = document.querySelector(`.ri-checkbox-aprobado[data-num="${num}"]`);
+            const cbRechazado = document.querySelector(`.ri-checkbox-rechazado[data-num="${num}"]`);
+            const checkedA = cbAprobado ? cbAprobado.checked : false;
+            const checkedR = cbRechazado ? cbRechazado.checked : false;
+            
+            const header = document.getElementById(`molde-num-${num}`);
+            const input90 = document.getElementById(`pieza-${num}-90`);
+            const inputLp = document.getElementById(`pieza-${num}-lp`);
 
-                if (header) {
-                    header.classList.remove('sm-badge-num--red', 'sm-badge-num--green');
-                    header.classList.add(isChecked ? 'sm-badge-num--green' : 'sm-badge-num--red');
+            if (header) {
+                header.classList.remove('ri-badge-num--red', 'ri-badge-num--green', 'ri-badge-num--gray');
+                if (checkedA) {
+                    header.classList.add('ri-badge-num--green');
+                } else if (checkedR) {
+                    header.classList.add('ri-badge-num--red');
+                } else {
+                    header.classList.add('ri-badge-num--gray');
                 }
-
-                if (input90) input90.disabled = !isChecked;
-                if (inputLp) inputLp.disabled = !isChecked;
-
-                actualizarEstadoBotonesAccion();
             }
+
+            // Habilitar inputs solo si hay un estado seleccionado (ya sea ✔ o ✘)
+            const disableInputs = !(checkedA || checkedR);
+            if (input90) input90.disabled = disableInputs;
+            if (inputLp) inputLp.disabled = disableInputs;
+
+            actualizarEstadoBotonesAccion();
         });
     }
 
@@ -205,7 +241,7 @@
         setSaveIndicator('saving');
 
         try {
-            const response = await fetch(window.routes['calidad.salida_molduras.observaciones'], {
+            const response = await fetch(window.routes['calidad.r_interno_salidas.observaciones'], {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -227,7 +263,7 @@
             setSaveIndicator('saved');
 
         } catch (error) {
-            console.error('[SalidaMolduras][guardarObservaciones]', error);
+            console.error('[RInternoSalidas][guardarObservaciones]', error);
             if (statusEl) statusEl.textContent = '✗ Error al guardar';
             setSaveIndicator('error');
         }
@@ -251,14 +287,14 @@
     // ─── 3. ACTUALIZACIÓN DE ENCABEZADO ─────────────────────────────
 
     async function guardarHeader(campo, valor) {
-        const reporte = window.smReporte;
+        const reporte = window.riReporte;
         if (!reporte) return;
 
         try {
             const body = { reporte_id: reporte.id };
             body[campo] = valor;
 
-            const response = await fetch(window.routes['calidad.salida_molduras.updateHeader'], {
+            const response = await fetch(window.routes['calidad.r_interno_salidas.updateHeader'], {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -294,7 +330,7 @@
             }
 
         } catch (error) {
-            console.error('[SalidaMolduras][guardarHeader]', error);
+            console.error('[RInternoSalidas][guardarHeader]', error);
             setSaveIndicator('error');
         }
     }
@@ -327,7 +363,7 @@
             });
         }
 
-        const otClases = window.smOtClases ?? {};
+        const otClases = window.riOtClases ?? {};
 
         // Al seleccionar una OT, evaluar clases y redirigir o mostrar selector al lado
         selectOT.addEventListener('change', function () {
@@ -343,7 +379,7 @@
 
             // Si solo hay una clase, auto-seleccionar y abrir directamente
             if (clases.length === 1) {
-                const url = window.routes['calidad.salida_molduras.show']
+                const url = window.routes['calidad.r_interno_salidas.show']
                     .replace('%3Aot', encodeURIComponent(otId))
                     .replace(':ot', encodeURIComponent(otId))
                     .replace('%3Aclase', encodeURIComponent(clases[0]))
@@ -371,7 +407,7 @@
             const clase = this.value;
 
             if (otId && clase) {
-                const url = window.routes['calidad.salida_molduras.show']
+                const url = window.routes['calidad.r_interno_salidas.show']
                     .replace('%3Aot', encodeURIComponent(otId))
                     .replace(':ot', encodeURIComponent(otId))
                     .replace('%3Aclase', encodeURIComponent(clase))
@@ -544,13 +580,13 @@
 
             if (isOpen) {
                 logBody.classList.add('hidden');
-                btnToggle.classList.remove('sm-log-toggle--open');
+                btnToggle.classList.remove('ri-log-toggle--open');
                 btnToggle.setAttribute('aria-expanded', 'false');
                 return;
             }
 
             logBody.classList.remove('hidden');
-            btnToggle.classList.add('sm-log-toggle--open');
+            btnToggle.classList.add('ri-log-toggle--open');
             btnToggle.setAttribute('aria-expanded', 'true');
 
             if (logCargado || !reporteId) return;
@@ -559,7 +595,7 @@
             logContent?.classList.add('hidden');
 
             try {
-                const url = window.routes['calidad.salida_molduras.log']
+                const url = window.routes['calidad.r_interno_salidas.log']
                     .replace('%3Aid', reporteId)
                     .replace(':id', reporteId);
 
@@ -580,7 +616,7 @@
                 renderLogs(allLogs);
 
             } catch (error) {
-                console.error('[SalidaMolduras][getLog]', error);
+                console.error('[RInternoSalidas][getLog]', error);
                 logLoading?.classList.add('hidden');
                 logContent?.classList.remove('hidden');
                 if (logEmpty) {
@@ -639,9 +675,9 @@
                 const otId = this.value;
                 if (!otId) return;
 
-                const otClasesMap = window.smOtClases || {};
+                const otClasesMap = window.riOtClases || {};
                 const clases = otClasesMap[otId] || [];
-                const routePattern = window.routes?.['calidad.salida_molduras.show'];
+                const routePattern = window.routes?.['calidad.r_interno_salidas.show'];
 
                 if (!routePattern) return;
 
@@ -677,12 +713,12 @@
     // ─── 7. ACCIONES MASIVAS Y POR RANGO DE PIEZAS ──────────────────
 
     async function ejecutarUpdateMasivo(desde, hasta, valor) {
-        const reporte = window.smReporte;
+        const reporte = window.riReporte;
         if (!reporte || !reporte.id) return;
 
-        const routeUrl = window.routes?.['calidad.salida_molduras.bulk'];
+        const routeUrl = window.routes?.['calidad.r_interno_salidas.bulk'];
         if (!routeUrl) {
-            console.error('[SalidaMolduras][ejecutarUpdateMasivo] Ruta de bulk update no configurada');
+            console.error('[RInternoSalidas][ejecutarUpdateMasivo] Ruta de bulk update no configurada');
             return;
         }
 
@@ -700,7 +736,7 @@
                     reporte_id: parseInt(reporte.id),
                     desde:      parseInt(desde),
                     hasta:      parseInt(hasta),
-                    valor:      valor === '1' ? '1' : null,
+                    valor:      valor === 'null' ? null : (valor === '1' ? '1' : '0'),
                 }),
             });
 
@@ -712,109 +748,155 @@
             const data = await response.json();
 
             // Limpiar los campos de rango automáticamente
-            const desdeInput = document.getElementById('sm-range-desde');
-            const hastaInput = document.getElementById('sm-range-hasta');
+            const desdeInput = document.getElementById('ri-range-desde');
+            const hastaInput = document.getElementById('ri-range-hasta');
             if (desdeInput) desdeInput.value = '';
             if (hastaInput) hastaInput.value = '';
 
             // Actualizar la interfaz para cada pieza en el rango
             const d = Math.min(desde, hasta);
             const h = Math.max(desde, hasta);
-            const isChecked = (valor === '1');
+            const isAprobado = (valor === '1');
+            const isRechazado = (valor === '0');
+            const isNinguno = (valor === 'null');
 
             for (let num = d; num <= h; num++) {
-                const cb = document.querySelector(`.sm-checkbox-molde[data-num="${num}"]`);
-                if (cb) {
-                    cb.checked = isChecked;
-                }
+                const cbAprobado = document.querySelector(`.ri-checkbox-aprobado[data-num="${num}"]`);
+                if (cbAprobado) cbAprobado.checked = isAprobado;
+                
+                const cbRechazado = document.querySelector(`.ri-checkbox-rechazado[data-num="${num}"]`);
+                if (cbRechazado) cbRechazado.checked = isRechazado;
 
                 const badge = document.getElementById(`molde-num-${num}`);
                 if (badge) {
-                    badge.classList.remove('sm-badge-num--red', 'sm-badge-num--green');
-                    badge.classList.add(isChecked ? 'sm-badge-num--green' : 'sm-badge-num--red');
+                    badge.classList.remove('ri-badge-num--red', 'ri-badge-num--green', 'ri-badge-num--gray');
+                    if (isAprobado) badge.classList.add('ri-badge-num--green');
+                    else if (isRechazado) badge.classList.add('ri-badge-num--red');
+                    else badge.classList.add('ri-badge-num--gray');
                 }
 
                 const input90 = document.getElementById(`pieza-${num}-90`);
                 const inputLp = document.getElementById(`pieza-${num}-lp`);
-                if (input90) input90.disabled = !isChecked;
-                if (inputLp) inputLp.disabled = !isChecked;
-                // La descripción (pieza-X-desc) permanece intacta y activa
+                const disableInputs = isNinguno;
+                if (input90) input90.disabled = disableInputs;
+                if (inputLp) inputLp.disabled = disableInputs;
             }
 
             setSaveIndicator('saved');
             actualizarEstadoBotonesAccion();
 
         } catch (error) {
-            console.error('[SalidaMolduras][ejecutarUpdateMasivo]', error);
+            console.error('[RInternoSalidas][ejecutarUpdateMasivo]', error);
             setSaveIndicator('error');
         }
     }
 
     function actualizarEstadoBotonesAccion() {
-        const checkboxes = document.querySelectorAll('.sm-checkbox-molde');
-        if (!checkboxes || checkboxes.length === 0) return;
+        const totalPiezas = window.riReporte?.totalPiezas || 0;
+        if (totalPiezas === 0) return;
 
-        const total = checkboxes.length;
-        let checkedCount = 0;
-        checkboxes.forEach(cb => {
-            if (cb.checked) checkedCount++;
-        });
+        // Contar estados
+        const cbsAprobados = document.querySelectorAll('.ri-checkbox-aprobado');
+        const cbsRechazados = document.querySelectorAll('.ri-checkbox-rechazado');
+        
+        let checkedAprobado = 0;
+        cbsAprobados.forEach(cb => { if (cb.checked) checkedAprobado++; });
+        let checkedRechazado = 0;
+        cbsRechazados.forEach(cb => { if (cb.checked) checkedRechazado++; });
 
-        const btnMark   = document.getElementById('btn-apply-range-mark');
-        const btnUnmark = document.getElementById('btn-apply-range-unmark');
-        const btnAll    = document.getElementById('btn-select-all');
-        const btnNone   = document.getElementById('btn-deselect-all');
+        const checkedNinguno = totalPiezas - (checkedAprobado + checkedRechazado);
 
-        function setBtnState(btn, stateClass) {
+        // Botones globales
+        const btnAll = document.getElementById('btn-select-all');
+        const btnDeselect = document.getElementById('btn-deselect-all');
+        const btnNoneAll = document.getElementById('btn-none-all');
+
+        function setBtnDisabled(btn, disabled) {
             if (!btn) return;
-            btn.classList.remove('sm-btn-active--green', 'sm-btn-active--red', 'sm-btn-inactive');
-            btn.classList.add(stateClass);
+            btn.disabled = disabled;
+            if (disabled) {
+                btn.style.opacity = '0.4';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            }
         }
 
-        if (checkedCount === total && total > 0) {
-            // 100% Marcadas: "Seleccionar Todo" activo (Verde), "Desmarcar Todo" y Rango inactivos
-            setBtnState(btnAll, 'sm-btn-active--green');
-            setBtnState(btnNone, 'sm-btn-inactive');
-            setBtnState(btnMark, 'sm-btn-inactive');
-            setBtnState(btnUnmark, 'sm-btn-inactive');
-        } else if (checkedCount === 0) {
-            // 0% Marcadas: "Desmarcar Todo" activo (Rojo), "Seleccionar Todo" y Rango inactivos
-            setBtnState(btnAll, 'sm-btn-inactive');
-            setBtnState(btnNone, 'sm-btn-active--red');
-            setBtnState(btnMark, 'sm-btn-inactive');
-            setBtnState(btnUnmark, 'sm-btn-inactive');
+        // Si ya seleccionó "Seleccionar todo", deshabilitar ese botón
+        setBtnDisabled(btnAll, checkedAprobado === totalPiezas);
+        // Si ya seleccionó "Desmarcar todo", deshabilitar ese botón
+        setBtnDisabled(btnDeselect, checkedRechazado === totalPiezas);
+        // Si ya seleccionó "Ninguno todo", deshabilitar ese botón
+        setBtnDisabled(btnNoneAll, checkedNinguno === totalPiezas);
+
+        // Rango de piezas
+        const btnMark = document.getElementById('btn-apply-range-mark');
+        const btnUnmark = document.getElementById('btn-apply-range-unmark');
+        const btnNoneRange = document.getElementById('btn-apply-range-none');
+
+        const desdeInput = document.getElementById('ri-range-desde');
+        const hastaInput = document.getElementById('ri-range-hasta');
+        const val1 = parseInt(desdeInput?.value);
+        const val2 = parseInt(hastaInput?.value);
+
+        const isRangeValid = (!isNaN(val1) && val1 >= 1 && val1 <= totalPiezas && 
+                              !isNaN(val2) && val2 >= 1 && val2 <= totalPiezas &&
+                              val1 <= val2);
+
+        if (!isRangeValid) {
+            setBtnDisabled(btnMark, true);
+            setBtnDisabled(btnUnmark, true);
+            setBtnDisabled(btnNoneRange, true);
         } else {
-            // Selección parcial / manual: "Seleccionar Todo" y "Desmarcar Todo" inactivos, Rango activos (Verde / Rojo)
-            setBtnState(btnAll, 'sm-btn-inactive');
-            setBtnState(btnNone, 'sm-btn-inactive');
-            setBtnState(btnMark, 'sm-btn-active--green');
-            setBtnState(btnUnmark, 'sm-btn-active--red');
+            const desde = Math.min(val1, val2);
+            const hasta = Math.max(val1, val2);
+            const rangeTotal = (hasta - desde) + 1;
+            
+            let rangeAprobado = 0;
+            let rangeRechazado = 0;
+
+            for (let num = desde; num <= hasta; num++) {
+                const cbAprobado = document.querySelector(`.ri-checkbox-aprobado[data-num="${num}"]`);
+                if (cbAprobado && cbAprobado.checked) rangeAprobado++;
+
+                const cbRechazado = document.querySelector(`.ri-checkbox-rechazado[data-num="${num}"]`);
+                if (cbRechazado && cbRechazado.checked) rangeRechazado++;
+            }
+
+            const rangeNinguno = rangeTotal - (rangeAprobado + rangeRechazado);
+
+            setBtnDisabled(btnMark, rangeAprobado === rangeTotal);
+            setBtnDisabled(btnUnmark, rangeRechazado === rangeTotal);
+            setBtnDisabled(btnNoneRange, rangeNinguno === rangeTotal);
         }
     }
 
     function initBulkActions() {
         const btnMark   = document.getElementById('btn-apply-range-mark');
         const btnUnmark = document.getElementById('btn-apply-range-unmark');
+        const btnNoneRange = document.getElementById('btn-apply-range-none');
         const btnAll    = document.getElementById('btn-select-all');
-        const btnNone   = document.getElementById('btn-deselect-all');
+        const btnDeselect = document.getElementById('btn-deselect-all');
+        const btnNoneAll = document.getElementById('btn-none-all');
 
-        const totalPiezas = window.smReporte?.totalPiezas || 0;
+        const totalPiezas = window.riReporte?.totalPiezas || 0;
 
         function validarYObtenerRango() {
-            const desdeInput = document.getElementById('sm-range-desde');
-            const hastaInput = document.getElementById('sm-range-hasta');
+            const desdeInput = document.getElementById('ri-range-desde');
+            const hastaInput = document.getElementById('ri-range-hasta');
 
             const val1 = parseInt(desdeInput?.value);
             const val2 = parseInt(hastaInput?.value);
 
-            if (isNaN(val1) || isNaN(val2) || val1 < 1 || val2 < 1) {
+            if (isNaN(val1) || isNaN(val2) || val1 < 1 || val2 < 1 || val1 > val2) {
                 if (isNaN(val1) && desdeInput) desdeInput.focus();
                 else if (isNaN(val2) && hastaInput) hastaInput.focus();
                 return null;
             }
 
-            const desde = Math.min(val1, val2);
-            const hasta = Math.max(val1, val2);
+            const desde = val1;
+            const hasta = val2;
 
             if (desde > totalPiezas) {
                 return null;
@@ -842,6 +924,15 @@
             });
         }
 
+        if (btnNoneRange) {
+            btnNoneRange.addEventListener('click', function () {
+                const rango = validarYObtenerRango();
+                if (rango) {
+                    ejecutarUpdateMasivo(rango.desde, rango.hasta, 'null');
+                }
+            });
+        }
+
         if (btnAll) {
             btnAll.addEventListener('click', function () {
                 if (totalPiezas <= 0) return;
@@ -849,12 +940,24 @@
             });
         }
 
-        if (btnNone) {
-            btnNone.addEventListener('click', function () {
+        if (btnDeselect) {
+            btnDeselect.addEventListener('click', function () {
                 if (totalPiezas <= 0) return;
                 ejecutarUpdateMasivo(1, totalPiezas, '0');
             });
         }
+
+        if (btnNoneAll) {
+            btnNoneAll.addEventListener('click', function () {
+                if (totalPiezas <= 0) return;
+                ejecutarUpdateMasivo(1, totalPiezas, 'null');
+            });
+        }
+
+        const desdeInput = document.getElementById('ri-range-desde');
+        const hastaInput = document.getElementById('ri-range-hasta');
+        if (desdeInput) desdeInput.addEventListener('input', actualizarEstadoBotonesAccion);
+        if (hastaInput) hastaInput.addEventListener('input', actualizarEstadoBotonesAccion);
 
         // Evaluar estado inicial al cargar los botones
         actualizarEstadoBotonesAccion();
@@ -863,7 +966,7 @@
     // ─── LÓGICA DE PDF, ENVÍO Y DESBLOQUEO ───────────────────────────
 
     window.openSendReportModal = function() {
-        if (!window.smReporte || !window.routes['calidad.salida_molduras.send']) return;
+        if (!window.riReporte || !window.routes['calidad.r_interno_salidas.send']) return;
         const btn = document.getElementById('btn-send-report');
         if (btn && btn.classList.contains('disabled')) return;
 
@@ -878,10 +981,10 @@
             cancelButtonText: 'Cancelar',
             allowOutsideClick: false,
             customClass: {
-                popup: 'sm-swal-popup',
-                title: 'sm-swal-title',
-                confirmButton: 'sm-swal-btn sm-swal-btn-confirm',
-                cancelButton: 'sm-swal-btn sm-swal-btn-cancel'
+                popup: 'ri-swal-popup',
+                title: 'ri-swal-title',
+                confirmButton: 'ri-swal-btn ri-swal-btn-confirm',
+                cancelButton: 'ri-swal-btn ri-swal-btn-cancel'
             },
             buttonsStyling: false,
             didOpen: () => {
@@ -913,14 +1016,14 @@
             html: '<h3 style="color: #033966; font-weight: bold;">Enviando...</h3><p>Por favor espere, se está generando el PDF y enviando el correo.</p>',
             allowOutsideClick: false,
             customClass: {
-                popup: 'sm-swal-popup',
-                title: 'sm-swal-title'
+                popup: 'ri-swal-popup',
+                title: 'ri-swal-title'
             },
             didOpen: () => Swal.showLoading()
         });
 
         try {
-            const res = await fetch(window.routes['calidad.salida_molduras.send'].replace(':id', window.smReporte.id), {
+            const res = await fetch(window.routes['calidad.r_interno_salidas.send'].replace(':id', window.riReporte.id), {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -936,9 +1039,9 @@
                 html: '<h3 style="color: #16a34a; font-weight: bold;">¡Enviado!</h3><p>El reporte se ha enviado correctamente.</p>',
                 icon: 'success',
                 customClass: {
-                    popup: 'sm-swal-popup',
-                    title: 'sm-swal-title',
-                    confirmButton: 'sm-swal-btn sm-swal-btn-confirm'
+                    popup: 'ri-swal-popup',
+                    title: 'ri-swal-title',
+                    confirmButton: 'ri-swal-btn ri-swal-btn-confirm'
                 },
                 buttonsStyling: false
             }).then(() => {
@@ -950,9 +1053,9 @@
                 html: `<h3 style="color: #d33; font-weight: bold;">Error</h3><p>${error.message}</p>`,
                 icon: 'error',
                 customClass: {
-                    popup: 'sm-swal-popup',
-                    title: 'sm-swal-title',
-                    confirmButton: 'sm-swal-btn sm-swal-btn-cancel'
+                    popup: 'ri-swal-popup',
+                    title: 'ri-swal-title',
+                    confirmButton: 'ri-swal-btn ri-swal-btn-cancel'
                 },
                 buttonsStyling: false
             });
@@ -960,35 +1063,77 @@
     }
 
     window.generateReportPdf = function() {
-        if (!window.smReporte || !window.routes['calidad.salida_molduras.pdf']) return;
+        if (!window.riReporte || !window.routes['calidad.r_interno_salidas.pdf']) return;
         
+        const cbsAprobados = document.querySelectorAll('.ri-checkbox-aprobado:checked');
+        const cbsRechazados = document.querySelectorAll('.ri-checkbox-rechazado:checked');
+        
+        if (cbsAprobados.length === 0 && cbsRechazados.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Reporte Vacío',
+                text: 'Debe evaluar (Liberar o Rechazar) al menos una pieza antes de generar el reporte en PDF.',
+                confirmButtonColor: '#033966'
+            });
+            return;
+        }
+
         Swal.fire({
             title: 'Alerta del Sistema',
-            html: '<h3 style="color: #033966; font-weight: bold;">Generando PDF...</h3><p>Por favor espere mientras se descarga su documento.</p>',
+            html: '<h3 style="color: #033966; font-weight: bold;">Generando PDF...</h3><p>Por favor espere mientras procesamos su documento.</p>',
             allowOutsideClick: false,
-            customClass: { popup: 'sm-swal-popup', title: 'sm-swal-title' },
+            customClass: { popup: 'ri-swal-popup', title: 'ri-swal-title' },
             didOpen: () => Swal.showLoading()
         });
 
-        const url = window.routes['calidad.salida_molduras.pdf'].replace(':id', window.smReporte.id);
+        const url = window.routes['calidad.r_interno_salidas.pdf'].replace(':id', window.riReporte.id);
         
-        // Crear enlace invisible para forzar descarga
-        const a = document.createElement('a');
-        a.href = url;
-        a.target = '_blank';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Error al generar el PDF');
+            return response.json();
+        })
+        .then(data => {
+            if (data.success && data.pdf_id) {
+                // Iniciar la descarga usando la nueva ruta
+                let downloadUrl = `/calidad/r-interno-salidas/${window.riReporte.id}/pdf/${data.pdf_id}/download`;
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
 
-        // Esperar unos segundos para permitir que el backend procese antes de recargar
-        setTimeout(() => {
-            Swal.close();
-            window.location.reload();
-        }, 4000);
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Éxito!',
+                    text: data.message || 'PDF generado correctamente.',
+                    timer: 2000,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                throw new Error('Respuesta inválida del servidor');
+            }
+        })
+        .catch(error => {
+            console.error(error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: 'No se pudo generar el PDF. Intente de nuevo.'
+            });
+        });
     };
 
     window.openMasterUnlockModal = function() {
-        if (!window.smReporte || !window.routes['calidad.salida_molduras.unlock']) return;
+        if (!window.riReporte || !window.routes['calidad.r_interno_salidas.unlock']) return;
 
         Swal.fire({
             title: 'Alerta del Sistema',
@@ -997,10 +1142,10 @@
             confirmButtonText: 'Desbloquear',
             cancelButtonText: 'Cancelar',
             customClass: {
-                popup: 'sm-swal-popup',
-                title: 'sm-swal-title',
-                confirmButton: 'sm-swal-btn sm-swal-btn-confirm',
-                cancelButton: 'sm-swal-btn sm-swal-btn-cancel'
+                popup: 'ri-swal-popup',
+                title: 'ri-swal-title',
+                confirmButton: 'ri-swal-btn ri-swal-btn-confirm',
+                cancelButton: 'ri-swal-btn ri-swal-btn-cancel'
             },
             buttonsStyling: false,
             preConfirm: () => {
@@ -1017,10 +1162,10 @@
                         title: 'Alerta del Sistema',
                         html: '<h3 style="color: #033966; font-weight: bold;">Verificando...</h3>',
                         allowOutsideClick: false,
-                        customClass: { popup: 'sm-swal-popup', title: 'sm-swal-title' },
+                        customClass: { popup: 'ri-swal-popup', title: 'ri-swal-title' },
                         didOpen: () => Swal.showLoading()
                     });
-                    const res = await fetch(window.routes['calidad.salida_molduras.unlock'].replace(':id', window.smReporte.id), {
+                    const res = await fetch(window.routes['calidad.r_interno_salidas.unlock'].replace(':id', window.riReporte.id), {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -1036,7 +1181,7 @@
                         title: 'Alerta del Sistema',
                         html: '<h3 style="color: #16a34a; font-weight: bold;">¡Desbloqueado!</h3><p>El reporte se ha desbloqueado correctamente.</p>',
                         icon: 'success',
-                        customClass: { popup: 'sm-swal-popup', title: 'sm-swal-title', confirmButton: 'sm-swal-btn sm-swal-btn-confirm' },
+                        customClass: { popup: 'ri-swal-popup', title: 'ri-swal-title', confirmButton: 'ri-swal-btn ri-swal-btn-confirm' },
                         buttonsStyling: false
                     }).then(() => {
                         window.location.reload();
@@ -1046,7 +1191,7 @@
                         title: 'Alerta del Sistema',
                         html: `<h3 style="color: #d33; font-weight: bold;">Error</h3><p>${error.message}</p>`,
                         icon: 'error',
-                        customClass: { popup: 'sm-swal-popup', title: 'sm-swal-title', confirmButton: 'sm-swal-btn sm-swal-btn-cancel' },
+                        customClass: { popup: 'ri-swal-popup', title: 'ri-swal-title', confirmButton: 'ri-swal-btn ri-swal-btn-cancel' },
                         buttonsStyling: false
                     });
                 }

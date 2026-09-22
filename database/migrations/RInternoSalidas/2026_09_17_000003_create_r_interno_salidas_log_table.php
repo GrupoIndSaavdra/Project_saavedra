@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Migración: Tabla de auditoría de ediciones en reportes "Salida de Molduras".
+ * Migración: Tabla de auditoría de ediciones en reportes "RInternoSalidas".
  * Registra QUIÉN editó, QUÉ campo cambió, y los valores anterior/nuevo.
  * Los registros de log son INMUTABLES (no soft-delete, no update).
  */
@@ -13,14 +13,14 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('salida_molduras_log', function (Blueprint $table) {
+        Schema::create('r_interno_salidas_log', function (Blueprint $table) {
             $table->id();
 
             // Relación con el reporte auditado
-            $table->foreignId('salida_moldura_id')
-                  ->constrained('salida_molduras')
+            $table->foreignId('r_interno_salida_id')
+                  ->constrained('r_interno_salidas')
                   ->onDelete('cascade')
-                  ->comment('ID del reporte de Salida de Molduras auditado');
+                  ->comment('ID del reporte de RInternoSalidas auditado');
 
             // Usuario que realizó la edición
             $table->unsignedBigInteger('user_id')->comment('ID del usuario que realizó el cambio');
@@ -44,7 +44,7 @@ return new class extends Migration
             $table->timestamp('created_at')->useCurrent();
 
             // Índice para consultas de historial por reporte
-            $table->index(['salida_moldura_id', 'created_at'], 'salida_log_reporte_fecha_idx');
+            $table->index(['r_interno_salida_id', 'created_at'], 'salida_log_reporte_fecha_idx');
             // Índice para consultas de actividad por usuario
             $table->index(['user_id', 'created_at'], 'salida_log_user_fecha_idx');
         });
@@ -52,6 +52,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('salida_molduras_log');
+        Schema::dropIfExists('r_interno_salidas_log');
     }
 };
