@@ -897,10 +897,19 @@ window.abrirModalFinalizarCalidad = function (
                         "candado obturador", "cabeza de soplo", "obturador", "bombillo",
                         "embudo", "corona", "plato", "molde", "fondo", "pistones", "guías", "guias"
                     ];
-                    const modelosEncontrados = todosModelosPosibles.filter((m) => pl.includes(m));
+                    const modelosEncontrados = todosModelosPosibles.filter((m) => {
+                        return (
+                            pl.includes("/" + m + "/") ||
+                            pl.startsWith(m + "/") ||
+                            pl.includes("_" + m + "_") ||
+                            pl.includes("-" + m + " -") ||
+                            pl.includes(" " + m + " ") ||
+                            pl.split("/").pop().startsWith(m)
+                        );
+                    });
                     if (modelosEncontrados.length === 0) return true;
                     const modelosActivosLower = modelosActivos.map((m) => m.toLowerCase().trim().replace(/^modelo\s+/i, ""));
-                    return modelosEncontrados.some((m) => modelosActivosLower.includes(m));
+                    return modelosEncontrados.some((m) => modelosActivosLower.some(ma => ma.includes(m) || m.includes(ma)));
                 };
                 let modelsApro = arrAprobados;
                 let modelsRech = arrRechazados;
@@ -912,16 +921,44 @@ window.abrirModalFinalizarCalidad = function (
                 const filteredFiles = data.archivos.filter((f) => {
                     const pl = f.nombre.toLowerCase();
                     if (pl.includes("_anterior_n")) return false;
-                    const isRechazadoFile = pl.includes("documentos_rechazados") || pl.includes("rechazado") || pl.includes("scar");
-                    
+
+                    // ── Carpetas que NUNCA deben aparecer en este modal ──────────────
+                    const carpetasExcluidas = [
+                        "escaneados",
+                        "dibujos_fundicion",
+                        "ayudas_visuales_fundicion",
+                        "ayudas_visuales",
+                        "preordenes",
+                    ];
+                    if (carpetasExcluidas.some((c) => pl.includes("/" + c + "/"))) return false;
+
+                    const isRechazadoFile =
+                        pl.includes("documentos_rechazados") ||
+                        pl.includes("rechazado") ||
+                        pl.includes("scar") ||
+                        pl.includes("f_ccl_scar") ||
+                        pl.includes("f-ccl-scar") ||
+                        pl.includes("f_ccl_rdm") ||
+                        pl.includes("f-ccl-rdm");
+
+                    const isLiberacionFile =
+                        pl.includes("formatos_liberacion") ||
+                        pl.includes("f_ccl_ldm") ||
+                        pl.includes("f-ccl-ldm");
+
                     if (decision === "aprobar") {
+                        // Solo formatos de liberación (LDM)
                         if (isRechazadoFile) return false;
+                        if (!isLiberacionFile) return false;
                         return archivoPerteneceAModelos(f.nombre, modelsApro);
                     }
                     if (decision === "rechazar") {
-                        if (isRechazadoFile) return archivoPerteneceAModelos(f.nombre, modelsRech);
+                        // Solo formatos de rechazo (SCAR / RDM)
+                        if (!isRechazadoFile) return false;
                         return archivoPerteneceAModelos(f.nombre, modelsRech);
                     }
+                    // Mixto: LDM + SCAR
+                    if (!isLiberacionFile && !isRechazadoFile) return false;
                     return archivoPerteneceAModelos(f.nombre, allRelevantModels);
                 });
                 

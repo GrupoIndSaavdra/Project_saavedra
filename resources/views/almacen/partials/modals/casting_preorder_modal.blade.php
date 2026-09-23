@@ -167,7 +167,7 @@
 
                 {{-- BOTÓN DE GUARDAR GLOBAL --}}
                 <div class="form-actions" style="margin-top: 35px; text-align: center;">
-                    <button type="submit" id="btn-submit-poc" class="btn-save-preorden" disabled style="font-size: 1.15em; padding: 16px 42px; border-radius: 14px; font-family: 'Poppins', sans-serif; font-weight: 700; background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); border: none; color: #ffffff; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35); height: auto; letter-spacing: 0.5px;">
+                    <button type="submit" id="btn-submit-poc" class="btn-save-preorden btn-hover-green-override" disabled style="font-size: 1.15em; padding: 16px 42px; border-radius: 14px; font-family: 'Poppins', sans-serif; font-weight: 700; background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); border: none; color: #ffffff; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35); height: auto; letter-spacing: 0.5px;">
                         <i class="fas fa-file-pdf" style="margin-right: 8px;"></i> Guardar y Descargar Pre-Orden de Casting
                     </button>
                 </div>

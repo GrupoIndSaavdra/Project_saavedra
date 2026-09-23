@@ -64,7 +64,7 @@ final class FundicionPaths
     public const ALMACEN                  = 'ALMACEN';
     public const CALIDAD                  = 'CALIDAD';
     public const EXTRAS                   = 'EXTRAS';
-    public const ESCANEADOS               = 'DOCUMENTOS_ESCANEADOS';
+    public const ESCANEADOS               = 'ESCANEADOS';
 
     // Rutas de compatibilidad legacy (solo para fallbacks)
     public const PREORDEN_MODELO   = 'DOCUMENTOS_APROBADOS/PREORDEN_MODELO';
@@ -93,15 +93,123 @@ final class FundicionPaths
     /**
      * Inicializa la estructura completa de subcarpetas para una clase en un root específico.
      */
-    public static function crearEstructuraClase(string $otFolder, string $clase, string $root): void
+    /**
+     * Normaliza un nombre de clase para asegurar consistencia (ej: Molde -> 1 - MOLDES).
+     */
+    public static function normalizeClass(string $clase): string
+    {
+        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+        if (empty($claseClean)) {
+            return 'GENERAL';
+        }
+
+        $standardMap = [
+            'MOLDE' => '1 - MOLDES',
+            'BOMBILLO' => '2 - BOMBILLO',
+            'EMBUDO' => '3 - EMBUDO',
+            'CORONA' => '4 - CORONA',
+            'PLATO' => '5 - PLATO',
+            'FONDO' => '6 - FONDO',
+            'OBTURADOR' => '7 - OBTURADOR',
+            'CABEZA DE SOPLO' => '8 - CABEZA DE SOPLO',
+            'CANDADO OBTURADOR' => '9 - CANDADO OBTURADOR',
+            'GUIAS' => '10 - GUIAS',
+            'PISTONES' => '11 - PISTONES',
+        ];
+
+        // Normalizar nombre sin numeros para mapearlo
+        $claseNoNum = strtoupper(trim(preg_replace('/^\d+\s*-\s*/', '', $claseClean)));
+        if ($claseNoNum === 'MOLDES') $claseNoNum = 'MOLDE';
+        if ($claseNoNum === 'GUÍAS' || $claseNoNum === 'GUIAS') $claseNoNum = 'GUIAS';
+
+        if (array_key_exists($claseNoNum, $standardMap)) {
+            return $standardMap[$claseNoNum];
+        }
+
+        $claseClean = preg_replace('/^(\d+)([a-zA-Z]+)/', '$1 - $2', $claseClean);
+        return strtoupper($claseClean);
+    }
+
+    public static function crearEstructuraClase(string $otFolder, string $clase, string $root): string
     {
         $otFolderUpper = strtoupper($otFolder);
         $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
         if (empty($claseClean)) {
             $claseClean = 'GENERAL';
         }
+
+        // Guardar nombre raw antes de mapear (para búsqueda cruzada)
+        $claseRawNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $claseClean));
+
+        $standardMap = [
+            'MOLDE' => '1 - MOLDES',
+            'BOMBILLO' => '2 - BOMBILLO',
+            'EMBUDO' => '3 - EMBUDO',
+            'CORONA' => '4 - CORONA',
+            'PLATO' => '5 - PLATO',
+            'FONDO' => '6 - FONDO',
+            'OBTURADOR' => '7 - OBTURADOR',
+            'CABEZA DE SOPLO' => '8 - CABEZA DE SOPLO',
+            'CANDADO OBTURADOR' => '9 - CANDADO OBTURADOR',
+            'GUIAS' => '10 - GUIAS',
+            'PISTONES' => '11 - PISTONES',
+        ];
+
+        // Normalizar nombre sin numeros para mapearlo
+        $claseNoNum = strtoupper(trim(preg_replace('/^\d+\s*-\s*/', '', $claseClean)));
+        if ($claseNoNum === 'MOLDES') $claseNoNum = 'MOLDE';
+        if ($claseNoNum === 'GUIAS' || $claseNoNum === 'GU\u00cdAS') $claseNoNum = 'GUIAS';
+
+        if (array_key_exists($claseNoNum, $standardMap)) {
+            $claseClean = $standardMap[$claseNoNum];
+        } else {
+            $claseClean = preg_replace('/^(\d+)([a-zA-Z]+)/', '$1 - $2', $claseClean);
+            $claseClean = strtoupper($claseClean);
+        }
         
-        $basePath = strtoupper($root) . '/' . $otFolderUpper . '/' . $claseClean;
+        $baseOtPath = strtoupper($root) . '/' . $otFolderUpper;
+        $existingDirs = [];
+        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($baseOtPath)) {
+            $existingDirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($baseOtPath);
+        }
+
+        $cNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $claseClean));
+        $matched = false;
+
+        // 1. Buscar en el root de destino (nombre canónico o raw)
+        foreach ($existingDirs as $dir) {
+            $dirBase = basename($dir);
+            $dNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dirBase));
+            if ($cNorm === $dNorm || $claseRawNorm === $dNorm) {
+                $claseClean = strtoupper($dirBase);
+                $matched = true;
+                break;
+            }
+        }
+
+        // 2. Si no encontró en root propio, buscar en el root alterno
+        //    (Calidad mira en Almacén y viceversa) para reutilizar el mismo nombre
+        if (!$matched) {
+            $altRoot = (strtoupper($root) === strtoupper(self::CALIDAD_ROOT))
+                ? self::ALMACEN_ROOT
+                : self::CALIDAD_ROOT;
+            $altBaseOtPath = strtoupper($altRoot) . '/' . $otFolderUpper;
+            $altDirs = [];
+            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($altBaseOtPath)) {
+                $altDirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($altBaseOtPath);
+            }
+            foreach ($altDirs as $dir) {
+                $dirBase = basename($dir);
+                $dNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dirBase));
+                if ($cNorm === $dNorm || $claseRawNorm === $dNorm) {
+                    $claseClean = strtoupper($dirBase);
+                    $matched = true;
+                    break;
+                }
+            }
+        }
+        
+        $basePath = $baseOtPath . '/' . $claseClean;
         
         $dirs = [
             $basePath . '/' . self::DIBUJOS,
@@ -120,6 +228,8 @@ final class FundicionPaths
                 \Illuminate\Support\Facades\Storage::disk('local')->makeDirectory($dir);
             }
         }
+        
+        return $claseClean;
     }
 
     /**

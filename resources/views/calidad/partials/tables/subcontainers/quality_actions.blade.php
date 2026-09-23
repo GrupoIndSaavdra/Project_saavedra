@@ -17,9 +17,11 @@
             <div class="lib-calidad-card-body" style="padding:18px 22px;text-align:center;background:#faf5ff;">
                 <img src="{{ asset('images/Proveedor.png') }}" alt="Proveedor"
                     style="width:52px;height:52px;margin-bottom:10px;">
-                <h4 style="color:#7c3aed;font-size:1.05rem;font-weight:700;margin:0 0 8px 0;font-family:'Poppins',sans-serif;">
+                <h4
+                    style="color:#7c3aed;font-size:1.05rem;font-weight:700;margin:0 0 8px 0;font-family:'Poppins',sans-serif;">
                     Proceso Finalizado &mdash; Enviado al Proveedor</h4>
-                <p style="color:#4c1d95;font-size:0.9rem;margin:0;font-family:'Poppins',sans-serif;">La pre-orden de casting fue
+                <p style="color:#4c1d95;font-size:0.9rem;margin:0;font-family:'Poppins',sans-serif;">La pre-orden de
+                    casting fue
                     generada y enviada al proveedor. No se requieren acciones adicionales de Calidad para esta OT.</p>
             </div>
         </div>
@@ -37,106 +39,67 @@
                     <span class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
                 </div>
                 @php
-                    $hdClasesActivas = collect(
-                        $targetReg->ayudas_config ?? [],
-                    )
+                    $hdClasesActivas = collect($targetReg->ayudas_config ?? [])
                         ->filter(
-                            fn($c) => !str_contains(
-                                strtolower($c),
-                                'opcional',
-                            ) || str_contains(strtolower($c), 'pistones') || str_contains(strtolower($c), 'guías') || str_contains(strtolower($c), 'guias'),
+                            fn($c) => !str_contains(strtolower($c), 'opcional') ||
+                                str_contains(strtolower($c), 'pistones') ||
+                                str_contains(strtolower($c), 'guías') ||
+                                str_contains(strtolower($c), 'guias'),
                         )
-                        ->filter(function ($claseNombre) use ($targetReg, ) {
+                        ->filter(function ($claseNombre) use ($targetReg) {
                             $clLow = strtolower($claseNombre);
                             $tipo = null;
-                            if (
-                                strpos(
-                                    $clLow,
-                                    'candado obturador',
-                                ) !== false
-                            ) {
+                            if (strpos($clLow, 'candado obturador') !== false) {
                                 $tipo = 'Candado obturador';
-                            } elseif (
-                                strpos(
-                                    $clLow,
-                                    'cabeza de soplo',
-                                ) !== false
-                            ) {
+                            } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                                 $tipo = 'Cabeza de soplo';
-                            } elseif (
-                                strpos($clLow, 'embudo') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'embudo') !== false) {
                                 $tipo = 'Embudo';
-                            } elseif (
-                                strpos($clLow, 'corona') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'corona') !== false) {
                                 $tipo = 'Corona';
-                            } elseif (
-                                strpos($clLow, 'plato') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'plato') !== false) {
                                 $tipo = 'Plato';
-                            } elseif (
-                                strpos($clLow, 'fondo') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'fondo') !== false) {
                                 $tipo = 'Fondo';
-                            } elseif (
-                                strpos($clLow, 'obturador') !==
-                                false
-                            ) {
+                            } elseif (strpos($clLow, 'obturador') !== false) {
                                 $tipo = 'Obturador';
-                            } elseif (
-                                strpos($clLow, 'molde') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'molde') !== false) {
                                 $tipo = 'Molde';
-                            } elseif (
-                                strpos($clLow, 'bombillo') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'bombillo') !== false) {
                                 $tipo = 'Bombillo';
-                            } elseif (
-                                strpos($clLow, 'pistones') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'pistones') !== false) {
                                 $tipo = 'Pistones';
-                            } elseif (
-                                strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                                 $tipo = 'Guías';
-                            } elseif (
-                                strpos($clLow, 'pistones') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'pistones') !== false) {
                                 $tipo = 'Pistones';
-                            } elseif (
-                                strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                                 $tipo = 'Guías';
                             }
                             if ($tipo) {
-                                $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $targetReg->ot);
+                                $baseOt = preg_replace(
+                                    '/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu',
+                                    '',
+                                    $targetReg->ot,
+                                );
                                 $isAprob = \App\Models\LiberacionModeloFundicion::where(
                                     'ot',
                                     '!=',
                                     $targetReg->ot,
-                                    'and'
+                                    'and',
                                 )
                                     ->where(
                                         function ($q) use ($baseOt) {
                                             $q->where('ot', '=', $baseOt, 'and')
-                                              ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
-                                              ->where('ot', 'LIKE', $baseOt . '_%_R%', 'or');
+                                                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+                                                ->where('ot', 'LIKE', $baseOt . '_%_R%', 'or');
                                         },
                                         null,
                                         null,
-                                        'and'
+                                        'and',
                                     )
-                                    ->where(
-                                        'tipo_modelo',
-                                        '=',
-                                        $tipo,
-                                    )
-                                    ->where(
-                                        'decision',
-                                        '=',
-                                        'aprobar',
-                                    )
+                                    ->where('tipo_modelo', '=', $tipo)
+                                    ->where('decision', '=', 'aprobar')
                                     ->exists();
                                 if ($isAprob) {
                                     return false;
@@ -151,76 +114,39 @@
                     foreach ($hdClasesActivas as $clName) {
                         $clLow = strtolower($clName);
                         $tipo = null;
-                        if (
-                            strpos($clLow, 'candado obturador') !==
-                            false
-                        ) {
+                        if (strpos($clLow, 'candado obturador') !== false) {
                             $tipo = 'Candado obturador';
-                        } elseif (
-                            strpos($clLow, 'cabeza de soplo') !==
-                            false
-                        ) {
+                        } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                             $tipo = 'Cabeza de soplo';
-                        } elseif (
-                            strpos($clLow, 'embudo') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'embudo') !== false) {
                             $tipo = 'Embudo';
-                        } elseif (
-                            strpos($clLow, 'corona') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'corona') !== false) {
                             $tipo = 'Corona';
-                        } elseif (
-                            strpos($clLow, 'plato') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'plato') !== false) {
                             $tipo = 'Plato';
-                        } elseif (
-                            strpos($clLow, 'fondo') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'fondo') !== false) {
                             $tipo = 'Fondo';
-                        } elseif (
-                            strpos($clLow, 'obturador') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'obturador') !== false) {
                             $tipo = 'Obturador';
-                        } elseif (
-                            strpos($clLow, 'molde') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'molde') !== false) {
                             $tipo = 'Molde';
-                        } elseif (
-                            strpos($clLow, 'bombillo') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'bombillo') !== false) {
                             $tipo = 'Bombillo';
-                        } elseif (
-                            strpos($clLow, 'pistones') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'pistones') !== false) {
                             $tipo = 'Pistones';
-                        } elseif (
-                            strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                             $tipo = 'Guías';
-                        } elseif (
-                            strpos($clLow, 'pistones') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'pistones') !== false) {
                             $tipo = 'Pistones';
-                        } elseif (
-                            strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                             $tipo = 'Guías';
                         }
                         if ($tipo) {
                             if (
-                                \App\Models\LiberacionModeloFundicion::where(
-                                    'ot',
-                                    '=',
-                                    $targetReg->ot,
-                                )
-                                    ->where(
-                                        'tipo_modelo',
-                                        '=',
-                                        $tipo,
-                                    )
+                                \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
+                                    ->where('tipo_modelo', '=', $tipo)
                                     ->where(function ($q) {
-                                        $q->whereNotNull('user_id_calidad')
-                                            ->orWhereNotNull('decision');
+                                        $q->whereNotNull('user_id_calidad')->orWhereNotNull('decision');
                                     })
                                     ->exists()
                             ) {
@@ -238,8 +164,8 @@
                     <span
                         class="cal-font-size-0-65em cal-font-weight-700 cal-color-64748b cal-letter-spacing-0-5px cal-text-transform-uppercase">Clases</span>
                     @if ($hdCont == count($hdClasesActivas) && count($hdClasesActivas) > 0)
-                        <img src="{{ asset('images/ready.png') }}" class="cal-width-14px cal-height-14px cal-margin-top-2px"
-                            alt="Listo" />
+                        <img src="{{ asset('images/ready.png') }}"
+                            class="cal-width-14px cal-height-14px cal-margin-top-2px" alt="Listo" />
                     @endif
                 </div>
             </div>
@@ -283,120 +209,72 @@
                     </div>
                 @endif
                 @php
-                    $borradorPendiente = \App\Models\LiberacionModeloFundicion::where(
-                        'ot',
-                        $targetReg->ot,
-                    )
+                    $borradorPendiente = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)
                         ->where('estado', 'pendiente')
                         ->first();
-                    $scarModelo = \App\Models\ScarModelo::where(
-                        'ot',
-                        $targetReg->ot,
-                    )->first();
-                    $reqFotos =
-                        $scarModelo &&
-                        ($scarModelo->evidencia_fotos ||
-                            $scarModelo->evidencia_otro);
-                    $clasesActivas = collect(
-                        $targetReg->ayudas_config ?? [],
-                    )
+                    $scarModelo = \App\Models\ScarModelo::where('ot', $targetReg->ot)->first();
+                    $reqFotos = $scarModelo && ($scarModelo->evidencia_fotos || $scarModelo->evidencia_otro);
+                    $clasesActivas = collect($targetReg->ayudas_config ?? [])
                         ->filter(
-                            fn($c) => !str_contains(
-                                strtolower($c),
-                                'opcional',
-                            ) || str_contains(strtolower($c), 'pistones') || str_contains(strtolower($c), 'guías') || str_contains(strtolower($c), 'guias'),
+                            fn($c) => !str_contains(strtolower($c), 'opcional') ||
+                                str_contains(strtolower($c), 'pistones') ||
+                                str_contains(strtolower($c), 'guías') ||
+                                str_contains(strtolower($c), 'guias'),
                         )
-                        ->filter(function ($claseNombre) use ($targetReg, ) {
+                        ->filter(function ($claseNombre) use ($targetReg) {
                             $clLow = strtolower($claseNombre);
                             $tipo = null;
-                            if (
-                                strpos(
-                                    $clLow,
-                                    'candado obturador',
-                                ) !== false
-                            ) {
+                            if (strpos($clLow, 'candado obturador') !== false) {
                                 $tipo = 'Candado obturador';
-                            } elseif (
-                                strpos(
-                                    $clLow,
-                                    'cabeza de soplo',
-                                ) !== false
-                            ) {
+                            } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                                 $tipo = 'Cabeza de soplo';
-                            } elseif (
-                                strpos($clLow, 'embudo') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'embudo') !== false) {
                                 $tipo = 'Embudo';
-                            } elseif (
-                                strpos($clLow, 'corona') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'corona') !== false) {
                                 $tipo = 'Corona';
-                            } elseif (
-                                strpos($clLow, 'plato') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'plato') !== false) {
                                 $tipo = 'Plato';
-                            } elseif (
-                                strpos($clLow, 'fondo') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'fondo') !== false) {
                                 $tipo = 'Fondo';
-                            } elseif (
-                                strpos($clLow, 'obturador') !==
-                                false
-                            ) {
+                            } elseif (strpos($clLow, 'obturador') !== false) {
                                 $tipo = 'Obturador';
-                            } elseif (
-                                strpos($clLow, 'molde') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'molde') !== false) {
                                 $tipo = 'Molde';
-                            } elseif (
-                                strpos($clLow, 'bombillo') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'bombillo') !== false) {
                                 $tipo = 'Bombillo';
-                            } elseif (
-                                strpos($clLow, 'pistones') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'pistones') !== false) {
                                 $tipo = 'Pistones';
-                            } elseif (
-                                strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                                 $tipo = 'Guías';
-                            } elseif (
-                                strpos($clLow, 'pistones') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'pistones') !== false) {
                                 $tipo = 'Pistones';
-                            } elseif (
-                                strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                            ) {
+                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                                 $tipo = 'Guías';
                             }
                             if ($tipo) {
-                                $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $targetReg->ot);
+                                $baseOt = preg_replace(
+                                    '/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu',
+                                    '',
+                                    $targetReg->ot,
+                                );
                                 $isAprobado = \App\Models\LiberacionModeloFundicion::where(
                                     'ot',
                                     '!=',
                                     $targetReg->ot,
-                                    'and'
+                                    'and',
                                 )
                                     ->where(
                                         function ($q) use ($baseOt) {
                                             $q->where('ot', '=', $baseOt, 'and')
-                                              ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
-                                              ->where('ot', 'LIKE', $baseOt . '_%_R%', 'or');
+                                                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+                                                ->where('ot', 'LIKE', $baseOt . '_%_R%', 'or');
                                         },
                                         null,
                                         null,
-                                        'and'
+                                        'and',
                                     )
-                                    ->where(
-                                        'tipo_modelo',
-                                        '=',
-                                        $tipo,
-                                    )
-                                    ->where(
-                                        'decision',
-                                        '=',
-                                        'aprobar',
-                                    )
+                                    ->where('tipo_modelo', '=', $tipo)
+                                    ->where('decision', '=', 'aprobar')
                                     ->exists();
                                 if ($isAprobado) {
                                     return false;
@@ -413,71 +291,38 @@
                     foreach ($clasesActivas as $clName) {
                         $clLow = strtolower($clName);
                         $tipo = null;
-                        if (
-                            strpos($clLow, 'candado obturador') !==
-                            false
-                        ) {
+                        if (strpos($clLow, 'candado obturador') !== false) {
                             $tipo = 'Candado obturador';
-                        } elseif (
-                            strpos($clLow, 'cabeza de soplo') !==
-                            false
-                        ) {
+                        } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                             $tipo = 'Cabeza de soplo';
-                        } elseif (
-                            strpos($clLow, 'embudo') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'embudo') !== false) {
                             $tipo = 'Embudo';
-                        } elseif (
-                            strpos($clLow, 'corona') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'corona') !== false) {
                             $tipo = 'Corona';
-                        } elseif (
-                            strpos($clLow, 'plato') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'plato') !== false) {
                             $tipo = 'Plato';
-                        } elseif (
-                            strpos($clLow, 'fondo') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'fondo') !== false) {
                             $tipo = 'Fondo';
-                        } elseif (
-                            strpos($clLow, 'obturador') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'obturador') !== false) {
                             $tipo = 'Obturador';
-                        } elseif (
-                            strpos($clLow, 'molde') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'molde') !== false) {
                             $tipo = 'Molde';
-                        } elseif (
-                            strpos($clLow, 'bombillo') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'bombillo') !== false) {
                             $tipo = 'Bombillo';
-                        } elseif (
-                            strpos($clLow, 'pistones') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'pistones') !== false) {
                             $tipo = 'Pistones';
-                        } elseif (
-                            strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                             $tipo = 'Guías';
-                        } elseif (
-                            strpos($clLow, 'pistones') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'pistones') !== false) {
                             $tipo = 'Pistones';
-                        } elseif (
-                            strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                        ) {
+                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                             $tipo = 'Guías';
                         }
                         if ($tipo) {
-                            $hasData = \App\Models\LiberacionModeloFundicion::where(
-                                'ot',
-                                '=',
-                                $targetReg->ot,
-                            )
+                            $hasData = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                 ->where('tipo_modelo', '=', $tipo)
                                 ->where(function ($q) {
-                                    $q->whereNotNull('user_id_calidad')
-                                        ->orWhereNotNull('decision');
+                                    $q->whereNotNull('user_id_calidad')->orWhereNotNull('decision');
                                 })
                                 ->exists();
                             if (!$hasData) {
@@ -508,40 +353,29 @@
                         return true;
                     });
                     $hasScar = $scarsOT->isNotEmpty();
-                    $scarTipos = $scarsOT->pluck('tipo_modelo')->filter()->map(fn($t) => strtolower(trim($t)))->toArray();
+                    $scarTipos = $scarsOT
+                        ->pluck('tipo_modelo')
+                        ->filter()
+                        ->map(fn($t) => strtolower(trim($t)))
+                        ->toArray();
 
-                    $hasRechazoBorrador = \App\Models\LiberacionModeloFundicion::where(
-                        'ot',
-                        '=',
-                        $targetReg->ot,
-                    )
-                        ->where('decision', '=', 'rechazar')
-                        ->where('alerta_enviada', '=', 0)
-                        ->exists() || $hasScar;
+                    $hasRechazoBorrador =
+                        \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
+                            ->where('decision', '=', 'rechazar')
+                            ->where('alerta_enviada', '=', 0)
+                            ->exists() || $hasScar;
 
-                    $hasAprobadoBorrador = \App\Models\LiberacionModeloFundicion::where(
-                        'ot',
-                        '=',
-                        $targetReg->ot,
-                    )
+                    $hasAprobadoBorrador = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                         ->where('decision', '=', 'aprobar')
                         ->where('alerta_enviada', '=', 0)
                         ->exists();
 
-                    $borradorRechazado = \App\Models\LiberacionModeloFundicion::where(
-                        'ot',
-                        '=',
-                        $targetReg->ot,
-                    )
+                    $borradorRechazado = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                         ->where('decision', '=', 'rechazar')
                         ->where('alerta_enviada', '=', 0)
                         ->first();
 
-                    $tiposGuardados = \App\Models\LiberacionModeloFundicion::where(
-                        'ot',
-                        '=',
-                        $targetReg->ot,
-                    )
+                    $tiposGuardados = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                         ->where('alerta_enviada', '=', 0)
                         ->get(['tipo_modelo', 'decision']);
 
@@ -549,7 +383,9 @@
                     $tiposRechazadosArr = [];
 
                     foreach ($tiposGuardados as $tg) {
-                        if (!$tg->tipo_modelo) continue;
+                        if (!$tg->tipo_modelo) {
+                            continue;
+                        }
                         $tLow = strtolower(trim($tg->tipo_modelo));
                         if ($tg->decision === 'aprobar') {
                             $tiposAprobadosArr[] = $tg->tipo_modelo;
@@ -593,84 +429,42 @@
                     $tiposRechazadosJson = json_encode(array_values(array_unique($tiposRechazadosArr)));
 
                     // Verificar si todas las clases activas ya fueron alertadas (proceso enviado a la siguiente etapa)
-                    $clasesAlertadas = \App\Models\LiberacionModeloFundicion::where(
-                        'ot',
-                        '=',
-                        $targetReg->ot,
-                    )
+                    $clasesAlertadasDb = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                         ->where('alerta_enviada', '=', 1)
                         ->pluck('tipo_modelo')
-                        ->map(fn($item) => strtolower(trim($item)))
                         ->toArray();
-                    $clasesPendientesAlertar = array_filter(
-                        $clasesActivas,
-                        function ($c) use ($clasesAlertadas) {
-                            $clLow = strtolower($c);
-                            $tipo = null;
-                            if (
-                                strpos(
-                                    $clLow,
-                                    'candado obturador',
-                                ) !== false
-                            ) {
-                                $tipo = 'candado obturador';
-                            } elseif (
-                                strpos(
-                                    $clLow,
-                                    'cabeza de soplo',
-                                ) !== false
-                            ) {
-                                $tipo = 'cabeza de soplo';
-                            } elseif (
-                                strpos($clLow, 'embudo') !== false
-                            ) {
-                                $tipo = 'embudo';
-                            } elseif (
-                                strpos($clLow, 'corona') !== false
-                            ) {
-                                $tipo = 'corona';
-                            } elseif (
-                                strpos($clLow, 'plato') !== false
-                            ) {
-                                $tipo = 'plato';
-                            } elseif (
-                                strpos($clLow, 'fondo') !== false
-                            ) {
-                                $tipo = 'fondo';
-                            } elseif (
-                                strpos($clLow, 'obturador') !==
-                                false
-                            ) {
-                                $tipo = 'obturador';
-                            } elseif (
-                                strpos($clLow, 'molde') !== false
-                            ) {
-                                $tipo = 'molde';
-                            } elseif (
-                                strpos($clLow, 'bombillo') !== false
-                            ) {
-                                $tipo = 'bombillo';
-                            } elseif (
-                                strpos($clLow, 'pistones') !== false
-                            ) {
-                                $tipo = 'pistones';
-                            } elseif (
-                                strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                            ) {
-                                $tipo = 'guías';
-                            } elseif (
-                                strpos($clLow, 'pistones') !== false
-                            ) {
-                                $tipo = 'pistones';
-                            } elseif (
-                                strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false
-                            ) {
-                                $tipo = 'guías';
+
+                    $clasesAlertadasFlat = [];
+                    foreach ($clasesAlertadasDb as $ca) {
+                        foreach (explode(',', $ca) as $part) {
+                            $part = trim($part);
+                            if ($part !== '') {
+                                $clasesAlertadasFlat[] = str_replace(
+                                    [' ', '_', 'í', 'gú'],
+                                    ['', '', 'i', 'gu'],
+                                    strtolower($part),
+                                );
                             }
-                            return $tipo &&
-                                !in_array($tipo, $clasesAlertadas);
-                        },
-                    );
+                        }
+                    }
+
+                    $clasesPendientesAlertar = array_filter($clasesActivas, function ($c) use ($clasesAlertadasFlat) {
+                        $clLow = str_replace([' ', '_', 'í', 'gú'], ['', '', 'i', 'gu'], strtolower(trim($c)));
+                        if ($clLow === '') {
+                            return false;
+                        }
+
+                        foreach ($clasesAlertadasFlat as $caNorm) {
+                            if ($caNorm === '') {
+                                continue;
+                            }
+                            // If they contain each other, it's a match
+        if (strpos($caNorm, $clLow) !== false || strpos($clLow, $caNorm) !== false) {
+            return false; // It's already alerted, so NOT pending
+                            }
+                        }
+                        return true; // Still pending
+                    });
                     $etapaFinalizada =
                         empty($clasesPendientesAlertar) &&
                         (!empty($clasesActivas) || $hasFinalStatus) &&
@@ -685,8 +479,8 @@
                         <div class="lib-calidad-finalizado-banner"
                             style="background: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08);">
                             <div style="display: flex; align-items: center; gap: 20px;">
-                                <img src="{{ asset('images/enviando.png') }}" style="width: 54px; height: 54px; flex-shrink: 0;"
-                                    alt="Enviado">
+                                <img src="{{ asset('images/enviando.png') }}"
+                                    style="width: 54px; height: 54px; flex-shrink: 0;" alt="Enviado">
                                 <div>
                                     <h4 class="lib-calidad-card-prompt"
                                         style="color: #0369a1; margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.1rem; font-family: 'Poppins', sans-serif;">
@@ -694,7 +488,8 @@
                                     </h4>
                                     <p
                                         style="color: #0c4a6e; margin: 0; font-size: 0.95rem; font-weight: 500; font-family: 'Poppins', sans-serif;">
-                                        Las clases actuales han sido procesadas correctamente y están en espera de la siguiente
+                                        Las clases actuales han sido procesadas correctamente y están en espera de la
+                                        siguiente
                                         etapa o nuevas clases.
                                     </p>
                                 </div>
@@ -702,11 +497,13 @@
                             @if ($contClasesConDatos > 0)
                                 <div class="lib-calidad-card-btns" style="flex-shrink: 0;">
                                     @if ($alertaEnviadaEtapa)
-                                        <button class="btn-calidad-action btn-calidad-email cal-background-color-059669 cal-color-white"
+                                        <button
+                                            class="btn-calidad-action btn-calidad-email cal-background-color-059669 cal-color-white"
                                             disabled
                                             style="pointer-events: none; opacity: 0.85; cursor: not-allowed; background-color: #059669 !important; border: 2px solid #047857 !important;"
                                             title="El correo de alerta ya ha sido enviado para estas clases">
-                                            <img src="{{ asset('images/enviando.png') }}" alt="" style="filter: none !important;" />
+                                            <img src="{{ asset('images/enviando.png') }}" alt=""
+                                                style="filter: none !important;" />
                                             <span>Correo Enviado</span>
                                         </button>
                                     @elseif ($hasRechazoBorrador)
@@ -718,10 +515,12 @@
                                                 <span>Generar Formato SCAR</span>
                                             </button>
                                         @else
-                                            <button class="btn-calidad-action btn-calidad-email cal-background-color-dc2626 cal-color-white"
+                                            <button
+                                                class="btn-calidad-action btn-calidad-email cal-background-color-dc2626 cal-color-white"
                                                 onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                                 title="Enviar alerta de calidad y notificar por correo">
-                                                <img src="{{ asset('images/enviando.png') }}" alt="" style="filter: none !important;" />
+                                                <img src="{{ asset('images/enviando.png') }}" alt=""
+                                                    style="filter: none !important;" />
                                                 <span>Enviar Alerta</span>
                                             </button>
                                         @endif
@@ -729,7 +528,8 @@
                                         <button class="btn-calidad-action btn-calidad-iniciar"
                                             onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                             title="Enviar alerta de calidad y notificar por correo">
-                                            <img src="{{ asset('images/enviando.png') }}" alt="" style="filter: none !important;" />
+                                            <img src="{{ asset('images/enviando.png') }}" alt=""
+                                                style="filter: none !important;" />
                                             <span>Enviar Alerta</span>
                                         </button>
                                     @endif
@@ -740,8 +540,8 @@
                         <div class="lib-calidad-finalizado-banner"
                             style="background: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08);">
                             <div style="display: flex; align-items: center; gap: 20px;">
-                                <img src="{{ asset('images/Espera.png') }}" style="width: 54px; height: 54px; flex-shrink: 0;"
-                                    alt="Casting">
+                                <img src="{{ asset('images/Espera.png') }}"
+                                    style="width: 54px; height: 54px; flex-shrink: 0;" alt="Casting">
                                 <div>
                                     <h4 class="lib-calidad-card-prompt"
                                         style="color: #0369a1; margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.1rem; font-family: 'Poppins', sans-serif;">
@@ -749,7 +549,8 @@
                                     </h4>
                                     <p
                                         style="color: #0c4a6e; margin: 0; font-size: 0.95rem; font-weight: 500; font-family: 'Poppins', sans-serif;">
-                                        El modelo se encuentra en proceso de casting por parte de Almacén. No se requiere acción
+                                        El modelo se encuentra en proceso de casting por parte de Almacén. No se
+                                        requiere acción
                                         adicional de Calidad en esta etapa.
                                     </p>
                                 </div>
@@ -759,19 +560,36 @@
                         <div class="lib-calidad-action-row"
                             style="display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%;">
                             @php
-                                $almacenEnvioAlerta = (bool) (
-                                    !empty($targetReg->pre_orden_sent) ||
-                                    !empty($targetReg->pre_orden_email_sent) ||
-                                    !empty($targetReg->alert_sent_at) ||
-                                    \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->exists() ||
-                                    $contClasesConDatos > 0
-                                );
+                                $hasRequiredAlmacenDoc = false;
+                                $docsToCheck = array_merge($almacenAprobadosDocs ?? [], $otrosArchivos ?? []);
+                                foreach ($docsToCheck as $doc) {
+                                    $nomLower = strtolower($doc['nombre']);
+                                    if (
+                                        strpos($nomLower, 'f_alm_pfm') !== false ||
+                                        strpos($nomLower, 'f_alm_cfm') !== false
+                                    ) {
+                                        $hasRequiredAlmacenDoc = true;
+                                        break;
+                                    }
+                                }
+                                $almacenEnvioAlerta =
+                                    (bool) ((!empty($targetReg->pre_orden_sent) ||
+                                        !empty($targetReg->pre_orden_email_sent) ||
+                                        !empty($targetReg->alert_sent_at) ||
+                                        \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->exists() ||
+                                        $contClasesConDatos > 0) &&
+                                        $hasRequiredAlmacenDoc);
                             @endphp
-                            <h4 class="lib-calidad-card-prompt"
-                                style="margin: 0; font-size: 0.98em; font-weight: 600; color: #1e293b; font-family: 'Poppins', sans-serif;">
+                            <h4 class="lib-calidad-card-prompt">
                                 @if (!$almacenEnvioAlerta)
-                                    En espera de que Almacén notifique el envío de clases por
-                                    correo.
+                                    En espera de que <span
+                                        style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Almacén</span>
+                                    envíe el correo con la <span
+                                        style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Preorden
+                                        de Fabricación de Modelo (F_ALM_PFM)</span> o la <span
+                                        style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Confirmación
+                                        Física de Modelo (F_ALM_CFM)</span> para iniciar
+                                    liberación.
                                 @elseif ($todosGuardados)
                                     @if ($hasRechazoBorrador)
                                         Borrador de rechazo guardado para esta OT. ¿Qué deseas
@@ -786,8 +604,11 @@
                                 @elseif (in_array($targetReg->calidad_revision_status, ['rechazado', 'calidad_rechazado']))
                                     El modelo fue rechazado antes. ¿Quieres revisarlo de nuevo?
                                 @else
-                                    ¿Qué deseas hacer con este modelo? ¿Lo apruebas o lo
-                                    rechazas?
+                                    Ha llegado una nueva solicitud e liberación de modelo, ¿Deseas generar el <span
+                                        style="background: #f0fdf4; color: #15803d; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #86efac; display: inline-block; margin: 2px 0;">Formato
+                                        de Liberación (F-CCL-LDM)</span> o un <span
+                                        style="background: #fef2f2; color: #b91c1c; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #fca5a5; display: inline-block; margin: 2px 0;">Formato
+                                        de Rechazo (F-CCL-RDM) con su Solicitud de Acción Correctiva (SCAR)</span>?
                                 @endif
                             </h4>
                             <div class="lib-calidad-card-btns"
@@ -803,7 +624,7 @@
                                     @php
                                         $btnDisabled = empty($clasesActivas) || !$almacenEnvioAlerta;
                                         $btnTitle = !$almacenEnvioAlerta
-                                            ? 'En espera de que Almacén envíe el correo de notificación con las clases a Calidad'
+                                            ? 'En espera de que Almacén envíe el correo de notificación y adjunte el formato F_ALM_PFM o F_ALM_CFM'
                                             : (empty($clasesActivas)
                                                 ? 'No hay clases enviadas por Almacén para revisar'
                                                 : ($contClasesConDatos > 0
@@ -812,20 +633,22 @@
                                     @endphp
                                     <button
                                         class="btn-calidad-action btn-calidad-edit @if ($btnDisabled) cal-opacity-0-55 cal-cursor-not-allowed @endif"
-                                        title="{{ $btnTitle }}" @if ($btnDisabled) disabled style="pointer-events: none;" @else
-                                            onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
-                                        @endif>
+                                        title="{{ $btnTitle }}"
+                                        @if ($btnDisabled) disabled style="pointer-events: none;" @else
+                                            onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})" @endif>
                                         <img src="{{ asset('images/Liberar.png') }}" alt="" />
                                         <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
                                     </button>
                                 @endif
                                 @if ($contClasesConDatos > 0)
                                     @if (empty($clasesPendientesAlertar))
-                                        <button class="btn-calidad-action btn-calidad-email cal-background-color-059669 cal-color-white"
+                                        <button
+                                            class="btn-calidad-action btn-calidad-email cal-background-color-059669 cal-color-white"
                                             disabled
                                             style="pointer-events: none; opacity: 0.85; cursor: not-allowed; background-color: #059669 !important; border: 2px solid #047857 !important;"
                                             title="El correo de alerta ya ha sido enviado para estas clases">
-                                            <img src="{{ asset('images/enviando.png') }}" alt="" style="filter: none !important;" />
+                                            <img src="{{ asset('images/enviando.png') }}" alt=""
+                                                style="filter: none !important;" />
                                             <span>Correo Enviado</span>
                                         </button>
                                     @elseif ($hasRechazoBorrador)
@@ -837,7 +660,8 @@
                                                 <span>Generar Formato SCAR</span>
                                             </button>
                                         @else
-                                            <button class="btn-calidad-action btn-calidad-email cal-background-color-dc2626 cal-color-white"
+                                            <button
+                                                class="btn-calidad-action btn-calidad-email cal-background-color-dc2626 cal-color-white"
                                                 onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                                 title="Enviar alerta de calidad y notificar por correo">
                                                 <img src="{{ asset('images/enviando.png') }}" alt="" />
@@ -859,7 +683,8 @@
                 </div>
             </div>
             @if ($decisionGlobal === 'ninguno' && $targetReg->calidad_revision_status !== 'pendiente')
-                <div class="lib-calidad-card" id="control-calidad-enviados-{{ md5($targetReg->ot) }}" class="cal-margin-top-15px">
+                <div class="lib-calidad-card" id="control-calidad-enviados-{{ md5($targetReg->ot) }}"
+                    class="cal-margin-top-15px">
                     <div
                         class="lib-calidad-card-header cal-background-linear-gradient-135deg-059669-047857 cal-border-bottom-2px-solid-rgba-5-150-105-0-5">
                         <img src="{{ asset('images/Quality.png') }}" alt="Calidad"
@@ -891,42 +716,25 @@
 @endif
 @if (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $isQualityFinalized)
     @php
-        $libStatusClean = str_replace(
-            'calidad_',
-            '',
-            $targetReg->calidad_revision_status,
-        );
+        $libStatusClean = str_replace('calidad_', '', $targetReg->calidad_revision_status);
     @endphp
-    @if (in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado', 'calidad_parcial', 'rechazado', 'calidad_rechazado', 'mixto', 'calidad_mixto']))
+    @if (in_array($targetReg->calidad_revision_status, [
+            'aprobado',
+            'calidad_aprobado',
+            'calidad_parcial',
+            'rechazado',
+            'calidad_rechazado',
+            'mixto',
+            'calidad_mixto',
+        ]))
         @php
-            $liberacionesAll = \App\Models\LiberacionModeloFundicion::where(
-                'ot',
-                $targetReg->ot,
-            )->get();
-            $aprobadosAll = $liberacionesAll
-                ->where('decision', 'aprobar')
-                ->pluck('tipo_modelo')
-                ->toArray();
-            $rechazadosAll = $liberacionesAll
-                ->where('decision', 'rechazar')
-                ->pluck('tipo_modelo')
-                ->toArray();
-            $liberacionesPend = $liberacionesAll->where(
-                'alerta_enviada',
-                false,
-            );
-            $aprobadosPend = $liberacionesPend
-                ->where('decision', 'aprobar')
-                ->pluck('tipo_modelo')
-                ->toArray();
-            $rechazadosPend = $liberacionesPend
-                ->where('decision', 'rechazar')
-                ->pluck('tipo_modelo')
-                ->toArray();
-            if (
-                count($aprobadosPend) > 0 &&
-                count($rechazadosPend) > 0
-            ) {
+            $liberacionesAll = \App\Models\LiberacionModeloFundicion::where('ot', $targetReg->ot)->get();
+            $aprobadosAll = $liberacionesAll->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
+            $rechazadosAll = $liberacionesAll->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
+            $liberacionesPend = $liberacionesAll->where('alerta_enviada', false);
+            $aprobadosPend = $liberacionesPend->where('decision', 'aprobar')->pluck('tipo_modelo')->toArray();
+            $rechazadosPend = $liberacionesPend->where('decision', 'rechazar')->pluck('tipo_modelo')->toArray();
+            if (count($aprobadosPend) > 0 && count($rechazadosPend) > 0) {
                 $decisionFinal = 'mixto';
             } elseif (count($aprobadosPend) > 0) {
                 $decisionFinal = 'aprobar';
@@ -935,17 +743,9 @@
             } else {
                 $decisionFinal = 'ninguno';
             }
-            $tiposAprobadosJson = json_encode(
-                array_values($aprobadosPend),
-            );
-            $tiposRechazadosJson = json_encode(
-                array_values($rechazadosPend),
-            );
+            $tiposAprobadosJson = json_encode(array_values($aprobadosPend));
+            $tiposRechazadosJson = json_encode(array_values($rechazadosPend));
         @endphp
     @endif
 @endif
-
-
-
-
 </div>

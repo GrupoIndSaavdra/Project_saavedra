@@ -3,7 +3,8 @@
     /** @var string $estado */
     /** @var string $deptName */
 
-    include resource_path('views/calidad/partials/tables/table_row_logic.php');
+    $viewModel = new \App\ViewModels\CalidadTableRowViewModel($reg, $estado, $deptName);
+    extract($viewModel->toArray());
 @endphp
 
 

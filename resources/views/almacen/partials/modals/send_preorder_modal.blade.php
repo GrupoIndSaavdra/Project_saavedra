@@ -1,16 +1,21 @@
 <div id="modalEnviarPreOrden" class="alm-modal">
     <div class="alm-modal-content"
         style="max-width: 1720px; width: 97vw; max-height: 96vh; height: 95vh; display: flex; flex-direction: column; margin: auto;">
-        <div class="alm-modal-header" style="padding: 0.9em 2.2em;">
+        <div class="alm-modal-header alm-background-linear-gradient-135deg-033966-022340 alm-border-bottom-2px-solid-022340 alm-padding-0-9em-2-2em alm-position-relative">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarPreOrden()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 36px !important; height: 36px !important;">
+                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 42px !important; height: 42px !important;">
                 </button>
             </div>
-            <h3>Enviar Pre-Orden por Correo</h3>
-            <p id="env-po-modal-subtitle"
-                class="lib-modal-subtitle alm-color-bae6fd alm-font-size-0-88em alm-margin-top-2px alm-margin-bottom-0">
-            </p>
+            <div class="alm-display-flex alm-align-items-center" style="gap: 28px;">
+                <img src="{{ asset('images/enviando.png') }}" style="width: 52px !important; height: 52px !important; max-width: 52px !important; max-height: 52px !important; object-fit: contain; flex-shrink: 0;" alt="">
+                <div>
+                    <h3 class="alm-color-fff alm-margin-0 alm-font-size-1-3em alm-font-weight-800 alm-font-family-Poppins-sans-serif">
+                        Enviar Pre-Orden por Correo</h3>
+                    <p id="env-po-modal-subtitle" class="alm-color-rgba-255-255-255-0-9 alm-font-size-0-88em alm-margin-top-2px alm-font-weight-500 alm-font-family-Poppins-sans-serif alm-margin-bottom-0">
+                    </p>
+                </div>
+            </div>
         </div>
         <div class="alm-modal-body alm-padding-1em-1-6em-1-2em-1-6em"
             style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
@@ -35,13 +40,13 @@
                             <h4
                                 style="margin-top: 0; margin-bottom: 8px; color: #033966; font-size: 1em; border-bottom: 2px solid #033966; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px;">
                                 <img src="{{ asset('images/enviando.png') }}"
-                                    style="width: 18px; height: 18px; object-fit: contain;"> Información del Envío
+                                    style="width: 30px; height: 30px; object-fit: contain;"> Información del Envío
                             </h4>
 
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
                                 <div class="form-group" id="div-env-destinatario">
                                     <label for="env-destinatario"
-                                        style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Notificar
+                                        style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Enviar
                                         a Proveedor:</label>
                                     <input type="text" id="env-destinatario" name="destinatario" class="form-control"
                                         style="font-size: 0.84em; padding: 6px 10px; height: auto;" required>
@@ -81,8 +86,35 @@
                             <h4
                                 style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.96em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px;">
                                 <img src="{{ asset('images/anadir.png') }}"
-                                    style="width: 18px; height: 18px; object-fit: contain;"> Subir Nuevos Archivos
+                                    style="width: 32px; height: 32px; object-fit: contain;"> Subir Nuevos Archivos Escaneados
                             </h4>
+                            
+                            <p style="margin-top: 0; margin-bottom: 12px; color: #166534; font-size: 0.84em; font-weight: 500;">
+                                Formatos permitidos: <strong>Documentos PDF</strong> o <strong>Imágenes (JPG, PNG, JPEG)</strong>.
+                            </p>
+
+                            <div class="alm-border-radius-12px alm-margin-bottom-12px" style="background-color: #ffffff; border: 1px solid #bbf7d0; overflow: hidden; box-shadow: 0 2px 4px rgba(22,163,74,0.05);">
+                                <div style="background-color: #dcfce7; padding: 6px 14px; border-bottom: 1px solid #bbf7d0;">
+                                    <strong style="color: #166534; font-size: 0.9em; display: flex; align-items: center; gap: 6px;">
+                                        <img src="{{ asset('images/info-icon.png') }}" style="width: 30px; height: 30px; object-fit: contain;">
+                                        Puntos a Revisar antes de Subir
+                                    </strong>
+                                </div>
+                                <div style="padding: 10px 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
+                                        <img src="{{ asset('images/folio-icon.png') }}" style="width: 40px; height: 40px; object-fit: contain;">
+                                        <span style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Folio Coincidente</strong><br>El #OT debe ser exacto</span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
+                                        <img src="{{ asset('images/claridad-icon.png') }}" style="width: 40px; height: 40px; object-fit: contain;">
+                                        <span style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Imagen Clara</strong><br>100% legible y nítida</span>
+                                    </div>
+                                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
+                                        <img src="{{ asset('images/firma-icon.png') }}" style="width: 40px; height: 40px; object-fit: contain;">
+                                        <span style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Firmas / Sellos</strong><br>Doc. autorizado</span>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="custom-file-dropzone"
                                 style="border: 2px dashed #16a34a; background: #ffffff; padding: 12px 14px; border-radius: 10px; text-align: center; cursor: pointer; position: relative;">
@@ -93,7 +125,7 @@
                                 <div class="dropzone-content"
                                     style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                                     <img src="{{ asset('images/anadir.png') }}"
-                                        style="width: 22px; height: 22px; object-fit: contain;">
+                                        style="width: 44px; height: 44px; object-fit: contain;">
                                     <span style="font-weight: 700; color: #15803d; font-size: 0.86em;">Arrastrar
                                         adicionales aquí (PDFs o imágenes)</span>
                                 </div>
@@ -108,7 +140,7 @@
                         <!-- Sub-contenedor 1 (AZUL ICE): Archivos y Dibujos de la OT Disponibles -->
                         <div style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); flex: 1.45; display: flex; flex-direction: column; min-height: 0;">
                             <h4 style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                <img src="{{ asset('images/galeria.png') }}" style="width: 18px; height: 18px; object-fit: contain;"> Archivos y Dibujos de la OT Disponibles
+                                <img src="{{ asset('images/galeria.png') }}" style="width: 30px; height: 30px; object-fit: contain;"> Archivos y Dibujos de la OT Disponibles
                             </h4>
 
                             <div id="env-server-files-container" style="background: #f0f7ff; border: 1px solid #bae6fd; border-radius: 10px; padding: 12px; flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
@@ -119,7 +151,7 @@
                         <!-- Sub-contenedor 2 (VERDE ESMERALDA): Nuevos Archivos Adjuntados (Coincide en color with left button) -->
                         <div style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); flex: 1; display: flex; flex-direction: column; min-height: 0;">
                             <h4 style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.98em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                                <img src="{{ asset('images/anadir.png') }}" style="width: 16px; height: 16px; object-fit: contain;"> Nuevos Archivos Adjuntados
+                                <img src="{{ asset('images/anadir.png') }}" style="width: 30px; height: 30px; object-fit: contain;"> Nuevos Archivos Adjuntados
                             </h4>
 
                             <div id="env-archivos-adicionales-list" style="background: #f0fdf4; border: 1px solid #a7f3d0; border-radius: 10px; padding: 12px; flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start;"></div>
@@ -131,7 +163,7 @@
 
                 <div class="form-actions"
                     style="text-align: center; margin-top: 10px; padding-top: 8px; flex-shrink: 0;">
-                    <button type="submit" id="btn-submit-envio" class="btn-save-preorden" disabled
+                    <button type="submit" id="btn-submit-envio" class="btn-save-preorden btn-hover-green-override" disabled
                         style="background: linear-gradient(135deg, #033966, #022340); box-shadow: 0 4px 15px rgba(3, 57, 102, 0.35); padding: 11px 44px; border: none; border-radius: 10px; color: #fff; font-weight: 700; cursor: pointer; font-size: 1.05em; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
                         Enviar Correo con Adjuntos
                     </button>

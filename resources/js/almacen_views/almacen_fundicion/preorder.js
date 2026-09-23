@@ -113,20 +113,24 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
         .then((data) => {
             if (data.success) {
                 inputMoldura.value = data.moldura || "N/A";
-                availableClasses = data.clases || [];
-                availableClasses.forEach((c) => {
+                const dbClasses = data.clases || [];
+                dbClasses.forEach((c) => {
                     c._norm = normalizeStr(c.nombre);
                 });
-                if (data.clases_vinculadas) {
+                
+                availableClasses = [];
+                if (data.clases_vinculadas && data.clases_vinculadas.length > 0) {
                     data.clases_vinculadas.forEach((cv) => {
                         const cvNorm = normalizeStr(cv);
-                        const found = availableClasses.find(
+                        const found = dbClasses.find(
                             (ac) =>
                                 ac._norm === cvNorm ||
                                 ac._norm.includes(cvNorm) ||
                                 cvNorm.includes(ac._norm),
                         );
-                        if (!found) {
+                        if (found) {
+                            availableClasses.push(found);
+                        } else {
                             availableClasses.push({
                                 id: `manual_${cv}`,
                                 nombre: cv,
@@ -134,6 +138,8 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
                             });
                         }
                     });
+                } else {
+                    availableClasses = [...dbClasses];
                 }
                 // Construir opciones de select, excluyendo las clases ya procesadas (reactivo)
                 optionsHtmlCache = buildClaseOptionsForSelect(

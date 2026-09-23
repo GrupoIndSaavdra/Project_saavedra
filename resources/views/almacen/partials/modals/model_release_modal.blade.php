@@ -61,17 +61,17 @@
               {{-- El select se filtra por JS según las clases activas de la OT --}}
               <select id="lib-tipo" name="tipo_modelo" class="lib-select" onchange="libCambiarTipo(this.value)">
                 <option value="">-- Seleccionar tipo --</option>
-                <option value="Fondo">Fondo</option>
-                <option value="Obturador">Obturador</option>
-                <option value="Molde">Molde</option>
-                                <option value="Bombillo">Bombillo</option>
-                <option value="Corona">Corona</option>
-                <option value="Plato">Plato</option>
-                <option value="Embudo">Embudo</option>
-                <option value="Cabeza de Soplo">Cabeza de Soplo</option>
-                 <option value="Candado Obturador">Candado Obturador</option>
-                 <option value="Pistones">Pistones</option>
-                 <option value="Guías">Guías</option>
+                <option value="Fondo">4 - FONDO</option>
+                <option value="Obturador">6 - OBTURADOR</option>
+                <option value="Molde">1 - MOLDES</option>
+                <option value="Bombillo">2 - BOMBILLO</option>
+                <option value="Corona">3 - CORONA</option>
+                <option value="Plato">5 - PLATO</option>
+                <option value="Embudo">8 - EMBUDO</option>
+                <option value="Cabeza de Soplo">7 - CABEZA DE SOPLO</option>
+                 <option value="Candado Obturador">9 - CANDADO OBTURADOR</option>
+                 <option value="Pistones">10 - PISTONES</option>
+                 <option value="Guías">11 - GUÍAS</option>
               </select>
             </div>
             <div class="lib-dato-group">

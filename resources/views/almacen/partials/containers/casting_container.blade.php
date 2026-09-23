@@ -1,3 +1,38 @@
+    @php
+        if (!isset($formatClase)) {
+            $formatClase = function ($c) {
+                $map = [
+                    'molde' => '1 - MOLDES',
+                    'moldes' => '1 - MOLDES',
+                    '1 - moldes' => '1 - MOLDES',
+                    'bombillo' => '2 - BOMBILLO',
+                    '2 - bombillo' => '2 - BOMBILLO',
+                    'embudo' => '3 - EMBUDO',
+                    '3 - embudo' => '3 - EMBUDO',
+                    'corona' => '4 - CORONA',
+                    '4 - corona' => '4 - CORONA',
+                    'plato' => '5 - PLATO',
+                    '5 - plato' => '5 - PLATO',
+                    'fondo' => '6 - FONDO',
+                    '6 - fondo' => '6 - FONDO',
+                    'obturador' => '7 - OBTURADOR',
+                    '7 - obturador' => '7 - OBTURADOR',
+                    'cabeza de soplo' => '8 - CABEZA DE SOPLO',
+                    'cabeza' => '8 - CABEZA DE SOPLO',
+                    '8 - cabeza de soplo' => '8 - CABEZA DE SOPLO',
+                    'candado obturador' => '9 - CANDADO OBTURADOR',
+                    'candado' => '9 - CANDADO OBTURADOR',
+                    '9 - candado obturador' => '9 - CANDADO OBTURADOR',
+                    'pistones' => 'Pistones',
+                    'guias' => 'Guías',
+                    'guías' => 'Guías'
+                ];
+                $cLower = strtolower(trim($c));
+                return $map[$cLower] ?? ucfirst($c);
+            };
+        }
+    @endphp
+
 {{-- CONTENEDOR 2: PROCESO DE CASTING / MODELOS APROBADOS --}}
 @if ($tieneAprobados)
     @php
@@ -109,11 +144,46 @@
 
         $tituloCasting = "Etapa: Proceso de Casting / Modelos Aprobados";
         if (count($aprobadosPendientesCasting) > 0 && count($clasesAprobadasCubiertas) > 0) {
-            $tituloCasting .= " (Pendientes: " . implode(', ', array_map('ucfirst', $aprobadosPendientesCasting)) . " | Procesadas: " . implode(', ', array_map('ucfirst', $clasesAprobadasCubiertas)) . ")";
+            $tituloCasting .= " (Pendientes: " . implode(', ', array_map($formatClase, $aprobadosPendientesCasting)) . " | Procesadas: " . implode(', ', array_map('ucfirst', $clasesAprobadasCubiertas)) . ")";
         } elseif (count($aprobadosPendientesCasting) > 0) {
-            $tituloCasting .= " (Pendientes: " . implode(', ', array_map('ucfirst', $aprobadosPendientesCasting)) . ")";
+            $tituloCasting .= " (Pendientes: " . implode(', ', array_map($formatClase, $aprobadosPendientesCasting)) . ")";
         } elseif (count($clasesAprobadasCubiertas) > 0) {
             $tituloCasting .= " (" . implode(', ', array_map('ucfirst', $clasesAprobadasCubiertas)) . ")";
+        }
+    @endphp
+
+    @php
+        if (!isset($formatClase)) {
+            $formatClase = function ($c) {
+                $map = [
+                    'molde' => '1 - MOLDES',
+                    'moldes' => '1 - MOLDES',
+                    '1 - moldes' => '1 - MOLDES',
+                    'bombillo' => '2 - BOMBILLO',
+                    '2 - bombillo' => '2 - BOMBILLO',
+                    'embudo' => '3 - EMBUDO',
+                    '3 - embudo' => '3 - EMBUDO',
+                    'corona' => '4 - CORONA',
+                    '4 - corona' => '4 - CORONA',
+                    'plato' => '5 - PLATO',
+                    '5 - plato' => '5 - PLATO',
+                    'fondo' => '6 - FONDO',
+                    '6 - fondo' => '6 - FONDO',
+                    'obturador' => '7 - OBTURADOR',
+                    '7 - obturador' => '7 - OBTURADOR',
+                    'cabeza de soplo' => '8 - CABEZA DE SOPLO',
+                    'cabeza' => '8 - CABEZA DE SOPLO',
+                    '8 - cabeza de soplo' => '8 - CABEZA DE SOPLO',
+                    'candado obturador' => '9 - CANDADO OBTURADOR',
+                    'candado' => '9 - CANDADO OBTURADOR',
+                    '9 - candado obturador' => '9 - CANDADO OBTURADOR',
+                    'pistones' => 'Pistones',
+                    'guias' => 'Guías',
+                    'guías' => 'Guías'
+                ];
+                $cLower = strtolower(trim($c));
+                return $map[$cLower] ?? ucfirst($c);
+            };
         }
     @endphp
 
@@ -209,11 +279,30 @@
             return true;
         }));
 
-        $ldmCastingPendientes = $filtrarArchivosCasting($calidadAprobadosLdmCasting, $aprobadosPendientesCasting);
+        $ldmCastingPendientesRaw = $filtrarArchivosCasting($calidadAprobadosLdmCasting, $aprobadosPendientesCasting);
         $preordenesCastingPendientes = $filtrarArchivosCasting($almacenPreordenesCastingBase, $aprobadosPendientesCasting);
 
-        $ldmCastingProcesados = $filtrarArchivosCasting($calidadAprobadosLdmCasting, $clasesAprobadasCubiertas);
+        $ldmCastingProcesadosRaw = $filtrarArchivosCasting($calidadAprobadosLdmCasting, $clasesAprobadasCubiertas);
         $preordenesCastingProcesadas = $filtrarArchivosCasting($almacenPreordenesCastingBase, $clasesAprobadasCubiertas);
+
+        // Extraer CFM de los LDM para mostrarlos en el contenedor azul de preórdenes
+        $cfmCastingPendientes = array_values(array_filter($ldmCastingPendientesRaw, function($doc) {
+            $n = strtolower($doc['nombre']);
+            return strpos($n, 'cfm') !== false || strpos($n, 'confirmacion') !== false;
+        }));
+        $ldmCastingPendientes = array_values(array_filter($ldmCastingPendientesRaw, function($doc) {
+            $n = strtolower($doc['nombre']);
+            return strpos($n, 'cfm') === false && strpos($n, 'confirmacion') === false;
+        }));
+
+        $cfmCastingProcesados = array_values(array_filter($ldmCastingProcesadosRaw, function($doc) {
+            $n = strtolower($doc['nombre']);
+            return strpos($n, 'cfm') !== false || strpos($n, 'confirmacion') !== false;
+        }));
+        $ldmCastingProcesados = array_values(array_filter($ldmCastingProcesadosRaw, function($doc) {
+            $n = strtolower($doc['nombre']);
+            return strpos($n, 'cfm') === false && strpos($n, 'confirmacion') === false;
+        }));
 
         // Fallbacks for files that couldn't be matched
         $idsDib = array_merge(array_column($dibujosCastingPendientes, 'nombre'), array_column($dibujosCastingProcesados, 'nombre'));
@@ -226,10 +315,22 @@
             if (!in_array($a['nombre'], $idsAyu))
                 $ayudasCastingPendientes[] = $a;
 
-        $idsLdm = array_merge(array_column($ldmCastingPendientes, 'nombre'), array_column($ldmCastingProcesados, 'nombre'));
-        foreach ($calidadAprobadosLdmCasting as $a)
-            if (!in_array($a['nombre'], $idsLdm))
-                $ldmCastingPendientes[] = $a;
+        $idsLdm = array_merge(
+            array_column($ldmCastingPendientes, 'nombre'), 
+            array_column($ldmCastingProcesados, 'nombre'),
+            array_column($cfmCastingPendientes, 'nombre'),
+            array_column($cfmCastingProcesados, 'nombre')
+        );
+        foreach ($calidadAprobadosLdmCasting as $a) {
+            if (!in_array($a['nombre'], $idsLdm)) {
+                $n = strtolower($a['nombre']);
+                if (strpos($n, 'cfm') !== false || strpos($n, 'confirmacion') !== false) {
+                    $cfmCastingPendientes[] = $a;
+                } else {
+                    $ldmCastingPendientes[] = $a;
+                }
+            }
+        }
 
         $idsPo = array_merge(array_column($preordenesCastingPendientes, 'nombre'), array_column($preordenesCastingProcesadas, 'nombre'));
         foreach ($almacenPreordenesCastingBase as $a)
@@ -256,6 +357,90 @@
         </div>
 
         {{-- ================================================================= --}}
+        {{-- SECCIÓN PREÓRDENES Y CONFIRMACIONES (AZUL) --}}
+        {{-- ================================================================= --}}
+        @if (count($cfmCastingPendientes) > 0 || count($cfmCastingProcesados) > 0 || count($preordenesCastingPendientes) > 0 || count($preordenesCastingProcesadas) > 0)
+            <div class="cal-subcontainer-almacen"
+                style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0f9ff; border: 2px solid #0ea5e9; box-shadow: 0 3px 10px rgba(14, 165, 233, 0.08);">
+                <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bae6fd; padding-bottom: 8px; margin-bottom: 15px;">
+                    <h4 style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                        <img src="{{ asset('images/galeria.png') }}" style="width: 22px; height: 22px; object-fit: contain;">
+                        Archivos de Liberación Disponibles
+                    </h4>
+                </div>
+
+                {{-- Confirmaciones de Modelo (CFM) --}}
+                @php
+                    $allCfm = array_merge($cfmCastingPendientes, $cfmCastingProcesados);
+                    $allCfm = array_reduce($allCfm, function($carry, $item) {
+                        $names = array_column($carry, 'nombre');
+                        if (!in_array($item['nombre'], $names)) $carry[] = $item;
+                        return $carry;
+                    }, []);
+                @endphp
+                @if (count($allCfm) > 0)
+                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #0369a1; font-weight: 700;">Confirmaciones de Modelo</h4>
+                    <div class="alm-pdf-grid" style="background-color: #e0f2fe; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        @foreach ($allCfm as $archivoInfo)
+                            @php
+                                $canDelete = false;
+                                $userPerfil = Auth::user()->perfil;
+                                $alertSent = in_array($targetReg->calidad_revision_status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']);
+                                if (!$alertSent && ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3 || $userPerfil == 4)) {
+                                    $canDelete = true;
+                                }
+                            @endphp
+                            <div class="dibujos-file-card card-otro" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                </div>
+                                <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">
+                                    {{ basename($archivoInfo['nombre']) }}
+                                </div>
+                                <div class="file-actions alm-flex-gap-5">
+                                    <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0284c7 alm-color-white" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}')">Ver</button>
+                                    @if ($canDelete)
+                                        <button class="btn-dibujos btn-dibujos-sm btn-eliminar alm-bg-danger-white" onclick="almacenEliminarOtroArchivo('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] }}', this, '{{ $archivoInfo['origin'] ?? '' }}')">Eliminar</button>
+                                    @endif
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+
+                {{-- Pre-órdenes de Casting --}}
+                @php
+                    $allPreordenes = array_merge($preordenesCastingPendientes, $preordenesCastingProcesadas);
+                    $allPreordenes = array_reduce($allPreordenes, function($carry, $item) {
+                        $names = array_column($carry, 'nombre');
+                        if (!in_array($item['nombre'], $names)) $carry[] = $item;
+                        return $carry;
+                    }, []);
+                @endphp
+                @if (count($allPreordenes) > 0)
+                    <h4 style="margin-top: 10px; margin-bottom: 10px; color: #0369a1; font-weight: 700;">Pre-órdenes de Casting</h4>
+                    <div class="alm-pdf-grid" style="background-color: #e0f2fe; border: 1px solid #bae6fd; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        @foreach ($allPreordenes as $archivoInfo)
+                            <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
+                                <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
+                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                </div>
+                                <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
+                                    {{ basename($archivoInfo['nombre']) }}
+                                </div>
+                                <div class="file-actions">
+                                    <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-0284c7 alm-color-white" onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">Ver</button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </div>
+        @endif
+
+        {{-- ================================================================= --}}
         {{-- SECCIÓN ACTIVA (CLASES PENDIENTES DE CASTING) --}}
         {{-- ================================================================= --}}
         @if(count($aprobadosPendientesCasting) > 0 || (count($aprobadosPendientesCasting) == 0 && count($clasesAprobadasCubiertas) == 0))
@@ -266,7 +451,7 @@
                     <h4
                         style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
                         <img src="{{ asset('images/almacen.png') }}" style="width: 22px; height: 22px; object-fit: contain;">
-                        Procesos Activos ({{ implode(', ', array_map('ucfirst', $aprobadosPendientesCasting)) }})
+                        Procesos Activos ({{ implode(', ', array_map($formatClase, $aprobadosPendientesCasting)) }})
                     </h4>
                 </div>
 
@@ -383,33 +568,7 @@
                     </div>
                 @endif
 
-                {{-- Pre-órdenes de Modelo --}}
-                @if (count($preordenesCastingPendientes) > 0)
-                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Pre-órdenes de Casting</h4>
-                    <div class="alm-pdf-grid"
-                        style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        @foreach ($preordenesCastingPendientes as $archivoInfo)
-                            @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
-                            <div class="dibujos-file-card"
-                                style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #16a34a;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
-                                        class="file-icon icon-default">
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
-                                        class="file-icon icon-hover">
-                                </div>
-                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
-                                    onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
-                                    {{ basename($archivoInfo['nombre']) }}
-                                </div>
-                                <div class="file-actions">
-                                    <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
+
 
                 {{-- TARJETA DE CONTROLES CASTING --}}
                 <div class="lib-calidad-card" id="control-almacen-aprobados-{{ md5($reg->ot) }}" style="margin-top: 20px;">
@@ -427,17 +586,17 @@
                         <div class="lib-calidad-action-row">
                             <h4 class="lib-calidad-card-prompt">
                                 @if ($hasCastingPre)
-                                    Pre-orden de casting generada
+                                    <span style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Pre-orden de casting</span> generada
                                     {!! count($aprobados) > 0 ? 'para los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobados))) . '</strong>' : '' !!}.
                                     Puedes editar los datos o enviar la pre-orden por correo.
                                 @elseif ($hasLdmSubidoCasting)
-                                    Formatos LDM subidos
+                                    <span style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Formatos LDM subidos</span>
                                     {!! count($aprobados) > 0 ? 'para los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobados))) . '</strong>' : '' !!}.
-                                    Procede a generar la Pre-Orden de Fabricación de Casting (PFC).
+                                    Procede a generar la <span style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Pre-Orden de Fabricación de Casting (PFC)</span>.
                                 @else
                                     Modelos Aprobados por
-                                    Calidad{!! !empty($aprobadosPendientesCasting) ? ': <strong>' . e(implode(', ', array_map('ucfirst', $aprobadosPendientesCasting))) . '</strong>' : (count($aprobados) > 0 ? ': <strong>' . e(implode(', ', array_map('ucfirst', $aprobados))) . '</strong>' : '') !!}.
-                                    Procede a subir los formatos F-CCL-LDM firmados para iniciar el casting.
+                                    <span style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Calidad</span>{!! !empty($aprobadosPendientesCasting) ? ': <strong>' . e(implode(', ', array_map($formatClase, $aprobadosPendientesCasting))) . '</strong>' : (count($aprobados) > 0 ? ': <strong>' . e(implode(', ', array_map('ucfirst', $aprobados))) . '</strong>' : '') !!}.
+                                    Procede a subir los <span style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">formatos F-CCL-LDM</span> firmados para iniciar el casting.
                                 @endif
                             </h4>
 
@@ -591,33 +750,7 @@
                     </div>
                 @endif
 
-                {{-- Preordenes Procesadas --}}
-                @if (count($preordenesCastingProcesadas) > 0)
-                    <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Pre-órdenes de Casting</h4>
-                    <div class="alm-pdf-grid"
-                        style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                        @foreach ($preordenesCastingProcesadas as $archivoInfo)
-                            @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
-                            <div class="dibujos-file-card"
-                                style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #15803d;">
-                                <div class="file-icon-wrapper alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
-                                        class="file-icon icon-default">
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
-                                        class="file-icon icon-hover">
-                                </div>
-                                <div class="file-name alm-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
-                                    onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
-                                    {{ basename($archivoInfo['nombre']) }}
-                                </div>
-                                <div class="file-actions">
-                                    <button class="btn-dibujos btn-dibujos-sm btn-ver alm-background-color-15803d alm-color-white"
-                                        onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
+
 
                 <div class="lib-calidad-card"
                     style="margin-top: 20px; border: 2px solid #16a34a; border-radius: 12px; overflow: hidden;">

@@ -193,7 +193,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                                 <div class="alm-display-flex alm-gap-20px">
                                     <!-- Viejos (En Almacén) -->
                                     <div class="alm-flex-1">
-                                        <h5 class="alm-color-64748b alm-margin-0-0-10px-0" style="font-weight: 700;">Actuales (En Almacén)</h5>
+                                        <h5 class="alm-color-b91c1c alm-margin-0-0-10px-0" style="font-weight: 800; font-size: 1.08rem; color: #b91c1c;">Dibujos Obsoletos de Almacen</h5>
                                         <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
                                             ${viejos.length > 0
                     ? viejos.map((v, index) => `
@@ -220,7 +220,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                                     </div>
                                     <!-- Nuevos (De Dibujos de Fundición) -->
                                     <div class="alm-flex-1">
-                                        <h5 class="alm-color-059669 alm-margin-0-0-10px-0" style="font-weight: 700;">Nuevos (De Programación)</h5>
+                                        <h5 class="alm-color-059669 alm-margin-0-0-10px-0" style="font-weight: 800; font-size: 1.08rem; color: #059669;">Dibujos Nuevos de Programación</h5>
                                         <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
                                             ${nuevosProcesados.length > 0
                     ? nuevosProcesados.map((n, index) => {

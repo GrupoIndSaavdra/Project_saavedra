@@ -37,13 +37,21 @@ window.generarHtmlCategorizadoCastingAprobados = function (
                 const targetFolder = isRechazados
                     ? "documentos_rechazados"
                     : "documentos_aprobados";
+                const origin = (f.origin || "").toLowerCase();
+
+                // Si es tipo "otro", respetar su origin para no mezclar aprobados en rechazados y viceversa
+                if (tipo === "otro") {
+                    if (isRechazados) {
+                        return origin === "rechazado" || nombre.includes("documentos_rechazados");
+                    } else {
+                        return origin === "aprobado" || nombre.includes("documentos_aprobados");
+                    }
+                }
+
                 return (
                     tipo === "aprobado" ||
                     tipo === "preorden" ||
-                    tipo === "otro" ||
                     nombre.includes(targetFolder) ||
-                    nombre.includes("preorden") ||
-                    nombre.includes("pre-orden") ||
                     nombre.includes("fdldm") ||
                     nombre.includes("fdrdm") ||
                     nombre.includes("f_ccl_ldm") ||
@@ -123,6 +131,39 @@ window.cargarInputsCasting = function (ot, files) {
     const dynamicInputs = document.getElementById("mgv-aprobados-inputs");
     if (!dynamicInputs) return;
     dynamicInputs.innerHTML = "";
+
+    // ℹ️ Banner de instrucciones (siempre visible)
+    if (!document.getElementById("mgv-casting-banner-element")) {
+        dynamicInputs.insertAdjacentHTML('beforebegin', `
+            <div id="mgv-casting-banner-element" style="border-radius: 10px; overflow: hidden; border: 2px solid #16a34a; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); flex-shrink: 0; margin-bottom: 15px;">
+                <div style="background-color: #dcfce7; padding: 6px 14px; border-bottom: 1px solid #bbf7d0;">
+                    <strong style="color: #166534; font-size: 0.88em; display: flex; align-items: center; gap: 6px;">
+                        <img src="${getBaseUrl()}images/info-icon.png" style="width: 22px; height: 22px; object-fit: contain;">
+                        Verifica estos puntos antes de subir
+                    </strong>
+                </div>
+                <div style="padding: 10px 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #fff;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; text-align: center;">
+                        <img src="${getBaseUrl()}images/firma-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <span style="color: #15803d; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>PDF Firmado</strong><br>Documento autorizado</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; text-align: center;">
+                        <img src="${getBaseUrl()}images/Nombre_Correcto.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <span style="color: #15803d; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>Nombre Correcto</strong><br>F_CCL_LDM_[clase].pdf</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; text-align: center;">
+                        <img src="${getBaseUrl()}images/claridad-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <span style="color: #15803d; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>100% Legible</strong><br>Sin tachaduras ni borrones</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; text-align: center;">
+                        <img src="${getBaseUrl()}images/Aprobado.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <span style="color: #15803d; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>Un archivo</strong><br>por cada clase aprobada</span>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
     const otClean = ot.replace(/_\d{8}_\d{6}_.*/, "");
     let allLoaded = true;
     if (window.micRequiredClasses && window.micRequiredClasses.length > 0) {
@@ -130,6 +171,17 @@ window.cargarInputsCasting = function (ot, files) {
             const group = document.createElement("div");
             group.className = "custom-class-upload";
             group.style.marginBottom = "12px";
+            group.style.padding = "0";
+            group.style.background = "#ffffff";
+            group.style.border = "1px solid #bbf7d0";
+            group.style.borderRadius = "12px";
+            group.style.width = "100%";
+            group.style.boxSizing = "border-box";
+            group.style.display = "flex";
+            group.style.flexDirection = "column";
+            group.style.flexShrink = "0";
+            group.style.boxShadow = "0 4px 10px rgba(22, 163, 74, 0.05)";
+            group.style.overflow = "hidden";
             let existingFile = null;
             if (files) {
                 let sanitizedOt = ot.replace(/[^\w\s\-]/g, "");
@@ -151,12 +203,20 @@ window.cargarInputsCasting = function (ot, files) {
             }
             const cleanName = existingFile ? existingFile.nombre.split("/").pop() : "";
             const isLocked = !!existingFile;
-            group.innerHTML = `
-                <div class="ldm-upload-group" style="margin-bottom: 15px; width: 100%;">
-                    <label style="font-weight:700;color:#334155;margin-bottom:8px;display:block;font-family:'Poppins',sans-serif;font-size:0.95em;">
-                        Formato F-CCL-LDM — ${label} <span style="color:#ef4444;">*</span>
-                        ${existingFile ? `<span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;font-weight:600;">Cargado</span>` : ''}
-                    </label>
+            
+            let groupHtml = `
+                <div style="background: #dcfce7; padding: 12px 18px; border-bottom: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
+                    <img src="${getBaseUrl()}images/perspectiva-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                    <h4 style="margin: 0; color: #166534; font-weight: 700; font-family:'Poppins', sans-serif; font-size: 1.05em; text-transform: uppercase;">
+                        CLASE: ${label}
+                    </h4>
+                </div>
+                <div style="padding: 18px; display: flex; flex-direction: column; gap: 20px;">
+                    <div class="ldm-upload-group" style="margin-bottom: 0; width: 100%;">
+                        <label style="font-weight:700;color:#334155;margin-bottom:8px;display:block;font-family:'Poppins',sans-serif;font-size:0.95em;">
+                            Formato F-CCL-LDM <span style="color:#ef4444;">*</span>
+                            ${existingFile ? `<span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;font-weight:600;">Cargado</span>` : ''}
+                        </label>
                     <div class="custom-file-upload-btn-wrapper" style="margin-bottom: 8px; display:flex; justify-content:center;">
                         <div class="custom-file-dropzone btn-modelo btn-modelo-si" style="position:relative; ${isLocked ? 'pointer-events:none; opacity:0.6; filter:grayscale(0.3);' : ''}">
                             <input type="file" name="ldm_${c}" data-type="ldm" data-clase="${c}" accept=".pdf" ${isLocked ? 'disabled' : 'required'} style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:${isLocked ? 'not-allowed' : 'pointer'};" onchange="window._onLdmFileSelected(this, '${ot}')">
@@ -181,7 +241,9 @@ window.cargarInputsCasting = function (ot, files) {
                             </div>
                         ` : ''}
                     </div>
-                </div>`;
+                </div>
+            </div>`;
+            group.innerHTML = groupHtml;
             dynamicInputs.appendChild(group);
 
         });

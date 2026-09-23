@@ -125,8 +125,27 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     }
     const tipoInput = document.getElementById("scar-tipo");
     if (tipoInput) tipoInput.value = tipoModelo || "";
+    
+    const DISPLAY_MAP = {
+        "fondo": "4 - FONDO",
+        "obturador": "6 - OBTURADOR",
+        "molde": "1 - MOLDES",
+        "bombillo": "2 - BOMBILLO",
+        "corona": "3 - CORONA",
+        "plato": "5 - PLATO",
+        "embudo": "8 - EMBUDO",
+        "cabeza de soplo": "7 - CABEZA DE SOPLO",
+        "candado obturador": "9 - CANDADO OBTURADOR",
+        "pistones": "10 - PISTONES",
+        "guías": "11 - GUÍAS",
+        "guias": "11 - GUÍAS"
+    };
+    const tLowerForMap = (tipoModelo || "").toLowerCase();
+    const mappedTipo = DISPLAY_MAP[tLowerForMap] || tipoModelo || "General";
+    
     const tipoDisplay = document.getElementById("scar-tipo-display");
-    if (tipoDisplay) tipoDisplay.textContent = tipoModelo || "General";
+    if (tipoDisplay) tipoDisplay.textContent = mappedTipo;
+    
     const motivoInput = document.getElementById("scar-motivo");
     if (motivoInput) motivoInput.value = motivoRechazo || "";
     const descTextarea = document.getElementById("scar-descripcion");

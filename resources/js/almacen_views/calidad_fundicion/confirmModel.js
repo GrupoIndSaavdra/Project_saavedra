@@ -95,11 +95,7 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
     const hashInput = document.getElementById("cm-id-hash");
     if (hashInput) hashInput.value = idHash || "";
     
-    const inputDestinatario = document.getElementById("cm-destinatario");
     const inputDestinatarioCalidad = document.getElementById("cm-destinatario-calidad");
-    if (inputDestinatario && form) {
-        inputDestinatario.value = form.getAttribute("data-email-modelo");
-    }
     if (inputDestinatarioCalidad && form) {
         inputDestinatarioCalidad.value = form.getAttribute("data-email-calidad");
     }

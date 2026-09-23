@@ -3142,3 +3142,9 @@ table.alm-table {
 .alm-padding-20px { padding: 20px; }
 .alm-padding-bottom-0 { padding-bottom: 0; }
 .alm-color-fee2e2 { color: #fee2e2; }
+
+/* Override hover para botones de envío azules */
+.btn-hover-green-override:hover {
+    background: linear-gradient(135deg, #0a8504, #064e03) !important;
+    box-shadow: 0 4px 15px rgba(10, 133, 4, 0.35) !important;
+}

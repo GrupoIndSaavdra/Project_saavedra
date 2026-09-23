@@ -71,6 +71,34 @@ class FundicionStateService
                 return count($aprobados) > 0 ? 'RECHAZOS_PROCESADOS_APROBADO' : 'RECHAZOS_PROCESADOS_RECHAZADO';
             }
 
+            // FIX: Si el estado_flujo es NUEVO pero Calidad ya respondió (ej. reproceso con
+            // estado_flujo='recibido' que aún no fue migrado al valor correcto), usar calidad_revision_status.
+            if ($key === 'NUEVO' && !empty($libStatus)) {
+                $calState = match($libStatus) {
+                    'calidad_aprobado', FundicionStateConstants::CALIDAD_APROBADO => 'CALIDAD_APROBADO',
+                    'calidad_rechazado', FundicionStateConstants::CALIDAD_RECHAZADO => 'CALIDAD_RECHAZADO',
+                    'calidad_mixto', FundicionStateConstants::CALIDAD_MIXTO => 'CALIDAD_MIXTO',
+                    'calidad_parcial', FundicionStateConstants::CALIDAD_PARCIAL => 'CALIDAD_APROBADO',
+                    'aprobado' => 'CALIDAD_APROBADO',
+                    'rechazado' => $isReproceso ? 'REPROCESO_RECHAZADO' : 'CALIDAD_RECHAZADO',
+                    'casting_aprobado', FundicionStateConstants::CASTING_APROBADO => 'CASTING_APROBADO',
+                    'pendiente', 'revisando' => 'CALIDAD_REVISANDO',
+                    default => null,
+                };
+                if ($calState !== null) {
+                    return $calState;
+                }
+            }
+
+            // FIX: Si es reproceso con estado_flujo=NUEVO y pre_orden_email_sent activo, 
+            // significa que ya se envió la alerta a Calidad.
+            if ($key === 'NUEVO' && $isReproceso && !empty($targetReg->alert_sent_at) && empty($libStatus)) {
+                if (in_array($userPerfil, [1, 3, 4])) {
+                    return 'RECIBIDO_CALIDAD';
+                }
+                return 'CORREO_ENVIADO';
+            }
+
             return $key;
         }
 

@@ -169,7 +169,7 @@
                 {{-- Botón Verde en Hover: Reemplazar Dibujos --}}
                 <button type="button" id="btn-resolver-mantener" class="btn-action-cambios btn-action-reemplazar"
                     onclick="solicitarConfirmacionCambios('mantener')">
-                    <span>Reemplazar Dibujos</span>
+                    <span>Reemplazar Dibujos Obsoletos</span>
                 </button>
             </div>
         </div>

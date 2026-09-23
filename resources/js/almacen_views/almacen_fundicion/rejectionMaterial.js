@@ -4,6 +4,39 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
     const dynamicRechInputs = document.getElementById("mgv-rechazados-inputs");
     if (!dynamicRechInputs) return;
     dynamicRechInputs.innerHTML = "";
+
+    // ℹ️ Banner de instrucciones (siempre visible, fijo en la parte superior)
+    if (!document.getElementById("mgv-rech-banner-element")) {
+        dynamicRechInputs.insertAdjacentHTML('beforebegin', `
+            <div id="mgv-rech-banner-element" style="border-radius: 10px; overflow: hidden; border: 2px solid #dc2626; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.08); flex-shrink: 0; margin-bottom: 15px;">
+                <div style="background-color: #fee2e2; padding: 6px 14px; border-bottom: 1px solid #fecaca;">
+                    <strong style="color: #991b1b; font-size: 0.88em; display: flex; align-items: center; gap: 6px;">
+                        <img src="${getBaseUrl()}images/info-icon.png" style="width: 22px; height: 22px; object-fit: contain;">
+                        Verifica estos puntos antes de subir
+                    </strong>
+                </div>
+                <div style="padding: 10px 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #fff;">
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; text-align: center;">
+                        <img src="${getBaseUrl()}images/firma-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <span style="color: #b91c1c; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>PDF Firmado</strong><br>Documento autorizado</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; text-align: center;">
+                        <img src="${getBaseUrl()}images/Nombre_Correcto.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <span style="color: #b91c1c; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>Nombre Correcto</strong><br>F_CCL_RDM/SCAR_[clase].pdf</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; text-align: center;">
+                        <img src="${getBaseUrl()}images/claridad-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <span style="color: #b91c1c; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>100% Legible</strong><br>Sin tachaduras ni borrones</span>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #fef2f2; border-radius: 8px; border: 1px solid #fee2e2; text-align: center;">
+                        <img src="${getBaseUrl()}images/SCAR_RDM_Correctos.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <span style="color: #b91c1c; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>Un par (RDM + SCAR)</strong><br>por cada clase rechazada</span>
+                    </div>
+                </div>
+            </div>
+        `);
+    }
+
     const otClean = ot.replace(/_\d{8}_\d{6}_.*/, "");
     let allLoaded = true;
     if (clasesRechazadas && clasesRechazadas.length > 0) {
@@ -12,10 +45,17 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
             group.style.styleFloat = "none";
             group.style.clear = "both";
             group.style.marginBottom = "25px";
-            group.style.padding = "15px";
-            group.style.background = "#fef2f2";
-            group.style.border = "1px solid #fca5a5";
-            group.style.borderRadius = "8px";
+            group.style.padding = "0";
+            group.style.background = "#ffffff";
+            group.style.border = "1px solid #fecaca";
+            group.style.borderRadius = "12px";
+            group.style.width = "100%";
+            group.style.boxSizing = "border-box";
+            group.style.display = "flex";
+            group.style.flexDirection = "column";
+            group.style.flexShrink = "0";
+            group.style.boxShadow = "0 4px 10px rgba(220, 38, 38, 0.05)";
+            group.style.overflow = "hidden";
             
             let existingRechazo = null;
             let existingScar = null;
@@ -50,15 +90,23 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                 });
             }
             const label = c.charAt(0).toUpperCase() + c.slice(1);
-            group.innerHTML = `<h4 style="margin-top:0; margin-bottom: 15px; color: #dc2626; font-weight: 700; font-family:'Poppins', sans-serif;">Clase: ${label}</h4>`;
+            let groupHtml = `
+                <div style="background: #fee2e2; padding: 12px 18px; border-bottom: 1px solid #fecaca; display: flex; align-items: center; gap: 8px;">
+                    <img src="${getBaseUrl()}images/perspectiva-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                    <h4 style="margin: 0; color: #b91c1c; font-weight: 700; font-family:'Poppins', sans-serif; font-size: 1.05em; text-transform: uppercase;">
+                        CLASE: ${label}
+                    </h4>
+                </div>
+                <div style="padding: 18px; display: flex; flex-direction: column; gap: 20px;">
+            `;
             
             // Rechazo
             const cleanRechazoName = existingRechazo ? existingRechazo.nombre.split("/").pop() : "";
             if (!existingRechazo) {
                 allLoaded = false;
             }
-            group.innerHTML += `
-                <div class="form-group" style="margin-bottom: 15px; width: 100%;">
+            groupHtml += `
+                <div class="form-group" style="margin-bottom: 0; width: 100%;">
                     <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block; font-family: 'Poppins', sans-serif; font-size: 0.95em;">
                         Formato de Rechazo <span style="color:#ef4444;">*</span>
                         ${existingRechazo ? `<span style="background:#dcfce7;color:#15803d;border-radius:20px;padding:2px 8px;font-size:0.82em;margin-left:4px;font-weight:600;">Cargado</span>` : ''}
@@ -97,7 +145,7 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                 allLoaded = false;
             }
 
-            group.innerHTML += `
+            groupHtml += `
                 <div class="form-group" style="margin-bottom: 0; width: 100%;">
                     <label style="font-weight: 600; color: #334155; margin-bottom: 6px; display: block; font-family: 'Poppins', sans-serif; font-size: 0.95em;">
                         SCAR Firmado por Proveedor <span style="color:#ef4444;">*</span>
@@ -129,7 +177,9 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                             </div>
                         ` : ''}
                     </div>
-                </div>`;
+                </div>
+            </div>`;
+            group.innerHTML = groupHtml;
             dynamicRechInputs.appendChild(group);
         });
     }
@@ -233,15 +283,17 @@ window.quitarArchivoRechazo = function (ot, archivo, buttonEl) {
                                 "plato",
                                 "molde",
                                 "fondo",
+                                "guias",
+                                "pistones",
                             ];
                             const filtrados = baseRech.filter((f) => {
                                 const nombre = (f.nombre || "").toLowerCase();
                                   const perteneceAClase = clasesMonitoreadas.some(
-                                      (c) => nombre.includes(c),
+                                      (c) => window.compararClasesSurgico ? window.compararClasesSurgico(nombre, c) : nombre.includes(c),
                                   );
                                   if (perteneceAClase) {
                                       return clasesRechazadas.some((c) =>
-                                          nombre.includes(c.toLowerCase()),
+                                          window.compararClasesSurgico ? window.compararClasesSurgico(nombre, c.toLowerCase()) : nombre.includes(c.toLowerCase()),
                                       );
                                   }
                                   return false;

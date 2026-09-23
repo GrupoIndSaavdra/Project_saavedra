@@ -63,7 +63,16 @@ window.solicitarConfirmacionCambios = function (action, step = 1) {
 
         if (step === 1) {
             // Advertencia Inicial (Alerta Leve)
-            if (titleEl) titleEl.textContent = esParcial ? "Advertencia: Reinicio de Clase" : "Advertencia: Reinicio Proceso Completo";
+            const errorIconSrc = window.baseUrl ? (window.baseUrl.endsWith('/') ? window.baseUrl + 'images/error.png' : window.baseUrl + '/images/error.png') : '/images/error.png';
+            const errorImg = `<img src="${errorIconSrc}" style="width: 26px; height: 26px; margin-right: 8px;">`;
+
+            if (titleEl) {
+                titleEl.innerHTML = esParcial 
+                    ? errorImg + "Advertencia: Reinicio de Clase" 
+                    : errorImg + "Advertencia: Reinicio Proceso Completo";
+                titleEl.style.display = "flex";
+                titleEl.style.alignItems = "center";
+            }
             if (titleEl) titleEl.style.color = "#dc2626";
             if (iconWrapper) {
                 iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
@@ -75,16 +84,47 @@ window.solicitarConfirmacionCambios = function (action, step = 1) {
                     : "¿Deseas reiniciar el proceso completo de la OT? Se eliminarán los avances y documentos registrados de todas las clases.";
             }
             if (btnEjecutar) {
-                btnEjecutar.textContent = "Sí, Continuar";
+                btnEjecutar.disabled = true;
+                btnEjecutar.style.opacity = "0.5";
+                btnEjecutar.style.cursor = "not-allowed";
+                let seconds = 5;
+                btnEjecutar.textContent = `Sí, Continuar (${seconds}s)`;
                 btnEjecutar.style.background = "linear-gradient(135deg, #e11d48 0%, #be123c 100%)";
-                btnEjecutar.style.boxShadow = "0 4px 15px rgba(225, 29, 72, 0.4)";
+                btnEjecutar.style.boxShadow = "none";
+
+                if (window.confirmTimer) clearInterval(window.confirmTimer);
+                window.confirmTimer = setInterval(() => {
+                    seconds--;
+                    if (seconds > 0) {
+                        btnEjecutar.textContent = `Sí, Continuar (${seconds}s)`;
+                    } else {
+                        clearInterval(window.confirmTimer);
+                        btnEjecutar.textContent = "Sí, Continuar";
+                        btnEjecutar.disabled = false;
+                        btnEjecutar.style.opacity = "1";
+                        btnEjecutar.style.cursor = "pointer";
+                        btnEjecutar.style.boxShadow = "0 4px 15px rgba(225, 29, 72, 0.4)";
+                    }
+                }, 1000);
+
                 btnEjecutar.onclick = function () {
-                    solicitarConfirmacionCambios(action, 2);
+                    if (!btnEjecutar.disabled) {
+                        solicitarConfirmacionCambios(action, 2);
+                    }
                 };
             }
         } else {
             // Confirmación Definitiva (Alerta Grave/Irreversible)
-            if (titleEl) titleEl.textContent = esParcial ? "Confirmación Definitiva: Reinicio de Clase" : "Confirmación Definitiva: Reinicio OT";
+            const errorIconSrc = window.baseUrl ? (window.baseUrl.endsWith('/') ? window.baseUrl + 'images/error.png' : window.baseUrl + '/images/error.png') : '/images/error.png';
+            const errorImg = `<img src="${errorIconSrc}" style="width: 26px; height: 26px; margin-right: 8px;">`;
+
+            if (titleEl) {
+                titleEl.innerHTML = esParcial 
+                    ? errorImg + "Confirmación Definitiva: Reinicio de Clase" 
+                    : errorImg + "Confirmación Definitiva: Reinicio OT";
+                titleEl.style.display = "flex";
+                titleEl.style.alignItems = "center";
+            }
             if (titleEl) titleEl.style.color = "#991b1b";
             if (iconWrapper) {
                 iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
@@ -94,18 +134,40 @@ window.solicitarConfirmacionCambios = function (action, step = 1) {
                 messageEl.innerHTML = `<strong style="color: #991b1b; display: block; margin-bottom: 6px; font-size: 1.1em;">¡ATENCIÓN: ACCIÓN IRREVERSIBLE!</strong> Esta acción NO se puede deshacer. Se eliminarán permanentemente el progreso y registros en Almacén. ¿Confirmas reiniciar definitivamente?`;
             }
             if (btnEjecutar) {
-                btnEjecutar.textContent = "Sí, Reiniciar Definitivamente";
+                btnEjecutar.disabled = true;
+                btnEjecutar.style.opacity = "0.5";
+                btnEjecutar.style.cursor = "not-allowed";
+                let seconds = 5;
+                btnEjecutar.textContent = `Sí, Reiniciar Definitivamente (${seconds}s)`;
                 btnEjecutar.style.background = "linear-gradient(135deg, #991b1b 0%, #450a0a 100%)";
-                btnEjecutar.style.boxShadow = "0 4px 15px rgba(153, 27, 27, 0.5)";
+                btnEjecutar.style.boxShadow = "none";
+
+                if (window.confirmTimer) clearInterval(window.confirmTimer);
+                window.confirmTimer = setInterval(() => {
+                    seconds--;
+                    if (seconds > 0) {
+                        btnEjecutar.textContent = `Sí, Reiniciar Definitivamente (${seconds}s)`;
+                    } else {
+                        clearInterval(window.confirmTimer);
+                        btnEjecutar.textContent = "Sí, Reiniciar Definitivamente";
+                        btnEjecutar.disabled = false;
+                        btnEjecutar.style.opacity = "1";
+                        btnEjecutar.style.cursor = "pointer";
+                        btnEjecutar.style.boxShadow = "0 4px 15px rgba(153, 27, 27, 0.5)";
+                    }
+                }, 1000);
+
                 btnEjecutar.onclick = function () {
-                    const actionToExecute = pendingResolveAction;
-                    cerrarModalConfirmarAccionCambios();
-                    ejecutarAlmacenResolverCambios(actionToExecute);
+                    if (!btnEjecutar.disabled) {
+                        const actionToExecute = pendingResolveAction;
+                        cerrarModalConfirmarAccionCambios();
+                        ejecutarAlmacenResolverCambios(actionToExecute);
+                    }
                 };
             }
         }
     } else {
-        // Breve aviso para Reemplazar Dibujos
+        // Breve aviso para Reemplazar Dibujos Obsoletos
         if (titleEl) titleEl.textContent = "Confirmar Reemplazo de Dibujos";
         if (titleEl) titleEl.style.color = "#16a34a";
         if (iconWrapper) {
@@ -116,7 +178,7 @@ window.solicitarConfirmacionCambios = function (action, step = 1) {
             messageEl.textContent = "¿Estás seguro de reemplazar los dibujos en Almacén? Se actualizarán los dibujos conservando el progreso actual de las clases.";
         }
         if (btnEjecutar) {
-            btnEjecutar.textContent = "Sí, Reemplazar Dibujos";
+            btnEjecutar.textContent = "Sí, Reemplazar Dibujos Obsoletos";
             btnEjecutar.style.background = "linear-gradient(135deg, #16a34a 0%, #15803d 100%)";
             btnEjecutar.style.boxShadow = "0 4px 15px rgba(22, 163, 74, 0.4)";
             btnEjecutar.onclick = function () {
@@ -140,6 +202,10 @@ window.cerrarModalConfirmarAccionCambios = function () {
         modal.classList.remove("open");
     }
     pendingResolveAction = null;
+    if (window.confirmTimer) {
+        clearInterval(window.confirmTimer);
+        window.confirmTimer = null;
+    }
 };
 
 window.almacenResolverCambios = function (action) {
@@ -284,7 +350,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                 <div class="alm-display-flex alm-gap-20px">
                     <!-- Viejos (En Almacén) -->
                     <div class="alm-flex-1">
-                        <h5 class="alm-color-64748b alm-margin-0-0-10px-0" style="font-weight: 700;">Actuales (En Almacén)</h5>
+                        <h5 class="alm-color-b91c1c alm-margin-0-0-10px-0" style="font-weight: 800; font-size: 1.08rem; color: #b91c1c;">Dibujos Obsoletos de Almacen</h5>
                         <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
                             ${viejosAMostrar.length > 0 ? viejosAMostrar.map((v, index) => `
                                 <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid #0284c7; background-color: #f0f9ff; border-left: 5px solid #0284c7;">
@@ -307,7 +373,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                     </div>
                     <!-- Nuevos (De Dibujos de Fundición) -->
                     <div class="alm-flex-1">
-                        <h5 class="alm-color-059669 alm-margin-0-0-10px-0" style="font-weight: 700;">Nuevos (De Programación)</h5>
+                        <h5 class="alm-color-059669 alm-margin-0-0-10px-0" style="font-weight: 800; font-size: 1.08rem; color: #059669;">Dibujos Nuevos de Programación</h5>
                         <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
                             ${nuevosProcesados.length > 0 ? nuevosProcesados.map((n, index) => {
                                 const isReemplazo = n.isReemplazo;

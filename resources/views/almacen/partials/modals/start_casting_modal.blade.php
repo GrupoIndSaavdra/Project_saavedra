@@ -8,7 +8,8 @@
                 id="mgv-title">
                 Procesamiento de Modelos (Liberación)</h3>
             <p id="mgv-subtitle" class="lib-modal-subtitle"
-                style="color: #e0e7ff; font-size: 0.88em; margin-top: 4px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;">
+                style="color: rgba(255,255,255,0.85); font-size: 0.82em; margin-top: 4px; margin-bottom: 0; font-family:'Poppins', sans-serif; font-weight: 500;">
+                Sube los formatos requeridos y genera la Pre-Orden correspondiente.
             </p>
 
             {{-- Pestañas dinámicas --}}
@@ -42,27 +43,20 @@
                     <input type="hidden" name="ot" class="mgv-form-ot">
                     <input type="hidden" name="fecha_recepcion" class="mgv-form-fecha">
 
-                    <p
-                        style="margin-bottom: 12px; font-family:'Poppins', sans-serif; font-weight:500; line-height:1.5; color:#334155; font-size: 0.92em; flex-shrink: 0;">
-                        Revisa los archivos disponibles de la OT, sube los formatos <strong
-                            style="color:#15803d;">F-CCL-LDM</strong> firmados por cada modelo aprobado y genera la
-                        Pre-Orden de Casting.
-                    </p>
-
                     <div
-                        style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr); gap: 18px; align-items: stretch; flex: 1; min-height: 0; width: 100%; box-sizing: border-box;">
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: stretch; flex: 1; min-height: 0; width: 100%; box-sizing: border-box;">
 
                         <!-- Columna Izquierda: Formatos F-CCL-LDM Requeridos -->
                         <div
                             style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
                             <h4
                                 style="margin-top: 0; margin-bottom: 8px; color: #15803d; font-size: 1.02em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                                <img src="{{ asset('images/anadir.png') }}"
-                                    style="width: 16px; height: 16px; object-fit: contain;"> Formatos F-CCL-LDM Firmados
+                                <img src="{{ asset('images/Aprobado.png') }}"
+                                    style="width: 36px; height: 36px; object-fit: contain;"> Formatos F-CCL-LDM Firmados
                                 (Requeridos)
                             </h4>
                             <div id="mgv-aprobados-inputs"
-                                style="display:flex; flex-direction:column; gap:10px; flex: 1; overflow-y: auto; padding-right: 4px;">
+                                style="display:flex; flex-direction:column; gap:10px; flex: 1; overflow-y: auto; padding-right: 4px; width: 100%; box-sizing: border-box; min-width: 0;">
                             </div>
                         </div>
 
@@ -72,7 +66,7 @@
                             <h4
                                 style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                                 <img src="{{ asset('images/galeria.png') }}"
-                                    style="width: 18px; height: 18px; object-fit: contain;"> Archivos de la OT
+                                    style="width: 36px; height: 36px; object-fit: contain;"> Archivos de la OT
                                 Disponibles (Aprobados)
                             </h4>
                             <div id="mgv-aprobados-files"
@@ -108,27 +102,20 @@
                     <input type="hidden" name="fecha_recepcion" class="mgv-form-fecha">
                     <input type="hidden" name="clases_rechazadas" id="mgv-clases-rechazadas">
 
-                    <p
-                        style="margin-bottom: 12px; font-family:'Poppins', sans-serif; font-weight:500; line-height:1.5; color:#334155; font-size: 0.92em; flex-shrink: 0;">
-                        Revisa los archivos disponibles, sube el <strong style="color:#b91c1c;">Formato de
-                            Rechazo</strong> y el <strong style="color:#b91c1c;">SCAR</strong> por cada modelo
-                        rechazado. Al finalizar, podrás generar la nueva Pre-Orden de Fabricación de Modelo.
-                    </p>
-
                     <div
-                        style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.8fr); gap: 18px; align-items: stretch; flex: 1; min-height: 0; width: 100%; box-sizing: border-box;">
+                        style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px; align-items: stretch; flex: 1; min-height: 0; width: 100%; box-sizing: border-box;">
 
                         <!-- Columna Izquierda: Formatos de Rechazo y SCAR -->
                         <div
                             style="background: #fef2f2; border: 2px solid #dc2626; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
                             <h4
                                 style="margin-top: 0; margin-bottom: 8px; color: #b91c1c; font-size: 1.02em; border-bottom: 2px solid #dc2626; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                                <img src="{{ asset('images/anadir.png') }}"
-                                    style="width: 18px; height: 18px; object-fit: contain;"> Formatos de Rechazo y SCAR
+                                <img src="{{ asset('images/Rechazado.png') }}"
+                                    style="width: 36px; height: 36px; object-fit: contain;"> Formatos de Rechazo y SCAR
                                 (Requeridos)
                             </h4>
                             <div id="mgv-rechazados-inputs"
-                                style="display:flex; flex-direction:column; gap:10px; flex: 1; overflow-y: auto; padding-right: 4px;">
+                                style="display:flex; flex-direction:column; gap:10px; flex: 1; overflow-y: auto; padding-right: 4px; width: 100%; box-sizing: border-box; min-width: 0;">
                             </div>
                         </div>
 
@@ -138,7 +125,7 @@
                             <h4
                                 style="margin-top: 0; margin-bottom: 8px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                                 <img src="{{ asset('images/galeria.png') }}"
-                                    style="width: 18px; height: 18px; object-fit: contain;"> Archivos de la OT
+                                    style="width: 36px; height: 36px; object-fit: contain;"> Archivos de la OT
                                 Disponibles (Rechazados)
                             </h4>
                             <div id="mgv-rechazados-files"

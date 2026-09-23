@@ -254,6 +254,23 @@ class DibujosFundicionPdfController extends Controller
                 return 'modificada'; // Los archivos cambiaron → permitir reenvío
             }
 
+            // CASO 1.5: clases_enviadas vacío pero alert_sent_at lleno (hash no guardado por bug legacy).
+            // Si los archivos NO se modificaron después del último envío → 'enviada'.
+            // Si SÍ se modificaron → 'pendiente'.
+            if ($historial && $historial->alert_sent_at) {
+                $sentAt = $historial->alert_sent_at instanceof \DateTimeInterface
+                    ? $historial->alert_sent_at->getTimestamp()
+                    : strtotime((string) $historial->alert_sent_at);
+
+                if ($sentAt) {
+                    $hasNewFiles = self::isFileModifiedAfter($otRaw, $clase, $sentAt);
+                    if (!$hasNewFiles) {
+                        return 'enviada'; // Sin modificaciones desde el último envío
+                    }
+                    return 'pendiente'; // Archivos modificados después del envío
+                }
+            }
+
             // CASO 2: Sin historial de envío (clases_enviadas es null para esta clase)
             // Verificar si ya entró en producción por alguna de las 3 fuentes:
 
@@ -264,7 +281,7 @@ class DibujosFundicionPdfController extends Controller
             $enProduccionPorTablas = $claseYaEnProduccion($otRaw, $clase);
 
             // 2c. Tabla procesos (registro directo de maquinado)
-            $enProduccionPorProcesos = $claseFisica && $claseFisica->procesos;
+            $enProduccionPorProcesos = $claseFisica && $claseFisica->procesos !== null;
 
             $enProduccion = $enProduccionPorFlags || $enProduccionPorTablas || $enProduccionPorProcesos;
 
@@ -281,7 +298,7 @@ class DibujosFundicionPdfController extends Controller
                 if ($limitTime) {
                     $hasNewFiles = self::isFileModifiedAfter($otRaw, $clase, $limitTime);
                     if ($hasNewFiles) {
-                        return 'modificada'; // Archivos subidos después de que empezó la producción → permitir envío
+                        return 'pendiente'; // Archivos subidos después de que empezó la producción pero nunca antes enviados → pendiente
                     }
                 }
                 return 'enviada'; // En producción sin archivos nuevos → bloquear

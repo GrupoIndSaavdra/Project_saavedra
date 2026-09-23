@@ -1,3 +1,73 @@
+    @php
+        if (!isset($formatClase)) {
+            $formatClase = function ($c) {
+                $map = [
+                    'molde' => '1 - MOLDES',
+                    'moldes' => '1 - MOLDES',
+                    '1 - moldes' => '1 - MOLDES',
+                    'bombillo' => '2 - BOMBILLO',
+                    '2 - bombillo' => '2 - BOMBILLO',
+                    'embudo' => '3 - EMBUDO',
+                    '3 - embudo' => '3 - EMBUDO',
+                    'corona' => '4 - CORONA',
+                    '4 - corona' => '4 - CORONA',
+                    'plato' => '5 - PLATO',
+                    '5 - plato' => '5 - PLATO',
+                    'fondo' => '6 - FONDO',
+                    '6 - fondo' => '6 - FONDO',
+                    'obturador' => '7 - OBTURADOR',
+                    '7 - obturador' => '7 - OBTURADOR',
+                    'cabeza de soplo' => '8 - CABEZA DE SOPLO',
+                    'cabeza' => '8 - CABEZA DE SOPLO',
+                    '8 - cabeza de soplo' => '8 - CABEZA DE SOPLO',
+                    'candado obturador' => '9 - CANDADO OBTURADOR',
+                    'candado' => '9 - CANDADO OBTURADOR',
+                    '9 - candado obturador' => '9 - CANDADO OBTURADOR',
+                    'pistones' => 'Pistones',
+                    'guias' => 'Guías',
+                    'guías' => 'Guías'
+                ];
+                $cLower = strtolower(trim($c));
+                return $map[$cLower] ?? ucfirst($c);
+            };
+        }
+    @endphp
+
+    @php
+        if (!isset($formatClase)) {
+            $formatClase = function ($c) {
+                $map = [
+                    'molde' => '1 - MOLDES',
+                    'moldes' => '1 - MOLDES',
+                    '1 - moldes' => '1 - MOLDES',
+                    'bombillo' => '2 - BOMBILLO',
+                    '2 - bombillo' => '2 - BOMBILLO',
+                    'embudo' => '3 - EMBUDO',
+                    '3 - embudo' => '3 - EMBUDO',
+                    'corona' => '4 - CORONA',
+                    '4 - corona' => '4 - CORONA',
+                    'plato' => '5 - PLATO',
+                    '5 - plato' => '5 - PLATO',
+                    'fondo' => '6 - FONDO',
+                    '6 - fondo' => '6 - FONDO',
+                    'obturador' => '7 - OBTURADOR',
+                    '7 - obturador' => '7 - OBTURADOR',
+                    'cabeza de soplo' => '8 - CABEZA DE SOPLO',
+                    'cabeza' => '8 - CABEZA DE SOPLO',
+                    '8 - cabeza de soplo' => '8 - CABEZA DE SOPLO',
+                    'candado obturador' => '9 - CANDADO OBTURADOR',
+                    'candado' => '9 - CANDADO OBTURADOR',
+                    '9 - candado obturador' => '9 - CANDADO OBTURADOR',
+                    'pistones' => 'Pistones',
+                    'guias' => 'Guías',
+                    'guías' => 'Guías'
+                ];
+                $cLower = strtolower(trim($c));
+                return $map[$cLower] ?? ucfirst($c);
+            };
+        }
+    @endphp
+
 {{-- CONTENEDOR 3: MODELOS RECHAZADOS --}}
 @php
     $esReproceso = (bool) preg_match('/_R\d+$/i', $reg->ot);
@@ -84,10 +154,9 @@
                 }
 
                 // 1. Obtener la última liberación/rechazo de Calidad para esta clase
-                $latestRechazoCalidad = \App\Models\LiberacionModeloFundicion::where(function($q) use ($reg, $targetReg, $baseOtCleanRep) {
+                $latestRechazoCalidad = \App\Models\LiberacionModeloFundicion::where(function($q) use ($reg, $targetReg) {
                     $q->where('ot', '=', $reg->ot)
-                      ->orWhere('ot', '=', $targetReg->ot)
-                      ->orWhere('ot', 'LIKE', $baseOtCleanRep . '%');
+                      ->orWhere('ot', '=', $targetReg->ot);
                 })
                 ->where(function($q) use ($cLow) {
                     $q->whereRaw("LOWER(tipo_modelo) = ?", [$cLow])
@@ -100,22 +169,29 @@
                 ->orderBy('id', 'desc')
                 ->first();
 
-                // 2. Buscar la OT de reproceso creada DESPUÉS del rechazo de Calidad para esta clase
-                $reprocesoClaseObj = null;
-                if ($latestRechazoCalidad) {
-                    $reprocesoClaseObj = $allReprocesosOt->filter(function($hist) use ($cLow, $latestRechazoCalidad) {
-                        if (strtotime($hist->created_at) < strtotime($latestRechazoCalidad->created_at)) {
-                            return false;
-                        }
-                        $otLow = strtolower($hist->ot);
-                        if (str_contains($otLow, '_' . $cLow . '_r') || str_contains($otLow, '_' . $cLow . 'r')) return true;
-                        $cfg = is_array($hist->ayudas_config) ? $hist->ayudas_config : [];
-                        foreach ($cfg as $c) {
-                            if (strtolower(trim($c)) === $cLow) return true;
-                        }
+                // 2. Buscar la OT de reproceso para esta clase (creada después del registro original)
+                $reprocesoClaseObj = $allReprocesosOt->filter(function($hist) use ($cLow, $targetReg, $latestRechazoCalidad) {
+                    // Si tenemos la liberación de calidad, usamos su fecha como base mínima. Si no, usamos la fecha de la OT original.
+                    $minTime = $latestRechazoCalidad ? strtotime($latestRechazoCalidad->created_at) : strtotime($targetReg->created_at);
+                    
+                    if (strtotime($hist->created_at) < $minTime) {
                         return false;
-                    })->sortByDesc('id')->first();
-                }
+                    }
+                    $otLow = strtolower($hist->ot);
+                    // Comprobar si la clase está en el nombre de la OT
+                    if (str_contains($otLow, '_' . str_replace(' ', '_', $cLow) . '_r') || 
+                        str_contains($otLow, '_' . $cLow . '_r') || 
+                        str_contains($otLow, '_' . $cLow . 'r')) {
+                        return true;
+                    }
+                    // Comprobar ayudas_config
+                    $cfg = is_array($hist->ayudas_config) ? $hist->ayudas_config : [];
+                    foreach ($cfg as $c) {
+                        if (strtolower(trim($c)) === $cLow) return true;
+                    }
+                    return false;
+                })->sortByDesc('id')->first();
+
 
                 $isClaseRechazoProcesada = ($reprocesoClaseObj !== null);
                 $subContainerBorder = $isClaseRechazoProcesada ? '#fca5a5' : '#dc2626';
@@ -131,6 +207,17 @@
                         {{ $isClaseRechazoProcesada ? 'REPROCESADO' : 'RECHAZADO' }}
                     </span>
                 </div>
+
+                @if ($isClaseRechazoProcesada)
+                    <details class="alm-historico-details" style="margin-bottom: 20px;">
+                        <summary style="cursor: pointer; color: #b91c1c; font-weight: 700; font-size: 0.95rem; user-select: none; padding: 10px 15px; background: #fee2e2; border-radius: 8px; border: 1px solid #fca5a5; display: inline-block; transition: all 0.2s ease;" onmouseover="this.style.background='#fecaca'" onmouseout="this.style.background='#fee2e2'">
+                            <span style="display: flex; align-items: center; gap: 8px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                Mostrar Archivos Históricos del Rechazo
+                            </span>
+                        </summary>
+                        <div style="margin-top: 15px; padding-left: 15px; border-left: 3px solid #fca5a5; animation: fadeIn 0.3s ease-in-out;">
+                @endif
 
                 {{-- Dibujos Originales Rechazados --}}
                 @if (count($dibujosClass) > 0)
@@ -254,6 +341,11 @@
                     </div>
                 @endif
                 
+                @if ($isClaseRechazoProcesada)
+                        </div>
+                    </details>
+                @endif
+
                 {{-- SECCIÓN INFORMATIVA O DE CONTROLES (DEPENDIENDO DEL ESTADO DE LA CLASE) --}}
                 @if (true)
                     @if ($isClaseRechazoProcesada && strtolower($reprocesoClaseObj->ot) !== strtolower($reg->ot))
@@ -306,17 +398,111 @@
                             </div>
                             <div class="lib-calidad-card-body">
                                 <div class="lib-calidad-action-row">
-                                    <h4 class="lib-calidad-card-prompt">
-                                        Modelo Rechazado por Calidad: <strong>{{ ucfirst($claseRech) }}</strong>. Procede a subir el Formato de Rechazo y el SCAR correspondiente.
-                                    </h4>
-                                    <div class="lib-calidad-card-btns">
-                                        <button class="btn-modelo btn-modelo-no"
-                                            onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], [{{ json_encode($claseRech) }}])"
-                                            class="alm-display-flex alm-background-color-b91c1c alm-color-white">
-                                            <img src="{{ asset('images/Rechazado.png') }}" alt="No">
-                                            <span>Procesar Rechazado ({{ ucfirst($claseRech) }})</span>
-                                        </button>
-                                    </div>
+                                    @php
+                                        $hasRdmUploaded = false;
+                                        $hasScarUploaded = false;
+                                        foreach ($otrosClass as $f) {
+                                            $n = strtolower(basename($f['nombre']));
+                                            if (str_contains($n, 'rdm') || str_contains($n, 'rechazo')) $hasRdmUploaded = true;
+                                            if (str_contains($n, 'scar')) $hasScarUploaded = true;
+                                        }
+                                        $rechazoProcesado = ($hasRdmUploaded && $hasScarUploaded);
+
+                                        $reprocesoDirecto = null;
+                                        if ($rechazoProcesado) {
+                                            $baseOtCleanRep = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $reg->ot);
+                                            $allReps = \App\Models\FundicionHistory::where(function($q) use ($baseOtCleanRep) {
+                                                $q->where('ot', 'LIKE', $baseOtCleanRep . '_%_R%')
+                                                  ->orWhere('ot', 'LIKE', $baseOtCleanRep . '_R%');
+                                            })->orderBy('id', 'desc')->get();
+                                            foreach ($allReps as $rep) {
+                                                $cfg = is_array($rep->ayudas_config) ? $rep->ayudas_config : [];
+                                                
+                                                // Normalize $cLow: e.g. "1 - moldes" -> "moldes"
+                                                $baseCLow = trim(preg_replace('/^\d+\s*-\s*/', '', $cLow));
+                                                $coreCLow = rtrim($baseCLow, 's'); // "molde"
+                                                
+                                                foreach ($cfg as $c) {
+                                                    $cleanC = strtolower(trim($c));
+                                                    $baseC = trim(preg_replace('/^\d+\s*-\s*/', '', $cleanC));
+                                                    $coreC = rtrim($baseC, 's');
+                                                    
+                                                    if ($coreCLow === $coreC || str_contains($baseCLow, $coreC) || str_contains($baseC, $coreCLow)) {
+                                                        $reprocesoDirecto = $rep;
+                                                        break 2;
+                                                    }
+                                                }
+                                                
+                                                $otLow = strtolower($rep->ot);
+                                                if (str_contains($otLow, '_' . $coreCLow) || str_contains($otLow, $coreCLow . '_r')) {
+                                                    $reprocesoDirecto = $rep;
+                                                    break;
+                                                }
+                                            }
+                                            // Fallback: Si solo hay un reproceso, asumimos que es este
+                                            if (!$reprocesoDirecto && $allReps->count() === 1) {
+                                                $reprocesoDirecto = $allReps->first();
+                                            }
+                                        }
+                                    @endphp
+
+                                    @if ($rechazoProcesado)
+                                        <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
+                                            <h4 class="lib-calidad-card-prompt" style="color: #047857; background: #ecfdf5; border-left: 4px solid #10b981; padding: 10px; border-radius: 4px; margin: 0;">
+                                                <img src="{{ asset('images/Aprobado.png') }}" style="width: 18px; vertical-align: middle; margin-right: 6px;">
+                                                Los formatos correspondientes de RDM y SCAR ya han sido subidos para <strong>{{ ucfirst($claseRech) }}</strong>.
+                                            </h4>
+                                            
+                                            @if ($reprocesoDirecto)
+                                                <div style="display: flex; align-items: center; justify-content: space-between; background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border: 2px solid #22c55e; border-radius: 12px; padding: 16px 20px; box-shadow: 0 8px 24px rgba(34, 197, 94, 0.15); transition: transform 0.3s ease; position: relative; overflow: hidden;"
+                                                     onmouseover="this.style.transform='translateY(-1px)';" onmouseout="this.style.transform='translateY(0)';">
+                                                    
+                                                    <!-- Decorative background element -->
+                                                    <div style="position: absolute; top: -15px; right: -15px; background: rgba(34, 197, 94, 0.1); width: 100px; height: 100px; border-radius: 50%; pointer-events: none;"></div>
+
+                                                    <div style="display: flex; align-items: center; gap: 16px; position: relative; z-index: 1;">
+                                                        <div style="background: white; padding: 10px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; border: 1px solid #bbf7d0;">
+                                                            <img src="{{ asset('images/Reproceso.png') }}" style="width: 28px; height: 28px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));">
+                                                        </div>
+                                                        <div style="display: flex; flex-direction: column;">
+                                                            <span style="color: #166534; font-weight: 800; font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.8px; opacity: 0.85;">Reproceso Asignado</span>
+                                                            <span style="color: #14532d; font-weight: 700; font-size: 1.15em; margin-top: 3px; font-family: 'Poppins', sans-serif; text-shadow: 0 1px 1px rgba(255,255,255,0.8);">
+                                                                {{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reprocesoDirecto->ot) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <button class="btn-modelo" 
+                                                        style="position: relative; z-index: 1; background: linear-gradient(135deg, #22c55e 0%, #15803d 100%); border: none; padding: 10px 22px; border-radius: 8px; color: white; font-weight: 700; font-size: 0.95em; display: flex; align-items: center; gap: 10px; box-shadow: 0 6px 16px rgba(21, 128, 61, 0.35); animation: pulseGreenPremium 2.5s infinite cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);"
+                                                        onmouseover="this.style.transform='translateY(-3px) scale(1.03)'; this.style.boxShadow='0 8px 20px rgba(21, 128, 61, 0.45)';"
+                                                        onmouseout="this.style.transform='translateY(0) scale(1)'; this.style.boxShadow='0 6px 16px rgba(21, 128, 61, 0.35)';"
+                                                        onclick="const row = document.querySelector(`tr[data-ot='{{ $reprocesoDirecto->ot }}']`); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#bbf7d0' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { alert('La OT de reproceso se encuentra en otra página o filtro.'); }">
+                                                        <span style="text-shadow: 0 1px 2px rgba(0,0,0,0.2);">Ir a Nueva OT</span>
+                                                        <img src="{{ asset('images/redireccionar.png') }}" style="width: 16px; height: 16px; filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
+                                                    </button>
+                                                </div>
+                                                <style>
+                                                    @keyframes pulseGreenPremium {
+                                                        0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.6); }
+                                                        50% { box-shadow: 0 0 0 14px rgba(34, 197, 94, 0); }
+                                                        100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+                                                    }
+                                                </style>
+                                            @endif
+                                        </div>
+                                    @else
+                                        <h4 class="lib-calidad-card-prompt">
+                                            Modelo Rechazado por Calidad: <strong>{{ ucfirst($claseRech) }}</strong>. Procede a subir el Formato de Rechazo y el SCAR correspondiente.
+                                        </h4>
+                                        <div class="lib-calidad-card-btns">
+                                            <button class="btn-modelo btn-modelo-no"
+                                                onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], [{{ json_encode($claseRech) }}])"
+                                                class="alm-display-flex alm-background-color-b91c1c alm-color-white">
+                                                <img src="{{ asset('images/Rechazado.png') }}" alt="No">
+                                                <span>Procesar Rechazado ({{ ucfirst($claseRech) }})</span>
+                                            </button>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         </div>

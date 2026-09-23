@@ -3193,3 +3193,9 @@ table.alm-table {
 .cal-margin-top-10px { margin-top: 10px; }
 .cal-gap-15px { gap: 15px; }
 .cal-background-color-059669 { background-color: #059669; }
+
+/* Override hover para botones de envío azules */
+.btn-hover-green-override:hover {
+    background: linear-gradient(135deg, #0a8504, #064e03) !important;
+    box-shadow: 0 4px 15px rgba(10, 133, 4, 0.35) !important;
+}

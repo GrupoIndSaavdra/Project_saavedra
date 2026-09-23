@@ -33,7 +33,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
     document.getElementById("mgv-ot").value = ot;
     document.querySelectorAll(".mgv-form-ot").forEach((i) => (i.value = ot));
     const otClean = ot.replace(/_\d{8}_\d{6}_.*/, "");
-    document.getElementById("mgv-subtitle").textContent = `OT: ${otClean}`;
+    document.getElementById("mgv-subtitle").textContent = `${otClean}`;
     
     const today = new Date();
     const formattedToday = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
@@ -42,6 +42,28 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
         .querySelectorAll(".mgv-form-fecha")
         .forEach((i) => (i.value = formattedToday));
     
+    // Normaliza cualquier variante de nombre de clase al formato corto canónico
+    const normalizeClaseJS = (c) => {
+        const s = (c || "").toLowerCase().trim();
+        // Quitar prefijo "modelo " o "modelo "
+        const sinModelo = s.replace(/^modelo\s+/i, '');
+        // Quitar prefijo numérico "1 - ", "2 - " etc.
+        const sinNum = sinModelo.replace(/^\d+\s*-\s*/, '');
+        const map = {
+            'moldes': 'molde', 'molde': 'molde',
+            'bombillo': 'bombillo',
+            'embudo': 'embudo',
+            'corona': 'corona',
+            'plato': 'plato',
+            'fondo': 'fondo',
+            'obturador': 'obturador',
+            'cabeza de soplo': 'cabeza de soplo',
+            'candado obturador': 'candado obturador',
+            'guias': 'guias', 'guías': 'guias',
+            'pistones': 'pistones',
+        };
+        return map[sinNum] || map[sinModelo] || sinNum || sinModelo || s;
+    };
     const requiredClasses = [
         "candado obturador",
         "cabeza de soplo",
@@ -52,18 +74,20 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
         "plato",
         "molde",
         "fondo",
+        "guias",
+        "pistones",
     ];
     const filteredAprobados = (aprobados || []).filter((c) =>
-        requiredClasses.includes(c.toLowerCase()),
+        requiredClasses.includes(normalizeClaseJS(c)),
     );
     const filteredRechazados = (rechazados || []).filter((c) =>
-        requiredClasses.includes(c.toLowerCase()),
+        requiredClasses.includes(normalizeClaseJS(c)),
     );
     const hiddenClasesRech = document.getElementById("mgv-clases-rechazadas");
     if (hiddenClasesRech) {
-        hiddenClasesRech.value = JSON.stringify(filteredRechazados);
+        hiddenClasesRech.value = JSON.stringify(filteredRechazados.map(normalizeClaseJS));
     }
-    window.micRequiredClasses = filteredAprobados.map((c) => c.toLowerCase());
+    window.micRequiredClasses = filteredAprobados.map(normalizeClaseJS);
     window.cargarInputsCasting(ot, []);
     
     const dynamicRechInputs = document.getElementById("mgv-rechazados-inputs");
@@ -136,10 +160,11 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                         "plato",
                         "molde",
                         "fondo",
+                        "guias",
+                        "pistones",
                     ];
-                    const clasesActivasLower = clasesActivas.map((c) =>
-                        c.toLowerCase(),
-                    );
+                    // Normalizar clases activas al formato corto para comparar con nombres de archivo
+                    const clasesActivasNorm = clasesActivas.map((c) => normalizeClaseJS(c));
                     return archivosList.filter((f) => {
                         const nombre = (f.nombre || "").toLowerCase();
                         if (nombre.includes("ayuda_visual") || nombre.includes("ayudas_visuales") || nombre.includes("ayudas visuales") || (f.tipo || "").toLowerCase() === "ayuda") {
@@ -151,7 +176,7 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                         if (clasesEnNombre.length === 0) {
                             return true;
                         }
-                        return clasesActivasLower.some((c) =>
+                        return clasesActivasNorm.some((c) =>
                             window.compararClasesSurgico(nombre, c),
                         );
                     });
@@ -182,12 +207,20 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                 
                 const baseRech = (data.archivos || []).filter((f) => {
                     const nombre = (f.nombre || "").toLowerCase().replace(/\\/g, "/");
+                    // Excluir pre-órdenes de Almacén (con y sin guión)
                     if (
-                        nombre.includes("pre-orden") &&
-                        nombre.includes("fundicion") &&
+                        (nombre.includes("pre-orden") || nombre.includes("preorden") || nombre.includes("/preordenes/")) &&
                         !nombre.includes("modelo")
                     )
                         return false;
+                    // Excluir formatos de Almacén (F_ALM_PFM_, F_ALM_, etc.)
+                    const filename = nombre.split("/").pop();
+                    if (
+                        filename.startsWith("f_alm_") ||
+                        filename.startsWith("f-alm-")
+                    )
+                        return false;
+                    // Excluir documentos aprobados que no sean rechazados
                     if (
                         nombre.includes("documentos_aprobados") &&
                         !nombre.includes("rechazado")

@@ -12,7 +12,6 @@ use App\Models\RechazoLog;
 use App\Models\ScarModelo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Normalizer;
 use Illuminate\Support\Facades\Storage;
@@ -143,13 +142,7 @@ class AlmacenFundicionController extends Controller
             $history = FundicionHistory::where('ot', '=', $baseOt, 'and')->first();
         }
 
-        if (!$history) {
-            return response()->json([
-                'existe' => false,
-                'archivos' => [],
-                'ot' => $ot,
-            ]);
-        }
+        // Removido: if (!$history) { return existe => false } para permitir leer archivos directamente si la carpeta existe aunque no haya history.
 
         $isReproceso = (bool) preg_match('/_R\d+$/i', $ot);
 
@@ -188,11 +181,11 @@ class AlmacenFundicionController extends Controller
                     }
                     if ($val) {
                         $parts = explode(',', $val);
-                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
-                            foreach ($parts as $p) {
-                                if (trim($p) === $kc) {
-                                    $activeClasses[] = $kc;
-                                }
+                        foreach ($parts as $p) {
+                            $trimmed = trim($p);
+                            $trimmed = preg_replace('/^(modelo|casting)\s+/i', '', $trimmed);
+                            if (!empty($trimmed) && !in_array($trimmed, $activeClasses)) {
+                                $activeClasses[] = $trimmed;
                             }
                         }
                     }
@@ -219,7 +212,40 @@ class AlmacenFundicionController extends Controller
 
         if (empty($activeClasses)) {
             if ($todo || $tipoPeticion === 'modelo') {
-                $activeClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'];
+                $defaultClasses = [
+                    '1 - MOLDES',
+                    '2 - BOMBILLO',
+                    '3 - EMBUDO',
+                    '4 - CORONA',
+                    '5 - PLATO',
+                    '6 - FONDO',
+                    '7 - OBTURADOR',
+                    '8 - CABEZA DE SOPLO',
+                    '9 - CANDADO OBTURADOR',
+                    'Candado obturador',
+                    'Cabeza de soplo',
+                    'Obturador',
+                    'Bombillo',
+                    'Embudo',
+                    'Corona',
+                    'Plato',
+                    'Molde',
+                    'Fondo',
+                    'Pistones',
+                    'Guías',
+                    'Guias'
+                ];
+                $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
+                if (\Storage::disk('local')->exists($baseOtPath)) {
+                    $dirs = \Storage::disk('local')->directories($baseOtPath);
+                    foreach ($dirs as $dir) {
+                        $basename = strtolower(basename($dir));
+                        if (!in_array($basename, ['escaneados', 'ayudas_visuales']) && !in_array($basename, $defaultClasses)) {
+                            $defaultClasses[] = $basename;
+                        }
+                    }
+                }
+                $activeClasses = $defaultClasses;
             } else {
                 // Filtrar clases activas basándose en las decisiones de Calidad
                 if ($isReproceso) {
@@ -269,7 +295,40 @@ class AlmacenFundicionController extends Controller
                 }
 
                 if (empty($activeClasses)) {
-                    $activeClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'];
+                    $defaultClasses = [
+                        '1 - MOLDES',
+                        '2 - BOMBILLO',
+                        '3 - EMBUDO',
+                        '4 - CORONA',
+                        '5 - PLATO',
+                        '6 - FONDO',
+                        '7 - OBTURADOR',
+                        '8 - CABEZA DE SOPLO',
+                        '9 - CANDADO OBTURADOR',
+                        'Candado obturador',
+                        'Cabeza de soplo',
+                        'Obturador',
+                        'Bombillo',
+                        'Embudo',
+                        'Corona',
+                        'Plato',
+                        'Molde',
+                        'Fondo',
+                        'Pistones',
+                        'Guías',
+                        'Guias'
+                    ];
+                    $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
+                    if (\Storage::disk('local')->exists($baseOtPath)) {
+                        $dirs = \Storage::disk('local')->directories($baseOtPath);
+                        foreach ($dirs as $dir) {
+                            $basename = strtolower(basename($dir));
+                            if (!in_array($basename, ['escaneados', 'ayudas_visuales']) && !in_array($basename, $defaultClasses)) {
+                                $defaultClasses[] = $basename;
+                            }
+                        }
+                    }
+                    $activeClasses = $defaultClasses;
                 }
             }
         }
@@ -292,15 +351,14 @@ class AlmacenFundicionController extends Controller
 
             if (!$soloPreorden) {
                 // 1a. Dibujos — nueva ruta: {Clase}/Dibujos/ (con fallback a raíz de clase)
-                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo', 'Pistones', 'Guías', 'Guias'] as $claseDir) {
+                foreach ($activeClasses as $claseDir) {
                     $claseNorm = strtolower($claseDir);
-                    if (!in_array($claseNorm, $activeClasses))
-                        continue;
+                    $claseDirMapped = FundicionPaths::normalizeClass($claseDir);
 
                     // Nueva ruta primero
-                    $newDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDir . '/' . FundicionPaths::DIBUJOS);
+                    $newDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::DIBUJOS);
                     // Legacy: dibujos en raíz de carpeta de clase
-                    $legacyDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDir);
+                    $legacyDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped);
 
                     $scanFiles = [];
                     if ($newDibjPath && (Storage::disk('local')->directoryExists($newDibjPath) || Storage::disk('local')->exists($newDibjPath))) {
@@ -339,13 +397,12 @@ class AlmacenFundicionController extends Controller
                 }
 
                 // 2a. Ayudas Visuales — nueva ruta: {Clase}/Ayudas_Visuales/ (con fallback legacy)
-                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo', 'Pistones', 'Guías', 'Guias'] as $claseDir) {
+                foreach ($activeClasses as $claseDir) {
                     $claseNorm = strtolower($claseDir);
-                    if (!in_array($claseNorm, $activeClasses))
-                        continue;
+                    $claseDirMapped = FundicionPaths::normalizeClass($claseDir);
 
-                    $newAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDir . '/' . FundicionPaths::AYUDAS_VISUALES);
-                    $legacyAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDir);
+                    $newAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::AYUDAS_VISUALES);
+                    $legacyAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDirMapped);
 
                     $scanFiles = [];
                     if ($newAyPath && (Storage::disk('local')->directoryExists($newAyPath) || Storage::disk('local')->exists($newAyPath))) {
@@ -388,9 +445,7 @@ class AlmacenFundicionController extends Controller
 
                 // --- RUTAS EXCLUSIVAMENTE ESPECÍFICAS DE CADA CLASE ---
                 foreach ($activeClasses as $clase) {
-                    $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
-                    if (empty($claseClean))
-                        $claseClean = 'GENERAL';
+                    $claseClean = FundicionPaths::normalizeClass($clase);
 
                     // Almacen dirs
                     $classAlmacenBase = self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseClean;
@@ -484,18 +539,51 @@ class AlmacenFundicionController extends Controller
                                     return true;
                                 }
 
-                                $knownClasses = ['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'];
+                                $knownClasses = [
+                                    '1 - MOLDES',
+                                    '2 - BOMBILLO',
+                                    '3 - EMBUDO',
+                                    '4 - CORONA',
+                                    '5 - PLATO',
+                                    '6 - FONDO',
+                                    '7 - OBTURADOR',
+                                    '8 - CABEZA DE SOPLO',
+                                    '9 - CANDADO OBTURADOR',
+                                    'Candado obturador',
+                                    'Cabeza de soplo',
+                                    'Obturador',
+                                    'Bombillo',
+                                    'Embudo',
+                                    'Corona',
+                                    'Plato',
+                                    'Molde',
+                                    'Fondo',
+                                    'Pistones',
+                                    'Guías',
+                                    'Guias'
+                                ];
                                 $hasKnownClass = false;
                                 $foundClass = null;
                                 foreach ($knownClasses as $kc) {
-                                    if (strpos($fileLower, $kc) !== false) {
+                                    if (strpos($fileLower, strtolower($kc)) !== false) {
                                         $hasKnownClass = true;
-                                        $foundClass = $kc;
+                                        $foundClass = strtolower($kc);
                                         break;
                                     }
                                 }
                                 if ($hasKnownClass) {
-                                    $matchesActive = in_array($foundClass, $activeClasses);
+                                    $matchesActive = false;
+                                    foreach ($activeClasses as $ac) {
+                                        $acLow = strtolower(trim($ac));
+                                        if (
+                                            $foundClass === $acLow ||
+                                            strpos($foundClass, $acLow) !== false ||
+                                            strpos($acLow, $foundClass) !== false
+                                        ) {
+                                            $matchesActive = true;
+                                            break;
+                                        }
+                                    }
                                     if (!$matchesActive)
                                         return false;
                                 } else {
@@ -1505,7 +1593,7 @@ class AlmacenFundicionController extends Controller
                     $claseClean = 'GENERAL';
                 }
 
-                FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::ALMACEN_DIR);
+                $claseClean = FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::ALMACEN_DIR);
                 $destDir = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseClean . '/ESCANEADOS';
 
                 if (!Storage::disk('local')->exists($destDir)) {
@@ -2545,8 +2633,34 @@ class AlmacenFundicionController extends Controller
         $clasesParaGuardar = empty($clasesInvolucradas) ? ['GENERAL'] : $clasesInvolucradas;
         $savedPathForUrl = null;
 
+        $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
+        $existingDirs = [];
+        if (Storage::disk('local')->exists($baseOtPath)) {
+            $existingDirs = Storage::disk('local')->directories($baseOtPath);
+        }
+
+        foreach ($clasesParaGuardar as &$claseParaGuardar) {
+            $cNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $claseParaGuardar));
+            $matched = false;
+            foreach ($existingDirs as $dir) {
+                $dirBase = basename($dir);
+                $dNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dirBase));
+                if ($cNorm === $dNorm) {
+                    $claseParaGuardar = strtoupper($dirBase);
+                    $matched = true;
+                    break;
+                }
+            }
+            if (!$matched) {
+                // Formatear estéticamente si no existe la carpeta (ej. 1Moldes -> 1 - MOLDES)
+                $claseParaGuardar = preg_replace('/^(\d+)([a-zA-Z]+)/', '$1 - $2', $claseParaGuardar);
+                $claseParaGuardar = strtoupper($claseParaGuardar);
+            }
+        }
+        unset($claseParaGuardar);
+
         foreach ($clasesParaGuardar as $claseParaGuardar) {
-            FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
+            $claseParaGuardar = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
             $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
             $savePath = $otPath . '/' . $fileName;
 
@@ -2742,7 +2856,7 @@ class AlmacenFundicionController extends Controller
         $savedPathForUrl = null;
 
         foreach ($clasesParaGuardar as $claseParaGuardar) {
-            FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
+            $claseParaGuardar = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
             $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
             $savePath = $otPath . '/' . $fileName;
 
@@ -3056,7 +3170,7 @@ class AlmacenFundicionController extends Controller
                 $clasesParaGuardar = empty($clasesInvolucradas) ? ['GENERAL'] : $clasesInvolucradas;
 
                 foreach ($clasesParaGuardar as $claseParaGuardar) {
-                    FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
+                    $claseParaGuardar = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
                     $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
 
                     if (!Storage::disk('local')->exists($otPath)) {
@@ -3120,7 +3234,7 @@ class AlmacenFundicionController extends Controller
                     $clasesParaGuardar = empty($clasesInvolucradas) ? ['GENERAL'] : $clasesInvolucradas;
 
                     foreach ($clasesParaGuardar as $claseParaGuardar) {
-                        FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
+                        $claseParaGuardar = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
                         $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
 
                         if (!Storage::disk('local')->exists($otPath)) {
@@ -3406,8 +3520,8 @@ class AlmacenFundicionController extends Controller
 
                 foreach ($clasesParaGuardar as $clase) {
                     $claseUpper = strtoupper($clase);
-                    FundicionPaths::crearEstructuraClase($folderName, $claseUpper, self::ALMACEN_DIR);
-                    $destDir = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseUpper . '/PREORDENES';
+                    $claseUpper = FundicionPaths::crearEstructuraClase($folderName, $claseUpper, self::ALMACEN_DIR);
+                    $destDir = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseUpper . '/ESCANEADOS';
 
                     if (!Storage::disk('local')->exists($destDir)) {
                         Storage::disk('local')->makeDirectory($destDir);
@@ -3514,7 +3628,7 @@ class AlmacenFundicionController extends Controller
 
                 // Para Casting: enviar a Proveedores de Casting y CC General
                 $destinosStr = !empty($destinatario) ? $destinatario : $defaultEmail . ',' . config('services.fundicion.cc_general', 'alejandross@grupoindsaavedra.com');
-                $destinatarios = array_filter(array_map('trim', explode(',', $destinosStr)));
+                $destinatarios = array_values(array_unique(array_filter(array_map('trim', explode(',', $destinosStr)))));
 
                 Mail::send([], [], function ($message) use ($destinatarios, $asunto, $cuerpo, $attachments) {
                     $message->to($destinatarios)
@@ -3534,7 +3648,7 @@ class AlmacenFundicionController extends Controller
                 // Enviar también a compras si la variable de entorno está definida y hay adjuntos escaneados
                 $destinatarioCompras = config('services.fundicion.compras', 'analilia@grupoindsaavedra.com');
                 if (!empty($destinatarioCompras)) {
-                    $destinatariosCompras = array_filter(array_map('trim', explode(',', $destinatarioCompras)));
+                    $destinatariosCompras = array_values(array_unique(array_filter(array_map('trim', explode(',', $destinatarioCompras)))));
 
                     // Filtrar los adjuntos que son escaneados (por tipo o nombre: anterior o nuevo estándar)
                     $attachmentsCompras = array_filter($attachments, function ($att) {
@@ -3902,7 +4016,7 @@ class AlmacenFundicionController extends Controller
                 if (empty($classSubFolder))
                     $classSubFolder = 'GENERAL';
 
-                FundicionPaths::crearEstructuraClase($folderName, $classSubFolder, self::ALMACEN_DIR);
+                $classSubFolder = FundicionPaths::crearEstructuraClase($folderName, $classSubFolder, self::ALMACEN_DIR);
                 $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . $classSubFolder . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/' . FundicionPaths::CALIDAD;
                 if (!Storage::disk('local')->exists($otPath)) {
                     Storage::disk('local')->makeDirectory($otPath);
@@ -3928,7 +4042,7 @@ class AlmacenFundicionController extends Controller
                     $fileContents = file_get_contents($addFile->getRealPath());
 
                     foreach ($clasesSubidas as $cs) {
-                        FundicionPaths::crearEstructuraClase($folderName, $cs, self::ALMACEN_DIR);
+                        $cs = FundicionPaths::crearEstructuraClase($folderName, $cs, self::ALMACEN_DIR);
                         $ayudasPath = self::ALMACEN_DIR . '/' . $folderName . '/' . $cs . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/' . FundicionPaths::CALIDAD;
                         if (!Storage::disk('local')->exists($ayudasPath)) {
                             Storage::disk('local')->makeDirectory($ayudasPath);
@@ -3984,8 +4098,8 @@ class AlmacenFundicionController extends Controller
                 if (empty($classSubFolder))
                     $classSubFolder = 'GENERAL';
 
-                FundicionPaths::crearEstructuraClase($folderNameOriginal, $classSubFolder, self::ALMACEN_DIR);
-                $docRechazadosPathOriginal = self::ALMACEN_DIR . '/' . $folderNameOriginal . '/' . $classSubFolder . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::ALMACEN;
+                $classSubFolder = FundicionPaths::crearEstructuraClase($folderNameOriginal, $classSubFolder, self::ALMACEN_DIR);
+                $docRechazadosPathOriginal = self::ALMACEN_DIR . '/' . $folderNameOriginal . '/' . $classSubFolder . '/' . FundicionPaths::ESCANEADOS;
                 if (!Storage::disk('local')->exists($docRechazadosPathOriginal))
                     Storage::disk('local')->makeDirectory($docRechazadosPathOriginal);
 
@@ -3999,8 +4113,8 @@ class AlmacenFundicionController extends Controller
                 if (empty($classSubFolder))
                     $classSubFolder = 'GENERAL';
 
-                FundicionPaths::crearEstructuraClase($folderNameOriginal, $classSubFolder, self::ALMACEN_DIR);
-                $docRechazadosPathOriginal = self::ALMACEN_DIR . '/' . $folderNameOriginal . '/' . $classSubFolder . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::ALMACEN;
+                $classSubFolder = FundicionPaths::crearEstructuraClase($folderNameOriginal, $classSubFolder, self::ALMACEN_DIR);
+                $docRechazadosPathOriginal = self::ALMACEN_DIR . '/' . $folderNameOriginal . '/' . $classSubFolder . '/' . FundicionPaths::ESCANEADOS;
                 if (!Storage::disk('local')->exists($docRechazadosPathOriginal))
                     Storage::disk('local')->makeDirectory($docRechazadosPathOriginal);
 
@@ -4040,23 +4154,47 @@ class AlmacenFundicionController extends Controller
             foreach ($oldArchivos as $archivoPath) {
                 $pathLower = strtolower($archivoPath);
                 $belongsToRejectedClass = false;
+
                 foreach ($clases as $clase) {
                     $claseLower = strtolower($clase);
+                    $coreClase = rtrim(trim(preg_replace('/^\d+\s*-\s*/', '', $claseLower)), 's');
+
+                    // Check segments (folders and full filename)
                     $segments = explode('/', $pathLower);
-                    if (in_array($claseLower, $segments)) {
-                        $belongsToRejectedClass = true;
-                        break;
+                    foreach ($segments as $segment) {
+                        $coreSeg = rtrim(trim(preg_replace('/^\d+\s*-\s*/', '', $segment)), 's');
+                        if ($coreClase === $coreSeg || str_contains($coreSeg, $coreClase) || str_contains($coreClase, $coreSeg)) {
+                            $belongsToRejectedClass = true;
+                            break 2;
+                        }
                     }
+
+                    // Check filename parts
                     $filename = basename($pathLower);
                     $normFilename = preg_replace('/[^a-z0-9]/', '_', $filename);
                     $fnSegments = explode('_', $normFilename);
-                    if (in_array($claseLower, $fnSegments)) {
-                        $belongsToRejectedClass = true;
-                        break;
+                    foreach ($fnSegments as $fnSeg) {
+                        $coreFnSeg = rtrim($fnSeg, 's');
+                        if (!empty($coreFnSeg) && ($coreClase === $coreFnSeg || str_contains($coreFnSeg, $coreClase) || str_contains($coreClase, $coreFnSeg))) {
+                            $belongsToRejectedClass = true;
+                            break 2;
+                        }
                     }
                 }
                 if ($belongsToRejectedClass) {
                     $filteredArchivos[] = $archivoPath;
+
+                    // Physical copy of the file for the new Reproceso directory
+                    $srcPath = self::ALMACEN_DIR . '/' . $folderNameOriginal . '/' . $archivoPath;
+                    $destPath = self::ALMACEN_DIR . '/' . $this->sanitizePath($this->normalizeOTName($newOt)) . '/' . $archivoPath;
+
+                    $destDir = dirname($destPath);
+                    if (!Storage::disk('local')->exists($destDir)) {
+                        Storage::disk('local')->makeDirectory($destDir);
+                    }
+                    if (Storage::disk('local')->exists($srcPath) && !Storage::disk('local')->exists($destPath)) {
+                        Storage::disk('local')->copy($srcPath, $destPath);
+                    }
                 }
             }
             $newHistory->almacen_archivos = array_values($filteredArchivos);
@@ -4114,7 +4252,7 @@ class AlmacenFundicionController extends Controller
 
                 // 1. Asegurar la creación de la nueva estructura de directorios vacía para la OT de Reproceso primero
                 foreach ($clases as $clase) {
-                    FundicionPaths::crearEstructuraClase($newOt, $clase, self::ALMACEN_DIR);
+                    $clase = FundicionPaths::crearEstructuraClase($newOt, $clase, self::ALMACEN_DIR);
                 }
 
                 $clasesParaGuardar = empty($clasesInvolucradas) ? ['GENERAL'] : $clasesInvolucradas;
@@ -4166,7 +4304,8 @@ class AlmacenFundicionController extends Controller
         $newBaseDir = self::ALMACEN_DIR . '/' . $folderNameNew;
 
         foreach ($clases as $clase) {
-            FundicionPaths::crearEstructuraClase($newOt, $clase, self::ALMACEN_DIR);
+            $clase = FundicionPaths::normalizeClass($clase); // Normalizar antes de crear estructura (ej: 'Molde' → '1 - MOLDES')
+            $clase = FundicionPaths::crearEstructuraClase($newOt, $clase, self::ALMACEN_DIR);
         }
 
         // ── 2. COPIAR SÓLO DIBUJOS Y AYUDAS VISUALES DE LAS CLASES RECHAZADAS ──
@@ -4435,7 +4574,7 @@ class AlmacenFundicionController extends Controller
                     $fileNameLower = strtolower($fileName);
                     if (str_contains($fileNameLower, '_anterior_n'))
                         continue;
-                        
+
                     // FIX: Evitar que documentos de OTs de Reproceso (ej. _R1) se muestren en la OT original
                     $isReprocesoOT = (bool) preg_match('/_R\d+$/i', $ot);
                     if (!$isReprocesoOT && preg_match('/_R\d+\.pdf$/i', $fileName)) {
@@ -4473,7 +4612,7 @@ class AlmacenFundicionController extends Controller
                         $bNameLow = strtolower($bName);
                         if (str_contains($bNameLow, '_anterior_n'))
                             continue;
-                            
+
                         // FIX: Evitar que documentos de OTs de Reproceso (ej. _R1) se muestren en la OT original
                         $isReprocesoOT = (bool) preg_match('/_R\d+$/i', $ot);
                         if (!$isReprocesoOT && preg_match('/_R\d+\.pdf$/i', $bName)) {
