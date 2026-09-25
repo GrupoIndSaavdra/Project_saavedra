@@ -18,12 +18,14 @@
 
     {{-- ═══ HEADER ═══ --}}
     <div class="alm-header">
-        <div class="alm-header-icon">
-            <img src="{{ asset('images/RInternoSalida.png') }}" alt="Salida de Molduras" class="ri-header-icon-img">
-        </div>
-        <div class="alm-header-text">
-            <h1>Reporte Interno de Salidas — Calidad Fundición</h1>
-            <p>Registro interno de trazabilidad de piezas. Selecciona una OT y clase para abrir o crear un reporte.</p>
+        <div class="alm-header-left">
+            <div class="alm-header-icon" style="width: 64px; height: 64px; min-width: 64px; min-height: 64px;">
+                <img src="{{ asset('images/RInternoSalida.png') }}" alt="Salida de Molduras" class="ri-header-icon-img" style="width: 48px; height: 48px; max-width: 48px; max-height: 48px; object-fit: contain;">
+            </div>
+            <div class="alm-header-text">
+                <h1>Reporte Interno de Salidas — Calidad Fundición</h1>
+                <p>Registro interno de trazabilidad de piezas. Selecciona una OT y clase para abrir o crear un reporte.</p>
+            </div>
         </div>
         <div class="ri-codigo-box">
             <span>Código: <strong>F PRO CPT</strong></span>

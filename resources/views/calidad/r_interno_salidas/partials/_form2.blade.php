@@ -1,27 +1,34 @@
+@php
+    $numCols = min(4, max(1, (int) $totalPiezas));
+    $colWidthN = round(14 / $numCols, 2);
+    $colWidthCheck = round(11 / $numCols, 2);
+    $colWidth90 = round(14 / $numCols, 2);
+    $colWidthLp = round(14 / $numCols, 2);
+    $colWidthDesc = round((100 / $numCols) - $colWidthN - ($colWidthCheck * 2) - $colWidth90 - $colWidthLp, 2);
+    $filas = (int) ceil($totalPiezas / $numCols);
+@endphp
+
 <div class="ri-table-wrapper-unique">
-    <table class="ri-table-modern">
+    <table class="ri-table-modern" style="min-width: {{ min(1200, $numCols * 320) }}px;">
         <thead>
             <tr>
-                @for($i = 0; $i < 4; $i++)
-                    <th style="width: 4%; text-align: center;" class="ri-th-num">N°</th>
-                    <th style="width: 3.5%; text-align: center; font-size: 0.85rem;" class="ri-th-check">✔</th>
-                    <th style="width: 3.5%; text-align: center; font-size: 0.85rem;" class="ri-th-check">✘</th>
-                    <th style="width: 4%; text-align: center;" class="ri-th-sub">90°</th>
-                    <th style="width: 4%; text-align: center;" class="ri-th-sub">LP</th>
-                    <th style="width: 9.5%; text-align: left;" class="ri-th-desc {{ $i < 3 ? 'ri-group-divider-head' : '' }}">Descripción</th>
+                @for($i = 0; $i < $numCols; $i++)
+                    <th style="width: {{ $colWidthN }}%; text-align: center;" class="ri-th-num">N°</th>
+                    <th style="width: {{ $colWidthCheck }}%; text-align: center; font-size: 0.85rem;" class="ri-th-check">✔</th>
+                    <th style="width: {{ $colWidthCheck }}%; text-align: center; font-size: 0.85rem;" class="ri-th-check">✘</th>
+                    <th style="width: {{ $colWidth90 }}%; text-align: center;" class="ri-th-sub">90°</th>
+                    <th style="width: {{ $colWidthLp }}%; text-align: center;" class="ri-th-sub">LP</th>
+                    <th style="width: {{ $colWidthDesc }}%; text-align: left;" class="ri-th-desc {{ $i < ($numCols - 1) ? 'ri-group-divider-head' : '' }}">Descripción</th>
                 @endfor
             </tr>
         </thead>
         <tbody>
-        @php
-            $filas = (int) ceil($totalPiezas / 4);
-        @endphp
         @for($fila = 0; $fila < $filas; $fila++)
             <tr>
-                @for($col = 0; $col < 4; $col++)
+                @for($col = 0; $col < $numCols; $col++)
                     @php
-                        $numPieza = ($fila * 4) + $col + 1;
-                        $dividerClass = ($col < 3) ? 'ri-group-divider' : '';
+                        $numPieza = ($fila * $numCols) + $col + 1;
+                        $dividerClass = ($col < ($numCols - 1)) ? 'ri-group-divider' : '';
 
                         if($numPieza > $totalPiezas) {
                             echo "<td class='ri-td-blank'></td><td class='ri-td-blank'></td><td class='ri-td-blank'></td><td class='ri-td-blank'></td><td class='ri-td-blank'></td><td class='ri-td-blank {$dividerClass}'></td>";

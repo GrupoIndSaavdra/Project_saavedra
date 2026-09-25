@@ -31,6 +31,8 @@ use App\Http\Controllers\PtaResultsController;
 use App\Http\Controllers\HerramientasTecamacController;
 use App\Http\Controllers\ProgramasCncController;
 use App\Http\Controllers\RInternoSalidasController;
+use App\Http\Controllers\InspeccionVisualController;
+use App\Http\Controllers\InspeccionDimensionalController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -734,6 +736,74 @@ Route::middleware(['auth'])->prefix('calidad/r-interno-salidas')->name('calidad.
 
     // Vista del reporte específico (crea o carga según OT + clase) - DEBE IR AL FINAL
     Route::get('/{ot}/{clase}', [RInternoSalidasController::class, 'show'])
+        ->name('show');
+});
+
+/* ===========================
+   Rutas directas para apertura externa (Excel / Visores)
+=========================== */
+Route::get('calidad/inspeccion-visual/open-file/{id}', [InspeccionVisualController::class, 'openFile'])
+    ->name('calidad.inspeccion_visual.open_file');
+Route::get('calidad/inspeccion-dimensional/open-file/{id}', [InspeccionDimensionalController::class, 'openFile'])
+    ->name('calidad.inspeccion_dimensional.open_file');
+
+/* ===========================
+   Vista Calidad — Inspección Visual
+   Acceso: Administrador (1), Master (3) y Calidad (4).
+=========================== */
+Route::middleware(['auth'])->prefix('calidad/inspeccion-visual')->name('calidad.inspeccion_visual.')->group(function () {
+    Route::get('/', [InspeccionVisualController::class, 'index'])
+        ->name('index');
+    Route::get('/pdf/{id}', [InspeccionVisualController::class, 'generatePdf'])
+        ->name('pdf');
+    Route::get('/view-archivo/{id}', [InspeccionVisualController::class, 'viewArchivo'])
+        ->name('view_archivo');
+    Route::get('/download-archivo/{id}', [InspeccionVisualController::class, 'downloadArchivo'])
+        ->name('download_archivo');
+    Route::post('/autosave-medida', [InspeccionVisualController::class, 'autosaveMedida'])
+        ->name('autosave_medida');
+    Route::post('/add-row', [InspeccionVisualController::class, 'addRow'])
+        ->name('add_row');
+    Route::post('/delete-row', [InspeccionVisualController::class, 'deleteRow'])
+        ->name('delete_row');
+    Route::post('/update-header', [InspeccionVisualController::class, 'updateHeader'])
+        ->name('update_header');
+    Route::post('/upload-archivo', [InspeccionVisualController::class, 'uploadArchivo'])
+        ->name('upload_archivo');
+    Route::post('/delete-archivo', [InspeccionVisualController::class, 'deleteArchivo'])
+        ->name('delete_archivo');
+    Route::get('/{ot}/{clase}', [InspeccionVisualController::class, 'show'])
+        ->name('show');
+});
+
+/* ===========================
+   Vista Calidad — Inspección Dimensional
+   Acceso: Administrador (1), Master (3) y Calidad (4).
+=========================== */
+Route::middleware(['auth'])->prefix('calidad/inspeccion-dimensional')->name('calidad.inspeccion_dimensional.')->group(function () {
+    Route::get('/', [InspeccionDimensionalController::class, 'index'])
+        ->name('index');
+    Route::get('/pdf/{id}', [InspeccionDimensionalController::class, 'generatePdf'])
+        ->name('pdf');
+    Route::get('/view-excel/{id}', [InspeccionDimensionalController::class, 'viewExcel'])
+        ->name('view_excel');
+    Route::get('/download-excel/{id}', [InspeccionDimensionalController::class, 'downloadExcel'])
+        ->name('download_excel');
+    Route::post('/autosave-medida', [InspeccionDimensionalController::class, 'autosaveMedida'])
+        ->name('autosave_medida');
+    Route::post('/add-row', [InspeccionDimensionalController::class, 'addRow'])
+        ->name('add_row');
+    Route::post('/delete-row', [InspeccionDimensionalController::class, 'deleteRow'])
+        ->name('delete_row');
+    Route::post('/upload-excel', [InspeccionDimensionalController::class, 'uploadExcel'])
+        ->name('upload_excel');
+    Route::post('/delete-excel', [InspeccionDimensionalController::class, 'deleteExcel'])
+        ->name('delete_excel');
+    Route::post('/update-header', [InspeccionDimensionalController::class, 'updateHeader'])
+        ->name('update_header');
+    Route::post('/update-nominal-tolerancia', [InspeccionDimensionalController::class, 'updateNominalTolerancia'])
+        ->name('update_nominal_tolerancia');
+    Route::get('/{ot}/{clase}', [InspeccionDimensionalController::class, 'show'])
         ->name('show');
 });
 

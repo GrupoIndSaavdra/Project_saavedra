@@ -140,6 +140,14 @@ export default defineConfig({
                 'resources/css/calidad_views/r_interno_salidas.css',
                 'resources/js/calidad_views/r_interno_salidas.js',
 
+                // Vista Calidad — Inspección Visual
+                'resources/css/calidad_views/inspeccion_visual.css',
+                'resources/js/calidad_views/inspeccion_visual.js',
+
+                // Vista Calidad — Reporte Dimensional
+                'resources/css/calidad_views/inspeccion_dimensional.css',
+                'resources/js/calidad_views/inspeccion_dimensional.js',
+
                 // Views systemLogs
                 "resources/css/reports/systemLogs.css",
                 "resources/js/reports/systemLogs.js",

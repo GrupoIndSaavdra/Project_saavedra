@@ -1,10 +1,24 @@
 /* ==========================================================
-   Salida de Molduras — CSS del Módulo
+   Reporte Interno de Salidas — CSS del Módulo
    Calidad Fundición | Grupo Industrial Saavedra
-   Importa global.css para la paleta GIS y utilidades base.
+   Estilo visual institucional unificado (GIS Design System)
    ========================================================== */
 
 @import "../global.css";
+
+/* Variables Globales */
+:root {
+    --gis-blue: #033966;
+    --gis-blue-dark: #002244;
+    --gis-blue-light: #0284c7;
+    --gis-green: #0A8504;
+    --gis-green-dark: #086903;
+    --gis-red: #9c0303;
+    --gis-red-vibrant: #dc2626;
+    --gis-gray: #404040;
+    --gis-border: #cbd5e1;
+    --gis-border-subtle: #e2e8f0;
+}
 
 body {
     background-size: cover;
@@ -12,1010 +26,688 @@ body {
     background-attachment: fixed;
     background-repeat: no-repeat;
     min-height: 100vh;
+    font-family: 'Poppins', 'Montserrat', system-ui, -apple-system, sans-serif;
+    color: #0f172a;
 }
 
-/* ── Contenedor principal ── */
+.alm-wrapper.rd-page-wrapper,
 .alm-wrapper {
-    max-width: 98%;
-    margin: 1.5em auto;
-    padding: 0 1em 4em;
+    max-width: 98% !important;
+    width: 98% !important;
+    margin: 1.2rem auto;
+    padding: 0 0.5rem 4rem;
+    box-sizing: border-box;
 }
 
-/* ────────────────────────────────────────────────────
-   HEADER PRINCIPAL
-──────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────
+   1. HEADER PRINCIPAL (VISTA INDEX Y SELECTOR)
+──────────────────────────────────────────────────────── */
 .alm-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--gis-blue);
-    color: #fff;
-    padding: 1em 1.5em;
-    border-radius: 10px;
-    margin-bottom: 1.5em;
-    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.4);
-    gap: 1.2em;
-    flex-wrap: wrap;
-}
-
-.ri-header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-}
-
-.ri-header-center {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.ri-header-filter-group {
-    display: inline-flex;
-    align-items: center;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    border-radius: 8px;
-    padding: 3px 4px 3px 10px;
-    gap: 8px;
-    transition: all var(--trans);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-.ri-header-filter-group:hover {
-    background: rgba(255, 255, 255, 0.22);
-    border-color: rgba(255, 255, 255, 0.5);
-}
-
-.ri-header-badge-label {
-    font-size: 0.78rem;
-    font-weight: 800;
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #02203e 100%);
     color: #ffffff;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    white-space: nowrap;
-    -webkit-user-select: none;
-    user-select: none;
+    padding: 1.2rem 1.8rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.45);
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.ri-header-select-compact {
-    background: #ffffff;
-    color: #033966;
-    border: none;
-    border-radius: 6px;
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    font-weight: 700;
-    cursor: pointer;
-    outline: none;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
-    transition: all var(--trans);
-    max-width: 220px;
-}
-
-.ri-header-select-compact:hover,
-.ri-header-select-compact:focus {
-    background: #ffffff;
-    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
-    transform: translateY(-1px);
+.alm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 280px;
 }
 
 .alm-header-icon {
-    width: 95px;
-    height: 95px;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 8px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 64px;
+    height: 64px;
     flex-shrink: 0;
 }
 
 .ri-header-icon-img {
-    max-width: 75px;
-    max-height: 75px;
-    height: auto;
+    width: 48px;
+    height: 48px;
+    max-width: 48px;
+    max-height: 48px;
+    object-fit: contain;
+    display: block;
 }
 
 .alm-header-text h1 {
-    font-size: 1.55em;
-    font-weight: 800;
-    letter-spacing: 1px;
-    line-height: 1.2;
     margin: 0;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    color: #ffffff;
 }
 
 .alm-header-text p {
-    font-size: 0.85em;
-    opacity: 0.85;
-    margin-top: 4px;
-    margin-bottom: 0;
+    margin: 4px 0 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+    color: #cbd5e1;
 }
 
 .ri-codigo-box {
     margin-left: auto;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    background: rgba(255, 255, 255, 0.15);
-    padding: 0.8em 1.2em;
+    gap: 3px;
+    background: rgba(255, 255, 255, 0.12);
+    padding: 0.6rem 1.1rem;
     border-radius: 8px;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    font-size: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    font-size: 0.78rem;
+    color: #ffffff;
     white-space: nowrap;
 }
 
 .ri-codigo-box strong {
     font-weight: 800;
+    color: #ffffff;
 }
 
-.ri-action-right {
-    margin-left: auto;
+/* ────────────────────────────────────────────────────────
+   2. BARRA SUPERIOR DE ACCIONES (TOP BAR - VISTA FORM/SHOW)
+──────────────────────────────────────────────────────── */
+.rd-top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #002244 100%);
+    padding: 10px 18px;
+    border-radius: 8px;
+    margin-bottom: 1.2rem;
+    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.35);
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.rd-top-left {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 12px;
     flex-wrap: wrap;
 }
 
-/* ─── BARRA DE ACCIÓN (reporte) ────────────────────────── */
-.ri-btn-back {
+.rd-top-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.btn-regresar {
+    background: rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    text-decoration: none;
+    padding: 7px 14px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 700;
     display: inline-flex;
     align-items: center;
-    gap: var(--sp-xs);
-    padding: 8px 18px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    color: var(--gis-white);
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 700;
-    transition: all var(--trans);
+    gap: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    transition: all 0.2s ease;
 }
 
-.ri-btn-back:hover {
-    background: rgba(255, 255, 255, 0.3);
+.btn-regresar:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
     transform: translateX(-2px);
-    color: #fff;
 }
 
-/* ─── INDICADOR DE GUARDADO DINÁMICO ───────────────────── */
+.rd-title-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 6px 14px;
+    border-radius: 6px;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
 
-.ri-save-indicator {
+.rd-ot-pill {
+    background: #ffffff;
+    color: var(--gis-blue, #033966);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 0.88rem;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Filtros en Header */
+.ri-header-filter-group {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 6px;
+    padding: 2px 4px 2px 8px;
+    gap: 6px;
+}
+
+.ri-header-badge-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ri-header-select-compact {
+    background: #ffffff;
+    color: var(--gis-blue, #033966);
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    max-width: 220px;
+}
+
+/* Indicador de Autoguardado */
+.rd-autosave-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 6px 14px;
+    border-radius: 20px;
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.rd-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #22c55e;
+    box-shadow: 0 0 6px #22c55e;
+    transition: all 0.3s;
+}
+
+.ri-save-indicator--saving .rd-status-dot {
+    background: #f59e0b;
+    box-shadow: 0 0 8px #f59e0b;
+}
+
+.ri-save-indicator--saved .rd-status-dot {
+    background: #22c55e;
+    box-shadow: 0 0 8px #22c55e;
+}
+
+.ri-save-indicator--error .rd-status-dot {
+    background: #ef4444;
+    box-shadow: 0 0 8px #ef4444;
+}
+
+/* ────────────────────────────────────────────────────────
+   3. HOJA OFICIAL DEL DOCUMENTO (RD-SHEET-CONTAINER)
+──────────────────────────────────────────────────────── */
+.rd-sheet-container {
+    background: #ffffff;
+    color: #1e293b;
+    border-radius: 10px;
+    box-shadow: 0 12px 36px rgba(3, 57, 102, 0.25);
+    overflow: hidden;
+    padding: 1.6rem;
+    border: 2px solid var(--gis-blue, #033966);
+}
+
+/* ── Encabezado Institucional ── */
+.rd-doc-header {
+    border: 2px solid var(--gis-blue, #033966);
+    margin-bottom: 1.2rem;
+}
+
+.rd-doc-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 2px solid var(--gis-blue, #033966);
+    padding: 12px 16px;
+    background: linear-gradient(180deg, #f0f6fc 0%, #e1edf8 100%);
+}
+
+.rd-doc-main-title {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--gis-blue, #033966);
+    letter-spacing: 0.5px;
+    text-align: center;
+    width: 100%;
+    padding: 0 160px;
+    box-sizing: border-box;
+}
+
+.rd-doc-logo {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+}
+
+.rd-logo-img {
+    height: 48px;
+    object-fit: contain;
+}
+
+.rd-doc-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr) 140px 140px;
+    background: var(--gis-blue, #033966);
+    gap: 1px;
+}
+
+.rd-meta-col {
+    background: #ffffff;
+    padding: 6px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.rd-meta-col-sm {
+    text-align: center;
+}
+
+.rd-meta-col-code {
+    background: #f0f6fc;
+    text-align: center;
+}
+
+.rd-meta-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--gis-gray, #404040);
+    text-transform: uppercase;
+    line-height: 1.1;
+    margin-bottom: 3px;
+}
+
+.rd-meta-text-val {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--gis-blue, #033966);
+    letter-spacing: 0.2px;
+}
+
+.rd-meta-code-val {
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: var(--gis-blue, #033966);
+    letter-spacing: 0.5px;
+}
+
+/* ── Información General y Entrega ── */
+.rd-info-section {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 14px;
+    margin-bottom: 1.2rem;
+}
+
+@media (max-width: 900px) {
+    .rd-info-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.rd-info-block {
+    border: 1.5px solid var(--gis-blue, #033966);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.rd-block-heading {
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #002244 100%);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 6px 12px;
+    letter-spacing: 0.5px;
+}
+
+.rd-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #cbd5e1;
+    padding: 1px;
+}
+
+.rd-info-cell {
+    background: #fff;
+    padding: 8px 12px;
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #fff;
-    padding: 7px 16px;
-    border-radius: 20px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
-    white-space: nowrap;
+    font-size: 0.88rem;
 }
 
-.ri-save-indicator__dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #28a745;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+.rd-lbl {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--gis-gray, #404040);
+    text-transform: uppercase;
+    min-width: 65px;
 }
 
-.ri-save-indicator--idle {
-    background: rgba(40, 167, 69, 0.18);
-    border-color: rgba(40, 167, 69, 0.4);
-}
-.ri-save-indicator--idle .ri-save-indicator__dot {
-    background: #28a745;
-    box-shadow: 0 0 6px rgba(40, 167, 69, 0.6);
+.rd-val {
+    font-weight: 700;
+    color: var(--gis-blue, #033966);
+    font-size: 0.92rem;
 }
 
-.ri-save-indicator--saving {
-    background: rgba(255, 193, 7, 0.22);
-    border-color: rgba(255, 193, 7, 0.6);
-    color: #fff8e1;
-}
-.ri-save-indicator--saving .ri-save-indicator__dot {
-    background: #ffc107;
-    box-shadow: 0 0 8px rgba(255, 193, 7, 0.8);
-    animation: pulse-dot 0.8s infinite alternate;
+.font-bold { font-weight: 700; }
+.text-blue { color: #0284c7; }
+.text-amber { color: #d97706; }
+.text-red { color: #dc2626; }
+
+/* ── Barra de Total de Piezas ── */
+.ri-total-bar {
+    border: 1.5px solid var(--gis-blue, #033966);
+    border-radius: 6px;
+    margin-bottom: 1.2rem;
+    background: #f0f6fc;
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.ri-save-indicator--saved {
-    background: rgba(40, 167, 69, 0.25);
-    border-color: rgba(40, 167, 69, 0.6);
-    color: #e8f5e9;
-}
-.ri-save-indicator--saved .ri-save-indicator__dot {
-    background: #28a745;
-    box-shadow: 0 0 8px rgba(40, 167, 69, 0.8);
-}
-
-.ri-save-indicator--error {
-    background: rgba(220, 53, 69, 0.25);
-    border-color: rgba(220, 53, 69, 0.6);
-    color: #ffebee;
-}
-.ri-save-indicator--error .ri-save-indicator__dot {
-    background: #dc3545;
-    box-shadow: 0 0 8px rgba(220, 53, 69, 0.8);
-}
-
-@keyframes pulse-dot {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-}
-
-/* ────────────────────────────────────────────────────
-   TABLA / CARDS
-──────────────────────────────────────────────────── */
-.alm-table-card {
-    background: #ffffff;
-    border: 1px solid rgba(3, 57, 102, 0.2);
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(3, 57, 102, 0.08);
-    overflow: hidden;
-    margin-bottom: 2em;
-    transition: box-shadow 0.3s ease;
-}
-
-.alm-table-card:hover {
-    box-shadow: 0 6px 20px rgba(3, 57, 102, 0.12);
-}
-
-.alm-table-header {
+.ri-total-left {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.95em 1.4em;
-    background: linear-gradient(135deg, #033966 0%, #002244 100%);
-    color: #fff;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+    gap: 8px;
 }
 
-.alm-table-header.ri-header-with-tools {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 12px 20px;
-    padding: 0.85em 1.4em;
-}
-
-.alm-table-header h2,
-.ri-header-title-box h2 {
-    font-size: 1.2em;
+.ri-total-lbl {
+    font-size: 0.78rem;
     font-weight: 800;
-    letter-spacing: 0.8px;
+    color: var(--gis-gray, #404040);
     text-transform: uppercase;
+}
+
+.ri-total-num {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: var(--gis-blue, #033966);
+}
+
+.ri-total-unit {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--gis-blue, #033966);
+}
+
+.ri-header-total__formula {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* ────────────────────────────────────────────────────────
+   4. CUERPO PRINCIPAL: TABLA DE PIEZAS
+──────────────────────────────────────────────────────── */
+.rd-table-wrapper {
+    border: 1.5px solid var(--gis-blue, #033966);
+    border-radius: 6px;
+    overflow: hidden;
+    background: #fff;
+    margin-bottom: 1.2rem;
+}
+
+.rd-table-bar {
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #002244 100%);
+    color: #fff;
+    padding: 8px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.rd-table-title {
     margin: 0;
-    white-space: nowrap;
+    font-size: 0.88rem;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+    text-transform: uppercase;
 }
 
 .ri-header-bulk-tools {
     display: flex;
-    align-items: flex-end;
-    gap: 12px 18px;
+    align-items: center;
+    gap: 10px 14px;
     flex-wrap: wrap;
 }
 
-.ri-header-bulk-tools .ri-bulk-filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-}
-
-.ri-header-bulk-tools .ri-bulk-filter-group label {
-    font-size: 0.72rem;
-    font-weight: 700;
-    color: rgba(255, 255, 255, 0.85);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    white-space: nowrap;
-}
-
-.ri-header-bulk-tools .ri-bulk-input {
-    width: 75px !important;
-    height: 32px !important;
-    text-align: center;
-    font-weight: 700;
-    font-size: 0.85rem !important;
-    color: #033966 !important;
-    background: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    border-radius: 6px !important;
-    outline: none !important;
-    padding: 2px 6px !important;
-    transition: all 0.2s ease;
-}
-
-.ri-header-bulk-tools .ri-bulk-input:focus {
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3) !important;
-}
-
-.ri-header-bulk-tools .ri-bulk-btn-row {
+.ri-bulk-filter-group {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
 }
 
-/* ── Botones estilizados de acciones masivas ── */
+.ri-bulk-filter-group label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+}
+
+.ri-bulk-input {
+    width: 60px !important;
+    height: 28px !important;
+    text-align: center;
+    font-weight: 800;
+    font-size: 0.85rem !important;
+    color: var(--gis-blue, #033966) !important;
+    background: #ffffff !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+    border-radius: 5px !important;
+    outline: none !important;
+    padding: 2px 4px !important;
+    box-sizing: border-box;
+}
+
+.ri-bulk-input:focus {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35) !important;
+}
+
+.ri-bulk-btn-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
 .ri-btn-bulk {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    height: 32px;
-    padding: 0 14px;
-    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-    font-size: 0.78rem;
-    font-weight: 700;
-    border-radius: 6px;
+    gap: 4px;
+    height: 28px;
+    padding: 0 10px;
+    font-family: inherit;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border-radius: 5px;
     cursor: pointer;
     border: none;
-    line-height: 1.2;
     white-space: nowrap;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
-.ri-btn-bulk:active {
-    transform: scale(0.97);
+.ri-btn-bulk:hover:not(:disabled) {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
 }
 
-/* ── ESTADOS DINÁMICOS DE INTERRUPTOR PARA BOTONES MASIVOS ── */
-
-/* Estado Inactivo (Estilo neutro en el header azul) */
-.ri-header-bulk-tools .ri-btn-inactive {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: rgba(255, 255, 255, 0.65) !important;
-    border: 1px solid rgba(255, 255, 255, 0.2) !important;
-    box-shadow: none !important;
-    opacity: 0.75;
-}
-.ri-header-bulk-tools .ri-btn-inactive:hover {
-    background: rgba(255, 255, 255, 0.22) !important;
-    color: #ffffff !important;
-    opacity: 1;
-}
-
-/* Estado Activo Verde (Seleccionar Todo o ✔) */
-.ri-header-bulk-tools .ri-btn-active--green {
+.ri-btn-bulk--all, .ri-btn-bulk--check {
     background: #16a34a !important;
     color: #ffffff !important;
-    border: 1px solid #15803d !important;
-    box-shadow: 0 2px 6px rgba(22, 163, 74, 0.35) !important;
-    opacity: 1 !important;
-}
-.ri-header-bulk-tools .ri-btn-active--green:hover {
-    background: #15803d !important;
-    box-shadow: 0 4px 10px rgba(22, 163, 74, 0.45) !important;
-    transform: translateY(-1px);
 }
 
-/* Estado Activo Rojo (Desmarcar Todo o ✘) */
-.ri-header-bulk-tools .ri-btn-active--red {
+.ri-btn-bulk--uncheck {
     background: #dc2626 !important;
     color: #ffffff !important;
-    border: 1px solid #b91c1c !important;
-    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.35) !important;
-    opacity: 1 !important;
-}
-.ri-header-bulk-tools .ri-btn-active--red:hover {
-    background: #b91c1c !important;
-    box-shadow: 0 4px 10px rgba(220, 38, 38, 0.45) !important;
-    transform: translateY(-1px);
 }
 
-.alm-table-scroll {
-    overflow-x: auto;
+.ri-btn-bulk--none {
+    background: #64748b !important;
+    color: #ffffff !important;
 }
 
-#pdf-versions-container .alm-table-scroll {
-    max-height: 280px;
-    overflow-y: auto;
-    border-bottom: 2px solid #e5e7eb;
-}
-
-#pdf-versions-container .alm-table-header {
-    background: linear-gradient(135deg, #033966, #00509e);
-}
-
-table.alm-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.alm-table thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--gis-blue);
-    color: #fff;
-    padding: 0.85em 1em;
-    text-align: center;
-    font-size: 0.85em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid #022847;
-    white-space: nowrap;
-}
-
-.alm-table tbody tr {
-    border-bottom: 1px solid #ddd;
-    transition: background 0.2s ease;
-}
-
-.alm-table tbody tr:last-child {
-    border-bottom: none;
-}
-
-.alm-table tbody tr:nth-child(even) {
-    background: #f5f9ff;
-}
-
-.alm-table tbody tr:hover {
-    background: #e8f2ff;
-}
-
-.alm-table tbody td {
-    padding: 0.5em;
-    vertical-align: middle;
-    font-size: 0.95em;
-    color: #333;
-    border: 1px solid #ddd;
-    text-align: center;
-}
-
-.ri-table-container {
-    display: none; /* Ocultamos las tablas que ya no se usan */
-}
-.ri-table-sticky th {
-    display: none;
-}
-
-/* OT label */
-.alm-ot-label {
-    font-weight: 700;
-    color: var(--gis-blue);
-    font-size: 0.95em;
-}
-
-.alm-clase-label {
-    font-weight: 700;
-    color: #555;
-    font-size: 0.95em;
-}
-
-.alm-table-card {
-    background: #ffffff;
-    border: 1px solid rgba(3, 57, 102, 0.2);
-    border-radius: 8px;
-    box-shadow: 0 3px 10px rgba(3, 57, 102, 0.06);
-    overflow: hidden;
-    margin-bottom: 0.75em;
-    transition: box-shadow 0.3s ease;
-}
-
-.alm-table-card:hover {
-    box-shadow: 0 5px 14px rgba(3, 57, 102, 0.1);
-}
-
-/* Badges de formato */
-.badge-tipo-dibujo {
-    background: #e8f2ff;
-    color: var(--gis-blue);
-    border: 1px solid var(--gis-blue);
-    padding: 0.2em 0.7em;
-    border-radius: 20px;
-    font-size: 0.8em;
-    font-weight: 700;
-}
-
-.badge-tipo-ayuda {
-    background: #eafaf2;
-    color: #027a3a;
-    border: 1px solid #027a3a;
-    padding: 0.2em 0.7em;
-    border-radius: 20px;
-    font-size: 0.8em;
-    font-weight: 700;
-}
-
-.badge-pdf-count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--gis-blue);
-    color: #fff;
-    font-size: 0.75em;
-    font-weight: 700;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-}
-
-.btn-toggle-files {
-    background: #005194;
-    color: #fff;
-    padding: 0.45em 1.1em;
-    font-size: 0.82em;
-    font-weight: 700;
-    border-radius: 6px;
-    border: none;
-    cursor: pointer;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    display: inline-block;
-    width: 100%;
-    max-width: 140px;
-    text-align: center;
-}
-
-.btn-toggle-files:hover {
-    background: var(--gis-green);
-    color: #fff;
-    box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
-    transform: scale(1.02);
-}
-
-/* ─── BOTONES DE ACCIÓN (PDF / ENVÍO) ────── */
-
-.ri-btn-action-custom {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    cursor: pointer;
-    padding: 1em;
-    min-width: 120px;
+.alm-results-count {
+    background: rgba(255, 255, 255, 0.2);
     border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5em;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-    position: relative;
-}
-
-.ri-btn-action-custom span {
-    font-size: 0.85em;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.ri-btn-action-custom img {
-    width: 44px;
-    height: 44px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
-.ri-btn-action-custom.disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-.ri-btn-action-custom:active:not(.disabled) {
-    transform: scale(0.9);
-}
-
-/* Tema Verde (Envío) */
-.ri-btn-action--green {
-    background: #027a3a;
-    border-color: #015c2c;
-    color: #fff;
-}
-
-.ri-btn-action--green img {
-    filter: brightness(0) invert(1);
-}
-
-.ri-btn-action--green:hover:not(.disabled) {
-    background: #eafaf2;
-    color: #027a3a;
-    transform: scale(1.1);
-    box-shadow: 0 8px 20px rgba(2, 122, 58, 0.15);
-}
-
-.ri-btn-action--green:hover:not(.disabled) img {
-    filter: none;
-}
-
-/* Tema Azul (PDF) */
-.ri-btn-action--blue {
-    background: var(--gis-blue, #033966);
-    border-color: #022847;
-    color: #fff;
-}
-
-.ri-btn-action--blue img {
-    filter: brightness(0) invert(1);
-}
-
-.ri-btn-action--blue:hover:not(.disabled) {
-    background: #e8f2ff;
-    color: var(--gis-blue, #033966);
-    transform: scale(1.1);
-    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
-}
-
-.ri-btn-action--blue:hover:not(.disabled) img {
-    filter: none;
-}
-
-.ri-btn-badge {
-    position: absolute;
-    top: -10px;
-    right: -10px;
-    background: #dc3545;
-    color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-    border: 2px solid white;
-    z-index: 2;
-}
-
-/* ─── CUSTOM SWEETALERT MODAL ESTILO SISTEMA ────── */
-
-.ri-swal-popup {
-    padding-top: 0 !important;
-    border-radius: 16px !important;
-    overflow: hidden;
-    border: 2px solid var(--gis-blue, #033966) !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
-}
-
-.ri-swal-title {
-    background: var(--gis-blue, #033966);
-    color: white !important;
-    width: 100%;
-    margin: 0 0 20px 0 !important;
-    padding: 15px 20px !important;
-    font-size: 1.3rem !important;
-    box-sizing: border-box;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.ri-swal-btn {
-    border: none;
-    border-radius: 8px;
-    padding: 12px 28px;
-    font-size: 1.05em;
-    font-weight: bold;
-    color: white;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    margin: 0 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-}
-
-.ri-swal-btn:active {
-    transform: scale(0.95);
-}
-
-.ri-swal-btn-confirm {
-    background: #015c2c !important; /* Verde oscuro */
-}
-
-.ri-swal-btn-confirm:hover:not([disabled]) {
-    background: #16a34a !important; /* Verde claro */
-    box-shadow: 0 6px 15px rgba(22, 163, 74, 0.4);
-}
-
-.ri-swal-btn-confirm:disabled,
-.ri-swal-btn-confirm[disabled] {
-    background: #6c757d !important; /* Gris */
-    color: #d1d5db !important;
-    cursor: not-allowed !important;
-    box-shadow: none !important;
-    transform: none !important;
-    opacity: 0.8 !important;
-}
-
-.ri-swal-btn-cancel {
-    background: #8b0000 !important; /* Rojo oscuro */
-}
-
-.ri-swal-btn-cancel:hover {
-    background: #dc3545 !important; /* Rojo claro */
-    box-shadow: 0 6px 15px rgba(220, 53, 69, 0.4);
-}
-
-/* ─── ENCABEZADO DEL REPORTE (header físico compacto) ────── */
-
-.ri-reporte-header {
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid rgba(3, 57, 102, 0.2);
-    background: var(--gis-white);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
-.ri-header-top {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 12px;
-    padding: 5px 12px;
-    background: var(--gis-white);
-    border-bottom: 1.5px solid var(--gis-blue);
-}
-
-.ri-logo-img {
-    height: 38px;
-    width: auto;
-    object-fit: contain;
-}
-
-.ri-header-title h2 {
-    font-size: 1.3rem;
-    font-weight: 800;
-    color: var(--gis-blue);
-    text-align: center;
-    margin: 0;
-}
-
-.ri-codigo-table {
-    border-collapse: collapse;
-    font-size: 0.72rem;
-}
-
-.ri-codigo-table td {
-    padding: 1px 4px;
-    border: 1px solid rgba(64, 64, 64, 0.35);
-}
-
-.ri-codigo-label {
-    font-weight: 600;
-    color: var(--gis-gray);
-    background: rgba(64, 64, 64, 0.05);
-}
-
-.ri-codigo-val {
-    font-weight: 700;
-    color: var(--gis-blue);
-    white-space: nowrap;
-}
-
-.ri-header-row {
-    display: flex;
-    flex-wrap: wrap;
-    border-bottom: 1px solid rgba(64, 64, 64, 0.16);
-    background: var(--gis-white);
-}
-
-.ri-header-row:last-of-type {
-    border-bottom: none;
-}
-
-.ri-header-cell {
-    display: flex;
-    flex-direction: column;
-    padding: 3px 8px;
-    border-right: 1px solid rgba(64, 64, 64, 0.16);
-    min-width: 0;
-}
-
-.ri-header-cell:last-child { border-right: none; }
-.ri-header-cell--sm  { flex: 1 1 110px; }
-.ri-header-cell--md  { flex: 1 1 160px; }
-.ri-header-cell--lg  { flex: 2 1 240px; }
-
-.ri-header-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--gis-gray);
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-    margin-bottom: 0px;
-    line-height: 1.1;
-}
-
-.ri-header-value {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--gis-blue);
-    word-break: break-word;
-    line-height: 1.15;
-}
-
-.ri-header-input {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--gis-blue);
-    border: none;
-    border-bottom: 1.5px solid var(--gis-blue);
-    background: transparent;
-    padding: 1px 3px;
-    width: 100%;
-    outline: none;
-    font-family: 'Poppins', sans-serif;
-    transition: border-color var(--trans);
-}
-
-.ri-header-input:focus {
-    border-bottom-color: var(--gis-green);
-    background: rgba(10, 133, 4, 0.04);
-}
-
-.ri-header-input--number {
-    max-width: 80px;
-}
-
-.ri-header-total {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-xs);
-    padding: 8px 12px;
-    background: rgba(3, 57, 102, 0.05);
-    border-top: 1px solid rgba(3, 57, 102, 0.15);
-    font-size: 0.85rem;
-    color: var(--gis-gray);
-}
-
-.ri-header-total strong {
-    font-size: 1.1rem;
-    color: var(--gis-blue);
-}
-
-.ri-header-total__formula {
-    color: rgba(64, 64, 64, 0.6);
+    padding: 3px 10px;
     font-size: 0.78rem;
+    font-weight: 800;
+    color: #ffffff;
 }
 
-/* ─── GRID CONTENEDOR ──────────────────────────────────── */
-
-.ri-reporte-body {
-    background: var(--gis-white);
-    border-radius: 12px;
-    border: 1px solid rgba(3, 57, 102, 0.15);
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.ri-grid {
-    width: 100%;
-}
-
-.ri-grid__row {
-    display: grid;
-    border-bottom: 1px solid rgba(64, 64, 64, 0.12);
-}
-
-.ri-grid__row:last-child {
-    border-bottom: none;
-}
-
-/* ─── TABLAS MODERNAS (4 PIEZAS POR FILA) ───────────── */
-
+/* ── Tabla de 4 Columnas ── */
 .ri-table-wrapper-unique {
     width: 100%;
     overflow-x: auto;
-    background: #fff;
-    margin-top: 0;
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
+    background: #ffffff;
 }
 
 .ri-table-modern {
     width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-size: 0.88rem;
-    font-family: 'Poppins', sans-serif;
-    min-width: 1550px;
+    table-layout: fixed !important;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    min-width: 1200px;
 }
 
-.ri-table-modern thead th {
-    background: linear-gradient(180deg, #033966 0%, #012242 100%);
+.ri-table-modern th {
+    background: var(--gis-blue, #033966);
     color: #ffffff;
-    padding: 12px 8px;
-    font-weight: 700;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
+    padding: 8px 3px;
+    font-weight: 800;
+    font-size: 0.74rem;
+    border: 1px solid rgba(255, 255, 255, 0.18);
     position: sticky;
     top: 0;
-    z-index: 10;
-    border-bottom: 3px solid rgba(0,0,0,0.25);
-    border-right: 1px solid rgba(255, 255, 255, 0.15);
+    z-index: 2;
+    text-align: center;
+    box-sizing: border-box;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-.ri-table-modern thead th.ri-group-divider-head {
-    border-right: 3px solid rgba(255, 255, 255, 0.45) !important;
-}
-
-.ri-table-modern tbody tr {
-    transition: background 0.15s ease;
-}
-
-.ri-table-modern tbody tr:nth-child(even) {
-    background: rgba(245, 248, 252, 0.7);
-}
-
-.ri-table-modern tbody tr:hover {
-    background: rgba(3, 57, 102, 0.07);
+.ri-table-modern th.ri-group-divider-head {
+    border-right: 3px solid #00172e !important;
 }
 
 .ri-table-modern td {
-    border-bottom: 1px solid rgba(3, 57, 102, 0.12);
+    padding: 4px 6px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
     vertical-align: middle;
-    padding: 8px 6px;
+}
+
+.ri-table-modern tr:nth-child(even) td {
+    background: #f8fafc;
+}
+
+.ri-table-modern tr:hover td {
+    background: #f0f9ff;
 }
 
 .ri-group-divider {
-    border-right: 3px solid rgba(3, 57, 102, 0.25) !important;
+    border-right: 3px solid #94a3b8 !important;
 }
 
 .ri-td-center {
     text-align: center;
-    padding: 8px 6px;
+    padding: 4px;
 }
 
 .ri-td-input {
-    padding: 6px;
+    padding: 4px 6px;
 }
 
 .ri-td-blank {
-    background: rgba(240, 243, 246, 0.4);
+    background: #f1f5f9 !important;
 }
 
-/* ── Badge elegante para número de pieza ── */
+/* Badges de Número de Pieza */
 .ri-badge-num {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    min-width: 36px;
-    height: 30px;
-    padding: 0 8px;
+    min-width: 30px;
+    height: 24px;
+    padding: 0 4px;
     font-weight: 800;
-    font-size: 0.95rem;
-    border-radius: 8px;
-    font-family: 'Poppins', sans-serif;
-    transition: all 0.2s ease;
+    font-size: 0.84rem;
+    border-radius: 5px;
+    user-select: none;
 }
 
 .ri-badge-num--green {
-    background: #e6f4ea;
-    color: #1e7e34;
-    border: 1.5px solid #b7e1cd;
-    box-shadow: 0 1px 4px rgba(30, 126, 52, 0.18);
+    background: #dcfce7;
+    color: #15803d;
+    border: 1.5px solid #86efac;
 }
 
 .ri-badge-num--red {
-    background: #fce8e6;
-    color: #d93025;
-    border: 1.5px solid #f8cbad;
-    box-shadow: 0 1px 4px rgba(217, 48, 37, 0.18);
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1.5px solid #fca5a5;
 }
 
-.ri-badge-num--blue {
-    background: rgba(3, 57, 102, 0.08);
-    color: #033966;
-    border: 1.5px solid rgba(3, 57, 102, 0.2);
+.ri-badge-num--gray {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1.5px solid #cbd5e1;
 }
 
-/* ── Custom Checkbox Estilizado (Más Grande) ── */
+/* Custom Checkbox */
 .custom-checkbox-styled {
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
-    accent-color: #0a8504;
-    border-radius: 5px;
+    accent-color: #16a34a;
     margin: 0 auto;
     display: block;
     transition: transform 0.15s ease;
@@ -1025,15 +717,21 @@ table.alm-table {
     transform: scale(1.2);
 }
 
-/* ── Inputs estilizados para la tabla (Más Anchos y Cómodos) ── */
+.custom-checkbox-red {
+    accent-color: #dc2626 !important;
+}
+
+/* Inputs de Descripción y Bombillos */
 .ri-styled-input {
     width: 100%;
-    padding: 8px 12px;
-    border: 1.5px solid rgba(3, 57, 102, 0.2);
-    border-radius: 8px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.88rem;
-    color: var(--gis-blue);
+    height: 28px;
+    padding: 2px 6px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #0f172a;
     background: #ffffff;
     outline: none;
     transition: all 0.2s ease;
@@ -1041,511 +739,457 @@ table.alm-table {
 }
 
 .ri-styled-input:focus {
-    border-color: var(--gis-blue);
-    background: #ffffff;
-    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.15);
+    border-color: #0284c7;
+    background: #f0f9ff;
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+}
+
+.ri-styled-input:disabled {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    color: #94a3b8;
+    cursor: not-allowed;
 }
 
 .ri-styled-input::placeholder {
     color: #94a3b8;
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-style: italic;
 }
 
 .ri-styled-input--num {
     text-align: center;
-    font-weight: 700;
-}
-
-/* Estado de inputs (saving/saved/error) */
-.ri-celda__input--saving, .ri-desc-molde--saving { background: rgba(200, 140, 0, 0.12) !important; border-color: #d97706 !important; }
-.ri-celda__input--saved, .ri-desc-molde--saved, .ri-b-input--saved { background: rgba(40, 167, 69, 0.1) !important; border-color: #28a745 !important; }
-.ri-celda__input--error, .ri-desc-molde--error, .ri-b-input--error { background: rgba(220, 53, 69, 0.12) !important; border-color: #dc3545 !important; }
-
-/* ─── CELDA VACÍA ──────────────────────────────────────── */
-
-.ri-celda--empty {
-    background: rgba(64, 64, 64, 0.03);
-    border-right: 1px solid rgba(64, 64, 64, 0.12);
-    min-height: 38px;
-}
-
-.ri-celda--empty:last-child { border-right: none; }
-
-/* ─── OBSERVACIONES ────────────────────────────────────── */
-
-.ri-obs-container {
-    background: var(--gis-white);
-    border-radius: 12px;
-    border: 1px solid rgba(3, 57, 102, 0.15);
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.ri-obs-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 16px;
-    background: rgba(3, 57, 102, 0.04);
-    border-bottom: 1px solid rgba(3, 57, 102, 0.12);
-}
-
-.ri-obs-title {
-    font-size: 1.2rem;
     font-weight: 800;
-    color: var(--gis-blue);
-    margin: 0;
 }
 
+/* ────────────────────────────────────────────────────────
+   5. OBSERVACIONES GENERALES
+──────────────────────────────────────────────────────── */
 .ri-obs-counter {
-    font-size: 0.8rem;
-    color: var(--gis-gray);
-    font-weight: 600;
+    font-size: 0.74rem;
+    color: #ffffff;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.ri-obs-body {
+    padding: 10px;
+    background: #ffffff;
+    box-sizing: border-box;
 }
 
 .ri-obs-textarea {
     width: 100%;
-    border: none;
-    resize: vertical;
-    padding: 12px 16px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.9rem;
-    color: var(--gis-gray);
-    min-height: 100px;
+    min-height: 75px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    color: #1e293b;
     outline: none;
-    transition: background var(--trans);
+    resize: none !important;
     box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    line-height: 1.4;
 }
 
 .ri-obs-textarea:focus {
-    background: rgba(10, 133, 4, 0.02);
+    border-color: #0284c7;
+    background-color: #f8fafc;
+    box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
 }
 
 .ri-obs-footer {
-    padding: 6px 16px;
-    border-top: 1px solid rgba(64, 64, 64, 0.08);
-    min-height: 28px;
+    min-height: 16px;
     display: flex;
     align-items: center;
+    margin-top: 2px;
 }
 
 .ri-obs-status {
-    font-size: 0.78rem;
-    color: var(--gis-green);
-    font-weight: 600;
+    font-size: 0.75rem;
+    color: #16a34a;
+    font-weight: 700;
 }
 
-/* ─── PANEL DE LOG DE AUDITORÍA Y FILTROS ───────────────── */
+/* ────────────────────────────────────────────────────────
+   6. BOTÓN DE ACCIÓN GENERAR PDF
+──────────────────────────────────────────────────────── */
+.ri-actions-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1.5rem;
+    padding-top: 1.2rem;
+    border-top: 2px solid #e2e8f0;
+}
 
-/* ─── PANEL DE LOG DE AUDITORÍA Y FILTROS (TEMA GRIS / SLATE) ──── */
-
-.ri-log-panel {
-    background: #ffffff;
-    border: 1px solid rgba(100, 116, 139, 0.22);
+.ri-btn-action-custom {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 36px;
     border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(30, 41, 59, 0.06);
-    overflow: hidden;
-    margin-bottom: 2.5em;
-    width: 100%;
-}
-
-.ri-log-toggle {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1em 1.5em;
-    background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
-    border: none;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-    font-size: 1.15em;
+    font-size: 1.05rem;
     font-weight: 800;
-    color: #fff;
-    text-align: left;
-    transition: background var(--trans);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-}
-
-.ri-log-toggle:hover {
-    background: linear-gradient(135deg, #334155 0%, #0f172a 100%);
-}
-
-.ri-log-toggle__arrow {
-    font-size: 0.85rem;
-    transition: transform 0.25s ease;
-}
-
-.ri-log-toggle--open .ri-log-toggle__arrow {
-    transform: rotate(180deg);
-}
-
-.ri-log-body {
-    padding: 1.2em 1.5em;
-    background: #ffffff;
-}
-
-.ri-log-loading {
-    display: flex;
-    align-items: center;
-    gap: var(--sp-sm);
-    padding: 1.5em;
-    color: var(--gis-gray);
-    font-size: 0.9rem;
-    font-weight: 600;
-}
-
-/* ── Barra de Filtros del Log ── */
-.ri-log-filters {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: 12px 20px;
-    padding: 12px 16px;
-    background: rgba(71, 85, 105, 0.04);
-    border: 1px solid rgba(71, 85, 105, 0.15);
-    border-radius: 8px;
-    margin-bottom: 15px;
-}
-
-.ri-log-filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.ri-log-filter-group label {
-    font-size: 0.76rem;
-    font-weight: 700;
-    color: #475569;
-    text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-.ri-log-filter-input {
-    padding: 6px 10px;
-    border: 1.5px solid rgba(71, 85, 105, 0.25);
-    border-radius: 6px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.83rem;
-    color: #1e293b;
-    background: #ffffff;
-    outline: none;
-    transition: all 0.2s ease;
-}
-
-.ri-log-filter-input:focus {
-    border-color: #475569;
-    box-shadow: 0 0 0 3px rgba(71, 85, 105, 0.15);
-}
-
-.ri-log-filter-group--search {
-    flex: 1 1 240px;
-}
-
-.ri-log-filter-group--search input {
-    width: 100%;
-    box-sizing: border-box;
-}
-
-.ri-btn-reset-filter {
-    padding: 6px 14px;
-    background: #64748b;
-    color: #fff;
     border: none;
-    border-radius: 6px;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.8rem;
-    font-weight: 700;
     cursor: pointer;
-    transition: background 0.2s ease;
-}
-
-.ri-btn-reset-filter:hover {
-    background: #475569;
-}
-
-/* ── Tabla Scrolleable 100% Ancho ── */
-.ri-log-scroll-wrapper {
-    max-height: 480px;
-    overflow-y: auto;
-    overflow-x: auto;
-    width: 100%;
-    border: 1px solid rgba(71, 85, 105, 0.2);
-    border-radius: 8px;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.ri-log-scroll-wrapper::-webkit-scrollbar { width: 8px; height: 8px; }
-.ri-log-scroll-wrapper::-webkit-scrollbar-track { background: #f1f5f9; }
-.ri-log-scroll-wrapper::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.35); border-radius: 4px; }
-
-.ri-log-table-full {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.85rem;
-}
-
-.ri-log-table-full thead th {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: linear-gradient(180deg, #475569 0%, #1e293b 100%);
+    min-width: 320px;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     color: #ffffff;
-    padding: 10px 12px;
-    font-weight: 700;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid rgba(0,0,0,0.25);
-    text-align: left;
+    position: relative;
+    font-family: inherit;
 }
 
-.ri-log-table-full tbody tr {
-    transition: background 0.15s ease;
-}
-
-.ri-log-table-full tbody tr:nth-child(even) {
-    background: rgba(248, 250, 252, 0.8);
-}
-
-.ri-log-table-full tbody tr:hover {
-    background: rgba(71, 85, 105, 0.07);
-}
-
-.ri-log-table-full td {
-    padding: 8px 12px;
-    border-bottom: 1px solid rgba(71, 85, 105, 0.12);
-    vertical-align: middle;
-}
-
-/* Badges y Tags para los campos del log */
-.log-tag {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-size: 0.82rem;
-}
-
-.log-tag--header {
-    background: #e2e8f0;
-    color: #1e293b;
-    font-weight: 700;
-    border: 1px solid #cbd5e1;
-}
-
-.log-tag--pieza {
-    background: rgba(71, 85, 105, 0.08);
-    color: #334155;
-    font-weight: 500;
-    border: 1px solid rgba(71, 85, 105, 0.2);
-}
-
-.log-badge-accion {
-    background: #f1f5f9;
-    color: #334155;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 0.78rem;
-    border: 1px solid #cbd5e1;
-    display: inline-block;
-}
-
-.log-tag--ot {
-    background: #e2e8f0;
-    color: #334155;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 0.78rem;
-    border: 1px solid #cbd5e1;
-    display: inline-block;
-    white-space: nowrap;
-}
-
-.log-badge-val {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 4px;
+.ri-btn-action-custom span {
+    font-size: 1.05rem;
     font-weight: 800;
+    letter-spacing: 0.5px;
+    color: #ffffff;
+}
+
+.ri-btn-action-custom img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+.ri-btn-action--blue {
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #002244 100%);
+    box-shadow: 0 4px 16px rgba(3, 57, 102, 0.38);
+}
+
+.ri-btn-action--blue:hover:not(:disabled) {
+    background: linear-gradient(135deg, #05508c 0%, #02305c 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 22px rgba(3, 57, 102, 0.55);
+}
+
+.ri-btn-action-custom:active:not(:disabled) {
+    transform: scale(0.97);
+}
+
+.ri-btn-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc2626;
+    color: #ffffff;
+    padding: 3px 10px;
+    border-radius: 20px;
     font-size: 0.82rem;
+    font-weight: 900;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.5);
+    border: 2px solid #ffffff;
+    z-index: 2;
 }
 
-.log-badge-val--ok {
-    background: #e6f4ea;
-    color: #1e7e34;
-    border: 1px solid #b7e1cd;
+/* ────────────────────────────────────────────────────────
+   7. VISTA INDEX (SELECTOR DE REPORTES Y TABLA)
+──────────────────────────────────────────────────────── */
+.alm-table-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1.5px solid rgba(3, 57, 102, 0.22);
+    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.12);
+    margin-bottom: 1.8em;
+    overflow: hidden;
 }
 
-.log-badge-val--no {
-    background: #fce8e6;
-    color: #d93025;
-    border: 1px solid #f8cbad;
+.alm-table-header {
+    padding: 1.1rem 1.6rem;
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #002244 100%);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: #ffffff;
 }
 
-.log-val-empty {
-    color: #94a3b8;
-    font-style: italic;
+.alm-table-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: 0.3px;
 }
-
-.ri-table-wrapper {
-    overflow-x: auto;
-    border-radius: 8px;
-}
-
-/* Scrollbar para el wrapper de tablas */
-.ri-table-wrapper::-webkit-scrollbar       { width: 6px; height: 6px; }
-.ri-table-wrapper::-webkit-scrollbar-track { background: transparent; }
-.ri-table-wrapper::-webkit-scrollbar-thumb { background: rgba(3, 57, 102, 0.35); border-radius: 3px; }
-
-@supports (scrollbar-width: thin) {
-    .ri-table-wrapper { scrollbar-width: thin; scrollbar-color: var(--gis-blue) transparent; }
-}
-
-.ri-log-table td {
-    font-size: 0.8rem;
-    max-width: 200px;
-    word-break: break-all;
-}
-
-.ri-log-empty {
-    text-align: center;
-    color: var(--gis-gray);
-    font-size: 0.9rem;
-    padding: var(--sp-lg);
-}
-
-/* ─── FORMULARIO BUSCADOR REACTIVO ─────────────────────── */
 
 .ri-search-form-wrapper {
-    padding: 1.25em 1.5em;
+    padding: 1.8rem;
+    background: #ffffff;
 }
 
 .ri-search-form {
     display: flex;
+    gap: 1.6rem;
     flex-wrap: wrap;
-    gap: 1.2em 2em;
     align-items: flex-start;
-    justify-content: flex-start;
 }
 
 .ri-form-group {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4em;
+    gap: 8px;
     min-width: 280px;
-    flex: 1 1 300px;
+    flex: 1;
 }
 
 .ri-label {
     font-size: 0.88rem;
-    font-weight: 700;
-    color: var(--gis-blue);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 800;
+    color: var(--gis-gray, #404040);
     display: flex;
     align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
 }
 
 .select-filter {
-    width: 100%;
-    border-radius: 5px;
-    padding: 0.8em 0.5em;
-    text-align: center;
-    font-family: 'Poppins', sans-serif;
-    font-size: 0.85em;
-    font-weight: 600;
-    background: var(--gis-blue);
-    border: 5px solid #033966d4;
-    color: #ffffff;
-    outline: none;
-    transition: all 0.3s ease;
+    background: #ffffff !important;
+    color: var(--gis-blue, #033966) !important;
+    border: 1.5px solid #cbd5e1 !important;
+    padding: 11px 15px !important;
+    border-radius: 8px !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    outline: none !important;
     cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    width: 100%;
+    transition: all 0.2s ease-in-out;
 }
 
 .select-filter:hover, .select-filter:focus {
-    border-color: #005194;
-    background: #055a9e;
-    box-shadow: 0 0 12px rgba(3, 57, 102, 0.3);
+    border-color: var(--gis-blue, #033966) !important;
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.15) !important;
 }
 
 .select-filter option {
-    background: #fff;
-    color: var(--gis-blue);
+    background: #ffffff;
+    color: var(--gis-blue, #033966);
 }
 
-.btns {
-    padding: 12px 24px;
-    background-color: var(--gis-green);
-    box-shadow: 0 2px 5px rgba(10, 133, 4, 0.4);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-    font-size: 1em;
+/* ── Tabla de Reportes Existentes ── */
+.alm-table-scroll {
+    overflow-x: auto;
+}
+
+table.alm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.alm-table thead th {
+    background: var(--gis-blue, #033966);
+    color: #ffffff;
+    padding: 12px 10px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.alm-table tbody td {
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+    text-align: center;
+    background: #ffffff;
+}
+
+.alm-table tbody tr:nth-child(even) td {
+    background: #f8fafc;
+}
+
+.alm-table tbody tr:hover td {
+    background: #f0f9ff;
+}
+
+.alm-ot-label {
+    font-weight: 800;
+    color: var(--gis-blue, #033966);
+    font-size: 0.95rem;
+}
+
+.alm-clase-label {
     font-weight: 700;
-    transition: all 0.3s ease;
-    display: inline-flex;
+    color: #475569;
+    font-size: 0.85rem;
+}
+
+.badge-tipo-dibujo {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    display: inline-block;
+}
+
+.badge-tipo-ayuda {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    display: inline-block;
+}
+
+.badge-pdf-count {
+    background: var(--gis-blue, #033966);
+    color: #ffffff;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-weight: 800;
+    font-size: 0.82rem;
+    display: inline-block;
+}
+
+.btn-toggle-files {
+    background: var(--gis-green, #0A8504);
+    color: #ffffff;
+    text-decoration: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    display: inline-block;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(10, 133, 4, 0.35);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-toggle-files:hover {
+    background: #086903;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(10, 133, 4, 0.5);
+    color: #ffffff;
+}
+
+.btn-file-download {
+    background: var(--gis-blue, #033966);
+    color: #fff;
+    border-radius: 4px;
+    font-weight: 700;
+    transition: background 0.2s;
+}
+
+.btn-file-download:hover {
+    background: #02203e;
+}
+
+/* ────────────────────────────────────────────────────────
+   8. PANEL DE AUDITORÍA (LOG)
+──────────────────────────────────────────────────────── */
+.ri-log-panel {
+    background: #ffffff;
+    border: 1.5px solid #64748b;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+.ri-log-toggle {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #475569 0%, #1e293b 100%);
+    color: #ffffff;
+    border: none;
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
 }
 
-.btns:hover:not(:disabled) {
-    background-color: var(--gis-green);
-    transform: scale(1.05);
-    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.4);
+.ri-log-body {
+    padding: 12px 16px;
 }
 
-.btns:disabled {
-    background-color: #6c757d;
-    box-shadow: none;
-    cursor: not-allowed;
-    transform: none;
+.ri-log-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px 14px;
+    padding: 10px 14px;
+    background: #f8fafc;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    margin-bottom: 12px;
 }
 
-/* ─── RESPONSIVO ────────────────────────────────────────── */
-
-@media (max-width: 768px) {
-    .alm-header { flex-direction: column; text-align: center; }
-    .ri-action-right { align-items: center; margin-left: 0; }
-    .ri-codigo-box { margin-left: 0; align-items: center; }
-    
-    .ri-header-top  { grid-template-columns: auto 1fr; }
-    .ri-codigo-table { display: none; }
-
-    .ri-grid--moldes .ri-grid__row,
-    .ri-grid--bombillos .ri-grid__row {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .ri-search-form { flex-direction: column; }
+.ri-log-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
 }
 
-@media (max-width: 480px) {
-    .ri-grid--moldes .ri-grid__row,
-    .ri-grid--bombillos .ri-grid__row {
-        grid-template-columns: 1fr;
-    }
-
-    .alm-wrapper { padding: var(--sp-md) var(--sp-sm); }
+.ri-log-filter-group label {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: #475569;
+    text-transform: uppercase;
 }
 
+.ri-log-filter-input {
+    padding: 5px 8px;
+    border: 1px solid #cbd5e1;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    outline: none;
+}
 
-.ri-badge-num--gray { background: #cbd5e1; color: #475569; border: 1px solid #94a3b8; }
-.custom-checkbox-red { accent-color: #ef4444; filter: hue-rotate(150deg); }
-.custom-checkbox-red:checked { background-color: #ef4444 !important; border-color: #ef4444 !important; background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 14 14" xmlns="http://www.w3.org/2000/svg"><path stroke="white" stroke-width="2" d="M2 2l10 10m0-10L2 12" fill="none" stroke-linecap="round"/></svg>') !important; }
+.ri-log-scroll-wrapper {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+}
 
+.ri-log-table-full {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+}
 
-/* Nuevos colores base para los botones masivos */
-.ri-btn-bulk--all, .ri-btn-bulk--check { background-color: #16a34a !important; color: #ffffff !important; border: 1px solid #15803d !important; }
-.ri-btn-bulk--uncheck { background-color: #dc2626 !important; color: #ffffff !important; border: 1px solid #b91c1c !important; }
-.ri-btn-bulk--none { background-color: #64748b !important; color: #ffffff !important; border: 1px solid #475569 !important; }
-.ri-btn-bulk:not(:disabled):hover { filter: brightness(1.1); transform: translateY(-1px); }
+.ri-log-table-full th {
+    background: #475569;
+    color: #ffffff;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
 
+.ri-log-table-full td {
+    padding: 6px 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.hidden { display: none !important; }
+.d-text-center { text-align: center; }

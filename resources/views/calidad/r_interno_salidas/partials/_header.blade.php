@@ -1,104 +1,108 @@
 {{--
     Partial: _header.blade.php
     Encabezado del reporte físico "Registro de Números de Trazabilidad por Moldura".
-    Replica el encabezado de las fotos con:
-    - Logo + Título + Código/Versión
-    - Fila: Fecha Inicio | Nombre de la moldura | OT | Clase
-    - Fila: Cantidad de Pedido | Consignación | Cliente | Inspector
-
-    Variables requeridas:
-        $reporte      → SalidaMoldura
-        $ordenTrabajo → Orden_trabajo
-        $inspector    → User
+    Estilo institucional unificado con Reporte Dimensional y Volumétrico (GIS).
 --}}
-<div class="ri-reporte-header glass-panel">
 
-    {{-- Franja superior: Logo + Título + Código --}}
-    <div class="ri-header-top">
-        <div class="ri-header-logo">
-            <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" class="ri-logo-img">
+{{-- ── Encabezado Oficial Institucional ── --}}
+<div class="rd-doc-header">
+    <div class="rd-doc-title-row">
+        <div class="rd-doc-main-title">
+            REGISTRO DE NÚMEROS DE TRAZABILIDAD POR MOLDURA
         </div>
-
-        <div class="ri-header-title" style="text-align: center;">
-            <h2>Registro de Números de Trazabilidad por Moldura</h2>
-            <h3 style="margin-top: 3px; font-weight: bold; letter-spacing: 1px; font-size: 1.05rem;">
-                <span style="color: #6c757d;">Folio:</span> 
-                <span style="color: #d32f2f;">F_CCL_RIS_{{ str_pad($reporte->id, 4, '0', STR_PAD_LEFT) }}-V{{ $siguienteVersion }}</span>
-            </h3>
-        </div>
-
-        <div class="ri-header-codigo">
-            <table class="ri-codigo-table">
-                <tr>
-                    <td class="ri-codigo-label">Código:</td>
-                    <td class="ri-codigo-val">F PRO CPT</td>
-                </tr>
-                <tr>
-                    <td class="ri-codigo-label">Versión:</td>
-                    <td class="ri-codigo-val">6</td>
-                </tr>
-                <tr>
-                    <td class="ri-codigo-label">Fecha Rev:</td>
-                    <td class="ri-codigo-val">22/04/2026</td>
-                </tr>
-            </table>
+        <div class="rd-doc-logo">
+            <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" class="rd-logo-img">
         </div>
     </div>
 
-    {{-- Fila 1: Fecha | Moldura | OT | Clase --}}
-    <div class="ri-header-row">
-        <div class="ri-header-cell ri-header-cell--md">
-            <span class="ri-header-label">Fecha Inicio:</span>
-            <span class="ri-header-value">
-                {{ $reporte->fecha_inicio ? \Carbon\Carbon::parse($reporte->fecha_inicio)->format('d/m/Y') : now()->format('d/m/Y') }}
-            </span>
+    <div class="rd-doc-meta-grid">
+        <div class="rd-meta-col">
+            <span class="rd-meta-label">Folio</span>
+            <span class="rd-meta-text-val font-bold text-red" style="color: #d32f2f;">F_CCL_RIS_{{ str_pad($reporte->id, 4, '0', STR_PAD_LEFT) }}-V{{ $siguienteVersion }}</span>
         </div>
-        <div class="ri-header-cell ri-header-cell--lg">
-            <span class="ri-header-label">Nombre de la moldura:</span>
-            <span class="ri-header-value">{{ $reporte->nombre_moldura }}</span>
+        <div class="rd-meta-col">
+            <span class="rd-meta-label">Fecha de Revisión</span>
+            <span class="rd-meta-text-val">22/04/2026</span>
         </div>
-        <div class="ri-header-cell ri-header-cell--md">
-            <span class="ri-header-label">OT:</span>
-            <span class="ri-header-value">{{ $reporte->ot_id }}</span>
+        <div class="rd-meta-col rd-meta-col-sm">
+            <span class="rd-meta-label">Versión</span>
+            <span class="rd-meta-text-val">6</span>
         </div>
-        <div class="ri-header-cell ri-header-cell--sm">
-            <span class="ri-header-label">Clase:</span>
-            <span class="ri-header-value">{{ $reporte->clase }}</span>
+        <div class="rd-meta-col rd-meta-col-code">
+            <span class="rd-meta-label">Código</span>
+            <span class="rd-meta-code-val">F PRO CPT</span>
+        </div>
+    </div>
+</div>
+
+{{-- ── Información General y de Pedido ── --}}
+<div class="rd-info-section">
+    <div class="rd-info-block">
+        <div class="rd-block-heading">INFORMACIÓN GENERAL DE LA MOLDURA</div>
+        <div class="rd-info-grid">
+            <div class="rd-info-cell">
+                <span class="rd-lbl">FECHA:</span>
+                <span class="rd-val">{{ $reporte->fecha_inicio ? \Carbon\Carbon::parse($reporte->fecha_inicio)->format('d/m/Y') : now()->format('d/m/Y') }}</span>
+            </div>
+            <div class="rd-info-cell">
+                <span class="rd-lbl">MOLDURA:</span>
+                <span class="rd-val">{{ $reporte->nombre_moldura }}</span>
+            </div>
+            <div class="rd-info-cell">
+                <span class="rd-lbl">OT:</span>
+                <span class="rd-val font-bold text-blue">{{ $reporte->ot_id }}</span>
+            </div>
+            <div class="rd-info-cell">
+                <span class="rd-lbl">CLASE:</span>
+                <span class="rd-val font-bold">{{ $reporte->clase }}</span>
+            </div>
         </div>
     </div>
 
-    {{-- Fila 2: Cantidad Pedido | Consignación | Cliente | Inspector --}}
-    <div class="ri-header-row">
-        <div class="ri-header-cell ri-header-cell--sm">
-            <span class="ri-header-label">Cantidad de Pedido:</span>
-            <span class="ri-header-value">{{ $reporte->cantidad_pedido }}</span>
-        </div>
-        <div class="ri-header-cell ri-header-cell--sm">
-            <span class="ri-header-label">Consignación:</span>
-            <span class="ri-header-value">{{ $reporte->cantidad_consignacion }}</span>
-        </div>
-        <div class="ri-header-cell ri-header-cell--lg">
-            <span class="ri-header-label">Cliente:</span>
-            <span class="ri-header-value">{{ $reporte->cliente ?? '—' }}</span>
-        </div>
-        <div class="ri-header-cell ri-header-cell--lg">
-            <span class="ri-header-label">Nombre de Inspector:</span>
-            <span class="ri-header-value">{{ $inspector->nombre ?? 'N/A' }}</span>
+    <div class="rd-info-block">
+        <div class="rd-block-heading">INFORMACIÓN DE PEDIDO Y TRAZABILIDAD</div>
+        <div class="rd-info-grid">
+            <div class="rd-info-cell">
+                <span class="rd-lbl">PEDIDO:</span>
+                <span class="rd-val font-bold text-blue">{{ $reporte->cantidad_pedido }} pzas</span>
+            </div>
+            <div class="rd-info-cell">
+                <span class="rd-lbl">CONSIGNACIÓN:</span>
+                <span class="rd-val font-bold text-amber">
+                    @if($reporte->cantidad_consignacion > 0)
+                        +{{ $reporte->cantidad_consignacion }} pzas
+                    @else
+                        0 pzas
+                    @endif
+                </span>
+            </div>
+            <div class="rd-info-cell">
+                <span class="rd-lbl">CLIENTE:</span>
+                <span class="rd-val">{{ $reporte->cliente ?? '—' }}</span>
+            </div>
+            <div class="rd-info-cell">
+                <span class="rd-lbl">INSPECTOR:</span>
+                <span class="rd-val font-bold">{{ $inspector->nombre ?? 'N/A' }}</span>
+            </div>
         </div>
     </div>
+</div>
 
-    {{-- Info total de piezas calculado --}}
-    <div class="ri-header-total">
-        <span>Total de piezas en reporte:&nbsp;</span>
-        <strong id="display-total-piezas">{{ $reporte->total_piezas }}</strong>
-        <span>&nbsp;pzas.</span>
+{{-- Barra de Total Calculado --}}
+<div class="ri-total-bar">
+    <div class="ri-total-left">
+        <span class="ri-total-lbl">TOTAL DE PIEZAS EN REPORTE:</span>
+        <span class="ri-total-num" id="display-total-piezas">{{ $reporte->total_piezas }}</span>
+        <span class="ri-total-unit">piezas</span>
+    </div>
+    <div class="ri-total-right">
         @if($reporte->cantidad_consignacion > 0)
             <span class="ri-header-total__formula">
-                (Consignación: <span id="display-consignacion">{{ $reporte->cantidad_consignacion }}</span> | Pedido original: {{ $reporte->cantidad_pedido }})
+                (Consignación: <strong id="display-consignacion">{{ $reporte->cantidad_consignacion }}</strong> | Pedido original: <strong>{{ $reporte->cantidad_pedido }}</strong>)
             </span>
         @else
             <span class="ri-header-total__formula">
-                (Pedido original: {{ $reporte->cantidad_pedido }})
+                (Pedido original: <strong>{{ $reporte->cantidad_pedido }}</strong>)
             </span>
         @endif
     </div>

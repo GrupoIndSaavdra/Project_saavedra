@@ -195,6 +195,22 @@ function isPathMatching(currentPath, aHref) {
             }
         }
 
+        // Sub-rutas de Inspección Visual
+        if (currentPath.startsWith('/calidad/inspeccion-visual/')) {
+            if (window.routes && window.routes['calidad.inspeccion_visual.index']) {
+                const visualPath = new URL(window.routes['calidad.inspeccion_visual.index'], window.location.origin).pathname;
+                if (linkPath === visualPath) return true;
+            }
+        }
+
+        // Sub-rutas de Inspección Dimensional
+        if (currentPath.startsWith('/calidad/inspeccion-dimensional/')) {
+            if (window.routes && window.routes['calidad.inspeccion_dimensional.index']) {
+                const dimensionalPath = new URL(window.routes['calidad.inspeccion_dimensional.index'], window.location.origin).pathname;
+                if (linkPath === dimensionalPath) return true;
+            }
+        }
+
         return false;
     } catch (e) {
         return false;
@@ -439,9 +455,15 @@ function getRoutes(profile) {
                     ],
                 },
                 {
-                    title: "Calidad — Reportes",
+                    title: "Salidas",
                     routes: [
                         ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
+                    ],
+                },
+                {
+                    title: "Reportes de Calidad",
+                    routes: [
+                        ["calidad.inspeccion_visual.index", "Reporte Volumétrico y Dimensional"],
                     ],
                 },
             ];
@@ -573,9 +595,15 @@ function getRoutes(profile) {
                             ],
                         },
                         {
-                            title: "Calidad — Reportes",
+                            title: "Salidas",
                             routes: [
                                 ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
+                            ],
+                        },
+                        {
+                            title: "Reportes",
+                            routes: [
+                                ["calidad.inspeccion_visual.index", "Reporte Volumétrico y Dimensional"],
                             ],
                         },
                     ],
@@ -642,9 +670,15 @@ function getRoutes(profile) {
                     ],
                 },
                 {
-                    title: "Calidad — Reportes",
+                    title: "Salidas",
                     routes: [
                         ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
+                    ],
+                },
+                {
+                    title: "Reportes",
+                    routes: [
+                        ["calidad.inspeccion_visual.index", "Reporte Volumétrico y Dimensional"],
                     ],
                 },
             ];
