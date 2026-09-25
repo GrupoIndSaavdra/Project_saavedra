@@ -1,9 +1,3 @@
-/* ==========================================================
-   Reporte Interno de Salidas — CSS del Módulo
-   Calidad Fundición | Grupo Industrial Saavedra
-   Estilo visual institucional unificado (GIS Design System)
-   ========================================================== */
-
 @import "../global.css";
 
 /* Variables Globales */
@@ -266,9 +260,7 @@ body {
     box-shadow: 0 0 8px #ef4444;
 }
 
-/* ────────────────────────────────────────────────────────
-   3. HOJA OFICIAL DEL DOCUMENTO (RD-SHEET-CONTAINER)
-──────────────────────────────────────────────────────── */
+
 .rd-sheet-container {
     background: #ffffff;
     color: #1e293b;
@@ -478,9 +470,6 @@ body {
     color: #475569;
 }
 
-/* ────────────────────────────────────────────────────────
-   4. CUERPO PRINCIPAL: TABLA DE PIEZAS
-──────────────────────────────────────────────────────── */
 .rd-table-wrapper {
     border: 1.5px solid var(--gis-blue, #033966);
     border-radius: 6px;
