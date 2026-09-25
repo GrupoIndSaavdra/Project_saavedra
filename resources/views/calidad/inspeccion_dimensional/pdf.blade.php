@@ -406,34 +406,34 @@
                             {{-- Fila Nominal --}}
                             <tr class="row-nom">
                                 <td class="td-num-val">Nom</td>
-                                <td>{{ !empty($nom['c1']) ? $nom['c1'] : '—' }}</td>
-                                <td>{{ !empty($nom['c2']) ? $nom['c2'] : '—' }}</td>
-                                <td>{{ !empty($nom['cuello']) ? $nom['cuello'] : '—' }}</td>
-                                <td>{{ !empty($nom['e']) ? $nom['e'] : '—' }}</td>
-                                <td>{{ !empty($nom['d']) ? $nom['d'] : '—' }}</td>
-                                <td>{{ !empty($nom['f1']) ? $nom['f1'] : '—' }}</td>
-                                <td>{{ !empty($nom['a_total']) ? $nom['a_total'] : '—' }}</td>
-                                <td>{{ !empty($nom['f']) ? $nom['f'] : '—' }}</td>
-                                <td>{{ !empty($nom['altura']) ? $nom['altura'] : '—' }}</td>
-                                <td>{{ !empty($nom['altura_2']) ? $nom['altura_2'] : '—' }}</td>
-                                <td>{{ !empty($nom['al_cuello']) ? $nom['al_cuello'] : '—' }}</td>
+                                <td>{{ isset($nom['c1']) && trim((string)$nom['c1']) !== '' ? $nom['c1'] : '—' }}</td>
+                                <td>{{ isset($nom['c2']) && trim((string)$nom['c2']) !== '' ? $nom['c2'] : '—' }}</td>
+                                <td>{{ isset($nom['cuello']) && trim((string)$nom['cuello']) !== '' ? $nom['cuello'] : '—' }}</td>
+                                <td>{{ isset($nom['e']) && trim((string)$nom['e']) !== '' ? $nom['e'] : '—' }}</td>
+                                <td>{{ isset($nom['d']) && trim((string)$nom['d']) !== '' ? $nom['d'] : '—' }}</td>
+                                <td>{{ isset($nom['f1']) && trim((string)$nom['f1']) !== '' ? $nom['f1'] : '—' }}</td>
+                                <td>{{ isset($nom['a_total']) && trim((string)$nom['a_total']) !== '' ? $nom['a_total'] : '—' }}</td>
+                                <td>{{ isset($nom['f']) && trim((string)$nom['f']) !== '' ? $nom['f'] : '—' }}</td>
+                                <td>{{ isset($nom['altura']) && trim((string)$nom['altura']) !== '' ? $nom['altura'] : '—' }}</td>
+                                <td>{{ isset($nom['altura_2']) && trim((string)$nom['altura_2']) !== '' ? $nom['altura_2'] : '—' }}</td>
+                                <td>{{ isset($nom['al_cuello']) && trim((string)$nom['al_cuello']) !== '' ? $nom['al_cuello'] : '—' }}</td>
                                 <td></td>
                             </tr>
 
                             {{-- Fila Tolerancia --}}
                             <tr class="row-tol">
                                 <td class="td-num-val">±</td>
-                                <td>{{ !empty($tol['c1']) ? '± ' . $tol['c1'] : '—' }}</td>
-                                <td>{{ !empty($tol['c2']) ? '± ' . $tol['c2'] : '—' }}</td>
-                                <td>{{ !empty($tol['cuello']) ? '± ' . $tol['cuello'] : '—' }}</td>
-                                <td>{{ !empty($tol['e']) ? '± ' . $tol['e'] : '—' }}</td>
-                                <td>{{ !empty($tol['d']) ? '± ' . $tol['d'] : '—' }}</td>
-                                <td>{{ !empty($tol['f1']) ? '± ' . $tol['f1'] : '—' }}</td>
-                                <td>{{ !empty($tol['a_total']) ? '± ' . $tol['a_total'] : '—' }}</td>
-                                <td>{{ !empty($tol['f']) ? '± ' . $tol['f'] : '—' }}</td>
-                                <td>{{ !empty($tol['altura']) ? '± ' . $tol['altura'] : '—' }}</td>
-                                <td>{{ !empty($tol['altura_2']) ? '± ' . $tol['altura_2'] : '—' }}</td>
-                                <td>{{ !empty($tol['al_cuello']) ? '± ' . $tol['al_cuello'] : '—' }}</td>
+                                <td>{{ isset($tol['c1']) && trim((string)$tol['c1']) !== '' ? '± ' . $tol['c1'] : '—' }}</td>
+                                <td>{{ isset($tol['c2']) && trim((string)$tol['c2']) !== '' ? '± ' . $tol['c2'] : '—' }}</td>
+                                <td>{{ isset($tol['cuello']) && trim((string)$tol['cuello']) !== '' ? '± ' . $tol['cuello'] : '—' }}</td>
+                                <td>{{ isset($tol['e']) && trim((string)$tol['e']) !== '' ? '± ' . $tol['e'] : '—' }}</td>
+                                <td>{{ isset($tol['d']) && trim((string)$tol['d']) !== '' ? '± ' . $tol['d'] : '—' }}</td>
+                                <td>{{ isset($tol['f1']) && trim((string)$tol['f1']) !== '' ? '± ' . $tol['f1'] : '—' }}</td>
+                                <td>{{ isset($tol['a_total']) && trim((string)$tol['a_total']) !== '' ? '± ' . $tol['a_total'] : '—' }}</td>
+                                <td>{{ isset($tol['f']) && trim((string)$tol['f']) !== '' ? '± ' . $tol['f'] : '—' }}</td>
+                                <td>{{ isset($tol['altura']) && trim((string)$tol['altura']) !== '' ? '± ' . $tol['altura'] : '—' }}</td>
+                                <td>{{ isset($tol['altura_2']) && trim((string)$tol['altura_2']) !== '' ? '± ' . $tol['altura_2'] : '—' }}</td>
+                                <td>{{ isset($tol['al_cuello']) && trim((string)$tol['al_cuello']) !== '' ? '± ' . $tol['al_cuello'] : '—' }}</td>
                                 <td></td>
                             </tr>
 
@@ -441,18 +441,18 @@
                             @forelse($medidas as $m)
                                 <tr class="row-data">
                                     <td class="td-num-val">{{ $m->numero_pieza }}</td>
-                                    <td>{{ $m->c1 !== null && $m->c1 !== '' ? $m->c1 : '—' }}</td>
-                                    <td>{{ $m->c2 !== null && $m->c2 !== '' ? $m->c2 : '—' }}</td>
-                                    <td>{{ $m->cuello !== null && $m->cuello !== '' ? $m->cuello : '—' }}</td>
-                                    <td>{{ $m->e !== null && $m->e !== '' ? $m->e : '—' }}</td>
-                                    <td>{{ $m->d !== null && $m->d !== '' ? $m->d : '—' }}</td>
-                                    <td>{{ $m->f1 !== null && $m->f1 !== '' ? $m->f1 : '—' }}</td>
-                                    <td>{{ $m->a_total !== null && $m->a_total !== '' ? $m->a_total : '—' }}</td>
-                                    <td>{{ $m->f !== null && $m->f !== '' ? $m->f : '—' }}</td>
-                                    <td>{{ $m->altura !== null && $m->altura !== '' ? $m->altura : '—' }}</td>
-                                    <td>{{ $m->altura_2 !== null && $m->altura_2 !== '' ? $m->altura_2 : '—' }}</td>
-                                    <td>{{ $m->al_cuello !== null && $m->al_cuello !== '' ? $m->al_cuello : '—' }}</td>
-                                    <td class="td-obs-val">{{ $m->observaciones !== null && $m->observaciones !== '' ? $m->observaciones : '' }}</td>
+                                    <td>{{ $m->c1 !== null && trim((string)$m->c1) !== '' ? $m->c1 : '—' }}</td>
+                                    <td>{{ $m->c2 !== null && trim((string)$m->c2) !== '' ? $m->c2 : '—' }}</td>
+                                    <td>{{ $m->cuello !== null && trim((string)$m->cuello) !== '' ? $m->cuello : '—' }}</td>
+                                    <td>{{ $m->e !== null && trim((string)$m->e) !== '' ? $m->e : '—' }}</td>
+                                    <td>{{ $m->d !== null && trim((string)$m->d) !== '' ? $m->d : '—' }}</td>
+                                    <td>{{ $m->f1 !== null && trim((string)$m->f1) !== '' ? $m->f1 : '—' }}</td>
+                                    <td>{{ $m->a_total !== null && trim((string)$m->a_total) !== '' ? $m->a_total : '—' }}</td>
+                                    <td>{{ $m->f !== null && trim((string)$m->f) !== '' ? $m->f : '—' }}</td>
+                                    <td>{{ $m->altura !== null && trim((string)$m->altura) !== '' ? $m->altura : '—' }}</td>
+                                    <td>{{ $m->altura_2 !== null && trim((string)$m->altura_2) !== '' ? $m->altura_2 : '—' }}</td>
+                                    <td>{{ $m->al_cuello !== null && trim((string)$m->al_cuello) !== '' ? $m->al_cuello : '—' }}</td>
+                                    <td class="td-obs-val">{{ $m->observaciones !== null && trim((string)$m->observaciones) !== '' ? $m->observaciones : '' }}</td>
                                 </tr>
                             @empty
                                 <tr class="row-data">

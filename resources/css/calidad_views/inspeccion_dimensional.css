@@ -1936,6 +1936,22 @@ body {
     min-width: 260px;
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     color: #ffffff;
+    position: relative;
+}
+
+.ri-btn-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc2626;
+    color: #ffffff;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 900;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.5);
+    border: 2px solid #ffffff;
+    z-index: 2;
 }
 
 .btn-rd-bottom-download {

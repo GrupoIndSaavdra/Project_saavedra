@@ -81,6 +81,14 @@ class RDimensional extends Model
     }
 
     /**
+     * Formatos PDF generados para este reporte
+     */
+    public function pdfs()
+    {
+        return $this->hasMany(RDimensionalPdf::class, 'r_dimensional_id')->orderBy('version', 'desc');
+    }
+
+    /**
      * Inspector que elaboró el reporte
      */
     public function inspector()

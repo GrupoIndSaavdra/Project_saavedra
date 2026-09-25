@@ -7,6 +7,18 @@ import * as XLSX from 'xlsx';
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    function escapeHtml(text) {
+        if (!text) return '';
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+        return String(text).replace(/[&<>"']/g, (m) => map[m]);
+    }
+
     /* ═══════════════════════════════════════════════════════════════
        1. VISTA DE SELECCIÓN (INDEX)
        ═══════════════════════════════════════════════════════════════ */
@@ -1052,13 +1064,279 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── Exportar Reporte a PDF Oficial ──
-    function exportVisualPdf() {
-        if (config.routes && config.routes.pdf) {
-            window.location.href = config.routes.pdf;
-        } else {
+    // ── Exportar Reporte a PDF Oficial con Historial Dinámico ──
+    async function exportVisualPdf() {
+        if (!config.routes || !config.routes.pdf) {
             window.print();
+            return;
         }
+
+        if (window.Swal) {
+            Swal.fire({
+                title: 'Alerta del Sistema',
+                html: '<h3 style="color: #033966; font-weight: bold; margin-bottom: 8px;">Generando PDF...</h3><p style="color: #64748b; font-size: 0.95rem;">Por favor espere mientras procesamos y registramos su documento oficial.</p>',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading(),
+                background: '#ffffff',
+                color: '#1e293b'
+            });
+        }
+
+        try {
+            const response = await fetch(config.routes.pdf, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.message || 'Error al generar el formato PDF.');
+            }
+
+            const data = await response.json();
+
+            if (data.success && data.pdf) {
+                // Descarga automática en el navegador
+                const a = document.createElement('a');
+                a.href = data.pdf.download_url;
+                a.download = data.pdf.nombre_archivo;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                // Actualizar tabla de versiones
+                const versionsContainer = document.getElementById('pdf-versions-container');
+                const versionsTbody = document.getElementById('pdf-versions-tbody');
+                const badgeCounter = document.getElementById('pdf-badge-counter');
+
+                if (versionsContainer) versionsContainer.style.display = '';
+
+                if (versionsTbody) {
+                    const newRow = document.createElement('tr');
+                    newRow.id = `pdf-row-${data.pdf.id}`;
+                    newRow.innerHTML = `
+                        <td style="font-weight: bold; color: #d32f2f;">V${data.pdf.version}</td>
+                        <td style="font-weight: 500;">${escapeHtml(data.pdf.nombre_archivo)}</td>
+                        <td>${escapeHtml(data.pdf.creador_nombre)}</td>
+                        <td>${escapeHtml(data.pdf.fecha)}</td>
+                        <td>
+                            <div style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+                                <a href="${data.pdf.view_url}"
+                                    target="_blank"
+                                    class="btn-file-view"
+                                    style="padding: 6px 12px; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"
+                                    title="Ver PDF">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    Ver
+                                </a>
+                                <a href="${data.pdf.download_url}"
+                                    class="btn-file-download"
+                                    style="padding: 6px 12px; font-size: 0.82rem; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;"
+                                    title="Descargar PDF">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    Descargar
+                                </a>
+                                <button type="button"
+                                    class="btn-file-delete btn-delete-pdf"
+                                    data-pdf-id="${data.pdf.id}"
+                                    data-pdf-name="${escapeHtml(data.pdf.nombre_archivo)}"
+                                    style="padding: 6px 12px; font-size: 0.82rem; display: inline-flex; align-items: center; gap: 4px;"
+                                    title="Eliminar PDF del historial">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                    Eliminar
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    versionsTbody.insertBefore(newRow, versionsTbody.firstChild);
+                }
+
+                // Actualizar contador del badge
+                if (badgeCounter) {
+                    const currentCount = parseInt(badgeCounter.textContent.trim()) || 0;
+                    const nextCount = currentCount + 1;
+                    badgeCounter.textContent = nextCount;
+                    badgeCounter.style.display = nextCount > 0 ? '' : 'none';
+                }
+
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡PDF Generado!',
+                        text: `El formato V${data.pdf.version} se descargó y guardó correctamente en el historial.`,
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                }
+            } else {
+                throw new Error(data.message || 'Respuesta inesperada del servidor.');
+            }
+        } catch (err) {
+            console.error('Error generando PDF volumétrico:', err);
+            if (window.Swal) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: err.message || 'Ocurrió un error al generar el PDF. Por favor, reintenta.',
+                    confirmButtonColor: '#033966'
+                });
+            } else {
+                alert(err.message || 'Error al generar el PDF.');
+            }
+        }
+    }
+
+    // ── Eliminar PDF del Historial con Clave Maestra CALIDAD2026 ──
+    const pdfVersionsContainer = document.getElementById('pdf-versions-container');
+    if (pdfVersionsContainer) {
+        pdfVersionsContainer.addEventListener('click', async (e) => {
+            const btnDelete = e.target.closest('.btn-delete-pdf');
+            if (!btnDelete) return;
+
+            const pdfId = btnDelete.getAttribute('data-pdf-id');
+            const pdfName = btnDelete.getAttribute('data-pdf-name') || 'este formato PDF';
+
+            let clave = '';
+            if (window.Swal) {
+                const result = await Swal.fire({
+                    title: 'Eliminar Formato PDF',
+                    html: `
+                        <p style="margin-bottom: 8px; font-size: 0.95rem; color: #e2e8f0;">
+                            ¿Deseas eliminar permanentemente <b>"${escapeHtml(pdfName)}"</b> del historial?
+                        </p>
+                        <p style="margin-bottom: 14px; font-size: 0.88rem; color: #94a3b8;">
+                            Ingresa la clave maestra para confirmar:
+                        </p>
+                        <div style="position: relative; max-width: 320px; margin: 0 auto;">
+                            <input type="password" id="swal-clave-pdf-input" placeholder="Clave maestra..." 
+                                style="width: 100%; box-sizing: border-box; padding: 10px 42px 10px 14px; margin: 0; background: #02203e; color: #ffffff; border: 1.5px solid #38bdf8; border-radius: 6px; font-size: 0.95rem; outline: none; font-family: inherit;"
+                                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                            <button type="button" id="swal-toggle-password-pdf" title="Mostrar / Ocultar contraseña" 
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; color: #94a3b8; outline: none; transition: color 0.2s;">
+                                <svg id="swal-eye-icon-pdf" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#9c0303',
+                    cancelButtonColor: '#404040',
+                    confirmButtonText: 'Eliminar PDF',
+                    cancelButtonText: 'Cancelar',
+                    background: '#033966',
+                    color: '#ffffff',
+                    didOpen: () => {
+                        const input = document.getElementById('swal-clave-pdf-input');
+                        const toggleBtn = document.getElementById('swal-toggle-password-pdf');
+                        const eyeIcon = document.getElementById('swal-eye-icon-pdf');
+
+                        if (input) {
+                            input.focus();
+                            input.addEventListener('keydown', (e) => {
+                                if (e.key === 'Enter') {
+                                    Swal.clickConfirm();
+                                }
+                            });
+                        }
+
+                        if (toggleBtn && input && eyeIcon) {
+                            toggleBtn.addEventListener('click', () => {
+                                const isPassword = input.type === 'password';
+                                input.type = isPassword ? 'text' : 'password';
+                                toggleBtn.style.color = isPassword ? '#38bdf8' : '#94a3b8';
+                                eyeIcon.innerHTML = isPassword
+                                    ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>'
+                                    : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                            });
+                        }
+                    },
+                    preConfirm: () => {
+                        const inputVal = document.getElementById('swal-clave-pdf-input')?.value || '';
+                        if (!inputVal.trim()) {
+                            Swal.showValidationMessage('Debes ingresar la clave maestra para continuar');
+                            return false;
+                        }
+                        return inputVal.trim();
+                    }
+                });
+
+                if (!result.isConfirmed) return;
+                clave = result.value;
+            } else {
+                clave = prompt(`¿Deseas eliminar permanentemente "${pdfName}"?\nIngresa la clave maestra para confirmar:`);
+                if (!clave) return;
+            }
+
+            try {
+                const response = await fetch(config.routes.deletePdf, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        reporte_id: config.reporteId,
+                        pdf_id: pdfId,
+                        clave_maestra: clave
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(data.message || 'Error al eliminar el archivo PDF');
+                }
+
+                // Remover fila del DOM
+                const row = document.getElementById(`pdf-row-${pdfId}`) || btnDelete.closest('tr');
+                if (row) {
+                    row.remove();
+                }
+
+                // Actualizar contador
+                const badgeCounter = document.getElementById('pdf-badge-counter');
+                const tbody = document.getElementById('pdf-versions-tbody');
+                const remainingRows = tbody ? tbody.querySelectorAll('tr').length : 0;
+
+                if (badgeCounter) {
+                    badgeCounter.textContent = remainingRows;
+                    badgeCounter.style.display = remainingRows > 0 ? '' : 'none';
+                }
+
+                if (remainingRows === 0 && pdfVersionsContainer) {
+                    pdfVersionsContainer.style.display = 'none';
+                }
+
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Eliminado!',
+                        text: data.message || 'Formato PDF eliminado correctamente del historial.',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                }
+            } catch (err) {
+                console.error('Error al eliminar PDF:', err);
+                if (window.Swal) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error de Autorización',
+                        text: err.message || 'No se pudo eliminar el archivo PDF.',
+                        confirmButtonColor: '#033966'
+                    });
+                } else {
+                    alert(err.message || 'Error al eliminar el archivo PDF.');
+                }
+            }
+        });
     }
 
     // ── Asignar eventos a botones de descarga y envío ──

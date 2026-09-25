@@ -756,6 +756,12 @@ Route::middleware(['auth'])->prefix('calidad/inspeccion-visual')->name('calidad.
         ->name('index');
     Route::get('/pdf/{id}', [InspeccionVisualController::class, 'generatePdf'])
         ->name('pdf');
+    Route::get('/pdf/{id}/download/{pdf_id}', [InspeccionVisualController::class, 'downloadPdf'])
+        ->name('pdf.download');
+    Route::get('/pdf/{id}/view/{pdf_id}', [InspeccionVisualController::class, 'viewPdf'])
+        ->name('pdf.view');
+    Route::post('/pdf/delete', [InspeccionVisualController::class, 'deletePdf'])
+        ->name('pdf.delete');
     Route::get('/view-archivo/{id}', [InspeccionVisualController::class, 'viewArchivo'])
         ->name('view_archivo');
     Route::get('/download-archivo/{id}', [InspeccionVisualController::class, 'downloadArchivo'])
@@ -785,6 +791,12 @@ Route::middleware(['auth'])->prefix('calidad/inspeccion-dimensional')->name('cal
         ->name('index');
     Route::get('/pdf/{id}', [InspeccionDimensionalController::class, 'generatePdf'])
         ->name('pdf');
+    Route::get('/pdf/{id}/download/{pdf_id}', [InspeccionDimensionalController::class, 'downloadPdf'])
+        ->name('pdf.download');
+    Route::get('/pdf/{id}/view/{pdf_id}', [InspeccionDimensionalController::class, 'viewPdf'])
+        ->name('pdf.view');
+    Route::post('/pdf/delete', [InspeccionDimensionalController::class, 'deletePdf'])
+        ->name('pdf.delete');
     Route::get('/view-excel/{id}', [InspeccionDimensionalController::class, 'viewExcel'])
         ->name('view_excel');
     Route::get('/download-excel/{id}', [InspeccionDimensionalController::class, 'downloadExcel'])

@@ -6,6 +6,7 @@ use App\Models\Clase;
 use App\Models\Orden_trabajo;
 use App\Models\RDimensional;
 use App\Models\RDimensionalMedida;
+use App\Models\RDimensionalPdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -162,6 +163,8 @@ class InspeccionDimensionalController extends Controller
             $reporte->save();
         }
 
+        $pdfs = $reporte->pdfs()->with('creador')->get();
+
         return view('calidad.inspeccion_dimensional.show', compact(
             'otData',
             'clase',
@@ -172,7 +175,8 @@ class InspeccionDimensionalController extends Controller
             'consignacion',
             'totalPiezas',
             'totalFilasRequeridas',
-            'piezasCompletas'
+            'piezasCompletas',
+            'pdfs'
         ));
     }
 
@@ -751,9 +755,9 @@ class InspeccionDimensionalController extends Controller
     }
 
     /**
-     * Generar y descargar el PDF oficial (DomPDF)
+     * Generar y guardar el PDF oficial en el historial (DomPDF)
      */
-    public function generatePdf($id)
+    public function generatePdf(Request $request, $id)
     {
         if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
@@ -791,8 +795,11 @@ class InspeccionDimensionalController extends Controller
             : public_path('images/BOMBILLO_REPORTEDIMENSIONAL.jpg');
         $diagramaBase64 = file_exists($diagramaPath) ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($diagramaPath)) : '';
 
+        // Calcular versión incremental
+        $siguienteVersion = RDimensionalPdf::where('r_dimensional_id', $id)->count() + 1;
+
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calidad.inspeccion_dimensional.pdf', compact(
-            'reporte', 'otData', 'claseData', 'pedido', 'totalPiezas', 'consignacion', 'medidas', 'logoBase64', 'diagramaBase64', 'esMolde', 'piezasCompletas', 'porcentajeActual'
+            'reporte', 'otData', 'claseData', 'pedido', 'totalPiezas', 'consignacion', 'medidas', 'logoBase64', 'diagramaBase64', 'esMolde', 'piezasCompletas', 'porcentajeActual', 'siguienteVersion'
         ));
 
         $pdf->setPaper('letter', 'landscape');
@@ -802,7 +809,141 @@ class InspeccionDimensionalController extends Controller
             'defaultFont' => 'DejaVu Sans'
         ]);
 
-        $fileName = 'Reporte_Dimensional_OT_' . $reporte->ot_id . '_' . str_replace(' ', '_', $reporte->clase) . '.pdf';
-        return $pdf->download($fileName);
+        // Sanitizar nombres de archivo y carpetas para almacenamiento
+        $fechaStr = \Carbon\Carbon::now()->format('Y-m-d');
+        $otNum = trim((string)$reporte->ot_id);
+        $otNombreOriginal = trim((string) ($otData->nombre_moldura ?? $otData->nombre_pieza ?? ''));
+        $otNombreSeguro = preg_replace('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]/', '_', $otNombreOriginal);
+        $claseSeguro = preg_replace('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]/', '_', trim($reporte->clase));
+
+        if (empty($otNombreSeguro)) {
+            $folderName = "OT {$otNum}";
+            $filePrefix = "OT_{$otNum}";
+        } else {
+            $folderName = trim("OT {$otNum} - {$otNombreSeguro}");
+            $filePrefix = "OT_{$otNum}-{$otNombreSeguro}";
+        }
+
+        $nombreArchivo = "Reporte_Dimensional-{$filePrefix}-{$claseSeguro}-{$fechaStr}-V{$siguienteVersion}.pdf";
+        $baseFolder = "DOCUMENTACION_GIS/REPORTES_DIMENSIONALES/{$folderName}/{$claseSeguro}";
+        $rutaCompleta = "{$baseFolder}/{$nombreArchivo}";
+
+        // Guardar archivo en disco
+        Storage::disk('local')->put($rutaCompleta, $pdf->output());
+
+        // Guardar registro en base de datos
+        $pdfRecord = RDimensionalPdf::create([
+            'r_dimensional_id' => $id,
+            'version' => $siguienteVersion,
+            'nombre_archivo' => $nombreArchivo,
+            'ruta' => $rutaCompleta,
+            'creado_por' => auth()->id(),
+        ]);
+
+        $creadorNombre = auth()->user() ? trim((auth()->user()->nombre ?? '') . ' ' . (auth()->user()->a_paterno ?? '')) : 'Sistema';
+
+        if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
+            return response()->json([
+                'success' => true,
+                'pdf_id' => $pdfRecord->id,
+                'pdf' => [
+                    'id' => $pdfRecord->id,
+                    'version' => $pdfRecord->version,
+                    'nombre_archivo' => $pdfRecord->nombre_archivo,
+                    'creador_nombre' => $creadorNombre ?: 'Sistema',
+                    'fecha' => $pdfRecord->created_at ? $pdfRecord->created_at->format('d/m/Y H:i A') : now()->format('d/m/Y H:i A'),
+                    'view_url' => route('calidad.inspeccion_dimensional.pdf.view', [$id, $pdfRecord->id]),
+                    'download_url' => route('calidad.inspeccion_dimensional.pdf.download', [$id, $pdfRecord->id]),
+                ],
+                'message' => 'PDF generado y guardado correctamente en el historial.'
+            ]);
+        }
+
+        return Storage::disk('local')->download($pdfRecord->ruta, $pdfRecord->nombre_archivo);
+    }
+
+    /**
+     * Descargar un PDF específico del historial
+     */
+    public function downloadPdf($id, $pdf_id)
+    {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+
+        $pdfRecord = RDimensionalPdf::where('r_dimensional_id', $id)->findOrFail($pdf_id);
+
+        if (!Storage::disk('local')->exists($pdfRecord->ruta)) {
+            abort(404, 'El archivo PDF no existe en el servidor.');
+        }
+
+        return Storage::disk('local')->download($pdfRecord->ruta, $pdfRecord->nombre_archivo);
+    }
+
+    /**
+     * Visualizar un PDF específico del historial en el navegador
+     */
+    public function viewPdf($id, $pdf_id)
+    {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+            abort(403, 'No tienes permisos para acceder a esta sección.');
+        }
+
+        $pdfRecord = RDimensionalPdf::where('r_dimensional_id', $id)->findOrFail($pdf_id);
+
+        if (!Storage::disk('local')->exists($pdfRecord->ruta)) {
+            abort(404, 'El archivo PDF no existe en el servidor.');
+        }
+
+        $path = Storage::disk('local')->path($pdfRecord->ruta);
+        return response()->file($path, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $pdfRecord->nombre_archivo . '"'
+        ]);
+    }
+
+    /**
+     * Eliminar un PDF del historial con clave maestra CALIDAD2026 (AJAX)
+     */
+    public function deletePdf(Request $request)
+    {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+            return response()->json(['error' => 'Sin permisos'], 403);
+        }
+
+        $request->validate([
+            'reporte_id' => 'required|integer|exists:r_dimensionales,id',
+            'pdf_id' => 'required|integer|exists:r_dimensionales_pdfs,id',
+            'clave_maestra' => 'required|string',
+        ]);
+
+        if (trim($request->clave_maestra) !== 'CALIDAD2026') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Clave maestra incorrecta. No se tienen privilegios para eliminar este formato PDF.'
+            ], 403);
+        }
+
+        try {
+            $pdfRecord = RDimensionalPdf::where('r_dimensional_id', $request->reporte_id)
+                ->findOrFail($request->pdf_id);
+
+            if (Storage::disk('local')->exists($pdfRecord->ruta)) {
+                Storage::disk('local')->delete($pdfRecord->ruta);
+            }
+
+            $pdfRecord->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Formato PDF eliminado correctamente del historial.'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error al eliminar PDF dimensional: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al eliminar el archivo PDF: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

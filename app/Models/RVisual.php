@@ -77,6 +77,14 @@ class RVisual extends Model
     }
 
     /**
+     * Formatos PDF generados para este reporte visual
+     */
+    public function pdfs()
+    {
+        return $this->hasMany(RVisualPdf::class, 'r_visual_id')->orderBy('version', 'desc');
+    }
+
+    /**
      * Inspector que elaboró el reporte
      */
     public function inspector()

@@ -316,10 +316,10 @@
             @forelse($medidas as $m)
                 <tr>
                     <td class="td-num-val">{{ $m->numero_pieza }}</td>
-                    <td>{{ $m->temp_agua !== null && $m->temp_agua !== '' ? $m->temp_agua : '20°' }}</td>
-                    <td style="font-weight: bold; color: #033966;">{{ $m->vol_real !== null && $m->vol_real !== '' ? $m->vol_real : '—' }}</td>
-                    <td style="font-weight: bold;">{{ $m->dif_vs_vol_ideal !== null && $m->dif_vs_vol_ideal !== '' ? $m->dif_vs_vol_ideal : '—' }}</td>
-                    <td class="td-obs-val">{{ $m->observaciones !== null && $m->observaciones !== '' ? $m->observaciones : '' }}</td>
+                    <td>{{ $m->temp_agua !== null && trim((string)$m->temp_agua) !== '' ? $m->temp_agua : '20°' }}</td>
+                    <td style="font-weight: bold; color: #033966;">{{ $m->vol_real !== null && trim((string)$m->vol_real) !== '' ? $m->vol_real : '—' }}</td>
+                    <td style="font-weight: bold;">{{ $m->dif_vs_vol_ideal !== null && trim((string)$m->dif_vs_vol_ideal) !== '' ? $m->dif_vs_vol_ideal : '—' }}</td>
+                    <td class="td-obs-val">{{ $m->observaciones !== null && trim((string)$m->observaciones) !== '' ? $m->observaciones : '' }}</td>
                 </tr>
             @empty
                 <tr>
@@ -337,22 +337,22 @@
                 <div class="vol-box">
                     <div class="vol-row">
                         <span class="lbl">VOL. IDEAL:</span>
-                        <span class="val">{{ $reporte->vol_desplazado_ideal !== null && $reporte->vol_desplazado_ideal !== '' ? $reporte->vol_desplazado_ideal : '—' }} ml</span>
+                        <span class="val">{{ $reporte->vol_desplazado_ideal !== null && trim((string)$reporte->vol_desplazado_ideal) !== '' ? $reporte->vol_desplazado_ideal : '—' }} ml</span>
                     </div>
                     <div class="vol-row">
                         <span class="lbl">MÁXIMO:</span>
-                        <span class="val">{{ $reporte->vol_desplazado_max !== null && $reporte->vol_desplazado_max !== '' ? $reporte->vol_desplazado_max : '—' }} ml</span>
+                        <span class="val">{{ $reporte->vol_desplazado_max !== null && trim((string)$reporte->vol_desplazado_max) !== '' ? $reporte->vol_desplazado_max : '—' }} ml</span>
                     </div>
                     <div class="vol-row">
                         <span class="lbl">MÍNIMO:</span>
-                        <span class="val">{{ $reporte->vol_desplazado_min !== null && $reporte->vol_desplazado_min !== '' ? $reporte->vol_desplazado_min : '—' }} ml</span>
+                        <span class="val">{{ $reporte->vol_desplazado_min !== null && trim((string)$reporte->vol_desplazado_min) !== '' ? $reporte->vol_desplazado_min : '—' }} ml</span>
                     </div>
                 </div>
             </td>
             <td style="width: 45%; vertical-align: top; padding: 6px 8px;">
                 <div class="lbl" style="font-size: 7.5px; font-weight: bold; color: #033966; text-transform: uppercase; margin-bottom: 3px;">OBSERVACIONES GENERALES:</div>
                 <div style="font-size: 8px; color: #1e293b; min-height: 46px; line-height: 1.3;">
-                    {{ $reporte->observaciones_generales !== null && $reporte->observaciones_generales !== '' ? $reporte->observaciones_generales : 'Sin observaciones registradas.' }}
+                    {{ $reporte->observaciones_generales !== null && trim((string)$reporte->observaciones_generales) !== '' ? $reporte->observaciones_generales : 'Sin observaciones registradas.' }}
                 </div>
             </td>
             <td style="width: 25%; text-align: center; vertical-align: top; background-color: #ffffff; padding: 6px 8px;">
