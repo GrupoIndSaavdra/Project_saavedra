@@ -455,14 +455,9 @@ function getRoutes(profile) {
                     ],
                 },
                 {
-                    title: "Salidas",
-                    routes: [
-                        ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
-                    ],
-                },
-                {
                     title: "Reportes de Calidad",
                     routes: [
+                        ["calidad.r_interno_salidas.index", "Reporte de Inspección Visual"],
                         ["calidad.inspeccion_visual.index", "Reporte Volumétrico y Dimensional"],
                     ],
                 },
@@ -595,14 +590,9 @@ function getRoutes(profile) {
                             ],
                         },
                         {
-                            title: "Salidas",
-                            routes: [
-                                ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
-                            ],
-                        },
-                        {
                             title: "Reportes",
                             routes: [
+                                ["calidad.r_interno_salidas.index", "Reporte de Inspección Visual"],
                                 ["calidad.inspeccion_visual.index", "Reporte Volumétrico y Dimensional"],
                             ],
                         },
@@ -670,14 +660,9 @@ function getRoutes(profile) {
                     ],
                 },
                 {
-                    title: "Salidas",
-                    routes: [
-                        ["calidad.r_interno_salidas.index", "Reporte Interno de Salidas"],
-                    ],
-                },
-                {
                     title: "Reportes",
                     routes: [
+                        ["calidad.r_interno_salidas.index", "Reporte de Inspección Visual"],
                         ["calidad.inspeccion_visual.index", "Reporte Volumétrico y Dimensional"],
                     ],
                 },
