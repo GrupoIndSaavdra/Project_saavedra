@@ -35,184 +35,277 @@ window.cerrarModalRevisarCambios = function () {
 };
 
 let pendingResolveAction = null;
+let pendingResolveClases = [];
 
-window.solicitarConfirmacionCambios = function (action, step = 1) {
+// ── HELPERS PARA NUEVOS MODALES DE CONFIRMACIÓN ──────────────────────────────
+
+window.cerrarModalReinicio = function () {
+    const m = document.getElementById('modalConfirmarReinicio');
+    if (m) m.classList.remove('open');
+    if (window._reinicoTimer) { clearInterval(window._reinicoTimer); window._reinicoTimer = null; }
+};
+
+window.cerrarModalReemplazo = function () {
+    const m = document.getElementById('modalConfirmarReemplazo');
+    if (m) m.classList.remove('open');
+    if (window._reemplazoTimer) { clearInterval(window._reemplazoTimer); window._reemplazoTimer = null; }
+};
+
+// Compatibilidad hacia atrás — cierra ambos modales nuevos y el antiguo
+window.cerrarModalConfirmarAccionCambios = function () {
+    cerrarModalReinicio();
+    cerrarModalReemplazo();
+    const old = document.getElementById('modalConfirmarAccionCambios');
+    if (old) { old.hidden = true; old.classList.remove('open'); }
+    pendingResolveAction = null;
+    pendingResolveClases = [];
+    if (window.confirmTimer) { clearInterval(window.confirmTimer); window.confirmTimer = null; }
+};
+
+// ── FUNCIÓN PRINCIPAL ─────────────────────────────────────────────────────────
+window.solicitarConfirmacionCambios = function (action, step = 1, clasesPreSeleccionadas = null) {
     if (!currentPendingOt) {
-        const revModal = document.getElementById("modalRevisarCambios");
-        if (revModal && revModal.dataset.ot) {
-            currentPendingOt = revModal.dataset.ot;
-        }
+        const revModal = document.getElementById('modalRevisarCambios');
+        if (revModal && revModal.dataset.ot) currentPendingOt = revModal.dataset.ot;
     }
     if (!currentPendingOt) {
-        console.error("No hay OT pendiente seleccionada.");
-        almacenToast("No se ha identificado la Orden de Trabajo.", "error");
+        almacenToast('No se ha identificado la Orden de Trabajo.', 'error');
         return;
     }
     pendingResolveAction = action;
 
-    const modal = document.getElementById("modalConfirmarAccionCambios");
-    const titleEl = document.getElementById("confirm-cambios-title");
-    const iconWrapper = document.getElementById("confirm-cambios-icon-wrapper");
-    const messageEl = document.getElementById("confirm-cambios-message");
-    const btnEjecutar = document.getElementById("btn-ejecutar-resolver-cambios");
-
     const isRestart = (action === 'reiniciar_completo' || action === 'reiniciar_parcial' || action === 'reiniciar');
 
     if (isRestart) {
-        const esParcial = (action === 'reiniciar_parcial');
-
-        if (step === 1) {
-            // Advertencia Inicial (Alerta Leve)
-            const errorIconSrc = window.baseUrl ? (window.baseUrl.endsWith('/') ? window.baseUrl + 'images/error.png' : window.baseUrl + '/images/error.png') : '/images/error.png';
-            const errorImg = `<img src="${errorIconSrc}" style="width: 26px; height: 26px; margin-right: 8px;">`;
-
-            if (titleEl) {
-                titleEl.innerHTML = esParcial 
-                    ? errorImg + "Advertencia: Reinicio de Clase" 
-                    : errorImg + "Advertencia: Reinicio Proceso Completo";
-                titleEl.style.display = "flex";
-                titleEl.style.alignItems = "center";
-            }
-            if (titleEl) titleEl.style.color = "#dc2626";
-            if (iconWrapper) {
-                iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>`;
-                iconWrapper.style.background = "#fee2e2";
-            }
-            if (messageEl) {
-                messageEl.textContent = esParcial
-                    ? "¿Deseas reiniciar el proceso para la clase afectada? Se eliminarán los avances y documentos registrados para esta clase."
-                    : "¿Deseas reiniciar el proceso completo de la OT? Se eliminarán los avances y documentos registrados de todas las clases.";
-            }
-            if (btnEjecutar) {
-                btnEjecutar.disabled = true;
-                btnEjecutar.style.opacity = "0.5";
-                btnEjecutar.style.cursor = "not-allowed";
-                let seconds = 5;
-                btnEjecutar.textContent = `Sí, Continuar (${seconds}s)`;
-                btnEjecutar.style.background = "linear-gradient(135deg, #e11d48 0%, #be123c 100%)";
-                btnEjecutar.style.boxShadow = "none";
-
-                if (window.confirmTimer) clearInterval(window.confirmTimer);
-                window.confirmTimer = setInterval(() => {
-                    seconds--;
-                    if (seconds > 0) {
-                        btnEjecutar.textContent = `Sí, Continuar (${seconds}s)`;
-                    } else {
-                        clearInterval(window.confirmTimer);
-                        btnEjecutar.textContent = "Sí, Continuar";
-                        btnEjecutar.disabled = false;
-                        btnEjecutar.style.opacity = "1";
-                        btnEjecutar.style.cursor = "pointer";
-                        btnEjecutar.style.boxShadow = "0 4px 15px rgba(225, 29, 72, 0.4)";
-                    }
-                }, 1000);
-
-                btnEjecutar.onclick = function () {
-                    if (!btnEjecutar.disabled) {
-                        solicitarConfirmacionCambios(action, 2);
-                    }
-                };
-            }
-        } else {
-            // Confirmación Definitiva (Alerta Grave/Irreversible)
-            const errorIconSrc = window.baseUrl ? (window.baseUrl.endsWith('/') ? window.baseUrl + 'images/error.png' : window.baseUrl + '/images/error.png') : '/images/error.png';
-            const errorImg = `<img src="${errorIconSrc}" style="width: 26px; height: 26px; margin-right: 8px;">`;
-
-            if (titleEl) {
-                titleEl.innerHTML = esParcial 
-                    ? errorImg + "Confirmación Definitiva: Reinicio de Clase" 
-                    : errorImg + "Confirmación Definitiva: Reinicio OT";
-                titleEl.style.display = "flex";
-                titleEl.style.alignItems = "center";
-            }
-            if (titleEl) titleEl.style.color = "#991b1b";
-            if (iconWrapper) {
-                iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#991b1b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-                iconWrapper.style.background = "#fecdd3";
-            }
-            if (messageEl) {
-                messageEl.innerHTML = `<strong style="color: #991b1b; display: block; margin-bottom: 6px; font-size: 1.1em;">¡ATENCIÓN: ACCIÓN IRREVERSIBLE!</strong> Esta acción NO se puede deshacer. Se eliminarán permanentemente el progreso y registros en Almacén. ¿Confirmas reiniciar definitivamente?`;
-            }
-            if (btnEjecutar) {
-                btnEjecutar.disabled = true;
-                btnEjecutar.style.opacity = "0.5";
-                btnEjecutar.style.cursor = "not-allowed";
-                let seconds = 5;
-                btnEjecutar.textContent = `Sí, Reiniciar Definitivamente (${seconds}s)`;
-                btnEjecutar.style.background = "linear-gradient(135deg, #991b1b 0%, #450a0a 100%)";
-                btnEjecutar.style.boxShadow = "none";
-
-                if (window.confirmTimer) clearInterval(window.confirmTimer);
-                window.confirmTimer = setInterval(() => {
-                    seconds--;
-                    if (seconds > 0) {
-                        btnEjecutar.textContent = `Sí, Reiniciar Definitivamente (${seconds}s)`;
-                    } else {
-                        clearInterval(window.confirmTimer);
-                        btnEjecutar.textContent = "Sí, Reiniciar Definitivamente";
-                        btnEjecutar.disabled = false;
-                        btnEjecutar.style.opacity = "1";
-                        btnEjecutar.style.cursor = "pointer";
-                        btnEjecutar.style.boxShadow = "0 4px 15px rgba(153, 27, 27, 0.5)";
-                    }
-                }, 1000);
-
-                btnEjecutar.onclick = function () {
-                    if (!btnEjecutar.disabled) {
-                        const actionToExecute = pendingResolveAction;
-                        cerrarModalConfirmarAccionCambios();
-                        ejecutarAlmacenResolverCambios(actionToExecute);
-                    }
-                };
-            }
-        }
+        _abrirModalReinicio(action, clasesPreSeleccionadas);
     } else {
-        // Breve aviso para Reemplazar Dibujos Obsoletos
-        if (titleEl) titleEl.textContent = "Confirmar Reemplazo de Dibujos";
-        if (titleEl) titleEl.style.color = "#16a34a";
-        if (iconWrapper) {
-            iconWrapper.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`;
-            iconWrapper.style.background = "#dcfce7";
-        }
-        if (messageEl) {
-            messageEl.textContent = "¿Estás seguro de reemplazar los dibujos en Almacén? Se actualizarán los dibujos conservando el progreso actual de las clases.";
-        }
-        if (btnEjecutar) {
-            btnEjecutar.textContent = "Sí, Reemplazar Dibujos Obsoletos";
-            btnEjecutar.style.background = "linear-gradient(135deg, #16a34a 0%, #15803d 100%)";
-            btnEjecutar.style.boxShadow = "0 4px 15px rgba(22, 163, 74, 0.4)";
-            btnEjecutar.onclick = function () {
-                const actionToExecute = pendingResolveAction;
-                cerrarModalConfirmarAccionCambios();
-                ejecutarAlmacenResolverCambios(actionToExecute);
-            };
-        }
-    }
-
-    if (modal) {
-        modal.hidden = false;
-        modal.classList.add("open");
+        _abrirModalReemplazo(action, clasesPreSeleccionadas);
     }
 };
 
-window.cerrarModalConfirmarAccionCambios = function () {
-    const modal = document.getElementById("modalConfirmarAccionCambios");
-    if (modal) {
-        modal.hidden = true;
-        modal.classList.remove("open");
+// ── MODAL REINICIO (ROJO) ─────────────────────────────────────────────────────
+function _abrirModalReinicio(action, clasesPreSeleccionadas) {
+    const modal = document.getElementById('modalConfirmarReinicio');
+    const container = document.getElementById('reinicio-classes-container');
+    const btnEjecutar = document.getElementById('btn-ejecutar-reinicio');
+    if (!modal || !container || !btnEjecutar) return;
+
+    const clases = window.currentPendingClasses || [];
+    const presel = clasesPreSeleccionadas || [];
+
+    // Render pills con checkboxes
+    if (clases.length === 0) {
+        container.innerHTML = '';
+        const msg = document.getElementById('reinicio-no-classes-msg');
+        if (msg) msg.style.display = 'block';
+    } else {
+        const msg = document.getElementById('reinicio-no-classes-msg');
+        if (msg) msg.style.display = 'none';
+        container.innerHTML = clases.map((clase, i) => {
+            const checked = presel.length === 0 || presel.includes(clase);
+            return `
+                <label style="cursor:pointer;user-select:none;">
+                    <input type="checkbox" class="reinicio-cb" value="${clase}" ${checked ? 'checked' : ''}
+                           style="display:none;"
+                           onchange="_actualizarBtnReinicio()">
+                    <div id="reinicio-pill-${i}" style="
+                        padding: 8px 16px; border-radius: 50px; font-weight: 700; font-size: 0.88em;
+                        border: 2px solid ${checked ? '#dc2626' : '#cbd5e1'};
+                        background: ${checked ? '#fef2f2' : '#fff'};
+                        color: ${checked ? '#991b1b' : '#64748b'};
+                        box-shadow: ${checked ? '0 2px 8px rgba(220,38,38,0.2)' : 'none'};
+                        transition: all 0.2s; font-family:'Poppins',sans-serif;">
+                        ${clase}
+                    </div>
+                </label>`;
+        }).join('');
+
+        // Toggle pill style on click
+        container.querySelectorAll('.reinicio-cb').forEach((cb, i) => {
+            cb.addEventListener('change', function () {
+                const pill = document.getElementById(`reinicio-pill-${i}`);
+                if (this.checked) {
+                    pill.style.borderColor = '#dc2626';
+                    pill.style.background = '#fef2f2';
+                    pill.style.color = '#991b1b';
+                    pill.style.boxShadow = '0 2px 8px rgba(220,38,38,0.2)';
+                } else {
+                    pill.style.borderColor = '#cbd5e1';
+                    pill.style.background = '#fff';
+                    pill.style.color = '#64748b';
+                    pill.style.boxShadow = 'none';
+                }
+            });
+        });
     }
-    pendingResolveAction = null;
-    if (window.confirmTimer) {
-        clearInterval(window.confirmTimer);
-        window.confirmTimer = null;
+
+    _actualizarBtnReinicio(action);
+    modal.classList.add('open');
+}
+
+window._actualizarBtnReinicio = function (action) {
+    const container = document.getElementById('reinicio-classes-container');
+    const btn = document.getElementById('btn-ejecutar-reinicio');
+    if (!btn) return;
+    const act = action || pendingResolveAction;
+
+    const checked = container ? container.querySelectorAll('.reinicio-cb:checked') : [];
+    const count = checked.length;
+
+    if (count === 0) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.textContent = 'Selecciona al menos 1 clase';
+        if (window._reinicoTimer) { clearInterval(window._reinicoTimer); window._reinicoTimer = null; }
+        return;
     }
+
+    // Iniciar countdown de 5s
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    let seconds = 5;
+    btn.textContent = `Sí, Reiniciar (${seconds}s)`;
+    if (window._reinicoTimer) clearInterval(window._reinicoTimer);
+    window._reinicoTimer = setInterval(() => {
+        seconds--;
+        if (seconds > 0) {
+            btn.textContent = `Sí, Reiniciar (${seconds}s)`;
+        } else {
+            clearInterval(window._reinicoTimer);
+            btn.textContent = 'Sí, Reiniciar Definitivamente';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
+    }, 1000);
+
+    btn.onclick = function () {
+        if (!btn.disabled) {
+            const selected = Array.from(container.querySelectorAll('.reinicio-cb:checked')).map(cb => cb.value);
+            if (selected.length === 0) { almacenToast('Selecciona al menos una clase.', 'error'); return; }
+            pendingResolveClases = selected;
+            cerrarModalReinicio();
+            ejecutarAlmacenResolverCambios(act, selected);
+        }
+    };
 };
+
+// ── MODAL REEMPLAZO (VERDE) ───────────────────────────────────────────────────
+function _abrirModalReemplazo(action, clasesPreSeleccionadas) {
+    const modal = document.getElementById('modalConfirmarReemplazo');
+    const container = document.getElementById('reemplazo-classes-container');
+    const btnEjecutar = document.getElementById('btn-ejecutar-reemplazo');
+    if (!modal || !container || !btnEjecutar) return;
+
+    const clases = window.currentPendingClasses || [];
+    const presel = clasesPreSeleccionadas || [];
+
+    if (clases.length === 0) {
+        container.innerHTML = '';
+        const msg = document.getElementById('reemplazo-no-classes-msg');
+        if (msg) msg.style.display = 'block';
+    } else {
+        const msg = document.getElementById('reemplazo-no-classes-msg');
+        if (msg) msg.style.display = 'none';
+        container.innerHTML = clases.map((clase, i) => {
+            const checked = presel.length === 0 || presel.includes(clase);
+            return `
+                <label style="cursor:pointer;user-select:none;">
+                    <input type="checkbox" class="reemplazo-cb" value="${clase}" ${checked ? 'checked' : ''}
+                           style="display:none;"
+                           onchange="_actualizarBtnReemplazo()">
+                    <div id="reemplazo-pill-${i}" style="
+                        padding: 8px 16px; border-radius: 50px; font-weight: 700; font-size: 0.88em;
+                        border: 2px solid ${checked ? '#16a34a' : '#cbd5e1'};
+                        background: ${checked ? '#f0fdf4' : '#fff'};
+                        color: ${checked ? '#166534' : '#64748b'};
+                        box-shadow: ${checked ? '0 2px 8px rgba(22,163,74,0.2)' : 'none'};
+                        transition: all 0.2s; font-family:'Poppins',sans-serif;">
+                        ${clase}
+                    </div>
+                </label>`;
+        }).join('');
+
+        container.querySelectorAll('.reemplazo-cb').forEach((cb, i) => {
+            cb.addEventListener('change', function () {
+                const pill = document.getElementById(`reemplazo-pill-${i}`);
+                if (this.checked) {
+                    pill.style.borderColor = '#16a34a';
+                    pill.style.background = '#f0fdf4';
+                    pill.style.color = '#166534';
+                    pill.style.boxShadow = '0 2px 8px rgba(22,163,74,0.2)';
+                } else {
+                    pill.style.borderColor = '#cbd5e1';
+                    pill.style.background = '#fff';
+                    pill.style.color = '#64748b';
+                    pill.style.boxShadow = 'none';
+                }
+            });
+        });
+    }
+
+    _actualizarBtnReemplazo(action);
+    modal.classList.add('open');
+}
+
+window._actualizarBtnReemplazo = function (action) {
+    const container = document.getElementById('reemplazo-classes-container');
+    const btn = document.getElementById('btn-ejecutar-reemplazo');
+    if (!btn) return;
+    const act = action || pendingResolveAction;
+
+    const checked = container ? container.querySelectorAll('.reemplazo-cb:checked') : [];
+    const count = checked.length;
+
+    if (count === 0) {
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+        btn.style.cursor = 'not-allowed';
+        btn.textContent = 'Selecciona al menos 1 clase';
+        if (window._reemplazoTimer) { clearInterval(window._reemplazoTimer); window._reemplazoTimer = null; }
+        return;
+    }
+
+    // Countdown de 3s
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    btn.style.cursor = 'not-allowed';
+    let seconds = 3;
+    btn.textContent = `Sí, Reemplazar (${seconds}s)`;
+    if (window._reemplazoTimer) clearInterval(window._reemplazoTimer);
+    window._reemplazoTimer = setInterval(() => {
+        seconds--;
+        if (seconds > 0) {
+            btn.textContent = `Sí, Reemplazar (${seconds}s)`;
+        } else {
+            clearInterval(window._reemplazoTimer);
+            btn.textContent = 'Sí, Reemplazar Dibujos';
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+        }
+    }, 1000);
+
+    btn.onclick = function () {
+        if (!btn.disabled) {
+            const selected = Array.from(container.querySelectorAll('.reemplazo-cb:checked')).map(cb => cb.value);
+            if (selected.length === 0) { almacenToast('Selecciona al menos una clase.', 'error'); return; }
+            pendingResolveClases = selected;
+            cerrarModalReemplazo();
+            ejecutarAlmacenResolverCambios(act, selected);
+        }
+    };
+};
+
+
 
 window.almacenResolverCambios = function (action) {
     solicitarConfirmacionCambios(action);
 };
 
-function ejecutarAlmacenResolverCambios(action) {
+function ejecutarAlmacenResolverCambios(action, clasesArray = null) {
     if (!currentPendingOt) {
         const revModal = document.getElementById("modalRevisarCambios");
         if (revModal && revModal.dataset.ot) {
@@ -225,13 +318,18 @@ function ejecutarAlmacenResolverCambios(action) {
         return;
     }
 
+    let payload = { ot: currentPendingOt, action: action };
+    if (clasesArray && clasesArray.length > 0) {
+        payload.clases = clasesArray;
+    }
+
     fetch(window.almacenRoutes.resolveChanges, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute("content"),
         },
-        body: JSON.stringify({ ot: currentPendingOt, action: action })
+        body: JSON.stringify(payload)
     })
         .then(res => res.json())
         .then(data => {
@@ -255,7 +353,8 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
     const textReiniciar = document.getElementById('text-btn-reiniciar');
     const btnMantener = document.getElementById('btn-resolver-mantener');
 
-    const affectedClasses = comparisonData.map(item => item.clase).join(', ');
+    window.currentPendingClasses = comparisonData.map(item => item.clase);
+    const affectedClasses = window.currentPendingClasses.join(', ');
     const baseUrl = window.baseUrl || window.location.origin + "/";
     const pdfViewShadow = baseUrl.endsWith('/') ? baseUrl + 'images/pdf-view-shadow.png' : baseUrl + '/images/pdf-view-shadow.png';
     const pdfView = baseUrl.endsWith('/') ? baseUrl + 'images/pdf-view.png' : baseUrl + '/images/pdf-view.png';
@@ -330,7 +429,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                 const exactMatch = viejos.some(v => v.nombre.toLowerCase() === n.nombre.toLowerCase());
                 const posMatch = index < viejos.length;
                 const isReemplazo = exactMatch || posMatch;
-                
+
                 let matchedViejo = viejos.find(v => v.nombre.toLowerCase() === n.nombre.toLowerCase());
                 if (!matchedViejo && index < viejos.length) {
                     matchedViejo = viejos[index];
@@ -338,7 +437,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                 if (matchedViejo && !viejosAMostrar.includes(matchedViejo)) {
                     viejosAMostrar.push(matchedViejo);
                 }
-                
+
                 return {
                     ...n,
                     isReemplazo: isReemplazo,
@@ -376,17 +475,17 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                         <h5 class="alm-color-059669 alm-margin-0-0-10px-0" style="font-weight: 800; font-size: 1.08rem; color: #059669;">Dibujos Nuevos de Programación</h5>
                         <div class="alm-display-flex alm-flex-direction-column alm-gap-10px">
                             ${nuevosProcesados.length > 0 ? nuevosProcesados.map((n, index) => {
-                                const isReemplazo = n.isReemplazo;
-                                const borderColor = '#10b981';
-                                const bgColor = '#ecfdf5';
-                                const badgeBg = '#d1fae5';
-                                const badgeColor = '#047857';
-                                const badgeBorder = '#a7f3d0';
-                                const badgeText = isReemplazo ? 'DIBUJO REEMPLAZADO' : 'NUEVO DIBUJO AGREGADO';
-                                const btnColor = '#059669';
-                                const textColor = '#047857';
+                const isReemplazo = n.isReemplazo;
+                const borderColor = '#10b981';
+                const bgColor = '#ecfdf5';
+                const badgeBg = '#d1fae5';
+                const badgeColor = '#047857';
+                const badgeBorder = '#a7f3d0';
+                const badgeText = isReemplazo ? 'DIBUJO REEMPLAZADO' : 'NUEVO DIBUJO AGREGADO';
+                const btnColor = '#059669';
+                const textColor = '#047857';
 
-                                return `
+                return `
                                 <div class="dibujos-file-card card-dibujo" style="animation-delay: ${index * 0.05}s; border: 2px solid ${borderColor}; background-color: ${bgColor}; border-left: 5px solid ${borderColor};">
                                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
                                         <img src="${pdfViewShadow}" class="file-icon icon-default">
@@ -403,7 +502,7 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
                                     </div>
                                 </div>
                                 `;
-                            }).join('') : '<span class="alm-text-sm-gray">Sin archivos</span>'}
+            }).join('') : '<span class="alm-text-sm-gray">Sin archivos</span>'}
                         </div>
                     </div>
                 </div>

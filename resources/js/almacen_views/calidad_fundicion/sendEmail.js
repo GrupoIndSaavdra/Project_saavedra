@@ -165,12 +165,22 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                             hasJacarandas = true;
                         }
                         html += `
-                            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; background: #fff; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px;">
-                                <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked data-clases="${po.clases_str || ""}" onchange="if(window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden()">
-                                <div>
-                                    <strong style="color: #0f172a;">${po.clases_str || "Sin clases"}</strong>
-                                    <div style="font-size: 0.8em; color: #64748b;">PDF: ${po.pdf_filename} | Creada: ${po.fecha_creacion}</div>
+                            <label class="select-preorden-card" style="display: flex; align-items: center; gap: 12px; cursor: pointer; background: #ffffff; padding: 12px 14px; border: 2px solid #cbd5e1; border-radius: 10px; transition: all 0.2s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.02); position: relative; overflow: hidden;"
+                                onmouseover="this.style.borderColor='#0284c7'; this.style.boxShadow='0 4px 10px rgba(2,132,199,0.1)'"
+                                onmouseout="this.style.borderColor='#cbd5e1'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.02)'">
+                                <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked data-clases="${po.clases_str || ""}" onchange="if(window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden()" style="width: 18px; height: 18px; accent-color: #0284c7; cursor: pointer; margin: 0;">
+                                <div style="display: flex; flex-direction: column; flex: 1; padding-left: 4px;">
+                                    <strong style="color: #0f172a; font-size: 0.95em; display: flex; align-items: center; gap: 6px;">
+                                        <img src="${window.baseUrl || '/'}images/documento.png" style="width: 18px; height: 18px; object-fit: contain;">
+                                        ${po.clases_str || "Sin clases"}
+                                    </strong>
+                                    <div style="font-size: 0.78em; color: #64748b; margin-top: 4px; display: flex; align-items: center; gap: 8px;">
+                                        <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;"><strong style="color: #475569;">PDF:</strong> ${po.pdf_filename}</span>
+                                        <span style="color: #cbd5e1;">|</span>
+                                        <span style="background: #f1f5f9; padding: 2px 6px; border-radius: 4px; border: 1px solid #e2e8f0;"><strong style="color: #475569;">Creada:</strong> ${po.fecha_creacion}</span>
+                                    </div>
                                 </div>
+                                <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background-color: #0284c7;"></div>
                             </label>
                         `;
                     });

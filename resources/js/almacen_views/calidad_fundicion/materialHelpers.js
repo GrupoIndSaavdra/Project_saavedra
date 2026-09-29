@@ -63,7 +63,7 @@ window.desbloquearBotonEstatico = function (otClean, tipoModeloNorm, cardType) {
 window.saveLiberacionDraft = function () {
     const form = document.getElementById("formLiberacion");
     const ot = document.getElementById("lib-ot")?.value;
-    const tipo = document.getElementById("lib-tipo")?.value;
+    const tipo = window._libCurrentFormTipo || document.getElementById("lib-tipo")?.value;
     if (!form || !ot || !tipo) return;
     const fd = new FormData(form);
     const dataObj = {};
@@ -75,16 +75,18 @@ window.saveLiberacionDraft = function () {
 
 window.loadLiberacionDraft = function () {
     const ot = document.getElementById("lib-ot")?.value;
-    const tipo = document.getElementById("lib-tipo")?.value;
-    if (!ot || !tipo) return;
+    const tipo = window._libCurrentFormTipo || document.getElementById("lib-tipo")?.value;
+    if (!ot || !tipo) return false;
     const raw = localStorage.getItem(`lib_draft_${ot}_${tipo}`);
-    if (!raw) return;
+    if (!raw) return false;
+    let applied = false;
     try {
         const dataObj = JSON.parse(raw);
         Object.entries(dataObj).forEach(([key, val]) => {
             const el = document.getElementsByName(key)[0];
-            if (el && !el.value && val) {
+            if (el && key !== 'ot' && key !== 'tipo_modelo') {
                 el.value = val;
+                applied = true;
                 if (el.classList.contains("lib-num-input") || el.classList.contains("lib-num-input-sm")) {
                     if (typeof formatInputTruncated === "function") {
                         formatInputTruncated(el);
@@ -92,7 +94,10 @@ window.loadLiberacionDraft = function () {
                 }
             }
         });
-    } catch (_) {}
+        return applied;
+    } catch (_) {
+        return false;
+    }
 };
 
 window.clearLiberacionDraft = function () {

@@ -39,7 +39,50 @@
                     <span class="lib-calidad-card-ot">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $targetReg->ot) }}</span>
                 </div>
                 @php
-                    $hdClasesActivas = collect($targetReg->ayudas_config ?? [])
+                    $preOrdenes = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)->get();
+                    $clasesBase = [];
+                    foreach ($preOrdenes as $po) {
+                        if (!empty($po->filas)) {
+                            $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+                            if (is_array($filas)) {
+                                foreach ($filas as $fila) {
+                                    $cl = $fila['clase'] ?? ($fila['clase_nombre'] ?? null);
+                                    if ($cl) {
+                                        $clasesBase[] = $cl;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // También agregar clases que tienen documentos subidos por Almacén, 
+                    // PERO SOLO si no hay clases base definidas por la pre-orden.
+                    if (empty($clasesBase)) {
+                        $docsToCheck = array_merge($almacenAprobadosDocs ?? [], $otrosArchivos ?? []);
+                        $todasPosibles = $targetReg->ayudas_config ?? [];
+                        if (is_string($todasPosibles)) {
+                            $todasPosibles = json_decode($todasPosibles, true);
+                        }
+                        if (is_array($todasPosibles)) {
+                            foreach ($docsToCheck as $doc) {
+                                $nomLower = strtolower($doc['nombre']);
+                                foreach ($todasPosibles as $posible) {
+                                    $normClass = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', \App\Services\FundicionPaths::normalizeClass($posible)));
+                                    $normDoc = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', basename($nomLower)));
+                                    if (strpos($normDoc, $normClass) !== false && !in_array($posible, $clasesBase)) {
+                                        $clasesBase[] = $posible;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    if (empty($clasesBase)) {
+                        $clasesBase = $targetReg->ayudas_config ?? [];
+                    }
+                    $clasesBase = array_values(array_unique($clasesBase));
+
+                    $hdClasesActivas = collect($clasesBase)
                         ->filter(
                             fn($c) => !str_contains(strtolower($c), 'opcional') ||
                                 str_contains(strtolower($c), 'pistones') ||
@@ -71,42 +114,8 @@
                                 $tipo = 'Pistones';
                             } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                                 $tipo = 'Guías';
-                            } elseif (strpos($clLow, 'pistones') !== false) {
-                                $tipo = 'Pistones';
-                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
-                                $tipo = 'Guías';
                             }
-                            if ($tipo) {
-                                $baseOt = preg_replace(
-                                    '/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu',
-                                    '',
-                                    $targetReg->ot,
-                                );
-                                $isAprob = \App\Models\LiberacionModeloFundicion::where(
-                                    'ot',
-                                    '!=',
-                                    $targetReg->ot,
-                                    'and',
-                                )
-                                    ->where(
-                                        function ($q) use ($baseOt) {
-                                            $q->where('ot', '=', $baseOt, 'and')
-                                                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
-                                                ->where('ot', 'LIKE', $baseOt . '_%_R%', 'or');
-                                        },
-                                        null,
-                                        null,
-                                        'and',
-                                    )
-                                    ->where('tipo_modelo', '=', $tipo)
-                                    ->where('decision', '=', 'aprobar')
-                                    ->exists();
-                                if ($isAprob) {
-                                    return false;
-                                }
-                                return true;
-                            }
-                            return false;
+                            return $tipo !== null;
                         })
                         ->values()
                         ->toArray();
@@ -136,18 +145,13 @@
                             $tipo = 'Pistones';
                         } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                             $tipo = 'Guías';
-                        } elseif (strpos($clLow, 'pistones') !== false) {
-                            $tipo = 'Pistones';
-                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
-                            $tipo = 'Guías';
                         }
+                        
                         if ($tipo) {
                             if (
                                 \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                     ->where('tipo_modelo', '=', $tipo)
-                                    ->where(function ($q) {
-                                        $q->whereNotNull('user_id_calidad')->orWhereNotNull('decision');
-                                    })
+                                    ->whereNotNull('decision')
                                     ->exists()
                             ) {
                                 $hdCont++;
@@ -214,7 +218,7 @@
                         ->first();
                     $scarModelo = \App\Models\ScarModelo::where('ot', $targetReg->ot)->first();
                     $reqFotos = $scarModelo && ($scarModelo->evidencia_fotos || $scarModelo->evidencia_otro);
-                    $clasesActivas = collect($targetReg->ayudas_config ?? [])
+                    $clasesActivas = collect($clasesBase)
                         ->filter(
                             fn($c) => !str_contains(strtolower($c), 'opcional') ||
                                 str_contains(strtolower($c), 'pistones') ||
@@ -246,42 +250,8 @@
                                 $tipo = 'Pistones';
                             } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                                 $tipo = 'Guías';
-                            } elseif (strpos($clLow, 'pistones') !== false) {
-                                $tipo = 'Pistones';
-                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
-                                $tipo = 'Guías';
                             }
-                            if ($tipo) {
-                                $baseOt = preg_replace(
-                                    '/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu',
-                                    '',
-                                    $targetReg->ot,
-                                );
-                                $isAprobado = \App\Models\LiberacionModeloFundicion::where(
-                                    'ot',
-                                    '!=',
-                                    $targetReg->ot,
-                                    'and',
-                                )
-                                    ->where(
-                                        function ($q) use ($baseOt) {
-                                            $q->where('ot', '=', $baseOt, 'and')
-                                                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
-                                                ->where('ot', 'LIKE', $baseOt . '_%_R%', 'or');
-                                        },
-                                        null,
-                                        null,
-                                        'and',
-                                    )
-                                    ->where('tipo_modelo', '=', $tipo)
-                                    ->where('decision', '=', 'aprobar')
-                                    ->exists();
-                                if ($isAprobado) {
-                                    return false;
-                                }
-                                return true;
-                            }
-                            return false;
+                            return $tipo !== null;
                         })
                         ->values()
                         ->toArray();
@@ -309,10 +279,6 @@
                             $tipo = 'Molde';
                         } elseif (strpos($clLow, 'bombillo') !== false) {
                             $tipo = 'Bombillo';
-                        } elseif (strpos($clLow, 'pistones') !== false) {
-                            $tipo = 'Pistones';
-                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
-                            $tipo = 'Guías';
                         } elseif (strpos($clLow, 'pistones') !== false) {
                             $tipo = 'Pistones';
                         } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
@@ -511,8 +477,17 @@
                                             <button class="btn-calidad-action btn-calidad-borrador"
                                                 onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
                                                 title="Generar el formato de acción correctiva SCAR">
-                                                <img src="{{ asset('images/pdf.png') }}" alt="" />
+                                                <img src="{{ asset('images/SCAR_RDM_Incorrectos.png') }}" alt="" />
                                                 <span>Generar Formato SCAR</span>
+                                            </button>
+                                            <button
+                                                class="btn-calidad-action btn-calidad-email cal-background-color-dc2626 cal-color-white"
+                                                onclick="Swal.fire('Atención', 'Debes generar el formato SCAR antes de enviar la alerta.', 'warning')"
+                                                title="Debes generar el formato SCAR primero"
+                                                style="opacity: 0.6; cursor: not-allowed;">
+                                                <img src="{{ asset('images/enviando.png') }}" alt=""
+                                                    style="filter: none !important;" />
+                                                <span>Enviar Alerta</span>
                                             </button>
                                         @else
                                             <button
@@ -536,7 +511,7 @@
                                 </div>
                             @endif
                         </div>
-                    @elseif ($targetReg->tiene_modelo)
+                    @elseif ($targetReg->casting_pdf_generated && !$targetReg->tiene_modelo)
                         <div class="lib-calidad-finalizado-banner"
                             style="background: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08);">
                             <div style="display: flex; align-items: center; gap: 20px;">
@@ -615,7 +590,7 @@
                                 style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
                                 @if ($todosGuardados)
                                     <button class="btn-calidad-action btn-calidad-edit"
-                                        onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})"
+                                        onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($clasesBase) }})"
                                         title="Editar borrador del formato de liberación F-CCL-LDM">
                                         <img src="{{ asset('images/editar-informacion.png') }}" alt="" />
                                         <span>Editar Información</span>
@@ -635,7 +610,7 @@
                                         class="btn-calidad-action btn-calidad-edit @if ($btnDisabled) cal-opacity-0-55 cal-cursor-not-allowed @endif"
                                         title="{{ $btnTitle }}"
                                         @if ($btnDisabled) disabled style="pointer-events: none;" @else
-                                            onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($targetReg->ayudas_config ?? []) }})" @endif>
+                                            onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($clasesBase) }})" @endif>
                                         <img src="{{ asset('images/Liberar.png') }}" alt="" />
                                         <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
                                     </button>
@@ -656,8 +631,16 @@
                                             <button class="btn-calidad-action btn-calidad-borrador"
                                                 onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
                                                 title="Generar el formato de acción correctiva SCAR">
-                                                <img src="{{ asset('images/pdf.png') }}" alt="" />
+                                                <img src="{{ asset('images/SCAR_RDM_Incorrectos.png') }}" alt="" />
                                                 <span>Generar Formato SCAR</span>
+                                            </button>
+                                            <button
+                                                class="btn-calidad-action btn-calidad-email cal-background-color-dc2626 cal-color-white"
+                                                onclick="Swal.fire('Atención', 'Debes generar el formato SCAR antes de enviar la alerta.', 'warning')"
+                                                title="Debes generar el formato SCAR primero"
+                                                style="opacity: 0.6; cursor: not-allowed;">
+                                                <img src="{{ asset('images/enviando.png') }}" alt="" />
+                                                <span>Enviar Alerta</span>
                                             </button>
                                         @else
                                             <button

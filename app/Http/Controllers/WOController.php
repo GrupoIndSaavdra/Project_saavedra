@@ -94,7 +94,8 @@ class WOController extends Controller
                         // Verificar tipo de soldadura si la clase admite soldadura
                         $clLower = strtolower($cl->nombre ?? '');
                         $isWeldingClass = false;
-                        foreach (['molde', 'fondo', 'bombillo', 'obturador', 'corona'] as $wCl) {
+                        $weldingClasses = config('global_classes.welding_classes', []);
+                        foreach ($weldingClasses as $wCl) {
                             if (str_contains($clLower, $wCl)) {
                                 $isWeldingClass = true;
                                 break;

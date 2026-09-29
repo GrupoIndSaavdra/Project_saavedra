@@ -339,6 +339,64 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     document.body.classList.add("modal-open");
 };
 
+window.cargarEvidenciasScarServer = function (ot, tipoModelo) {
+    const filesContainer = document.getElementById("scar-server-files-container");
+    if (!filesContainer) return;
+    filesContainer.innerHTML = `
+        <div style="text-align: center; padding: 10px; grid-column: 1 / -1;">
+            <div class="alm-spinner" style="border-top-color: #9c0300; display: inline-block;"></div>
+            <span style="color: #64748b; margin-left: 10px;">Obteniendo archivos del servidor...</span>
+        </div>
+    `;
+    
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.existe && data.archivos && data.archivos.length > 0) {
+                // Filtrar para mostrar solo los archivos rechazados/extras correspondientes a la clase actual
+                const rawTipo = (tipoModelo || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const keyWords = rawTipo.split(/[\s\-_]+/).filter(w => w.length >= 3 && w !== 'modelo' && w !== 'casting');
+                
+                const rejectedFiles = data.archivos.filter(f => {
+                    const fname = f.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                    // Muy permisivo: Si la ruta tiene "extras", "scar", o "rechazado", lo consideramos evidencia SCAR
+                    const isRechazado = f.origin === 'rechazado' || fname.includes('extras') || fname.includes('scar') || fname.includes('rechazado');
+                    
+                    let isMismaClase = true;
+                    if (rawTipo !== "") {
+                        if (keyWords.length > 0) {
+                            isMismaClase = keyWords.some(kw => fname.includes(kw) || fname.includes(kw.replace(/s$/, "")));
+                        } else {
+                            isMismaClase = fname.includes(rawTipo.trim());
+                        }
+                    }
+                    
+                    return isRechazado && isMismaClase;
+                });
+                
+                if (rejectedFiles.length > 0) {
+                    let baseUrl = window.baseUrl || window.location.origin + "/";
+                    if (!baseUrl.endsWith("/")) baseUrl += "/";
+                    const sectionsHtml = window.generarHtmlCategorizadoArchivos(
+                        rejectedFiles,
+                        ot,
+                        baseUrl,
+                        "scar"
+                    );
+                    filesContainer.innerHTML = sectionsHtml || `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">No se encontraron archivos de evidencia en el servidor para este SCAR.</div>`;
+                } else {
+                    filesContainer.innerHTML = `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">No se encontraron archivos de evidencia adicionales en el servidor.</div>`;
+                }
+            } else {
+                filesContainer.innerHTML = `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">No se encontraron archivos en el servidor para esta OT.</div>`;
+            }
+        })
+        .catch((err) => {
+            console.error(err);
+            filesContainer.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600; grid-column: 1 / -1;">Error al cargar la lista de evidencias.</div>`;
+        });
+};
+
 window.cerrarModalScar = function () {
     const modal = document.getElementById("modalScar");
     if (modal) modal.classList.remove("open");

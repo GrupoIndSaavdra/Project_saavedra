@@ -5,17 +5,13 @@
  * lib-tabla-2    => Matriz V,W,X,Y,Z  (Molde, Bombillo, Obturador)
  * lib-tabla-fondo=> Fondo
  */
-const LIB_TABLA_MAP = {
-    Fondo: ["lib-tabla-fondo"],
-    Obturador: ["lib-tabla-obturador"],
-    Molde: ["lib-tabla-1", "lib-tabla-2"],
-    Bombillo: ["lib-tabla-1", "lib-tabla-2"],
-    Corona: ["lib-tabla-fondo"],
-    Plato: ["lib-tabla-fondo"],
-    Embudo: ["lib-tabla-fondo"],
-    "Cabeza de Soplo": ["lib-tabla-fondo"],
-    "Candado Obturador": ["lib-tabla-fondo"],
-};
+function _libGetTablasParaTipo(tipo) {
+    if (!tipo) return [];
+    const tLow = tipo.toLowerCase();
+    if (tLow.includes("molde") || tLow.includes("bombillo")) return ["lib-tabla-1", "lib-tabla-2"];
+    if (tLow.includes("obturador") && !tLow.includes("candado")) return ["lib-tabla-obturador"];
+    return ["lib-tabla-fondo"];
+}
 const LIB_TODAS_TABLAS = [
     "lib-tabla-1",
     "lib-tabla-2",
@@ -56,7 +52,7 @@ window.abrirModalLiberacion = function (ot, tipo) {
     if (esRechazo) {
         header.classList.add("lib-modal-header-rechazo");
         if (title)
-            title.textContent = "Formato de Rechazo de Modelo — F-CCL-LDM";
+            title.textContent = "Formato de Rechazo de Modelo — F-CCL-RDM";
         if (subtitle)
             subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, "")}  |  Modo: Rechazo`;
         if (rechazoBlock) rechazoBlock.classList.remove("alm-display-none");
@@ -101,6 +97,9 @@ window.abrirModalLiberacion = function (ot, tipo) {
 };
 // ── Cierre del modal ──────────────────────────────────────────────────────────
 window.cerrarModalLiberacion = function () {
+    if (typeof window.saveLiberacionDraft === "function") {
+        window.saveLiberacionDraft();
+    }
     const modal = document.getElementById("modalLiberacionModelo");
     if (modal) modal.classList.remove("open");
     document.body.classList.remove("modal-open");
@@ -175,19 +174,21 @@ document.addEventListener("keydown", (e) => {
  */
 window.libCambiarTipo = function (tipo) {
     const aviso = document.getElementById("lib-tabla-aviso");
-    const visibles = LIB_TABLA_MAP[tipo] ?? [];
-    // Resetear formulario para evitar cruce de datos entre "Molde" y "Bombillo"
+    const visibles = _libGetTablasParaTipo(tipo);
     const form = document.getElementById("formLiberacion");
     const currOt = document.getElementById("lib-ot")?.value;
-    const currAcc = document.getElementById("lib-accion")?.value;
+    
+    // Save current type globally so drafts don't mix
+    window._libCurrentFormTipo = tipo;
+
     if (form) form.reset();
-    // Restaurar meta datos despues de limpiar
+    
+    // Restaurar OT y Tipo
     if (document.getElementById("lib-ot"))
         document.getElementById("lib-ot").value = currOt;
-    if (document.getElementById("lib-accion"))
-        document.getElementById("lib-accion").value = currAcc;
     if (document.getElementById("lib-tipo"))
         document.getElementById("lib-tipo").value = tipo;
+
     LIB_TODAS_TABLAS.forEach((id) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -198,7 +199,6 @@ window.libCambiarTipo = function (tipo) {
         } else {
             el.setAttribute("hidden", "");
         }
-        // Marcar inputs ocultos para el zero-fill en submit
         el.querySelectorAll('input[type="number"]').forEach((inp) => {
             inp.dataset.libHidden = activo ? "0" : "1";
         });
@@ -217,24 +217,28 @@ window.libCambiarTipo = function (tipo) {
     if (typeof _libActualizarColorSelectPropio === "function") {
         _libActualizarColorSelectPropio();
     }
-    // Si tenemos registros cacheados especificos para este tipo, poblamos la UI
-    if (
-        tipo &&
-        window.cacheLiberacionGlobal &&
-        window.cacheLiberacionGlobal[tipo]
-    ) {
-        const cached = window.cacheLiberacionGlobal[tipo];
+
+    // Default to 'aprobar' initially
+    _libSetDecisionUI("aprobar");
+
+    // CARGAR BORRADOR AUTOMÁTICAMENTE
+    const draftLoaded = window.loadLiberacionDraft();
+
+    // Si tenemos registros cacheados (BD), SIEMPRE prevalece la base de datos sobre el borrador
+    const cached = tipo ? window._libFindCachedRecord(tipo) : null;
+    if (cached) {
         _libRellenarInputs(cached);
         if (cached.decision) {
             _libSetDecisionUI(cached.decision);
-        } else {
-            _libSetDecisionUI("aprobar");
         }
-    } else {
-        _libSetDecisionUI("aprobar");
     }
-    // CARGAR BORRADOR AUTOMÁTICAMENTE ANTES DE CAPTURAR EL ESTADO INICIAL
-    window.loadLiberacionDraft();
+
+    // Asegurarse de que si el borrador cargó una acción, la UI refleje eso
+    const loadedAction = document.getElementById("lib-accion")?.value;
+    if (loadedAction && (loadedAction === "aprobar" || loadedAction === "rechazar")) {
+        _libSetDecisionUI(loadedAction);
+    }
+
     // Capturar el estado despues de llenar la UI
     setTimeout(() => {
         window._libLastSavedState = _libGetSerializedForm();
@@ -291,13 +295,13 @@ function _libInicializarZoom() {
     document.addEventListener("mousemove", (e) => {
         const wrapper = e.target.closest(".lib-img-zoom-wrapper");
         if (!wrapper) {
-            zoomResult.classList.add("alm-display-none");
+            zoomResult.style.display = "none";
             return;
         }
         // Solo activar si el modal de liberacion esta abierto
         const modal = document.getElementById("modalLiberacionModelo");
         if (!modal || !modal.classList.contains("open")) {
-            zoomResult.classList.add("alm-display-none");
+            zoomResult.style.display = "none";
             return;
         }
         const img = wrapper.querySelector(".lib-ref-img");
@@ -307,14 +311,14 @@ function _libInicializarZoom() {
         const y = e.clientY - rect.top;
         // Ignorar si el cursor esta fuera de los limites de la imagen
         if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
-            zoomResult.classList.add("alm-display-none");
+            zoomResult.style.display = "none";
             return;
         }
         // Calcular posicion del background para el recuadro de zoom
         const bgX = -(x * ZOOM_RATIO - ZOOM_SIZE / 2);
         const bgY = -(y * ZOOM_RATIO - ZOOM_SIZE / 2);
-        zoomResult.classList.remove("alm-display-none");
-        zoomResult.style.backgroundImage = `url(${img.src})`;
+        zoomResult.style.display = "block";
+        zoomResult.style.backgroundImage = `url("${img.src}")`;
         zoomResult.style.backgroundSize = `${rect.width * ZOOM_RATIO}px ${rect.height * ZOOM_RATIO}px`;
         zoomResult.style.backgroundPosition = `${bgX}px ${bgY}px`;
         zoomResult.style.width = `${ZOOM_SIZE}px`;
@@ -335,7 +339,7 @@ function _libInicializarZoom() {
     document.addEventListener(
         "mouseleave",
         () => {
-            zoomResult.classList.add("alm-display-none");
+            zoomResult.style.display = "none";
         },
         true,
     );
@@ -360,27 +364,13 @@ async function _libCargarDatos(ot) {
         // Normalizar claves de cache desde la DB para evitar problemas case-sensitive
         const rawCache = data.registros_por_tipo || {};
         window.cacheLiberacionGlobal = {};
-        const MAPA_TIPO = {
-            "candado obturador": "Candado Obturador",
-            "cabeza de soplo": "Cabeza de Soplo",
-            embudo: "Embudo",
-            corona: "Corona",
-            plato: "Plato",
-            fondo: "Fondo",
-            obturador: "Obturador",
-            molde: "Molde",
-            bombillo: "Bombillo",
-            pistones: "Pistones",
-            guías: "Guías",
-            guias: "Guías",
-        };
-        const knownKeys = Object.keys(MAPA_TIPO);
+        const knownKeys = window.FundicionCatalog || [];
         for (let key in rawCache) {
             let normalizedKey = key;
             const keyLow = key.toLowerCase();
             for (let k of knownKeys) {
-                if (keyLow.includes(k)) {
-                    normalizedKey = MAPA_TIPO[k];
+                if (keyLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || keyLow.includes(k.toLowerCase())) {
+                    normalizedKey = k;
                     break;
                 }
             }
@@ -405,8 +395,8 @@ async function _libCargarDatos(ot) {
                 let tipo = lastLib.tipo_modelo;
                 const tipoLow = tipo.toLowerCase();
                 for (let k of knownKeys) {
-                    if (tipoLow.includes(k)) {
-                        tipo = MAPA_TIPO[k];
+                    if (tipoLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || tipoLow.includes(k.toLowerCase())) {
+                        tipo = k;
                         break;
                     }
                 }
@@ -426,9 +416,24 @@ async function _libCargarDatos(ot) {
 /**
  * Colorea las opciones del select #lib-tipo según la decisión guardada o seleccionada.
  */
+window._libFindCachedRecord = function(optVal) {
+    if (!window.cacheLiberacionGlobal) return null;
+    if (window.cacheLiberacionGlobal[optVal]) return window.cacheLiberacionGlobal[optVal];
+    
+    const optValLow = optVal.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/^\d+\s*-\s*/, '').trim();
+    for (let key in window.cacheLiberacionGlobal) {
+        const keyClean = key.toLowerCase().replace(/^\d+\s*-\s*/, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        if (keyClean === optValLow) {
+            return window.cacheLiberacionGlobal[key];
+        }
+    }
+    return null;
+};
+
 function _libActualizarColoresSelect() {
     const select = document.getElementById("lib-tipo");
     if (!select) return;
+
     select.querySelectorAll("option").forEach((opt) => {
         const val = opt.value;
         if (!val) {
@@ -436,13 +441,12 @@ function _libActualizarColoresSelect() {
             opt.style.color = "";
             return;
         }
-        const record =
-            window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[val];
+        const record = window._libFindCachedRecord(val);
         if (record) {
-            if (record.decision === "aprobar") {
+            if (record.decision === "aprobar" || record.estado === "aprobado") {
                 opt.style.backgroundColor = "#d1fae5"; // Verde suave
                 opt.style.color = "#065f46";
-            } else if (record.decision === "rechazar") {
+            } else if (record.decision === "rechazar" || record.estado === "rechazado") {
                 opt.style.backgroundColor = "#fee2e2"; // Rojo suave
                 opt.style.color = "#991b1b";
             } else {
@@ -463,9 +467,43 @@ window._libActualizarColoresSelect = _libActualizarColoresSelect;
 function _libActualizarColorSelectPropio() {
     const select = document.getElementById("lib-tipo");
     if (!select) return;
-    select.style.backgroundColor = "";
-    select.style.color = "";
-    select.style.borderColor = "#cbd5e1"; // neutral border
+
+    const findRecord = (optVal) => {
+        if (!window.cacheLiberacionGlobal) return null;
+        if (window.cacheLiberacionGlobal[optVal]) return window.cacheLiberacionGlobal[optVal];
+        
+        const optValLow = optVal.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+        for (let key in window.cacheLiberacionGlobal) {
+            const keyClean = key.toLowerCase().replace(/^\d+\s*-\s*/, '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+            if (keyClean === optValLow || keyClean.includes(optValLow) || optValLow.includes(keyClean)) {
+                return window.cacheLiberacionGlobal[key];
+            }
+        }
+        return null;
+    };
+
+    const val = select.value;
+    const record = findRecord(val);
+
+    if (record) {
+        if (record.decision === "aprobar" || record.estado === "aprobado") {
+            select.style.backgroundColor = "#dcfce7";
+            select.style.color = "#166534";
+            select.style.borderColor = "#16a34a";
+        } else if (record.decision === "rechazar" || record.estado === "rechazado") {
+            select.style.backgroundColor = "#fee2e2";
+            select.style.color = "#991b1b";
+            select.style.borderColor = "#dc2626";
+        } else {
+            select.style.backgroundColor = "";
+            select.style.color = "";
+            select.style.borderColor = "#cbd5e1";
+        }
+    } else {
+        select.style.backgroundColor = "";
+        select.style.color = "";
+        select.style.borderColor = "#cbd5e1";
+    }
 }
 window._libActualizarColorSelectPropio = _libActualizarColorSelectPropio;
 /**
@@ -791,4 +829,4 @@ window._libSubmit = _libSubmit;
 window._libActualizarBadgeEstado = _libActualizarBadgeEstado;
 window._libOt = _libOt;
 window._libZoomInit = _libZoomInit;
-window.LIB_TABLA_MAP = LIB_TABLA_MAP;
+

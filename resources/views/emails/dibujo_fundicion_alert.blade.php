@@ -69,7 +69,12 @@
 <body>
     <div class="container">
         <div class="message-content">
-            @if (!empty($isUpdate))
+            @if (!empty($isNewClass))
+                <p>Se ha subido una <strong>NUEVA CLASE</strong> de dibujos de fundición para la OT: <strong>{{ $otName }}</strong>. Favor de verificar los dibujos en el Software en el apartado de <strong>Dibujos de Fundición</strong>.</p>
+                @if (!empty($ayudas))
+                    <p><strong>Nuevas clases enviadas:</strong> {{ implode(', ', $ayudas) }}.</p>
+                @endif
+            @elseif (!empty($isUpdate))
                 <p>Se han subido <strong>actualizaciones y/o nuevos dibujos</strong> de fundición para la OT: <strong>{{ $otName }}</strong>. Favor de verificar los cambios en el Software en el apartado de <strong>Dibujos de Fundición</strong>.</p>
                 @if (!empty($ayudas))
                     <p><strong>Clases afectadas / actualizadas:</strong> {{ implode(', ', $ayudas) }}.</p>

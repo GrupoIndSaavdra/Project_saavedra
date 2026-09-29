@@ -196,35 +196,9 @@ class CalidadTableRowViewModel
                     if (str_contains($val, 'opcional') && !str_contains($val, 'pistones') && !str_contains($val, 'guías') && !str_contains($val, 'guias')) {
                         continue;
                     }
-                    foreach (
-                        [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ]
-                        as $kc
-                    ) {
-                        if (strpos($val, $kc) !== false) {
-                            $this->activeClassesForOt[] = $kc;
-                            break;
+                    foreach ([trim($val)] as $p) {
+                        if (!empty($p)) {
+                            $this->activeClassesForOt[] = \App\Services\FundicionPaths::normalizeClass($p);
                         }
                     }
                 }
@@ -248,35 +222,9 @@ class CalidadTableRowViewModel
                             $val = strtolower($f['tipo_modelo']);
                         }
                         if ($val) {
-                            foreach (
-                                [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ]
-                                as $kc
-                            ) {
-                                if (strpos($val, $kc) !== false) {
-                                    $this->activeClassesForOt[] = $kc;
-                                    break;
+                            foreach ([trim($val)] as $p) {
+                                if (!empty($p)) {
+                                    $this->activeClassesForOt[] = \App\Services\FundicionPaths::normalizeClass($p);
                                 }
                             }
                         }
@@ -299,34 +247,7 @@ class CalidadTableRowViewModel
                     foreach ($parts as $p) {
                         $p = trim($p);
                         if ($p !== '') {
-                            foreach ([
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ] as $kc) {
-                                if (strpos($p, $kc) !== false) {
-                                    $parsedCurrent[] = $kc;
-                                    break;
-                                }
-                            }
+                            $parsedCurrent[] = \App\Services\FundicionPaths::normalizeClass($p);
                         }
                     }
                 }
@@ -349,34 +270,7 @@ class CalidadTableRowViewModel
                         foreach ($parts as $p) {
                             $p = trim($p);
                             if ($p !== '') {
-                                foreach ([
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ] as $kc) {
-                                    if (strpos($p, $kc) !== false) {
-                                        $parsedPrev[] = $kc;
-                                        break;
-                                    }
-                                }
+                                $parsedPrev[] = \App\Services\FundicionPaths::normalizeClass($p);
                             }
                         }
                     }
@@ -396,34 +290,7 @@ class CalidadTableRowViewModel
                     foreach ($parts as $p) {
                         $p = trim($p);
                         if ($p !== '') {
-                            foreach ([
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ] as $kc) {
-                                if (strpos($p, $kc) !== false) {
-                                    $parsedClasses[] = $kc;
-                                    break;
-                                }
-                            }
+                            $parsedClasses[] = \App\Services\FundicionPaths::normalizeClass($p);
                         }
                     }
                 }
@@ -443,33 +310,9 @@ class CalidadTableRowViewModel
                 foreach ($parts as $p) {
                     $p = trim($p);
                     if ($p !== '') {
-                        foreach ([
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ] as $kc) {
-                            if (strpos($p, $kc) !== false && !in_array($kc, $this->activeClassesForOt)) {
-                                $this->activeClassesForOt[] = $kc;
-                                break;
-                            }
+                        $norm = \App\Services\FundicionPaths::normalizeClass($p);
+                        if (!in_array($norm, $this->activeClassesForOt)) {
+                            $this->activeClassesForOt[] = $norm;
                         }
                     }
                 }
@@ -504,29 +347,7 @@ class CalidadTableRowViewModel
             }
 
             if (empty($this->activeClassesForOt)) {
-                $this->activeClassesForOt = [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ];
+                $this->activeClassesForOt = array_values(\App\Services\FundicionPaths::getStandardMap());
             }
         }
         $this->activeClassesForOt = array_values(array_unique($this->activeClassesForOt));
@@ -598,29 +419,7 @@ class CalidadTableRowViewModel
                 if ($isNonDrawing) {
                     continue;
                 }
-                $knownClasses = [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ];
+                $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
                 $hasKnownClass = false;
                 foreach ($knownClasses as $kc) {
                     if (strpos($fileLower, $kc) !== false) {
@@ -736,29 +535,7 @@ class CalidadTableRowViewModel
                 ];
             }
             foreach (
-                [
-                    'Candado obturador',
-                    'Cabeza de soplo',
-                    'Obturador',
-                    'Bombillo',
-                    'Embudo',
-                    'Corona',
-                    'Plato',
-                    'Molde',
-                    'Fondo',
-                    'Pistones',
-                    'Guías',
-                    'Guias',
-                    '1 - MOLDES',
-                    '2 - BOMBILLO',
-                    '3 - EMBUDO',
-                    '4 - CORONA',
-                    '5 - PLATO',
-                    '6 - FONDO',
-                    '7 - OBTURADOR',
-                    '8 - CABEZA DE SOPLO',
-                    '9 - CANDADO OBTURADOR'
-                ]
+                array_values(\App\Services\FundicionPaths::getStandardMap())
                 as $claseDir
             ) {
                 $newAyDir =
@@ -815,29 +592,7 @@ class CalidadTableRowViewModel
                         );
                         $base = basename($relativePath);
                         $fileLower = strtolower($relativePath);
-                        $knownClasses = [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ];
+                        $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
                         $hasKnownClass = false;
                         foreach ($knownClasses as $kc) {
                             if (strpos($fileLower, $kc) !== false) {
@@ -934,29 +689,7 @@ class CalidadTableRowViewModel
                     );
                     $base = basename($relativePath);
                     $fileLower = strtolower($relativePath);
-                    $knownClasses = [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ];
+                    $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
                     $hasKnownClass = false;
                     foreach ($knownClasses as $kc) {
                         if (strpos($fileLower, $kc) !== false) {
@@ -1064,7 +797,7 @@ class CalidadTableRowViewModel
                     ],
                 ];
                 // --- NUEVO: ESCANEAR PREORDENES Y DOCUMENTOS POR CLASE ---
-                foreach (['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo', 'Pistones', 'Guías', 'Guias', '1 - MOLDES', '2 - BOMBILLO', '3 - EMBUDO', '4 - CORONA', '5 - PLATO', '6 - FONDO', '7 - OBTURADOR', '8 - CABEZA DE SOPLO', '9 - CANDADO OBTURADOR'] as $claseDir) {
+                foreach (array_values(\App\Services\FundicionPaths::getStandardMap()) as $claseDir) {
                     $cUnderscore = strtoupper(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $claseDir));
                     $cUpper = strtoupper($claseDir);
                     $cTitle = $claseDir;
@@ -1112,6 +845,20 @@ class CalidadTableRowViewModel
                             'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . $vDir . '/Preordenes_Fundicion',
                             'origin' => 'aprobado',
                             'prefix' => $vDir . '/Preordenes_Fundicion/',
+                            'owner' => 'calidad'
+                        ];
+
+                        // Formatos Liberacion (nueva estructura)
+                        $newDirs[] = [
+                            'dir' => 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . \App\Services\FundicionPaths::FORMATOS_LIBERACION,
+                            'origin' => 'aprobado',
+                            'prefix' => $vDir . '/' . \App\Services\FundicionPaths::FORMATOS_LIBERACION . '/',
+                            'owner' => 'almacen'
+                        ];
+                        $newDirs[] = [
+                            'dir' => 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $vDir . '/' . \App\Services\FundicionPaths::FORMATOS_LIBERACION,
+                            'origin' => 'aprobado',
+                            'prefix' => $vDir . '/' . \App\Services\FundicionPaths::FORMATOS_LIBERACION . '/',
                             'owner' => 'calidad'
                         ];
 
@@ -1258,29 +1005,7 @@ class CalidadTableRowViewModel
                             );
                             $base = basename($relativePath);
                             $fileLower = strtolower($relativePath);
-                            $knownClasses = [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'candado obturador',
-                                    'cabeza de soplo',
-                                    'obturador',
-                                    'bombillo',
-                                    'embudo',
-                                    'corona',
-                                    'plato',
-                                    'molde',
-                                    'fondo',
-                                    'pistones',
-                                    'guías',
-                                    'guias',
-                                ];
+                            $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
                             $fileClasses = [];
                             foreach ($knownClasses as $kc) {
                                 if (strpos($fileLower, $kc) !== false) {

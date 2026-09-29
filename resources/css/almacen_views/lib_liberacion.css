@@ -1036,3 +1036,23 @@
 .btn-lib-rechazar { background: var(--gis-red) !important; color: #fff !important; border: 2px solid #7a0200 !important; }
 .btn-lib-rechazar img { filter: brightness(0) invert(1) !important; }
 .btn-lib-rechazar:hover { background: #fdf2f2 !important; color: var(--gis-red) !important; }
+
+
+/* ── MODO RECHAZO: Convertir elementos azules a rojo ─── */
+.lib-modal-content.lib-modo-rechazo { border-color: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-dato-value { color: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-select:focus { border-color: var(--gis-red) !important; box-shadow: 0 0 0 4px rgba(156, 3, 0, 0.12) !important; }
+.lib-modo-rechazo .lib-section-title { color: var(--gis-red) !important; border-bottom-color: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-img-zoom-wrapper:hover { border-color: var(--gis-red) !important; box-shadow: 0 8px 24px rgba(156, 3, 0, 0.25) !important; }
+.lib-modo-rechazo .lib-img-zoom-wrapper:focus-visible { outline-color: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-img-overlay-hint { background: rgba(156, 3, 0, 0.5) !important; }
+.lib-modo-rechazo .lib-zoom-result { border-color: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-table-wrapper { border-color: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-report-table thead tr { background: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-report-table th { border-color: rgba(255, 255, 255, 0.2) !important; }
+.lib-modo-rechazo .lib-td-tipo { color: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-item-badge { background: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-th-main-col { background: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-th-tipo { background: #5c0000 !important; }
+.lib-modo-rechazo .lib-td-fondo-item { color: var(--gis-red) !important; }
+.lib-modo-rechazo .lib-num-input:focus { border-color: var(--gis-red) !important; box-shadow: 0 0 0 4px rgba(156, 3, 0, 0.12) !important; }

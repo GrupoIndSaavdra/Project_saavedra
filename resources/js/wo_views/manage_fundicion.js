@@ -1675,7 +1675,7 @@ function renderEstructuraTable() {
                 } else {
                     htmlClasesColumn += `
                         <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
-                            <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases vinculadas</span>
+                            <span style="color: #94a3b8; font-style: italic; font-size: 0.9em; user-select: none;">Ninguna</span>
                         </div>
                     `;
                 }
@@ -1799,7 +1799,7 @@ function renderAlertasTable() {
             } else {
                 htmlAyudas = `
                     <div class="d-flex d-flex-wrap d-justify-center d-gap-1 tags-container">
-                        <span class="badge-ayuda-tag alerta-sin-clases-tag" style="pointer-events: none;">Sin clases vinculadas</span>
+                        <span style="color: #94a3b8; font-style: italic; font-size: 0.9em; user-select: none;">Ninguna</span>
                     </div>
                 `;
             }
@@ -1807,11 +1807,16 @@ function renderAlertasTable() {
             const valEstados = Object.values(clasesEnviadas).filter(st => st !== 'vacio');
             const hasPendingOrMod = valEstados.some(st => st === 'pendiente' || st === 'modificada');
             const hasEnviadas = valEstados.some(st => st === 'enviada');
+            const hasNuevas = valEstados.some(st => st === 'pendiente');
             const isBtnDisabled = hasEnviadas && !hasPendingOrMod;
 
             const btnDisabledAttr = isBtnDisabled ? 'disabled style="pointer-events: none;"' : '';
-            const btnTitle = isBtnDisabled ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' : (hasEnviadas ? 'Enviar correo de actualización de dibujos modificados/nuevos' : 'Enviar correo de alerta global');
-            const btnText = isBtnDisabled ? 'Correo Enviado' : (hasEnviadas ? 'Enviar Actualización' : 'Enviar Correo');
+            const btnTitle = isBtnDisabled 
+                ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)' 
+                : (hasNuevas ? 'Enviar correo de notificación para la nueva clase' : (hasEnviadas ? 'Enviar correo de actualización de dibujos modificados' : 'Enviar correo de alerta global'));
+            const btnText = isBtnDisabled 
+                ? 'Correo Enviado' 
+                : (hasNuevas ? 'Enviar Nueva Clase' : (hasEnviadas ? 'Enviar Actualización' : 'Enviar Correo'));
             const btnClassExtra = isBtnDisabled ? 'btn-alerta-enviada btn-alerta-disabled' : '';
             const btnOnClick = isBtnDisabled ? '' : `onclick="enviarAlertaFundicion(null, '${otName}', this)"`;
 

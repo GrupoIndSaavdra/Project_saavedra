@@ -61,13 +61,6 @@
                                         {{ $claseOpt->nombre }}
                                     </option>
                                 @endforeach
-                                {{-- Opciones Opcionales --}}
-                                <option value="Pistones" {{ $claseSeleccionadaId === 'Pistones' ? 'selected' : '' }}>
-                                    Pistones (Opcional)
-                                </option>
-                                <option value="Guías" {{ $claseSeleccionadaId === 'Guías' ? 'selected' : '' }}>
-                                    Guías (Opcional)
-                                </option>
                             @endif
                         </select>
                     </div>

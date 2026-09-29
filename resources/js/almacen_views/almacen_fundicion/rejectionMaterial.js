@@ -89,7 +89,7 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                     );
                 });
             }
-            const label = c.charAt(0).toUpperCase() + c.slice(1);
+            const label = window.formatClaseSurgico ? window.formatClaseSurgico(c) : (c.charAt(0).toUpperCase() + c.slice(1));
             let groupHtml = `
                 <div style="background: #fee2e2; padding: 12px 18px; border-bottom: 1px solid #fecaca; display: flex; align-items: center; gap: 8px;">
                     <img src="${getBaseUrl()}images/perspectiva-icon.png" style="width: 36px; height: 36px; object-fit: contain;">

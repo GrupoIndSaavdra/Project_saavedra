@@ -22,31 +22,34 @@
 <div id="lib-zoom-result" class="lib-zoom-result" aria-hidden="true"></div>
 
 {{-- ── MODAL PRINCIPAL ── --}}
-<div id="modalLiberacionModelo" class="alm-modal" role="dialog" aria-modal="true">
-  <div class="alm-modal-content lib-modal-content">
+<div id="modalLiberacionModelo" class="alm-modal" role="dialog" aria-modal="true" style="padding: 0;">
+  <div class="alm-modal-content lib-modal-content alm-border-radius-20px alm-border-2-5px-solid-0a8504 alm-overflow-hidden"
+       style="max-width: 1750px; width: 98vw; max-height: 97vh; height: 97vh; display: flex; flex-direction: column; margin: auto;">
 
     {{-- CABECERA --}}
-    <div class="alm-modal-header lib-modal-header" id="lib-modal-header">
+    <div class="alm-modal-header lib-modal-header alm-background-linear-gradient-135deg-0a8504-064e03 alm-border-bottom-2px-solid-064e03 alm-position-relative" id="lib-modal-header" style="padding: 10px 28px;">
       <div class="div-cerrar">
         <button type="button" class="btn-cerrar" onclick="cerrarModalLiberacion()">
-          <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar">
+          <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar" style="width: 32px !important; height: 32px !important;">
         </button>
       </div>
-      <div class="lib-header-top">
-        <div class="lib-format-meta">
-          <span class="lib-meta-item"><strong>Codigo:</strong> F-CCL-LDM</span>
-          <span class="lib-meta-sep">|</span>
-          <span class="lib-meta-item"><strong>Version:</strong> B</span>
-          <span class="lib-meta-sep">|</span>
-          <span class="lib-meta-item"><strong>Revision:</strong> 17 de enero de 2024</span>
+      <div class="lib-header-top" style="display: flex; align-items: center; gap: 12px; margin-top: 5px;">
+        <div>
+            <div class="lib-format-meta" style="margin-bottom: 2px;">
+            <span class="lib-meta-item" id="lib-meta-codigo" style="color: rgba(255,255,255,0.9); font-size: 0.85em;"><strong>Codigo:</strong> F-CCL-LDM</span>
+            <span class="lib-meta-sep" style="color: rgba(255,255,255,0.9);">|</span>
+            <span class="lib-meta-item" style="color: rgba(255,255,255,0.9); font-size: 0.85em;"><strong>Version:</strong> B</span>
+            <span class="lib-meta-sep" style="color: rgba(255,255,255,0.9);">|</span>
+            <span class="lib-meta-item" style="color: rgba(255,255,255,0.9); font-size: 0.85em;"><strong>Revision:</strong> 17 de enero de 2024</span>
+            </div>
+            <h3 id="lib-modal-title-text" class="lib-modal-title-text alm-color-fff alm-margin-0 alm-font-weight-800 alm-font-family-Poppins-sans-serif" style="font-size: 1.15em;">Formato de Liberacion de Modelos (F-CCL-LDM)</h3>
+            <p id="lib-modal-subtitle" class="lib-modal-subtitle alm-color-rgba-255-255-255-0-9 alm-margin-top-2px alm-font-weight-500 alm-font-family-Poppins-sans-serif" style="font-size: 0.85em; margin: 0;"></p>
         </div>
-        <h3 id="lib-modal-title-text" class="lib-modal-title-text">Formato de Liberacion de Modelos</h3>
-        <p id="lib-modal-subtitle" class="lib-modal-subtitle"></p>
       </div>
     </div>
 
     {{-- CUERPO --}}
-    <div class="alm-modal-body lib-modal-body">
+    <div class="alm-modal-body lib-modal-body alm-padding-1em-1-6em-1-2em-1-6em alm-background-fafafa alm-font-family-Poppins-sans-serif" style="flex: 1; display: flex; flex-direction: column; overflow-y: auto; overflow-x: hidden; min-height: 0; padding-top: 10px;">
       <form id="formLiberacion" autocomplete="off">
         <input type="hidden" id="lib-ot"     name="ot">
         <input type="hidden" id="lib-accion" name="accion" value="aprobar">
@@ -61,17 +64,9 @@
               {{-- El select se filtra por JS según las clases activas de la OT --}}
               <select id="lib-tipo" name="tipo_modelo" class="lib-select" onchange="libCambiarTipo(this.value)">
                 <option value="">-- Seleccionar tipo --</option>
-                <option value="Fondo">4 - FONDO</option>
-                <option value="Obturador">6 - OBTURADOR</option>
-                <option value="Molde">1 - MOLDES</option>
-                <option value="Bombillo">2 - BOMBILLO</option>
-                <option value="Corona">3 - CORONA</option>
-                <option value="Plato">5 - PLATO</option>
-                <option value="Embudo">8 - EMBUDO</option>
-                <option value="Cabeza de Soplo">7 - CABEZA DE SOPLO</option>
-                 <option value="Candado Obturador">9 - CANDADO OBTURADOR</option>
-                 <option value="Pistones">10 - PISTONES</option>
-                 <option value="Guías">11 - GUÍAS</option>
+                @foreach(config('global_classes.clases', []) as $index => $className)
+                  <option value="{{ $className }}">{{ $index }} - {{ $className }}</option>
+                @endforeach
               </select>
             </div>
             <div class="lib-dato-group">

@@ -246,7 +246,7 @@ class DibujosFundicionPdfController extends Controller
                 return 'vacio';
             }
 
-            // CASO 1: Ya tiene historial de envío (clases_enviadas tiene esta clase)
+            // CASO 1: Ya tiene historial de envío per-clase en clases_enviadas (formato diccionario {clase: hash})
             if ($storedHash !== null) {
                 if ($storedHash === $currentHash || $storedHash === "") {
                     return 'enviada'; // Sin cambios desde el último envío
@@ -254,57 +254,34 @@ class DibujosFundicionPdfController extends Controller
                 return 'modificada'; // Los archivos cambiaron → permitir reenvío
             }
 
-            // CASO 1.5: clases_enviadas vacío pero alert_sent_at lleno (hash no guardado por bug legacy).
-            // Si los archivos NO se modificaron después del último envío → 'enviada'.
-            // Si SÍ se modificaron → 'pendiente'.
-            if ($historial && $historial->alert_sent_at) {
-                $sentAt = $historial->alert_sent_at instanceof \DateTimeInterface
-                    ? $historial->alert_sent_at->getTimestamp()
-                    : strtotime((string) $historial->alert_sent_at);
-
-                if ($sentAt) {
-                    $hasNewFiles = self::isFileModifiedAfter($otRaw, $clase, $sentAt);
-                    if (!$hasNewFiles) {
-                        return 'enviada'; // Sin modificaciones desde el último envío
+            // CASO 2: Historial legacy en clases_enviadas (formato lista plana ['Pistones', 'Bombillo'])
+            if ($historial && is_array($historial->clases_enviadas)) {
+                $enviadasArray = $historial->clases_enviadas;
+                $isLegacyList = count(array_filter(array_keys($enviadasArray), 'is_numeric')) > 0;
+                if ($isLegacyList) {
+                    $claseMatch = false;
+                    foreach ($enviadasArray as $cEnv) {
+                        if (strtolower(trim((string)$cEnv)) === strtolower(trim((string)$clase))) {
+                            $claseMatch = true;
+                            break;
+                        }
                     }
-                    return 'pendiente'; // Archivos modificados después del envío
+                    if ($claseMatch) {
+                        if ($historial->alert_sent_at) {
+                            $sentAt = $historial->alert_sent_at instanceof \DateTimeInterface
+                                ? $historial->alert_sent_at->getTimestamp()
+                                : strtotime((string) $historial->alert_sent_at);
+                            if ($sentAt && self::isFileModifiedAfter($otRaw, $clase, $sentAt)) {
+                                return 'modificada';
+                            }
+                        }
+                        return 'enviada';
+                    }
                 }
             }
 
-            // CASO 2: Sin historial de envío (clases_enviadas es null para esta clase)
-            // Verificar si ya entró en producción por alguna de las 3 fuentes:
-
-            // 2a. FundicionHistory flags: pre_orden_sent o casting_pdf_generated
-            $enProduccionPorFlags = $historial && ($historial->pre_orden_sent || $historial->casting_pdf_generated);
-
-            // 2b. Preórdenes enviadas o liberaciones en la BD
-            $enProduccionPorTablas = $claseYaEnProduccion($otRaw, $clase);
-
-            // 2c. Tabla procesos (registro directo de maquinado)
-            $enProduccionPorProcesos = $claseFisica && $claseFisica->procesos !== null;
-
-            $enProduccion = $enProduccionPorFlags || $enProduccionPorTablas || $enProduccionPorProcesos;
-
-            if ($enProduccion) {
-                // Calcular límite de tiempo para isFileModifiedAfter
-                // Usar la fecha más temprana disponible: fecha_inicio de procesos o created_at del historial
-                $limitTime = null;
-                if ($claseFisica && $claseFisica->fecha_inicio) {
-                    $limitTime = strtotime($claseFisica->fecha_inicio . ' ' . ($claseFisica->hora_inicio ?: '00:00:00'));
-                } elseif ($historial && $historial->created_at) {
-                    $limitTime = $historial->created_at->timestamp;
-                }
-
-                if ($limitTime) {
-                    $hasNewFiles = self::isFileModifiedAfter($otRaw, $clase, $limitTime);
-                    if ($hasNewFiles) {
-                        return 'pendiente'; // Archivos subidos después de que empezó la producción pero nunca antes enviados → pendiente
-                    }
-                }
-                return 'enviada'; // En producción sin archivos nuevos → bloquear
-            }
-
-            return 'pendiente'; // Sin producción y sin envío → permitir envío
+            // CASO 3: Clase nunca antes enviada → 'pendiente' (permite enviar "Enviar Nueva Clase")
+            return 'pendiente';
         };
 
         // Pre-procesar estructura keys para búsqueda rápida
@@ -761,7 +738,7 @@ class DibujosFundicionPdfController extends Controller
                 $ayudas[] = $claseClean;
                 $history->ayudas_config = $ayudas;
                 $history->save();
-                $this->copyToAlmacen($otFolderName); // Sincronizar inmediatamente
+                // Eliminado: $this->copyToAlmacen($otFolderName); para que solo se copie al enviar alerta
             }
 
             $this->logAction('crear_carpeta', $otFolderName . '/' . $claseClean, "Creación de Clase con Vinculación Automática");
@@ -820,7 +797,7 @@ class DibujosFundicionPdfController extends Controller
             $ayudas[] = $claseClean;
             $history->ayudas_config = $ayudas;
             $history->save();
-            $this->copyToAlmacen($otFolderName);
+            // Eliminado: $this->copyToAlmacen($otFolderName); para que solo se copie al enviar alerta
         }
 
         $file = $request->file('pdf');
@@ -1003,10 +980,20 @@ class DibujosFundicionPdfController extends Controller
             return; // No hay nada que enviar
         }
 
+        $isNewClassEmail = false;
+        if (!empty($enviadasPrevias)) {
+            foreach ($clasesAEnviar as $cEnv) {
+                if (!isset($enviadasDict[$cEnv])) {
+                    $isNewClassEmail = true;
+                    break;
+                }
+            }
+        }
+
         $emailsStr = config('services.almacen.email', 'almacentec@grupoindsaavedra.com');
         $emails = array_filter(array_map('trim', explode(',', $emailsStr)));
 
-        Mail::to($emails)->send(new DibujoFundicionAlertMail($otName, $fileName, $clasesAEnviar, !$isFirstTime));
+        Mail::to($emails)->send(new DibujoFundicionAlertMail($otName, $fileName, $clasesAEnviar, !$isFirstTime, $isNewClassEmail));
     }
 
     /**
@@ -1042,15 +1029,24 @@ class DibujosFundicionPdfController extends Controller
             $dstFilesFull = collect(Storage::disk('local')->allFiles($dstDir))
                 ->filter(function ($f) use ($dstDir) {
                     $rel = str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f));
-                    // Solo archivos dentro de {Clase}/Dibujos/ (nueva) o {Clase}/ (legacy)
-                    return !str_starts_with($rel, 'Ayudas_Visuales/')
-                        && !str_starts_with($rel, 'ayudas_visuales/')
-                        && !str_starts_with($rel, 'Documentos_Aprobados/')
-                        && !str_starts_with($rel, 'Documentos_Rechazados/')
-                        && in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
+                    $relLower = strtolower($rel);
+                    
+                    // Excluir cualquier archivo que esté dentro de carpetas de procesos de Almacén/Calidad
+                    if (str_contains($relLower, '/ayudas_visuales/') || str_starts_with($relLower, 'ayudas_visuales/')) return false;
+                    if (str_contains($relLower, '/documentos_aprobados/') || str_starts_with($relLower, 'documentos_aprobados/')) return false;
+                    if (str_contains($relLower, '/documentos_rechazados/') || str_starts_with($relLower, 'documentos_rechazados/')) return false;
+                    if (str_contains($relLower, '/preordenes/') || str_starts_with($relLower, 'preordenes/')) return false;
+                    if (str_contains($relLower, '/formatos_liberacion/') || str_starts_with($relLower, 'formatos_liberacion/')) return false;
+                    if (str_contains($relLower, '/scar/') || str_starts_with($relLower, 'scar/')) return false;
+                    if (str_contains($relLower, '/evidencias/') || str_starts_with($relLower, 'evidencias/')) return false;
+                    if (str_contains($relLower, '/fdldm/') || str_starts_with($relLower, 'fdldm/')) return false;
+                    if (str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/')) return false;
+
+                    return in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
                 });
 
             $dstFilesRel = $dstFilesFull->map(fn($f) => str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f)))->toArray();
+
 
             // Sincronizar: eliminar dibujos en Almacén y Calidad que ya no existen en Ingeniería
             foreach ($dstFilesRel as $dfRel) {
@@ -1211,12 +1207,20 @@ class DibujosFundicionPdfController extends Controller
             $almacenFiles = collect(Storage::disk('local')->allFiles($dstDir))
                 ->filter(function ($f) use ($dstDir) {
                     $rel = str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f));
+                    $relLower = strtolower($rel);
+                    
                     // Incluir solo dibujos (nuevos en Dibujos/ o legacy en raíz de clase)
-                    return !str_starts_with($rel, 'Ayudas_Visuales/')
-                        && !str_starts_with($rel, 'ayudas_visuales/')
-                        && !str_starts_with($rel, 'Documentos_Aprobados/')
-                        && !str_starts_with($rel, 'Documentos_Rechazados/')
-                        && in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
+                    if (str_contains($relLower, '/ayudas_visuales/') || str_starts_with($relLower, 'ayudas_visuales/')) return false;
+                    if (str_contains($relLower, '/documentos_aprobados/') || str_starts_with($relLower, 'documentos_aprobados/')) return false;
+                    if (str_contains($relLower, '/documentos_rechazados/') || str_starts_with($relLower, 'documentos_rechazados/')) return false;
+                    if (str_contains($relLower, '/preordenes/') || str_starts_with($relLower, 'preordenes/')) return false;
+                    if (str_contains($relLower, '/formatos_liberacion/') || str_starts_with($relLower, 'formatos_liberacion/')) return false;
+                    if (str_contains($relLower, '/scar/') || str_starts_with($relLower, 'scar/')) return false;
+                    if (str_contains($relLower, '/evidencias/') || str_starts_with($relLower, 'evidencias/')) return false;
+                    if (str_contains($relLower, '/fdldm/') || str_starts_with($relLower, 'fdldm/')) return false;
+                    if (str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/')) return false;
+
+                    return in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
                 })
                 ->map(fn($f) => str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f)))
                 ->values()
@@ -1758,8 +1762,7 @@ class DibujosFundicionPdfController extends Controller
 
         $this->logAction('guardar_ayudas', $ot, 'Se vincularon: ' . implode(', ', $ayudasFinales));
 
-        // Sincronizar copias en el directorio de Almacén inmediatamente
-        $this->copyToAlmacen($ot);
+        // Eliminado: $this->copyToAlmacen($ot); para que solo se copie al enviar alerta
 
         $msg = 'Ayudas visuales guardadas correctamente para ' . $ot;
 

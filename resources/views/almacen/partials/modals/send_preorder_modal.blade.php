@@ -1,6 +1,6 @@
-<div id="modalEnviarPreOrden" class="alm-modal">
-    <div class="alm-modal-content"
-        style="max-width: 1720px; width: 97vw; max-height: 96vh; height: 95vh; display: flex; flex-direction: column; margin: auto;">
+<div id="modalEnviarPreOrden" class="alm-modal" role="dialog" aria-modal="true" style="padding: 0;">
+    <div class="alm-modal-content alm-border-radius-20px alm-border-2-5px-solid-033966 alm-overflow-hidden"
+        style="max-width: 1750px; width: 98vw; max-height: 97vh; height: 97vh; display: flex; flex-direction: column; margin: auto;">
         <div class="alm-modal-header alm-background-linear-gradient-135deg-033966-022340 alm-border-bottom-2px-solid-022340 alm-padding-0-9em-2-2em alm-position-relative">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarPreOrden()">
@@ -72,10 +72,10 @@
 
                             <div class="form-group" style="margin-top: 6px; margin-bottom: 0;">
                                 <label
-                                    style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Pre-órdenes
-                                    pendientes por enviar:</label>
+                                    style="font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px; font-size: 0.9em; display: flex; align-items: center; gap: 6px;">
+                                    <img src="{{ asset('images/documento.png') }}" style="width: 16px; height: 16px;"> Pre-órdenes pendientes por enviar:</label>
                                 <div id="env-pending-preordenes-container"
-                                    style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 10px; max-height: 100px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;">
+                                    style="background: transparent; border: none; padding: 0; max-height: 140px; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px;">
                                 </div>
                             </div>
                         </div>

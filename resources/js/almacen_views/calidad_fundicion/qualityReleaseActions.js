@@ -5,42 +5,16 @@ window._libFiltrarTiposModelo = function (clasesActivas, todasClases) {
     if (!select) return null;
     let firstAvailable = null;
     let firstUnprocessed = null;
-    const MAPA_TIPO = {
-        "candado obturador": "Candado Obturador",
-        "cabeza de soplo": "Cabeza de Soplo",
-        embudo: "Embudo",
-        corona: "Corona",
-        plato: "Plato",
-        fondo: "Fondo",
-        obturador: "Obturador",
-        molde: "Molde",
-        bombillo: "Bombillo",
-        pistones: "Pistones",
-        guías: "Guías",
-        guias: "Guías",
-    };
-    const knownKeys = [
-        "candado obturador",
-        "cabeza de soplo",
-        "embudo",
-        "corona",
-        "plato",
-        "fondo",
-        "obturador",
-        "molde",
-        "bombillo",
-        "pistones",
-        "guías",
-        "guias",
-    ];
+    let firstRejected = null;
+    const knownKeys = window.FundicionCatalog || [];
     const tiposConfigurados = new Set();
     const clasesAUsar = todasClases && todasClases.length > 0 ? todasClases : clasesActivas;
     if (clasesAUsar && clasesAUsar.length > 0) {
         clasesAUsar.forEach((clase) => {
             const clLow = clase.toLowerCase();
-            for (let key of knownKeys) {
-                if (clLow.includes(key)) {
-                    tiposConfigurados.add(MAPA_TIPO[key]);
+            for (let k of knownKeys) {
+                if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
+                    tiposConfigurados.add(k);
                     break;
                 }
             }
@@ -50,9 +24,9 @@ window._libFiltrarTiposModelo = function (clasesActivas, todasClases) {
     if (clasesActivas && clasesActivas.length > 0) {
         clasesActivas.forEach((clase) => {
             const clLow = clase.toLowerCase();
-            for (let key of knownKeys) {
-                if (clLow.includes(key)) {
-                    tiposActivos.add(MAPA_TIPO[key]);
+            for (let k of knownKeys) {
+                if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
+                    tiposActivos.add(k);
                     break;
                 }
             }
@@ -66,22 +40,12 @@ window._libFiltrarTiposModelo = function (clasesActivas, todasClases) {
             return;
         }
         let optValLow = opt.value.toLowerCase();
-        let isActive = Array.from(tiposActivos).some((t) => t.toLowerCase() === optValLow);
+        let optValClean = optValLow.replace(/^\d+\s*-\s*/, '').trim();
+        let isActive = Array.from(tiposActivos).some((t) => {
+            let tClean = t.toLowerCase().replace(/^\d+\s*-\s*/, '').trim();
+            return tClean === optValClean || tClean === optValLow || optValClean === t;
+        });
         let shouldHide = tiposActivos.size === 0 ? false : !isActive;
-
-        // --- FILTRO DE ENVIADOS DESDE ALMACÉN (cacheLiberacionGlobal) ---
-        // Si hay clases en cacheLiberacionGlobal (lo que almacen nos ha mandado/confirmado),
-        // ocultamos del select cualquier opción que NO haya sido enviada.
-        if (window.cacheLiberacionGlobal && Object.keys(window.cacheLiberacionGlobal).length > 0) {
-            const keysEnviadas = Object.keys(window.cacheLiberacionGlobal).map(k => 
-                k.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim()
-            );
-            const optValNorm = opt.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
-            const haSidoEnviado = keysEnviadas.some(k => k === optValNorm || k.includes(optValNorm) || optValNorm.includes(k));
-            if (!haSidoEnviado) {
-                shouldHide = true;
-            }
-        }
 
         opt.hidden = shouldHide;
         opt.disabled = shouldHide;
@@ -89,15 +53,20 @@ window._libFiltrarTiposModelo = function (clasesActivas, todasClases) {
         if (!shouldHide) {
             if (!firstAvailable) firstAvailable = opt.value;
             if (isActive || tiposActivos.size === 0) {
-                const cached = window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[opt.value];
+                const cached = window._libFindCachedRecord ? window._libFindCachedRecord(opt.value) : (window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[opt.value]);
                 const isProcessed = cached && (cached.decision === "aprobar" || cached.decision === "rechazar" || cached.estado === "aprobado" || cached.estado === "rechazado");
+                const isRejected = cached && (cached.decision === "rechazar" || cached.estado === "rechazado");
+                
                 if (!isProcessed && !firstUnprocessed) {
                     firstUnprocessed = opt.value;
+                }
+                if (isRejected && !firstRejected) {
+                    firstRejected = opt.value;
                 }
             }
         }
     });
-    return firstUnprocessed || firstAvailable;
+    return firstUnprocessed || firstRejected || firstAvailable;
 };
 
 window.abrirModalLiberacionUnificado = function (ot, clasesActivas, todasClases) {
@@ -112,7 +81,7 @@ window.abrirModalLiberacionUnificado = function (ot, clasesActivas, todasClases)
     if (typeof abrirModalLiberacion === "function") {
         abrirModalLiberacion(ot, "aprobar");
     }
-    window.libSeleccionarDecision("aprobar");
+    window.libSeleccionarDecision("aprobar", true);
     const autoSelectValue = window._libFiltrarTiposModelo(clasesActivas, todasClases);
     if (autoSelectValue) {
         const select = document.getElementById("lib-tipo");
@@ -129,6 +98,32 @@ window._libSetDecisionUI = function (decision) {
     const cardAprobar = document.getElementById("lib-dec-aprobar");
     const cardRechazar = document.getElementById("lib-dec-rechazar");
     const bloqueRechazo = document.getElementById("lib-rechazo-block");
+    const subtitle = document.getElementById("lib-modal-subtitle");
+    const header = document.getElementById("lib-modal-header");
+    const title = document.getElementById("lib-modal-title-text");
+    const metaCodigo = document.getElementById("lib-meta-codigo");
+    const modalContent = document.querySelector("#modalLiberacionModelo .lib-modal-content");
+    
+    if (subtitle) {
+        const text = subtitle.textContent;
+        const index = text.indexOf(" |  Modo: ");
+        if (index !== -1) {
+            subtitle.textContent = text.substring(0, index) + " |  Modo: " + (decision === "aprobar" ? "Aprobacion" : "Rechazo");
+        }
+    }
+
+    if (decision === "rechazar") {
+        if (header) header.classList.add("lib-modal-header-rechazo");
+        if (title) title.textContent = "Formato de Rechazo de Modelo (F-CCL-RDM)";
+        if (metaCodigo) metaCodigo.innerHTML = "<strong>Codigo:</strong> F-CCL-RDM";
+        if (modalContent) modalContent.classList.add("lib-modo-rechazo");
+    } else {
+        if (header) header.classList.remove("lib-modal-header-rechazo");
+        if (title) title.textContent = "Formato de Liberacion de Modelos (F-CCL-LDM)";
+        if (metaCodigo) metaCodigo.innerHTML = "<strong>Codigo:</strong> F-CCL-LDM";
+        if (modalContent) modalContent.classList.remove("lib-modo-rechazo");
+    }
+
     if (cardAprobar) cardAprobar.classList.remove("active");
     if (cardRechazar) cardRechazar.classList.remove("active");
     if (decision === "aprobar") {
@@ -164,18 +159,10 @@ window._libSetDecisionUI = function (decision) {
     window._libActualizarBotonesAccion(decision);
 };
 
-window.libSeleccionarDecision = function (decision) {
+window.libSeleccionarDecision = function (decision, skipSave = false) {
     window._libSetDecisionUI(decision);
-    const select = document.getElementById("lib-tipo");
-    if (select && select.value) {
-        const val = select.value;
-        if (!window.cacheLiberacionGlobal) window.cacheLiberacionGlobal = {};
-        if (!window.cacheLiberacionGlobal[val])
-            window.cacheLiberacionGlobal[val] = {};
-        window.cacheLiberacionGlobal[val].decision = decision;
-        if (typeof _libActualizarColoresSelect === "function") {
-            _libActualizarColoresSelect();
-        }
+    if (!skipSave && typeof window.saveLiberacionDraft === "function") {
+        window.saveLiberacionDraft();
     }
 };
 
@@ -261,7 +248,7 @@ window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl, origi
 
 window._crearFilaUpload = function (tipo, color, accentBg, esRechazo, baseUrl) {
     const idBase = `al-upload-${tipo.toLowerCase().replace(/\s/g, "-")}-${esRechazo ? "rech" : "aprob"}`;
-    const tipoLabel = tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase();
+    const tipoLabel = window.formatClaseSurgico ? window.formatClaseSurgico(tipo) : (tipo.charAt(0).toUpperCase() + tipo.slice(1).toLowerCase());
     const nombre = esRechazo ? `archivos_rechazados_extra[${tipo}]` : `archivos_aprobados_extra[${tipo}]`;
     const nombreScar = `archivos_scar_extra[${tipo}]`;
     const scarBlock = esRechazo
@@ -287,7 +274,7 @@ window._crearFilaUpload = function (tipo, color, accentBg, esRechazo, baseUrl) {
             <div style="font-weight:700;font-size:1.1em;color:${color};font-family:'Poppins',sans-serif;">Modelo: ${tipoLabel}</div>
             <div style="display:flex; flex-direction:column; gap:6px; width:100%;">
                 <label style="font-weight:600; font-size:0.9em; color:#475569; font-family:'Poppins',sans-serif;" for="${idBase}">
-                    Subir Formato ${esRechazo ? "F-CCL-LDM Rechazado" : "F-CCL-LDM Aprobado"} (${tipoLabel}) <span style="color:#ef4444;">*</span>
+                    Subir Formato ${esRechazo ? "F-CCL-RDM Rechazado" : "F-CCL-LDM Aprobado"} (${tipoLabel}) <span style="color:#ef4444;">*</span>
                 </label>
                 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;">
                     <label style="display:flex;align-items:center;gap:10px;background:#fff;border:1.8px dashed ${color};border-radius:10px;padding:12px 16px;cursor:pointer;font-size:0.95em;color:#64748b;flex:1;font-family:'Poppins',sans-serif;" id="${idBase}-label">
@@ -422,12 +409,12 @@ window._libInicializarZoom = function () {
     document.addEventListener("mousemove", (e) => {
         const wrapper = e.target.closest(".lib-img-zoom-wrapper");
         if (!wrapper) {
-            zoomResult.classList.add("alm-display-none");
+            zoomResult.style.display = "none";
             return;
         }
         const modal = document.getElementById("modalLiberacionModelo");
         if (!modal || !modal.classList.contains("open")) {
-            zoomResult.classList.add("alm-display-none");
+            zoomResult.style.display = "none";
             return;
         }
         const img = wrapper.querySelector(".lib-ref-img");
@@ -436,12 +423,12 @@ window._libInicializarZoom = function () {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         if (x < 0 || y < 0 || x > rect.width || y > rect.height) {
-            zoomResult.classList.add("alm-display-none");
+            zoomResult.style.display = "none";
             return;
         }
         const bgX = -(x * ZOOM_RATIO - ZOOM_SIZE / 2);
         const bgY = -(y * ZOOM_RATIO - ZOOM_SIZE / 2);
-        zoomResult.classList.remove("alm-display-none");
+        zoomResult.style.display = "block";
         zoomResult.style.backgroundImage = `url(${img.src})`;
         zoomResult.style.backgroundSize = `${rect.width * ZOOM_RATIO}px ${rect.height * ZOOM_RATIO}px`;
         zoomResult.style.backgroundPosition = `${bgX}px ${bgY}px`;
@@ -460,7 +447,7 @@ window._libInicializarZoom = function () {
         zoomResult.style.top = `${posY}px`;
     });
     document.addEventListener("mouseleave", () => {
-        zoomResult.classList.add("alm-display-none");
+        zoomResult.style.display = "none";
     }, true);
 };
 

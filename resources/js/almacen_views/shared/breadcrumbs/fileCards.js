@@ -33,6 +33,50 @@ window.compararClasesSurgico = function (claseA, claseB) {
     return wordsA.some(wA => wA.length > 2 && wordsB.some(wB => wB === wA || (wB.length > 2 && wA.includes(wB)) || (wA.length > 2 && wB.includes(wA))));
 };
 
+// ── Helper: Formateo visual de nombres de clases ──────────────────────────────
+window.formatClaseSurgico = function (clase) {
+    if (!clase) return "";
+    const cLower = clase.toLowerCase().trim();
+    // Buscar dinámicamente en el catálogo de clases importado desde PHP (global_classes.php)
+    if (window.GlobalClasses) {
+        for (const [id, name] of Object.entries(window.GlobalClasses)) {
+            const nameLower = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); // sin acentos
+            const cLowerNorm = cLower.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const fullName = `${id} - ${name}`;
+
+            // Coincidencias exactas, plurales, o nombres completos (ej. "1 - molde")
+            if (
+                cLowerNorm === nameLower ||
+                cLowerNorm === nameLower + 's' ||
+                cLowerNorm === nameLower + 'es' ||
+                cLowerNorm === `${id} - ${nameLower}` ||
+                cLowerNorm === `${id} - ${nameLower}s`
+            ) {
+                return fullName;
+            }
+        }
+        
+        // Segunda pasada: fallback si está contenido en el nombre (ej: "candado" en "candado obturador")
+        // pero solo si el término de búsqueda es significativo (más de 3 letras)
+        for (const [id, name] of Object.entries(window.GlobalClasses)) {
+            const nameLower = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const cLowerNorm = cLower.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            
+            if (cLowerNorm.length > 3 && (nameLower.includes(cLowerNorm) || cLowerNorm.includes(nameLower))) {
+                return `${id} - ${name}`;
+            }
+        }
+    }
+    
+    // Si tiene el formato "X.X - nombre" o "X - nombre", ponerlo todo en mayúsculas
+    if (/^\d+(\.\d+)?\s*-\s*[a-z]/i.test(clase)) {
+        return clase.toUpperCase();
+    }
+    
+    // Fallback: solo capitalizar la primera letra
+    return clase.charAt(0).toUpperCase() + clase.slice(1);
+};
+
 // ── Helper: crea una card visual para un File object local ─────────────────────
 // file         : File object
 // index        : índice en el array (para el botón Quitar)
@@ -89,16 +133,23 @@ window.crearFileCard = function (file, index, removeFnName, accentColor) {
             <button type="button" class="btn-dibujos btn-dibujos-sm btn-eliminar" style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;" onclick="${removeFnName}(${index})" title="Quitar archivo">Quitar</button>
         </div>
     `;
-    // Click en icono/nombre/botón Ver → abrir preview
-    card.querySelector(".file-icon-wrapper").addEventListener("click", () => {
-        window.open(objectUrl, "_blank");
-    });
-    card.querySelector(".file-name").addEventListener("click", () => {
-        window.open(objectUrl, "_blank");
-    });
-    card.querySelector(".btn-ver").addEventListener("click", () => {
-        window.open(objectUrl, "_blank");
-    });
+    // Click en icono/nombre/botón Ver → abrir preview o descargar
+    const accionarArchivo = () => {
+        if (isDwg) {
+            const a = document.createElement("a");
+            a.href = objectUrl;
+            a.download = file.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } else {
+            window.open(objectUrl, "_blank");
+        }
+    };
+    
+    card.querySelector(".file-icon-wrapper").addEventListener("click", accionarArchivo);
+    card.querySelector(".file-name").addEventListener("click", accionarArchivo);
+    card.querySelector(".btn-ver").addEventListener("click", accionarArchivo);
     return card;
 };
 
@@ -268,7 +319,7 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
 
             return `
                 <div class="dibujos-file-card ${colorClass} select-file-card ${checkedClass}"
-                     style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);box-sizing:border-box;background:#fff;padding:10px;border:1.5px solid #e2e8f0;">
+                     style="position:relative;width:100%;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);box-sizing:border-box;background:transparent;padding:10px;border:1.5px solid #e2e8f0;">
                     <div style="position:absolute;top:10px;left:10px;z-index:10;">
                         <input type="checkbox" name="${inputName}" value="${f.nombre}" ${checkedAttr}
                                style="width:20px;height:20px;cursor:pointer;"
@@ -304,7 +355,7 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
                 <h4 style="margin: 0 0 10px 0; color: #033966; font-size: 0.95em; border-bottom: 2px solid ${borderColor}; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px;">
                     ${title}
                 </h4>
-                <div class="alm-pdf-grid" style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px;">
+                <div style="display: flex; flex-wrap: wrap; background-color: transparent; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; gap: 10px;">
                     ${cards}
                 </div>
             </div>

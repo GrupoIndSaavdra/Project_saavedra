@@ -63,8 +63,18 @@ window.confirmarModelo = function (ot, id_hash) {
 };
 
 window.onCmClaseToggle = function (checkbox) {
-    checkbox.parentElement.style.borderColor = checkbox.checked ? "#0a8504" : "#cbd5e1";
-    checkbox.parentElement.style.backgroundColor = checkbox.checked ? "#f0fdf4" : "#fff";
+    const label = checkbox.parentElement;
+    const span = label.querySelector("span");
+    
+    if (checkbox.checked) {
+        label.style.backgroundColor = "#16a34a";
+        label.style.borderColor = "#15803d";
+        if (span) span.style.color = "#ffffff";
+    } else {
+        label.style.backgroundColor = "#fff";
+        label.style.borderColor = "#cbd5e1";
+        if (span) span.style.color = "#475569";
+    }
     
     const claseNombre = checkbox.value.toLowerCase();
     const fileCards = document.querySelectorAll("#cm-server-files-container .select-file-card");
@@ -128,15 +138,15 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
                 }
                 if (yaProcesada) return;
                 
-                const nombreDisplay = nombreClase.charAt(0).toUpperCase() + nombreClase.slice(1);
+                const nombreDisplay = window.formatClaseSurgico ? window.formatClaseSurgico(nombreClase) : (nombreClase.charAt(0).toUpperCase() + nombreClase.slice(1));
                 html += `
-                    <label style="display:flex; align-items:center; gap:8px; background:#fff; border:1.5px solid #cbd5e1; padding:10px 15px; border-radius:8px; cursor:pointer; transition:all 0.2s ease;"
-                           onmouseover="this.style.borderColor='#0a8504'; this.style.backgroundColor='#f0fdf4';"
-                           onmouseout="if(!this.querySelector('input').checked){ this.style.borderColor='#cbd5e1'; this.style.backgroundColor='#fff'; }">
+                    <label style="display:inline-flex; align-items:center; justify-content:center; background:#fff; border:1px solid #cbd5e1; padding:6px 14px; border-radius:9999px; cursor:pointer; transition:all 0.2s ease; margin:0; user-select:none;"
+                           onmouseover="if(!this.querySelector('input').checked) this.style.backgroundColor='#f1f5f9';"
+                           onmouseout="if(!this.querySelector('input').checked) this.style.backgroundColor='#fff';">
                         <input type="checkbox" name="clases_seleccionadas[]" value="${nombreDisplay}" class="cm-clase-checkbox"
-                               style="width:18px; height:18px; cursor:pointer;"
+                               style="display:none;"
                                onchange="window.onCmClaseToggle(this);">
-                        <span style="font-family:'Poppins', sans-serif; font-weight:500; color:#334155;">${index + 1}. ${nombreDisplay}</span>
+                        <span style="font-family:'Poppins', sans-serif; font-weight:600; color:#475569; font-size:0.85em; transition:color 0.2s ease;">${nombreDisplay}</span>
                     </label>
                 `;
             });

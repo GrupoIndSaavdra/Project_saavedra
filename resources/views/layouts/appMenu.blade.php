@@ -132,6 +132,11 @@
         systemLogsReport: @json(route('systemLogsReport')),
         adminLogsReport: @json(route('systemLogsReport', ['admin_only' => 1]))
     };
+    window.FundicionCatalog = @json(array_values(array_unique(\App\Services\FundicionPaths::getStandardMap())));
+    window.FundicionWelding = @json(config('global_classes.welding_classes', []));
+    window.FundicionProcess = @json(config('global_classes.process_classes', []));
+    window.FundicionProcessExcluded = @json(config('global_classes.process_excluded_classes', []));
+    window.GlobalClasses = @json(config('global_classes.clases', []));
 </script>
 @isset($pieces_Released)
     <script>

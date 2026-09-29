@@ -4,89 +4,7 @@
 //  Maneja: tamaño, tipo soldadura, fechas, procesos, máquinas.
 // ────────────────────────────────────────────────────────────
 
-const CLASS_OPTIONS = [
-    "1 - MOLDES",
-    "2 - FONDOS",
-    "3 - BOMBILLOS",
-    "4 - OBTURADORES",
-    "5 - EMBUDOS",
-    "6 - CORONA",
-    "7 - GUIA VIAJERA",
-    "8 - GUIA LIMITADORA",
-    "9 - CABEZA DE SOPLO",
-    "10 - PISTONES",
-    "11 - ENFRIADORES",
-    "12 - BASES P/OBTURAD",
-    "13 - INSERTOS",
-    "14 - PIPETAS",
-    "15 - PLACAS",
-    "16 - CENTRALIZADOR",
-    "17 - GAUGE",
-    "18 - MOUL",
-    "23 - NECKRING",
-    "28 - TIP P/ OBTURADOR",
-    "29 - CARCAZA",
-    "30 - CASQUILLO",
-    "31 - RONDANA",
-    "32 - LOTE",
-    "33 - PLATO MOLDE",
-    "34 - PLATO BOMBILLO",
-    "35 - 1/2 CAÑA",
-    "36 - CAMISA DE",
-    "37 - INSERTO DE CARBURO",
-    "39 - BIAS UNIT",
-    "40 - CUERPO",
-    "41 - BLOCK",
-    "42 - SEMI",
-    "43 - TOP PLATE",
-    "44 - POSTIZO",
-    "45 - TUBO",
-    "46 - FLETE",
-    "47 - DOMMI",
-    "48 - SERVICIO",
-    "61 - ANILLO DE CEDASO 3\"",
-    "65 - FUNDICION DE",
-    "66 - FUNDICION DE",
-    "67 - 1/2 CAÑA LADO MACHO",
-    "68 - 1/2 CAÑA LADO",
-    "71 - CENTRALIZADOR 3.4",
-    "72 - CENTRALIZADOR 3.875",
-    "74 - DEDOS",
-    "76 - KINKER",
-    "79 - LAINA",
-    "80 - REPARACION",
-    "83 - VARIOS",
-    "86 - PERNOS DE",
-    "87 - ARRASTRADORES",
-    "89 - CADENA INDUSTRIAL",
-    "91 - RESORTE",
-    "92 - CANDADO",
-    "94 - ANILLO",
-    "95 - PORTA CORONA",
-    "97 - TEJO",
-    "99 - BASE PARA PISTON",
-    "100 - CANASTILLA PORTA",
-    "101 - FABRICACION",
-    "102 - BASE PARADORA",
-    "103 - BASE PORTA MOLDE",
-    "104 - CALIBRADOR",
-    "106 - MOLDE SEMI",
-    "107 - PLATO MOLDE SEMI",
-    "108 - BOMBILLO SEMI",
-    "109 - PLATO BOMBILLO",
-    "110 - CORONA SEMI",
-    "111 - PASTILLAS CORONA",
-    "112 - PISTON SEMI",
-    "113 - FONDO SEMI",
-    "114 - GUIA VIAJERA SEMI",
-    "115 - CASQUILLO ALTURA",
-    "116 - RONDANA ALUMINIO",
-    "117 - SEGURO OMEGA 1",
-    "118 - SEGURO OMEGA 2",
-    "119 - VALVULA HEXAGONAL",
-    "120 - SELLO",
-    "121 - ROLL PIN OBTURADOR"
-];
+const CLASS_OPTIONS = window.FundicionCatalog || [];
 
 const MATERIAL_OPTIONS = [
     "HG - SS10", "HG - SS10CR", "HG - SS20", "HG - 50V",
@@ -765,13 +683,9 @@ function createSelectOrInput(element, attributesArray, nameInput) {
 function isClassWithProcesses(className) {
     if (!className) return false;
     let clLower = className.toLowerCase();
-    let isExcluded = clLower.includes('base') || clLower.includes('tip') || clLower.includes('roll pin') || clLower.includes('porta') || clLower.includes('pastilla') || clLower.includes('canastilla');
+    let isExcluded = (window.FundicionProcessExcluded || []).some(ext => clLower.includes(ext));
     if (isExcluded) return false;
-    return (
-        clLower.includes('bombillo') || clLower.includes('molde') || clLower.includes('fondo') ||
-        clLower.includes('obturador') || clLower.includes('corona') || clLower.includes('plato') ||
-        clLower.includes('embudo') || clLower.includes('cabeza de soplo') || clLower.includes('candado')
-    );
+    return (window.FundicionProcess || []).some(inc => clLower.includes(inc));
 }
 
 function createOperationsCheckBox(className, markedProcesses, edit) {
@@ -999,7 +913,7 @@ function changeStatusCheckbox(checkbox, machineInput) {
 function toggleWeldingTypeVisibility(className) {
     if (!className) return;
     let clLower = className.toLowerCase();
-    const weldingClasses = ["molde", "fondo", "bombillo", "obturador", "corona"];
+    const weldingClasses = window.FundicionWelding || [];
     let wrapper = document.getElementById("welding-type-wrapper");
     if (!wrapper) return;
     let shouldShow = weldingClasses.some(wc => clLower.includes(wc));

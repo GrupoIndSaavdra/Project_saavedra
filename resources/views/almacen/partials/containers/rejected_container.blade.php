@@ -1,34 +1,7 @@
     @php
         if (!isset($formatClase)) {
             $formatClase = function ($c) {
-                $map = [
-                    'molde' => '1 - MOLDES',
-                    'moldes' => '1 - MOLDES',
-                    '1 - moldes' => '1 - MOLDES',
-                    'bombillo' => '2 - BOMBILLO',
-                    '2 - bombillo' => '2 - BOMBILLO',
-                    'embudo' => '3 - EMBUDO',
-                    '3 - embudo' => '3 - EMBUDO',
-                    'corona' => '4 - CORONA',
-                    '4 - corona' => '4 - CORONA',
-                    'plato' => '5 - PLATO',
-                    '5 - plato' => '5 - PLATO',
-                    'fondo' => '6 - FONDO',
-                    '6 - fondo' => '6 - FONDO',
-                    'obturador' => '7 - OBTURADOR',
-                    '7 - obturador' => '7 - OBTURADOR',
-                    'cabeza de soplo' => '8 - CABEZA DE SOPLO',
-                    'cabeza' => '8 - CABEZA DE SOPLO',
-                    '8 - cabeza de soplo' => '8 - CABEZA DE SOPLO',
-                    'candado obturador' => '9 - CANDADO OBTURADOR',
-                    'candado' => '9 - CANDADO OBTURADOR',
-                    '9 - candado obturador' => '9 - CANDADO OBTURADOR',
-                    'pistones' => 'Pistones',
-                    'guias' => 'Guías',
-                    'guías' => 'Guías'
-                ];
-                $cLower = strtolower(trim($c));
-                return $map[$cLower] ?? ucfirst($c);
+                return \App\Services\FundicionPaths::normalizeClass($c) ?: ucfirst($c);
             };
         }
     @endphp
@@ -36,34 +9,7 @@
     @php
         if (!isset($formatClase)) {
             $formatClase = function ($c) {
-                $map = [
-                    'molde' => '1 - MOLDES',
-                    'moldes' => '1 - MOLDES',
-                    '1 - moldes' => '1 - MOLDES',
-                    'bombillo' => '2 - BOMBILLO',
-                    '2 - bombillo' => '2 - BOMBILLO',
-                    'embudo' => '3 - EMBUDO',
-                    '3 - embudo' => '3 - EMBUDO',
-                    'corona' => '4 - CORONA',
-                    '4 - corona' => '4 - CORONA',
-                    'plato' => '5 - PLATO',
-                    '5 - plato' => '5 - PLATO',
-                    'fondo' => '6 - FONDO',
-                    '6 - fondo' => '6 - FONDO',
-                    'obturador' => '7 - OBTURADOR',
-                    '7 - obturador' => '7 - OBTURADOR',
-                    'cabeza de soplo' => '8 - CABEZA DE SOPLO',
-                    'cabeza' => '8 - CABEZA DE SOPLO',
-                    '8 - cabeza de soplo' => '8 - CABEZA DE SOPLO',
-                    'candado obturador' => '9 - CANDADO OBTURADOR',
-                    'candado' => '9 - CANDADO OBTURADOR',
-                    '9 - candado obturador' => '9 - CANDADO OBTURADOR',
-                    'pistones' => 'Pistones',
-                    'guias' => 'Guías',
-                    'guías' => 'Guías'
-                ];
-                $cLower = strtolower(trim($c));
-                return $map[$cLower] ?? ucfirst($c);
+                return \App\Services\FundicionPaths::normalizeClass($c) ?: ucfirst($c);
             };
         }
     @endphp
@@ -131,10 +77,14 @@
                 // Helper para filtrar por clase
                 $filtrarPorClase = function($archivos) use ($cLow) {
                     if ($cLow === 'general') return $archivos;
-                    return array_values(array_filter($archivos, function($a) use ($cLow) {
+                    $baseCLow = trim(preg_replace('/^\d+\s*-\s*/', '', $cLow));
+                    $coreCLow = rtrim($baseCLow, 's'); // "molde"
+                    return array_values(array_filter($archivos, function($a) use ($cLow, $baseCLow, $coreCLow) {
                         $n = strtolower(basename($a['nombre']));
                         $cl = strtolower($a['clase'] ?? '');
-                        return ($cl === $cLow || str_contains($cl, $cLow) || str_contains($n, $cLow) || str_contains($n, '_' . $cLow) || str_contains($n, '-' . $cLow));
+                        return ($cl === $cLow || str_contains($cl, $cLow) || str_contains($n, $cLow) || str_contains($n, '_' . $cLow) || str_contains($n, '-' . $cLow) || 
+                                str_contains($n, $baseCLow) || str_contains($n, '_' . $baseCLow) || str_contains($n, '-' . $baseCLow) ||
+                                str_contains($n, $coreCLow) || str_contains($n, '_' . $coreCLow) || str_contains($n, '-' . $coreCLow));
                     }));
                 };
 
@@ -403,8 +353,14 @@
                                         $hasScarUploaded = false;
                                         foreach ($otrosClass as $f) {
                                             $n = strtolower(basename($f['nombre']));
-                                            if (str_contains($n, 'rdm') || str_contains($n, 'rechazo')) $hasRdmUploaded = true;
-                                            if (str_contains($n, 'scar')) $hasScarUploaded = true;
+                                            $isScanned = str_contains($n, 'escaneado') || str_contains($n, '_e_') || str_contains($n, '-e-');
+                                            
+                                            if ($isScanned && (str_contains($n, 'rdm') || str_contains($n, 'rechazo'))) {
+                                                $hasRdmUploaded = true;
+                                            }
+                                            if ($isScanned && str_contains($n, 'scar')) {
+                                                $hasScarUploaded = true;
+                                            }
                                         }
                                         $rechazoProcesado = ($hasRdmUploaded && $hasScarUploaded);
 

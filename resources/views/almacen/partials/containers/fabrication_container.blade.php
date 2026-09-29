@@ -1,33 +1,6 @@
     @php
         $formatClase = function ($c) {
-            $map = [
-                'molde' => '1 - MOLDES',
-                'moldes' => '1 - MOLDES',
-                '1 - moldes' => '1 - MOLDES',
-                'bombillo' => '2 - BOMBILLO',
-                '2 - bombillo' => '2 - BOMBILLO',
-                'embudo' => '3 - EMBUDO',
-                '3 - embudo' => '3 - EMBUDO',
-                'corona' => '4 - CORONA',
-                '4 - corona' => '4 - CORONA',
-                'plato' => '5 - PLATO',
-                '5 - plato' => '5 - PLATO',
-                'fondo' => '6 - FONDO',
-                '6 - fondo' => '6 - FONDO',
-                'obturador' => '7 - OBTURADOR',
-                '7 - obturador' => '7 - OBTURADOR',
-                'cabeza de soplo' => '8 - CABEZA DE SOPLO',
-                'cabeza' => '8 - CABEZA DE SOPLO',
-                '8 - cabeza de soplo' => '8 - CABEZA DE SOPLO',
-                'candado obturador' => '9 - CANDADO OBTURADOR',
-                'candado' => '9 - CANDADO OBTURADOR',
-                '9 - candado obturador' => '9 - CANDADO OBTURADOR',
-                'pistones' => 'Pistones',
-                'guias' => 'Guías',
-                'guías' => 'Guías',
-            ];
-            $cLower = strtolower(trim($c));
-            return $map[$cLower] ?? ucfirst($c);
+            return \App\Services\FundicionPaths::normalizeClass($c) ?: ucfirst($c);
         };
     @endphp
 
@@ -332,7 +305,7 @@
                 }
             }
 
-            $poPendienteEnvio = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)
+            $posPendienteEnvio = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)
                 ->where('is_sent', 0)
                 ->where(function ($q) {
                     $q->where('pdf_filename', 'NOT LIKE', '%Casting%')
@@ -340,12 +313,10 @@
                         ->where('pdf_filename', 'NOT LIKE', '%PFC%');
                 })
                 ->orderBy('id', 'desc')
-                ->first();
+                ->get();
             $clasesParaEnvio = [];
-            if ($poPendienteEnvio) {
-                $filas = is_string($poPendienteEnvio->filas)
-                    ? json_decode($poPendienteEnvio->filas, true)
-                    : $poPendienteEnvio->filas;
+            foreach ($posPendienteEnvio as $po) {
+                $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
                 if (is_array($filas)) {
                     foreach ($filas as $f) {
                         $cVal = strtolower(
@@ -387,34 +358,7 @@
 
         @php
             $formatClase = function ($c) {
-                $map = [
-                    'molde' => '1 - MOLDES',
-                    'moldes' => '1 - MOLDES',
-                    '1 - moldes' => '1 - MOLDES',
-                    'bombillo' => '2 - BOMBILLO',
-                    '2 - bombillo' => '2 - BOMBILLO',
-                    'embudo' => '3 - EMBUDO',
-                    '3 - embudo' => '3 - EMBUDO',
-                    'corona' => '4 - CORONA',
-                    '4 - corona' => '4 - CORONA',
-                    'plato' => '5 - PLATO',
-                    '5 - plato' => '5 - PLATO',
-                    'fondo' => '6 - FONDO',
-                    '6 - fondo' => '6 - FONDO',
-                    'obturador' => '7 - OBTURADOR',
-                    '7 - obturador' => '7 - OBTURADOR',
-                    'cabeza de soplo' => '8 - CABEZA DE SOPLO',
-                    'cabeza' => '8 - CABEZA DE SOPLO',
-                    '8 - cabeza de soplo' => '8 - CABEZA DE SOPLO',
-                    'candado obturador' => '9 - CANDADO OBTURADOR',
-                    'candado' => '9 - CANDADO OBTURADOR',
-                    '9 - candado obturador' => '9 - CANDADO OBTURADOR',
-                    'pistones' => 'Pistones',
-                    'guias' => 'Guías',
-                    'guías' => 'Guías',
-                ];
-                $cLower = strtolower(trim($c));
-                return $map[$cLower] ?? ucfirst($c);
+                return \App\Services\FundicionPaths::normalizeClass($c) ?: ucfirst($c);
             };
         @endphp
 
@@ -434,11 +378,14 @@
                 continue;
             }
 
+            $cpClean = trim(preg_replace('/^\d+\s*-\s*/', '', $cp));
+
             // Match by direct class attribute or filename
             if (
                 $claseEnArchivo === $cp ||
                 strpos($claseEnArchivo, $cp) !== false ||
                 strpos($nombre, $cp) !== false ||
+                ($cpClean !== '' && strpos($nombre, $cpClean) !== false) ||
                 strpos($nombre, '_' . $cp . '_') !== false ||
                 strpos($nombre, '-' . $cp . '-') !== false
             ) {
@@ -506,8 +453,18 @@
                         Documentos de Almacén
                         {{ count($rechazadosSinPreorden) > 0 ? '(' . implode(', ', array_map($formatClase, $rechazadosSinPreorden)) . ')' : '' }}
                     @else
-                        Etapa: Fabricación / Re-Proceso de Modelo
-                        {{ count($clasesFabricacionHeader) > 0 ? '(' . implode(', ', array_map($formatClase, $clasesFabricacionHeader)) . ')' : '' }}
+                        Etapa: Fabricación de Modelo
+                        @if (count($clasesFabricacionHeader) > 0)
+                            (
+                            @foreach ($clasesFabricacionHeader as $index => $c)
+                                @php
+                                    $isProcesada = in_array(strtolower(trim($c)), array_map('trim', array_map('strtolower', $clasesActivasCubiertas ?? [])));
+                                    $color = $isProcesada ? '#16a34a' : '#0284c7';
+                                @endphp
+                                <span style="color: {{ $color }};">{{ $formatClase($c) }}</span>{{ $index < count($clasesFabricacionHeader) - 1 ? ', ' : '' }}
+                            @endforeach
+                            )
+                        @endif
                     @endif
                 </h3>
                 <span
@@ -603,7 +560,7 @@
                         </div>
                     @endif
 
-                    {{-- Documentos Pendientes --}}
+                    {{-- Documentos Pendientes (Preórdenes PFM / EFM) --}}
                     @if (count($preordenesPendientes) > 0)
                         <h4 style="margin-top: 15px; margin-bottom: 10px; color: #0284c7; font-weight: 700;">Pre-órdenes
                             /
@@ -757,7 +714,7 @@
                                         <button class="btn-modelo btn-modelo-no"
                                             onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
                                             title="No cuento con él, generar formato PDF"
-                                            style="{{ $tienePreOrdenFab && !$esReinicioParcial ? 'display: none;' : $hideGenerarFormato }}">
+                                            style="{{ $hideGenerarFormato }}">
                                             <img src="{{ asset('images/pdf-view.png') }}" alt="PDF">
                                             <span>No, generar formato</span>
                                         </button>

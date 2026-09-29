@@ -37,7 +37,7 @@
             {{-- ─────────────────────────────────────────────── --}}
             <div id="mgv-view-aprobados" class="mgv-view"
                 style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
-                <form id="formMgvAprobados" enctype="multipart/form-data"  autocomplete="off"
+                <form id="formMgvAprobados" enctype="multipart/form-data" autocomplete="off"
                     style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     @csrf
                     <input type="hidden" name="ot" class="mgv-form-ot">
@@ -49,12 +49,18 @@
                         <!-- Columna Izquierda: Formatos F-CCL-LDM Requeridos -->
                         <div
                             style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
-                            <h4
-                                style="margin-top: 0; margin-bottom: 8px; color: #15803d; font-size: 1.02em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                                <img src="{{ asset('images/Aprobado.png') }}"
-                                    style="width: 36px; height: 36px; object-fit: contain;"> Formatos F-CCL-LDM Firmados
-                                (Requeridos)
-                            </h4>
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #16a34a; padding-bottom: 8px; margin-bottom: 8px;">
+                                <h4
+                                    style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
+                                    <img src="{{ asset('images/Aprobado.png') }}"
+                                        style="width: 28px; height: 28px; object-fit: contain;"> Formatos F-CCL-LDM
+                                </h4>
+                                <span
+                                    style="font-size: 0.75rem; font-weight: 700; background: #dcfce7; color: #15803d; padding: 3px 10px; border-radius: 6px; border: 1px solid #bbf7d0;">
+                                    REQUERIDOS Y FIRMADOS
+                                </span>
+                            </div>
                             <div id="mgv-aprobados-inputs"
                                 style="display:flex; flex-direction:column; gap:10px; flex: 1; overflow-y: auto; padding-right: 4px; width: 100%; box-sizing: border-box; min-width: 0;">
                             </div>
@@ -63,12 +69,18 @@
                         <!-- Columna Derecha (AZUL ICE): Archivos de la OT disponibles -->
                         <div
                             style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box; width: 100%;">
-                            <h4
-                                style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                <img src="{{ asset('images/galeria.png') }}"
-                                    style="width: 36px; height: 36px; object-fit: contain;"> Archivos de la OT
-                                Disponibles (Aprobados)
-                            </h4>
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 8px;">
+                                <h4
+                                    style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
+                                    <img src="{{ asset('images/galeria.png') }}"
+                                        style="width: 28px; height: 28px; object-fit: contain;"> Liberaciones de Calidad
+                                </h4>
+                                <span
+                                    style="font-size: 0.75rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 3px 10px; border-radius: 6px; border: 1px solid #7dd3fc;">
+                                    APROBADOS
+                                </span>
+                            </div>
                             <div id="mgv-aprobados-files"
                                 style="background:#f0f7ff; border:1px solid #bae6fd; border-radius:10px; padding:12px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; min-width: 0;">
                                 <div
@@ -95,7 +107,7 @@
             {{-- ─────────────────────────────────────────────── --}}
             <div id="mgv-view-rechazados" class="mgv-view alm-display-none cal-display-none"
                 style="display: none; flex-direction: column; flex: 1; min-height: 0;">
-                <form id="formMgvRechazados" enctype="multipart/form-data"  autocomplete="off"
+                <form id="formMgvRechazados" enctype="multipart/form-data" autocomplete="off"
                     style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
                     @csrf
                     <input type="hidden" name="ot" class="mgv-form-ot">
@@ -108,12 +120,18 @@
                         <!-- Columna Izquierda: Formatos de Rechazo y SCAR -->
                         <div
                             style="background: #fef2f2; border: 2px solid #dc2626; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
-                            <h4
-                                style="margin-top: 0; margin-bottom: 8px; color: #b91c1c; font-size: 1.02em; border-bottom: 2px solid #dc2626; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                                <img src="{{ asset('images/Rechazado.png') }}"
-                                    style="width: 36px; height: 36px; object-fit: contain;"> Formatos de Rechazo y SCAR
-                                (Requeridos)
-                            </h4>
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dc2626; padding-bottom: 8px; margin-bottom: 8px;">
+                                <h4
+                                    style="margin: 0; color: #b91c1c; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
+                                    <img src="{{ asset('images/Rechazado.png') }}"
+                                        style="width: 28px; height: 28px; object-fit: contain;"> Rechazos y SCAR
+                                </h4>
+                                <span
+                                    style="font-size: 0.75rem; font-weight: 700; background: #fee2e2; color: #b91c1c; padding: 3px 10px; border-radius: 6px; border: 1px solid #fecaca;">
+                                    REQUERIDOS
+                                </span>
+                            </div>
                             <div id="mgv-rechazados-inputs"
                                 style="display:flex; flex-direction:column; gap:10px; flex: 1; overflow-y: auto; padding-right: 4px; width: 100%; box-sizing: border-box; min-width: 0;">
                             </div>
@@ -122,12 +140,19 @@
                         <!-- Columna Derecha (AZUL ICE): Archivos de la OT disponibles -->
                         <div
                             style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
-                            <h4
-                                style="margin-top: 0; margin-bottom: 8px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                <img src="{{ asset('images/galeria.png') }}"
-                                    style="width: 36px; height: 36px; object-fit: contain;"> Archivos de la OT
-                                Disponibles (Rechazados)
-                            </h4>
+                            <div
+                                style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 8px;">
+                                <h4
+                                    style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
+                                    <img src="{{ asset('images/galeria.png') }}"
+                                        style="width: 28px; height: 28px; object-fit: contain;"> Liberaciones de
+                                    Calidad
+                                </h4>
+                                <span
+                                    style="font-size: 0.75rem; font-weight: 700; background: #e0f2fe; color: #0369a1; padding: 3px 10px; border-radius: 6px; border: 1px solid #7dd3fc;">
+                                    RECHAZADOS
+                                </span>
+                            </div>
                             <div id="mgv-rechazados-files"
                                 style="background:#f0f7ff; border:1px solid #bae6fd; border-radius:10px; padding:12px; flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction: column; gap: 10px; width: 100%; box-sizing: border-box; min-width: 0;">
                                 <div
@@ -152,55 +177,56 @@
     </div>
 </div>
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    function checkFormValidity(formId, btnId) {
-        const form = document.getElementById(formId);
-        const btn = document.getElementById(btnId);
-        if(!form || !btn) return;
-        
-        let isValid = true;
-        // Seleccionamos tanto los que tienen required activo como los que marcamos nosotros
-        const checkInputs = form.querySelectorAll("input[required], select[required], textarea[required], [data-was-required='true']");
-        
-        checkInputs.forEach(input => {
-            // Asegurarnos de que esté marcado
-            if (!input.hasAttribute("data-was-required")) {
-                input.setAttribute("data-was-required", "true");
-            }
+    document.addEventListener("DOMContentLoaded", () => {
+        function checkFormValidity(formId, btnId) {
+            const form = document.getElementById(formId);
+            const btn = document.getElementById(btnId);
+            if (!form || !btn) return;
 
-            if (input.offsetParent === null) {
-                // Si está oculto, quitar required para que no bloquee HTML5 nativo
-                input.removeAttribute("required");
-            } else {
-                // Si está visible, regresar required y validar su valor
-                input.setAttribute("required", "required");
-                
-                if (input.type === 'file') {
-                    if (!input.value && input.files.length === 0) isValid = false;
-                } else if (input.type === 'checkbox' || input.type === 'radio') {
-                    if (!input.checked) isValid = false;
-                } else {
-                    if (!input.value.trim()) isValid = false;
+            let isValid = true;
+            // Seleccionamos tanto los que tienen required activo como los que marcamos nosotros
+            const checkInputs = form.querySelectorAll(
+                "input[required], select[required], textarea[required], [data-was-required='true']");
+
+            checkInputs.forEach(input => {
+                // Asegurarnos de que esté marcado
+                if (!input.hasAttribute("data-was-required")) {
+                    input.setAttribute("data-was-required", "true");
                 }
-            }
-        });
-        
-        if (isValid) {
-            btn.disabled = false;
-            btn.style.opacity = "1";
-            btn.style.cursor = "pointer";
-        } else {
-            btn.disabled = true;
-            btn.style.opacity = "0.6";
-            btn.style.cursor = "not-allowed";
-        }
-    }
 
-    // Intervalo para revisar ambos formularios constantemente, 
-    // útil porque los inputs de archivos se inyectan dinámicamente con AJAX
-    setInterval(() => {
-        checkFormValidity("formMgvAprobados", "btn-submit-aprobados");
-        checkFormValidity("formMgvRechazados", "btn-submit-rechazados");
-    }, 500);
-});
+                if (input.offsetParent === null) {
+                    // Si está oculto, quitar required para que no bloquee HTML5 nativo
+                    input.removeAttribute("required");
+                } else {
+                    // Si está visible, regresar required y validar su valor
+                    input.setAttribute("required", "required");
+
+                    if (input.type === 'file') {
+                        if (!input.value && input.files.length === 0) isValid = false;
+                    } else if (input.type === 'checkbox' || input.type === 'radio') {
+                        if (!input.checked) isValid = false;
+                    } else {
+                        if (!input.value.trim()) isValid = false;
+                    }
+                }
+            });
+
+            if (isValid) {
+                btn.disabled = false;
+                btn.style.opacity = "1";
+                btn.style.cursor = "pointer";
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = "0.6";
+                btn.style.cursor = "not-allowed";
+            }
+        }
+
+        // Intervalo para revisar ambos formularios constantemente,
+        // útil porque los inputs de archivos se inyectan dinámicamente con AJAX
+        setInterval(() => {
+            checkFormValidity("formMgvAprobados", "btn-submit-aprobados");
+            checkFormValidity("formMgvRechazados", "btn-submit-rechazados");
+        }, 500);
+    });
 </script>

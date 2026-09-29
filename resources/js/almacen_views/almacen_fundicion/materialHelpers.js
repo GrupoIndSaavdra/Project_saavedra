@@ -72,7 +72,7 @@ window.saveLiberacionDraft = function () {
     const form = document.getElementById("formLiberacion");
     if (!form) return;
     const ot = document.getElementById("lib-ot")?.value;
-    const tipo = document.getElementById("lib-tipo")?.value;
+    const tipo = window._libCurrentFormTipo || document.getElementById("lib-tipo")?.value;
     if (!ot || !tipo) return;
     // Solo guardar inputs numéricos y textareas para evitar pisar campos ocultos
     const inputs = form.querySelectorAll(
@@ -90,30 +90,35 @@ window.saveLiberacionDraft = function () {
 
 window.loadLiberacionDraft = function () {
     const form = document.getElementById("formLiberacion");
-    if (!form) return;
+    if (!form) return false;
     const ot = document.getElementById("lib-ot")?.value;
-    const tipo = document.getElementById("lib-tipo")?.value;
-    if (!ot || !tipo) return;
+    const tipo = window._libCurrentFormTipo || document.getElementById("lib-tipo")?.value;
+    if (!ot || !tipo) return false;
     const key = `liberacion_draft_${ot}_${tipo}`;
     const draftDataStr = localStorage.getItem(key);
     if (draftDataStr) {
         try {
             const draftData = JSON.parse(draftDataStr);
+            let applied = false;
             const inputs = form.querySelectorAll(
                 ".lib-num-input, .lib-num-input-sm, .lib-textarea, #lib-motivo-rechazo",
             );
             inputs.forEach((inp) => {
                 if (inp.name && draftData[inp.name] !== undefined) {
                     inp.value = draftData[inp.name];
+                    applied = true;
                 }
             });
             console.log(
                 `[Autosave] Borrador cargado para OT: ${ot}, Tipo: ${tipo}`,
             );
+            return applied;
         } catch (e) {
             console.error("Error al parsear el borrador:", e);
+            return false;
         }
     }
+    return false;
 };
 
 window.clearLiberacionDraft = function () {

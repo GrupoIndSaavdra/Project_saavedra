@@ -336,6 +336,17 @@ function createRowElement(
         );
         if (found) selectedId = found.id;
     }
+    
+    // Auto-select a class if none is selected
+    if (!selectedId && availableClasses.length > 0) {
+        const currentlySelected = Array.from(document.querySelectorAll('.po-clase-select')).map(s => s.value).filter(Boolean);
+        const unselectedClass = availableClasses.find(c => !currentlySelected.includes(c.id.toString()));
+        if (unselectedClass) {
+            selectedId = unselectedClass.id;
+        } else {
+            selectedId = availableClasses[0].id;
+        }
+    }
     let options = optionsHtmlCache;
     if (selectedId) {
         options =

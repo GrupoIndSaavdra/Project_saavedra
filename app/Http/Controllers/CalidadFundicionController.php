@@ -1179,24 +1179,10 @@ class CalidadFundicionController extends Controller
         };
 
         $tipo = $request->input('tipo_modelo');
-        $campos = [
-            'estado' => $nuevoEstado,
-            'tipo_modelo' => $tipo,
-            'medidas_modelo' => in_array($tipo, ['Molde', 'Bombillo']) ? $sanitizarMedidas($request->input('modelo')) : null,
-            'medidas_plantilla' => in_array($tipo, ['Molde', 'Bombillo']) ? $sanitizarMedidas($request->input('plantilla')) : null,
-            'medidas_fondo' => in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías', 'Guias']) ? $sanitizarMedidas($request->input('fondo')) : null,
-            'medidas_obturador' => $tipo === 'Obturador' ? $sanitizarMedidas($request->input('obturador')) : null,
-            'observaciones_modelo' => in_array($tipo, ['Molde', 'Bombillo']) ? $request->input('observaciones_modelo') : null,
-            'observaciones_plantilla' => in_array($tipo, ['Molde', 'Bombillo']) ? $request->input('observaciones_plantilla') : null,
-            'observaciones_fondo' => in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías', 'Guias']) ? $request->input('observaciones_fondo') : null,
-            'observaciones_obturador' => $tipo === 'Obturador' ? $request->input('observaciones_obturador') : null,
-            'motivo_rechazo' => $accion === 'rechazar' ? $request->input('motivo_rechazo') : null,
-            'user_id_calidad' => $user->id,
-            'user_nombre_calidad' => $user->name,
-            'fecha_revision' => in_array($accion, ['aprobar', 'rechazar']) ? now() : null,
-        ];
+        $tipoLower = strtolower((string)$tipo);
+        $isMoldeOrBombillo = str_contains($tipoLower, 'molde') || str_contains($tipoLower, 'bombillo');
+        $isObturador = str_contains($tipoLower, 'obturador') && !str_contains($tipoLower, 'candado');
 
-        // Requerimiento 2: Actualizar SOLO los campos del tipo activo.
         // Intentar obtener el registro existente para este tipo y OT
         $liberacion = LiberacionModeloFundicion::where('ot', '=', $ot, 'and')->where('tipo_modelo', '=', $tipo, 'and')->first();
 
@@ -1225,18 +1211,19 @@ class CalidadFundicionController extends Controller
         if (in_array($accion, ['aprobar', 'rechazar'])) {
             $actualizacion['fecha_revision'] = now();
         }
-        // Solo toca los campos del tipo seleccionado
-        if (in_array($tipo, ['Molde', 'Bombillo'])) {
+        
+        // Solo toca los campos del tipo seleccionado (usando las reglas sincronizadas con js)
+        if ($isMoldeOrBombillo) {
             $actualizacion['medidas_modelo'] = $sanitizarMedidas($request->input('modelo'));
             $actualizacion['observaciones_modelo'] = $request->input('observaciones_modelo');
             $actualizacion['medidas_plantilla'] = $sanitizarMedidas($request->input('plantilla'));
             $actualizacion['observaciones_plantilla'] = $request->input('observaciones_plantilla');
-        } elseif (in_array($tipo, ['Fondo', 'Corona', 'Plato', 'Embudo', 'Cabeza de Soplo', 'Candado Obturador', 'Pistones', 'Guías', 'Guias'])) {
-            $actualizacion['medidas_fondo'] = $sanitizarMedidas($request->input('fondo'));
-            $actualizacion['observaciones_fondo'] = $request->input('observaciones_fondo');
-        } elseif ($tipo === 'Obturador') {
+        } elseif ($isObturador) {
             $actualizacion['medidas_obturador'] = $sanitizarMedidas($request->input('obturador'));
             $actualizacion['observaciones_obturador'] = $request->input('observaciones_obturador');
+        } else {
+            $actualizacion['medidas_fondo'] = $sanitizarMedidas($request->input('fondo'));
+            $actualizacion['observaciones_fondo'] = $request->input('observaciones_fondo');
         }
         if ($nuevoEstado === 'aprobado' || ($accion === 'guardar' && $decision === 'aprobar')) {
             $actualizacion['motivo_rechazo'] = null;
@@ -1252,11 +1239,27 @@ class CalidadFundicionController extends Controller
         // Generar y guardar PDF en orientacion horizontal
         try {
             // Nombre estetico: Formato_LDM_[APROBADO/RECHAZADO]_[Clase]_[OT]_[Fecha].pdf
-            $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
-            $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
-            $tipoLabel = $tipo ? mb_convert_case(trim($tipo), MB_CASE_TITLE, 'UTF-8') : 'Modelo';
+            $otSanitizada = preg_replace('/[^\w]+/', '_', trim($ot));
+            $otSanitizada = trim($otSanitizada, '_');
             $fmtCode = ($decision === 'aprobar') ? 'LDM' : 'RDM';
-            $pdfFilename = "F_CCL_{$fmtCode}_{$tipoLabel}_{$otSanitizada}.pdf";
+            
+            // Reemplazar PDM por LDM/RDM (y PDC por LDC/RDC) en la OT
+            $suffixCast = ($fmtCode === 'LDM') ? 'LDC' : 'RDC';
+            $otSanitizada = str_ireplace(['_PDM', '_PDC'], ["_{$fmtCode}", "_{$suffixCast}"], $otSanitizada);
+            if (!str_contains(strtoupper($otSanitizada), $fmtCode) && !str_contains(strtoupper($otSanitizada), $suffixCast)) {
+                $otSanitizada .= "_{$fmtCode}";
+            }
+
+            // Obtener el formato de clase como "1_MOLDE"
+            $folderNameForFmt = $this->sanitizePath($this->normalizeOTName($ot));
+            $cCleanFmt = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($tipo))));
+            if (empty($cCleanFmt)) $cCleanFmt = 'GENERAL';
+            $estructuraFmt = FundicionPaths::crearEstructuraClase($folderNameForFmt, $cCleanFmt, self::CALIDAD_DIR);
+            $tipoLabel = strtoupper(str_replace([' - ', ' '], '_', $estructuraFmt));
+
+            // Generar prefijo requerido
+            $prefix = ($fmtCode === 'LDM') ? 'F-CCL-LDM' : 'F-CCL-RDM';
+            $pdfFilename = "{$prefix}_{$tipoLabel}_{$otSanitizada}.pdf";
             $pdfPath = storage_path("app/public/liberaciones_pdf");
             $isAprobar = ($decision === 'aprobar');
             $tipoNorm = mb_strtolower(trim($tipo), 'UTF-8');
@@ -1495,8 +1498,8 @@ class CalidadFundicionController extends Controller
         $clasesCleaned = array_values(array_filter(array_map(fn($c) => ucfirst(trim($c)), $clases)));
         $clasesTag = count($clasesCleaned) > 0 ? implode('-', $clasesCleaned) : 'Modelo';
 
-        $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
-        $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+        $otSanitizada = preg_replace('/[^\w]+/', '_', trim($ot));
+        $otSanitizada = trim($otSanitizada, '_');
         $pdfDir = storage_path('app/public/liberaciones_pdf');
         if (!file_exists($pdfDir)) {
             mkdir($pdfDir, 0755, true);
@@ -1642,12 +1645,30 @@ class CalidadFundicionController extends Controller
             // ── Generar el PDF ──────────────────────────────────────────
             $clasesStr = $request->input('tipo_modelo') ?: ($liberacion?->tipo_modelo ?? 'general');
             $clases = array_map('trim', explode(',', $clasesStr));
-            $clasesCleaned = array_values(array_filter(array_map(fn($c) => ucfirst(trim($c)), $clases)));
-            $clasesTag = count($clasesCleaned) > 0 ? implode('-', $clasesCleaned) : 'Modelo';
+            
+            $folderName = $this->sanitizePath($this->normalizeOTName($ot));
+            
+            $clasesTagFormateadas = [];
+            foreach ($clases as $clase) {
+                $cClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+                if (empty($cClean)) $cClean = 'GENERAL';
+                $estructura = FundicionPaths::crearEstructuraClase($folderName, $cClean, self::CALIDAD_DIR);
+                // Convert "1 - Molde" to "1_MOLDE"
+                $clasesTagFormateadas[] = strtoupper(str_replace([' - ', ' '], '_', $estructura));
+            }
+            $clasesTag = count($clasesTagFormateadas) > 0 ? implode('-', $clasesTagFormateadas) : 'MODELO';
 
             // Reemplazar SCAR anterior de la misma OT en el disco
             $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
             $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
+            
+            // Reemplazar PDM por RDM (y PDC por RDC) para documentos rechazados
+            $otSanitizadaRechazo = str_ireplace(['_PDM', '_PDC'], ['_RDM', '_RDC'], $otSanitizada);
+            if (!str_contains(strtoupper($otSanitizadaRechazo), 'RDM') && !str_contains(strtoupper($otSanitizadaRechazo), 'RDC')) {
+                // Fallback si la OT no traía sufijo
+                $otSanitizadaRechazo .= '_RDM';
+            }
+
             $fechaStamp = date('d_m_Y_H_i');
             $pdfDir = storage_path('app/public/liberaciones_pdf');
             if (!file_exists($pdfDir)) {
@@ -1658,7 +1679,6 @@ class CalidadFundicionController extends Controller
             }
 
             // También borrar en la carpeta de la nueva estructura
-            $folderName = $this->sanitizePath($this->normalizeOTName($ot));
             foreach ($clases as $clase) {
                 $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
                 if (empty($claseClean))
@@ -1678,7 +1698,7 @@ class CalidadFundicionController extends Controller
             $pdf = Pdf::loadView('almacen.pdf.scar_pdf', ['scar' => $scarData])
                 ->setPaper('letter', 'portrait');
 
-            $pdfFilename = "F_CCL_SCAR_{$clasesTag}_{$otSanitizada}.pdf";
+            $pdfFilename = "F-CCL-RDM_SCAR_{$clasesTag}_{$otSanitizadaRechazo}.pdf";
             $pdf->save("{$pdfDir}/{$pdfFilename}");
             $pdfUrl = asset('storage/liberaciones_pdf/' . $pdfFilename);
 
@@ -1695,8 +1715,7 @@ class CalidadFundicionController extends Controller
                     Storage::disk('local')->makeDirectory($destClassPath);
                 }
 
-                $classPdfFilename = "F_CCL_SCAR_{$cTitle}_{$otSanitizada}.pdf";
-                Storage::disk('local')->put($destClassPath . '/' . $classPdfFilename, file_get_contents("{$pdfDir}/{$pdfFilename}"));
+                Storage::disk('local')->put($destClassPath . '/' . $pdfFilename, file_get_contents("{$pdfDir}/{$pdfFilename}"));
             }
 
             // Guardar fotografías si se adjuntaron
@@ -1704,7 +1723,8 @@ class CalidadFundicionController extends Controller
                 foreach ($request->file('fotos') as $idx => $foto) {
                     $num = $idx + 1;
                     $ext = $foto->getClientOriginalExtension() ?: 'jpg';
-                    $fname = "F_CCL_SCAR_FOTO-{$num}_{$clasesTag}_{$otSanitizada}.{$ext}";
+                    $uniq = uniqid();
+                    $fname = "F-CCL-RDM_SCAR_FOTO_{$clasesTag}_{$otSanitizadaRechazo}_{$fechaStamp}_{$uniq}_{$num}.{$ext}";
                     $fotoContent = file_get_contents($foto->getRealPath());
 
                     foreach ($clases as $clase) {
@@ -1714,7 +1734,7 @@ class CalidadFundicionController extends Controller
 
                         // Guardar en Calidad
                         $claseClean = FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::CALIDAD_DIR);
-                        $fotosPathCalidad = self::CALIDAD_DIR . '/' . $folderName . '/' . $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::EXTRAS;
+                        $fotosPathCalidad = self::CALIDAD_DIR . '/' . $folderName . '/' . $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::EXTRAS . '/FOTOS';
                         if (!Storage::disk('local')->exists($fotosPathCalidad)) {
                             Storage::disk('local')->makeDirectory($fotosPathCalidad);
                         }
@@ -1722,7 +1742,7 @@ class CalidadFundicionController extends Controller
 
                         // Guardar en Almacen
                         $claseClean = FundicionPaths::crearEstructuraClase($folderName, $claseClean, FundicionPaths::ALMACEN_ROOT);
-                        $fotosPathAlmacen = FundicionPaths::ALMACEN_ROOT . '/' . $folderName . '/' . $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::EXTRAS;
+                        $fotosPathAlmacen = FundicionPaths::ALMACEN_ROOT . '/' . $folderName . '/' . $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::EXTRAS . '/FOTOS';
                         if (!Storage::disk('local')->exists($fotosPathAlmacen)) {
                             Storage::disk('local')->makeDirectory($fotosPathAlmacen);
                         }
@@ -1736,7 +1756,10 @@ class CalidadFundicionController extends Controller
                 foreach ($request->file('otros_archivos') as $idx => $archivo) {
                     $num = $idx + 1;
                     $ext = $archivo->getClientOriginalExtension() ?: 'pdf';
-                    $fname = "F_CCL_SCAR_PDF-{$num}_{$clasesTag}_{$otSanitizada}.{$ext}";
+                    $uniq = uniqid();
+                    $extLower = strtolower($ext);
+                    $fileTypeLabel = ($extLower === 'dwg') ? 'DWG' : 'DOC';
+                    $fname = "F-CCL-RDM_SCAR_{$fileTypeLabel}_{$clasesTag}_{$otSanitizadaRechazo}_{$fechaStamp}_{$uniq}_{$num}.{$ext}";
                     $archivoContent = file_get_contents($archivo->getRealPath());
 
                     foreach ($clases as $clase) {
@@ -1746,7 +1769,7 @@ class CalidadFundicionController extends Controller
 
                         // Guardar en Calidad
                         $claseClean = FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::CALIDAD_DIR);
-                        $otrosPathCalidad = self::CALIDAD_DIR . '/' . $folderName . '/' . $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::EXTRAS;
+                        $otrosPathCalidad = self::CALIDAD_DIR . '/' . $folderName . '/' . $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::EXTRAS . '/OTROS_ARCHIVOS';
                         if (!Storage::disk('local')->exists($otrosPathCalidad)) {
                             Storage::disk('local')->makeDirectory($otrosPathCalidad);
                         }
@@ -1754,7 +1777,7 @@ class CalidadFundicionController extends Controller
 
                         // Guardar en Almacen
                         $claseClean = FundicionPaths::crearEstructuraClase($folderName, $claseClean, FundicionPaths::ALMACEN_ROOT);
-                        $otrosPathAlmacen = FundicionPaths::ALMACEN_ROOT . '/' . $folderName . '/' . $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::EXTRAS;
+                        $otrosPathAlmacen = FundicionPaths::ALMACEN_ROOT . '/' . $folderName . '/' . $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/' . FundicionPaths::EXTRAS . '/OTROS_ARCHIVOS';
                         if (!Storage::disk('local')->exists($otrosPathAlmacen)) {
                             Storage::disk('local')->makeDirectory($otrosPathAlmacen);
                         }
@@ -2720,10 +2743,10 @@ class CalidadFundicionController extends Controller
                         Storage::disk('local')->makeDirectory($destPath);
                     }
 
-                    $prefix = $item['tipo'] ? strtoupper($item['tipo']) . '_Aprobado_' : 'Aprobado_';
+                    $otSanitizada = preg_replace('/[^\w]+/', '_', trim($ot));
+                    $otSanitizada = trim($otSanitizada, '_');
                     $ext = $extraFile->getClientOriginalExtension();
-                    $safeName = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($extraFile->getClientOriginalName(), PATHINFO_FILENAME));
-                    $extraName = $prefix . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
+                    $extraName = "{$otSanitizada}_Aprobado_{$claseClean}_" . substr(uniqid(), -4) . ($ext ? '.' . $ext : '');
                     $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
                     $attachmentsAprobados[] = [
                         'path' => storage_path('app/' . $savedPath),
@@ -2763,10 +2786,10 @@ class CalidadFundicionController extends Controller
                         Storage::disk('local')->makeDirectory($destPath);
                     }
 
-                    $prefix = $item['tipo'] ? strtoupper($item['tipo']) . '_Rechazado_' : 'Rechazado_';
+                    $otSanitizada = preg_replace('/[^\w]+/', '_', trim($ot));
+                    $otSanitizada = trim($otSanitizada, '_');
                     $ext = $extraFile->getClientOriginalExtension();
-                    $safeName = preg_replace('/[^a-zA-Z0-9_\-\.\s]/', '_', pathinfo($extraFile->getClientOriginalName(), PATHINFO_FILENAME));
-                    $extraName = $prefix . trim($safeName, '_.') . ($ext ? '.' . $ext : '');
+                    $extraName = "{$otSanitizada}_Rechazado_{$claseClean}_" . substr(uniqid(), -4) . ($ext ? '.' . $ext : '');
                     $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
                     $attachmentsRechazados[] = [
                         'path' => storage_path('app/' . $savedPath),
@@ -2792,9 +2815,10 @@ class CalidadFundicionController extends Controller
             } else {
                 $filesFlat[] = ['file' => $uploadedScar, 'tipo' => ''];
             }
-            foreach ($filesFlat as $item) {
+            foreach ($filesFlat as $idx => $item) {
                 $extraFile = $item['file'];
                 if ($extraFile && $extraFile->isValid()) {
+                    $num = $idx + 1;
                     $tipoName = $item['tipo'] ?: (explode(',', $tipoModelo)[0] ?? '');
                     $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($tipoName))));
                     if (empty($claseClean))
@@ -2810,8 +2834,17 @@ class CalidadFundicionController extends Controller
                     $ext = $extraFile->getClientOriginalExtension();
                     $mime = $extraFile->getClientMimeType() ?: '';
                     $isImg = str_starts_with($mime, 'image/') || in_array(strtolower($ext), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-                    $prefix = $isImg ? 'F_CCL_SCAR_FOTO-1' : 'F_CCL_SCAR_PDF-1';
-                    $extraName = "{$prefix}_{$cClean}_{$otSanitizada}." . ($ext ?: ($isImg ? 'jpg' : 'pdf'));
+                    $extLower = strtolower($ext);
+                    if ($isImg) {
+                        $prefix = "SCAR_FOTO-{$num}";
+                    } elseif ($extLower === 'dwg') {
+                        $prefix = "SCAR_DWG-{$num}";
+                    } else {
+                        $prefix = "SCAR_DOC-{$num}";
+                    }
+                    $otSanitizada = preg_replace('/[^\w]+/', '_', trim($ot));
+                    $otSanitizada = trim($otSanitizada, '_');
+                    $extraName = "{$otSanitizada}_{$prefix}_{$cClean}_" . substr(uniqid(), -4) . "." . ($ext ?: ($isImg ? 'jpg' : 'pdf'));
                     $savedPath = $extraFile->storeAs($destPath, $extraName, 'local');
                     $attachmentsRechazados[] = [
                         'path' => storage_path('app/' . $savedPath),

@@ -96,6 +96,45 @@ final class FundicionPaths
     /**
      * Normaliza un nombre de clase para asegurar consistencia (ej: Molde -> 1 - MOLDES).
      */
+    /**
+     * Obtiene el mapa estandarizado de clases desde la configuración
+     */
+    public static function getStandardMap(): array
+    {
+        $clases = config('global_classes.clases', []);
+        $map = [];
+        foreach ($clases as $id => $nombre) {
+            if (empty(trim($nombre))) continue;
+            $nombreVal = trim(strtoupper($nombre));
+            $map[$nombreVal] = "$id - $nombreVal";
+            
+            // Variaciones comunes y plurales
+            if ($nombreVal === 'MOLDE') {
+                $map['MOLDES'] = "$id - $nombreVal";
+            }
+            if ($nombreVal === 'FONDO') {
+                $map['FONDOS'] = "$id - $nombreVal";
+            }
+            if ($nombreVal === 'BOMBILLO') {
+                $map['BOMBILLOS'] = "$id - $nombreVal";
+            }
+            if ($nombreVal === 'OBTURADOR') {
+                $map['OBTURADORES'] = "$id - $nombreVal";
+            }
+            
+            // Agregar versiones sin tildes para búsqueda flexible
+            $sinTilde = str_replace(
+                ['Á', 'É', 'Í', 'Ó', 'Ú', 'Ü'],
+                ['A', 'E', 'I', 'O', 'U', 'U'],
+                $nombreVal
+            );
+            if ($sinTilde !== $nombreVal) {
+                $map[$sinTilde] = "$id - $nombreVal";
+            }
+        }
+        return $map;
+    }
+
     public static function normalizeClass(string $clase): string
     {
         $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
@@ -103,24 +142,10 @@ final class FundicionPaths
             return 'GENERAL';
         }
 
-        $standardMap = [
-            'MOLDE' => '1 - MOLDES',
-            'BOMBILLO' => '2 - BOMBILLO',
-            'EMBUDO' => '3 - EMBUDO',
-            'CORONA' => '4 - CORONA',
-            'PLATO' => '5 - PLATO',
-            'FONDO' => '6 - FONDO',
-            'OBTURADOR' => '7 - OBTURADOR',
-            'CABEZA DE SOPLO' => '8 - CABEZA DE SOPLO',
-            'CANDADO OBTURADOR' => '9 - CANDADO OBTURADOR',
-            'GUIAS' => '10 - GUIAS',
-            'PISTONES' => '11 - PISTONES',
-        ];
+        $standardMap = self::getStandardMap();
 
         // Normalizar nombre sin numeros para mapearlo
         $claseNoNum = strtoupper(trim(preg_replace('/^\d+\s*-\s*/', '', $claseClean)));
-        if ($claseNoNum === 'MOLDES') $claseNoNum = 'MOLDE';
-        if ($claseNoNum === 'GUÍAS' || $claseNoNum === 'GUIAS') $claseNoNum = 'GUIAS';
 
         if (array_key_exists($claseNoNum, $standardMap)) {
             return $standardMap[$claseNoNum];
@@ -141,24 +166,10 @@ final class FundicionPaths
         // Guardar nombre raw antes de mapear (para búsqueda cruzada)
         $claseRawNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $claseClean));
 
-        $standardMap = [
-            'MOLDE' => '1 - MOLDES',
-            'BOMBILLO' => '2 - BOMBILLO',
-            'EMBUDO' => '3 - EMBUDO',
-            'CORONA' => '4 - CORONA',
-            'PLATO' => '5 - PLATO',
-            'FONDO' => '6 - FONDO',
-            'OBTURADOR' => '7 - OBTURADOR',
-            'CABEZA DE SOPLO' => '8 - CABEZA DE SOPLO',
-            'CANDADO OBTURADOR' => '9 - CANDADO OBTURADOR',
-            'GUIAS' => '10 - GUIAS',
-            'PISTONES' => '11 - PISTONES',
-        ];
+        $standardMap = self::getStandardMap();
 
         // Normalizar nombre sin numeros para mapearlo
         $claseNoNum = strtoupper(trim(preg_replace('/^\d+\s*-\s*/', '', $claseClean)));
-        if ($claseNoNum === 'MOLDES') $claseNoNum = 'MOLDE';
-        if ($claseNoNum === 'GUIAS' || $claseNoNum === 'GU\u00cdAS') $claseNoNum = 'GUIAS';
 
         if (array_key_exists($claseNoNum, $standardMap)) {
             $claseClean = $standardMap[$claseNoNum];

@@ -6,8 +6,12 @@
                     <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}">
                 </button>
             </div>
-            <h3>Pre-Orden para Fabricar Modelos (4ALM-17)</h3>
-
+            <h3
+                style="margin-top: 0; margin-bottom: 5px; color: #ffffff; font-size: 1.3em; font-family: 'Poppins', sans-serif; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <img src="{{ asset('images/perspectiva-icon.png') }}"
+                    style="width: 38px; height: 38px; object-fit: contain;">
+                Pre-Orden de Fabricación de Modelo (PFM)
+            </h3>
         </div>
         <div class="alm-modal-body">
 
@@ -44,6 +48,13 @@
                         </div>
                     </div>
 
+                    <style>
+                        #modalPreOrden .modal-table thead th {
+                            background-color: #033966;
+                            color: #ffffff;
+                            padding: 10px 8px;
+                        }
+                    </style>
                     <div class="modal-table-container">
                         <table class="modal-table">
                             <thead>
@@ -63,7 +74,8 @@
                             </tbody>
                         </table>
                         <div class="alm-margin-top-10px alm-text-align-center">
-                            <button type="button" id="btn-add-clase-po" class="btn-img-action alm-display-inline-block">
+                            <button type="button" id="btn-add-clase-po" onclick="agregarFilaPreOrden()"
+                                class="btn-img-action alm-display-inline-block">
                                 <img src="{{ asset('images/anadir.png') }}" alt="Añadir" class="alm-width-40px">
                             </button>
                         </div>
@@ -77,9 +89,24 @@
                         <textarea id="po-observaciones" name="observaciones" class="form-control" rows="3"></textarea>
                     </div>
 
+                    <style>
+                        #btn-submit-preorden {
+                            transition: all 0.3s ease;
+                            background: linear-gradient(135deg, rgb(10, 133, 4), rgb(6, 78, 3));
+                            color: white;
+                            border: none;
+                        }
+
+                        #btn-submit-preorden:disabled {
+                            background: #94a3b8 !important;
+                            /* Gris neutro oscuro */
+                            box-shadow: none !important;
+                            color: #f8fafc !important;
+                        }
+                    </style>
                     <div class="form-actions alm-margin-top-30px alm-text-align-center">
                         <button type="submit" class="btn-save-preorden" id="btn-submit-preorden" disabled>
-                            Guardar y Descargar Pre-Orden (Fase 1)
+                            Guardar y Descargar PFM
                         </button>
                     </div>
                 </form>
@@ -91,32 +118,30 @@
 </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("formPreOrden");
-    if(!form) return;
-    const btn = document.getElementById("btn-submit-preorden");
-    const tbody = document.getElementById("alm-tbody-preorden");
-    
-    function checkFormValidity() {
-        if(!btn) return;
-        const hasRows = tbody && tbody.querySelectorAll("tr").length > 0;
-        const isValid = form.checkValidity();
-        
-        if (isValid && hasRows) {
-            btn.disabled = false;
-            btn.style.opacity = "1";
-            btn.style.cursor = "pointer";
-        } else {
-            btn.disabled = true;
-            btn.style.opacity = "0.6";
-            btn.style.cursor = "not-allowed";
-        }
-    }
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.getElementById("formPreOrden");
+        if (!form) return;
+        const btn = document.getElementById("btn-submit-preorden");
+        const tbody = document.getElementById("alm-tbody-preorden");
 
-    form.addEventListener("input", checkFormValidity);
-    form.addEventListener("change", checkFormValidity);
-    
-    // Check periodically in case rows are added/removed dynamically
-    setInterval(checkFormValidity, 500);
-});
+        function checkFormValidity() {
+            if (!btn) return;
+            const hasRows = tbody && tbody.querySelectorAll("tr").length > 0;
+            const isValid = form.checkValidity();
+
+            if (isValid && hasRows) {
+                btn.disabled = false;
+                btn.style.cursor = "pointer";
+            } else {
+                btn.disabled = true;
+                btn.style.cursor = "not-allowed";
+            }
+        }
+
+        form.addEventListener("input", checkFormValidity);
+        form.addEventListener("change", checkFormValidity);
+
+        // Check periodically in case rows are added/removed dynamically
+        setInterval(checkFormValidity, 500);
+    });
 </script>

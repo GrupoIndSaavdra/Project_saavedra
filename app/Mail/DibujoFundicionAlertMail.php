@@ -19,18 +19,20 @@ class DibujoFundicionAlertMail extends Mailable
     public ?string $fileName;
     public array $ayudas;
     public bool $isUpdate;
+    public bool $isNewClass;
 
     /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct(string $otName, ?string $fileName = null, array $ayudas = [], bool $isUpdate = false)
+    public function __construct(string $otName, ?string $fileName = null, array $ayudas = [], bool $isUpdate = false, bool $isNewClass = false)
     {
         $this->otName = $otName;
         $this->fileName = $fileName;
         $this->ayudas = $ayudas;
         $this->isUpdate = $isUpdate;
+        $this->isNewClass = $isNewClass;
     }
 
     /**
@@ -40,9 +42,13 @@ class DibujoFundicionAlertMail extends Mailable
      */
     public function envelope()
     {
-        $subject = $this->isUpdate
-            ? 'Actualización de Dibujos de Fundición - ' . $this->otName
-            : 'Se han subido nuevos Dibujos de Fundición - ' . $this->otName;
+        if ($this->isNewClass) {
+            $subject = 'Envío de Nueva Clase de Dibujos de Fundición - ' . $this->otName;
+        } elseif ($this->isUpdate) {
+            $subject = 'Actualización de Dibujos de Fundición - ' . $this->otName;
+        } else {
+            $subject = 'Se han subido nuevos Dibujos de Fundición - ' . $this->otName;
+        }
 
         return new Envelope(
             subject: $subject,

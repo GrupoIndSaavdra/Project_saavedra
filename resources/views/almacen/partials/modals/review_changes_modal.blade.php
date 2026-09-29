@@ -95,12 +95,12 @@
     }
 
     .confirm-modal-header .btn-cerrar:hover {
-        transform: scale(1.18) rotate(90deg) !important;
+        transform: scale(1.18) !important;
         opacity: 0.9;
     }
 
     .confirm-modal-header .btn-cerrar:active {
-        transform: scale(0.9) rotate(90deg) !important;
+        transform: scale(0.9) !important;
     }
 
     .confirm-portal {
@@ -139,12 +139,12 @@
     }
 </style>
 
-<div id="modalRevisarCambios" class="alm-modal">
-    <div class="alm-modal-content alm-max-width-800px">
-        <div class="alm-modal-header">
+<div id="modalRevisarCambios" class="alm-modal" role="dialog" aria-modal="true" style="padding: 0;">
+    <div class="alm-modal-content alm-border-radius-20px alm-overflow-hidden" style="max-width: 1600px; width: 96vw; max-height: 96vh; display: flex; flex-direction: column; margin: auto;">
+        <div class="alm-modal-header" style="padding: 15px 28px; position: relative;">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalRevisarCambios()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}">
+                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 32px !important; height: 32px !important;">
                 </button>
             </div>
             <h3>Cambios Pendientes en Dibujos de Fundición</h3>
@@ -154,7 +154,7 @@
                 Almacén:
             </p>
         </div>
-        <div class="alm-modal-body">
+        <div class="alm-modal-body" style="flex: 1; display: flex; flex-direction: column; overflow-y: auto; min-height: 0; padding: 20px 28px;">
             <div id="revisar-cambios-container" class="alm-display-flex alm-flex-direction-column alm-gap-15px">
                 <!-- Contenido dinámico (Comparativa de dibujos viejos vs nuevos) -->
             </div>
@@ -162,8 +162,8 @@
             <div class="btn-action-cambios-row">
                 {{-- Botón Rojo en Hover: Reiniciar Proceso Completo / Reiniciar Clase --}}
                 <button type="button" id="btn-resolver-reiniciar" class="btn-action-cambios btn-action-reiniciar"
-                    onclick="solicitarConfirmacionCambios('reiniciar_completo')">
-                    <span id="text-btn-reiniciar">Reiniciar Proceso Completo</span>
+                    onclick="solicitarConfirmacionCambios('reiniciar')">
+                    <span id="text-btn-reiniciar">Reiniciar Proceso de Clases</span>
                 </button>
 
                 {{-- Botón Verde en Hover: Reemplazar Dibujos --}}
@@ -186,8 +186,18 @@
                 style="color: #ffffff; font-size: 1.2em; font-weight: 800; margin: 0; text-transform: uppercase; letter-spacing: 1px;">
                 Confirmar Acción
             </h3>
-            <button type="button" class="btn-cerrar" onclick="cerrarModalConfirmarAccionCambios()"
-                style="background: none; border: none; cursor: pointer;">
+            <style>
+                .btn-cerrar-no-anim {
+                    background: none; border: none; cursor: pointer; transition: transform 0.2s ease; outline: none; padding: 0;
+                }
+                .btn-cerrar-no-anim:hover {
+                    transform: scale(1.15); animation: none !important; background: none !important;
+                }
+                .btn-cerrar-no-anim img {
+                    animation: none !important;
+                }
+            </style>
+            <button type="button" class="btn-cerrar-no-anim" onclick="cerrarModalConfirmarAccionCambios()" title="Cerrar">
                 <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 28px; height: 28px;">
             </button>
         </div>
@@ -198,6 +208,8 @@
             <p id="confirm-cambios-message"
                 style="margin: 0 0 1.5em 0; color: #334155; font-size: 1.05em; line-height: 1.5; font-weight: 600;">
             </p>
+            <div id="confirm-cambios-classes" style="margin-bottom: 1.5em; text-align: left; display: none;">
+            </div>
             <div class="confirm-modal-actions" style="display: flex; gap: 1em; justify-content: center;">
                 <button type="button" class="btn-confirm-cancel" onclick="cerrarModalConfirmarAccionCambios()"
                     style="padding: 0.8em 1.8em; background: #64748b; color: white; border: none; border-radius: 50px; font-weight: 800; font-size: 0.9em; text-transform: uppercase; cursor: pointer; letter-spacing: 1px;">

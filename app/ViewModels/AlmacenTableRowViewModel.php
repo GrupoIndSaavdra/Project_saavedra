@@ -474,44 +474,18 @@ class AlmacenTableRowViewModel
                         continue;
                     }
                     $parts = explode(',', $val);
-                    foreach (
-                        [
-                            '1 - MOLDES',
-                            '2 - BOMBILLO',
-                            '3 - EMBUDO',
-                            '4 - CORONA',
-                            '5 - PLATO',
-                            '6 - FONDO',
-                            '7 - OBTURADOR',
-                            '8 - CABEZA DE SOPLO',
-                            '9 - CANDADO OBTURADOR',
-                            'Candado obturador',
-                            'Cabeza de soplo',
-                            'Obturador',
-                            'Bombillo',
-                            'Embudo',
-                            'Corona',
-                            'Plato',
-                            'Molde',
-                            'Fondo',
-                            'Pistones',
-                            'Guías',
-                            'Guias',
-                        ]
-                        as $kc
-                    ) {
-                        foreach ($parts as $p) {
-                            if (strpos($p, strtolower($kc)) !== false) {
-                                $activeClassesForOt[] = $kc;
-                            }
+                    foreach ($parts as $p) {
+                        $p = trim($p);
+                        if (!empty($p)) {
+                            $activeClassesForOt[] = \App\Services\FundicionPaths::normalizeClass($p);
                         }
                     }
                 }
             }
         }
         if (empty($activeClassesForOt)) {
-            $po = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->first();
-            if ($po) {
+            $pos = \App\Models\PreOrdenFundicion::where('ot', $reg->ot)->get();
+            foreach ($pos as $po) {
                 $filas = $po->filas;
                 if (is_string($filas)) {
                     $filas = json_decode($filas, true);
@@ -528,36 +502,10 @@ class AlmacenTableRowViewModel
                         }
                         if ($val) {
                             $parts = explode(',', $val);
-                            foreach (
-                                [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'Candado obturador',
-                                    'Cabeza de soplo',
-                                    'Obturador',
-                                    'Bombillo',
-                                    'Embudo',
-                                    'Corona',
-                                    'Plato',
-                                    'Molde',
-                                    'Fondo',
-                                    'Pistones',
-                                    'Guías',
-                                    'Guias',
-                                ]
-                                as $kc
-                            ) {
-                                foreach ($parts as $p) {
-                                    if (strpos($p, strtolower($kc)) !== false) {
-                                        $activeClassesForOt[] = $kc;
-                                    }
+                            foreach ($parts as $p) {
+                                $p = trim($p);
+                                if (!empty($p)) {
+                                    $activeClassesForOt[] = \App\Services\FundicionPaths::normalizeClass($p);
                                 }
                             }
                         }
@@ -584,38 +532,8 @@ class AlmacenTableRowViewModel
                     $parts = explode(',', strtolower($dc));
                     foreach ($parts as $p) {
                         $p = trim($p);
-                        if ($p !== '') {
-                            foreach (
-                                [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'Candado obturador',
-                                    'Cabeza de soplo',
-                                    'Obturador',
-                                    'Bombillo',
-                                    'Embudo',
-                                    'Corona',
-                                    'Plato',
-                                    'Molde',
-                                    'Fondo',
-                                    'Pistones',
-                                    'Guías',
-                                    'Guias',
-                                ]
-                                as $kc
-                            ) {
-                                if (strpos($p, strtolower($kc)) !== false) {
-                                    $parsedCurrent[] = $kc;
-                                    break;
-                                }
-                            }
+                        if (!empty($p)) {
+                            $parsedCurrent[] = \App\Services\FundicionPaths::normalizeClass($p);
                         }
                     }
                 }
@@ -653,38 +571,8 @@ class AlmacenTableRowViewModel
                         $parts = explode(',', strtolower($dc));
                         foreach ($parts as $p) {
                             $p = trim($p);
-                            if ($p !== '') {
-                                foreach (
-                                    [
-                                        '1 - MOLDES',
-                                        '2 - BOMBILLO',
-                                        '3 - EMBUDO',
-                                        '4 - CORONA',
-                                        '5 - PLATO',
-                                        '6 - FONDO',
-                                        '7 - OBTURADOR',
-                                        '8 - CABEZA DE SOPLO',
-                                        '9 - CANDADO OBTURADOR',
-                                        'Candado obturador',
-                                        'Cabeza de soplo',
-                                        'Obturador',
-                                        'Bombillo',
-                                        'Embudo',
-                                        'Corona',
-                                        'Plato',
-                                        'Molde',
-                                        'Fondo',
-                                        'Pistones',
-                                        'Guías',
-                                        'Guias',
-                                    ]
-                                    as $kc
-                                ) {
-                                    if (strpos($p, strtolower($kc)) !== false) {
-                                        $parsedPrev[] = $kc;
-                                        break;
-                                    }
-                                }
+                            if (!empty($p)) {
+                                $parsedPrev[] = \App\Services\FundicionPaths::normalizeClass($p);
                             }
                         }
                     }
@@ -997,8 +885,12 @@ class AlmacenTableRowViewModel
                 if ($hasKnownClass) {
                     // Los dibujos SIEMPRE se muestran, aunque la clase esté rechazada.
                     // Son documentos de referencia permanentes.
-                    $matchesActive = in_array(strtoupper($foundClass), $activeClassesForOt);
-                    $matchesRejected = in_array($foundClass, $clasesRechazadas);
+                    $normFoundClass = \App\Services\FundicionPaths::normalizeClass($foundClass);
+                    $matchesActive = in_array($normFoundClass, $activeClassesForOt);
+                    $normClasesRechazadas = array_map(function($c) {
+                        return \App\Services\FundicionPaths::normalizeClass($c);
+                    }, $clasesRechazadas);
+                    $matchesRejected = in_array($normFoundClass, $normClasesRechazadas);
                     if (!$matchesActive && !$matchesRejected) {
                         continue;
                     }
@@ -1129,54 +1021,30 @@ class AlmacenTableRowViewModel
                     'base_dir' => $ayudasDir,
                 ];
             }
-            foreach (
-                [
-                    '1 - MOLDES',
-                    '2 - BOMBILLO',
-                    '3 - EMBUDO',
-                    '4 - CORONA',
-                    '5 - PLATO',
-                    '6 - FONDO',
-                    '7 - OBTURADOR',
-                    '8 - CABEZA DE SOPLO',
-                    '9 - CANDADO OBTURADOR',
-                    'Candado obturador',
-                    'Cabeza de soplo',
-                    'Obturador',
-                    'Bombillo',
-                    'Embudo',
-                    'Corona',
-                    'Plato',
-                    'Molde',
-                    'Fondo',
-                    'Pistones',
-                    'Guías',
-                    'Guias',
-                ]
-                as $claseDir
-            ) {
-                $subDirs = [
-                    $claseDir . '/Ayudas_Visuales',
-                    strtoupper($claseDir) . '/AYUDAS_VISUALES_FUNDICION',
-                    $claseDir . '/AYUDAS_VISUALES_FUNDICION',
-                ];
-                foreach ($subDirs as $subDir) {
-                    $newAyDir = $almacenRootScan . '/' . $subDir;
-                    if (\Illuminate\Support\Facades\Storage::disk('local')->exists($newAyDir)) {
-                        $scanDirs[] = [
-                            'path' => $newAyDir,
-                            'base_dir' => $almacenRootScan,
-                        ];
+            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($almacenRootScan)) {
+                $rootDirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($almacenRootScan);
+                foreach ($rootDirs as $rDir) {
+                    $subDirs = [
+                        $rDir . '/Ayudas_Visuales',
+                        $rDir . '/AYUDAS_VISUALES_FUNDICION',
+                        $rDir . '/ayudas_visuales',
+                    ];
+                    foreach ($subDirs as $newAyDir) {
+                        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($newAyDir)) {
+                            $scanDirs[] = [
+                                'path' => $newAyDir,
+                                'base_dir' => $almacenRootScan,
+                            ];
+                        }
                     }
                 }
-                $legacyClaseAyDir = $ayudasDir . '/' . $claseDir;
-                if (
-                    \Illuminate\Support\Facades\Storage::disk('local')->exists(
-                        $legacyClaseAyDir,
-                    )
-                ) {
+            }
+            
+            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($ayudasDir)) {
+                $legacyDirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($ayudasDir);
+                foreach ($legacyDirs as $lDir) {
                     $scanDirs[] = [
-                        'path' => $legacyClaseAyDir,
+                        'path' => $lDir,
                         'base_dir' => $ayudasDir,
                     ];
                 }
@@ -1238,7 +1106,9 @@ class AlmacenTableRowViewModel
                             // Las ayudas SIEMPRE se muestran aunque la clase esté rechazada.
                             $matchesActive = false;
                             foreach ($activeClassesForOt as $ac) {
-                                if (strpos($fileLower, $ac) !== false) {
+                                $acClean = trim(preg_replace('/^\d+\s*-\s*/', '', strtolower($ac)));
+                                $coreAc = rtrim($acClean, 's');
+                                if (strpos($fileLower, $acClean) !== false || strpos($fileLower, $coreAc) !== false) {
                                     $matchesActive = true;
                                     break;
                                 }
@@ -1246,7 +1116,9 @@ class AlmacenTableRowViewModel
                             // Incluir también archivos de clases rechazadas (siguen siendo referencia)
                             if (!$matchesActive) {
                                 foreach ($clasesRechazadas as $rc) {
-                                    if (strpos($fileLower, $rc) !== false) {
+                                    $rcClean = trim(preg_replace('/^\d+\s*-\s*/', '', strtolower($rc)));
+                                    $coreRc = rtrim($rcClean, 's');
+                                    if (strpos($fileLower, $rcClean) !== false || strpos($fileLower, $coreRc) !== false) {
                                         $matchesActive = true;
                                         break;
                                     }
@@ -1357,7 +1229,9 @@ class AlmacenTableRowViewModel
                         // Ayudas de preordenes de Calidad SIEMPRE visibles (documentos de referencia).
                         $matchesActive = false;
                         foreach ($activeClassesForOt as $ac) {
-                            if (strpos($fileLower, strtolower($ac)) !== false) {
+                            $acClean = trim(preg_replace('/^\d+\s*-\s*/', '', strtolower($ac)));
+                            $coreAc = rtrim($acClean, 's');
+                            if (strpos($fileLower, $acClean) !== false || strpos($fileLower, $coreAc) !== false) {
                                 $matchesActive = true;
                                 break;
                             }
@@ -1365,7 +1239,9 @@ class AlmacenTableRowViewModel
                         // Incluir clases rechazadas también
                         if (!$matchesActive) {
                             foreach ($clasesRechazadas as $rc) {
-                                if (strpos($fileLower, $rc) !== false) {
+                                $rcClean = trim(preg_replace('/^\d+\s*-\s*/', '', strtolower($rc)));
+                                $coreRc = rtrim($rcClean, 's');
+                                if (strpos($fileLower, $rcClean) !== false || strpos($fileLower, $coreRc) !== false) {
                                     $matchesActive = true;
                                     break;
                                 }
@@ -1545,7 +1421,6 @@ class AlmacenTableRowViewModel
                     }
                 }
 
-                // --- NUEVO: ESCANEAR PREORDENES Y DOCUMENTOS POR CLASE (MAYÚSCULAS Y MINÚSCULAS) ---
                 $clasesBaseList = [
                     '1 - MOLDES',
                     '2 - BOMBILLO',
@@ -1569,6 +1444,18 @@ class AlmacenTableRowViewModel
                     'Guías',
                     'Guias',
                 ];
+                
+                foreach (['ALMACEN_FUNDICION', 'CALIDAD_FUNDICION'] as $depto) {
+                    $deptoDir = 'DOCUMENTACION_GIS/' . $depto . '/' . $otNameSanitized;
+                    if (\Illuminate\Support\Facades\Storage::disk('local')->exists($deptoDir)) {
+                        $dirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($deptoDir);
+                        foreach ($dirs as $d) {
+                            $clasesBaseList[] = basename($d);
+                        }
+                    }
+                }
+                $clasesBaseList = array_unique($clasesBaseList);
+
                 foreach ($clasesBaseList as $claseDir) {
                     $claseVariants = array_values(
                         array_unique([
@@ -1934,7 +1821,9 @@ class AlmacenTableRowViewModel
                             $fileLower = strtolower($relativePath);
                             $fileClasses = [];
                             foreach ($knownClasses as $kc) {
-                                if (strpos($fileLower, strtolower($kc)) !== false) {
+                                $kcClean = trim(preg_replace('/^\d+\s*-\s*/', '', strtolower($kc)));
+                                $coreKc = rtrim($kcClean, 's');
+                                if (strpos($fileLower, $kcClean) !== false || strpos($fileLower, $coreKc) !== false) {
                                     $fileClasses[] = strtolower($kc);
                                 }
                             }
@@ -2392,14 +2281,10 @@ class AlmacenTableRowViewModel
         }
 
         // Extraer clases de archivos aprobados en $calidadAprobadosLdm
+        // Solo comparar contra clases conocidas de la OT — NO extraer texto libre del nombre del archivo
+        // (el regex anterior capturaba el OT completo y lo trataba como nombre de clase)
         foreach ($calidadAprobadosLdm as $docAprob) {
             $baseName = basename($docAprob['nombre']);
-            if (preg_match('/F_CCL_LDM_([^\.]+)/i', $baseName, $mMatches)) {
-                $extractedClass = trim(str_replace(['_', '-'], ' ', $mMatches[1]));
-                if (!empty($extractedClass)) {
-                    $aprobadosRaw[] = $extractedClass;
-                }
-            }
             foreach ($activeClassesForOt as $ac) {
                 if (!empty($ac) && strpos(strtolower($baseName), strtolower($ac)) !== false) {
                     $aprobadosRaw[] = $ac;
@@ -2503,7 +2388,8 @@ class AlmacenTableRowViewModel
             array_filter($archivos, function ($d) use ($aprobadosNorm) {
                 $nameLow = strtolower($d['nombre']);
                 foreach ($aprobadosNorm as $ap) {
-                    if ($ap !== '' && strpos($nameLow, $ap) !== false) {
+                    $apClean = trim(preg_replace('/^\d+\s*-\s*/', '', $ap));
+                    if ($ap !== '' && (strpos($nameLow, $ap) !== false || ($apClean !== '' && strpos($nameLow, $apClean) !== false))) {
                         return true;
                     }
                 }
@@ -2515,7 +2401,8 @@ class AlmacenTableRowViewModel
             array_filter($archivos, function ($d) use ($clasesFabricacion) {
                 $nameLow = strtolower($d['nombre']);
                 foreach ($clasesFabricacion as $cf) {
-                    if ($cf !== '' && strpos($nameLow, $cf) !== false) {
+                    $cfClean = trim(preg_replace('/^\d+\s*-\s*/', '', $cf));
+                    if ($cf !== '' && (strpos($nameLow, $cf) !== false || ($cfClean !== '' && strpos($nameLow, $cfClean) !== false))) {
                         return true;
                     }
                 }
@@ -2527,7 +2414,8 @@ class AlmacenTableRowViewModel
             array_filter($ayudasArchivos, function ($a) use ($aprobadosNorm) {
                 $nameLow = strtolower($a['nombre']);
                 foreach ($aprobadosNorm as $ap) {
-                    if ($ap !== '' && strpos($nameLow, $ap) !== false) {
+                    $apClean = trim(preg_replace('/^\d+\s*-\s*/', '', $ap));
+                    if ($ap !== '' && (strpos($nameLow, $ap) !== false || ($apClean !== '' && strpos($nameLow, $apClean) !== false))) {
                         return true;
                     }
                 }
@@ -2539,7 +2427,8 @@ class AlmacenTableRowViewModel
             array_filter($ayudasArchivos, function ($a) use ($clasesFabricacion) {
                 $nameLow = strtolower($a['nombre']);
                 foreach ($clasesFabricacion as $cf) {
-                    if ($cf !== '' && strpos($nameLow, $cf) !== false) {
+                    $cfClean = trim(preg_replace('/^\d+\s*-\s*/', '', $cf));
+                    if ($cf !== '' && (strpos($nameLow, $cf) !== false || ($cfClean !== '' && strpos($nameLow, $cfClean) !== false))) {
                         return true;
                     }
                 }
@@ -2551,7 +2440,8 @@ class AlmacenTableRowViewModel
             array_filter($archivos, function ($d) use ($rechazadosNorm) {
                 $nameLow = strtolower($d['nombre']);
                 foreach ($rechazadosNorm as $r) {
-                    if ($r !== '' && strpos($nameLow, $r) !== false) {
+                    $rClean = trim(preg_replace('/^\d+\s*-\s*/', '', $r));
+                    if ($r !== '' && (strpos($nameLow, $r) !== false || ($rClean !== '' && strpos($nameLow, $rClean) !== false))) {
                         return true;
                     }
                 }
@@ -2563,7 +2453,8 @@ class AlmacenTableRowViewModel
             array_filter($ayudasArchivos, function ($a) use ($rechazadosNorm) {
                 $nameLow = strtolower($a['nombre']);
                 foreach ($rechazadosNorm as $r) {
-                    if ($r !== '' && strpos($nameLow, $r) !== false) {
+                    $rClean = trim(preg_replace('/^\d+\s*-\s*/', '', $r));
+                    if ($r !== '' && (strpos($nameLow, $r) !== false || ($rClean !== '' && strpos($nameLow, $rClean) !== false))) {
                         return true;
                     }
                 }
@@ -2690,7 +2581,7 @@ class AlmacenTableRowViewModel
         $rechazadosNorm = array_map('strtolower', $rechazados);
 
         $almacenPreordenesFab = array_values(
-            array_filter($almacenPreordenes, function ($doc) use ($clasesFabricacion, $isCalidadAlerted) {
+            array_filter($almacenPreordenes ?? [], function ($doc) use ($clasesFabricacion, $isCalidadAlerted, $aprobadosNorm) {
                 $pathLow = strtolower($doc['nombre']);
                 $nameLow = strtolower(basename($doc['nombre']));
 
@@ -2709,24 +2600,13 @@ class AlmacenTableRowViewModel
                     return false;
                 }
 
-                // Si Calidad ya respondió, excluir los escaneados (CFM ya firmado) —
-                // son documentos históricos, no acciones pendientes de fabricación.
-                $isEscaneado = str_contains($pathLow, 'escaneados/') ||
-                    str_contains($nameLow, 'escaneado') ||
-                    str_contains($nameLow, 'f_alm_cfm') ||
-                    str_contains($nameLow, 'cfm');
-                if ($isCalidadAlerted && $isEscaneado) {
-                    return false;
-                }
-
+                // Anteriormente se excluían los escaneados si Calidad ya había respondido, 
+                // pero el usuario necesita ver los archivos EFM/CFM escaneados en todo momento.
                 if (empty($clasesFabricacion)) {
-                    // Incluso sin clases definidas, escaneados ya procesados no deben aparecer
-                    if ($isCalidadAlerted && $isEscaneado) {
-                        return false;
-                    }
                     return true;
                 }
-                if (
+
+                $isPreordenFile = (
                     str_contains($nameLow, 'preorden') ||
                     str_contains($nameLow, 'pre-orden') ||
                     str_contains($nameLow, 'escaneado') ||
@@ -2737,9 +2617,22 @@ class AlmacenTableRowViewModel
                     str_contains($nameLow, 'efm') ||
                     str_contains($pathLow, 'preorden_modelo') ||
                     str_contains($pathLow, 'confirmacion_modelo')
-                ) {
+                );
+
+                if ($isPreordenFile) {
+                    // Asegurar que no pertenezca a una clase ya aprobada
+                    foreach ($aprobadosNorm as $ap) {
+                        $apClean = trim(preg_replace('/^\d+\s*-\s*/', '', strtolower($ap)));
+                        if (
+                            ($ap !== '' && strpos($nameLow, $ap) !== false) ||
+                            ($apClean !== '' && strpos($nameLow, $apClean) !== false)
+                        ) {
+                            return false; // Pertenece a una clase aprobada, excluir de fabricación
+                        }
+                    }
                     return true;
                 }
+
                 foreach ($clasesFabricacion as $cf) {
                     if ($cf !== '' && strpos($nameLow, strtolower($cf)) !== false) {
                         return true;
@@ -2832,12 +2725,45 @@ class AlmacenTableRowViewModel
             }),
         );
 
+        $almacenPreordenesFabEnCasting = array_values(
+            array_filter($almacenPreordenes ?? [], function ($doc) use ($aprobadosNorm) {
+                $pathLow = strtolower($doc['nombre']);
+                $nameLow = strtolower(basename($doc['nombre']));
+                $isFabDoc =
+                    str_contains($nameLow, 'pfm') ||
+                    str_contains($nameLow, 'f_alm_pfm') ||
+                    str_contains($nameLow, 'efm') ||
+                    str_contains($nameLow, 'f_alm_efm') ||
+                    str_contains($nameLow, 'cfm') ||
+                    str_contains($nameLow, 'f_alm_cfm') ||
+                    str_contains($pathLow, 'preorden_modelo') ||
+                    str_contains($pathLow, 'confirmacion_modelo');
+                if (!$isFabDoc) {
+                    return false;
+                }
+                if (empty($aprobadosNorm)) {
+                    return false;
+                }
+                foreach ($aprobadosNorm as $ap) {
+                    $apClean = trim(preg_replace('/^\d+\s*-\s*/', '', strtolower($ap)));
+                    if (
+                        ($ap !== '' && strpos($nameLow, $ap) !== false) ||
+                        ($apClean !== '' && strpos($nameLow, $apClean) !== false)
+                    ) {
+                        return true;
+                    }
+                }
+                return false;
+            })
+        );
+
         $tieneAprobados =
             count($aprobados ?? []) > 0 ||
             count($calidadAprobadosLdmCasting ?? []) > 0 ||
             count($dibujosCasting ?? []) > 0 ||
             count($ayudasCasting ?? []) > 0 ||
-            count($almacenPreordenesCasting ?? []) > 0;
+            count($almacenPreordenesCasting ?? []) > 0 ||
+            count($almacenPreordenesFabEnCasting ?? []) > 0;
         $tieneRechazados =
             count($rechazados ?? []) > 0 ||
             count($rechazadosOtros ?? []) > 0 ||
@@ -2855,7 +2781,8 @@ class AlmacenTableRowViewModel
             ? count($dibujosCasting ?? []) +
             count($ayudasCasting ?? []) +
             count($calidadAprobadosLdmCasting ?? []) +
-            count($almacenPreordenesCasting ?? [])
+            count($almacenPreordenesCasting ?? []) +
+            count($almacenPreordenesFabEnCasting ?? [])
             : 0;
         $countVisibleRechazados = $tieneRechazados
             ? count($dibujosRechazadosOrig ?? []) +
@@ -2874,7 +2801,7 @@ class AlmacenTableRowViewModel
             !$isFinalized &&
             (!$isCalidadAlerted ||
                 $hasRechazosRealLocal ||
-                ($esReproceso && count($clasesFabricacion) > 0));
+                count($clasesFabricacion) > 0);
         $hasFilesOrControl = $count > 0 || $showControlCard;
 
         // DEBUG MARKER

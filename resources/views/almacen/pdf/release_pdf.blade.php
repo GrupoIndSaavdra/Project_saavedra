@@ -272,6 +272,17 @@
 
         $estadoDisplay = ($liberacion->decision === 'aprobar') ? 'aprobado' : (($liberacion->decision === 'rechazar') ? 'rechazado' : $liberacion->estado);
         $esRechazo = ($estadoDisplay === 'rechazado' || !empty(trim($liberacion->motivo_rechazo ?? '')));
+        $themeColor = $esRechazo ? '#9c0300' : '#033966';
+
+        $mapClaves = [
+            'Molde' => 'Mol', 'Fondo' => 'Fnd', 'Corona' => 'Cor', 'Plato' => 'Plt',
+            'Embudo' => 'Emb', 'Cabeza de Soplo' => 'CSp', 'Candado Obturador' => 'COb',
+            'Obturador' => 'Obt', 'Bombillo' => 'Bom', 'Pistones' => 'Pis', 'Guías' => 'Gui'
+        ];
+        $claveClase = $mapClaves[$tipo] ?? 'Gen';
+        $fechaStr = $liberacion->updated_at ? $liberacion->updated_at->format('dmyHi') : now()->format('dmyHi');
+        $tipoLetra = $esRechazo ? 'R' : 'A';
+        $folioStr = strtoupper("{$claveClase}{$fechaStr}{$tipoLetra}");
     @endphp
 
     <table class="header-table">
@@ -283,51 +294,52 @@
                 @endif
             </td>
             <td class="header-title" colspan="4"
-                style="width: 63%; text-align: center; font-size: 11px; font-weight: bold; color: #033966; text-transform: uppercase;">
-                FORMATO DE LIBERACION DE MODELOS
+                style="width: 63%; text-align: center; font-size: 11px; font-weight: bold; color: {{ $themeColor }}; text-transform: uppercase;">
+                {{ $esRechazo ? 'FORMATO DE RECHAZO DE MODELOS' : 'FORMATO DE LIBERACION DE MODELOS' }}
             </td>
             <td class="header-meta" style="width: 25%; font-size: 7.5px; line-height: 1.3;">
-                <strong>Codigo:</strong> F-CCL-LDM<br>
-                <strong>Version:</strong> B
+                <strong>Codigo:</strong> <span style="color: {{ $themeColor }}; font-weight: bold;">{{ $esRechazo ? 'F-CCL-RDM' : 'F-CCL-LDM' }}</span><br>
+                <strong>Version:</strong> <span style="color: {{ $themeColor }}; font-weight: bold;">B</span><br>
+                <strong>Folio:</strong> <span style="color: {{ $themeColor }}; font-weight: bold;">{{ $folioStr }}</span>
             </td>
         </tr>
         <tr>
             <td colspan="2" style="width: 28%; font-size: 7px; padding: 2px 4px; border: 1px solid #000;">
-                <strong>MOLDURA:</strong> {{ $molduraName ?: 'N/A' }}
+                <strong>MOLDURA:</strong> <span style="color: {{ $themeColor }}; font-weight: bold;">{{ $molduraName ?: 'N/A' }}</span>
             </td>
             <td style="width: 15%; font-size: 7px; padding: 2px 4px; border: 1px solid #000;">
-                <strong>O.T.:</strong> {{ $otNum }}
+                <strong>O.T.:</strong> <span style="color: {{ $themeColor }}; font-weight: bold;">{{ $otNum }}</span>
             </td>
             <td colspan="2"
                 style="width: 45%; font-size: 7px; padding: 2px 4px; border: 1px solid #000; white-space: nowrap;">
                 <strong>TIPO DE LIBERACIÓN:</strong>
                 <span style="font-size: 6.5px; margin-left: 2px; font-weight: bold;">
-                    MOLDE [ {{ $tipo == 'Molde' ? 'X' : ' ' }} ] &nbsp;
-                    FONDO [ {{ $tipo == 'Fondo' ? 'X' : ' ' }} ] &nbsp;
-                    CORONA [ {{ $tipo == 'Corona' ? 'X' : ' ' }} ] &nbsp;
-                    PLATO [ {{ $tipo == 'Plato' ? 'X' : ' ' }} ] &nbsp;
-                    EMBUDO [ {{ $tipo == 'Embudo' ? 'X' : ' ' }} ] &nbsp;
-                    C. SOPLO [ {{ $tipo == 'Cabeza de Soplo' ? 'X' : ' ' }} ] &nbsp;
-                    C. OBTURADOR [ {{ $tipo == 'Candado Obturador' ? 'X' : ' ' }} ] &nbsp;
-                    OBTURADOR [ {{ $tipo == 'Obturador' ? 'X' : ' ' }} ] &nbsp;
-                    BOMBILLO [ {{ $tipo == 'Bombillo' ? 'X' : ' ' }} ] &nbsp;
-                    PISTONES [ {{ $tipo == 'Pistones' ? 'X' : ' ' }} ] &nbsp;
-                    GUÍAS [ {{ $tipo == 'Guías' ? 'X' : ' ' }} ]
+                    <span style="color: {{ $tipo == 'Molde' ? $themeColor : '#9ca3af' }};">MOL [ {{ $tipo == 'Molde' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Fondo' ? $themeColor : '#9ca3af' }};">FND [ {{ $tipo == 'Fondo' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Corona' ? $themeColor : '#9ca3af' }};">COR [ {{ $tipo == 'Corona' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Plato' ? $themeColor : '#9ca3af' }};">PLT [ {{ $tipo == 'Plato' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Embudo' ? $themeColor : '#9ca3af' }};">EMB [ {{ $tipo == 'Embudo' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Cabeza de Soplo' ? $themeColor : '#9ca3af' }};">C.SOP [ {{ $tipo == 'Cabeza de Soplo' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Candado Obturador' ? $themeColor : '#9ca3af' }};">C.OBT [ {{ $tipo == 'Candado Obturador' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Obturador' ? $themeColor : '#9ca3af' }};">OBT [ {{ $tipo == 'Obturador' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Bombillo' ? $themeColor : '#9ca3af' }};">BOM [ {{ $tipo == 'Bombillo' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Pistones' ? $themeColor : '#9ca3af' }};">PIS [ {{ $tipo == 'Pistones' ? 'X' : ' ' }} ]</span> &nbsp;
+                    <span style="color: {{ $tipo == 'Guías' ? $themeColor : '#9ca3af' }};">GUI [ {{ $tipo == 'Guías' ? 'X' : ' ' }} ]</span>
                 </span>
             </td>
         </tr>
         <tr>
             <td style="width: 13%; font-size: 7px; padding: 2px 4px; vertical-align: middle; border: 1px solid #000;">
                 <strong>FECHA INSPECCIÓN:</strong>
-                {{ $liberacion->fecha_revision ? $liberacion->fecha_revision->format('d/m/Y') : now()->format('d/m/Y') }}
+                <span style="color: {{ $themeColor }}; font-weight: bold;">{{ $liberacion->fecha_revision ? $liberacion->fecha_revision->format('d/m/Y') : now()->format('d/m/Y') }}</span>
             </td>
             <td style="width: 15%; font-size: 7px; padding: 2px 4px; vertical-align: middle; border: 1px solid #000;">
                 <strong>ESTADO:</strong> <span
-                    style="font-weight: bold; color: {{ $estadoDisplay === 'aprobado' ? '#0b6623' : ($estadoDisplay === 'rechazado' ? '#9c0300' : '#b45309') }};">{{ strtoupper($estadoDisplay) }}</span>
+                    style="font-weight: bold; color: {{ $themeColor }};">{{ strtoupper($estadoDisplay) }}</span>
             </td>
             <td colspan="2"
                 style="width: 37.5%; font-size: 7px; padding: 2px 4px; vertical-align: middle; border: 1px solid #000;">
-                <strong>INSPECCIONÓ (CALIDAD):</strong> {{ $liberacion->user_nombre_calidad ?: 'N/A' }}
+                <strong>INSPECCIONÓ (CALIDAD):</strong> <span style="color: #033966; font-weight: bold;">{{ $liberacion->user_nombre_calidad ?: 'N/A' }}</span>
             </td>
             <td
                 style="width: 22.5%; font-size: 7px; padding: 2px 4px; vertical-align: middle; border: 1px solid #000; white-space: nowrap;">

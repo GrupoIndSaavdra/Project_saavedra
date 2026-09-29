@@ -9,13 +9,17 @@ window.generarHtmlCategorizadoCastingAprobados = function (
     const secciones = [
         {
             label: "Ayudas Visuales",
-            color: "#d97706",
+            color: isRechazados ? "#b91c1c" : "#15803d",
+            bgColor: isRechazados ? "#fee2e2" : "#dcfce7",
+            borderColor: isRechazados ? "#fecaca" : "#bbf7d0",
             tipos: ["ayuda"],
             claseCard: "card-ayuda",
         },
         {
             label: "Dibujos de Fundición",
-            color: "#0284c7",
+            color: isRechazados ? "#b91c1c" : "#15803d",
+            bgColor: isRechazados ? "#fee2e2" : "#dcfce7",
+            borderColor: isRechazados ? "#fecaca" : "#bbf7d0",
             tipos: ["dibujo", "plano"],
             claseCard: "card-plano",
         },
@@ -23,7 +27,9 @@ window.generarHtmlCategorizadoCastingAprobados = function (
             label: isRechazados
                 ? "Documentos Rechazados"
                 : "Documentos Aprobados",
-            color: isRechazados ? "#ef4444" : "#059669",
+            color: isRechazados ? "#b91c1c" : "#15803d",
+            bgColor: isRechazados ? "#fee2e2" : "#dcfce7",
+            borderColor: isRechazados ? "#fecaca" : "#bbf7d0",
             tipos: ["aprobado", "preorden", "otro"],
             claseCard: "card-ayuda",
         },
@@ -84,8 +90,8 @@ window.generarHtmlCategorizadoCastingAprobados = function (
             return;
         }
         html += `<div style="width:100%;">
-            <h4 style="font-family:'Poppins',sans-serif;font-weight:700;color:#1e293b;font-size:1.05em;margin-top:10px;margin-bottom:12px;border-left:4px solid ${sec.color};padding-left:8px;">${sec.label}</h4>
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;width:100%;box-sizing:border-box;">`;
+            <h4 style="margin-top: 15px; margin-bottom: 10px; color: ${sec.color}; font-weight: 700; font-family:'Poppins',sans-serif; font-size:1.05em;">${sec.label}</h4>
+            <div class="alm-pdf-grid" style="background-color: ${sec.bgColor}; border: 1px solid ${sec.borderColor}; padding: 15px; border-radius: 8px; margin-bottom: 15px; display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;width:100%;box-sizing:border-box;">`;
         archivosSeccion.forEach((f) => {
             const nombre = f.nombre || "";
             const baseName = nombre.split("/").pop();
@@ -197,7 +203,7 @@ window.cargarInputsCasting = function (ot, files) {
                     return isLdmDoc && nameUpper.includes(cleanClass) && isUserUploaded;
                 });
             }
-            const label = c.charAt(0).toUpperCase() + c.slice(1);
+            const label = window.formatClaseSurgico ? window.formatClaseSurgico(c) : (c.charAt(0).toUpperCase() + c.slice(1));
             if (!existingFile) {
                 allLoaded = false;
             }

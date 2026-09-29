@@ -166,9 +166,9 @@
     <td class="d-text-center">
         @if ($hasPendingChanges)
             <button class="btn-toggle-files"
-                style="background: linear-gradient(135deg, #f97316, #ea580c); color: white; border: 1px solid #c2410c;"
-                onclick="almacenRevisarCambios('{{ $reg->ot }}')">
-                Revisar Cambios
+                style="background: #f1f5f9; color: #94a3b8; border: 1px solid #cbd5e1; cursor: not-allowed;"
+                disabled title="Existen cambios en los dibujos. Esperando a que Almacén los resuelva.">
+                Cambios Pendientes
             </button>
         @elseif ($hasFilesOrControl)
             <button class="btn-toggle-files" data-target="files-{{ $estado }}-{{ $loop->index }}" data-ot="{{ $reg->ot }}"
