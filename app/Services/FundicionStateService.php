@@ -1,5 +1,6 @@
 <?php
 
+
 namespace App\Services;
 
 use App\Models\FundicionHistory;
@@ -8,15 +9,15 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * Servicio para determinar el estado visual y de flujo (FSM) de una Orden de Trabajo
- * en el módulo de Fundición.
+ * en el mÃ³dulo de FundiciÃ³n.
  */
 class FundicionStateService
 {
     /**
-     * Resuelve el estado de una OT, devolviendo la configuración para la UI.
+     * Resuelve el estado de una OT, devolviendo la configuraciÃ³n para la UI.
      * 
      * @param FundicionHistory $reg El registro de la OT.
-     * @param FundicionHistory $targetReg El registro destino (útil para reprocesos).
+     * @param FundicionHistory $targetReg El registro destino (Ãºtil para reprocesos).
      * @param array $aprobados Lista de clases aprobadas.
      * @param bool $isReproceso Indica si es una OT de reproceso (termina en _R\d+).
      * @return array Array asociativo con 'fsmState', 'icon', 'label', 'tooltip', 'borderColor', 'bgColor', 'textColor'
@@ -29,12 +30,12 @@ class FundicionStateService
         // FIX: Evitar que OTs de reproceso hereden el estado final "Casting Aprobado" de la OT original
         if ($isReproceso) {
             // Un reproceso no puede mostrar casting_aprobado de la OT original.
-            // Solo es válido si hay un casting propio para esta OT de reproceso.
+            // Solo es vÃ¡lido si hay un casting propio para esta OT de reproceso.
             $castingPdfPropio = PreOrdenFundicion::where('ot', $reg->ot)
                 ->where('pdf_filename', 'LIKE', '%Casting%')
                 ->exists();
             if ($libStatus === FundicionStateConstants::CASTING_APROBADO && !$castingPdfPropio) {
-                $libStatus = null; // Reseteamos para que caiga en la lógica natural del reproceso
+                $libStatus = null; // Reseteamos para que caiga en la lÃ³gica natural del reproceso
             }
         }
 
@@ -46,259 +47,270 @@ class FundicionStateService
     }
 
     /**
-     * Determina la clave de estado lógico (State Key) evaluando las condiciones del registro.
+     * Determina la clave de estado lÃ³gico (State Key) evaluando las condiciones del registro.
      */
     private static function determinarStateKey(FundicionHistory $reg, FundicionHistory $targetReg, array $aprobados, bool $isReproceso, ?string $libStatus, ?int $userPerfil): string
     {
-        // 1. Usar el nuevo modelo FSM estricto si está definido
-        if ($targetReg->estado_flujo) {
-            $key = match($targetReg->estado_flujo) {
-                \App\Enums\FundicionEstadoFlujo::CASTING_APROBADO => 'CASTING_APROBADO',
-                \App\Enums\FundicionEstadoFlujo::CASTING => 'CASTING',
-                \App\Enums\FundicionEstadoFlujo::APROBADO => 'CALIDAD_APROBADO',
-                \App\Enums\FundicionEstadoFlujo::RECHAZADO => 'CALIDAD_RECHAZADO',
-                \App\Enums\FundicionEstadoFlujo::MIXTO => 'CALIDAD_MIXTO',
-                \App\Enums\FundicionEstadoFlujo::REVISANDO => 'CALIDAD_REVISANDO',
-                \App\Enums\FundicionEstadoFlujo::CORREO_ENVIADO => in_array($userPerfil, [1, 3, 4]) ? 'RECIBIDO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_CORREO' : 'CORREO_ENVIADO'),
-                \App\Enums\FundicionEstadoFlujo::PRE_ORDEN => !$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_PRE_ORDEN' : 'PRE_ORDEN',
-                \App\Enums\FundicionEstadoFlujo::TIENE_MODELO => !$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_MODELO' : 'TIENE_MODELO',
-                \App\Enums\FundicionEstadoFlujo::NUEVO => 'NUEVO',
-                default => 'NUEVO',
-            };
+        $isCalidadUser = in_array($userPerfil, [3, 4, '3', '4']);
 
-            // Override visual para rechazos procesados
-            if ($reg->rechazos_procesados && !in_array($key, ['CASTING_APROBADO', 'CASTING'])) {
-                return count($aprobados) > 0 ? 'RECHAZOS_PROCESADOS_APROBADO' : 'RECHAZOS_PROCESADOS_RECHAZADO';
+        // 1. ENVIADO A PROVEEDOR (Casting Aprobado)
+        if ($libStatus === 'casting_aprobado' || $libStatus === FundicionStateConstants::CASTING_APROBADO) {
+            if (!$isReproceso || PreOrdenFundicion::where('ot', $reg->ot)->where('pdf_filename', 'LIKE', '%Casting%')->exists()) {
+                return 'ENVIADO_PROVEEDOR';
             }
-
-            // FIX: Si el estado_flujo es NUEVO pero Calidad ya respondió (ej. reproceso con
-            // estado_flujo='recibido' que aún no fue migrado al valor correcto), usar calidad_revision_status.
-            if ($key === 'NUEVO' && !empty($libStatus)) {
-                $calState = match($libStatus) {
-                    'calidad_aprobado', FundicionStateConstants::CALIDAD_APROBADO => 'CALIDAD_APROBADO',
-                    'calidad_rechazado', FundicionStateConstants::CALIDAD_RECHAZADO => 'CALIDAD_RECHAZADO',
-                    'calidad_mixto', FundicionStateConstants::CALIDAD_MIXTO => 'CALIDAD_MIXTO',
-                    'calidad_parcial', FundicionStateConstants::CALIDAD_PARCIAL => 'CALIDAD_APROBADO',
-                    'aprobado' => 'CALIDAD_APROBADO',
-                    'rechazado' => $isReproceso ? 'REPROCESO_RECHAZADO' : 'CALIDAD_RECHAZADO',
-                    'casting_aprobado', FundicionStateConstants::CASTING_APROBADO => 'CASTING_APROBADO',
-                    'pendiente', 'revisando' => 'CALIDAD_REVISANDO',
-                    default => null,
-                };
-                if ($calState !== null) {
-                    return $calState;
-                }
-            }
-
-            // FIX: Si es reproceso con estado_flujo=NUEVO y pre_orden_email_sent activo, 
-            // significa que ya se envió la alerta a Calidad.
-            if ($key === 'NUEVO' && $isReproceso && !empty($targetReg->alert_sent_at) && empty($libStatus)) {
-                if (in_array($userPerfil, [1, 3, 4])) {
-                    return 'RECIBIDO_CALIDAD';
-                }
-                return 'CORREO_ENVIADO';
-            }
-
-            return $key;
         }
 
-        // 2. Fallback a lógica legacy (basada en booleanos) para registros antiguos sin migrar
-        if ($libStatus === FundicionStateConstants::CASTING_APROBADO) {
-            return 'CASTING_APROBADO';
-        }
-        
+        // 2. CASTING Y ESCANEO DE CASTING
         if ($targetReg->casting_pdf_generated) {
-            return 'CASTING';
+            return 'POR_ESCANEAR_CASTING'; // Representa PFC generado pero falta firmar/escanear/enviar
         }
-        
-        if (in_array($libStatus, [FundicionStateConstants::CALIDAD_APROBADO, FundicionStateConstants::CALIDAD_PARCIAL])) {
-            return 'CALIDAD_APROBADO';
-        }
-        
-        if ($libStatus === FundicionStateConstants::CALIDAD_RECHAZADO) {
-            return 'CALIDAD_RECHAZADO';
-        }
-        
-        if ($libStatus === FundicionStateConstants::CALIDAD_MIXTO) {
-            return 'CALIDAD_MIXTO';
-        }
-        
-        if (in_array($libStatus, ['pendiente', 'aprobado', 'rechazado', 'mixto'])) {
-            return 'CALIDAD_REVISANDO';
-        }
-        
-        if ($targetReg->pre_orden_email_sent) {
-            if (in_array($userPerfil, [1, 3, 4])) {
-                return 'RECIBIDO_CALIDAD';
-            }
-            return !$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_CORREO' : 'CORREO_ENVIADO';
-        }
-        
-        if ($targetReg->pre_orden_sent) {
-            return !$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_PRE_ORDEN' : 'PRE_ORDEN';
-        }
-        
-        if ($targetReg->tiene_modelo) {
-            return !$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_MODELO' : 'TIENE_MODELO';
-        }
-        
+
+        // 3. REPROCESO (AlmacÃ©n procesÃ³ los rechazos de calidad y ya generÃ³ la OT hija)
         if ($reg->rechazos_procesados) {
             return count($aprobados) > 0 ? 'RECHAZOS_PROCESADOS_APROBADO' : 'RECHAZOS_PROCESADOS_RECHAZADO';
         }
-        
+
+        // 4. VEREDICTOS DE CALIDAD (Aprobado, Rechazado, Mixto)
+        if (in_array($libStatus, [FundicionStateConstants::CALIDAD_APROBADO, FundicionStateConstants::CALIDAD_PARCIAL, 'aprobado', 'calidad_aprobado'])) {
+            if ($targetReg->alerta_calidad_sent) {
+                return $isCalidadUser ? 'EN_ALMACEN' : 'LIBERADO_ALMACEN';
+            }
+            return 'LDM_GENERADO';
+        }
+        if (in_array($libStatus, [FundicionStateConstants::CALIDAD_RECHAZADO, 'rechazado', 'calidad_rechazado'])) {
+            if ($targetReg->alerta_calidad_sent) {
+                return $isCalidadUser ? 'EN_ALMACEN' : 'RECHAZADO_ALMACEN';
+            }
+            return 'RDM_GENERADO';
+        }
+        if (in_array($libStatus, [FundicionStateConstants::CALIDAD_MIXTO, 'mixto', 'calidad_mixto'])) {
+            if ($targetReg->alerta_calidad_sent) {
+                return $isCalidadUser ? 'EN_ALMACEN' : 'MIXTO_ALMACEN';
+            }
+            return 'CALIDAD_MIXTO';
+        }
+
+        // 5. EN REVISIÃN (Calidad estÃ¡ evaluando)
+        if (in_array($libStatus, ['pendiente', 'revisando', 'calidad_parcial'])) {
+            return 'CALIDAD_REVISANDO';
+        }
+
+        // 6. ACCIONES DE ALMACÃN ENVIADAS A CALIDAD
+        // A) Correo Enviado
+        if ($targetReg->pre_orden_email_sent) {
+            return $isCalidadUser ? 'POR_LIBERAR_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_CORREO' : 'CORREO_ENVIADO');
+        }
+
+        // B) Pre-Orden Generada pero NO enviada
+        if ($targetReg->pre_orden_sent) {
+            return $isCalidadUser ? 'PEND_CORREO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_PRE_ORDEN' : 'POR_ESCANEAR_PFM');
+        }
+
+        // C) Tengo Modelo Reportado
+        if ($targetReg->tiene_modelo) {
+            return $isCalidadUser ? 'PEND_CORREO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_MODELO' : 'TIENE_MODELO');
+        }
+
         if ($isReproceso && in_array($libStatus, [null, 'pendiente']) && !$targetReg->tiene_modelo && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) {
             return 'REPROCESO_RECHAZADO';
         }
-        
-        return 'NUEVO';
+
+        // DEFAULT
+        return $isCalidadUser ? 'PEND_ALMACEN_CALIDAD' : 'NUEVO';
     }
 
     /**
-     * Mapea la clave de estado a su configuración visual (UI) correspondiente.
+     * Mapea la clave de estado a su configuraciÃ³n visual (UI) correspondiente.
+     *
+     * FUENTE ÃNICA DE VERDAD de iconos y colores. Las guÃ­as de estados
+     * (almacen/partials/sidebar_legend.blade.php y calidad/partials/sidebar_legend.blade.php)
+     * y los stateMachine.js de ambos mÃ³dulos deben replicar EXACTAMENTE estos valores.
+     *
+     * Paleta (borde / fondo / texto) â un color distinto por estado visible:
+     *   Nuevo .............. sky     #0ea5e9 / #f0f9ff / #0369a1  (Recibido.png)
+     *   En Espera .......... gris    #a3a3a3 / #fafafa / #525252  (Espera.png)
+     *   Por Escanear ....... cyan    #06b6d4 / #ecfeff / #0e7490  (Escanear-icon.png)
+     *   Tengo Modelo ....... teal    #14b8a6 / #f0fdfa / #0f766e  (almacen.png)
+     *   En Calidad ......... indigo  #6366f1 / #eef2ff / #4338ca  (enviando.png)
+     *   Por Liberar ........ slate   #64748b / #f1f5f9 / #334155  (Recibido.png)
+     *   Enviado a Proveedor  purple  #9333ea / #faf5ff / #7e22ce  (Proveedor.png)
+     *   Reproceso .......... pink    #ec4899 / #fdf2f8 / #be185d  (Reproceso.png)
+     *   Aprobado ........... green   #22c55e / #f0fdf4 / #15803d  (Aprobado.png)
+     *   Rechazado .......... red     #ef4444 / #fef2f2 / #b91c1c  (Rechazado.png)
+     *   Mixto .............. yellow  #eab308 / #fefce8 / #854d0e  (reporte dimensional.png)
+     *   En RevisiÃ³n ........ amber   #f59e0b / #fffbeb / #b45309  (Revisando.png)
+     *   Proceso Parcial .... orange  #f97316 / #fff7ed / #c2410c  (Revisando.png)
      */
     private static function getUIConfig(string $stateKey): array
     {
         return match ($stateKey) {
-            'CASTING_APROBADO' => [
-                'fsmState' => FundicionStateConstants::FSM_CASTING_APROBADO,
+            'ENVIADO_PROVEEDOR' => [
+                'fsmState' => FundicionStateConstants::FSM_ENVIADO_PROVEEDOR,
                 'icon' => 'Proveedor.png',
                 'label' => 'Enviado a Proveedor',
                 'tooltip' => 'Pre-orden de casting enviada al proveedor, proceso finalizado',
                 'borderColor' => '#9333ea',
-                'bgColor' => '#f3e8ff',
-                'textColor' => '#9333ea',
+                'bgColor' => '#faf5ff',
+                'textColor' => '#7e22ce',
             ],
-            'CASTING' => [
-                'fsmState' => FundicionStateConstants::FSM_CASTING,
-                'icon' => 'pdf-view.png',
-                'label' => 'Casting',
-                'tooltip' => 'Pre-orden de casting generada, esperando envío',
-                'borderColor' => '#059669',
+            'POR_ESCANEAR_CASTING' => [
+                'fsmState' => FundicionStateConstants::FSM_POR_ESCANEAR,
+                'icon' => 'PFC-icon.png',
+                'label' => 'Pre-Orden de FabricaciÃ³n de Casting',
+                'tooltip' => 'Pre-orden generada, pendiente de firmar y enviar',
+                'borderColor' => '#84cc16',
+                'bgColor' => '#f7fee7',
+                'textColor' => '#4d7c0f',
+            ],
+            'LDM_GENERADO', 'RECHAZOS_PROCESADOS_APROBADO' => [
+                'fsmState' => FundicionStateConstants::FSM_LDM_GENERADO,
+                'icon' => 'LDM-icon.png',
+                'label' => 'Formato LDM',
+                'tooltip' => 'Modelo aprobado y liberado por Calidad (Formato LDM)',
+                'borderColor' => '#22c55e',
                 'bgColor' => '#f0fdf4',
                 'textColor' => '#15803d',
             ],
-            'CALIDAD_APROBADO' => [
-                'fsmState' => FundicionStateConstants::FSM_APROBADO,
-                'icon' => 'Quality.png',
-                'label' => 'Aprobado',
-                'tooltip' => 'Modelo aprobado y liberado por Calidad',
-                'borderColor' => '#10b981',
-                'bgColor' => '#ecfdf5',
-                'textColor' => '#047857',
+            'RDM_GENERADO' => [
+                'fsmState' => FundicionStateConstants::FSM_RDM_GENERADO,
+                'icon' => 'RDM-SCAR-icon.png',
+                'label' => 'Formato RDM y SCAR',
+                'tooltip' => 'Modelo rechazado por Calidad (Formato RDM/SCAR)',
+                'borderColor' => '#f43f5e',
+                'bgColor' => '#fff1f2',
+                'textColor' => '#be123c',
             ],
-            'CALIDAD_RECHAZADO' => [
-                'fsmState' => FundicionStateConstants::FSM_RECHAZADO,
-                'icon' => 'Quality.png',
+            'CALIDAD_MIXTO' => [
+                'fsmState' => FundicionStateConstants::FSM_MIXTO,
+                'icon' => 'Mixto.png',
+                'label' => 'Mixto',
+                'tooltip' => 'Liberaciï¿½n mixta por Calidad',
+                'borderColor' => '#eab308',
+                'bgColor' => '#fefce8',
+                'textColor' => '#854d0e',
+            ],
+            'LIBERADO_ALMACEN' => [
+                'fsmState' => FundicionStateConstants::FSM_LIBERADO_ALMACEN,
+                'icon' => 'Aprobado.png',
+                'label' => 'Liberado',
+                'tooltip' => 'OT aprobada y liberada por Calidad',
+                'borderColor' => '#22c55e',
+                'bgColor' => '#f0fdf4',
+                'textColor' => '#15803d',
+            ],
+            'RECHAZADO_ALMACEN' => [
+                'fsmState' => FundicionStateConstants::FSM_RECHAZADO_ALMACEN,
+                'icon' => 'Rechazado.png',
                 'label' => 'Rechazado',
-                'tooltip' => 'Modelo rechazado por Calidad debido a desviaciones',
+                'tooltip' => 'OT rechazada por Calidad',
                 'borderColor' => '#ef4444',
                 'bgColor' => '#fef2f2',
                 'textColor' => '#b91c1c',
             ],
-            'CALIDAD_MIXTO' => [
-                'fsmState' => FundicionStateConstants::FSM_MIXTO,
-                'icon' => 'Quality.png',
+            'MIXTO_ALMACEN' => [
+                'fsmState' => FundicionStateConstants::FSM_MIXTO_ALMACEN,
+                'icon' => 'Mixto.png',
                 'label' => 'Mixto',
-                'tooltip' => 'Liberación mixta por Calidad (clases aprobadas y rechazadas)',
+                'tooltip' => 'LiberaciÃ³n mixta por Calidad',
                 'borderColor' => '#eab308',
-                'bgColor' => '#fef9c3',
+                'bgColor' => '#fefce8',
                 'textColor' => '#854d0e',
+            ],
+            'EN_ALMACEN' => [
+                'fsmState' => FundicionStateConstants::FSM_EN_ALMACEN,
+                'icon' => 'almacen.png',
+                'label' => 'En AlmacÃ©n',
+                'tooltip' => 'Dictamen enviado a AlmacÃ©n',
+                'borderColor' => '#3b82f6',
+                'bgColor' => '#eff6ff',
+                'textColor' => '#1d4ed8',
             ],
             'CALIDAD_REVISANDO' => [
                 'fsmState' => FundicionStateConstants::FSM_REVISANDO,
                 'icon' => 'Revisando.png',
-                'label' => 'En Revisión',
-                'tooltip' => 'Calidad está realizando la revisión del modelo',
+                'label' => 'En RevisiÃ³n',
+                'tooltip' => 'Calidad estÃ¡ realizando la revisiÃ³n del modelo',
                 'borderColor' => '#f59e0b',
                 'bgColor' => '#fffbeb',
                 'textColor' => '#b45309',
             ],
-            'RECIBIDO_CALIDAD' => [
-                'fsmState' => FundicionStateConstants::FSM_RECIBIDO,
-                'icon' => 'Recibido.png',
-                'label' => 'Nuevo',
-                'tooltip' => 'Pre-orden de fabricación de modelo recibida, esperando revisión de Calidad',
-                'borderColor' => '#cbd5e1',
+            'POR_LIBERAR_CALIDAD' => [
+                'fsmState' => FundicionStateConstants::FSM_POR_LIBERAR,
+                'icon' => 'por_liberar_icon.png',
+                'label' => 'Por Liberar',
+                'tooltip' => 'Correo de notificaciÃ³n recibido, listo para revisiÃ³n de Calidad',
+                'borderColor' => '#64748b',
                 'bgColor' => '#f1f5f9',
-                'textColor' => '#64748b',
+                'textColor' => '#334155',
             ],
             'CORREO_ENVIADO' => [
                 'fsmState' => FundicionStateConstants::FSM_CORREO_ENVIADO,
-                'icon' => 'enviando.png',
-                'label' => 'Correo Enviado',
-                'tooltip' => 'Pre-orden enviada por correo electrónico, esperando revisión de Calidad',
-                'borderColor' => '#818cf8',
-                'bgColor' => '#e0e7ff',
-                'textColor' => '#4f46e5',
+                'icon' => 'Quality.png',
+                'label' => 'En Calidad',
+                'tooltip' => 'Correo enviado, en espera de revisiÃ³n por Calidad',
+                'borderColor' => '#6366f1',
+                'bgColor' => '#eef2ff',
+                'textColor' => '#4338ca',
             ],
-            'PRE_ORDEN' => [
-                'fsmState' => FundicionStateConstants::FSM_PRE_ORDEN,
-                'icon' => 'pdf-view.png',
-                'label' => 'Pre-Orden',
-                'tooltip' => 'Pre-orden de modelo generada y guardada, pendiente de enviar',
-                'borderColor' => '#60a5fa',
-                'bgColor' => '#eff6ff',
-                'textColor' => '#2563eb',
+            'PEND_CORREO_CALIDAD', 'PEND_ALMACEN_CALIDAD' => [
+                'fsmState' => FundicionStateConstants::FSM_ESPERA,
+                'icon' => 'Espera.png',
+                'label' => 'En Espera',
+                'tooltip' => 'En espera de la otra Ã¡rea',
+                'borderColor' => '#a3a3a3',
+                'bgColor' => '#fafafa',
+                'textColor' => '#525252',
+            ],
+            'POR_ESCANEAR_PFM' => [
+                'fsmState' => FundicionStateConstants::FSM_POR_ESCANEAR,
+                'icon' => 'PFM-icon.png',
+                'label' => 'Pre-Orden de FabricaciÃ³n de Modelo',
+                'tooltip' => 'Pre-orden generada, pendiente de firmar y enviar',
+                'borderColor' => '#8b5cf6',
+                'bgColor' => '#f5f3ff',
+                'textColor' => '#6d28d9',
             ],
             'TIENE_MODELO' => [
                 'fsmState' => FundicionStateConstants::FSM_TIENE_MODELO,
-                'icon' => 'Espera.png',
+                'icon' => 'perspectiva-icon.png',
                 'label' => 'Tengo Modelo',
-                'tooltip' => 'Modelo físico disponible en Almacén, en espera de revisión por Calidad',
-                'borderColor' => '#0ea5e9',
-                'bgColor' => '#f0f9ff',
-                'textColor' => '#0369a1',
+                'tooltip' => 'Modelo fÃ­sico disponible, pendiente de procesar',
+                'borderColor' => '#14b8a6',
+                'bgColor' => '#f0fdfa',
+                'textColor' => '#0f766e',
             ],
-            'PROCESO_PARCIAL_CORREO' => [
-                'fsmState' => FundicionStateConstants::FSM_REVISANDO,
-                'icon' => 'Revisando.png',
+            'PROCESO_PARCIAL_CORREO', 'PROCESO_PARCIAL_PRE_ORDEN', 'PROCESO_PARCIAL_MODELO' => [
+                'fsmState' => FundicionStateConstants::FSM_PROCESO_PARCIAL,
+                'icon' => 'proceso_parcial-icon.png',
                 'label' => 'Proceso Parcial',
-                'tooltip' => 'Pre-orden parcial enviada, esperando clases restantes o revisión',
-                'borderColor' => '#f59e0b',
-                'bgColor' => '#fffbeb',
-                'textColor' => '#b45309',
-            ],
-            'PROCESO_PARCIAL_PRE_ORDEN' => [
-                'fsmState' => FundicionStateConstants::FSM_REVISANDO,
-                'icon' => 'Revisando.png',
-                'label' => 'Proceso Parcial',
-                'tooltip' => 'Pre-orden parcial generada, esperando procesar el resto de las clases',
-                'borderColor' => '#f59e0b',
-                'bgColor' => '#fffbeb',
-                'textColor' => '#b45309',
-            ],
-            'PROCESO_PARCIAL_MODELO' => [
-                'fsmState' => FundicionStateConstants::FSM_REVISANDO,
-                'icon' => 'Revisando.png',
-                'label' => 'Proceso Parcial',
-                'tooltip' => 'Clases parciales indicadas con modelo físico, esperando las demás',
-                'borderColor' => '#f59e0b',
-                'bgColor' => '#fffbeb',
-                'textColor' => '#b45309',
-            ],
-            'RECHAZOS_PROCESADOS_APROBADO' => [
-                'fsmState' => FundicionStateConstants::FSM_APROBADO,
-                'icon' => 'Quality.png',
-                'label' => 'Aprobado',
-                'tooltip' => 'Clases aprobadas se conservan en este registro',
-                'borderColor' => '#10b981',
-                'bgColor' => '#ecfdf5',
-                'textColor' => '#047857',
+                'tooltip' => 'Proceso parcial, esperando las demÃ¡s clases',
+                'borderColor' => '#f97316',
+                'bgColor' => '#fff7ed',
+                'textColor' => '#c2410c',
             ],
             'RECHAZOS_PROCESADOS_RECHAZADO', 'REPROCESO_RECHAZADO' => [
-                'fsmState' => FundicionStateConstants::FSM_RECHAZADO,
-                'icon' => 'Rechazado.png',
-                'label' => 'Rechazado',
+                'fsmState' => FundicionStateConstants::FSM_REPROCESO,
+                'icon' => 'Reproceso.png',
+                'label' => 'Reproceso',
                 'tooltip' => 'Retornado hacia un nuevo ciclo de modelo (Reproceso)',
-                'borderColor' => '#dc2626',
-                'bgColor' => '#fef2f2',
-                'textColor' => '#b91c1c',
+                'borderColor' => '#ec4899',
+                'bgColor' => '#fdf2f8',
+                'textColor' => '#be185d',
             ],
             'NUEVO' => [
                 'fsmState' => FundicionStateConstants::FSM_RECIBIDO,
                 'icon' => 'Recibido.png',
                 'label' => 'Nuevo',
-                'tooltip' => 'Alerta inicial recibida, pendiente de procesar modelo por Almacén',
+                'tooltip' => 'Nueva OT recibida sin acciones registradas',
+                'borderColor' => '#0ea5e9',
+                'bgColor' => '#f0f9ff',
+                'textColor' => '#0369a1',
+            ],
+            default => [
+                'fsmState' => FundicionStateConstants::FSM_RECIBIDO,
+                'icon' => 'Recibido.png',
+                'label' => 'Desconocido',
+                'tooltip' => 'Estado no determinado',
                 'borderColor' => '#cbd5e1',
                 'bgColor' => '#f1f5f9',
                 'textColor' => '#64748b',

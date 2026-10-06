@@ -968,7 +968,7 @@ class PlaneacionChecklistCard {
 
     _startPolling() {
         this._poll();
-        this._pollTimer = setInterval(() => this._poll(), 5_000);
+        this._pollTimer = setInterval(() => this._poll(), 30_000);
     }
 
     async _poll() {

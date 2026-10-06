@@ -63,14 +63,14 @@ class FundicionStateConstants
     /** Almacén envió la pre-orden de modelo por correo a Calidad. */
     const FSM_CORREO_ENVIADO = 'correo_enviado';
 
-    /** Calidad está revisando el modelo (tiene registros de liberación pendientes). */
+    /** Calidad está revisando el modelo o hay procesos parciales en espera. */
     const FSM_REVISANDO = 'revisando';
 
-    /** Calidad aprobó el/los modelo(s). */
-    const FSM_APROBADO = 'aprobado';
+    /** Formato LDM generado por Calidad (Aprobado). */
+    const FSM_LDM_GENERADO = 'ldm_generado';
 
-    /** Calidad rechazó el/los modelo(s). */
-    const FSM_RECHAZADO = 'rechazado';
+    /** Formato RDM/SCAR generado por Calidad (Rechazado). */
+    const FSM_RDM_GENERADO = 'rdm_generado';
 
     /** Resultado mixto: algunas clases aprobadas, otras rechazadas. */
     const FSM_MIXTO = 'mixto';
@@ -79,7 +79,34 @@ class FundicionStateConstants
     const FSM_CASTING = 'casting';
 
     /** Almacén envió la pre-orden de Casting al proveedor. Estado final. */
-    const FSM_CASTING_APROBADO = 'casting_aprobado';
+    const FSM_ENVIADO_PROVEEDOR = 'enviado_proveedor';
+
+    /** Se ha generado el documento (PFM o PFC) pero falta firmarlo/escanearlo. */
+    const FSM_POR_ESCANEAR = 'por_escanear';
+
+    /** Estado de transición: esperando acción del otro departamento. */
+    const FSM_ESPERA = 'espera';
+
+    /** La OT fue retornada a un nuevo ciclo de modelo (Reproceso). */
+    const FSM_REPROCESO = 'reproceso';
+
+    /** Proceso parcial: faltan clases por procesar en Almacén. */
+    const FSM_PROCESO_PARCIAL = 'proceso_parcial';
+
+    /** Calidad recibió el correo de Almacén y la OT está lista para liberar. */
+    const FSM_POR_LIBERAR = 'por_liberar';
+
+    /** Calidad envió el dictamen de regreso a Almacén (Estado visto por Calidad). */
+    const FSM_EN_ALMACEN = 'en_almacen';
+
+    /** Almacén recibe OT liberada por Calidad. */
+    const FSM_LIBERADO_ALMACEN = 'liberado_almacen';
+
+    /** Almacén recibe OT rechazada por Calidad. */
+    const FSM_RECHAZADO_ALMACEN = 'rechazado_almacen';
+
+    /** Almacén recibe OT mixta por Calidad. */
+    const FSM_MIXTO_ALMACEN = 'mixto_almacen';
 
     // =========================================================================
     // GRUPOS DE ESTADOS PARA COMPARACIONES

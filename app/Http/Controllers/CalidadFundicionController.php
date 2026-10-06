@@ -167,33 +167,16 @@ class CalidadFundicionController extends Controller
             }
         }
 
-        $todasLasClases = [
-            '1 - MOLDES',
-            '2 - BOMBILLO',
-            '3 - CAJA DE CORAZON',
-            '4 - MODELO',
-            '5 - PLATO',
-            '6 - CORONA',
-            '7 - EMBUDO',
-            '8 - CUELLO',
-            '9 - GUIA',
-            '10 - RETENEDOR',
-            '11 - OBTURADOR',
-            '12 - CANDADO OBTURADOR',
-            '13 - BOTON DE SOPLO',
-            '14 - CABEZA DE SOPLO',
-            '15 - DIFUSOR',
-            '16 - PISTON',
-            '17 - PORTA PISTON',
-            '18 - ENFRIADOR',
-            '19 - DISCO BOMBA',
-            '20 - TAZA BOMBA',
-            '21 - BAFLE',
-            'N/A'
-        ];
+        $todasLasClases = array_values(array_unique(FundicionPaths::getStandardMap()));
+        $todasLasClases[] = 'N/A';
 
         $activeClasses = [];
-        if ($history && !empty($history->ayudas_config)) {
+        $reqTipoModelo = $request->query('tipo_modelo', '');
+        if (!empty($reqTipoModelo)) {
+            $activeClasses = array_map('strtolower', array_unique(array_filter(array_map('trim', explode(',', $reqTipoModelo)))));
+        }
+
+        if (empty($activeClasses) && $history && !empty($history->ayudas_config)) {
             $config = is_string($history->ayudas_config) ? json_decode((string) $history->ayudas_config, true) : $history->ayudas_config;
             if (is_array($config) && !empty($config)) {
                 $activeClasses = array_map('strtolower', $config);
@@ -441,7 +424,7 @@ class CalidadFundicionController extends Controller
                         $files = collect(Storage::disk('local')->allFiles($scanPath))
                             ->filter(function ($f) use ($relatedOt, $ot, $activeClasses, $scanPath, $todasLasClases) {
                                 $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                                $isDoc = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                $isDoc = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'dwg']);
                                 if (!$isDoc)
                                     return false;
 
@@ -481,7 +464,7 @@ class CalidadFundicionController extends Controller
                                 if ($hasKnownClass) {
                                     $matchesActive = false;
                                     foreach ($activeClasses as $ac) {
-                                        $acTrimmed = trim($ac);
+                                        $acTrimmed = strtolower(trim($ac));
                                         if (!empty($acTrimmed) && strpos($fileLower, $acTrimmed) !== false) {
                                             $matchesActive = true;
                                             break;
@@ -790,6 +773,8 @@ class CalidadFundicionController extends Controller
             'png' => 'image/png',
             'gif' => 'image/gif',
             'webp' => 'image/webp',
+            'bmp' => 'image/bmp',
+            'dwg' => 'image/vnd.dwg',
         ];
         $mimeType = $mimeMap[$ext] ?? (mime_content_type($fullPath) ?: 'application/octet-stream');
 
@@ -1179,7 +1164,7 @@ class CalidadFundicionController extends Controller
         };
 
         $tipo = $request->input('tipo_modelo');
-        $tipoLower = strtolower((string)$tipo);
+        $tipoLower = strtolower((string) $tipo);
         $isMoldeOrBombillo = str_contains($tipoLower, 'molde') || str_contains($tipoLower, 'bombillo');
         $isObturador = str_contains($tipoLower, 'obturador') && !str_contains($tipoLower, 'candado');
 
@@ -1211,7 +1196,7 @@ class CalidadFundicionController extends Controller
         if (in_array($accion, ['aprobar', 'rechazar'])) {
             $actualizacion['fecha_revision'] = now();
         }
-        
+
         // Solo toca los campos del tipo seleccionado (usando las reglas sincronizadas con js)
         if ($isMoldeOrBombillo) {
             $actualizacion['medidas_modelo'] = $sanitizarMedidas($request->input('modelo'));
@@ -1242,7 +1227,7 @@ class CalidadFundicionController extends Controller
             $otSanitizada = preg_replace('/[^\w]+/', '_', trim($ot));
             $otSanitizada = trim($otSanitizada, '_');
             $fmtCode = ($decision === 'aprobar') ? 'LDM' : 'RDM';
-            
+
             // Reemplazar PDM por LDM/RDM (y PDC por LDC/RDC) en la OT
             $suffixCast = ($fmtCode === 'LDM') ? 'LDC' : 'RDC';
             $otSanitizada = str_ireplace(['_PDM', '_PDC'], ["_{$fmtCode}", "_{$suffixCast}"], $otSanitizada);
@@ -1253,7 +1238,8 @@ class CalidadFundicionController extends Controller
             // Obtener el formato de clase como "1_MOLDE"
             $folderNameForFmt = $this->sanitizePath($this->normalizeOTName($ot));
             $cCleanFmt = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($tipo))));
-            if (empty($cCleanFmt)) $cCleanFmt = 'GENERAL';
+            if (empty($cCleanFmt))
+                $cCleanFmt = 'GENERAL';
             $estructuraFmt = FundicionPaths::crearEstructuraClase($folderNameForFmt, $cCleanFmt, self::CALIDAD_DIR);
             $tipoLabel = strtoupper(str_replace([' - ', ' '], '_', $estructuraFmt));
 
@@ -1645,13 +1631,14 @@ class CalidadFundicionController extends Controller
             // ── Generar el PDF ──────────────────────────────────────────
             $clasesStr = $request->input('tipo_modelo') ?: ($liberacion?->tipo_modelo ?? 'general');
             $clases = array_map('trim', explode(',', $clasesStr));
-            
+
             $folderName = $this->sanitizePath($this->normalizeOTName($ot));
-            
+
             $clasesTagFormateadas = [];
             foreach ($clases as $clase) {
                 $cClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
-                if (empty($cClean)) $cClean = 'GENERAL';
+                if (empty($cClean))
+                    $cClean = 'GENERAL';
                 $estructura = FundicionPaths::crearEstructuraClase($folderName, $cClean, self::CALIDAD_DIR);
                 // Convert "1 - Molde" to "1_MOLDE"
                 $clasesTagFormateadas[] = strtoupper(str_replace([' - ', ' '], '_', $estructura));
@@ -1661,7 +1648,7 @@ class CalidadFundicionController extends Controller
             // Reemplazar SCAR anterior de la misma OT en el disco
             $otSanitizada = preg_replace('/[^\w\s\-]/', '', $ot);
             $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
-            
+
             // Reemplazar PDM por RDM (y PDC por RDC) para documentos rechazados
             $otSanitizadaRechazo = str_ireplace(['_PDM', '_PDC'], ['_RDM', '_RDC'], $otSanitizada);
             if (!str_contains(strtoupper($otSanitizadaRechazo), 'RDM') && !str_contains(strtoupper($otSanitizadaRechazo), 'RDC')) {
@@ -2583,22 +2570,40 @@ class CalidadFundicionController extends Controller
         }
         $files = array_unique($files);
 
-        $dibujosSelected = $request->input('dibujos', []);
-        $ayudasSelected = $request->input('ayudas', []);
-        $otrosSelected = $request->input('otros_documentos', []);
-        $dibujosAprobadosSelected = $request->input('dibujos_aprobados', []);
-        $dibujosRechazadosSelected = $request->input('dibujos_rechazados', []);
+        $dibujosSelected = array_map('strtolower', (array) $request->input('dibujos', []));
+        $ayudasSelected = array_map('strtolower', (array) $request->input('ayudas', []));
+        $otrosSelected = array_map('strtolower', (array) $request->input('otros_documentos', []));
+        $dibujosAprobadosSelected = array_map('strtolower', (array) $request->input('dibujos_aprobados', []));
+        $dibujosRechazadosSelected = array_map('strtolower', (array) $request->input('dibujos_rechazados', []));
 
         foreach ($files as $file) {
             $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
-            if (in_array($ext, ['pdf', 'png', 'jpg', 'jpeg'])) {
+            if (in_array($ext, ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'])) {
                 // Normalizar ruta para evitar problemas con contrabarras en Windows
                 $fNorm = str_replace('\\', '/', $file);
 
                 // Determinar la ruta relativa exacta que coincide con la devuelta por getFiles
                 $relName = '';
-                $dirAlmacenNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $folderName);
-                $dirCalidadNorm = str_replace('\\', '/', self::CALIDAD_DIR . '/' . $folderName);
+
+                // Buscar a qué carpeta de OT relacionada pertenece realmente el archivo
+                $matchedRelFolder = $folderName;
+                $sortedFolders = [];
+                foreach ($allOtNamesForSearch as $relatedOt) {
+                    $sortedFolders[] = $this->sanitizePath($this->normalizeOTName($relatedOt));
+                }
+                usort($sortedFolders, fn($a, $b) => strlen($b) - strlen($a));
+
+                foreach ($sortedFolders as $rf) {
+                    $rfAlmacen = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $rf);
+                    $rfCalidad = str_replace('\\', '/', self::CALIDAD_DIR . '/' . $rf);
+                    if (str_starts_with($fNorm, $rfAlmacen) || str_starts_with($fNorm, $rfCalidad)) {
+                        $matchedRelFolder = $rf;
+                        break;
+                    }
+                }
+
+                $dirAlmacenNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $matchedRelFolder);
+                $dirCalidadNorm = str_replace('\\', '/', self::CALIDAD_DIR . '/' . $matchedRelFolder);
 
                 if (str_starts_with($fNorm, $dirAlmacenNorm)) {
                     $subPath = ltrim(substr($fNorm, strlen($dirAlmacenNorm)), '/');
@@ -2642,15 +2647,17 @@ class CalidadFundicionController extends Controller
                     'mime' => $mimeType
                 ];
 
+                $lowerRelName = strtolower($utf8RelName);
+
                 // Agregar a aprobados si está seleccionado en aprobados o dibujos/ayudas/otros generales de aprobación
-                $isSelAprobado = in_array($utf8RelName, $dibujosAprobadosSelected) ||
-                    in_array($utf8RelName, $dibujosSelected) ||
-                    in_array($utf8RelName, $ayudasSelected) ||
-                    in_array($utf8RelName, $otrosSelected) ||
-                    ($decision === 'aprobar' && in_array($utf8RelName, $dibujosRechazadosSelected));
+                $isSelAprobado = in_array($lowerRelName, $dibujosAprobadosSelected) ||
+                    in_array($lowerRelName, $dibujosSelected) ||
+                    in_array($lowerRelName, $ayudasSelected) ||
+                    in_array($lowerRelName, $otrosSelected) ||
+                    ($decision === 'aprobar' && in_array($lowerRelName, $dibujosRechazadosSelected));
 
                 // Agregar a rechazados si está seleccionado en rechazados
-                $isSelRechazado = in_array($utf8RelName, $dibujosRechazadosSelected);
+                $isSelRechazado = in_array($lowerRelName, $dibujosRechazadosSelected);
 
                 if (!$isSelAprobado && !$isSelRechazado) {
                     continue;

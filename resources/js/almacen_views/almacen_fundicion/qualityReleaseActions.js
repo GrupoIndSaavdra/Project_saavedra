@@ -10,26 +10,30 @@ window._libFiltrarTiposModelo = function (clasesActivas, todasClases) {
     const tiposConfigurados = new Set();
     const clasesAUsar = todasClases && todasClases.length > 0 ? todasClases : clasesActivas;
     if (clasesAUsar && clasesAUsar.length > 0) {
-        clasesAUsar.forEach((clase) => {
-            const clLow = clase.toLowerCase();
-            for (let k of knownKeys) {
-                if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
-                    tiposConfigurados.add(k);
-                    break;
+        clasesAUsar.forEach((claseStr) => {
+            const partes = claseStr.split(',').map(s => s.trim().toLowerCase());
+            partes.forEach(clLow => {
+                for (let k of knownKeys) {
+                    if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
+                        tiposConfigurados.add(k);
+                        break;
+                    }
                 }
-            }
+            });
         });
     }
     const tiposActivos = new Set();
     if (clasesActivas && clasesActivas.length > 0) {
-        clasesActivas.forEach((clase) => {
-            const clLow = clase.toLowerCase();
-            for (let k of knownKeys) {
-                if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
-                    tiposActivos.add(k);
-                    break;
+        clasesActivas.forEach((claseStr) => {
+            const partes = claseStr.split(',').map(s => s.trim().toLowerCase());
+            partes.forEach(clLow => {
+                for (let k of knownKeys) {
+                    if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
+                        tiposActivos.add(k);
+                        break;
+                    }
                 }
-            }
+            });
         });
     }
     select.querySelectorAll("option").forEach((opt) => {
@@ -578,7 +582,8 @@ window.abrirModalEnviarAlertaLiberacion = function (
     if (sA) sA.innerHTML = loadHtml;
     if (sR) sR.innerHTML = loadHtml;
     
-    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+    const strTipoModeloAl = [...arrAprobados, ...arrRechazados].join(", ");
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&tipo_modelo=${encodeURIComponent(strTipoModeloAl)}&_t=${Date.now()}`)
         .then((r) => r.json())
         .then((data) => {
             let cardsA = "", cardsR = "";
@@ -846,7 +851,8 @@ window.abrirModalFinalizarCalidad = function (
     const emptyHtml2 = `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
     if (filesContainer) filesContainer.innerHTML = loadHtml2;
     
-    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+    const strTipoModelo = [...arrAprobados, ...arrRechazados].join(", ");
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&tipo_modelo=${encodeURIComponent(strTipoModelo)}&_t=${Date.now()}`)
         .then((r) => r.json())
         .then((data) => {
             if (data.existe && data.archivos?.length > 0) {

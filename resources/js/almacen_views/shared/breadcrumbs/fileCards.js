@@ -319,19 +319,19 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
 
             return `
                 <div class="dibujos-file-card ${colorClass} select-file-card ${checkedClass}"
-                     style="position:relative;width:100%;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);box-sizing:border-box;background:transparent;padding:10px;border:1.5px solid #e2e8f0;">
+                     style="position:relative;width:100%;max-width:220px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 6px rgba(0,0,0,0.05);box-sizing:border-box;background:#ffffff;padding:10px;border:1.5px solid #e2e8f0;">
                     <div style="position:absolute;top:10px;left:10px;z-index:10;">
                         <input type="checkbox" name="${inputName}" value="${f.nombre}" ${checkedAttr}
                                style="width:20px;height:20px;cursor:pointer;"
                                onchange="this.closest('.select-file-card').classList.toggle('checked-card',this.checked);">
                     </div>
-                    <div class="file-icon-wrapper"
+                    <div class="file-icon-wrapper cal-cursor-pointer"
                          onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')"
-                         style="cursor:pointer;margin-top:10px;" title="${titleAttr}">
-                        <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width:48px;height:auto;">
-                        <img src="${baseUrl}images/${hoverIcon}"   class="file-icon icon-hover"   style="width:48px;height:auto;">
+                         style="cursor:pointer;margin-top:10px;width:48px;height:48px;position:relative;" title="${titleAttr}">
+                        <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width:100%;height:100%;object-fit:contain;">
+                        <img src="${baseUrl}images/${hoverIcon}"   class="file-icon icon-hover"   style="width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;">
                     </div>
-                    <div class="file-name"
+                    <div class="file-name cal-cursor-pointer"
                          style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;"
                          title="${titleAttr}"
                          onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')">
@@ -340,22 +340,31 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
                     <div class="file-actions" style="width:100%;margin-top:auto;display:flex;gap:5px;">
                         <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color"
                                 style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;"
-                                onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')">${btnText}</button>
+                                onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')" title="${titleAttr}">${btnText}</button>
                         ${mostrarEliminar ? `
-                        <button type="button" class="btn-dibujos btn-dibujos-sm"
+                        <button type="button" class="btn-dibujos btn-dibujos-sm btn-eliminar"
                                 style="font-size:0.8em;padding:5px 8px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;flex:1;background:#dc2626;color:white;border:none;cursor:pointer;"
-                                onclick="window.eliminarArchivoServidorCategorizado('${safeOt}','${safeName}','${safeTipo}')">Eliminar</button>
+                                onclick="window.eliminarArchivoServidorCategorizado('${safeOt}','${safeName}','${safeTipo}')" title="Eliminar archivo">Eliminar</button>
                         ` : ""}
                     </div>
                 </div>`;
         }).join("");
+
+        let bgStyle = "background-color: transparent; border: 1px solid #e2e8f0;";
+        if (tLow.includes("aprobados") || tLow.includes("liberación") || tLow.includes("liberados")) {
+            bgStyle = "background-color: #f0fdf4; border: 2px solid #10b981; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.05);";
+        } else if (tLow.includes("rechazados") || tLow.includes("scar")) {
+            bgStyle = "background-color: #fef2f2; border: 2px solid #ef4444; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.05);";
+        } else if (tLow.includes("dibujos") || tLow.includes("planos") || tLow.includes("ayudas")) {
+            bgStyle = "background-color: #f0f9ff; border: 2px solid #38bdf8; box-shadow: 0 4px 10px rgba(56, 189, 248, 0.05);";
+        }
 
         return `
             <div style="margin-bottom: 15px;">
                 <h4 style="margin: 0 0 10px 0; color: #033966; font-size: 0.95em; border-bottom: 2px solid ${borderColor}; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px;">
                     ${title}
                 </h4>
-                <div style="display: flex; flex-wrap: wrap; background-color: transparent; border: 1px solid #e2e8f0; padding: 15px; border-radius: 8px; gap: 10px;">
+                <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 10px; ${bgStyle}">
                     ${cards}
                 </div>
             </div>
@@ -379,10 +388,13 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
     let html = "";
     html += makeCategorySection("Dibujos de Fundición",  dibujosPdfs,   n.dibujos,    "card-plano");
     html += makeCategorySection("Ayudas Visuales",       ayudasPdfs,    n.ayudas,     "card-ayuda");
-    html += makeCategorySection("Pre-órdenes / Documentos Aprobados", aprobadosPdfs, n.aprobados, "card-ayuda");
+    const tituloAprob = inputNameMode === "calidad"
+        ? "Documentos Aprobados (F_CCL_LDM)"
+        : "Pre-órdenes / Documentos Aprobados";
+    html += makeCategorySection(tituloAprob, aprobadosPdfs, n.aprobados, "card-ayuda");
 
     const tituloRech = inputNameMode === "calidad"
-        ? "Documentos Rechazados"
+        ? "Documentos Rechazados (F_CCL_RDM y SCAR)"
         : "Documentos Rechazados (SCAR / RDM)";
     html += makeCategorySection(tituloRech, rechazadosPdfs, n.rechazados, "card-ayuda");
 

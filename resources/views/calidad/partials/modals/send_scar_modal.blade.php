@@ -1,6 +1,7 @@
-    <div id="modalEnviarScar" class="alm-modal" role="dialog" aria-modal="true">
+    <div id="modalEnviarScar" class="alm-modal" role="dialog" aria-modal="true" style="padding: 0;">
 
-        <div class="alm-modal-content lib-modal-content cal-max-width-1100px">
+        <div class="alm-modal-content lib-modal-content cal-max-width-1100px cal-overflow-hidden"
+            style="max-width: 1100px; width: 95vw; max-height: 95vh; height: 95vh; display: flex; flex-direction: column; margin: auto;">
             <div class="alm-modal-header lib-modal-header lib-modal-header-rechazo" id="env-scar-header">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarScar()">
@@ -13,10 +14,14 @@
                 </p>
             </div>
 
-            <div class="alm-modal-body lib-modal-body">
+            <div class="alm-modal-body lib-modal-body"
+                style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; padding-bottom: 0;">
 
-                <form id="formEnviarScar" enctype="multipart/form-data" autocomplete="off">
-                    <input type="hidden" id="env-scar-ot" name="ot" />
+                <form id="formEnviarScar" enctype="multipart/form-data" autocomplete="off"
+                    style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                    
+                    <div style="flex: 1; overflow-y: auto; padding-right: 8px; padding-bottom: 20px;">
+                        <input type="hidden" id="env-scar-ot" name="ot" />
 
                     {{-- Destinatario Removido para uso de .env --}}
 
@@ -26,14 +31,15 @@
                             class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-4px">
                             Fecha Compromiso de Devolución (Obligatoria):
                         </label>
-                        <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso" class="form-control"
-                            required />
+                        <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso"
+                            class="form-control" required />
                     </div>
 
                     {{-- SCAR Firmado --}}
                     <div class="form-group cal-margin-bottom-20px">
                         <label for="env-scar-pdf-firmado"
-                            class="cal-font-weight-700 cal-color-9c0300 cal-display-block cal-margin-bottom-8px">Subir SCAR
+                            class="cal-font-weight-700 cal-color-9c0300 cal-display-block cal-margin-bottom-8px">Subir
+                            SCAR
                             Firmado Físicamente (PDF Obligatorio):
                             <span class="cal-color-9c0300">*</span></label>
                         <div
@@ -70,7 +76,8 @@
                             <div
                                 class="alm-spinner cal-border-top-color-9c0300 cal-display-block cal-margin-10px-auto cal-grid-column-1-1">
                             </div>
-                            <span class="cal-text-align-center cal-color-64748b cal-grid-column-1-1">Cargando archivos de
+                            <span class="cal-text-align-center cal-color-64748b cal-grid-column-1-1">Cargando archivos
+                                de
                                 la
                                 OT...</span>
                         </div>
@@ -101,11 +108,13 @@
                         <div id="env-scar-archivos-adicionales-list"
                             class="cal-margin-top-10px cal-display-flex cal-flex-wrap-wrap cal-gap-8px"></div>
                     </div>
-
+                    </div>
+                    
                     {{-- Boton de Envio --}}
-                    <div class="form-actions cal-text-align-center cal-margin-top-20px">
+                    <div class="form-actions cal-text-align-center cal-margin-top-12px" style="flex-shrink: 0; padding: 15px 0; border-top: 1px solid #e2e8f0; background: #fff; margin: 0; height: max-content;">
                         <button type="submit" id="btn-submit-scar" disabled
-                            class="btn-lib-send cal-background-linear-gradient-135deg-9c0300-7a0200 cal-box-shadow-0-4px-15px-rgba-156-3-0-0-3">
+                            class="btn-lib-send cal-background-linear-gradient-135deg-9c0300-7a0200 cal-box-shadow-0-4px-15px-rgba-156-3-0-0-3"
+                            style="margin: 0; display: inline-flex; align-items: center; justify-content: center; padding: 11px 44px; border-radius: 10px;">
                             Enviar Alerta SCAR al Proveedor
                         </button>
                     </div>
@@ -113,45 +122,45 @@
             </div>
         </div>
     </div>
-<script>
-document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("formEnviarScar");
-    if(!form) return;
-    const btn = document.getElementById("btn-submit-scar");
-    
-    // Marcar los campos que originalmente son requeridos
-    const allRequired = form.querySelectorAll("input[required], select[required], textarea[required]");
-    allRequired.forEach(input => input.setAttribute("data-was-required", "true"));
-    
-    function checkScarValidity() {
-        if(!btn) return;
-        
-        let isValid = true;
-        const checkInputs = form.querySelectorAll("[data-was-required='true']");
-        
-        checkInputs.forEach(input => {
-            if (input.offsetParent === null) {
-                input.removeAttribute("required");
-            } else {
-                input.setAttribute("required", "required");
-                if (!input.value.trim()) isValid = false;
-            }
-        });
-        
-        if (isValid) {
-            btn.disabled = false;
-            btn.style.opacity = "1";
-            btn.style.cursor = "pointer";
-        } else {
-            btn.disabled = true;
-            btn.style.opacity = "0.6";
-            btn.style.cursor = "not-allowed";
-        }
-    }
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const form = document.getElementById("formEnviarScar");
+            if (!form) return;
+            const btn = document.getElementById("btn-submit-scar");
 
-    form.addEventListener("input", checkScarValidity);
-    form.addEventListener("change", checkScarValidity);
-    
-    setInterval(checkScarValidity, 500);
-});
-</script>
+            // Marcar los campos que originalmente son requeridos
+            const allRequired = form.querySelectorAll("input[required], select[required], textarea[required]");
+            allRequired.forEach(input => input.setAttribute("data-was-required", "true"));
+
+            function checkScarValidity() {
+                if (!btn) return;
+
+                let isValid = true;
+                const checkInputs = form.querySelectorAll("[data-was-required='true']");
+
+                checkInputs.forEach(input => {
+                    if (input.offsetParent === null) {
+                        input.removeAttribute("required");
+                    } else {
+                        input.setAttribute("required", "required");
+                        if (!input.value.trim()) isValid = false;
+                    }
+                });
+
+                if (isValid) {
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                    btn.style.cursor = "pointer";
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = "0.6";
+                    btn.style.cursor = "not-allowed";
+                }
+            }
+
+            form.addEventListener("input", checkScarValidity);
+            form.addEventListener("change", checkScarValidity);
+
+            setInterval(checkScarValidity, 500);
+        });
+    </script>

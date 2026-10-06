@@ -1,6 +1,7 @@
-<div id="modalEnviarAlertaLiberacion" class="alm-modal" role="dialog" aria-modal="true">
+<div id="modalEnviarAlertaLiberacion" class="alm-modal" role="dialog" aria-modal="true" style="padding: 0;">
 
-    <div class="alm-modal-content cal-max-width-1500px cal-width-96vw cal-border-radius-20px">
+    <div class="alm-modal-content cal-max-width-1500px cal-width-96vw cal-border-radius-20px cal-overflow-hidden"
+        style="max-width: 1500px; width: 95vw; max-height: 95vh; height: 95vh; display: flex; flex-direction: column; margin: auto;">
 
         <div
             class="alm-modal-header cal-padding-2-5em-3em-2-2em cal-border-top-left-radius-18px cal-border-top-right-radius-18px">
@@ -18,11 +19,15 @@
             </p>
         </div>
 
-        <div class="alm-modal-body cal-padding-3em-3-5em">
+        <div class="alm-modal-body cal-padding-3em-3-5em"
+            style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; padding-bottom: 0;">
 
-            <form id="formEnviarAlertaLiberacion" enctype="multipart/form-data">
-                @csrf
-                <input type="hidden" id="al-ot" name="ot" />
+            <form id="formEnviarAlertaLiberacion" enctype="multipart/form-data"
+                style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+                
+                <div style="flex: 1; overflow-y: auto; padding-right: 8px; padding-bottom: 20px;">
+                    @csrf
+                    <input type="hidden" id="al-ot" name="ot" />
                 <input type="hidden" id="al-decision" name="decision" />
                 <input type="hidden" id="al-tipo-modelo" name="tipo_modelo" />
                 <p class="cal-margin-bottom-28px cal-font-family-quot cal-font-weight-500 cal-line-height-1-6 cal-color-334155 cal-font-size-1-3em"
@@ -155,10 +160,12 @@
                     </div>
                 </div>
 
+                </div>
                 {{-- fin dual-layout --}}
-                <div class="form-actions cal-text-align-center cal-margin-top-40px cal-margin-bottom-12px">
+                <div class="form-actions cal-text-align-center cal-margin-top-12px" style="flex-shrink: 0; padding: 15px 0; border-top: 1px solid #e2e8f0; background: #fff; margin: 0; height: max-content;">
                     <button type="submit" id="btn-submit-alerta-liberacion" disabled
-                        class="btn-save-preorden cal-font-size-1-2em cal-padding-15px-32px cal-border-radius-10px cal-font-family-quot cal-font-weight-700 cal-height-auto">
+                        class="btn-save-preorden cal-font-size-1-2em cal-border-radius-10px cal-font-family-quot cal-font-weight-700"
+                        style="margin: 0; display: inline-flex; align-items: center; justify-content: center; padding: 11px 44px; border-radius: 10px;">
                         Enviar Alerta de Liberación
                     </button>
                 </div>

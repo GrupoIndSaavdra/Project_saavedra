@@ -23,6 +23,20 @@ class CalidadTableRowViewModel
     /** @var mixed */
     public $aprobadosNorm;
     /** @var mixed */
+    public $fsmState;
+    /** @var mixed */
+    public $icon;
+    /** @var mixed */
+    public $label;
+    /** @var mixed */
+    public $tooltip;
+    /** @var mixed */
+    public $borderColor;
+    /** @var mixed */
+    public $bgColor;
+    /** @var mixed */
+    public $textColor;
+    /** @var mixed */
     public $aprobadosRaw;
     /** @var mixed */
     public $archivos;
@@ -387,6 +401,10 @@ class CalidadTableRowViewModel
         }
         $this->archivos = [];
         $this->dibujoBaseNames = [];
+        $this->ayudasArchivos = [];
+        $this->otrosArchivos = [];
+        $this->baseNames = [];
+        $this->normBaseNames = [];
         foreach ($this->relatedRecords as $relRec) {
             $relArchivos = is_array($relRec->almacen_archivos)
                 ? $relRec->almacen_archivos
@@ -396,27 +414,55 @@ class CalidadTableRowViewModel
                 $fileLower = strtolower($archivo);
                 $baseLower = strtolower($base);
 
-                $isNonDrawing = (
-                    strpos($fileLower, 'ayudas_visuales') !== false ||
-                    strpos($fileLower, 'ayudas-visuales') !== false ||
-                    strpos($fileLower, 'preordenes') !== false ||
-                    strpos($fileLower, 'preorden') !== false ||
-                    strpos($fileLower, 'escaneados') !== false ||
-                    strpos($fileLower, 'documentos_aprobados') !== false ||
-                    strpos($fileLower, 'documentos_rechazados') !== false ||
-                    strpos($baseLower, 'f_alm_') !== false ||
-                    strpos($baseLower, 'f_ccl_') !== false ||
-                    strpos($baseLower, 'cfm') !== false ||
-                    strpos($baseLower, 'efm') !== false ||
-                    strpos($baseLower, 'pfm') !== false ||
-                    strpos($baseLower, 'pfc') !== false ||
-                    strpos($baseLower, 'efc') !== false ||
-                    strpos($baseLower, 'ldm') !== false ||
-                    strpos($baseLower, 'rdm') !== false ||
-                    strpos($baseLower, 'scar') !== false
-                );
+                $isAyudaVisual = strpos($fileLower, 'ayudas_visuales') !== false || strpos($fileLower, 'ayudas-visuales') !== false;
+                $isPreordenFile = strpos($fileLower, 'preordenes') !== false || strpos($fileLower, 'preorden') !== false || strpos($fileLower, 'escaneados') !== false || strpos($baseLower, 'f_alm_') !== false || strpos($baseLower, 'cfm') !== false || strpos($baseLower, 'efm') !== false || strpos($baseLower, 'pfm') !== false || strpos($baseLower, 'pfc') !== false || strpos($baseLower, 'efc') !== false;
+                $isRechazadoFile = strpos($fileLower, 'documentos_rechazados') !== false || strpos($baseLower, 'rdm') !== false || strpos($baseLower, 'scar') !== false;
+                $isAprobadoFile = strpos($fileLower, 'documentos_aprobados') !== false || strpos($baseLower, 'ldm') !== false || strpos($baseLower, 'f_ccl_') !== false;
+                $isNonDrawing = $isAyudaVisual || $isPreordenFile || $isRechazadoFile || $isAprobadoFile;
+
+                $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
 
                 if ($isNonDrawing) {
+                    if ($isAyudaVisual) {
+                        if (!in_array($normBase, $this->normBaseNames)) {
+                            $itemData = [
+                                'nombre' => ltrim($archivo, '/'),
+                                'url' => route('calidad.fundicion.serve', [
+                                    'ot' => $relRec->ot,
+                                    'archivo' => ltrim($archivo, '/'),
+                                    'tipo' => 'ayuda',
+                                    'origin' => 'ayuda',
+                                ]),
+                                'tipo' => 'ayuda',
+                                'ot' => $relRec->ot,
+                                'origin' => 'ayuda',
+                                'owner' => 'almacen',
+                            ];
+                            $this->ayudasArchivos[] = $itemData;
+                            $this->baseNames[] = $base;
+                            $this->normBaseNames[] = $normBase;
+                        }
+                    } elseif ($isPreordenFile || $isRechazadoFile || $isAprobadoFile) {
+                        if (!in_array($normBase, $this->normBaseNames)) {
+                            $origin = $isRechazadoFile ? 'rechazado' : 'aprobado';
+                            $itemData = [
+                                'nombre' => ltrim($archivo, '/'),
+                                'url' => route('calidad.fundicion.serve', [
+                                    'ot' => $relRec->ot,
+                                    'archivo' => ltrim($archivo, '/'),
+                                    'tipo' => 'otro',
+                                    'origin' => $origin,
+                                ]),
+                                'tipo' => 'otro',
+                                'ot' => $relRec->ot,
+                                'origin' => $origin,
+                                'owner' => 'almacen',
+                            ];
+                            $this->otrosArchivos[] = $itemData;
+                            $this->baseNames[] = $base;
+                            $this->normBaseNames[] = $normBase;
+                        }
+                    }
                     continue;
                 }
                 $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
@@ -456,12 +502,12 @@ class CalidadTableRowViewModel
             }
         }
         $this->countDibujos = count($this->archivos);
-        $this->ayudasArchivos = [];
-        $this->otrosArchivos = [];
-        $this->baseNames = $this->dibujoBaseNames;
-        $this->normBaseNames = array_map(function ($b) {
-            return strtolower(preg_replace('/[\s_]+/', '', $b));
-        }, $this->baseNames);
+        foreach ($this->dibujoBaseNames as $dbn) {
+            if (!in_array($dbn, $this->baseNames)) {
+                $this->baseNames[] = $dbn;
+                $this->normBaseNames[] = strtolower(preg_replace('/[\s_]+/', '', (string) $dbn));
+            }
+        }
         // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
         $this->ayudasGlobalesBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
         foreach ($this->activeClassesForOt as $activeClass) {
@@ -971,6 +1017,8 @@ class CalidadTableRowViewModel
                     }
                 }
 
+                $processedFullPaths = [];
+                $processedRelativePaths = [];
                 foreach ($newDirs as $dirInfo) {
                     $targetDir = $dirInfo['dir'];
                     $origin = $dirInfo['origin'];
@@ -984,6 +1032,12 @@ class CalidadTableRowViewModel
                             'local',
                         )->allFiles($targetDir);
                         foreach ($files as $f) {
+                            $fullLowerPath = strtolower($f);
+                            if (in_array($fullLowerPath, $processedFullPaths)) {
+                                continue;
+                            }
+                            $processedFullPaths[] = $fullLowerPath;
+
                             $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
                             $isPdf = $ext === 'pdf';
                             $isImage = in_array($ext, [
@@ -1051,9 +1105,12 @@ class CalidadTableRowViewModel
                             );
 
                             $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                            $relativePathWithPrefix = $prefix . $relativePath;
+                            $normRelPath = strtolower($relativePathWithPrefix);
+                            
                             if (($origin === 'dibujo' || $isDwg || strpos(strtolower($targetDir), 'dibujo') !== false) && !$isNonDrawingFile) {
-                                if (!in_array($base, $this->dibujoBaseNames)) {
-                                    $relativePathWithPrefix = $prefix . $relativePath;
+                                if (!in_array($base, $this->dibujoBaseNames) && !in_array($normRelPath, $processedRelativePaths)) {
+                                    $processedRelativePaths[] = $normRelPath;
                                     $this->archivos[] = [
                                         'nombre' => $relativePathWithPrefix,
                                         'url' => route('calidad.fundicion.serve', [
@@ -1071,23 +1128,25 @@ class CalidadTableRowViewModel
                                     $this->baseNames[] = $base;
                                     $this->normBaseNames[] = $normBase;
                                 }
-                            } elseif (!in_array($normBase, $this->normBaseNames)) {
-                                $relativePathWithPrefix = $prefix . $relativePath;
-                                $this->otrosArchivos[] = [
-                                    'nombre' => $relativePathWithPrefix,
-                                    'url' => route('calidad.fundicion.serve', [
+                            } elseif ($isNonDrawingFile || !in_array($normBase, $this->normBaseNames)) {
+                                if (!in_array($normRelPath, $processedRelativePaths)) {
+                                    $processedRelativePaths[] = $normRelPath;
+                                    $this->otrosArchivos[] = [
+                                        'nombre' => $relativePathWithPrefix,
+                                        'url' => route('calidad.fundicion.serve', [
+                                            'ot' => $otName,
+                                            'archivo' => $relativePathWithPrefix,
+                                            'tipo' => 'otro',
+                                            'origin' => $origin,
+                                        ]),
+                                        'tipo' => $isImage ? 'imagen' : 'otro',
                                         'ot' => $otName,
-                                        'archivo' => $relativePathWithPrefix,
-                                        'tipo' => 'otro',
                                         'origin' => $origin,
-                                    ]),
-                                    'tipo' => $isImage ? 'imagen' : 'otro',
-                                    'ot' => $otName,
-                                    'origin' => $origin,
-                                    'owner' => $dirInfo['owner'],
-                                ];
-                                $this->baseNames[] = $base;
-                                $this->normBaseNames[] = $normBase;
+                                        'owner' => $dirInfo['owner'],
+                                    ];
+                                    $this->baseNames[] = $base;
+                                    $this->normBaseNames[] = $normBase;
+                                }
                             }
                         }
                     }
@@ -1422,28 +1481,35 @@ class CalidadTableRowViewModel
         )->get();
         $this->latestLiberacionesByClass = [];
         foreach ($this->liberacionesAll as $lib) {
-            $tipo = $lib->tipo_modelo;
+            $tipos = explode(',', $lib->tipo_modelo ?? '');
             $libOt = $lib->ot;
             preg_match('/_R(\d+)$/', $libOt, $matches);
             $suffixNum = isset($matches[1]) ? (int) $matches[1] : 0;
-            if (
-                !isset($this->latestLiberacionesByClass[$tipo]) ||
-                $suffixNum > $this->latestLiberacionesByClass[$tipo]['suffix']
-            ) {
-                $this->latestLiberacionesByClass[$tipo] = [
-                    'lib' => $lib,
-                    'suffix' => $suffixNum,
-                ];
+            
+            foreach ($tipos as $t) {
+                $t = trim($t);
+                if ($t === '') continue;
+                $tKey = strtolower($t);
+                if (
+                    !isset($this->latestLiberacionesByClass[$tKey]) ||
+                    $suffixNum > $this->latestLiberacionesByClass[$tKey]['suffix']
+                ) {
+                    $this->latestLiberacionesByClass[$tKey] = [
+                        'lib' => $lib,
+                        'suffix' => $suffixNum,
+                        'original' => $t
+                    ];
+                }
             }
         }
         $this->aprobadosRaw = [];
         $this->rechazadosRaw = [];
-        foreach ($this->latestLiberacionesByClass as $tipo => $data) {
+        foreach ($this->latestLiberacionesByClass as $tKey => $data) {
             $lib = $data['lib'];
             if ($lib->decision === 'aprobar') {
-                $this->aprobadosRaw[] = $tipo;
+                $this->aprobadosRaw[] = $data['original'];
             } elseif ($lib->decision === 'rechazar') {
-                $this->rechazadosRaw[] = $tipo;
+                $this->rechazadosRaw[] = $data['original'];
             }
         }
         // Filtrar por clases activas en esta versión de la OT (desde la pre-orden de modelo)
@@ -1541,6 +1607,20 @@ class CalidadTableRowViewModel
         $this->hasAprobadosGroup = (count($this->calidadAprobadosLdm) > 0);
         $this->hasRechazadosGroup = (count($this->rechazadosDibujos) > 0 || count($this->rechazadosAyudas) > 0 || count($this->rechazadosOtros) > 0);
 
+        $estadoConfig = \App\Services\FundicionStateService::resolverEstadoOT(
+            $this->reg,
+            $this->targetReg,
+            $this->aprobados,
+            (bool) preg_match('/_R\d+$/i', $this->targetReg->ot)
+        );
+
+        $this->fsmState = $estadoConfig['fsmState'];
+        $this->icon = $estadoConfig['icon'];
+        $this->label = $estadoConfig['label'];
+        $this->tooltip = $estadoConfig['tooltip'];
+        $this->borderColor = $estadoConfig['borderColor'];
+        $this->bgColor = $estadoConfig['bgColor'];
+        $this->textColor = $estadoConfig['textColor'];
         
     }
 

@@ -236,3 +236,10 @@ Siempre cárgalos con `@vite` en el `@section('head')` de la vista:
 ## 13. Prevención de Vistas No Encontradas (View Not Found)
 
 Cuando utilices directivas `@include` o `@component`, asegúrate de que el archivo Blade de destino exista exactamente en la ruta indicada. Un error común al refactorizar o mover archivos de calidad a almacén (o viceversa) es dejar referencias rotas como `@include('almacen.partials._modal_liberacion_modelos')` cuando el archivo fue renombrado o movido. Siempre verifica la estructura de carpetas física antes de apuntar a una plantilla parcial.
+
+
+---
+
+## 15. PDFs y DomPDF: Layout Dinámico y Orientación
+Cuando generes reportes en PDF con `Barryvdh\DomPDF` (como SCAR, LDM, RDM), prefiere diseños estrictos (Portrait vs Landscape declarado en `$pdf->setPaper()`) y evita CSS Grid nativo complejo si DomPDF no lo soporta completamente. Prefiere tablas clásicas de HTML o `display: inline-block` auto-calculados para garantizar que se imprima igual en todos los sistemas.
+

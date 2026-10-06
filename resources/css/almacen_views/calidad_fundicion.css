@@ -656,7 +656,7 @@ table.alm-table {
 
 .dibujos-file-card:hover .icon-hover {
     opacity: 1;
-    transform: scale(1.15) rotate(3deg);
+    transform: scale(1.15);
     filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.549));
 }
 
@@ -1738,7 +1738,7 @@ table.alm-table {
 }
 
 .select-file-card:hover .icon-hover {
-    transform: rotate(3deg) !important;
+    transform: scale(1.15) !important;
     opacity: 1 !important;
 }
 
@@ -2656,7 +2656,7 @@ table.alm-table {
 
 .custom-file-dropzone:hover .icon-hover {
     opacity: 1 !important;
-    transform: scale(1.15) rotate(3deg) !important;
+    transform: scale(1.15) !important;
 }
 
 /* ───────────────────────────────────────────────

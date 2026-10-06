@@ -10,26 +10,30 @@ window._libFiltrarTiposModelo = function (clasesActivas, todasClases) {
     const tiposConfigurados = new Set();
     const clasesAUsar = todasClases && todasClases.length > 0 ? todasClases : clasesActivas;
     if (clasesAUsar && clasesAUsar.length > 0) {
-        clasesAUsar.forEach((clase) => {
-            const clLow = clase.toLowerCase();
-            for (let k of knownKeys) {
-                if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
-                    tiposConfigurados.add(k);
-                    break;
+        clasesAUsar.forEach((claseStr) => {
+            const partes = claseStr.split(',').map(s => s.trim().toLowerCase());
+            partes.forEach(clLow => {
+                for (let k of knownKeys) {
+                    if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
+                        tiposConfigurados.add(k);
+                        break;
+                    }
                 }
-            }
+            });
         });
     }
     const tiposActivos = new Set();
     if (clasesActivas && clasesActivas.length > 0) {
-        clasesActivas.forEach((clase) => {
-            const clLow = clase.toLowerCase();
-            for (let k of knownKeys) {
-                if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
-                    tiposActivos.add(k);
-                    break;
+        clasesActivas.forEach((claseStr) => {
+            const partes = claseStr.split(',').map(s => s.trim().toLowerCase());
+            partes.forEach(clLow => {
+                for (let k of knownKeys) {
+                    if (clLow.includes(k.replace(/^\d+\s*-\s*/, '').toLowerCase()) || clLow.includes(k.toLowerCase())) {
+                        tiposActivos.add(k);
+                        break;
+                    }
                 }
-            }
+            });
         });
     }
     select.querySelectorAll("option").forEach((opt) => {
@@ -311,28 +315,31 @@ window._alFileChanged = function (inputId, textId, labelId) {
     let iconHtml = "";
     if (file.type.startsWith("image/")) {
         iconHtml = `
-            <div style="width: 80px; height: 80px; margin-top: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; border: 1px solid #e2e8f0;">
-                <img src="${url}" style="width: 100%; height: 100%; object-fit: cover;">
+            <div class="file-icon-wrapper cal-cursor-pointer" style="width: 48px; height: 48px; margin-top: 10px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 8px; border: 1px solid #e2e8f0; position:relative;" onclick="window.open('${url}', '_blank')" title="Ver">
+                <img src="${url}" class="file-icon icon-default" style="width: 100%; height: 100%; object-fit: cover;">
+                <img src="${url}" class="file-icon icon-hover" style="width: 100%; height: 100%; object-fit: cover; position:absolute; top:0; left:0;">
             </div>
         `;
     } else {
         iconHtml = `
-            <div class="file-icon-wrapper" onclick="window.open('${url}', '_blank')" style="cursor:pointer; margin-top: 10px;" title="Ver">
-                <img src="${baseUrl}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;">
+            <div class="file-icon-wrapper cal-cursor-pointer" onclick="window.open('${url}', '_blank')" style="cursor:pointer; margin-top:10px; width:48px; height:48px; position:relative;" title="Ver">
+                <img src="${baseUrl}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:100%;height:100%;object-fit:contain;">
+                <img src="${baseUrl}images/pdf-view.png" class="file-icon icon-hover" style="width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;">
             </div>
         `;
     }
     const prv = document.getElementById(inputId + "-preview");
     if (prv) {
         prv.innerHTML = `
-            <div class="dibujos-file-card select-file-card checked-card" style="position:relative; width:100%; max-width:180px; display:inline-flex; flex-direction:column; align-items:center; text-align:center; border-radius:12px; box-shadow:0 4px 10px rgba(0,0,0,0.08); box-sizing:border-box; font-size:0.95em; padding:12px; background:#fff; border:2px solid ${borderCol}; margin-top:12px;">
-                <div style="position: absolute; top: 10px; right: 10px; z-index: 10;">
-                    <button type="button" style="background: #fca5a5; border: none; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #9c0300; font-weight: bold; font-size: 0.95em; box-shadow: 0 2px 4px rgba(0,0,0,0.1); line-height: 1; padding: 0;" onclick="window._alClearFile('${inputId}')" title="Quitar">&times;</button>
+            <div class="dibujos-file-card select-file-card checked-card" style="position:relative; width:100%; max-width:220px; display:inline-flex; flex-direction:column; align-items:center; text-align:center; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); box-sizing:border-box; background:#ffffff; padding:10px; border:1.5px solid ${borderCol}; margin-top:12px;">
+                <div style="position: absolute; top: 10px; left: 10px; z-index: 10;">
+                    <input type="checkbox" checked disabled style="width:20px;height:20px;cursor:pointer;">
                 </div>
                 ${iconHtml}
-                <div class="file-name" style="cursor:pointer; font-size:0.88em; margin:8px 0; max-height:42px; overflow:hidden; font-weight:600; color:#334155; line-height:1.3; font-family:'Poppins',sans-serif;" onclick="window.open('${url}', '_blank')">${nm}</div>
-                <div class="file-actions" style="width:100%; margin-top:auto;">
-                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.85em; padding:6px 14px; border-radius:6px; font-family:'Poppins',sans-serif; font-weight:600; width:100%; cursor:pointer;" onclick="window.open('${url}', '_blank')">Ver</button>
+                <div class="file-name cal-cursor-pointer" style="cursor:pointer; font-size:0.82em; margin:8px 0; max-height:40px; overflow:hidden; text-overflow:ellipsis; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; font-weight:600; color:#334155; line-height:1.3; font-family:'Poppins',sans-serif;" onclick="window.open('${url}', '_blank')">${nm}</div>
+                <div class="file-actions" style="width:100%; margin-top:auto; display:flex; gap:5px;">
+                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-ver" style="font-size:0.8em; padding:5px 8px; border-radius:6px; font-family:'Poppins',sans-serif; font-weight:600; flex:1;" onclick="window.open('${url}', '_blank')" title="Abrir archivo">Ver</button>
+                    <button type="button" class="btn-dibujos btn-dibujos-sm btn-eliminar" style="font-size:0.8em; padding:5px 8px; border-radius:6px; font-family:'Poppins',sans-serif; font-weight:600; flex:1; background:#dc2626; color:white; border:none; cursor:pointer;" onclick="window._alClearFile('${inputId}')" title="Quitar archivo">Quitar</button>
                 </div>
             </div>
         `;
@@ -463,8 +470,9 @@ window.abrirModalEnviarAlertaLiberacion = function (
     const form = document.getElementById("formEnviarAlertaLiberacion");
     if (form) form.reset();
     
-    const arrAprobados = Array.isArray(tiposAprobados) ? tiposAprobados : [];
-    const arrRechazados = Array.isArray(tiposRechazados) ? tiposRechazados : [];
+    const dedup = arr => Array.isArray(arr) ? arr.map(v => String(v).toUpperCase().trim()).filter((v,i,a) => a.indexOf(v) === i) : [];
+    const arrAprobados = dedup(tiposAprobados);
+    const arrRechazados = dedup(tiposRechazados);
     const hasAprobado = arrAprobados.length > 0;
     const hasRechazado = isAlmacen ? false : arrRechazados.length > 0;
     const esMixto = isAlmacen ? false : hasAprobado && hasRechazado;
@@ -604,7 +612,8 @@ window.abrirModalEnviarAlertaLiberacion = function (
     if (sA) sA.innerHTML = loadHtml;
     if (sR) sR.innerHTML = loadHtml;
     
-    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+    const strTipoModeloAl = [...arrAprobados, ...arrRechazados].join(", ");
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&tipo_modelo=${encodeURIComponent(strTipoModeloAl)}&_t=${Date.now()}`)
         .then((r) => r.json())
         .then((data) => {
             let cardsA = "", cardsR = "";
@@ -785,8 +794,9 @@ window.abrirModalFinalizarCalidad = function (
     const form = document.getElementById("formFinalizarCalidad");
     if (form) form.reset();
     
-    const arrAprobados = Array.isArray(tiposAprobados) ? tiposAprobados : [];
-    const arrRechazados = Array.isArray(tiposRechazados) ? tiposRechazados : [];
+    const dedup = arr => Array.isArray(arr) ? arr.map(v => String(v).toUpperCase().trim()).filter((v,i,a) => a.indexOf(v) === i) : [];
+    const arrAprobados = dedup(tiposAprobados);
+    const arrRechazados = dedup(tiposRechazados);
     
     document.getElementById("fc-ot").value = ot;
     document.getElementById("fc-decision").value = decision;
@@ -795,13 +805,19 @@ window.abrirModalFinalizarCalidad = function (
     document.getElementById("fc-tipos-rechazados").value = JSON.stringify(arrRechazados);
     
     const fDate = document.getElementById("fc-fecha");
-    if (fDate) fDate.value = "";
+    if (fDate) {
+        fDate.value = "";
+    }
+    if (typeof window.fcRenderCalendar === 'function') {
+        window.fcRenderCalendar(true);
+    }
     
     const otClean = ot.replace(/_\d{8}_\d{6}_.*/, "");
     let baseUrl = window.baseUrl || window.location.origin + "/";
     if (!baseUrl.endsWith("/")) baseUrl += "/";
     
     let bg, border, btnBg, titleText, promptHtml, btnText;
+
     if (decision === "aprobar") {
         bg = "linear-gradient(135deg, #10b981, #059669)";
         border = "#10b981";
@@ -809,8 +825,8 @@ window.abrirModalFinalizarCalidad = function (
         titleText = `Finalizar Proceso de Calidad (Aprobado) — ${otClean}`;
         btnText = "Finalizar y Enviar Alerta de Aprobación";
         promptHtml = `
-            <div style="background: #ecfdf5; border-left: 5px solid #059669; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(5, 150, 105, 0.03);">
-                <img src="${baseUrl}images/Aprobado.png" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" alt="Aprobado">
+            <div style="background: #ecfdf5; border-left: 5px solid #059669; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(5, 150, 105, 0.03);">
+                <img src="${baseUrl}images/Aprobado.png" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;" alt="Aprobado">
                 <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #065f46; font-size: 1.1em; line-height: 1.5;">
                     Se enviará la alerta de liberación aprobada para los modelos: <strong>${arrAprobados.join(", ")}</strong>.
                 </div>
@@ -823,8 +839,8 @@ window.abrirModalFinalizarCalidad = function (
         titleText = `Finalizar Proceso de Calidad (Rechazado) — ${otClean}`;
         btnText = "Finalizar y Enviar Alerta de Rechazo";
         promptHtml = `
-            <div style="background: #fef2f2; border-left: 5px solid #dc2626; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(220, 38, 38, 0.03);">
-                <img src="${baseUrl}images/Rechazado.png" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" alt="Rechazado">
+            <div style="background: #fef2f2; border-left: 5px solid #dc2626; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(220, 38, 38, 0.03);">
+                <img src="${baseUrl}images/Rechazado.png" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;" alt="Rechazado">
                 <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #991b1b; font-size: 1.1em; line-height: 1.5;">
                     Se enviará la alerta de rechazo para los modelos: <strong>${arrRechazados.join(", ")}</strong>.
                 </div>
@@ -837,14 +853,44 @@ window.abrirModalFinalizarCalidad = function (
         titleText = `Finalizar Proceso de Calidad (Mixto) — ${otClean}`;
         btnText = "Finalizar y Enviar Alertas (Mixto)";
         promptHtml = `
-            <div style="background: #f0f9ff; border-left: 5px solid #0284c7; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(2, 132, 199, 0.03);">
-                <img src="${baseUrl}images/almacen.png" style="width: 28px; height: 28px; object-fit: contain; flex-shrink: 0;" alt="Mixto">
+            <div style="background: #f0f9ff; border-left: 5px solid #0284c7; border-radius: 8px; padding: 10px 14px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(2, 132, 199, 0.03);">
+                <img src="${baseUrl}images/almacen.png" style="width: 48px; height: 48px; object-fit: contain; flex-shrink: 0;" alt="Mixto">
                 <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #075985; font-size: 1.1em; line-height: 1.5;">
-                    Esta OT tiene modelos aprobados (<strong>${arrAprobados.join(", ")}</strong>) y rechazados (<strong>${arrRechazados.join(", ")}</strong>). Se enviarán correos separados de liberación y rechazo.
+                    Esta OT tiene modelos <span style="color: #059669;">aprobados (<strong>${arrAprobados.join(", ")}</strong>)</span> y <span style="color: #dc2626;">rechazados (<strong>${arrRechazados.join(", ")}</strong>)</span>. Se enviarán correos separados de liberación y rechazo.
                 </div>
             </div>
         `;
     }
+
+    let leftTitleText, rightTitleText, headerColor, leftIcon;
+    if (decision === "aprobar") {
+        leftTitleText = "Datos de Liberación";
+        rightTitleText = "Archivos de Liberación Disponibles";
+        headerColor = "#059669";
+        leftIcon = "Quality.png";
+    } else if (decision === "rechazar") {
+        leftTitleText = "Datos de Rechazo";
+        rightTitleText = "Archivos de Rechazo Disponibles";
+        headerColor = "#dc2626";
+        leftIcon = "Quality.png";
+    } else {
+        leftTitleText = "Datos de Proceso Mixto";
+        rightTitleText = "Archivos Disponibles (Mixto)";
+        headerColor = "#0284c7";
+        leftIcon = "Quality.png";
+    }
+
+    const lh = document.getElementById("fc-left-header");
+    if(lh) { lh.style.color = headerColor; lh.style.borderBottomColor = headerColor; }
+    const lt = document.getElementById("fc-left-title");
+    if(lt) lt.textContent = leftTitleText;
+    const li = document.getElementById("fc-left-icon");
+    if(li) li.src = baseUrl + "images/" + leftIcon;
+
+    const rh = document.getElementById("fc-right-header");
+    if(rh) { rh.style.color = headerColor; rh.style.borderBottomColor = headerColor; }
+    const rt = document.getElementById("fc-right-title");
+    if(rt) rt.textContent = rightTitleText;
     const header = document.getElementById("finalizar-calidad-header");
     const mc = document.getElementById("finalizar-calidad-modal-content");
     const btnSubmit = document.getElementById("btn-submit-finalizar-calidad");
@@ -857,7 +903,7 @@ window.abrirModalFinalizarCalidad = function (
     }
     if (mc) mc.style.borderColor = border;
     if (title) {
-        title.textContent = titleText;
+        title.innerHTML = titleText;
     }
     if (prompt) prompt.innerHTML = promptHtml;
     if (subtitle) subtitle.textContent = `OT: ${otClean}`;
@@ -872,7 +918,8 @@ window.abrirModalFinalizarCalidad = function (
     const emptyHtml2 = `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
     if (filesContainer) filesContainer.innerHTML = loadHtml2;
     
-    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
+    const strTipoModelo = [...arrAprobados, ...arrRechazados].join(", ");
+    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&tipo_modelo=${encodeURIComponent(strTipoModelo)}&_t=${Date.now()}`)
         .then((r) => r.json())
         .then((data) => {
             if (data.existe && data.archivos?.length > 0) {

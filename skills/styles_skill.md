@@ -560,3 +560,18 @@ En las 6 vistas de administración de documentos (`manage_dibujos`, `manage_ayud
     opacity: 0.75 !important;
 }
 ```
+---
+
+## 21. Grid Layout para Acciones y Botones Múltiples
+
+Cuando una tabla o modal contenga un grupo variable de botones de acción que deban verse uniformes, evita el uso de `flex-wrap` con márgenes que se rompen en pantallas pequeñas. En su lugar, usa `display: grid` con `grid-template-columns: repeat(auto-fit, minmax(120px, 1fr))`.
+
+```css
+.action-buttons-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    width: 100%;
+}
+```
+

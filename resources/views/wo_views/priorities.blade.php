@@ -532,6 +532,11 @@
         window.prioritiesWOsData = @json($wosJsData);
 
         window.openFundicionModal = function(otId) {
+            if (typeof Swal === 'undefined') {
+                alert("No se pudo cargar el componente visual. Por favor, revisa tu conexión a internet.");
+                return;
+            }
+            
             var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
             if (!woData) return;
 
@@ -718,6 +723,11 @@
         ];
 
         window.openSupplierModal = function(otId) {
+            if (typeof Swal === 'undefined') {
+                alert("No se pudo cargar el componente visual. Por favor, revisa tu conexión a internet.");
+                return;
+            }
+
             var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
             if (!woData) return;
 

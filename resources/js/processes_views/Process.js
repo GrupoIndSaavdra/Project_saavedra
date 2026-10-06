@@ -721,12 +721,12 @@ export class Process {
                                     }
                                     tr.appendChild(td);
                                 } else {
-                                    let noPiece = piece.piece.n_pieza ? piece.piece.n_pieza.slice(0, - 1) : piece.piece.n_juego.slice(0, -1);
-                                    let letterPiece = piece.piece.n_pieza ? piece.piece.n_pieza[piece.piece.n_pieza.length - 1] : piece.piece.n_juego[piece.piece.n_juego.length - 1];
+                                    let noPiece = piece.piece.n_pieza ? piece.piece.n_pieza.slice(0, - 1) : (piece.piece.n_juego ? piece.piece.n_juego.slice(0, -1) : "");
+                                    let letterPiece = piece.piece.n_pieza ? piece.piece.n_pieza[piece.piece.n_pieza.length - 1] : (piece.piece.n_juego ? piece.piece.n_juego[piece.piece.n_juego.length - 1] : "");
                                     td.innerHTML = {
                                         "H": noPiece + " HEMBRA",
                                         "M": noPiece + " MACHO",
-                                    }[letterPiece] || noPiece + " JUEGO";
+                                    }[letterPiece] || (noPiece ? noPiece + " JUEGO" : "");
                                     if (!this.edit) {
                                         td.style.backgroundColor = piece.color;
                                     } else {
@@ -810,9 +810,11 @@ export class Process {
                     } else {
                         td.innerHTML = noPiece + " JUEGO";
                     }
-                } else {
+                } else if (this.pieceToBeUsed.n_juego) {
                     let noPiece = this.pieceToBeUsed.n_juego.slice(0, -1);
                     td.innerHTML = noPiece + " JUEGO";
+                } else {
+                    td.innerHTML = "";
                 }
             }
             tr.appendChild(td);

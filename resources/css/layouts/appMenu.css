@@ -104,7 +104,12 @@ body {
     justify-content: center;
     align-items: center;
     text-align: center;
-    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    background: rgba(
+        0,
+        10,
+        25,
+        0.85
+    ); /* Filtro azulito sin blur para evitar que se trabe */
     z-index: 990;
 }
 /* ESTILOS PARA LA TABLA */
@@ -123,7 +128,7 @@ body {
     width: 100% !important;
     border-collapse: collapse;
     text-align: center;
-    font-family: 'Poppins', Verdana, Geneva, Tahoma, sans-serif;
+    font-family: "Poppins", Verdana, Geneva, Tahoma, sans-serif;
     table-layout: auto !important;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
@@ -206,7 +211,12 @@ body {
     justify-content: center !important;
     align-items: center !important;
     text-align: center !important;
-    background: rgba(0, 10, 25, 0.85) !important; /* Filtro azulito sin blur para evitar que se trabe */
+    background: rgba(
+        0,
+        10,
+        25,
+        0.85
+    ) !important; /* Filtro azulito sin blur para evitar que se trabe */
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     z-index: 99999 !important;
@@ -278,7 +288,12 @@ body {
 }
 .filter-opacity {
     position: fixed; /* Changed from absolute for better overlay */
-    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    background: rgba(
+        0,
+        10,
+        25,
+        0.85
+    ); /* Filtro azulito sin blur para evitar que se trabe */
     top: 0;
     left: 0;
     width: 100%;
@@ -318,6 +333,26 @@ body {
 }
 .nav-list {
     list-style-type: none;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 80px; /* Espacio para el botón de cerrar sesión */
+    padding-top: 10px;
+}
+
+/* Estilizar el scrollbar para que se vea premium */
+.nav-list::-webkit-scrollbar {
+    width: 6px;
+}
+.nav-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+.nav-list::-webkit-scrollbar-thumb {
+    background-color: rgba(3, 57, 102, 0.2);
+    border-radius: 10px;
+}
+.nav-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(3, 57, 102, 0.5);
 }
 .nav-link,
 .submenu-toggle {
@@ -502,4 +537,9 @@ body {
    =========================== */
 
 /* Extracted from appMenu.blade.php */
-.open-menu { padding: 4px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
+.open-menu {
+    padding: 4px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}

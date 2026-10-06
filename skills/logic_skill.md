@@ -522,3 +522,63 @@ Cuando llames a métodos de controladores desde scripts externos, comandos Artis
 
 
 
+
+---
+
+## 18. Hashing de Clases para Sincronización de Archivos
+
+Cuando necesites detectar si los archivos (PDF/DWG) asociados a una clase específica han cambiado, no confíes en timestamps de modificación aislados o conteos de archivos sueltos. Calcula un Hash MD5 de todos los archivos relevantes y usa diccionarios (`json` o `array` guardados en base de datos).
+
+```php
+public static function computeClassHash(string $otRaw, string $clase): string
+{
+    // Lógica que junta el basename y filesize de cada archivo de la clase,
+    // concatena la cadena resultante y aplica un hash MD5.
+}
+```
+
+---
+
+## 19. Evaluación de Afectación Parcial vs Total (`$esTotal`)
+
+Para evitar la pérdida de progreso por accidentes, la lógica de reemplazo/reinicio de clases debe comparar el conteo de clases afectadas contra el conteo real de clases de la Orden de Trabajo en la BD. Nunca asumas que `count($array) > 0` significa un reinicio total si existen más clases activas.
+
+```php
+$clasesActivasCount = Clase::query()->where('id_ot', '=', $otFullRaw->id)->count();
+$esTotal = ($affectedCount >= $clasesActivasCount && $clasesActivasCount > 0);
+
+if ($action === 'reiniciar_completo' && !$esTotal) {
+    $action = 'reiniciar_parcial';
+}
+```
+
+
+
+---
+
+## 20. Normalización de Nombres de Archivo y Compatibilidad (Windows/Linux)
+Siempre normaliza las rutas reemplazando los backslashes (`\`) por slashes (`/`), especialmente para construir URLs relativas, pues `Storage::files` en Windows puede retornar rutas con backslashes que rompen los validadores y links de frontend.
+```php
+$fNorm = str_replace('\\', '/', $f);
+```
+Al buscar firmas en nombres de archivos (ej. Formatos LDM o PreÓrdenes), usa `strtolower` y verifica combinaciones antiguas y nuevas debido al historial de la empresa (ej. `f-ccl-ldm` vs `f_ccl_ldm`, `pre-orden` vs `preorden`).
+
+---
+
+## 21. Reglas de Negocio: Bloqueo de Acciones en Producción
+Para evitar corrupciones de estado, desactiva la re-notificación o el reemplazo irrestricto de dibujos si una clase ya inició procesos físicos de manufactura. En código, siempre busca la relación `$clase->procesos` y corrobora `fecha_inicio`.
+```php
+$proceso = $claseFisica->procesos->firstWhere('nombre', 'FUNDICION');
+if ($proceso && $proceso->fecha_inicio) {
+    // Bloquear reemplazos digitales que reseteen proceso o envíos de correo.
+}
+```
+
+---
+
+## 22. Ciclo de Vida de Reprocesos (`_R1`, `_R2`)
+Las Órdenes de Trabajo que son reprocesos terminan en `_R1`, `_R2`, etc. Al heredar archivos, el sistema debe remover el sufijo para ubicar el directorio original (base), pero para la validación de Calidad debe enfocarse EXCLUSIVAMENTE en las clases que sufrieron el rechazo en el ciclo inmediatamente anterior.
+```php
+$baseOt = preg_replace('/_R\d+$/i', '', $ot);
+```
+

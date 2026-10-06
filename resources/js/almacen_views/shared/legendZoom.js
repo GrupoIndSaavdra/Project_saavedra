@@ -7,6 +7,7 @@ function initLegendZoom() {
     const zoomCircle = document.getElementById('legend-zoom-circle');
     const zoomImg = document.getElementById('legend-zoom-img');
     const zoomLabel = document.getElementById('legend-zoom-label');
+    const zoomDesc = document.getElementById('legend-zoom-desc');
 
     if (!tooltip) return;
 
@@ -31,6 +32,7 @@ function initLegendZoom() {
             zoomCircle.style.borderWidth = '3px';
             zoomImg.src = imgSrc;
             zoomLabel.textContent = textContent;
+            if(zoomDesc) zoomDesc.textContent = item.getAttribute('title') || '';
             zoomLabel.style.color = textColor;
 
             tooltip.style.display = 'flex';

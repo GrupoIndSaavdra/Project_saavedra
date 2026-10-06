@@ -553,8 +553,7 @@ $ldmCastingProcesados = array_values(
             {{-- ================================================================= --}}
             {{-- SECCIÓN ACTIVA (CLASES PENDIENTES DE CASTING) --}}
             {{-- ================================================================= --}}
-            @if (count($aprobadosPendientesCasting) > 0 ||
-                    (count($aprobadosPendientesCasting) == 0 && count($clasesAprobadasCubiertas) == 0))
+            @if (count($aprobadosPendientesCasting) > 0 || count($dibujosCastingPendientes) > 0 || count($ayudasCastingPendientes) > 0 || count($ldmCastingPendientes) > 0)
                 <div class="cal-subcontainer-almacen"
                     style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0fdf4; border: 2px solid #16a34a; box-shadow: 0 3px 10px rgba(22, 163, 74, 0.08);">
                     <div

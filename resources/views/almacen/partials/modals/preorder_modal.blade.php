@@ -19,16 +19,11 @@
                 <form id="formPreOrden">
                     <div class="form-grid">
                         <div class="form-group po-proveedor-group">
-                            <label for="po-proveedor">Proveedor <span class="alm-text-danger">*</span>:</label>
-                            <select id="po-proveedor" name="proveedor" class="form-control" required>
-                                <option value="SS Metal Foundry, S. de R. L. de C. V." selected>SS Metal Foundry, S. de
-                                    R. L. de C. V.</option>
-                                <option value="Sociedad Cooperativa de Producción Jacarandas">Sociedad Cooperativa de
-                                    Producción Jacarandas</option>
-                            </select>
+                            <label for="po-proveedor">Proveedor:</label>
+                            <input type="text" id="po-proveedor" name="proveedor" class="form-control" value="SS Metal Foundry, S. de R. L. de C. V." readonly required>
                         </div>
                         <div class="form-group po-fecha-group">
-                            <label for="po-fecha">Fecha:</label>
+                            <label for="po-fecha">Fecha <span class="alm-text-danger">*</span>:</label>
                             <input type="date" id="po-fecha" name="fecha" class="form-control" required
                                 value="{{ date('Y-m-d') }}">
                         </div>

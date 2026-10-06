@@ -320,3 +320,12 @@ private function resolveCaseInsensitivePath(string $basePath, array $pathSegment
     return $current;
 }
 ```
+
+---
+
+## 13. Sincronización Segura de Archivos sin Afectar Estados (Mantener / Reemplazar)
+
+Cuando un usuario desea "Reemplazar" archivos de ingeniería en el sistema, pero el proceso ya avanzó (ej. Calidad ya liberó el modelo), NO DEBES ejecutar consultas de `delete()` sobre el historial ni sobre tablas transaccionales (`LiberacionModeloFundicion`, `PreOrdenFundicion`).
+
+El código debe separar la lógica de **reinicio** (que borra estados y base de datos) de la lógica de **reemplazo** (que solo sincroniza archivos en disco usando `copyToAlmacen` con `$resetFlags = false` y actualiza los Hashes).
+

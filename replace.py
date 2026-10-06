@@ -1,0 +1,23 @@
+
+f='resources/views/calidad/partials/sidebar_legend.blade.php'
+with open(f, encoding='utf-8') as file: text = file.read()
+replacements = {
+    'Gu\xc3\xada': 'GuÌa',
+    'Gu√\xada': 'GuÌa',
+    'Gu√≠a': 'GuÌa',
+    'notificaci√≥n': 'notificaciÛn',
+    'revisi√≥n': 'revisiÛn',
+    '√°rea': '·rea',
+    'Almac√©n': 'AlmacÈn',
+    'est√°': 'est·',
+    'Revisi√≥n': 'RevisiÛn',
+    'Operaci√≥n': 'OperaciÛn',
+    'Log√\xadstica': 'LogÌstica',
+    'Log√≠stica': 'LogÌstica',
+    'dem√°s': 'dem·s',
+    'Liberaci√≥n': 'LiberaciÛn'
+}
+for k, v in replacements.items(): text = text.replace(k, v)
+with open(f, 'w', encoding='utf-8') as file: file.write(text)
+print('Done!')
+

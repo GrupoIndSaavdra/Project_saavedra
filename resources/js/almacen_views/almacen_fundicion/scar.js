@@ -28,7 +28,7 @@ function renderScarFotosBadges() {
         "scar-fotos-list",
         scarFotosSelectedFiles,
         "window.removeScarFotoAttachment",
-        "#dc2626"
+        "#dc2626",
     );
 }
 
@@ -37,7 +37,7 @@ function renderScarOtrosBadges() {
         "scar-otro-archivos-list",
         scarOtrosSelectedFiles,
         "window.removeScarOtroAttachment",
-        "#ea580c"
+        "#ea580c",
     );
 }
 
@@ -47,7 +47,7 @@ function renderEnvScarBadges() {
             "env-scar-archivos-adicionales-list",
             envScarSelectedFiles,
             "window.removeEnvScarAttachment",
-            "#0369a1"
+            "#0369a1",
         );
     }
 }
@@ -61,14 +61,14 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     if (!modal) return;
     const formEl = document.getElementById("formScar");
     if (formEl) formEl.reset();
-    
+
     scarFotosSelectedFiles = [];
     scarOtrosSelectedFiles = [];
     window.scarFotosSelectedFiles = scarFotosSelectedFiles;
     window.scarOtrosSelectedFiles = scarOtrosSelectedFiles;
     renderScarFotosBadges();
     renderScarOtrosBadges();
-    
+
     let otNumber = "";
     let molduraName = "";
     const cleanOt = ot
@@ -102,21 +102,21 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                 else if (tLow.includes("bombillo")) prefix = "TB";
                 else prefix = "T";
             } else {
-                if (tLow === "bombillo" || tLow.includes("bombillo"))
+                if (tLow === "bombillo" || tLow.includes("bombillo")) {
                     prefix = "B";
-                else if (tLow === "obturador" || tLow.includes("obturador"))
+                } else if (tLow === "obturador" || tLow.includes("obturador")) {
                     prefix = "O";
-                else if (tLow === "molde" || tLow.includes("molde"))
+                } else if (tLow === "molde" || tLow.includes("molde")) {
                     prefix = "M";
-                else if (tLow === "fondo" || tLow.includes("fondo"))
+                } else if (tLow === "fondo" || tLow.includes("fondo")) {
                     prefix = "F";
-                else if (tLow.includes("pistones"))
+                } else if (tLow.includes("pistones")) {
                     prefix = "P";
-                else if (tLow.includes("guías") || tLow.includes("guias"))
+                } else if (tLow.includes("guías") || tLow.includes("guias")) {
                     prefix = "G";
-                else if (tLow.includes("cabeza") && tLow.includes("soplo"))
+                } else if (tLow.includes("cabeza") && tLow.includes("soplo")) {
                     prefix = "CS";
-                else {
+                } else {
                     prefix = tipoModelo.charAt(0).toUpperCase();
                 }
             }
@@ -125,7 +125,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     }
     const tipoInput = document.getElementById("scar-tipo");
     if (tipoInput) tipoInput.value = tipoModelo || "";
-    
+
     const DISPLAY_MAP = {
         "fondo": "4 - FONDO",
         "obturador": "6 - OBTURADOR",
@@ -138,14 +138,14 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
         "candado obturador": "9 - CANDADO OBTURADOR",
         "pistones": "10 - PISTONES",
         "guías": "11 - GUÍAS",
-        "guias": "11 - GUÍAS"
+        "guias": "11 - GUÍAS",
     };
     const tLowerForMap = (tipoModelo || "").toLowerCase();
     const mappedTipo = DISPLAY_MAP[tLowerForMap] || tipoModelo || "General";
-    
+
     const tipoDisplay = document.getElementById("scar-tipo-display");
     if (tipoDisplay) tipoDisplay.textContent = mappedTipo;
-    
+
     const motivoInput = document.getElementById("scar-motivo");
     if (motivoInput) motivoInput.value = motivoRechazo || "";
     const descTextarea = document.getElementById("scar-descripcion");
@@ -160,7 +160,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     if (defaultChkDibujos) defaultChkDibujos.checked = true;
     const defaultChkAyudas = document.getElementById("scar-evidencia-ayudas");
     if (defaultChkAyudas) defaultChkAyudas.checked = true;
-    
+
     fetch(
         `${window.almacenRoutes.getScar}?ot=${encodeURIComponent(ot)}&tipo_modelo=${encodeURIComponent(tipoModelo || "")}`,
     )
@@ -168,56 +168,56 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
         .then((data) => {
             if (data.success) {
                 if (data.preorden_codigo_modelo) {
-                    if (codigoInput)
+                    if (codigoInput) {
                         codigoInput.value = data.preorden_codigo_modelo;
+                    }
                 } else {
                     let prefix = "F";
                     const tLow = (tipoModelo || "").toLowerCase();
                     const cLow = (data.clase_nombre || "").toLowerCase();
-                    const esTempladera =
-                        data.es_templadera ||
-                        tLow.includes("templadera") ||
-                        cLow.includes("templadera");
+                    const esTempladera = data.es_templadera
+                        || tLow.includes("templadera")
+                        || cLow.includes("templadera");
                     if (esTempladera) {
                         if (
-                            tLow.includes("obturador") ||
-                            cLow.includes("obturador")
-                        )
+                            tLow.includes("obturador")
+                            || cLow.includes("obturador")
+                        ) {
                             prefix = "TO";
-                        else if (
-                            tLow.includes("molde") ||
-                            cLow.includes("molde")
-                        )
+                        } else if (
+                            tLow.includes("molde")
+                            || cLow.includes("molde")
+                        ) {
                             prefix = "TM";
-                        else if (
-                            tLow.includes("fondo") ||
-                            cLow.includes("fondo")
-                        )
+                        } else if (
+                            tLow.includes("fondo")
+                            || cLow.includes("fondo")
+                        ) {
                             prefix = "TF";
-                        else if (
-                            tLow.includes("bombillo") ||
-                            cLow.includes("bombillo")
-                        )
+                        } else if (
+                            tLow.includes("bombillo")
+                            || cLow.includes("bombillo")
+                        ) {
                             prefix = "TB";
-                        else prefix = "T";
+                        } else prefix = "T";
                     } else {
-                        if (tLow === "bombillo" || cLow.includes("bombillo"))
+                        if (tLow === "bombillo" || cLow.includes("bombillo")) {
                             prefix = "B";
-                        else if (
-                            tLow === "obturador" ||
-                            cLow.includes("obturador")
-                        )
+                        } else if (
+                            tLow === "obturador"
+                            || cLow.includes("obturador")
+                        ) {
                             prefix = "O";
-                        else if (tLow === "molde" || cLow.includes("molde"))
+                        } else if (tLow === "molde" || cLow.includes("molde")) {
                             prefix = "M";
-                        else if (tLow === "fondo" || cLow.includes("fondo"))
+                        } else if (tLow === "fondo" || cLow.includes("fondo")) {
                             prefix = "F";
-                        else if (
-                            cLow.includes("cabeza") &&
-                            cLow.includes("soplo")
-                        )
+                        } else if (
+                            cLow.includes("cabeza")
+                            && cLow.includes("soplo")
+                        ) {
                             prefix = "CS";
-                        else {
+                        } else {
                             prefix = (data.clase_nombre || tipoModelo || "F")
                                 .charAt(0)
                                 .toUpperCase();
@@ -229,50 +229,51 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                 }
                 if (data.scar) {
                     const s = data.scar;
-                    if (s.cliente_empresa)
-                        document.getElementById("scar-cliente-empresa").value =
-                            s.cliente_empresa;
-                    if (s.area_solicitante)
-                        document.getElementById("scar-area-solicitante").value =
-                            s.area_solicitante;
-                    if (s.nombre_solicitante)
+                    if (s.cliente_empresa) {
+                        document.getElementById("scar-cliente-empresa").value = s.cliente_empresa;
+                    }
+                    if (s.area_solicitante) {
+                        document.getElementById("scar-area-solicitante").value = s.area_solicitante;
+                    }
+                    if (s.nombre_solicitante) {
                         document.getElementById(
                             "scar-nombre-solicitante",
                         ).value = s.nombre_solicitante;
-                    if (s.nombre_moldura)
-                        document.getElementById("scar-nombre-moldura").value =
-                            s.nombre_moldura;
-                    if (s.proveedor)
-                        document.getElementById("scar-proveedor").value =
-                            s.proveedor;
-                    if (s.descripcion_no_conformidad)
-                        document.getElementById("scar-descripcion").value =
-                            s.descripcion_no_conformidad;
-                    if (s.causa_raiz)
-                        document.getElementById("scar-causa-raiz").value =
-                            s.causa_raiz;
-                    if (s.acciones_correctivas)
-                        document.getElementById("scar-acciones").value =
-                            s.acciones_correctivas;
-                    if (s.codigo_modelo)
-                        document.getElementById("scar-codigo-modelo").value =
-                            s.codigo_modelo;
+                    }
+                    if (s.nombre_moldura) {
+                        document.getElementById("scar-nombre-moldura").value = s.nombre_moldura;
+                    }
+                    if (s.proveedor) {
+                        document.getElementById("scar-proveedor").value = s.proveedor;
+                    }
+                    if (s.descripcion_no_conformidad) {
+                        document.getElementById("scar-descripcion").value = s.descripcion_no_conformidad;
+                    }
+                    if (s.causa_raiz) {
+                        document.getElementById("scar-causa-raiz").value = s.causa_raiz;
+                    }
+                    if (s.acciones_correctivas) {
+                        document.getElementById("scar-acciones").value = s.acciones_correctivas;
+                    }
+                    if (s.codigo_modelo) {
+                        document.getElementById("scar-codigo-modelo").value = s.codigo_modelo;
+                    }
                     const chkDibujos = document.getElementById(
                         "scar-evidencia-dibujos",
                     );
-                    if (chkDibujos)
-                        chkDibujos.checked =
-                            s.evidencia_dibujos === undefined
-                                ? true
-                                : !!s.evidencia_dibujos;
+                    if (chkDibujos) {
+                        chkDibujos.checked = s.evidencia_dibujos === undefined
+                            ? true
+                            : !!s.evidencia_dibujos;
+                    }
                     const chkAyudas = document.getElementById(
                         "scar-evidencia-ayudas",
                     );
-                    if (chkAyudas)
-                        chkAyudas.checked =
-                            s.evidencia_ayudas === undefined
-                                ? true
-                                : !!s.evidencia_ayudas;
+                    if (chkAyudas) {
+                        chkAyudas.checked = s.evidencia_ayudas === undefined
+                            ? true
+                            : !!s.evidencia_ayudas;
+                    }
                     const chkFotos = document.getElementById(
                         "scar-evidencia-fotos",
                     );
@@ -281,11 +282,12 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                         const group = document.getElementById(
                             "scar-fotos-upload-group",
                         );
-                        if (group)
+                        if (group) {
                             group.classList.toggle(
                                 "alm-display-none",
                                 !chkFotos.checked,
                             );
+                        }
                     }
                     const chkOtro = document.getElementById(
                         "scar-evidencia-otro",
@@ -295,11 +297,12 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                         const group = document.getElementById(
                             "scar-otro-upload-group",
                         );
-                        if (group)
+                        if (group) {
                             group.classList.toggle(
                                 "alm-display-none",
                                 !chkOtro.checked,
                             );
+                        }
                     }
                     const chkRegreso = document.getElementById(
                         "scar-accion-regreso",
@@ -308,31 +311,33 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                     const chkFabricacion = document.getElementById(
                         "scar-accion-fabricacion",
                     );
-                    if (chkFabricacion)
+                    if (chkFabricacion) {
                         chkFabricacion.checked = !!s.accion_fabricacion;
-                    const chkAccionOtro =
-                        document.getElementById("scar-accion-otro");
+                    }
+                    const chkAccionOtro = document.getElementById("scar-accion-otro");
                     if (chkAccionOtro) {
                         chkAccionOtro.checked = !!s.accion_otro;
                         const group = document.getElementById(
                             "scar-accion-otro-text-group",
                         );
-                        if (group)
+                        if (group) {
                             group.classList.toggle(
                                 "alm-display-none",
                                 !chkAccionOtro.checked,
                             );
+                        }
                     }
-                    if (s.accion_otro_texto)
+                    if (s.accion_otro_texto) {
                         document.getElementById(
                             "scar-accion-otro-texto",
                         ).value = s.accion_otro_texto;
+                    }
                 }
             }
         })
         .catch((err) => console.error("Error loading SCAR:", err));
-        
-    if (typeof window.cargarEvidenciasScarServer === 'function') {
+
+    if (typeof window.cargarEvidenciasScarServer === "function") {
         window.cargarEvidenciasScarServer(ot, tipoModelo);
     }
     modal.classList.add("open");
@@ -341,60 +346,10 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
 
 window.cargarEvidenciasScarServer = function (ot, tipoModelo) {
     const filesContainer = document.getElementById("scar-server-files-container");
-    if (!filesContainer) return;
-    filesContainer.innerHTML = `
-        <div style="text-align: center; padding: 10px; grid-column: 1 / -1;">
-            <div class="alm-spinner" style="border-top-color: #9c0300; display: inline-block;"></div>
-            <span style="color: #64748b; margin-left: 10px;">Obteniendo archivos del servidor...</span>
-        </div>
-    `;
-    
-    fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
-        .then((res) => res.json())
-        .then((data) => {
-            if (data.existe && data.archivos && data.archivos.length > 0) {
-                // Filtrar para mostrar solo los archivos rechazados/extras correspondientes a la clase actual
-                const rawTipo = (tipoModelo || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                const keyWords = rawTipo.split(/[\s\-_]+/).filter(w => w.length >= 3 && w !== 'modelo' && w !== 'casting');
-                
-                const rejectedFiles = data.archivos.filter(f => {
-                    const fname = f.nombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                    // Muy permisivo: Si la ruta tiene "extras", "scar", o "rechazado", lo consideramos evidencia SCAR
-                    const isRechazado = f.origin === 'rechazado' || fname.includes('extras') || fname.includes('scar') || fname.includes('rechazado');
-                    
-                    let isMismaClase = true;
-                    if (rawTipo !== "") {
-                        if (keyWords.length > 0) {
-                            isMismaClase = keyWords.some(kw => fname.includes(kw) || fname.includes(kw.replace(/s$/, "")));
-                        } else {
-                            isMismaClase = fname.includes(rawTipo.trim());
-                        }
-                    }
-                    
-                    return isRechazado && isMismaClase;
-                });
-                
-                if (rejectedFiles.length > 0) {
-                    let baseUrl = window.baseUrl || window.location.origin + "/";
-                    if (!baseUrl.endsWith("/")) baseUrl += "/";
-                    const sectionsHtml = window.generarHtmlCategorizadoArchivos(
-                        rejectedFiles,
-                        ot,
-                        baseUrl,
-                        "scar"
-                    );
-                    filesContainer.innerHTML = sectionsHtml || `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">No se encontraron archivos de evidencia en el servidor para este SCAR.</div>`;
-                } else {
-                    filesContainer.innerHTML = `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">No se encontraron archivos de evidencia adicionales en el servidor.</div>`;
-                }
-            } else {
-                filesContainer.innerHTML = `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic; grid-column: 1 / -1;">No se encontraron archivos en el servidor para esta OT.</div>`;
-            }
-        })
-        .catch((err) => {
-            console.error(err);
-            filesContainer.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600; grid-column: 1 / -1;">Error al cargar la lista de evidencias.</div>`;
-        });
+    if (filesContainer) {
+        filesContainer.style.display = "none";
+        filesContainer.innerHTML = "";
+    }
 };
 
 window.cerrarModalScar = function () {
@@ -416,24 +371,24 @@ window.eliminarArchivoServidorCategorizado = function (ot, fileNombre, tipo) {
     formData.append("ot", ot);
     formData.append("archivo", fileNombre);
     formData.append("tipo", tipo || "otro");
-    
+
     const lower = fileNombre.toLowerCase();
     if (
-        lower.includes("documentos_rechazados") ||
-        lower.includes("rechazado") ||
-        lower.includes("scar")
+        lower.includes("documentos_rechazados")
+        || lower.includes("rechazado")
+        || lower.includes("scar")
     ) {
         formData.append("origin", "rechazado");
     } else if (
-        lower.includes("documentos_aprobados") ||
-        lower.includes("aprobado") ||
-        lower.includes("confirmacion")
+        lower.includes("documentos_aprobados")
+        || lower.includes("aprobado")
+        || lower.includes("confirmacion")
     ) {
         formData.append("origin", "aprobado");
     }
-    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+    const token = document.querySelector("meta[name=\"csrf-token\"]")?.getAttribute("content");
     if (token) formData.append("_token", token);
-    
+
     fetch(window.almacenRoutes.deleteFile, {
         method: "POST",
         headers: {
@@ -449,15 +404,15 @@ window.eliminarArchivoServidorCategorizado = function (ot, fileNombre, tipo) {
                 if (openModals.length > 0) {
                     openModals.forEach((m) => {
                         if (
-                            m.id === "modalScar" &&
-                            typeof window.cargarEvidenciasScarServer === "function"
+                            m.id === "modalScar"
+                            && typeof window.cargarEvidenciasScarServer === "function"
                         ) {
                             const otVal = document.getElementById("scar-ot")?.value;
                             const tipoVal = document.getElementById("scar-tipo")?.value;
                             if (otVal) window.cargarEvidenciasScarServer(otVal, tipoVal);
                         } else if (
-                            m.id === "modalEnviarScar" &&
-                            typeof window.abrirModalEnviarScar === "function"
+                            m.id === "modalEnviarScar"
+                            && typeof window.abrirModalEnviarScar === "function"
                         ) {
                             const otVal = document.getElementById("env-scar-ot")?.value;
                             if (otVal) window.abrirModalEnviarScar(otVal);
@@ -489,12 +444,12 @@ window.scarSubmit = function (accion) {
     if (btn) {
         btn.disabled = true;
         btn.innerHTML =
-            '<span class="alm-spinner" style="display:inline-block; border-top-color:#ffffff; width:15px; height:15px; margin-right:8px; vertical-align:middle;"></span> Procesando...';
+            "<span class=\"alm-spinner\" style=\"display:inline-block; border-top-color:#ffffff; width:15px; height:15px; margin-right:8px; vertical-align:middle;\"></span> Procesando...";
     }
     const formData = new FormData(form);
     formData.delete("fotos[]");
     formData.delete("otros_archivos[]");
-    
+
     scarFotosSelectedFiles.forEach((file) => {
         formData.append("fotos[]", file);
     });
@@ -502,11 +457,11 @@ window.scarSubmit = function (accion) {
         formData.append("otros_archivos[]", file);
     });
     formData.append("accion", accion);
-    
+
     fetch(window.almacenRoutes.generateScar, {
         method: "POST",
         headers: {
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
+            "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]")?.getAttribute("content") || "",
         },
         body: formData,
     })
@@ -553,7 +508,7 @@ window.abrirModalEnviarScar = function (ot) {
     }
     const form = document.getElementById("formEnviarScar");
     if (form) form.reset();
-    
+
     const filesContainer = document.getElementById("env-scar-server-files-container");
     if (filesContainer) {
         filesContainer.innerHTML = `
@@ -565,7 +520,7 @@ window.abrirModalEnviarScar = function (ot) {
     }
     modal.classList.add("open");
     document.body.classList.add("modal-open");
-    
+
     fetch(`${window.almacenRoutes.getScar}?ot=${encodeURIComponent(ot)}`)
         .then((res) => res.json())
         .then((data) => {
@@ -578,7 +533,7 @@ window.abrirModalEnviarScar = function (ot) {
             }
         })
         .catch((err) => console.error(err));
-        
+
     fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}`)
         .then((res) => res.json())
         .then((data) => {
@@ -589,21 +544,24 @@ window.abrirModalEnviarScar = function (ot) {
                     data.archivos,
                     ot,
                     baseUrl,
-                    "scar"
+                    "scar",
                 );
                 if (filesContainer) {
-                    filesContainer.innerHTML = sectionsHtml || `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">No se encontraron archivos en el servidor para esta OT.</div>`;
+                    filesContainer.innerHTML = sectionsHtml
+                        || `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">No se encontraron archivos en el servidor para esta OT.</div>`;
                 }
             } else {
                 if (filesContainer) {
-                    filesContainer.innerHTML = `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">No se encontraron archivos en el servidor para esta OT.</div>`;
+                    filesContainer.innerHTML =
+                        `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">No se encontraron archivos en el servidor para esta OT.</div>`;
                 }
             }
         })
         .catch((err) => {
             console.error(err);
             if (filesContainer) {
-                filesContainer.innerHTML = `<div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600;">Error al cargar la lista de archivos.</div>`;
+                filesContainer.innerHTML =
+                    `<div style="text-align: center; color: #ef4444; padding: 15px; font-weight: 600;">Error al cargar la lista de archivos.</div>`;
             }
         });
 };
@@ -664,21 +622,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 mostrarToast("Por favor, sube el SCAR firmado físicamente.", true);
                 return;
             }
-            const btn = this.querySelector('button[type="submit"]');
+            const btn = this.querySelector("button[type=\"submit\"]");
             const originalText = btn.innerHTML;
             btn.disabled = true;
-            btn.innerHTML = '<span class="alm-spinner" style="display:inline-block; border-top-color:#ffffff; width:15px; height:15px; margin-right:8px; vertical-align:middle;"></span> Enviando alerta...';
-            
+            btn.innerHTML =
+                "<span class=\"alm-spinner\" style=\"display:inline-block; border-top-color:#ffffff; width:15px; height:15px; margin-right:8px; vertical-align:middle;\"></span> Enviando alerta...";
+
             const formData = new FormData(this);
             formData.delete("archivos_adicionales[]");
             envScarSelectedFiles.forEach((file) => {
                 formData.append("archivos_adicionales[]", file);
             });
-            
+
             fetch(window.almacenRoutes.sendScarAlert, {
                 method: "POST",
                 headers: {
-                    "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "",
+                    "X-CSRF-TOKEN": document.querySelector("meta[name=\"csrf-token\"]")?.getAttribute("content") || "",
                 },
                 body: formData,
             })

@@ -189,9 +189,19 @@
             }
             $clasesProcesadas = array_values(array_unique(array_filter($clasesProcesadas, fn($v) => $v !== '')));
 
+            // Añadir las clases que ya están aprobadas directamente por calidad
+            if (isset($aprobadosNorm) && is_array($aprobadosNorm)) {
+                foreach ($aprobadosNorm as $ap) {
+                    $apClean = strtolower(trim($ap));
+                    if (!empty($apClean) && !in_array($apClean, $clasesProcesadas)) {
+                        $clasesProcesadas[] = $apClean;
+                    }
+                }
+            }
+
             $clasesActivasCubiertas = [];
             $clasesActivasFaltantes = [];
-            foreach ($otClasesActivas as $clActiva) {
+            foreach ($clasesFabricacion as $clActiva) {
                 $cubierta = false;
                 foreach ($clasesProcesadas as $cp) {
                     if ($cp === '' || $clActiva === '') {
@@ -206,6 +216,22 @@
                     $clasesActivasCubiertas[] = $clActiva;
                 } else {
                     $clasesActivasFaltantes[] = $clActiva;
+                }
+            }
+
+            if (isset($hayRechazadosSinPreorden) && $hayRechazadosSinPreorden && isset($rechazadosSinPreorden)) {
+                foreach ($rechazadosSinPreorden as $rClase) {
+                    $rClean = strtolower(trim($rClase));
+                    $alreadyIn = false;
+                    foreach ($clasesActivasFaltantes as $caf) {
+                        if (strtolower(trim($caf)) === $rClean) {
+                            $alreadyIn = true;
+                            break;
+                        }
+                    }
+                    if (!$alreadyIn) {
+                        $clasesActivasFaltantes[] = $rClase;
+                    }
                 }
             }
 
@@ -254,7 +280,7 @@
                         ? 'opacity: 0.5; pointer-events: none;'
                         : '');
             $hideControlCard =
-                count($clasesFabricacion) > 0 || $esReinicioParcial
+                count($clasesFabricacion) > 0 || $esReinicioParcial || (isset($hayRechazadosSinPreorden) && $hayRechazadosSinPreorden)
                     ? ''
                     : (($tieneAprobados || $tieneRechazados) && !$esReproceso
                         ? 'display: none;'
@@ -349,7 +375,7 @@
                 in_array($reg->calidad_revision_status, ['casting_aprobado']) ||
                 (($tieneAprobados || $tieneRechazados) && !$esReproceso && !$esReinicioParcial);
             $ocultarCardEnModelo =
-                count($clasesFabricacion) > 0
+                count($clasesFabricacion) > 0 || (isset($hayRechazadosSinPreorden) && $hayRechazadosSinPreorden)
                     ? false
                     : $calidadYaRespondio ||
                         (($tieneAprobados || $tieneRechazados) &&
@@ -476,7 +502,7 @@
             {{-- ================================================================= --}}
             {{-- SECCIÓN ACTIVA (CLASES PENDIENTES DE PROCESAR) --}}
             {{-- ================================================================= --}}
-            @if (count($clasesActivasFaltantes) > 0 || (count($clasesActivasFaltantes) == 0 && count($clasesActivasCubiertas) == 0))
+            @if (count($clasesActivasFaltantes) > 0 || count($dibujosPendientes) > 0 || count($ayudasPendientes) > 0 || count($preordenesPendientes) > 0)
                 <div class="cal-subcontainer-almacen"
                     style="margin-bottom: 25px; padding: 18px; border-radius: 12px; background-color: #f0f9ff; border: 2px solid #0ea5e9; box-shadow: 0 3px 10px rgba(14, 165, 233, 0.08);">
                     <div
@@ -682,8 +708,8 @@
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Almacén</span>,
                                             en espera de revisión por <span
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Calidad</span>.
-                                        @elseif($esReproceso)
-                                            Modelos Retornados a Reproceso. Procede a generar la <span
+                                        @elseif($esReproceso || (isset($hayRechazadosSinPreorden) && $hayRechazadosSinPreorden))
+                                            Modelos Retornados / Rechazados. Procede a generar la <span
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Pre-Orden
                                                 de Fabricación de Modelo</span>.
                                         @else

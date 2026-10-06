@@ -594,4 +594,37 @@ function renderFileCardIcon(ext) {
 }
 ```
 
+---
+
+## 19. Modales de Confirmación de Acciones Destructivas vs Seguras
+
+Cuando se ofrecen opciones que modifican el estado de la Base de Datos (como reiniciar el progreso de una clase) contra opciones que solo actualizan archivos (como un reemplazo de dibujos), se deben usar modales separados con temáticas de color claras:
+- **Rojo (Acción Destructiva)**: `_abrirModalReinicio(action)`. Usa alertas rojas, advertencias claras de pérdida de datos y un timer de 5s antes de habilitar el botón de enviar.
+- **Verde (Acción Segura)**: `_abrirModalReemplazo(action)`. Usa colores verdes, texto tranquilizador indicando que el progreso se conserva, y un timer más corto (ej. 3s).
+
+Ejemplo de enrutamiento:
+```javascript
+if (action === 'reiniciar_parcial' || action === 'reiniciar_completo') {
+    _abrirModalReinicio(action, clasesPreSeleccionadas);
+} else if (action === 'mantener') {
+    _abrirModalReemplazo(action, clasesPreSeleccionadas);
+}
+```
+
+---
+
+## 20. Reemplazo de SweetAlert por almacenToast
+
+Para mantener la uniformidad en la aplicación (y evitar problemas de dependencias donde `Swal is not defined`), nunca utilices `Swal.fire` en el área de Almacén. Usa siempre `almacenToast`.
+
+```javascript
+// ❌ INCORRECTO:
+Swal.fire('Error', 'Mensaje', 'error');
+
+// ✅ CORRECTO:
+almacenToast('Mensaje', 'error');
+almacenToast('Mensaje', 'success');
+almacenToast('Mensaje', 'warning');
+```
+
 

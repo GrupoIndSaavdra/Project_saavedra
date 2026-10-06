@@ -808,6 +808,10 @@ class AlmacenTableRowViewModel
         $rechazadosOtros = [];
         $archivos = [];
         $dibujoBaseNames = [];
+        $this->ayudasArchivos = [];
+        $this->otrosArchivos = [];
+        $this->baseNames = [];
+        $this->normBaseNames = [];
         foreach ($relatedRecords as $relRec) {
             // No mezclar dibujos de OTs de reproceso (_R1, _R2...) en la OT base u otras OTs
             if ($relRec->ot !== $reg->ot && preg_match('/_R\d+$/i', $relRec->ot)) {
@@ -827,26 +831,55 @@ class AlmacenTableRowViewModel
                 $fileLower = strtolower($archivo);
                 $baseLower = strtolower($base);
 
-                $isNonDrawing =
-                    strpos($fileLower, 'ayudas_visuales') !== false ||
-                    strpos($fileLower, 'ayudas-visuales') !== false ||
-                    strpos($fileLower, 'preordenes') !== false ||
-                    strpos($fileLower, 'preorden') !== false ||
-                    strpos($fileLower, 'escaneados') !== false ||
-                    strpos($fileLower, 'documentos_aprobados') !== false ||
-                    strpos($fileLower, 'documentos_rechazados') !== false ||
-                    strpos($baseLower, 'f_alm_') !== false ||
-                    strpos($baseLower, 'f_ccl_') !== false ||
-                    strpos($baseLower, 'cfm') !== false ||
-                    strpos($baseLower, 'efm') !== false ||
-                    strpos($baseLower, 'pfm') !== false ||
-                    strpos($baseLower, 'pfc') !== false ||
-                    strpos($baseLower, 'efc') !== false ||
-                    strpos($baseLower, 'ldm') !== false ||
-                    strpos($baseLower, 'rdm') !== false ||
-                    strpos($baseLower, 'scar') !== false;
+                $isAyudaVisual = strpos($fileLower, 'ayudas_visuales') !== false || strpos($fileLower, 'ayudas-visuales') !== false;
+                $isPreordenFile = strpos($fileLower, 'preordenes') !== false || strpos($fileLower, 'preorden') !== false || strpos($fileLower, 'escaneados') !== false || strpos($baseLower, 'f_alm_') !== false || strpos($baseLower, 'cfm') !== false || strpos($baseLower, 'efm') !== false || strpos($baseLower, 'pfm') !== false || strpos($baseLower, 'pfc') !== false || strpos($baseLower, 'efc') !== false;
+                $isRechazadoFile = strpos($fileLower, 'documentos_rechazados') !== false || strpos($baseLower, 'rdm') !== false || strpos($baseLower, 'scar') !== false;
+                $isAprobadoFile = strpos($fileLower, 'documentos_aprobados') !== false || strpos($baseLower, 'ldm') !== false || strpos($baseLower, 'f_ccl_') !== false;
+                $isNonDrawing = $isAyudaVisual || $isPreordenFile || $isRechazadoFile || $isAprobadoFile;
+
+                $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
 
                 if ($isNonDrawing) {
+                    if ($isAyudaVisual) {
+                        if (!in_array($normBase, $this->normBaseNames)) {
+                            $itemData = [
+                                'nombre' => ltrim($archivo, '/'),
+                                'url' => route('almacen.fundicion.serve', [
+                                    'ot' => $relRec->ot,
+                                    'archivo' => ltrim($archivo, '/'),
+                                    'tipo' => 'ayuda',
+                                    'origin' => 'ayuda',
+                                ]),
+                                'tipo' => 'ayuda',
+                                'ot' => $relRec->ot,
+                                'origin' => 'ayuda',
+                                'owner' => 'almacen',
+                            ];
+                            $this->ayudasArchivos[] = $itemData;
+                            $this->baseNames[] = $base;
+                            $this->normBaseNames[] = $normBase;
+                        }
+                    } elseif ($isPreordenFile || $isRechazadoFile || $isAprobadoFile) {
+                        if (!in_array($normBase, $this->normBaseNames)) {
+                            $origin = $isRechazadoFile ? 'rechazado' : 'aprobado';
+                            $itemData = [
+                                'nombre' => ltrim($archivo, '/'),
+                                'url' => route('almacen.fundicion.serve', [
+                                    'ot' => $relRec->ot,
+                                    'archivo' => ltrim($archivo, '/'),
+                                    'tipo' => 'otro',
+                                    'origin' => $origin,
+                                ]),
+                                'tipo' => 'otro',
+                                'ot' => $relRec->ot,
+                                'origin' => $origin,
+                                'owner' => 'almacen',
+                            ];
+                            $this->otrosArchivos[] = $itemData;
+                            $this->baseNames[] = $base;
+                            $this->normBaseNames[] = $normBase;
+                        }
+                    }
                     continue;
                 }
 
@@ -913,14 +946,25 @@ class AlmacenTableRowViewModel
         }
         $countDibujos = count($archivos);
 
-        $ayudasArchivos = [];
-        $otrosArchivos = [];
+        foreach ($dibujoBaseNames as $dbn) {
+            if (!in_array($dbn, $this->baseNames)) {
+                $this->baseNames[] = $dbn;
+                $this->normBaseNames[] = strtolower(preg_replace('/[\s_]+/', '', (string) $dbn));
+            }
+        }
+
         $ayudasBaseNames = [];
         $normAyudasBaseNames = [];
-        $baseNames = $dibujoBaseNames;
-        $normBaseNames = array_map(function ($b) {
-            return strtolower(preg_replace('/[\s_]+/', '', $b));
-        }, $baseNames);
+        foreach ($this->ayudasArchivos as $aa) {
+            $base = basename($aa['nombre']);
+            $ayudasBaseNames[] = $base;
+            $normAyudasBaseNames[] = strtolower(preg_replace('/[\s_]+/', '', $base));
+        }
+
+        $ayudasArchivos = $this->ayudasArchivos;
+        $otrosArchivos = $this->otrosArchivos;
+        $baseNames = $this->baseNames;
+        $normBaseNames = $this->normBaseNames;
 
         // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
         $ayudasGlobalesBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
@@ -2400,9 +2444,22 @@ class AlmacenTableRowViewModel
         $dibujosModelo = array_values(
             array_filter($archivos, function ($d) use ($clasesFabricacion) {
                 $nameLow = strtolower($d['nombre']);
+                $hasAnyKnownClass = false;
+                $knownClasses = array_unique(array_merge(
+                    array_map('strtolower', array_keys(\App\Services\FundicionPaths::getStandardMap())),
+                    array_map('strtolower', array_values(\App\Services\FundicionPaths::getStandardMap()))
+                ));
+                foreach ($knownClasses as $kc) {
+                    if (strpos($nameLow, $kc) !== false) {
+                        $hasAnyKnownClass = true;
+                        break;
+                    }
+                }
+                if (!$hasAnyKnownClass) return true;
+
                 foreach ($clasesFabricacion as $cf) {
                     $cfClean = trim(preg_replace('/^\d+\s*-\s*/', '', $cf));
-                    if ($cf !== '' && (strpos($nameLow, $cf) !== false || ($cfClean !== '' && strpos($nameLow, $cfClean) !== false))) {
+                    if ($cf !== '' && (strpos($nameLow, strtolower($cf)) !== false || ($cfClean !== '' && strpos($nameLow, strtolower($cfClean)) !== false))) {
                         return true;
                     }
                 }
@@ -2426,9 +2483,22 @@ class AlmacenTableRowViewModel
         $ayudasModelo = array_values(
             array_filter($ayudasArchivos, function ($a) use ($clasesFabricacion) {
                 $nameLow = strtolower($a['nombre']);
+                $hasAnyKnownClass = false;
+                $knownClasses = array_unique(array_merge(
+                    array_map('strtolower', array_keys(\App\Services\FundicionPaths::getStandardMap())),
+                    array_map('strtolower', array_values(\App\Services\FundicionPaths::getStandardMap()))
+                ));
+                foreach ($knownClasses as $kc) {
+                    if (strpos($nameLow, $kc) !== false) {
+                        $hasAnyKnownClass = true;
+                        break;
+                    }
+                }
+                if (!$hasAnyKnownClass) return true;
+
                 foreach ($clasesFabricacion as $cf) {
                     $cfClean = trim(preg_replace('/^\d+\s*-\s*/', '', $cf));
-                    if ($cf !== '' && (strpos($nameLow, $cf) !== false || ($cfClean !== '' && strpos($nameLow, $cfClean) !== false))) {
+                    if ($cf !== '' && (strpos($nameLow, strtolower($cf)) !== false || ($cfClean !== '' && strpos($nameLow, strtolower($cfClean)) !== false))) {
                         return true;
                     }
                 }
@@ -2581,7 +2651,7 @@ class AlmacenTableRowViewModel
         $rechazadosNorm = array_map('strtolower', $rechazados);
 
         $almacenPreordenesFab = array_values(
-            array_filter($almacenPreordenes ?? [], function ($doc) use ($clasesFabricacion, $isCalidadAlerted, $aprobadosNorm) {
+            array_filter($almacenPreordenes ?? [], function ($doc) use ($activeClassesForOt, $isCalidadAlerted, $aprobadosNorm) {
                 $pathLow = strtolower($doc['nombre']);
                 $nameLow = strtolower(basename($doc['nombre']));
 
@@ -2633,8 +2703,22 @@ class AlmacenTableRowViewModel
                     return true;
                 }
 
+                $hasAnyKnownClass = false;
+                $knownClasses = array_unique(array_merge(
+                    array_map('strtolower', array_keys(\App\Services\FundicionPaths::getStandardMap())),
+                    array_map('strtolower', array_values(\App\Services\FundicionPaths::getStandardMap()))
+                ));
+                foreach ($knownClasses as $kc) {
+                    if (strpos($nameLow, $kc) !== false) {
+                        $hasAnyKnownClass = true;
+                        break;
+                    }
+                }
+                if (!$hasAnyKnownClass) return true;
+
                 foreach ($clasesFabricacion as $cf) {
-                    if ($cf !== '' && strpos($nameLow, strtolower($cf)) !== false) {
+                    $cfClean = trim(preg_replace('/^\d+\s*-\s*/', '', $cf));
+                    if ($cf !== '' && (strpos($nameLow, strtolower($cf)) !== false || ($cfClean !== '' && strpos($nameLow, strtolower($cfClean)) !== false))) {
                         return true;
                     }
                 }
@@ -2677,7 +2761,8 @@ class AlmacenTableRowViewModel
                 if (!empty($rechazadosNorm)) {
                     $mencionaRechazada = false;
                     foreach ($rechazadosNorm as $rCl) {
-                        if ($rCl !== '' && strpos($nameLow, $rCl) !== false) {
+                        $rClean = trim(preg_replace('/^\d+\s*-\s*/', '', $rCl));
+                        if ($rCl !== '' && (strpos($nameLow, $rCl) !== false || ($rClean !== '' && strpos($nameLow, $rClean) !== false))) {
                             $mencionaRechazada = true;
                             break;
                         }
@@ -2685,7 +2770,8 @@ class AlmacenTableRowViewModel
                     if ($mencionaRechazada) {
                         $mencionaAprobada = false;
                         foreach ($aprobadosNorm as $ap) {
-                            if ($ap !== '' && strpos($nameLow, $ap) !== false) {
+                            $apClean = trim(preg_replace('/^\d+\s*-\s*/', '', $ap));
+                            if ($ap !== '' && (strpos($nameLow, $ap) !== false || ($apClean !== '' && strpos($nameLow, $apClean) !== false))) {
                                 $mencionaAprobada = true;
                                 break;
                             }

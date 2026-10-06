@@ -427,6 +427,7 @@ table td:last-child {
     width: 100vw;
     height: 100vh;
     background: rgba(0, 0, 0, 0.6);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
     display: none;
     align-items: center;
@@ -568,8 +569,8 @@ table td:last-child {
     background-position: right 12px center;
     background-size: 14px 10px;
     padding-right: 32px;
-    appearance: none;
     -webkit-appearance: none;
+    appearance: none;
 }
 
 .modal-actions {

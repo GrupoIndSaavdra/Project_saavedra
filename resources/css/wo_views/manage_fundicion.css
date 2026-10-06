@@ -510,12 +510,15 @@ body {
 }
 
 .dibujos-file-card .file-actions {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     gap: 0.4em;
     margin-top: auto;
     width: 100%;
-    justify-content: center;
-    flex-wrap: wrap;
+}
+
+.dibujos-file-card .file-actions .btn-eliminar {
+    grid-column: 1 / -1;
 }
 
 /* Botones dentro de la tarjeta - Más grandes y con colores que resaltan en el hover */

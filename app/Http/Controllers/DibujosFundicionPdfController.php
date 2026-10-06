@@ -199,7 +199,7 @@ class DibujosFundicionPdfController extends Controller
          * Determina si una clase de una OT ya tiene actividad en producción (preorden/casting/liberación).
          * Esto se usa para bloquear el botón de reenvío si no hay cambios reales en archivos.
          */
-        $claseYaEnProduccion = function(string $otName, string $claseNombre) use ($preOrdenesEnviadasPorOT, $liberacionesPorOT): bool {
+        $claseYaEnProduccion = function (string $otName, string $claseNombre) use ($preOrdenesEnviadasPorOT, $liberacionesPorOT): bool {
             // 1. Verificar si hay preorden enviada que incluya esta clase
             $preOrdenesPorEstaOT = $preOrdenesEnviadasPorOT->get($otName, collect());
             foreach ($preOrdenesPorEstaOT as $po) {
@@ -229,8 +229,7 @@ class DibujosFundicionPdfController extends Controller
          * 2. Si tiene actividad en preorden/liberación (producción activa) y no hay archivos nuevos
          * 3. Si tiene procesos en la tabla `clases.procesos` con fecha_inicio
          */
-        $calcularEstado = function(
-            string $otRaw,        // Nombre real de la OT (para buscar en disco)
+        $calcularEstado = function (string $otRaw,        // Nombre real de la OT (para buscar en disco)
             string $clase,        // Nombre en MAYÚSCULAS (del historial, para buscar carpeta física)
             string $claseKey,     // Nombre Title Case (de BD, para mostrar en UI)
             ?string $storedHash,  // Hash guardado en clases_enviadas (null = nunca enviado)
@@ -261,7 +260,7 @@ class DibujosFundicionPdfController extends Controller
                 if ($isLegacyList) {
                     $claseMatch = false;
                     foreach ($enviadasArray as $cEnv) {
-                        if (strtolower(trim((string)$cEnv)) === strtolower(trim((string)$clase))) {
+                        if (strtolower(trim((string) $cEnv)) === strtolower(trim((string) $clase))) {
                             $claseMatch = true;
                             break;
                         }
@@ -286,7 +285,8 @@ class DibujosFundicionPdfController extends Controller
 
         // Pre-procesar estructura keys para búsqueda rápida
         $estructuraOTs = array_map(function ($ot) {
-            return self::normalizeOTName($ot); }, array_keys($estructura));
+            return self::normalizeOTName($ot);
+        }, array_keys($estructura));
 
         foreach ($historialesRaw as $h) {
             $normName = $this->normalizeOTName($h->ot);
@@ -319,7 +319,7 @@ class DibujosFundicionPdfController extends Controller
             $vinculadas = $h->ayudas_config ?? [];
             foreach ($vinculadas as $clase) {
                 // Buscar el nombre canónico de la BD (Title Case) para display
-                $otMatch = $todasLasOTs->first(function($otM) use ($normName) {
+                $otMatch = $todasLasOTs->first(function ($otM) use ($normName) {
                     $label1 = self::normalizeOTName("OT " . $otM->id . ($otM->moldura ? " - " . $otM->moldura->nombre : ""));
                     $label2 = self::normalizeOTName("OT " . $otM->id);
                     return $label1 === $normName || $label2 === $normName;
@@ -337,7 +337,12 @@ class DibujosFundicionPdfController extends Controller
                 }
 
                 $st = $calcularEstado(
-                    $h->ot, $clase, $claseKey, $storedHash, $claseFisica, $h
+                    $h->ot,
+                    $clase,
+                    $claseKey,
+                    $storedHash,
+                    $claseFisica,
+                    $h
                 );
                 $alertasEnviadas[$normName][$claseKey] = $st;
                 $alertasEnviadas[$normName][strtoupper($claseKey)] = $st;
@@ -374,7 +379,12 @@ class DibujosFundicionPdfController extends Controller
                     // Usar nombre en mayúsculas para buscar carpeta en disco
                     $claseUppercase = strtoupper($claseKey);
                     $st = $calcularEstado(
-                        $fullOtName, $claseUppercase, $claseKey, null, $claseObj, $historialDeEstaOT
+                        $fullOtName,
+                        $claseUppercase,
+                        $claseKey,
+                        null,
+                        $claseObj,
+                        $historialDeEstaOT
                     );
                     $alertasEnviadas[$normName][$claseKey] = $st;
                     $alertasEnviadas[$normName][strtoupper($claseKey)] = $st;
@@ -713,7 +723,8 @@ class DibujosFundicionPdfController extends Controller
             $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
             $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
-            if (empty($claseClean)) $claseClean = 'GENERAL';
+            if (empty($claseClean))
+                $claseClean = 'GENERAL';
 
             if ($clase === '--') {
                 $dirPath = self::BASE_DIR . '/' . $otFolderName;
@@ -777,7 +788,8 @@ class DibujosFundicionPdfController extends Controller
         $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
         $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
-        if (empty($claseClean)) $claseClean = 'GENERAL';
+        if (empty($claseClean))
+            $claseClean = 'GENERAL';
 
         if ($clase === '--') {
             $dirPath = self::BASE_DIR . '/' . $otFolderName;
@@ -1030,17 +1042,26 @@ class DibujosFundicionPdfController extends Controller
                 ->filter(function ($f) use ($dstDir) {
                     $rel = str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f));
                     $relLower = strtolower($rel);
-                    
+
                     // Excluir cualquier archivo que esté dentro de carpetas de procesos de Almacén/Calidad
-                    if (str_contains($relLower, '/ayudas_visuales/') || str_starts_with($relLower, 'ayudas_visuales/')) return false;
-                    if (str_contains($relLower, '/documentos_aprobados/') || str_starts_with($relLower, 'documentos_aprobados/')) return false;
-                    if (str_contains($relLower, '/documentos_rechazados/') || str_starts_with($relLower, 'documentos_rechazados/')) return false;
-                    if (str_contains($relLower, '/preordenes/') || str_starts_with($relLower, 'preordenes/')) return false;
-                    if (str_contains($relLower, '/formatos_liberacion/') || str_starts_with($relLower, 'formatos_liberacion/')) return false;
-                    if (str_contains($relLower, '/scar/') || str_starts_with($relLower, 'scar/')) return false;
-                    if (str_contains($relLower, '/evidencias/') || str_starts_with($relLower, 'evidencias/')) return false;
-                    if (str_contains($relLower, '/fdldm/') || str_starts_with($relLower, 'fdldm/')) return false;
-                    if (str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/')) return false;
+                    if (str_contains($relLower, '/ayudas_visuales/') || str_starts_with($relLower, 'ayudas_visuales/'))
+                        return false;
+                    if (str_contains($relLower, '/documentos_aprobados/') || str_starts_with($relLower, 'documentos_aprobados/'))
+                        return false;
+                    if (str_contains($relLower, '/documentos_rechazados/') || str_starts_with($relLower, 'documentos_rechazados/'))
+                        return false;
+                    if (str_contains($relLower, '/preordenes/') || str_starts_with($relLower, 'preordenes/'))
+                        return false;
+                    if (str_contains($relLower, '/formatos_liberacion/') || str_starts_with($relLower, 'formatos_liberacion/'))
+                        return false;
+                    if (str_contains($relLower, '/scar/') || str_starts_with($relLower, 'scar/'))
+                        return false;
+                    if (str_contains($relLower, '/evidencias/') || str_starts_with($relLower, 'evidencias/'))
+                        return false;
+                    if (str_contains($relLower, '/fdldm/') || str_starts_with($relLower, 'fdldm/'))
+                        return false;
+                    if (str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/'))
+                        return false;
 
                     return in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
                 });
@@ -1056,7 +1077,7 @@ class DibujosFundicionPdfController extends Controller
                 // Si la clase tiene cambios pendientes, NO ELIMINAR sus archivos viejos en Almacen
                 $parts = explode('/', $dfRelNorm, 2);
                 $claseDel = count($parts) === 2 ? $parts[0] : '';
-                
+
                 if (is_array($onlyClasses) && count($onlyClasses) > 0) {
                     $claseMatch = false;
                     foreach ($onlyClasses as $oc) {
@@ -1065,7 +1086,8 @@ class DibujosFundicionPdfController extends Controller
                             break;
                         }
                     }
-                    if (!$claseMatch) continue;
+                    if (!$claseMatch)
+                        continue;
                 }
 
                 if (in_array($claseDel, $pendingChanges)) {
@@ -1086,7 +1108,7 @@ class DibujosFundicionPdfController extends Controller
                 $parts = explode('/', $sfRel, 2);
                 if (count($parts) === 2) {
                     [$clase, $archivo] = $parts;
-                    
+
                     if (is_array($onlyClasses) && count($onlyClasses) > 0) {
                         $claseMatch = false;
                         foreach ($onlyClasses as $oc) {
@@ -1095,15 +1117,17 @@ class DibujosFundicionPdfController extends Controller
                                 break;
                             }
                         }
-                        if (!$claseMatch) continue;
+                        if (!$claseMatch)
+                            continue;
                     }
 
                     $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
-                    if (empty($claseClean)) $claseClean = 'GENERAL';
+                    if (empty($claseClean))
+                        $claseClean = 'GENERAL';
 
                     if (in_array($claseClean, $pendingChanges))
                         continue; // IGNORAR SI LA CLASE TIENE CAMBIOS PENDIENTES
-                    
+
                     if (str_ends_with(strtolower($archivo), '.dwg')) {
                         $dstPath = $dstDir . '/' . $claseClean . '/' . FundicionPaths::DIBUJOS . '/' . FundicionPaths::DWG_FUNDICION . '/' . $archivo;
                     } else {
@@ -1143,11 +1167,13 @@ class DibujosFundicionPdfController extends Controller
                             break;
                         }
                     }
-                    if (!$claseMatch) continue;
+                    if (!$claseMatch)
+                        continue;
                 }
 
                 $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
-                if (empty($claseClean)) $claseClean = 'GENERAL';
+                if (empty($claseClean))
+                    $claseClean = 'GENERAL';
 
                 if (in_array($claseClean, $pendingChanges))
                     continue; // IGNORAR SI LA CLASE TIENE CAMBIOS PENDIENTES
@@ -1208,17 +1234,26 @@ class DibujosFundicionPdfController extends Controller
                 ->filter(function ($f) use ($dstDir) {
                     $rel = str_replace(str_replace('\\', '/', $dstDir) . '/', '', str_replace('\\', '/', $f));
                     $relLower = strtolower($rel);
-                    
+
                     // Incluir solo dibujos (nuevos en Dibujos/ o legacy en raíz de clase)
-                    if (str_contains($relLower, '/ayudas_visuales/') || str_starts_with($relLower, 'ayudas_visuales/')) return false;
-                    if (str_contains($relLower, '/documentos_aprobados/') || str_starts_with($relLower, 'documentos_aprobados/')) return false;
-                    if (str_contains($relLower, '/documentos_rechazados/') || str_starts_with($relLower, 'documentos_rechazados/')) return false;
-                    if (str_contains($relLower, '/preordenes/') || str_starts_with($relLower, 'preordenes/')) return false;
-                    if (str_contains($relLower, '/formatos_liberacion/') || str_starts_with($relLower, 'formatos_liberacion/')) return false;
-                    if (str_contains($relLower, '/scar/') || str_starts_with($relLower, 'scar/')) return false;
-                    if (str_contains($relLower, '/evidencias/') || str_starts_with($relLower, 'evidencias/')) return false;
-                    if (str_contains($relLower, '/fdldm/') || str_starts_with($relLower, 'fdldm/')) return false;
-                    if (str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/')) return false;
+                    if (str_contains($relLower, '/ayudas_visuales/') || str_starts_with($relLower, 'ayudas_visuales/'))
+                        return false;
+                    if (str_contains($relLower, '/documentos_aprobados/') || str_starts_with($relLower, 'documentos_aprobados/'))
+                        return false;
+                    if (str_contains($relLower, '/documentos_rechazados/') || str_starts_with($relLower, 'documentos_rechazados/'))
+                        return false;
+                    if (str_contains($relLower, '/preordenes/') || str_starts_with($relLower, 'preordenes/'))
+                        return false;
+                    if (str_contains($relLower, '/formatos_liberacion/') || str_starts_with($relLower, 'formatos_liberacion/'))
+                        return false;
+                    if (str_contains($relLower, '/scar/') || str_starts_with($relLower, 'scar/'))
+                        return false;
+                    if (str_contains($relLower, '/evidencias/') || str_starts_with($relLower, 'evidencias/'))
+                        return false;
+                    if (str_contains($relLower, '/fdldm/') || str_starts_with($relLower, 'fdldm/'))
+                        return false;
+                    if (str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/'))
+                        return false;
 
                     return in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
                 })
@@ -1230,6 +1265,7 @@ class DibujosFundicionPdfController extends Controller
         // 4. Limpiar los registros antiguos de Almacén y Calidad si se indica
         // Esto garantiza que al reiniciar el proceso se empiece desde 0 (borrón y cuenta nueva)
         if ($resetFlags) {
+            Log::info("COPY_TO_ALMACEN_RESET_FLAGS", ['ot' => $otName, 'onlyClasses' => $onlyClasses]);
             $baseOtName = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $otName);
 
             \App\Models\PreOrdenFundicion::query()
@@ -1270,10 +1306,17 @@ class DibujosFundicionPdfController extends Controller
                         $allSubDirs[] = $otDir;
                         foreach ($allSubDirs as $subDir) {
                             $baseNameLow = strtolower(basename($subDir));
-                            if (in_array($baseNameLow, [
-                                'documentos_aprobados', 'documentos_rechazados', 
-                                'preordenes', 'fdldm', 'fdrdm', 'scar', 'evidencias'
-                            ])) {
+                            if (
+                                in_array($baseNameLow, [
+                                    'documentos_aprobados',
+                                    'documentos_rechazados',
+                                    'preordenes',
+                                    'fdldm',
+                                    'fdrdm',
+                                    'scar',
+                                    'evidencias'
+                                ])
+                            ) {
                                 Storage::disk('local')->deleteDirectory($subDir);
                             }
                         }
@@ -1474,7 +1517,8 @@ class DibujosFundicionPdfController extends Controller
         $clase = $this->sanitizePath($request->input('clase'));
 
         $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
-        if (empty($claseClean)) $claseClean = 'GENERAL';
+        if (empty($claseClean))
+            $claseClean = 'GENERAL';
 
         $dirPath = self::BASE_DIR . '/' . $otNorm . '/' . $claseClean;
         $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm . '/' . $claseClean;
@@ -1519,7 +1563,7 @@ class DibujosFundicionPdfController extends Controller
     {
         $request->validate(['ot' => 'required|string|max:200']);
         $ot = $this->sanitizePath($request->input('ot'));
-        
+
         $otNorm = self::normalizeOTName($ot);
         $dirPath = self::BASE_DIR . '/' . $otNorm;
         $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm;
@@ -1546,7 +1590,7 @@ class DibujosFundicionPdfController extends Controller
     {
         $otNorm = self::normalizeOTName($ot);
 
-        $dirPath    = self::BASE_DIR . '/' . $otNorm;
+        $dirPath = self::BASE_DIR . '/' . $otNorm;
         $oldDirPath = self::OLD_BASE_DIR . '/' . $otNorm;
 
         // ─────────────────────────────────────────────────────────────────────
@@ -1557,7 +1601,7 @@ class DibujosFundicionPdfController extends Controller
         //                    ALMACEN/           <- viene de ALMACEN_FUNDICION
         //                    CALIDAD/           <- viene de CALIDAD_FUNDICION
         // ─────────────────────────────────────────────────────────────────────
-        $timestamp     = date('_Ymd_His') . '_del';
+        $timestamp = date('_Ymd_His') . '_del';
         $inactivasRoot = 'DOCUMENTACION_GIS/INACTIVAS';
 
         // Helper: copia todos los archivos de $source a $dest/{subdir}/ y luego
@@ -1571,9 +1615,9 @@ class DibujosFundicionPdfController extends Controller
                 Storage::disk('local')->makeDirectory($dest);
             }
             foreach (Storage::disk('local')->allFiles($source) as $file) {
-                $relPath    = ltrim(str_replace(str_replace('\\', '/', $source), '', str_replace('\\', '/', $file)), '/');
+                $relPath = ltrim(str_replace(str_replace('\\', '/', $source), '', str_replace('\\', '/', $file)), '/');
                 $targetPath = $dest . '/' . $relPath;
-                $targetDir  = dirname($targetPath);
+                $targetDir = dirname($targetPath);
                 if (!Storage::disk('local')->exists($targetDir)) {
                     Storage::disk('local')->makeDirectory($targetDir);
                 }
@@ -1589,9 +1633,9 @@ class DibujosFundicionPdfController extends Controller
 
         $otArchiveDir = $inactivasRoot . '/' . $otNorm . $timestamp;
 
-        $archiveToInactivas($dirPath,                                          $otArchiveDir, 'INGENIERIA');
-        $archiveToInactivas($oldDirPath,                                       $otArchiveDir, 'INGENIERIA_LEGACY');
-        $archiveToInactivas(self::ALMACEN_DIR . '/' . $otNorm,                $otArchiveDir, 'ALMACEN');
+        $archiveToInactivas($dirPath, $otArchiveDir, 'INGENIERIA');
+        $archiveToInactivas($oldDirPath, $otArchiveDir, 'INGENIERIA_LEGACY');
+        $archiveToInactivas(self::ALMACEN_DIR . '/' . $otNorm, $otArchiveDir, 'ALMACEN');
         $archiveToInactivas('DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNorm, $otArchiveDir, 'CALIDAD');
         $archiveToInactivas('DOCUMENTACION_GIS/Fundicion_Calidad/' . $otNorm, $otArchiveDir, 'CALIDAD_LEGACY');
 
@@ -1629,14 +1673,14 @@ class DibujosFundicionPdfController extends Controller
 
         foreach ($reprocessHistories as $rh) {
             $otsToDelete[] = $rh->ot;
-            $rTimestamp   = date('_Ymd_His') . '_del';
-            $rArchiveDir  = $inactivasRoot . '/' . $rh->ot . $rTimestamp;
+            $rTimestamp = date('_Ymd_His') . '_del';
+            $rArchiveDir = $inactivasRoot . '/' . $rh->ot . $rTimestamp;
 
-            $archiveToInactivas(self::BASE_DIR    . '/' . $rh->ot,                          $rArchiveDir, 'INGENIERIA');
-            $archiveToInactivas(self::OLD_BASE_DIR . '/' . $rh->ot,                         $rArchiveDir, 'INGENIERIA_LEGACY');
-            $archiveToInactivas(self::ALMACEN_DIR  . '/' . $rh->ot,                         $rArchiveDir, 'ALMACEN');
-            $archiveToInactivas('DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $rh->ot,           $rArchiveDir, 'CALIDAD');
-            $archiveToInactivas('DOCUMENTACION_GIS/Fundicion_Calidad/' . $rh->ot,           $rArchiveDir, 'CALIDAD_LEGACY');
+            $archiveToInactivas(self::BASE_DIR . '/' . $rh->ot, $rArchiveDir, 'INGENIERIA');
+            $archiveToInactivas(self::OLD_BASE_DIR . '/' . $rh->ot, $rArchiveDir, 'INGENIERIA_LEGACY');
+            $archiveToInactivas(self::ALMACEN_DIR . '/' . $rh->ot, $rArchiveDir, 'ALMACEN');
+            $archiveToInactivas('DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $rh->ot, $rArchiveDir, 'CALIDAD');
+            $archiveToInactivas('DOCUMENTACION_GIS/Fundicion_Calidad/' . $rh->ot, $rArchiveDir, 'CALIDAD_LEGACY');
         }
 
         $otsToDelete = array_values(array_unique(array_filter($otsToDelete)));

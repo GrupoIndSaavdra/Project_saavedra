@@ -169,7 +169,12 @@ class AlmacenFundicionController extends Controller
         $tipoPeticion = $request->query('tipo', '');
 
         $activeClasses = [];
-        if ($modelPreOrden && !$todo && $tipoPeticion !== 'modelo') {
+        $reqTipoModelo = $request->query('tipo_modelo', '');
+        if (!empty($reqTipoModelo)) {
+            $activeClasses = array_map('strtolower', array_unique(array_filter(array_map('trim', explode(',', $reqTipoModelo)))));
+        }
+
+        if (empty($activeClasses) && $modelPreOrden && !$todo && $tipoPeticion !== 'modelo') {
             $filas = $modelPreOrden->filas;
             while (is_string($filas)) {
                 $filas = json_decode($filas, true);
@@ -210,29 +215,23 @@ class AlmacenFundicionController extends Controller
 
         if (empty($activeClasses)) {
             if ($todo || $tipoPeticion === 'modelo') {
-                $defaultClasses = [
-                    '1 - MOLDES',
-                    '2 - BOMBILLO',
-                    '3 - EMBUDO',
-                    '4 - CORONA',
-                    '5 - PLATO',
-                    '6 - FONDO',
-                    '7 - OBTURADOR',
-                    '8 - CABEZA DE SOPLO',
-                    '9 - CANDADO OBTURADOR',
-                    'Candado obturador',
-                    'Cabeza de soplo',
-                    'Obturador',
-                    'Bombillo',
-                    'Embudo',
-                    'Corona',
-                    'Plato',
-                    'Molde',
-                    'Fondo',
-                    'Pistones',
-                    'Guías',
-                    'Guias'
-                ];
+                $defaultClasses = array_merge(
+                    array_values(array_unique(FundicionPaths::getStandardMap())),
+                    [
+                        'Candado obturador',
+                        'Cabeza de soplo',
+                        'Obturador',
+                        'Bombillo',
+                        'Embudo',
+                        'Corona',
+                        'Plato',
+                        'Molde',
+                        'Fondo',
+                        'Pistones',
+                        'Guías',
+                        'Guias'
+                    ]
+                );
                 $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
                 if (\Storage::disk('local')->exists($baseOtPath)) {
                     $dirs = \Storage::disk('local')->directories($baseOtPath);
@@ -293,29 +292,23 @@ class AlmacenFundicionController extends Controller
                 }
 
                 if (empty($activeClasses)) {
-                    $defaultClasses = [
-                        '1 - MOLDES',
-                        '2 - BOMBILLO',
-                        '3 - EMBUDO',
-                        '4 - CORONA',
-                        '5 - PLATO',
-                        '6 - FONDO',
-                        '7 - OBTURADOR',
-                        '8 - CABEZA DE SOPLO',
-                        '9 - CANDADO OBTURADOR',
-                        'Candado obturador',
-                        'Cabeza de soplo',
-                        'Obturador',
-                        'Bombillo',
-                        'Embudo',
-                        'Corona',
-                        'Plato',
-                        'Molde',
-                        'Fondo',
-                        'Pistones',
-                        'Guías',
-                        'Guias'
-                    ];
+                    $defaultClasses = array_merge(
+                        array_values(array_unique(FundicionPaths::getStandardMap())),
+                        [
+                            'Candado obturador',
+                            'Cabeza de soplo',
+                            'Obturador',
+                            'Bombillo',
+                            'Embudo',
+                            'Corona',
+                            'Plato',
+                            'Molde',
+                            'Fondo',
+                            'Pistones',
+                            'Guías',
+                            'Guias'
+                        ]
+                    );
                     $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
                     if (\Storage::disk('local')->exists($baseOtPath)) {
                         $dirs = \Storage::disk('local')->directories($baseOtPath);
@@ -510,7 +503,7 @@ class AlmacenFundicionController extends Controller
                         $files = collect(Storage::disk('local')->allFiles($scanPath))
                             ->filter(function ($f) use ($relatedOt, $ot, $activeClasses, $scanPath) {
                                 $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                                $isDoc = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                $isDoc = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'dwg']);
                                 if (!$isDoc)
                                     return false;
 
@@ -537,29 +530,23 @@ class AlmacenFundicionController extends Controller
                                     return true;
                                 }
 
-                                $knownClasses = [
-                                    '1 - MOLDES',
-                                    '2 - BOMBILLO',
-                                    '3 - EMBUDO',
-                                    '4 - CORONA',
-                                    '5 - PLATO',
-                                    '6 - FONDO',
-                                    '7 - OBTURADOR',
-                                    '8 - CABEZA DE SOPLO',
-                                    '9 - CANDADO OBTURADOR',
-                                    'Candado obturador',
-                                    'Cabeza de soplo',
-                                    'Obturador',
-                                    'Bombillo',
-                                    'Embudo',
-                                    'Corona',
-                                    'Plato',
-                                    'Molde',
-                                    'Fondo',
-                                    'Pistones',
-                                    'Guías',
-                                    'Guias'
-                                ];
+                                $knownClasses = array_merge(
+                                    array_values(array_unique(FundicionPaths::getStandardMap())),
+                                    [
+                                        'Candado obturador',
+                                        'Cabeza de soplo',
+                                        'Obturador',
+                                        'Bombillo',
+                                        'Embudo',
+                                        'Corona',
+                                        'Plato',
+                                        'Molde',
+                                        'Fondo',
+                                        'Pistones',
+                                        'Guías',
+                                        'Guias'
+                                    ]
+                                );
                                 $hasKnownClass = false;
                                 $foundClass = null;
                                 foreach ($knownClasses as $kc) {
@@ -2426,6 +2413,7 @@ class AlmacenFundicionController extends Controller
         $this->verificarAcceso();
 
         $data = $request->all();
+        $data['fecha_creacion'] = $request->input('fecha', date('Y-m-d'));
         $user = Auth::user();
 
         if ($request->input('type') === 'casting') {
@@ -4816,6 +4804,8 @@ class AlmacenFundicionController extends Controller
         $ot = $this->sanitizePath($this->normalizeOTName($request->input('ot')));
         $action = $request->input('action'); // 'reiniciar_completo', 'reiniciar_parcial', 'reiniciar', 'mantener'
 
+        Log::info("RESOLVE_PENDING_CHANGES", ['ot' => $ot, 'action_recibido' => $action, 'clases_request' => $request->input('clases')]);
+
         if (!$ot || !in_array($action, ['reiniciar_completo', 'reiniciar_parcial', 'reiniciar', 'mantener'])) {
             return response()->json(['success' => false, 'message' => 'Parámetros inválidos']);
         }
@@ -4835,8 +4825,22 @@ class AlmacenFundicionController extends Controller
             $pending = array_values(array_intersect($pending, $targetClases));
         }
 
-        $allClassesInOt = $history->ayudas_config ?? [];
-        $totalClasesOt = count($allClassesInOt);
+        // Determinar total real de clases activas en BD
+        $baseOtIdStr = preg_replace('/_R\d+$/i', '', $ot);
+        preg_match('/OT\s*(\d+)/', $baseOtIdStr, $matches);
+        $otId = isset($matches[1]) ? (int) $matches[1] : 0;
+        $otFullRaw = Orden_trabajo::query()->find($otId);
+
+        $totalClasesOt = count($history->ayudas_config ?? []); // fallback
+        if ($otFullRaw) {
+            $clasesActivasCount = Clase::query()
+                ->where('id_ot', '=', $otFullRaw->id)
+                ->count();
+            if ($clasesActivasCount > 0) {
+                $totalClasesOt = $clasesActivasCount;
+            }
+        }
+        $allClassesInOt = $history->ayudas_config ?? []; // para array_diff
         $affectedCount = count($pending);
         $esTotal = ($affectedCount >= $totalClasesOt && $totalClasesOt > 0);
 
@@ -4906,7 +4910,15 @@ class AlmacenFundicionController extends Controller
             $pendingLower = array_map('strtolower', array_map('trim', $pending));
 
             foreach ($pending as $clase) {
-                $claseNorm = strtolower(trim($clase));
+                $clLow = strtolower(trim($clase));
+                $tipoDb = null;
+                foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                    if (strpos($clLow, $kc) !== false) {
+                        $tipoDb = $kc;
+                        break;
+                    }
+                }
+                $claseNorm = $tipoDb ? $tipoDb : $clLow;
 
                 // 1. Limpiar veredictos de Calidad y SCAR de la clase afectada en la OT actual, base u OTs de reproceso
                 LiberacionModeloFundicion::where(function ($q) use ($ot, $baseOtStr) {
@@ -4955,6 +4967,8 @@ class AlmacenFundicionController extends Controller
                 // 3. Eliminar documentos aprobados, rechazados, SCAR, FDRDM, LDM, Preordenes generados de la clase en Storage
                 $classSubFolder = strtolower(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($clase)));
                 $classClean = ucfirst(trim(preg_replace('/^modelo\s+/i', '', $clase)));
+                $tipoClean = isset($tipoDb) && $tipoDb ? ucfirst(trim($tipoDb)) : $classClean;
+                $tipoUpper = strtoupper($tipoClean);
                 $baseRoots = [
                     self::ALMACEN_DIR,
                     'DOCUMENTACION_GIS/ALMACEN_FUNDICION',
@@ -4997,6 +5011,12 @@ class AlmacenFundicionController extends Controller
                             $r . '/' . $classClean . '/' . FundicionPaths::PREORDENES,
                             $r . '/' . $classClean . '/' . FundicionPaths::FORMATOS_LIBERACION,
                             $r . '/' . $classClean . '/' . FundicionPaths::ESCANEADOS,
+                            $r . '/Documentos_Aprobados/' . $tipoClean,
+                            $r . '/Documentos_Rechazados/' . $tipoClean,
+                            $r . '/' . $tipoClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS,
+                            $r . '/' . $tipoClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS,
+                            $r . '/' . $tipoUpper . '/' . FundicionPaths::SCAR,
+                            $r . '/' . $tipoUpper . '/' . FundicionPaths::FDRDM,
                         ];
                         foreach ($subFoldersToClean as $sfc) {
                             if (Storage::disk('local')->exists($sfc) || Storage::disk('local')->directoryExists($sfc)) {
@@ -5272,6 +5292,7 @@ class AlmacenFundicionController extends Controller
 
             \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false, $pending);
         } else {
+            Log::info("RESOLVE_PENDING_CHANGES_MANTENER", ['pending' => $pending]);
             // Solo reemplazar archivos manteniendo el avance del proceso
             $currentPending = is_array($history->pending_almacen_changes) ? $history->pending_almacen_changes : [];
             $newPending = array_values(array_diff($currentPending, $pending));
@@ -5286,7 +5307,7 @@ class AlmacenFundicionController extends Controller
             }
             $history->clases_enviadas = $enviadas;
             $history->save();
-            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false, $pending);
+            DibujosFundicionPdfController::copyToAlmacen($ot, false, $pending);
         }
 
         return response()->json([

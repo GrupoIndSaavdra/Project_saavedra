@@ -29,148 +29,42 @@ const ModeloStateMachine = (() => {
         return b.endsWith("/") ? b : b + "/";
     }
     // ── Registro de estados ───────────────────────────────────────────────────
-    const ESTADOS = {
-        recibido: {
-            img: "Recibido.png",
-            label: "Nuevo",
-            title: "Alerta inicial recibida, pendiente de procesar modelo por Almacén",
-            borderColor: "#cbd5e1",
-            bgColor: "#f1f5f9",
-            textColor: "#64748b",
-            nivel: 1,
-            prio: 1,
-        },
-        pre_orden: {
-            img: "pdf-view.png",
-            label: "Pre-Orden",
-            title: "Pre-orden de modelo generada y guardada, pendiente de enviar",
-            borderColor: "#60a5fa",
-            bgColor: "#eff6ff",
-            textColor: "#2563eb",
-            nivel: 3,
-            prio: 2,
-        },
-        correo_enviado: {
-            img: "enviando.png",
-            label: "Correo Enviado",
-            title: "Pre-orden enviada por correo electrónico, esperando revisión de Calidad",
-            borderColor: "#818cf8",
-            bgColor: "#e0e7ff",
-            textColor: "#4f46e5",
-            nivel: 2,
-            prio: 3,
-        },
-        tiene_modelo: {
-            img: "Espera.png",
-            label: "Tengo Modelo",
-            title: "Modelo físico disponible en Almacén, en espera de revisión por Calidad",
-            borderColor: "#0ea5e9",
-            bgColor: "#f0f9ff",
-            textColor: "#0369a1",
-            nivel: 3,
-            prio: 4,
-        },
-        revisando: {
-            img: "Revisando.png",
-            label: "En Revisión",
-            title: "Calidad está realizando la revisión del modelo",
-            borderColor: "#f59e0b",
-            bgColor: "#fffbeb",
-            textColor: "#b45309",
-            nivel: 2,
-            prio: 5,
-        },
-        aprobado: {
-            img: "Quality.png",
-            label: "Aprobado",
-            title: "Modelo aprobado y liberado por Calidad",
-            borderColor: "#10b981",
-            bgColor: "#ecfdf5",
-            textColor: "#047857",
-            nivel: 3,
-            prio: 99,
-        },
-        aprobado_final: {
-            img: "Aprobado.png",
-            label: "Aprobado",
-            title: "Proceso de modelo y casting finalizado y aprobado",
-            borderColor: "#15803d",
-            bgColor: "#f0fdf4",
-            textColor: "#15803d",
-            nivel: 3,
-            prio: 100,
-        },
-        casting_aprobado: {
-            img: "Proveedor.png",
-            label: "Enviado a Proveedor",
-            title: "Pre-orden de casting enviada al proveedor, proceso finalizado",
-            borderColor: "#9333ea",
-            bgColor: "#f3e8ff",
-            textColor: "#9333ea",
-            nivel: 3,
-            prio: 100,
-        },
-        rechazado: {
-            img: "Quality.png",
-            label: "Rechazado",
-            title: "Modelo rechazado por Calidad debido a desviaciones",
-            borderColor: "#ef4444",
-            bgColor: "#fef2f2",
-            textColor: "#b91c1c",
-            nivel: 3,
-            prio: 99,
-        },
-        rechazado_final: {
-            img: "Rechazado.png",
-            label: "Rechazado",
-            title: "Modelo rechazado y reproceso iniciado por Almacén",
-            borderColor: "#dc2626",
-            bgColor: "#fef2f2",
-            textColor: "#b91c1c",
-            nivel: 3,
-            prio: 100,
-        },
-        mixto: {
-            img: "Quality.png",
-            label: "Mixto",
-            title: "Liberación mixta por Calidad (clases aprobadas y rechazadas)",
-            borderColor: "#eab308",
-            bgColor: "#fef9c3",
-            textColor: "#854d0e",
-            nivel: 3,
-            prio: 99,
-        },
-        casting: {
-            img: "pdf-view.png",
-            label: "Casting",
-            title: "Pre-orden de casting generada y aprobada",
-            borderColor: "#059669",
-            bgColor: "#f0fdf4",
-            textColor: "#15803d",
-            nivel: 3,
-            prio: 99,
-        },
-        reproceso: {
-            img: "Reproceso.png",
-            label: "Reproceso",
-            title: "Retornado hacia un nuevo ciclo de modelo (Reproceso)",
-            borderColor: "#ec4899",
-            bgColor: "#fdf2f8",
-            textColor: "#be185d",
-            nivel: 1,
-            prio: 1,
-        },
+                const ESTADOS = {
+        // Almacen States
+        recibido: { img: "Recibido.png", label: "Nuevo", title: "Nueva OT recibida sin acciones registradas", borderColor: "#0ea5e9", bgColor: "#f0f9ff", textColor: "#0369a1", nivel: 1, prio: 1 },
+        espera: { img: "Espera.png", label: "En Espera", title: "En espera de la otra área", borderColor: "#a3a3a3", bgColor: "#fafafa", textColor: "#525252", nivel: 1, prio: 2 },
+        revisando: { img: "Revisando.png", label: "En Revisión", title: "Calidad o Almacén está realizando la revisión", borderColor: "#f59e0b", bgColor: "#fffbeb", textColor: "#b45309", nivel: 2, prio: 5 },
+        tiene_modelo: { img: "perspectiva-icon.png", label: "Tengo Modelo", title: "Modelo físico disponible, pendiente de procesar", borderColor: "#14b8a6", bgColor: "#f0fdfa", textColor: "#0f766e", nivel: 3, prio: 4 },
+        pre_orden: { img: "PFM-icon.png", label: "Pre-Orden de Fabricación de Modelo", title: "Pre-orden generada, pendiente de firmar y enviar", borderColor: "#8b5cf6", bgColor: "#f5f3ff", textColor: "#6d28d9", nivel: 2, prio: 3 },
+        casting: { img: "PFC-icon.png", label: "Pre-Orden de Fabricación de Casting", title: "Pre-orden generada, pendiente de firmar y enviar", borderColor: "#84cc16", bgColor: "#f7fee7", textColor: "#4d7c0f", nivel: 2, prio: 3 },
+        por_escanear: { img: "Escanear-icon.png", label: "Por Escanear", title: "Se generó formato, pendiente de firma/envío", borderColor: "#06b6d4", bgColor: "#ecfeff", textColor: "#0e7490", nivel: 2, prio: 3 },
+        proceso_parcial: { img: "proceso_parcial-icon.png", label: "Proceso Parcial", title: "Proceso parcial, esperando las demás clases", borderColor: "#ea580c", bgColor: "#fff7ed", textColor: "#c2410c", nivel: 2, prio: 4.5 },
+        correo_enviado: { img: "Quality.png", label: "En Calidad", title: "Correo enviado, en espera de revisión por Calidad", borderColor: "#6366f1", bgColor: "#eef2ff", textColor: "#4338ca", nivel: 2, prio: 3 },
+        enviado_proveedor: { img: "Proveedor.png", label: "Enviado a Proveedor", title: "Pre-orden de casting enviada al proveedor, proceso finalizado", borderColor: "#9333ea", bgColor: "#faf5ff", textColor: "#7e22ce", nivel: 3, prio: 100 },
+        reproceso: { img: "Reproceso.png", label: "Reproceso", title: "Retornado hacia un nuevo ciclo de modelo (Reproceso)", borderColor: "#ec4899", bgColor: "#fdf2f8", textColor: "#be185d", nivel: 1, prio: 1 },
+        liberado_almacen: { img: "Aprobado.png", label: "Liberado", title: "OT aprobada y liberada por Calidad", borderColor: "#22c55e", bgColor: "#f0fdf4", textColor: "#15803d", nivel: 3, prio: 99 },
+        rechazado_almacen: { img: "Rechazado.png", label: "Rechazado", title: "OT rechazada por Calidad", borderColor: "#ef4444", bgColor: "#fef2f2", textColor: "#b91c1c", nivel: 3, prio: 99 },
+        mixto_almacen: { img: "Mixto.png", label: "Mixto", title: "Liberación mixta por Calidad", borderColor: "#eab308", bgColor: "#fefce8", textColor: "#854d0e", nivel: 3, prio: 99 },
+
+        // Calidad States
+        por_liberar: { img: "por_liberar_icon.png", label: "Por Liberar", title: "Correo de notificación recibido, listo para revisión de Calidad", borderColor: "#64748b", bgColor: "#f1f5f9", textColor: "#334155", nivel: 2, prio: 3 },
+        ldm_generado: { img: "LDM-icon.png", label: "Formato LDM", title: "Modelo aprobado y liberado por Calidad (Formato LDM)", borderColor: "#10b981", bgColor: "#ecfdf5", textColor: "#047857", nivel: 2, prio: 6 },
+        rdm_generado: { img: "RDM-SCAR-icon.png", label: "Formato RDM y SCAR", title: "Modelo rechazado por Calidad (Formato RDM/SCAR)", borderColor: "#f43f5e", bgColor: "#fff1f2", textColor: "#be123c", nivel: 2, prio: 6 },
+        en_almacen: { img: "almacen.png", label: "En Almacén", title: "Dictamen enviado a Almacén", borderColor: "#3b82f6", bgColor: "#eff6ff", textColor: "#1d4ed8", nivel: 3, prio: 4 },
+        aprobado: { img: "Aprobado.png", label: "Liberado", title: "OT aprobada y liberada por Calidad", borderColor: "#22c55e", bgColor: "#f0fdf4", textColor: "#15803d", nivel: 3, prio: 99 },
+        rechazado: { img: "Rechazado.png", label: "Rechazado", title: "OT rechazada por Calidad", borderColor: "#ef4444", bgColor: "#fef2f2", textColor: "#b91c1c", nivel: 3, prio: 99 },
+        mixto: { img: "Mixto.png", label: "Mixto", title: "Liberación mixta por Calidad", borderColor: "#eab308", bgColor: "#fefce8", textColor: "#854d0e", nivel: 3, prio: 99 },
     };
     /** Mapa alias → estado canónico para la caché interna */
-    const _CANONICAL = {
+        const _CANONICAL = {
         editando: "revisando",
         guardado: "revisando",
         descargado: "revisando",
         pendiente: "revisando",
         en_proceso: "revisando",
-        espera: "tiene_modelo",
         enviando: "correo_enviado",
         documento: "tiene_modelo",
+        enviado_proveedor: "casting_aprobado",
     };
     /** Caché: ot → estado canónico actual */
     const _cache = {};
@@ -248,29 +142,23 @@ ${cfg.label}
                 const txt = labelEl.textContent.trim().toUpperCase();
                 const imgEl = el.querySelector("img");
                 const imgSrc = imgEl ? imgEl.src.toUpperCase() : "";
-                let estado = "recibido";
-                if (txt === "RECIBIDO" || txt === "NUEVO") estado = "recibido";
-                else if (txt === "PRE-ORDEN") estado = "pre_orden";
-                else if (txt === "CORREO ENVIADO") estado = "correo_enviado";
-                else if (txt === "TENGO MODELO") estado = "tiene_modelo";
-                else if (txt === "EN REVISIÓN") estado = "revisando";
-                else if (txt === "APROBADO") {
-                    if (imgSrc.includes("APROBADO.PNG")) {
-                        estado = "aprobado_final";
-                    } else {
-                        estado = "aprobado";
-                    }
-                } else if (txt === "ENVIADO A PROVEEDOR") {
-                    estado = "casting_aprobado";
-                } else if (txt === "RECHAZADO") {
-                    if (imgSrc.includes("RECHAZADO.PNG")) {
-                        estado = "rechazado_final";
-                    } else {
-                        estado = "rechazado";
-                    }
-                } else if (txt === "MIXTO") estado = "mixto";
-                else if (txt === "CASTING") estado = "casting";
-                else if (txt === "REPROCESO") estado = "reproceso";
+                // Etiquetas reales emitidas por FundicionStateService (en mayúsculas)
+                const LABEL_A_ESTADO = {
+                    "NUEVO": "recibido",
+                    "EN ESPERA": "espera",
+                    "POR ESCANEAR": "por_escanear",
+                    "TENGO MODELO": "tiene_modelo",
+                    "EN CALIDAD": "correo_enviado",
+                    "POR LIBERAR": "por_liberar",
+                    "PROCESO PARCIAL": "proceso_parcial",
+                    "EN REVISIÓN": "revisando",
+                    "APROBADO": "aprobado",
+                    "RECHAZADO": "rechazado",
+                    "MIXTO": "mixto",
+                    "REPROCESO": "reproceso",
+                    "ENVIADO A PROVEEDOR": "casting_aprobado",
+                };
+                const estado = LABEL_A_ESTADO[txt] ?? "recibido";
                 _cache[ot] = estado;
                 console.info(`[FSM] init: "${ot}" → ${estado}`);
             }

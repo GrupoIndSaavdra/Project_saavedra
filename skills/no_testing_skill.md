@@ -115,3 +115,6 @@ npm run build 2>&1
 - [ ] ¿Se verificó que Vite compila sin errores? (`npm run build`)
 - [ ] ¿Se documentó en la skill correspondiente si se descubrió un nuevo patrón?
 
+
+## Archivos de Prueba Temporales (Scratchpads)
+Los scripts sueltos o archivos de prueba (ej. 	est_*.php, script.php, etc.) utilizados para depuración rápida de arrays, modelos o funciones (como 	est_diff.php o 	est_calidad_ayudas.php) **DEBEN ELIMINARSE** tan pronto como el problema esté resuelto o la tarea concluida. No dejes scripts basura en la raíz del proyecto. El historial del repositorio debe mantenerse limpio.
