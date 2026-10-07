@@ -91,6 +91,79 @@ Este método permite diagnosticar inmediatamente si falta alguna variable en la 
 
 ---
 
+## Pruebas de Controladores, Modelos y ViewModels sin Navegador
+Para depurar y validar el comportamiento de Controladores o ViewModels complejos sin necesidad del navegador, puedes crear un script temporal en la raíz del proyecto y ejecutarlo con `php test_script.php`.
+
+### 1. Probando un ViewModel
+Puedes instanciar un ViewModel, pasarle un modelo Eloquent y hacer print de sus propiedades calculadas:
+
+```php
+// test_script.php
+<?php
+require 'vendor/autoload.php';
+$app = require_once 'bootstrap/app.php';
+$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+$user = \App\Models\User::first();
+\Illuminate\Support\Facades\Auth::login($user); // Autenticación de prueba
+
+$reg = \App\Models\FundicionHistory::where('ot', 'OT 9993 - SALIME 60 ML_BOMBILLO_R1')->first();
+$vm = new \App\ViewModels\CalidadTableRowViewModel($reg, 'activa', 'Calidad');
+
+echo "ACTIVE CLASSES:\n";
+print_r($vm->activeClassesForOt);
+echo "ARCHIVOS:\n";
+print_r($vm->archivos);
+```
+
+### 2. Probando un Request a un Controlador
+Puedes instanciar un Controller, simular una petición HTTP con un Request, y decodificar el JSON de respuesta:
+
+```php
+// test_getFiles.php
+<?php
+require __DIR__.'/vendor/autoload.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
+$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+Auth::loginUsingId(1); // Login como admin
+
+$controller = new \App\Http\Controllers\CalidadFundicionController();
+$request = new \Illuminate\Http\Request();
+$request->merge(['ot' => 'OT 9993 - SALIME 60 ML_BOMBILLO_R1']);
+
+$response = $controller->getFiles($request);
+$data = json_decode($response->getContent(), true);
+
+foreach ($data['archivos'] as $archivo) {
+    echo $archivo['tipo'] . " -> " . $archivo['nombre'] . "\n";
+}
+```
+
+### 3. Probando Lógica y Consultas (Modelos y Expresiones Regulares)
+Puedes validar lógica de Regex o consultas de Eloquent encadenadas:
+
+```php
+// test_path.php
+<?php
+require __DIR__.'/vendor/autoload.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
+$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+$ot = 'OT 9993 - SALIME 60 ML_BOMBILLO_R1';
+$baseOt = preg_replace('/_(?:(?:candado\s+obturador|...)*_)?R\d+$/iu', '', $ot);
+
+echo "Base OT: " . $baseOt . "\n";
+
+$history = \App\Models\FundicionHistory::where('ot', '=', $ot, 'and')->first();
+if (!$history) {
+    $history = \App\Models\FundicionHistory::where('ot', '=', $baseOt, 'and')->first();
+}
+// etc...
+```
+
+---
+
 ## Verificación de Assets Frontend (Vite)
 
 Antes de considerar un cambio CSS/JS como terminado, verifica que compila sin errores:

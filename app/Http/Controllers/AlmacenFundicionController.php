@@ -2193,6 +2193,8 @@ class AlmacenFundicionController extends Controller
         // Obtener clases vinculadas desde FundicionHistory (Ayudas Visuales asignadas)
         $history = FundicionHistory::where('ot', '=', $otFull, 'and')->first();
         $clasesVinculadas = $history ? ($history->ayudas_config ?? []) : [];
+        $globalClases = config('global_classes.clases', []);
+
         $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $baseOt, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
 
             $clLow = strtolower($claseNombre);
@@ -2235,6 +2237,8 @@ class AlmacenFundicionController extends Controller
                 }
             }
             return $type !== 'casting';
+        })->map(function ($claseNombre) {
+            return FundicionPaths::normalizeClass($claseNombre);
         })->values()->toArray();
 
         $fechaEntrega = $history && $history->fecha_entrega ? $history->fecha_entrega->format('Y-m-d') : '';
@@ -2359,6 +2363,16 @@ class AlmacenFundicionController extends Controller
                             continue;
                         }
                     }
+
+                    $mappedName = FundicionPaths::normalizeClass($claseNombre);
+                    $claseNombre = $mappedName;
+                    if (isset($fila['clase_nombre'])) {
+                        $fila['clase_nombre'] = $mappedName;
+                    }
+                    if (isset($fila['clase'])) {
+                        $fila['clase'] = $mappedName;
+                    }
+
                     $filasFiltradas[] = $fila;
                 }
             }
@@ -2628,7 +2642,10 @@ class AlmacenFundicionController extends Controller
         $otSanitizada = preg_replace('/[\s]+/', '_', trim($otSanitizada));
         $fechaStamp = date('d_m_Y_H_i');
 
-        $fileName = "F_ALM_PFM_{$clasesStr}.pdf";
+        $reprocesoMatch = [];
+        preg_match('/_R\d+$/i', $otRaw, $reprocesoMatch);
+        $suffixReproceso = !empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
+        $fileName = "F_ALM_PFM_{$clasesStr}{$suffixReproceso}.pdf";
 
         $folderName = $this->sanitizePath($this->normalizeOTName($otRaw));
         $pdfOutput = $pdf->output();
@@ -2850,8 +2867,10 @@ class AlmacenFundicionController extends Controller
         $clasesInvolucradas = array_values(array_unique(array_filter($clasesInvolucradas)));
         $clasesStr = count($clasesInvolucradas) > 0 ? implode('-', $clasesInvolucradas) : 'Casting';
 
-        $fileName = "F_ALM_PFC_{$clasesStr}.pdf";
-        $fileName = "F_ALM_PFC_{$clasesStr}.pdf";
+        $reprocesoMatch = [];
+        preg_match('/_R\d+$/i', $otRaw, $reprocesoMatch);
+        $suffixReproceso = !empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
+        $fileName = "F_ALM_PFC_{$clasesStr}{$suffixReproceso}.pdf";
         $folderName = $this->sanitizePath($this->normalizeOTName($otRaw));
         $pdfOutput = $pdf->output();
 
@@ -3526,7 +3545,10 @@ class AlmacenFundicionController extends Controller
                 } else {
                     $prefix = $isCastingPo ? 'F_ALM_EFC' : 'F_ALM_EFM';
                     $suffix = count($filesArray) > 1 ? '_' . ($index + 1) : '';
-                    $name = "{$prefix}_{$clasesStr}{$suffix}.{$ext}";
+                    $reprocesoMatch = [];
+                    preg_match('/_R\d+$/i', $otSanitizada, $reprocesoMatch);
+                    $suffixReproceso = !empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
+                    $name = "{$prefix}_{$clasesStr}{$suffixReproceso}{$suffix}.{$ext}";
                 }
 
                 $fileContents = file_get_contents($file->getRealPath());
@@ -4260,7 +4282,10 @@ class AlmacenFundicionController extends Controller
                 $otSanitizadaNew = preg_replace('/[^\w\s\-]/', '', $newOt);
                 $otSanitizadaNew = preg_replace('/[\s]+/', '_', trim($otSanitizadaNew));
                 $fechaStamp = date('d_m_Y_H_i');
-                $fileName = "F_ALM_PFM_{$clasesStr}.pdf";
+                $reprocesoMatch = [];
+                preg_match('/_R\d+$/i', $newOt, $reprocesoMatch);
+                $suffixReproceso = !empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
+                $fileName = "F_ALM_PFM_{$clasesStr}{$suffixReproceso}.pdf";
 
                 $folderNameNew = $this->sanitizePath($this->normalizeOTName($newOt));
                 $pdfOutput = $pdf->output();

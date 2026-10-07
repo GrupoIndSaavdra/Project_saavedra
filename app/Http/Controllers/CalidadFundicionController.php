@@ -225,6 +225,10 @@ class CalidadFundicionController extends Controller
 
         if (empty($activeClasses)) {
             $activeClasses = $todasLasClases;
+        } else {
+            $activeClasses = array_map(function ($c) {
+                return FundicionPaths::normalizeClass($c);
+            }, $activeClasses);
         }
         $activeClasses = array_unique($activeClasses);
 
@@ -299,7 +303,8 @@ class CalidadFundicionController extends Controller
                                 'documentos_aprobados',
                                 'documentos_rechazados',
                                 'preordenes',
-                                'formatos_liberacion'
+                                'formatos_liberacion',
+                                'escaneados'
                             ];
                             foreach ($reservedKeywords as $keyword) {
                                 if (str_contains($relLower, $keyword)) {
@@ -464,8 +469,9 @@ class CalidadFundicionController extends Controller
                                 if ($hasKnownClass) {
                                     $matchesActive = false;
                                     foreach ($activeClasses as $ac) {
-                                        $acTrimmed = strtolower(trim($ac));
-                                        if (!empty($acTrimmed) && strpos($fileLower, $acTrimmed) !== false) {
+                                        $acClean = str_replace(range(0, 9), '', str_replace('-', '', strtolower($ac)));
+                                        $acClean = trim($acClean);
+                                        if (!empty($acClean) && strpos($fileLower, $acClean) !== false) {
                                             $matchesActive = true;
                                             break;
                                         }

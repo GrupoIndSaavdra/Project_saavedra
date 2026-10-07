@@ -100,17 +100,17 @@ class FundicionStateService
         // 6. ACCIONES DE ALMACÃN ENVIADAS A CALIDAD
         // A) Correo Enviado
         if ($targetReg->pre_orden_email_sent) {
-            return $isCalidadUser ? 'POR_LIBERAR_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_CORREO' : 'CORREO_ENVIADO');
+            return $isCalidadUser ? 'POR_LIBERAR_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? ($isReproceso ? 'REPROCESO_RECHAZADO' : 'PROCESO_PARCIAL_CORREO') : 'CORREO_ENVIADO');
         }
 
         // B) Pre-Orden Generada pero NO enviada
         if ($targetReg->pre_orden_sent) {
-            return $isCalidadUser ? 'PEND_CORREO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_PRE_ORDEN' : 'POR_ESCANEAR_PFM');
+            return $isCalidadUser ? 'PEND_CORREO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? ($isReproceso ? 'REPROCESO_RECHAZADO' : 'PROCESO_PARCIAL_PRE_ORDEN') : 'POR_ESCANEAR_PFM');
         }
 
         // C) Tengo Modelo Reportado
         if ($targetReg->tiene_modelo) {
-            return $isCalidadUser ? 'PEND_CORREO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? 'PROCESO_PARCIAL_MODELO' : 'TIENE_MODELO');
+            return $isCalidadUser ? 'PEND_CORREO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? ($isReproceso ? 'REPROCESO_RECHAZADO' : 'PROCESO_PARCIAL_MODELO') : 'TIENE_MODELO');
         }
 
         if ($isReproceso && in_array($libStatus, [null, 'pendiente']) && !$targetReg->tiene_modelo && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) {
@@ -118,7 +118,7 @@ class FundicionStateService
         }
 
         // DEFAULT
-        return $isCalidadUser ? 'PEND_ALMACEN_CALIDAD' : 'NUEVO';
+        return $isCalidadUser ? ($isReproceso ? 'REPROCESO_RECHAZADO' : 'PEND_ALMACEN_CALIDAD') : ($isReproceso ? 'REPROCESO_RECHAZADO' : 'NUEVO');
     }
 
     /**

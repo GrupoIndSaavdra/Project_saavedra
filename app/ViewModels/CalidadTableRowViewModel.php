@@ -422,6 +422,40 @@ class CalidadTableRowViewModel
 
                 $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
 
+                $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
+                $hasKnownClass = false;
+                foreach ($knownClasses as $kc) {
+                    if (strpos($fileLower, strtolower($kc)) !== false) {
+                        $hasKnownClass = true;
+                        break;
+                    }
+                }
+                if ($hasKnownClass) {
+                    $matchesActive = false;
+                    foreach ($this->activeClassesForOt as $ac) {
+                        if (strpos($fileLower, strtolower($ac)) !== false) {
+                            $matchesActive = true;
+                            break;
+                        }
+                    }
+                    if (!$matchesActive) {
+                        // Si no está en activas, verificar en rechazadas para no ocultarlo si fue la causa del reproceso
+                        foreach ($this->rejectedClassesForOt as $rc) {
+                            if (strpos($fileLower, strtolower($rc)) !== false) {
+                                $matchesActive = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!$matchesActive) {
+                        continue;
+                    }
+                } else {
+                    if ($relRec->ot !== $this->reg->ot) {
+                        continue;
+                    }
+                }
+
                 if ($isNonDrawing) {
                     if ($isAyudaVisual) {
                         if (!in_array($normBase, $this->normBaseNames)) {
@@ -464,32 +498,6 @@ class CalidadTableRowViewModel
                         }
                     }
                     continue;
-                }
-                $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
-                $hasKnownClass = false;
-                foreach ($knownClasses as $kc) {
-                    if (strpos($fileLower, $kc) !== false) {
-                        $hasKnownClass = true;
-                        break;
-                    }
-                }
-                if ($hasKnownClass) {
-                    // Los dibujos SIEMPRE se muestran, incluso si la clase fue rechazada.
-                    // Son documentos de referencia, no se ocultan ni mueven a rechazados.
-                    $matchesActive = false;
-                    foreach ($this->activeClassesForOt as $ac) {
-                        if (strpos($fileLower, $ac) !== false) {
-                            $matchesActive = true;
-                            break;
-                        }
-                    }
-                    if (!$matchesActive) {
-                        continue;
-                    }
-                } else {
-                    if ($relRec->ot !== $this->reg->ot) {
-                        continue;
-                    }
                 }
                 if (!in_array($base, $this->dibujoBaseNames)) {
                     $this->archivos[] = [
@@ -641,7 +649,7 @@ class CalidadTableRowViewModel
                         $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
                         $hasKnownClass = false;
                         foreach ($knownClasses as $kc) {
-                            if (strpos($fileLower, $kc) !== false) {
+                            if (strpos($fileLower, strtolower($kc)) !== false) {
                                 $hasKnownClass = true;
                                 break;
                             }
@@ -651,7 +659,7 @@ class CalidadTableRowViewModel
                             // Solo verificar que la clase pertenece a las activas de esta OT.
                             $matchesActive = false;
                             foreach ($this->activeClassesForOt as $ac) {
-                                if (strpos($fileLower, $ac) !== false) {
+                                if (strpos($fileLower, strtolower($ac)) !== false) {
                                     $matchesActive = true;
                                     break;
                                 }
@@ -738,7 +746,7 @@ class CalidadTableRowViewModel
                     $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
                     $hasKnownClass = false;
                     foreach ($knownClasses as $kc) {
-                        if (strpos($fileLower, $kc) !== false) {
+                        if (strpos($fileLower, strtolower($kc)) !== false) {
                             $hasKnownClass = true;
                             break;
                         }
@@ -747,7 +755,7 @@ class CalidadTableRowViewModel
                         // Ayudas de preordenes SIEMPRE se muestran (son documentos de referencia).
                         $matchesActive = false;
                         foreach ($this->activeClassesForOt as $ac) {
-                            if (strpos($fileLower, $ac) !== false) {
+                            if (strpos($fileLower, strtolower($ac)) !== false) {
                                 $matchesActive = true;
                                 break;
                             }
@@ -755,7 +763,7 @@ class CalidadTableRowViewModel
                         if (!$matchesActive) {
                             // Si no coincide con activas, verificar con rechazadas (para que sigan visibles)
                             foreach ($this->rejectedClassesForOt as $rc) {
-                                if (strpos($fileLower, $rc) !== false) {
+                                if (strpos($fileLower, strtolower($rc)) !== false) {
                                     $matchesActive = true;
                                     break;
                                 }
@@ -1062,7 +1070,7 @@ class CalidadTableRowViewModel
                             $knownClasses = array_values(\App\Services\FundicionPaths::getStandardMap());
                             $fileClasses = [];
                             foreach ($knownClasses as $kc) {
-                                if (strpos($fileLower, $kc) !== false) {
+                                if (strpos($fileLower, strtolower($kc)) !== false) {
                                     $fileClasses[] = $kc;
                                 }
                             }
@@ -1070,7 +1078,23 @@ class CalidadTableRowViewModel
                                 // Verificar que la clase del archivo pertenece a esta OT (activas o rechazadas)
                                 $hasInactiveClass = false;
                                 foreach ($fileClasses as $fc) {
-                                    if (!in_array($fc, $this->activeClassesForOt) && !in_array($fc, $this->rejectedClassesForOt)) {
+                                    // Use case-insensitive comparison for arrays since $fc and activeClasses could differ in case internally
+                                    $fcLower = strtolower($fc);
+                                    $isActive = false;
+                                    foreach ($this->activeClassesForOt as $ac) {
+                                        if (strtolower($ac) === $fcLower) {
+                                            $isActive = true;
+                                            break;
+                                        }
+                                    }
+                                    $isRejected = false;
+                                    foreach ($this->rejectedClassesForOt as $rc) {
+                                        if (strtolower($rc) === $fcLower) {
+                                            $isRejected = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!$isActive && !$isRejected) {
                                         $hasInactiveClass = true;
                                         break;
                                     }
