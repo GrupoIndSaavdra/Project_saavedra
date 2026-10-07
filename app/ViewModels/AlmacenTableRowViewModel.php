@@ -29,6 +29,8 @@ class AlmacenTableRowViewModel
     /** @var mixed */
     public $almacenPreordenesFab;
     /** @var mixed */
+    public $almacenPreordenesFabEnCasting;
+    /** @var mixed */
     public $almacenRootScan;
     /** @var mixed */
     public $aprobados;
@@ -2612,46 +2614,13 @@ class AlmacenTableRowViewModel
         $castingEmailSent = $reg->calidad_revision_status === 'casting_aprobado';
 
         $rechazadosSinPreorden = [];
-        if ($isCalidadAlerted && count($rechazados) > 0 && !$reg->rechazos_procesados) {
-            $rechazadosNormFab = array_map('strtolower', $rechazados);
-            $preordenesSentClassesFab = [];
-            $preOrdenesEnviadasFab = \App\Models\PreOrdenFundicion::where('ot', $targetReg->ot)
-                ->where('is_sent', 1)
-                ->get();
-            foreach ($preOrdenesEnviadasFab as $poFab) {
-                $filasFab = is_string($poFab->filas)
-                    ? json_decode($poFab->filas, true)
-                    : $poFab->filas;
-                if (is_array($filasFab)) {
-                    foreach ($filasFab as $fFab) {
-                        if (!empty($fFab['clase'] ?? $fFab['clase_nombre'])) {
-                            $preordenesSentClassesFab[] = strtolower(
-                                $fFab['clase'] ?? $fFab['clase_nombre'],
-                            );
-                        }
-                    }
-                }
-            }
-            foreach ($rechazadosNormFab as $rClase) {
-                $cubiertaFab = false;
-                foreach ($preordenesSentClassesFab as $psc) {
-                    if (strpos($psc, $rClase) !== false || strpos($rClase, $psc) !== false) {
-                        $cubiertaFab = true;
-                        break;
-                    }
-                }
-                if (!$cubiertaFab) {
-                    $rechazadosSinPreorden[] = $rClase;
-                }
-            }
-        }
-        $hayRechazadosSinPreorden = count($rechazadosSinPreorden) > 0;
+        $hayRechazadosSinPreorden = false;
 
         $aprobadosNorm = array_map('strtolower', $aprobados);
         $rechazadosNorm = array_map('strtolower', $rechazados);
 
         $almacenPreordenesFab = array_values(
-            array_filter($almacenPreordenes ?? [], function ($doc) use ($activeClassesForOt, $isCalidadAlerted, $aprobadosNorm) {
+            array_filter($almacenPreordenes ?? [], function ($doc) use ($activeClassesForOt, $isCalidadAlerted, $aprobadosNorm, $clasesFabricacion, $rechazadosNorm) {
                 $pathLow = strtolower($doc['nombre']);
                 $nameLow = strtolower(basename($doc['nombre']));
 
@@ -2668,12 +2637,6 @@ class AlmacenTableRowViewModel
                     str_contains($nameLow, 'fdldm')
                 ) {
                     return false;
-                }
-
-                // Anteriormente se excluían los escaneados si Calidad ya había respondido, 
-                // pero el usuario necesita ver los archivos EFM/CFM escaneados en todo momento.
-                if (empty($clasesFabricacion)) {
-                    return true;
                 }
 
                 $isPreordenFile = (
@@ -2698,6 +2661,16 @@ class AlmacenTableRowViewModel
                             ($apClean !== '' && strpos($nameLow, $apClean) !== false)
                         ) {
                             return false; // Pertenece a una clase aprobada, excluir de fabricación
+                        }
+                    }
+                    // Asegurar que no pertenezca a una clase ya rechazada (las rechazadas van a su propio contenedor)
+                    foreach ($rechazadosNorm as $re) {
+                        $reClean = trim(preg_replace('/^\d+\s*-\s*/', '', strtolower($re)));
+                        if (
+                            ($re !== '' && strpos($nameLow, $re) !== false) ||
+                            ($reClean !== '' && strpos($nameLow, $reClean) !== false)
+                        ) {
+                            return false; // Pertenece a una clase rechazada, excluir de fabricación
                         }
                     }
                     return true;
@@ -3019,6 +2992,8 @@ class AlmacenTableRowViewModel
             $this->confSource = $confSource;
         if (isset($configs))
             $this->configs = $configs;
+        if (isset($almacenPreordenesFabEnCasting))
+            $this->almacenPreordenesFabEnCasting = $almacenPreordenesFabEnCasting;
         if (isset($count))
             $this->count = $count;
         if (isset($countAprobados))

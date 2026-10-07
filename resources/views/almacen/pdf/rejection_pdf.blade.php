@@ -196,17 +196,9 @@
     @php
         $tipoRaw = strtolower(trim($liberacion->tipo_modelo ?? ''));
         $tipo = $liberacion->tipo_modelo ?? '';
-        if (str_contains($tipoRaw, 'candado obturador')) { $tipo = 'Candado Obturador'; }
-        elseif (str_contains($tipoRaw, 'cabeza de soplo')) { $tipo = 'Cabeza de Soplo'; }
-        elseif (str_contains($tipoRaw, 'embudo')) { $tipo = 'Embudo'; }
-        elseif (str_contains($tipoRaw, 'corona')) { $tipo = 'Corona'; }
-        elseif (str_contains($tipoRaw, 'plato')) { $tipo = 'Plato'; }
-        elseif (str_contains($tipoRaw, 'obturador')) { $tipo = 'Obturador'; }
-        elseif (str_contains($tipoRaw, 'fondo')) { $tipo = 'Fondo'; }
-        elseif (str_contains($tipoRaw, 'molde')) { $tipo = 'Molde'; }
-        elseif (str_contains($tipoRaw, 'bombillo')) { $tipo = 'Bombillo'; }
-        elseif (str_contains($tipoRaw, 'pistones')) { $tipo = 'Pistones'; }
-        elseif (str_contains($tipoRaw, 'guías') || str_contains($tipoRaw, 'guias')) { $tipo = 'Guías'; }
+        $norm = \App\Services\FundicionPaths::normalizeClass($tipo);
+        $tipo = preg_replace('/^\d+\s*-\s*/', '', $norm);
+        $tipo = $tipo !== 'GENERAL' ? ucfirst(strtolower($tipo)) : '';
 
         $activas = \App\Models\LiberacionModeloFundicion::tablasActivas($tipo);
 

@@ -55,23 +55,20 @@
                         }
                     }
                     
-                    // También agregar clases que tienen documentos subidos por Almacén, 
-                    // PERO SOLO si no hay clases base definidas por la pre-orden.
-                    if (empty($clasesBase)) {
-                        $docsToCheck = array_merge($almacenAprobadosDocs ?? [], $otrosArchivos ?? []);
-                        $todasPosibles = $targetReg->ayudas_config ?? [];
-                        if (is_string($todasPosibles)) {
-                            $todasPosibles = json_decode($todasPosibles, true);
-                        }
-                        if (is_array($todasPosibles)) {
-                            foreach ($docsToCheck as $doc) {
-                                $nomLower = strtolower($doc['nombre']);
-                                foreach ($todasPosibles as $posible) {
-                                    $normClass = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', \App\Services\FundicionPaths::normalizeClass($posible)));
-                                    $normDoc = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', basename($nomLower)));
-                                    if (strpos($normDoc, $normClass) !== false && !in_array($posible, $clasesBase)) {
-                                        $clasesBase[] = $posible;
-                                    }
+                    // También agregar clases que tienen documentos subidos por Almacén
+                    $docsToCheck = array_merge($almacenAprobadosDocs ?? [], $otrosArchivos ?? []);
+                    $todasPosibles = $targetReg->ayudas_config ?? [];
+                    if (is_string($todasPosibles)) {
+                        $todasPosibles = json_decode($todasPosibles, true);
+                    }
+                    if (is_array($todasPosibles)) {
+                        foreach ($docsToCheck as $doc) {
+                            $nomLower = strtolower($doc['nombre']);
+                            foreach ($todasPosibles as $posible) {
+                                $normClass = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', \App\Services\FundicionPaths::normalizeClass($posible)));
+                                $normDoc = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', basename($nomLower)));
+                                if (strpos($normDoc, $normClass) !== false && !in_array($posible, $clasesBase)) {
+                                    $clasesBase[] = $posible;
                                 }
                             }
                         }
@@ -89,64 +86,18 @@
                                 str_contains(strtolower($c), 'guías') ||
                                 str_contains(strtolower($c), 'guias'),
                         )
-                        ->filter(function ($claseNombre) use ($targetReg) {
-                            $clLow = strtolower($claseNombre);
-                            $tipo = null;
-                            if (strpos($clLow, 'candado obturador') !== false) {
-                                $tipo = 'Candado obturador';
-                            } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
-                                $tipo = 'Cabeza de soplo';
-                            } elseif (strpos($clLow, 'embudo') !== false) {
-                                $tipo = 'Embudo';
-                            } elseif (strpos($clLow, 'corona') !== false) {
-                                $tipo = 'Corona';
-                            } elseif (strpos($clLow, 'plato') !== false) {
-                                $tipo = 'Plato';
-                            } elseif (strpos($clLow, 'fondo') !== false) {
-                                $tipo = 'Fondo';
-                            } elseif (strpos($clLow, 'obturador') !== false) {
-                                $tipo = 'Obturador';
-                            } elseif (strpos($clLow, 'molde') !== false) {
-                                $tipo = 'Molde';
-                            } elseif (strpos($clLow, 'bombillo') !== false) {
-                                $tipo = 'Bombillo';
-                            } elseif (strpos($clLow, 'pistones') !== false) {
-                                $tipo = 'Pistones';
-                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
-                                $tipo = 'Guías';
-                            }
-                            return $tipo !== null;
+                        ->map(function ($claseNombre) {
+                            $norm = \App\Services\FundicionPaths::normalizeClass($claseNombre);
+                            $tipo = preg_replace('/^\d+\s*-\s*/', '', $norm);
+                            return $tipo !== 'GENERAL' ? ucfirst(strtolower($tipo)) : null;
                         })
+                        ->filter()
+                        ->unique()
                         ->values()
                         ->toArray();
                     $hdCont = 0;
                     foreach ($hdClasesActivas as $clName) {
-                        $clLow = strtolower($clName);
-                        $tipo = null;
-                        if (strpos($clLow, 'candado obturador') !== false) {
-                            $tipo = 'Candado obturador';
-                        } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
-                            $tipo = 'Cabeza de soplo';
-                        } elseif (strpos($clLow, 'embudo') !== false) {
-                            $tipo = 'Embudo';
-                        } elseif (strpos($clLow, 'corona') !== false) {
-                            $tipo = 'Corona';
-                        } elseif (strpos($clLow, 'plato') !== false) {
-                            $tipo = 'Plato';
-                        } elseif (strpos($clLow, 'fondo') !== false) {
-                            $tipo = 'Fondo';
-                        } elseif (strpos($clLow, 'obturador') !== false) {
-                            $tipo = 'Obturador';
-                        } elseif (strpos($clLow, 'molde') !== false) {
-                            $tipo = 'Molde';
-                        } elseif (strpos($clLow, 'bombillo') !== false) {
-                            $tipo = 'Bombillo';
-                        } elseif (strpos($clLow, 'pistones') !== false) {
-                            $tipo = 'Pistones';
-                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
-                            $tipo = 'Guías';
-                        }
-                        
+                        $tipo = $clName;
                         if ($tipo) {
                             if (
                                 \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
@@ -225,65 +176,20 @@
                                 str_contains(strtolower($c), 'guías') ||
                                 str_contains(strtolower($c), 'guias'),
                         )
-                        ->filter(function ($claseNombre) use ($targetReg) {
-                            $clLow = strtolower($claseNombre);
-                            $tipo = null;
-                            if (strpos($clLow, 'candado obturador') !== false) {
-                                $tipo = 'Candado obturador';
-                            } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
-                                $tipo = 'Cabeza de soplo';
-                            } elseif (strpos($clLow, 'embudo') !== false) {
-                                $tipo = 'Embudo';
-                            } elseif (strpos($clLow, 'corona') !== false) {
-                                $tipo = 'Corona';
-                            } elseif (strpos($clLow, 'plato') !== false) {
-                                $tipo = 'Plato';
-                            } elseif (strpos($clLow, 'fondo') !== false) {
-                                $tipo = 'Fondo';
-                            } elseif (strpos($clLow, 'obturador') !== false) {
-                                $tipo = 'Obturador';
-                            } elseif (strpos($clLow, 'molde') !== false) {
-                                $tipo = 'Molde';
-                            } elseif (strpos($clLow, 'bombillo') !== false) {
-                                $tipo = 'Bombillo';
-                            } elseif (strpos($clLow, 'pistones') !== false) {
-                                $tipo = 'Pistones';
-                            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
-                                $tipo = 'Guías';
-                            }
-                            return $tipo !== null;
+                        ->map(function ($claseNombre) {
+                            $norm = \App\Services\FundicionPaths::normalizeClass($claseNombre);
+                            $tipo = preg_replace('/^\d+\s*-\s*/', '', $norm);
+                            return $tipo !== 'GENERAL' ? ucfirst(strtolower($tipo)) : null;
                         })
+                        ->filter()
+                        ->unique()
                         ->values()
                         ->toArray();
                     // Determinar si todas las clases activas tienen datos guardados (como borrador pendiente)
                     $todosGuardados = true;
                     $contClasesConDatos = 0;
                     foreach ($clasesActivas as $clName) {
-                        $clLow = strtolower($clName);
-                        $tipo = null;
-                        if (strpos($clLow, 'candado obturador') !== false) {
-                            $tipo = 'Candado obturador';
-                        } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
-                            $tipo = 'Cabeza de soplo';
-                        } elseif (strpos($clLow, 'embudo') !== false) {
-                            $tipo = 'Embudo';
-                        } elseif (strpos($clLow, 'corona') !== false) {
-                            $tipo = 'Corona';
-                        } elseif (strpos($clLow, 'plato') !== false) {
-                            $tipo = 'Plato';
-                        } elseif (strpos($clLow, 'fondo') !== false) {
-                            $tipo = 'Fondo';
-                        } elseif (strpos($clLow, 'obturador') !== false) {
-                            $tipo = 'Obturador';
-                        } elseif (strpos($clLow, 'molde') !== false) {
-                            $tipo = 'Molde';
-                        } elseif (strpos($clLow, 'bombillo') !== false) {
-                            $tipo = 'Bombillo';
-                        } elseif (strpos($clLow, 'pistones') !== false) {
-                            $tipo = 'Pistones';
-                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
-                            $tipo = 'Guías';
-                        }
+                        $tipo = $clName;
                         if ($tipo) {
                             $hasData = \App\Models\LiberacionModeloFundicion::where('ot', '=', $targetReg->ot)
                                 ->where('tipo_modelo', '=', $tipo)

@@ -1413,23 +1413,29 @@ class CalidadFundicionController extends Controller
                 }
             }
 
-            if ($faltantes > 0) {
-                // Aún faltan clases por evaluar, el estado general de borrador sigue pendiente
+            $aprobadasCount = $liberaciones->where('decision', 'aprobar')->count();
+            $rechazadasCount = $liberaciones->where('decision', 'rechazar')->count();
+            $evaluadasCount = $aprobadasCount + $rechazadasCount;
+
+            if ($evaluadasCount == 0) {
                 $estadoGlobal = 'pendiente';
-            } else {
-                if ($algunaRechazada) {
-                    // Si hay rechazos y faltan por revisar (cubierto arriba), o unas aprobadas y otras rechazadas
-                    $estadoGlobal = 'mixto';
-                    // Si TODAS están rechazadas y no faltan
-                    if (count($liberaciones->where('decision', 'rechazar')) == count($clasesRequeridas)) {
-                        $estadoGlobal = 'rechazado';
-                    }
+            } elseif ($evaluadasCount < count($clasesRequeridas)) {
+                // Proceso parcial: hay evaluadas pero faltan
+                if ($rechazadasCount > 0 && $aprobadasCount > 0) {
+                    $estadoGlobal = 'calidad_mixto';
+                } elseif ($rechazadasCount > 0) {
+                    $estadoGlobal = 'calidad_rechazado'; // RDM parcial
                 } else {
-                    if ($todasAprobadas && count($clasesRequeridas) > 0) {
-                        $estadoGlobal = 'aprobado';
-                    } else {
-                        $estadoGlobal = 'pendiente';
-                    }
+                    $estadoGlobal = 'calidad_parcial';   // LDM parcial
+                }
+            } else {
+                // Todas evaluadas
+                if ($rechazadasCount > 0 && $aprobadasCount > 0) {
+                    $estadoGlobal = 'mixto';
+                } elseif ($rechazadasCount == count($clasesRequeridas)) {
+                    $estadoGlobal = 'rechazado';
+                } else {
+                    $estadoGlobal = 'aprobado';
                 }
             }
         }

@@ -136,13 +136,17 @@ class LiberacionModeloFundicion extends Model
      */
     public static function tablasActivas(string $tipoModelo): array
     {
-        return match ($tipoModelo) {
-            'Fondo'     => ['fondo'],
-            'Obturador' => ['obturador'],
-            'Molde'     => ['modelo', 'plantilla'],
-            'Bombillo'  => ['modelo', 'plantilla'],
-            default     => [],
-        };
+        $low = strtolower($tipoModelo);
+        if (str_contains($low, 'fondo')) {
+            return ['fondo'];
+        }
+        if (str_contains($low, 'obturador')) {
+            return ['obturador'];
+        }
+        if (str_contains($low, 'molde') || str_contains($low, 'bombillo')) {
+            return ['modelo', 'plantilla'];
+        }
+        return [];
     }
 
     /**

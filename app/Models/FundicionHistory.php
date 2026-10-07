@@ -111,25 +111,27 @@ class FundicionHistory extends Model
                 $libStatus = $history->calidad_revision_status;
                 
                 if ($libStatus === \App\Services\FundicionStateConstants::CASTING_APROBADO) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::CASTING_APROBADO;
+                    $nuevoEstado = FundicionEstadoFlujo::CASTING_APROBADO;
                 } elseif ($history->casting_pdf_generated) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::CASTING;
+                    $nuevoEstado = FundicionEstadoFlujo::CASTING;
+                } elseif ($history->rechazos_procesados) {
+                    $nuevoEstado = FundicionEstadoFlujo::RECHAZOS_PROCESADOS_APROBADO;
                 } elseif (in_array($libStatus, [\App\Services\FundicionStateConstants::CALIDAD_APROBADO, \App\Services\FundicionStateConstants::CALIDAD_PARCIAL])) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::APROBADO;
+                    $nuevoEstado = $history->alerta_calidad_sent ? FundicionEstadoFlujo::LIBERADO_ALMACEN : FundicionEstadoFlujo::APROBADO;
                 } elseif ($libStatus === \App\Services\FundicionStateConstants::CALIDAD_RECHAZADO) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::RECHAZADO;
+                    $nuevoEstado = $history->alerta_calidad_sent ? FundicionEstadoFlujo::RECHAZADO_ALMACEN : FundicionEstadoFlujo::RECHAZADO;
                 } elseif ($libStatus === \App\Services\FundicionStateConstants::CALIDAD_MIXTO) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::MIXTO;
-                } elseif (in_array($libStatus, ['pendiente', 'aprobado', 'rechazado', 'mixto'])) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::REVISANDO;
+                    $nuevoEstado = $history->alerta_calidad_sent ? FundicionEstadoFlujo::MIXTO_ALMACEN : FundicionEstadoFlujo::MIXTO;
+                } elseif (in_array($libStatus, ['pendiente', 'revisando', 'calidad_parcial', 'aprobado', 'rechazado', 'mixto'])) {
+                    $nuevoEstado = FundicionEstadoFlujo::REVISANDO;
                 } elseif ($history->pre_orden_email_sent) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::CORREO_ENVIADO;
+                    $nuevoEstado = FundicionEstadoFlujo::CORREO_ENVIADO;
                 } elseif ($history->pre_orden_sent) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::PRE_ORDEN;
+                    $nuevoEstado = FundicionEstadoFlujo::PRE_ORDEN;
                 } elseif ($history->tiene_modelo) {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::TIENE_MODELO;
+                    $nuevoEstado = FundicionEstadoFlujo::TIENE_MODELO;
                 } else {
-                    $nuevoEstado = \App\Enums\FundicionEstadoFlujo::NUEVO;
+                    $nuevoEstado = FundicionEstadoFlujo::NUEVO;
                 }
 
                 if ($nuevoEstado && $nuevoEstado->value !== ($history->getOriginal('estado_flujo')?->value ?? null)) {

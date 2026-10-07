@@ -45,6 +45,12 @@
                 </span>
                 <span style="font-size: 0.78rem; font-weight: 700; margin-top: 8px; text-align: center; line-height: 1.1; color: #be123c; text-transform: uppercase;">Formato RDM y SCAR</span>
             </div>
+            <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-8px-2px cal-justify-content-center" title="Formatos LDM y RDM/SCAR generados, pendiente de enviar la alerta" style="--hover-border-color: #ca8a04; margin-bottom: 12px;">
+                <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #fef9c3; border: 2px solid #ca8a04;">
+                    <img src="{{ asset('images/Formatos_Mixtos_icon.png') }}" alt="Formatos Mixtos" style="width: 40px; height: 40px; object-fit: contain;" />
+                </span>
+                <span style="font-size: 0.78rem; font-weight: 700; margin-top: 8px; text-align: center; line-height: 1.1; color: #713f12; text-transform: uppercase;">Formatos Mixtos</span>
+            </div>
             <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-8px-2px cal-justify-content-center" title="Dictamen enviado a Almacén" style="--hover-border-color: #3b82f6; margin-bottom: 12px;">
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #eff6ff; border: 2px solid #3b82f6;">
                     <img src="{{ asset('images/almacen.png') }}" alt="En Almacén" style="width: 40px; height: 40px; object-fit: contain;" />

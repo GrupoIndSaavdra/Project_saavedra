@@ -75,6 +75,9 @@ class FundicionStateConstants
     /** Resultado mixto: algunas clases aprobadas, otras rechazadas. */
     const FSM_MIXTO = 'mixto';
 
+    /** LDM y RDM/SCAR generados en la misma OT, pendiente de enviar la alerta de Calidad. */
+    const FSM_FORMATOS_MIXTOS = 'formatos_mixtos';
+
     /** Almacén generó la pre-orden de Casting y está lista para enviar. */
     const FSM_CASTING = 'casting';
 

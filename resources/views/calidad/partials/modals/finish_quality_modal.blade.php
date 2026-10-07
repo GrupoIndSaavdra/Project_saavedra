@@ -161,10 +161,12 @@
             const checkInputs = form.querySelectorAll("[data-was-required='true']");
 
             checkInputs.forEach(input => {
-                if (input.offsetParent === null) {
-                    input.removeAttribute("required"); // Evitar error nativo de HTML5 en campos ocultos
+                if (input.offsetParent === null && input.type !== 'hidden') {
+                    input.removeAttribute("required"); // Evitar error nativo de HTML5 en contenedores ocultos
                 } else {
-                    input.setAttribute("required", "required");
+                    if (input.type !== 'hidden') {
+                        input.setAttribute("required", "required");
+                    }
                     if (!input.value.trim()) isValid = false;
                 }
             });

@@ -50,6 +50,7 @@ const ModeloStateMachine = (() => {
         por_liberar: { img: "por_liberar_icon.png", label: "Por Liberar", title: "Correo de notificación recibido, listo para revisión de Calidad", borderColor: "#64748b", bgColor: "#f1f5f9", textColor: "#334155", nivel: 2, prio: 3 },
         ldm_generado: { img: "LDM-icon.png", label: "Formato LDM", title: "Modelo aprobado y liberado por Calidad (Formato LDM)", borderColor: "#10b981", bgColor: "#ecfdf5", textColor: "#047857", nivel: 2, prio: 6 },
         rdm_generado: { img: "RDM-SCAR-icon.png", label: "Formato RDM y SCAR", title: "Modelo rechazado por Calidad (Formato RDM/SCAR)", borderColor: "#f43f5e", bgColor: "#fff1f2", textColor: "#be123c", nivel: 2, prio: 6 },
+        formatos_mixtos: { img: "Formatos_Mixtos_icon.png", label: "Formatos Mixtos", title: "Formatos LDM y RDM/SCAR generados, pendiente de enviar la alerta", borderColor: "#ca8a04", bgColor: "#fef9c3", textColor: "#713f12", nivel: 2, prio: 6 },
         en_almacen: { img: "almacen.png", label: "En Almacén", title: "Dictamen enviado a Almacén", borderColor: "#3b82f6", bgColor: "#eff6ff", textColor: "#1d4ed8", nivel: 3, prio: 4 },
         aprobado: { img: "Aprobado.png", label: "Liberado", title: "OT aprobada y liberada por Calidad", borderColor: "#22c55e", bgColor: "#f0fdf4", textColor: "#15803d", nivel: 3, prio: 99 },
         rechazado: { img: "Rechazado.png", label: "Rechazado", title: "OT rechazada por Calidad", borderColor: "#ef4444", bgColor: "#fef2f2", textColor: "#b91c1c", nivel: 3, prio: 99 },
