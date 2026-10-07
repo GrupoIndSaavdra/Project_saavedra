@@ -110,3 +110,19 @@
         @endif
     </div>
 @endforeach
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Recalcular contador real de archivos por OT (Calidad)
+        document.querySelectorAll('tr.alm-files-row').forEach(row => {
+            let count = row.querySelectorAll('.dibujos-file-card').length;
+            let btn = document.querySelector(`[data-target="${row.id}"]`);
+            if (btn) {
+                let badge = btn.closest('tr').querySelector('.badge-pdf-count');
+                if (badge) {
+                    badge.textContent = count;
+                }
+            }
+        });
+    });
+</script>

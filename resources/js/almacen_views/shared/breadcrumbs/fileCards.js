@@ -178,7 +178,7 @@ window.renderFileCards = function (containerId, filesArray, removeFnName, accent
 
 
 
-window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputNameMode) {
+window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputNameMode, tipo = null) {
     let dibujosPdfs = [];
     let ayudasPdfs  = [];
     let aprobadosPdfs  = [];
@@ -388,9 +388,12 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
     let html = "";
     html += makeCategorySection("Dibujos de Fundición",  dibujosPdfs,   n.dibujos,    "card-plano");
     html += makeCategorySection("Ayudas Visuales",       ayudasPdfs,    n.ayudas,     "card-ayuda");
-    const tituloAprob = inputNameMode === "calidad"
-        ? "Documentos Aprobados (F_CCL_LDM)"
-        : "Pre-órdenes / Documentos Aprobados";
+    let tituloAprob = "Pre-órdenes / Documentos Aprobados";
+    if (inputNameMode === "calidad") {
+        tituloAprob = "Documentos Aprobados (F_CCL_LDM)";
+    } else if (inputNameMode === "preorden") {
+        tituloAprob = tipo === "casting" ? "Pre-órdenes de Casting / Documentos Aprobados" : (tipo === "modelo" ? "Pre-órdenes de Modelo / Documentos Aprobados" : "Pre-órdenes / Documentos Aprobados");
+    }
     html += makeCategorySection(tituloAprob, aprobadosPdfs, n.aprobados, "card-ayuda");
 
     const tituloRech = inputNameMode === "calidad"

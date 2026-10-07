@@ -2129,7 +2129,9 @@ class AlmacenFundicionController extends Controller
         $clasesOrig = $ot->clases->map(fn($c) => [
             'id' => $c->id,
             'nombre' => $c->nombre,
-            'pedido' => $c->pedido
+            'pedido' => $c->pedido,
+            'proveedor' => $c->proveedor,
+            'material' => $c->material
         ])->values();
 
         // Detectar si es OT de reproceso (_R1, _R2, etc.)
@@ -2237,8 +2239,25 @@ class AlmacenFundicionController extends Controller
                 }
             }
             return $type !== 'casting';
-        })->map(function ($claseNombre) {
-            return FundicionPaths::normalizeClass($claseNombre);
+        })->map(function ($claseNombre) use ($clasesOrig) {
+            $nombreNorm = FundicionPaths::normalizeClass($claseNombre);
+            $prov = '';
+            $mat = 'Hierro Gris';
+            foreach ($clasesOrig as $co) {
+                $coNorm = FundicionPaths::normalizeClass($co['nombre']);
+                if (strtolower(trim($co['nombre'])) === strtolower(trim($claseNombre)) || strtolower(trim($coNorm)) === strtolower(trim($nombreNorm))) {
+                    $prov = $co['proveedor'];
+                    if (!empty($co['material'])) {
+                        $mat = $co['material'];
+                    }
+                    break;
+                }
+            }
+            return [
+                'nombre' => $nombreNorm,
+                'proveedor' => $prov,
+                'material' => $mat
+            ];
         })->values()->toArray();
 
         $fechaEntrega = $history && $history->fecha_entrega ? $history->fecha_entrega->format('Y-m-d') : '';
@@ -2431,18 +2450,26 @@ class AlmacenFundicionController extends Controller
         $user = Auth::user();
 
         if ($request->input('type') === 'casting') {
-            $hasPage2 = (bool) $request->input('has_page2', false);
-            $p1Data = $request->input('page1') ?? $data;
-            if (empty($p1Data['ot_raw']) && !empty($p1Data['ot'])) {
-                $p1Data['ot_raw'] = $p1Data['ot'];
+            $pagesData = $request->input('pages', []);
+
+            if (empty($pagesData) || empty($pagesData[0]['ot_raw']) || empty($pagesData[0]['filas'])) {
+                // Fallback to legacy structure if pages array not found
+                $p1Data = $request->input('page1') ?? $data;
+                if (empty($p1Data['ot_raw']) && !empty($p1Data['ot'])) {
+                    $p1Data['ot_raw'] = $p1Data['ot'];
+                }
+                if (empty($p1Data) || empty($p1Data['ot_raw']) || empty($p1Data['filas'])) {
+                    return response()->json(['success' => false, 'message' => 'Datos incompletos para pre-orden de casting.'], 422);
+                }
+                $pagesData = [$p1Data];
+                if ($request->input('has_page2', false)) {
+                    $p2Data = $request->input('page2');
+                    if (!empty($p2Data))
+                        $pagesData[] = $p2Data;
+                }
             }
 
-            if (empty($p1Data) || empty($p1Data['ot_raw']) || empty($p1Data['filas'])) {
-                return response()->json(['success' => false, 'message' => 'Datos de página 1 incompletos.'], 422);
-            }
-
-            $otRaw = $p1Data['ot_raw'];
-            $proveedor1 = $p1Data['proveedor'] ?? 'Proveedor';
+            $otRaw = $pagesData[0]['ot_raw'];
 
             // VALIDACIÓN ESTRICTA: No generar pre-orden de casting si faltan formatos LDM (si el registro existe)
             $history = FundicionHistory::where('ot', '=', $otRaw, 'and')->first();
@@ -2453,12 +2480,10 @@ class AlmacenFundicionController extends Controller
                 ], 422);
             }
 
-            // Clean up any other suppliers if not in page 2
-            $keepSuppliers = [$proveedor1];
-            if ($hasPage2) {
-                $p2Data = $request->input('page2');
-                if (!empty($p2Data) && !empty($p2Data['proveedor'])) {
-                    $keepSuppliers[] = $p2Data['proveedor'];
+            $keepSuppliers = [];
+            foreach ($pagesData as $pData) {
+                if (!empty($pData['proveedor'])) {
+                    $keepSuppliers[] = $pData['proveedor'];
                 }
             }
 
@@ -2467,14 +2492,37 @@ class AlmacenFundicionController extends Controller
                 ->whereNotIn('proveedor', $keepSuppliers)
                 ->delete();
 
-            // Process Page 1 and Page 2 (combined PDF generation)
-            $saved = $this->saveCastingPreOrdenes($p1Data, ($hasPage2 && isset($p2Data)) ? $p2Data : null, $user);
+            // Guardar cambios en proveedores de clases en la BD
+            foreach ($pagesData as $pData) {
+                if (empty($pData['proveedor']))
+                    continue;
+                $proveedorTab = $pData['proveedor'];
+                if (!empty($pData['filas'])) {
+                    foreach ($pData['filas'] as $f) {
+                        if (!empty($f['id_clase']) && is_numeric($f['id_clase'])) {
+                            $updateData = ['proveedor' => $proveedorTab];
+                            if (!empty($f['material'])) {
+                                $updateData['material'] = $f['material'];
+                            }
+                            if (!empty($f['fecha_entrega'])) {
+                                $updateData['fecha_entrega_fundicion'] = $f['fecha_entrega'];
+                            }
+                            Clase::where('id', $f['id_clase'])->update($updateData);
+                        }
+                    }
+                }
+            }
+
+            // Process Pages (combined PDF generation)
+            $saved = $this->saveCastingPreOrdenesDynamic($pagesData, $user);
 
             // Si la OT tenía calidad_revision_status = casting_aprobado (correo ya enviado antes),
             // revertirlo a calidad_aprobado para que el usuario pueda enviar el nuevo correo.
-            FundicionHistory::where('ot', '=', $otRaw, 'and')
-                ->where('calidad_revision_status', '=', 'casting_aprobado', 'and')
-                ->update(['calidad_revision_status' => 'calidad_aprobado']);
+            if ($history) {
+                FundicionHistory::where('ot', '=', $otRaw, 'and')
+                    ->where('calidad_revision_status', '=', 'casting_aprobado', 'and')
+                    ->update(['calidad_revision_status' => 'calidad_aprobado']);
+            }
 
             $pdfs = [];
             if ($saved) {
@@ -2806,51 +2854,49 @@ class AlmacenFundicionController extends Controller
     }
 
     /**
-     * Helper para guardar las pre-órdenes de Casting (soporta proveedor único o doble).
+     * Helper para guardar las pre-órdenes de Casting dinámicamente con N proveedores.
      *
-     * @param array $p1Data
-     * @param array|null $p2Data
+     * @param array $pagesData Array of page data objects
      * @param \App\Models\User|null $user
      * @return array
      */
-    private function saveCastingPreOrdenes(array $p1Data, ?array $p2Data, $user): array
+    private function saveCastingPreOrdenesDynamic(array $pagesData, $user): array
     {
-        $otRaw = $p1Data['ot_raw'];
-        $hasPage2 = !empty($p2Data);
+        $otRaw = $pagesData[0]['ot_raw'] ?? null;
+        if (!$otRaw)
+            return [];
 
-        // 1. Filtrar filas válidas
-        $p1Data['filas'] = array_values(array_filter($p1Data['filas'], function ($fila) {
-            return !empty($fila['id_clase']);
-        }));
-
-        if ($hasPage2) {
-            $p2Data['filas'] = array_values(array_filter($p2Data['filas'], function ($fila) {
+        // Forzar fecha actual y filtrar filas vacías en cada página
+        $fechaActual = date('Y-m-d');
+        $validPages = [];
+        foreach ($pagesData as $pData) {
+            $pData['filas'] = array_values(array_filter($pData['filas'] ?? [], function ($fila) {
                 return !empty($fila['id_clase']);
             }));
+            if (!empty($pData['filas'])) {
+                $pData['fecha_creacion'] = $fechaActual;
+                $validPages[] = $pData;
+            }
         }
 
-        // Forzar fecha actual
-        $fechaActual = date('Y-m-d');
-        $p1Data['fecha_creacion'] = $fechaActual;
-        if ($hasPage2) {
-            $p2Data['fecha_creacion'] = $fechaActual;
-        }
+        if (empty($validPages))
+            return [];
 
         // Generar PDF combinado
         ini_set('memory_limit', '2048M');
 
-        $pages = [$p1Data];
-        if ($hasPage2) {
-            $pages[] = $p2Data;
-        }
-
         $pdf = Pdf::loadView('almacen.pdf.casting_preorder_pdf', [
-            'pages' => $pages,
+            'pages' => $validPages,
             'user' => $user
         ])->setPaper('a4', 'landscape');
 
         $clasesInvolucradas = [];
-        $todasFilas = array_merge($p1Data['filas'] ?? [], $hasPage2 ? ($p2Data['filas'] ?? []) : []);
+        $todasFilas = [];
+        foreach ($validPages as $p) {
+            if (!empty($p['filas']) && is_array($p['filas'])) {
+                $todasFilas = array_merge($todasFilas, $p['filas']);
+            }
+        }
         foreach ($todasFilas as $f) {
             $cRaw = trim($f['descripcion'] ?? $f['clase_nombre'] ?? $f['clase'] ?? $f['nombre'] ?? '');
             if (empty($cRaw) || is_numeric($cRaw)) {
@@ -2931,74 +2977,39 @@ class AlmacenFundicionController extends Controller
                     ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%');
             })->exists();
 
-        // Guardar en BD para Proveedor 1
-        $pre1DB = PreOrdenFundicion::where('ot', '=', $otRaw)
-            ->where('proveedor', '=', $p1Data['proveedor'])
-            ->first();
-
-        if ($pre1DB) {
-            $pre1DB->update([
-                'folio' => $p1Data['folio'],
-                'fecha_creacion' => $fechaActual,
-                'fecha_entrega' => !empty($p1Data['fecha_entrega']) ? $p1Data['fecha_entrega'] : null,
-                'moldura' => $p1Data['moldura'] ?? null,
-                'observaciones' => $p1Data['observaciones'] ?? null,
-                'filas' => $p1Data['filas'],
-                'pdf_filename' => $fileName,
-                'is_sent' => false,
-                'user_id' => $user ? $user->id : null,
-                'user_nombre' => $user ? $user->name : null,
-            ]);
-        } else {
-            PreOrdenFundicion::create([
-                'ot' => $otRaw,
-                'proveedor' => $p1Data['proveedor'],
-                'folio' => $p1Data['folio'],
-                'fecha_creacion' => $fechaActual,
-                'fecha_entrega' => !empty($p1Data['fecha_entrega']) ? $p1Data['fecha_entrega'] : null,
-                'moldura' => $p1Data['moldura'] ?? null,
-                'observaciones' => $p1Data['observaciones'] ?? null,
-                'filas' => $p1Data['filas'],
-                'pdf_filename' => $fileName,
-                'version' => 1,
-                'is_sent' => false,
-                'user_id' => $user ? $user->id : null,
-                'user_nombre' => $user ? $user->name : null,
-            ]);
-        }
-
-        // Guardar en BD para Proveedor 2 (si existe)
-        if ($hasPage2) {
-            $pre2DB = PreOrdenFundicion::where('ot', '=', $otRaw)
-                ->where('proveedor', '=', $p2Data['proveedor'])
+        // Guardar en BD para cada Proveedor (Página)
+        foreach ($validPages as $pData) {
+            $preDB = PreOrdenFundicion::where('ot', '=', $otRaw)
+                ->where('proveedor', '=', $pData['proveedor'])
                 ->first();
 
-            if ($pre2DB) {
-                $pre2DB->update([
-                    'folio' => $p2Data['folio'],
+            if ($preDB) {
+                $preDB->update([
+                    'folio' => $pData['folio'],
                     'fecha_creacion' => $fechaActual,
-                    'fecha_entrega' => !empty($p2Data['fecha_entrega']) ? $p2Data['fecha_entrega'] : null,
-                    'moldura' => $p2Data['moldura'] ?? null,
-                    'observaciones' => $p2Data['observaciones'] ?? null,
-                    'filas' => $p2Data['filas'],
+                    'fecha_entrega' => !empty($pData['fecha_entrega']) ? $pData['fecha_entrega'] : null,
+                    'moldura' => $pData['moldura'] ?? null,
+                    'observaciones' => $pData['observaciones'] ?? null,
+                    'filas' => $pData['filas'],
                     'pdf_filename' => $fileName,
                     'is_sent' => false,
+                    'version' => $preDB->version + 1,
                     'user_id' => $user ? $user->id : null,
                     'user_nombre' => $user ? $user->name : null,
                 ]);
             } else {
                 PreOrdenFundicion::create([
                     'ot' => $otRaw,
-                    'proveedor' => $p2Data['proveedor'],
-                    'folio' => $p2Data['folio'],
+                    'folio' => $pData['folio'],
+                    'proveedor' => $pData['proveedor'],
                     'fecha_creacion' => $fechaActual,
-                    'fecha_entrega' => !empty($p2Data['fecha_entrega']) ? $p2Data['fecha_entrega'] : null,
-                    'moldura' => $p2Data['moldura'] ?? null,
-                    'observaciones' => $p2Data['observaciones'] ?? null,
-                    'filas' => $p2Data['filas'],
+                    'fecha_entrega' => !empty($pData['fecha_entrega']) ? $pData['fecha_entrega'] : null,
+                    'moldura' => $pData['moldura'] ?? null,
+                    'observaciones' => $pData['observaciones'] ?? null,
+                    'filas' => $pData['filas'],
                     'pdf_filename' => $fileName,
-                    'version' => 1,
                     'is_sent' => false,
+                    'version' => 1,
                     'user_id' => $user ? $user->id : null,
                     'user_nombre' => $user ? $user->name : null,
                 ]);
@@ -3056,7 +3067,16 @@ class AlmacenFundicionController extends Controller
                 ], 422);
             }
         } else {
-            if (empty($ot) || empty($destinatario) || empty($request->input('fecha_entrega'))) {
+            $isCasting = $request->input('tipo') === 'casting';
+            
+            if (empty($ot) || empty($destinatario)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La OT y el Destinatario son requeridos.'
+                ], 422);
+            }
+            
+            if (!$isCasting && empty($request->input('fecha_entrega'))) {
                 return response()->json([
                     'success' => false,
                     'message' => 'La OT, el Destinatario y la Fecha de Entrega son requeridos.'
@@ -4448,7 +4468,7 @@ class AlmacenFundicionController extends Controller
             // Si el historial ya marca que se envió el correo, no mostrarlo como pendiente
             // para evitar que se reinicien las OTs cuando se regenera un PDF.
             $history = FundicionHistory::where('ot', $ot)->first();
-            if ($history && $history->pre_orden_email_sent) {
+            if ($history && $history->pre_orden_email_sent && $tipo !== 'casting') {
                 // Si el usuario quiere reenviar, puede hacerlo, pero no marcamos nada como pendiente por defecto
                 // si ya existe el registro inmodificable en el historial.
                 // Excepto si explícitamente se requiere enviar una nueva clase, pero
@@ -4462,13 +4482,48 @@ class AlmacenFundicionController extends Controller
                 $first = $group->first();
                 $allClases = [];
                 $ids = [];
+                $clasesConFechas = [];
                 foreach ($group as $po) {
                     $ids[] = $po->id;
                     $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
+
+                    // Extraer ID de la OT
+                    $otId = null;
+                    if (preg_match('/OT\s*(\d+)/i', $po->ot, $matches)) {
+                        $otId = $matches[1];
+                    }
+                    $otReal = $otId ? Orden_trabajo::find($otId) : null;
+                    $fechaFallback = $otReal && $otReal->fecha_entrega_fundicion ? $otReal->fecha_entrega_fundicion : ($po->fecha_entrega ?? null);
+
                     if (is_array($filas)) {
                         foreach ($filas as $f) {
                             $c = $f['clase_nombre'] ?? $f['clase'] ?? 'Desconocida';
                             $allClases[] = trim($c);
+
+                            $fechaEntrega = null;
+                            if (!empty($f['id_clase'])) {
+                                $claseDb = \DB::table('clases')->where('id', $f['id_clase'])->first();
+                                if ($claseDb && !empty($claseDb->fecha_entrega_fundicion)) {
+                                    $fechaEntrega = $claseDb->fecha_entrega_fundicion;
+                                }
+                            }
+
+                            // Fallback: buscar por nombre si no se encontró por ID
+                            if (!$fechaEntrega && $otReal) {
+                                $claseDb = \DB::table('clases')
+                                    ->where('id_ot', $otReal->id)
+                                    ->where('nombre', 'LIKE', '%' . trim(preg_replace('/^\d+\s*-\s*/', '', $c)) . '%')
+                                    ->first();
+                                if ($claseDb && !empty($claseDb->fecha_entrega_fundicion)) {
+                                    $fechaEntrega = $claseDb->fecha_entrega_fundicion;
+                                }
+                            }
+
+                            if (!$fechaEntrega) {
+                                $fechaEntrega = $fechaFallback;
+                            }
+
+                            $clasesConFechas[trim($c)] = $fechaEntrega ? \Carbon\Carbon::parse($fechaEntrega)->format('d/m/Y') : 'Sin fecha';
                         }
                     }
                 }
@@ -4477,6 +4532,7 @@ class AlmacenFundicionController extends Controller
                 $pendingData[] = [
                     'id' => implode(',', $ids),
                     'clases_str' => $clasesStr,
+                    'clases_fechas' => $clasesConFechas,
                     'pdf_filename' => $first->pdf_filename,
                     'proveedor' => $first->proveedor,
                     'fecha_creacion' => \Carbon\Carbon::parse($first->created_at)->format('d/m/Y H:i'),

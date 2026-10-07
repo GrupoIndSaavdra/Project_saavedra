@@ -71,11 +71,11 @@
                             </div>
 
                             <div class="form-group" style="margin-top: 6px; margin-bottom: 0;">
-                                <label
+                                <label id="lbl-pending-preordenes"
                                     style="font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px; font-size: 0.9em; display: flex; align-items: center; gap: 6px;">
                                     <img src="{{ asset('images/documento.png') }}" style="width: 16px; height: 16px;"> Pre-órdenes pendientes por enviar:</label>
                                 <div id="env-pending-preordenes-container"
-                                    style="background: transparent; border: none; padding: 0; max-height: 140px; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px;">
+                                    style="background: transparent; border: none; padding: 0; max-height: 300px; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px;">
                                 </div>
                             </div>
                         </div>

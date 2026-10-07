@@ -72,41 +72,65 @@
             </span>
         </div>
 
-        <div
-            class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
-            @foreach ($calidadAprobadosLdm as $otroArchivo)
-                @php
-                    $canDelete = false;
-                    $userPerfil = Auth::user()->perfil;
-                    if (in_array($userPerfil, [1, 2, 3, 4, '1', '2', '3', '4'])) {
-                        $canDelete = true;
-                    }
-                @endphp
-                @php $isDwg = strtolower(pathinfo($otroArchivo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
-                <div class="dibujos-file-card card-otro"
-                    style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
-                    <div class="file-icon-wrapper cal-cursor-pointer"
-                        title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
-                            class="file-icon icon-default" />
-                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
-                            class="file-icon icon-hover" />
-                    </div>
-                    <div class="file-name cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
-                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                        {{ basename($otroArchivo['nombre']) }}
-                    </div>
-                    <div class="file-actions cal-display-flex cal-gap-5px">
-                        <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-155724 cal-color-white"
-                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
-                        @if ($canDelete)
-                            <button
-                                class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                        @endif
-                    </div>
+        @php
+            $formatosGenerados = [];
+            $formatosEscaneados = [];
+            foreach ($calidadAprobadosLdm as $doc) {
+                $baseLow = strtolower(basename($doc['nombre']));
+                if (strpos($baseLow, 'f-ccl-ldm') !== false) {
+                    $formatosGenerados[] = $doc;
+                } else {
+                    $formatosEscaneados[] = $doc;
+                }
+            }
+            $ldmGroups = [
+                ['title' => 'Formatos Generados (F-CCL-LDM)', 'docs' => $formatosGenerados],
+                ['title' => 'Documentos Escaneados', 'docs' => $formatosEscaneados],
+            ];
+        @endphp
+
+        @foreach ($ldmGroups as $group)
+            @if (count($group['docs']) > 0)
+                <h5 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700; font-size: 0.95rem;">
+                    {{ $group['title'] }}
+                </h5>
+                <div
+                    class="alm-pdf-grid cal-background-color-f0fdf4 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-bbf7d0">
+                    @foreach ($group['docs'] as $otroArchivo)
+                        @php
+                            $canDelete = false;
+                            $userPerfil = Auth::user()->perfil;
+                            if (in_array($userPerfil, [1, 2, 3, 4, '1', '2', '3', '4'])) {
+                                $canDelete = true;
+                            }
+                        @endphp
+                        @php $isDwg = strtolower(pathinfo($otroArchivo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
+                        <div class="dibujos-file-card card-otro"
+                            style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #155724;">
+                            <div class="file-icon-wrapper cal-cursor-pointer"
+                                title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
+                                <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                    class="file-icon icon-default" />
+                                <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                    class="file-icon icon-hover" />
+                            </div>
+                            <div class="file-name cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
+                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                {{ basename($otroArchivo['nombre']) }}
+                            </div>
+                            <div class="file-actions cal-display-flex cal-gap-5px">
+                                <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-155724 cal-color-white"
+                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
+                                @if ($canDelete)
+                                    <button
+                                        class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
+                                        onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
-            @endforeach
-        </div>
+            @endif
+        @endforeach
     </div>
 @endif

@@ -210,45 +210,80 @@
                 @endif
 
                 @if (count($otrosClass) > 0)
-                    <h5
-                        style="margin-top: 15px; margin-bottom: 10px; color: #991b1b; font-weight: 700; font-size: 0.95rem;">
-                        Formatos de Rechazo, SCAR y Evidencias</h5>
-                    <div
-                        class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
-                        @foreach ($otrosClass as $otroArchivo)
-                            @php
-                                $canDelete = false;
-                                $userPerfil = Auth::user()->perfil;
-                                if (in_array($userPerfil, [1, 2, 3, 4, '1', '2', '3', '4'])) {
-                                    $canDelete = true;
-                                }
-                            @endphp
-                            @php $isDwg = strtolower(pathinfo($otroArchivo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
-                            <div class="dibujos-file-card card-otro"
-                                style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
-                                <div class="file-icon-wrapper cal-cursor-pointer">
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
-                                        class="file-icon icon-default" />
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
-                                        class="file-icon icon-hover" />
-                                </div>
-                                <div class="file-name cal-cursor-pointer"
-                                    onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
-                                    {{ basename($otroArchivo['nombre']) }}
-                                </div>
-                                <div class="file-actions cal-display-flex cal-gap-5px">
-                                    <button
-                                        class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
-                                        onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
-                                    @if ($canDelete)
-                                        <button
-                                            class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
-                                            onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
-                                    @endif
-                                </div>
+                    @php
+                        $formatosGenerados = [];
+                        $formatosExtras = [];
+                        $formatosEscaneados = [];
+                        
+                        foreach ($otrosClass as $doc) {
+                            $baseLow = strtolower(basename($doc['nombre']));
+                            $pathLow = strtolower($doc['nombre']);
+                            
+                            $isExtra = strpos($pathLow, '/extras/') !== false || 
+                                       strpos($baseLow, 'foto') !== false || 
+                                       strpos($baseLow, '_doc_') !== false || 
+                                       strpos($baseLow, '_dwg_') !== false ||
+                                       strpos($pathLow, '\extras\\') !== false;
+                                       
+                            if ($isExtra) {
+                                $formatosExtras[] = $doc;
+                            } elseif (strpos($baseLow, 'f-ccl-rdm') !== false || strpos($baseLow, 'f_ccl_rdm') !== false || strpos($baseLow, 'f_ccl_scar') !== false || strpos($baseLow, 'f-ccl-scar') !== false) {
+                                $formatosGenerados[] = $doc;
+                            } else {
+                                $formatosEscaneados[] = $doc;
+                            }
+                        }
+                        
+                        $rechazoGroups = [
+                            ['title' => 'Formatos Generados de Rechazo y SCAR', 'docs' => $formatosGenerados],
+                            ['title' => 'Evidencias y Archivos Extras', 'docs' => $formatosExtras],
+                            ['title' => 'Documentos Escaneados', 'docs' => $formatosEscaneados],
+                        ];
+                    @endphp
+
+                    @foreach ($rechazoGroups as $group)
+                        @if (count($group['docs']) > 0)
+                            <h5
+                                style="margin-top: 15px; margin-bottom: 10px; color: #991b1b; font-weight: 700; font-size: 0.95rem;">
+                                {{ $group['title'] }}</h5>
+                            <div
+                                class="alm-pdf-grid cal-background-color-fef2f2 cal-padding-15px cal-border-radius-8px cal-border-1px-solid-fecaca">
+                                @foreach ($group['docs'] as $otroArchivo)
+                                    @php
+                                        $canDelete = false;
+                                        $userPerfil = Auth::user()->perfil;
+                                        if (in_array($userPerfil, [1, 2, 3, 4, '1', '2', '3', '4'])) {
+                                            $canDelete = true;
+                                        }
+                                    @endphp
+                                    @php $isDwg = strtolower(pathinfo($otroArchivo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
+                                    <div class="dibujos-file-card card-otro"
+                                        style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
+                                        <div class="file-icon-wrapper cal-cursor-pointer">
+                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                                class="file-icon icon-default" />
+                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                                class="file-icon icon-hover" />
+                                        </div>
+                                        <div class="file-name cal-cursor-pointer"
+                                            onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
+                                            {{ basename($otroArchivo['nombre']) }}
+                                        </div>
+                                        <div class="file-actions cal-display-flex cal-gap-5px">
+                                            <button
+                                                class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-9c0300 cal-color-white"
+                                                onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
+                                            @if ($canDelete)
+                                                <button
+                                                    class="btn-dibujos btn-dibujos-sm btn-eliminar cal-background-color-dc3545 cal-color-white"
+                                                    onclick="almacenEliminarOtroArchivo('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}', this, '{{ $otroArchivo['origin'] ?? '' }}')">Eliminar</button>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
-                        @endforeach
-                    </div>
+                        @endif
+                    @endforeach
                 @endif
             </div>
         @endforeach

@@ -1,9 +1,8 @@
 // --- INITIALIZATION & MODAL LOGIC ---
 window.pocState = {
     ot_raw: '',
-    has_page2: false,
-    page1: { proveedor: '', fecha: '', folio: '', observaciones: '', filas: [] },
-    page2: { proveedor: '', fecha: '', folio: '', observaciones: '', filas: [] },
+    moldura: '',
+    pages: {} // { 1: { proveedor: '', fecha: '', folio: '', observaciones: '', filas: [] }, ... }
 };
 window.materialesCastingPersonalizados = [];
 window.MATERIALES_CASTING_FIJOS = ["Hierro Gris", "Hierro Nodular", "Acero al Carbón", "Acero Inoxidable", "Bronce", "Aluminio"];
@@ -15,9 +14,8 @@ window.abrirModalPreOrdenCasting = function(ot) {
     
     window.pocState = {
         ot_raw: ot,
-        has_page2: false,
-        page1: { proveedor: '', fecha: new Date().toISOString().substring(0, 10), folio: '', observaciones: '', filas: [] },
-        page2: { proveedor: '', fecha: new Date().toISOString().substring(0, 10), folio: '', observaciones: '', filas: [] },
+        moldura: '',
+        pages: {}
     };
     window.materialesCastingPersonalizados = [];
     
@@ -27,112 +25,95 @@ window.abrirModalPreOrdenCasting = function(ot) {
         subtitle.textContent = hasOtPrefix ? (ot.startsWith("OT:") ? ot : "OT: " + ot.replace(/^OT\s*/i, "")) : "OT: " + ot;
     }
     
-    document.getElementById("poc-has-page2").value = "0";
-    
     modal.classList.add("open");
     document.body.classList.add("modal-open");
     
-    const tbody = document.getElementById("alm-tbody-poc-p1");
-    if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:20px;"><div class="alm-spinner"></div> Cargando datos...</td></tr>';
+    const tabsContainer = document.getElementById("poc-tabs-container");
+    const pagesContainer = document.getElementById("poc-pages-container");
+    if (tabsContainer) tabsContainer.innerHTML = '<div style="color:white; padding: 10px;">Cargando...</div>';
+    if (pagesContainer) pagesContainer.innerHTML = '<div style="text-align:center; padding: 2em;">Cargando datos...</div>';
     
     fetch(`${window.almacenRoutes.getOtData}?ot=${ot}&type=casting`)
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                window.pocAvailableClasses = data.clases || [];
-                window.pocState.moldura = data.moldura || "N/A";
-                
-                if (data.folio) {
-                    window.pocState.page1.folio = data.folio;
-                    window.pocState.page2.folio = data.folio;
+                let classesToUse = (data.clases && data.clases.length > 0) ? data.clases : [];
+                if (classesToUse.length === 0 && data.clases_vinculadas) {
+                    classesToUse = data.clases_vinculadas.map(c => typeof c === 'string' ? { nombre: c, proveedor: '', material: 'Hierro Gris' } : { nombre: c.nombre, proveedor: c.proveedor || '', material: c.material || 'Hierro Gris' });
                 }
                 
+                window.pocAvailableClasses = classesToUse;
+                window.pocState.moldura = data.moldura || "N/A";
+                
+                let pagesCount = 0;
+                
                 if (data.pre_ordenes && data.pre_ordenes.length > 0) {
-                    const po1 = data.pre_ordenes[0];
-                    window.pocState.page1.proveedor = po1.proveedor || '';
-                    window.pocState.page1.fecha = po1.fecha_creacion ? String(po1.fecha_creacion).split(/[ T]/)[0] : window.pocState.page1.fecha;
-                    window.pocState.page1.folio = po1.folio || window.pocState.page1.folio;
-                    window.pocState.page1.observaciones = po1.observaciones || '';
-                    let filas1 = po1.filas;
-                    if (typeof filas1 === 'string') filas1 = JSON.parse(filas1);
-                    if (Array.isArray(filas1)) {
-                        window.pocState.page1.filas = filas1;
-                    }
-                    
-                    if (data.pre_ordenes.length > 1) {
-                        window.pocState.has_page2 = true;
-                        document.getElementById("poc-has-page2").value = "1";
-                        const po2 = data.pre_ordenes[1];
-                        window.pocState.page2.proveedor = po2.proveedor || '';
-                        window.pocState.page2.fecha = po2.fecha_creacion ? String(po2.fecha_creacion).split(/[ T]/)[0] : window.pocState.page2.fecha;
-                        window.pocState.page2.folio = po2.folio || window.pocState.page2.folio;
-                        window.pocState.page2.observaciones = po2.observaciones || '';
-                        let filas2 = po2.filas;
-                        if (typeof filas2 === 'string') filas2 = JSON.parse(filas2);
-                        if (Array.isArray(filas2)) {
-                            window.pocState.page2.filas = filas2;
-                        }
-                    }
+                    data.pre_ordenes.forEach((po, i) => {
+                        pagesCount++;
+                        let filas = po.filas;
+                        if (typeof filas === 'string') filas = JSON.parse(filas);
+                        window.pocState.pages[pagesCount] = {
+                            proveedor: po.proveedor || '',
+                            fecha: po.fecha_creacion ? String(po.fecha_creacion).split(/[ T]/)[0] : new Date().toISOString().substring(0, 10),
+                            folio: po.folio || data.folio || '',
+                            observaciones: po.observaciones || '',
+                            filas: Array.isArray(filas) ? filas : []
+                        };
+                    });
                 } else {
-                    let classesToUse = (data.clases && data.clases.length > 0) ? data.clases : [];
-                    if (classesToUse.length === 0 && data.clases_vinculadas) {
-                        classesToUse = data.clases_vinculadas.map(c => ({ nombre: c }));
-                    }
-                    
+                    let providersMap = {};
                     classesToUse.forEach(c => {
-                        const className = c.nombre || c.clase || (typeof c === 'string' ? c : '');
-                        const classId = c.id || className;
-                        window.pocState.page1.filas.push({
-                            id_clase: classId,
-                            tipo_modelo: '',
-                            cant_fabricar: '',
-                            cant_consignacion: 0,
-                            descripcion: className,
-                            clase_nombre: className,
-                            clase: className,
-                            material: 'Hierro Gris',
-                            codigo: window.autoGenerarCodigo('', className, ot),
-                            peso_juego: 0,
-                            peso_total: 0,
-                            fecha_entrega: data.fecha_entrega || ''
-                        });
+                        let prov = c.proveedor || "SIN_PROVEEDOR";
+                        if (!providersMap[prov]) providersMap[prov] = [];
+                        providersMap[prov].push(c);
                     });
                     
-                    if (window.pocState.page1.filas.length === 0) {
+                    for (let prov in providersMap) {
+                        pagesCount++;
+                        let filas = [];
+                        providersMap[prov].forEach(c => {
+                            const className = c.nombre || c.clase || (typeof c === 'string' ? c : '');
+                            const classId = c.id || className;
+                            filas.push({
+                                id_clase: classId,
+                                tipo_modelo: '',
+                                cant_fabricar: '',
+                                cant_consignacion: 0,
+                                descripcion: className,
+                                clase_nombre: className,
+                                clase: className,
+                                material: c.material || 'Hierro Gris',
+                                codigo: window.autoGenerarCodigo('', className, ot),
+                                peso_juego: 0,
+                                peso_total: 0,
+                                fecha_entrega: data.fecha_entrega || ''
+                            });
+                        });
+                        
+                        window.pocState.pages[pagesCount] = {
+                            proveedor: prov === "SIN_PROVEEDOR" ? "" : prov,
+                            fecha: new Date().toISOString().substring(0, 10),
+                            folio: data.folio || '',
+                            observaciones: '',
+                            filas: filas
+                        };
+                    }
+                    
+                    if (pagesCount === 0) {
+                        pagesCount = 1;
+                        window.pocState.pages[1] = {
+                            proveedor: '',
+                            fecha: new Date().toISOString().substring(0, 10),
+                            folio: data.folio || '',
+                            observaciones: '',
+                            filas: []
+                        };
                         window.agregarFilaPoc(1);
                     }
                 }
-                window.loadPocPage(1);
+                
+                window.renderPocTabsAndPages();
                 window.switchPocPage(1);
-                const btnAdd = document.getElementById("btn-add-poc-page-2");
-                const btnRemove = document.getElementById("btn-remove-poc-page-2");
-                const tab2 = document.getElementById("tab-poc-page-2");
-                const totalClassesAvailable = (window.pocAvailableClasses || []).length;
-
-                if (window.pocState.has_page2) {
-                    if (btnAdd) {
-                        btnAdd.classList.add("alm-display-none", "cal-display-none");
-                        btnAdd.style.display = "none";
-                    }
-                    if (btnRemove) btnRemove.classList.remove("alm-display-none", "cal-display-none");
-                    if (tab2) tab2.classList.remove("alm-display-none", "cal-display-none");
-                    window.loadPocPage(2);
-                } else {
-                    if (btnRemove) btnRemove.classList.add("alm-display-none", "cal-display-none");
-                    if (tab2) tab2.classList.add("alm-display-none", "cal-display-none");
-                    if (totalClassesAvailable <= 1) {
-                        if (btnAdd) {
-                            btnAdd.classList.add("alm-display-none", "cal-display-none");
-                            btnAdd.style.display = "none";
-                        }
-                    } else {
-                        if (btnAdd) {
-                            btnAdd.classList.remove("alm-display-none", "cal-display-none");
-                            btnAdd.style.display = "inline-flex";
-                        }
-                    }
-                }
-                window.updatePocAddRowButtonState();
             } else {
                 almacenToast(data.message || "Error al cargar datos", "error");
                 window.cerrarModalPreOrdenCasting();
@@ -153,17 +134,235 @@ window.cerrarModalPreOrdenCasting = function() {
     }
 };
 
+window.renderPocTabsAndPages = function() {
+    const tabsContainer = document.getElementById("poc-tabs-container");
+    const pagesContainer = document.getElementById("poc-pages-container");
+    if (!tabsContainer || !pagesContainer) return;
+    
+    let tabsHtml = '';
+    let pagesHtml = '';
+    
+    const pagesKeys = Object.keys(window.pocState.pages);
+    
+    pagesKeys.forEach((pageNumKey, index) => {
+        const pageNum = parseInt(pageNumKey);
+        const isActive = index === 0;
+        
+        // Tab button
+        let tabContent = `<div style="display: inline-flex; align-items: stretch; margin-right: 8px; border-radius: 30px; transition: all 0.3s ease; ${isActive ? 'box-shadow: 0 4px 15px rgba(0,0,0,0.1), 0 0 0 4px rgba(255,255,255,0.2); transform: translateY(-2px);' : 'backdrop-filter: blur(4px);'}">`;
+        
+        tabContent += `<button type="button" id="tab-poc-page-${pageNum}" onclick="window.switchPocPage(${pageNum})" class="btn-po-tab ${isActive ? 'active' : ''}" style="
+            background: ${isActive ? '#ffffff' : 'rgba(255,255,255,0.15)'}; 
+            color: ${isActive ? '#0284c7' : '#ffffff'}; 
+            border: ${isActive ? 'none' : '1px solid rgba(255,255,255,0.3)'}; 
+            ${pagesKeys.length > 1 ? 'border-right: none;' : ''}
+            padding: 10px 24px; 
+            border-top-left-radius: 30px; 
+            border-bottom-left-radius: 30px; 
+            ${pagesKeys.length > 1 ? 'border-top-right-radius: 0; border-bottom-right-radius: 0;' : 'border-radius: 30px;'}
+            font-family: 'Poppins', sans-serif; 
+            font-weight: ${isActive ? '700' : '500'}; 
+            font-size: 0.95em; 
+            cursor: pointer; 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center;
+            outline: none;
+            "
+            onmouseover="if(!this.classList.contains('active')){this.style.background='rgba(255,255,255,0.25)';}"
+            onmouseout="if(!this.classList.contains('active')){this.style.background='rgba(255,255,255,0.15)';}"
+            >
+            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px;">
+                ${window.pocState.pages[pageNumKey].proveedor ? window.pocState.pages[pageNumKey].proveedor : `Proveedor ${pageNum}`}
+            </span>
+        </button>`;
+
+        if (pagesKeys.length > 1) {
+            tabContent += `<button type="button" id="tab-poc-close-${pageNum}" onclick="event.stopPropagation(); window.removerPocPagina(${pageNum});" style="
+                background: ${isActive ? '#ffffff' : 'rgba(255,255,255,0.15)'}; 
+                color: ${isActive ? '#ef4444' : '#fca5a5'};
+                border: ${isActive ? 'none' : '1px solid rgba(255,255,255,0.3)'};
+                border-left: ${isActive ? '1px solid #e2e8f0' : '1px solid rgba(255,255,255,0.2)'};
+                padding: 0 16px;
+                border-top-right-radius: 30px;
+                border-bottom-right-radius: 30px;
+                font-family: 'Poppins', sans-serif; 
+                font-size: 1.4em;
+                font-weight: 700;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.2s ease;
+                outline: none;
+                "
+                title="Remover proveedor"
+                onmouseover="this.style.backgroundColor='${this.previousElementSibling?.classList.contains('active') ? '#fee2e2' : 'rgba(255,255,255,0.3)'}'; this.style.color='${this.previousElementSibling?.classList.contains('active') ? '#b91c1c' : '#ffffff'}';"
+                onmouseout="this.style.backgroundColor='${this.previousElementSibling?.classList.contains('active') ? '#ffffff' : 'rgba(255,255,255,0.15)'}'; this.style.color='${this.previousElementSibling?.classList.contains('active') ? '#ef4444' : '#fca5a5'}';"
+                >
+                &times;
+            </button>`;
+        }
+        tabContent += `</div>`;
+        tabsHtml += tabContent;
+        
+        // Page content
+        pagesHtml += `
+        <div id="poc-page-${pageNum}" class="poc-page ${isActive ? '' : 'alm-display-none cal-display-none'}">
+            <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 18px; margin-bottom: 25px; background: #ffffff; padding: 20px 24px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.03);">
+                <div class="form-group">
+                    <label for="poc-p${pageNum}-proveedor" style="font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 8px; display: block;">Proveedor <span style="color: #dc2626;">*</span>:</label>
+                    <select id="poc-p${pageNum}-proveedor" name="page${pageNum}_proveedor" onchange="window.handlePocProveedorChange(${pageNum})" class="form-control" style="width: 100%; height: 44px; padding: 8px 14px; border-radius: 10px; border: 1.5px solid #0284c7; font-family: 'Poppins', sans-serif; font-size: 0.95em; color: #0f172a; background: #ffffff; box-shadow: 0 2px 4px rgba(2,132,199,0.05);" required>
+                        <option value="" disabled selected>-- Selecciona un proveedor --</option>
+                        <option value="SS Metal Foundry, S. de R. L. de C. V.">SS Metal Foundry, S. de R. L. de C. V.</option>
+                        <option value="SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS">SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS</option>
+                        <option value="EXTERNO">EXTERNO</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="poc-p${pageNum}-fecha" style="font-weight: 700; color: #475569; font-size: 0.95em; margin-bottom: 8px; display: block;">Fecha Creación:</label>
+                    <input type="date" id="poc-p${pageNum}-fecha" name="page${pageNum}_fecha" class="form-control" style="width: 100%; height: 44px; padding: 8px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: 'Poppins', sans-serif; font-size: 0.95em; background: #f1f5f9; color: #64748b; font-weight: 600;" readonly disabled>
+                </div>
+                <div class="form-group">
+                    <label for="poc-p${pageNum}-folio" style="font-weight: 700; color: #475569; font-size: 0.95em; margin-bottom: 8px; display: block;">Folio:</label>
+                    <input type="text" id="poc-p${pageNum}-folio" name="page${pageNum}_folio" class="form-control" style="width: 100%; height: 44px; padding: 8px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: 'Poppins', sans-serif; font-size: 0.95em; background: #f1f5f9; color: #0369a1; font-weight: 800;" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="poc-p${pageNum}-moldura" style="font-weight: 700; color: #475569; font-size: 0.95em; margin-bottom: 8px; display: block;">Moldura:</label>
+                    <input type="text" id="poc-p${pageNum}-moldura" name="page${pageNum}_moldura" class="form-control" style="width: 100%; height: 44px; padding: 8px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: 'Poppins', sans-serif; font-size: 0.95em; background: #f1f5f9; color: #334155;" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="poc-p${pageNum}-ot" style="font-weight: 700; color: #475569; font-size: 0.95em; margin-bottom: 8px; display: block;">Orden de Trabajo:</label>
+                    <input type="text" id="poc-p${pageNum}-ot" name="page${pageNum}_ot" class="form-control" style="width: 100%; height: 44px; padding: 8px 14px; border-radius: 10px; border: 1.5px solid #cbd5e1; font-family: 'Poppins', sans-serif; font-size: 0.95em; background: #f1f5f9; color: #334155;" readonly>
+                </div>
+            </div>
+
+            <div class="modal-table-container" style="overflow-x: auto; background: #ffffff; border: 1px solid #cbd5e1; border-radius: 16px; padding: 0; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+                <table class="modal-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+                    <thead>
+                        <tr style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #ffffff; font-weight: 700; font-size: 0.88em; text-transform: uppercase; letter-spacing: 0.5px;">
+                            <th style="padding: 14px 12px; min-width: 120px;">Tipo de Modelo <span style="color: #f87171;">*</span></th>
+                            <th style="padding: 14px 12px; min-width: 95px;">Cant. Fabricar <span style="color: #f87171;">*</span></th>
+                            <th style="padding: 14px 12px; min-width: 95px;">Cant. Consign. <span style="color: #f87171;">*</span></th>
+                            <th style="padding: 14px 12px; min-width: 140px;">Descripción / Clase <span style="color: #f87171;">*</span></th>
+                            <th style="padding: 14px 12px; min-width: 160px;">Material <span style="color: #f87171;">*</span></th>
+                            <th style="padding: 14px 12px; min-width: 130px;">Código Modelo <span style="color: #f87171;">*</span></th>
+                            <th style="padding: 14px 12px; min-width: 90px;">Peso Juego</th>
+                            <th style="padding: 14px 12px; min-width: 90px;">Peso Total</th>
+                            <th style="padding: 14px 12px; min-width: 130px;">Fecha Entrega <span style="color: #f87171;">*</span></th>
+                            <th style="padding: 14px 12px; text-align: center; min-width: 70px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="alm-tbody-poc-p${pageNum}">
+                    </tbody>
+                </table>
+                <div style="margin: 16px 0; text-align: center;">
+                    <button type="button" id="btn-add-row-poc-p${pageNum}" onclick="window.agregarFilaPoc(${pageNum})" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 24px; background: #f0f9ff; border: 2px dashed #0284c7; border-radius: 30px; color: #0284c7; font-weight: 700; font-family: 'Poppins', sans-serif; font-size: 0.92em; cursor: pointer; transition: all 0.2s ease;">
+                        <span>+ Añadir otra clase / modelo</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-top: 25px;">
+                <label for="poc-p${pageNum}-observaciones" style="font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 8px; display: block;">Observaciones (Proveedor ${pageNum}):</label>
+                <textarea id="poc-p${pageNum}-observaciones" name="page${pageNum}_observaciones" style="width: 100%; min-height: 80px; border-radius: 12px; padding: 14px; font-family: 'Poppins', sans-serif; font-size: 0.95em; border: 1.5px solid #cbd5e1; box-sizing: border-box;" placeholder="Escribe observaciones adicionales para el proveedor ${pageNum}..."></textarea>
+            </div>
+        </div>`;
+    });
+    
+    // Add "Agregar Proveedor" button to tabs
+    // Add "Agregar Proveedor" button to tabs
+    let availableClasesCount = window.pocAvailableClasses ? window.pocAvailableClasses.length : 1;
+    let limitReached = pagesKeys.length >= availableClasesCount;
+    let addBtnStyle = limitReached 
+        ? "align-items: center; gap: 8px; padding: 10px 24px; background: rgba(255, 255, 255, 0.05); border: 1.5px dashed rgba(255, 255, 255, 0.2); border-radius: 30px; color: rgba(255,255,255,0.4); font-family: 'Poppins', sans-serif; font-size: 0.95em; font-weight: 500; margin-left: 8px; cursor: not-allowed; transition: all 0.3s ease;"
+        : "align-items: center; gap: 8px; padding: 10px 24px; background: rgba(255, 255, 255, 0.1); border: 1.5px dashed rgba(255, 255, 255, 0.6); border-radius: 30px; color: #ffffff; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.95em; font-weight: 600; transition: all 0.3s ease; margin-left: 8px;";
+        
+    tabsHtml += `
+        <button type="button" id="btn-add-poc-page" onclick="${limitReached ? 'return false;' : 'window.agregarPocPagina()'}" class="btns btn-add-tab" style="${addBtnStyle}" ${limitReached ? 'title="Se ha alcanzado el límite de proveedores (uno por cada clase)" disabled' : ''}>
+            + Agregar Proveedor
+        </button>
+    `;
+    
+    tabsContainer.innerHTML = tabsHtml;
+    pagesContainer.innerHTML = pagesHtml;
+    
+    // Load data for all pages
+    pagesKeys.forEach(pageNumKey => {
+        window.loadPocPage(parseInt(pageNumKey));
+    });
+};
+
+window.agregarPocPagina = function() {
+    let newPageNum = 1;
+    while(window.pocState.pages[newPageNum]) {
+        newPageNum++;
+    }
+    
+    window.pocState.pages[newPageNum] = {
+        proveedor: '',
+        fecha: new Date().toISOString().substring(0, 10),
+        folio: window.pocState.pages[1] ? window.pocState.pages[1].folio : '',
+        observaciones: '',
+        filas: []
+    };
+    
+    window.agregarFilaPoc(newPageNum);
+    window.renderPocTabsAndPages();
+    window.switchPocPage(newPageNum);
+};
+
+window.removerPocPagina = function(pageNum) {
+    if (Object.keys(window.pocState.pages).length <= 1) {
+        almacenToast("Debe haber al menos un proveedor.", "warning");
+        return;
+    }
+    if (!confirm(`¿Estás seguro de eliminar el Proveedor ${pageNum}? Se perderán los datos ingresados en esta pestaña.`)) return;
+    
+    delete window.pocState.pages[pageNum];
+    window.renderPocTabsAndPages();
+    
+    const remainingKeys = Object.keys(window.pocState.pages);
+    window.switchPocPage(parseInt(remainingKeys[0]));
+};
+
 window.switchPocPage = function(pageNum) {
     document.querySelectorAll(".poc-page").forEach(p => p.classList.add("alm-display-none", "cal-display-none"));
+    
+    const pagesKeys = Object.keys(window.pocState.pages);
+    
+    // Reset all tabs to inactive styles
     document.querySelectorAll(".btn-po-tab").forEach(b => {
-        b.classList.remove("active");
-        b.style.background = "rgba(255,255,255,0.2)";
-        b.style.color = "#ffffff";
-        b.style.boxShadow = "none";
+        if (!b.id.includes("btn-add-poc-page")) {
+            b.classList.remove("active");
+            b.style.background = "rgba(255,255,255,0.15)";
+            b.style.color = "#ffffff";
+            b.style.border = "1px solid rgba(255,255,255,0.3)";
+            if (pagesKeys.length > 1) {
+                b.style.borderRight = "none";
+            }
+            if (b.parentElement && b.parentElement.tagName === 'DIV') {
+                b.parentElement.style.boxShadow = "none";
+                b.parentElement.style.transform = "none";
+                b.parentElement.style.backdropFilter = "blur(4px)";
+            }
+        }
+    });
+
+    // Reset all close buttons
+    pagesKeys.forEach(p => {
+        let c = document.getElementById("tab-poc-close-" + p);
+        if (c) {
+            c.style.background = "rgba(255,255,255,0.15)";
+            c.style.color = "#fca5a5";
+            c.style.border = "1px solid rgba(255,255,255,0.3)";
+            c.style.borderLeft = "1px solid rgba(255,255,255,0.2)";
+        }
     });
     
     const page = document.getElementById("poc-page-" + pageNum);
     const tab = document.getElementById("tab-poc-page-" + pageNum);
+    const closeBtn = document.getElementById("tab-poc-close-" + pageNum);
     
     if (page) {
         page.classList.remove("alm-display-none", "cal-display-none");
@@ -171,121 +370,64 @@ window.switchPocPage = function(pageNum) {
     if (tab) {
         tab.classList.add("active");
         tab.style.background = "#ffffff";
-        tab.style.color = "#0369a1";
-        tab.style.boxShadow = "0 -4px 12px rgba(0,0,0,0.15)";
-    }
-};
-
-window.autoSelectOtherProveedor = function (targetPageNum) {
-    const otherPageNum = targetPageNum === 1 ? 2 : 1;
-    const currentSelect = document.getElementById(`poc-p${targetPageNum}-proveedor`);
-    const otherSelect = document.getElementById(`poc-p${otherPageNum}-proveedor`);
-    if (!currentSelect) return;
-
-    const otherVal = otherSelect ? (otherSelect.value || window.pocState[`page${otherPageNum}`].proveedor || "") : "";
-    const currentVal = currentSelect.value || window.pocState[`page${targetPageNum}`].proveedor || "";
-
-    if (!currentVal || (otherVal && currentVal === otherVal)) {
-        for (let i = 0; i < currentSelect.options.length; i++) {
-            const optVal = currentSelect.options[i].value;
-            if (optVal && optVal !== otherVal && !currentSelect.options[i].disabled) {
-                currentSelect.value = optVal;
-                window.pocState[`page${targetPageNum}`].proveedor = optVal;
-                break;
-            }
+        tab.style.color = "#0284c7";
+        tab.style.border = "none";
+        if (tab.parentElement && tab.parentElement.tagName === 'DIV') {
+            tab.parentElement.style.boxShadow = "0 4px 15px rgba(0,0,0,0.1), 0 0 0 4px rgba(255,255,255,0.2)";
+            tab.parentElement.style.transform = "translateY(-2px)";
+            tab.parentElement.style.backdropFilter = "none";
         }
+    }
+    if (closeBtn) {
+        closeBtn.style.background = "#ffffff";
+        closeBtn.style.color = "#ef4444";
+        closeBtn.style.border = "none";
+        closeBtn.style.borderLeft = "1px solid #e2e8f0";
     }
 };
 
 window.updatePocAddRowButtonState = function () {
-    const totalAvailable = (window.pocAvailableClasses || []).length;
-    const btn1 = document.getElementById("btn-add-row-poc-p1");
-    const btn2 = document.getElementById("btn-add-row-poc-p2");
-    const btnAddP2 = document.getElementById("btn-add-poc-page-2");
-
-    if (btnAddP2) {
-        if (totalAvailable <= 1 || window.pocState.has_page2) {
-            btnAddP2.classList.add("alm-display-none", "cal-display-none");
-            btnAddP2.style.display = "none";
-        } else {
-            btnAddP2.classList.remove("alm-display-none", "cal-display-none");
-            btnAddP2.style.display = "inline-flex";
-        }
-    }
-
-    if (btn1) btn1.style.display = "inline-flex";
-    if (btn2) btn2.style.display = "inline-flex";
-};
-
-window.agregarPocPagina2 = function() {
-    document.getElementById("poc-has-page2").value = "1";
-    window.pocState.has_page2 = true;
-    
-    // Heredar folio de la página 1 si el de la página 2 está vacío
-    if (!window.pocState.page2.folio && window.pocState.page1.folio) {
-        window.pocState.page2.folio = window.pocState.page1.folio;
-    }
-    
-    window.autoSelectOtherProveedor(2);
-    
-    const btnAdd = document.getElementById("btn-add-poc-page-2");
-    const btnRemove = document.getElementById("btn-remove-poc-page-2");
-    const tab2 = document.getElementById("tab-poc-page-2");
-    
-    if (btnAdd) {
-        btnAdd.classList.add("alm-display-none", "cal-display-none");
-        btnAdd.style.display = "none";
-    }
-    if (btnRemove) btnRemove.classList.remove("alm-display-none", "cal-display-none");
-    if (tab2) tab2.classList.remove("alm-display-none", "cal-display-none");
-    
-    if (window.pocState.page2.filas.length === 0) {
-        window.agregarFilaPoc(2);
-    } else {
-        window.loadPocPage(2);
-    }
-    window.switchPocPage(2);
-    window.updatePocAddRowButtonState();
-};
-
-window.removerPocPagina2 = function() {
-    if (!confirm("¿Estás seguro de eliminar el Proveedor 2? Se perderán los datos ingresados en esa pestaña.")) return;
-    document.getElementById("poc-has-page2").value = "0";
-    window.pocState.has_page2 = false;
-    window.pocState.page2.filas = [];
-    
-    const btnAdd = document.getElementById("btn-add-poc-page-2");
-    const btnRemove = document.getElementById("btn-remove-poc-page-2");
-    const tab2 = document.getElementById("tab-poc-page-2");
-    const totalClassesAvailable = (window.pocAvailableClasses || []).length;
-    
-    if (btnAdd) {
-        if (totalClassesAvailable <= 1) {
-            btnAdd.classList.add("alm-display-none", "cal-display-none");
-            btnAdd.style.display = "none";
-        } else {
-            btnAdd.classList.remove("alm-display-none", "cal-display-none");
-            btnAdd.style.display = "inline-flex";
-        }
-    }
-    if (btnRemove) btnRemove.classList.add("alm-display-none", "cal-display-none");
-    if (tab2) tab2.classList.add("alm-display-none", "cal-display-none");
-    
-    window.switchPocPage(1);
-    window.updatePocAddRowButtonState();
+    // Left empty on purpose because renderPocTabsAndPages now handles dynamic elements
 };
 
 window.handlePocProveedorChange = function(pageNum) {
     window.savePocPageData(pageNum);
-    if (window.pocState.has_page2) {
-        const otherPageNum = pageNum === 1 ? 2 : 1;
-        window.autoSelectOtherProveedor(otherPageNum);
+
+    const pSel = document.getElementById(`poc-p${pageNum}-proveedor`);
+    if (!pSel || !pSel.value) return;
+    
+    const currentProv = pSel.value;
+    const pagesKeys = Object.keys(window.pocState.pages);
+    
+    for (let key of pagesKeys) {
+        if (key != pageNum && window.pocState.pages[key].proveedor === currentProv) {
+            if (window.pocState.pages[pageNum].filas && window.pocState.pages[pageNum].filas.length > 0) {
+                window.pocState.pages[key].filas = window.pocState.pages[key].filas.concat(window.pocState.pages[pageNum].filas);
+            }
+            
+            if (window.pocState.pages[pageNum].observaciones) {
+                window.pocState.pages[key].observaciones = window.pocState.pages[key].observaciones 
+                    ? window.pocState.pages[key].observaciones + "\n" + window.pocState.pages[pageNum].observaciones 
+                    : window.pocState.pages[pageNum].observaciones;
+            }
+            
+            delete window.pocState.pages[pageNum];
+            
+            window.renderPocTabsAndPages();
+            window.switchPocPage(parseInt(key));
+            window.loadPocPage(parseInt(key));
+            
+            if (typeof almacenToast !== 'undefined') {
+                almacenToast(`Modelos agrupados con el proveedor existente.`, "info");
+            }
+            return;
+        }
     }
 };
 
 window.loadPocPage = function(pageNum) {
-    if (!pageNum || (pageNum !== 1 && pageNum !== 2)) return;
-    const pData = window.pocState["page" + pageNum];
+    if (!pageNum) return;
+    const pData = window.pocState.pages[pageNum];
     if (!pData) return;
     
     const provEl = document.getElementById(`poc-p${pageNum}-proveedor`);
@@ -296,7 +438,7 @@ window.loadPocPage = function(pageNum) {
     const fechaEl = document.getElementById(`poc-p${pageNum}-fecha`);
 
     if (provEl) provEl.value = pData.proveedor || "";
-    if (folioEl) folioEl.value = pData.folio || window.pocState.page1.folio || "";
+    if (folioEl) folioEl.value = pData.folio || window.pocState.pages[1].folio || "";
     if (obsEl) obsEl.value = pData.observaciones || "";
     if (otEl) {
         const rawOt = window.pocState.ot_raw || "";
@@ -332,6 +474,12 @@ window.loadPocPage = function(pageNum) {
                 return `<option value="${classId}" ${isSel ? 'selected' : ''}>${c.nombre}</option>`;
             }).join('');
             
+            if (f.material && !window.MATERIALES_CASTING_FIJOS.includes(f.material) && f.material !== 'Otro') {
+                if (!window.materialesCastingPersonalizados.includes(f.material)) {
+                    window.materialesCastingPersonalizados.push(f.material);
+                }
+            }
+            
             const customMatOptions = (window.materialesCastingPersonalizados || []).map(m => 
                 `<option value="${m}" ${f.material === m ? 'selected' : ''}>${m}</option>`
             ).join('');
@@ -363,13 +511,7 @@ window.loadPocPage = function(pageNum) {
                     </select>
                 </td>
                 <td class="poc-material-wrapper">
-                    <select class="poc-input-material form-control" style="width:100%" required onchange="window.handlePocMaterialChange(${pageNum}, ${idx}, this)">
-                        <option value="">-- Material --</option>
-                        ${fixedMatOptions}
-                        ${customMatOptions}
-                        <option value="Otro">Otro (Especificar)</option>
-                    </select>
-                    <input type="text" class="poc-input-material-custom form-control alm-display-none" style="width:100%; margin-top:5px;" placeholder="Nuevo material..." onblur="window.handlePocMaterialCustomBlur(${pageNum}, ${idx}, this)" onkeypress="window.handlePocMaterialCustomKey(${pageNum}, ${idx}, event, this)">
+                    <input type="text" class="poc-input-material form-control" style="width:100%; opacity:0.8; cursor:not-allowed; background-color:#f1f5f9; color:#475569; font-weight:600;" value="${f.material || ''}" readonly disabled>
                 </td>
                 <td><input type="text" class="poc-input-codigo form-control" style="width:100%" value="${codigoVal}" required ${f.user_edited_code ? 'data-user-edited="1"' : ''}></td>
                 <td><input type="number" min="0" step="0.001" class="poc-input-peso-juego form-control" style="width:100%" value="${pesoJuegoVal}" placeholder="0" required oninput="window.handlePocRowInputChange(this)"></td>
@@ -510,7 +652,7 @@ function confirmPocMaterialCustom(pageNum, idx, inputEl) {
         return;
     }
     savePocPageData(pageNum);
-    const pData = pocState["page" + pageNum];
+    const pData = pocState.pages[pageNum];
     const row = pData.filas[idx];
     const materialesDisponibles = [
         ...MATERIALES_CASTING_FIJOS,
@@ -542,7 +684,7 @@ window.eliminarMaterialGlobal = function (pageNum, mat) {
     window.materialesCastingPersonalizados =
         window.materialesCastingPersonalizados.filter((m) => m !== mat);
     // 2. Limpiar la selección de cualquier fila que usara este material
-    const paginas = [pocState.page1, pocState.page2];
+    const paginas = Object.values(window.pocState.pages);
     paginas.forEach((p) => {
         if (p && p.filas) {
             p.filas.forEach((f) => {
@@ -559,7 +701,7 @@ window.eliminarMaterialGlobal = function (pageNum, mat) {
 
 window.handlePocClaseChange = function (pageNum, idx, selectEl) {
     savePocPageData(pageNum);
-    const pData = pocState["page" + pageNum];
+    const pData = pocState.pages[pageNum];
     const row = pData.filas[idx];
     const selectedOption = selectEl.options[selectEl.selectedIndex];
     if (selectedOption && selectedOption.value) {
@@ -633,6 +775,27 @@ window.handlePocRowInputChange = function (el) {
             }
         }
     }
+    
+    // Auto-populate material when class changes
+    if (el === selectClase && selectClase) {
+        const matInput = tr.querySelector(".poc-input-material");
+        if (matInput) {
+            const classObj = (window.pocAvailableClasses || []).find(c => c.id == selectClase.value || c.nombre == selectClase.value);
+            if (classObj && classObj.material) {
+                matInput.value = classObj.material;
+            } else {
+                matInput.value = "Hierro Gris";
+            }
+            // Trigger save and reload to update state
+            const tbody = tr.closest("tbody");
+            if (tbody) {
+                const pageNumMatch = tbody.id.match(/poc-p(\d+)/);
+                if (pageNumMatch) {
+                    window.savePocPageData(pageNumMatch[1]);
+                }
+            }
+        }
+    }
 
     // Auto-calculate peso_total = (cant_fabricar + cant_consignacion) * peso_juego
     const consVal = parseInt(consInput ? consInput.value : 0) || 0;
@@ -654,7 +817,7 @@ window.recalcPocRowWeight = function (pageNum, idx) {
 
 window.agregarFilaPoc = function (pageNum) {
     savePocPageData(pageNum);
-    pocState["page" + pageNum].filas.push({
+    pocState.pages[pageNum].filas.push({
         id_clase: "",
         tipo_modelo: "",
         cant_fabricar: "",
@@ -671,7 +834,7 @@ window.agregarFilaPoc = function (pageNum) {
 
 window.eliminarFilaPoc = function (pageNum, idx) {
     savePocPageData(pageNum);
-    const pFilas = pocState["page" + pageNum].filas || [];
+    const pFilas = pocState.pages[pageNum].filas || [];
     if (pFilas.length <= 1) {
         if (typeof almacenToast === "function") {
             almacenToast("Cada proveedor debe conservar al menos una clase.", "warning");
@@ -680,13 +843,13 @@ window.eliminarFilaPoc = function (pageNum, idx) {
         }
         return;
     }
-    pocState["page" + pageNum].filas.splice(idx, 1);
+    pocState.pages[pageNum].filas.splice(idx, 1);
     loadPocPage(pageNum);
 };
 
 window.savePocPageData = function (pageNum) {
-    if (!pageNum || (pageNum !== 1 && pageNum !== 2)) return;
-    const pData = pocState["page" + pageNum];
+    if (!pageNum) return;
+    const pData = pocState.pages[pageNum];
     if (!pData) return;
     const provEl = document.getElementById(`poc-p${pageNum}-proveedor`);
     const folioEl = document.getElementById(`poc-p${pageNum}-folio`);
@@ -771,61 +934,44 @@ document.addEventListener("DOMContentLoaded", () => {
     if (formPoc) {
         formPoc.addEventListener("submit", function(e) {
             e.preventDefault();
-            window.savePocPageData(1);
-            if (window.pocState.has_page2) window.savePocPageData(2);
             
-            const p1 = window.pocState.page1;
-            p1.ot_raw = window.pocState.ot_raw;
-            p1.ot = window.pocState.ot_raw;
-            p1.moldura = window.pocState.moldura;
+            let allValid = true;
+            let pagesPayload = [];
             
-            let p2 = null;
-            if (window.pocState.has_page2) {
-                p2 = window.pocState.page2;
-                p2.ot_raw = window.pocState.ot_raw;
-                p2.ot = window.pocState.ot_raw;
-                p2.moldura = window.pocState.moldura;
-            }
-
-            if (!p1.proveedor) {
-                almacenToast("Debe seleccionar un proveedor para la página 1.", "error");
-                return;
-            }
+            Object.keys(window.pocState.pages).forEach(pageNumKey => {
+                const pageNum = parseInt(pageNumKey);
+                window.savePocPageData(pageNum);
+                
+                const p = window.pocState.pages[pageNum];
+                p.ot_raw = window.pocState.ot_raw;
+                p.ot = window.pocState.ot_raw;
+                p.moldura = window.pocState.moldura;
+                
+                if (!p.proveedor) {
+                    almacenToast(`Debe seleccionar un proveedor para la pestaña Proveedor ${pageNum}.`, "error");
+                    allValid = false;
+                }
+                
+                if (!p.filas || p.filas.length === 0) {
+                    almacenToast(`El Proveedor ${pageNum} debe tener al menos una clase asignada.`, "error");
+                    allValid = false;
+                }
+                
+                let invalidRow = p.filas.find((f) => !f.tipo_modelo || (!f.id_clase && !f.descripcion));
+                if (invalidRow) {
+                    almacenToast(`Debe seleccionar el Tipo de Modelo y la Clase para todas las filas del Proveedor ${pageNum}.`, "error");
+                    allValid = false;
+                }
+                
+                pagesPayload.push(p);
+            });
             
-            if (!p1.filas || p1.filas.length === 0) {
-                almacenToast("El Proveedor 1 debe tener al menos una clase asignada.", "error");
-                return;
-            }
-            let invalidRow1 = p1.filas.find((f) => !f.tipo_modelo || (!f.id_clase && !f.descripcion));
-            if (invalidRow1) {
-                almacenToast("Debe seleccionar el Tipo de Modelo y la Clase para todas las filas del Proveedor 1.", "error");
-                return;
-            }
-
-            if (window.pocState.has_page2) {
-                if (!p2 || !p2.proveedor) {
-                    almacenToast("Debe seleccionar un proveedor para la página 2.", "error");
-                    return;
-                }
-                if (!p2.filas || p2.filas.length === 0) {
-                    almacenToast("El Proveedor 2 debe tener al menos una clase asignada.", "error");
-                    return;
-                }
-            }
-            if (window.pocState.has_page2 && p2) {
-                let invalidRow2 = p2.filas.find((f) => !f.tipo_modelo || (!f.id_clase && !f.descripcion));
-                if (invalidRow2) {
-                    almacenToast("Debe seleccionar el Tipo de Modelo y la Clase para todas las filas del Proveedor 2.", "error");
-                    return;
-                }
-            }
+            if (!allValid) return;
             
             const payload = {
                 ot: window.pocState.ot_raw,
                 type: 'casting',
-                has_page2: window.pocState.has_page2 ? 1 : 0,
-                page1: p1,
-                page2: p2
+                pages: pagesPayload
             };
             
             const btnSubmit = document.getElementById("btn-submit-poc");

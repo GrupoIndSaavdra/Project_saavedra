@@ -29,10 +29,23 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
     if (inputTipo) {
         inputTipo.value = tipo || "modelo";
     }
+    
+    const modalTitle = modal.querySelector('.alm-modal-header h3');
+    if (modalTitle) {
+        modalTitle.textContent = tipo === "casting" 
+            ? "Enviar Pre-Orden de Fabricación de Casting por Correo" 
+            : "Enviar Pre-Orden de Fabricación de Modelo por Correo";
+    }
     const subtitle = document.getElementById("env-po-modal-subtitle");
     if (subtitle) {
         subtitle.textContent = `OT: ${ot.replace(/_\d{8}_\d{6}_.*/, "")}`;
     }
+    
+    const lblPending = document.getElementById("lbl-pending-preordenes");
+    if (lblPending) {
+        lblPending.innerHTML = `<img src="${window.baseUrl || '/'}images/documento.png" style="width: 16px; height: 16px;"> Pre-órdenes de ${tipo === 'casting' ? 'Casting' : 'Modelo'} pendientes por enviar:`;
+    }
+    
     const inputDestinatario = document.getElementById("env-destinatario");
     const inputDestinatarioCalidad = document.getElementById("env-destinatario-calidad");
     const divDestinatarioCalidad = document.getElementById("div-env-destinatario-calidad");
@@ -62,6 +75,17 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
             }
         }
     }
+    const inputFechaEntrega = document.getElementById("env-fecha-entrega");
+    if (inputFechaEntrega) {
+        const divFecha = inputFechaEntrega.closest(".form-group");
+        if (tipo === "casting") {
+            if (divFecha) divFecha.classList.add("alm-display-none");
+            inputFechaEntrega.removeAttribute("required");
+        } else {
+            if (divFecha) divFecha.classList.remove("alm-display-none");
+            inputFechaEntrega.setAttribute("required", "required");
+        }
+    }
     
     adicionalesSelectedFiles = [];
     window.adicionalesSelectedFiles = adicionalesSelectedFiles;
@@ -88,14 +112,22 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                 if (!baseUrl.endsWith("/")) baseUrl += "/";
                 let archivosAMostrar = data.archivos;
                 if (tipo === "casting") {
+                    let seenNames = new Set();
                     archivosAMostrar = data.archivos.filter((f) => {
-                        const n = (f.nombre || "").toLowerCase();
-                        return (
-                            n.includes("f_alm_pfc") ||
+                        const fullName = f.nombre || "";
+                        const n = fullName.split('/').pop().split('\\').pop().toLowerCase();
+                        const isCastingPfc = n.includes("f_alm_pfc") ||
                             n.includes("pfc") ||
                             (n.includes("pre-orden") && n.includes("casting")) ||
-                            n.includes("pre-orden_casting")
-                        );
+                            n.includes("pre-orden_casting");
+                        
+                        if (isCastingPfc) {
+                            if (!seenNames.has(n)) {
+                                seenNames.add(n);
+                                return true;
+                            }
+                        }
+                        return false;
                     });
                 } else {
                     if (clasesFaltantes && Array.isArray(clasesFaltantes) && clasesFaltantes.length > 0) {
@@ -110,7 +142,8 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                     archivosAMostrar,
                     ot,
                     baseUrl,
-                    "preorden"
+                    "preorden",
+                    tipo
                 );
                 filesContainer.innerHTML = sectionsHtml || `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">No se encontraron archivos en el servidor para esta OT.</div>`;
                 
@@ -176,15 +209,29 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         if (po.proveedor && po.proveedor.toLowerCase().includes("jacarandas")) {
                             hasJacarandas = true;
                         }
+                        let fechasHtml = '';
+                        if (tipo === 'casting' && po.clases_fechas) {
+                            fechasHtml = `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1; width: 100%;">
+                                <div style="font-size: 0.82em; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Fechas de Entrega Acordadas:</div>
+                                <div style="display: flex; flex-direction: column; gap: 6px; max-height: 38px; overflow-y: auto; padding-right: 4px;" class="custom-scrollbar-mini">`;
+                            for (const [clase, fecha] of Object.entries(po.clases_fechas)) {
+                                fechasHtml += `<div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0;">
+                                    <span style="color: #334155; font-weight: 600; font-size: 0.82em;">${clase}</span>
+                                    <span style="color: #0369a1; font-weight: 700; font-size: 0.82em; background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">${fecha}</span>
+                                </div>`;
+                            }
+                            fechasHtml += `</div></div>`;
+                        }
+                        
                         html += `
-                            <label class="select-preorden-card" style="display: flex; align-items: center; gap: 14px; cursor: pointer; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 14px 18px; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04); position: relative; overflow: hidden;"
+                            <label class="select-preorden-card" style="display: flex; align-items: flex-start; gap: 14px; cursor: pointer; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 14px 18px; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04); position: relative; overflow: hidden;"
                                 onmouseover="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 8px 20px rgba(56,189,248,0.15)'; this.style.transform='translateY(-1px)';"
                                 onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 2px 8px rgba(15, 23, 42, 0.04)'; this.style.transform='translateY(0)';">
                                 <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(to bottom, #0ea5e9, #38bdf8); border-radius: 4px 0 0 4px;"></div>
-                                <div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; flex-shrink: 0;">
+                                <div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; flex-shrink: 0; margin-top: 2px;">
                                     <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked data-clases="${po.clases_str || ""}" onchange="if(window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden()" style="width: 16px; height: 16px; accent-color: #0ea5e9; cursor: pointer; margin: 0;">
                                 </div>
-                                <div style="display: flex; flex-direction: column; flex: 1;">
+                                <div style="display: flex; flex-direction: column; flex: 1; width: 100%;">
                                     <strong style="color: #0f172a; font-size: 0.98em; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
                                         <span style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-size: 0.85em; font-weight: 800; letter-spacing: 0.5px;">PO</span>
                                         ${po.clases_str || "General"}
@@ -193,6 +240,7 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                                         <span style="display: flex; align-items: center; gap: 4px; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #f1f5f9;"><strong style="color: #334155;">PDF:</strong> <span style="color: #0284c7; font-weight: 500;">${po.pdf_filename}</span></span>
                                         <span style="display: flex; align-items: center; gap: 4px; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #f1f5f9;"><strong style="color: #334155;">Creada:</strong> ${po.fecha_creacion}</span>
                                     </div>
+                                    ${fechasHtml}
                                 </div>
                             </label>
                         `;
@@ -287,7 +335,8 @@ document.addEventListener("DOMContentLoaded", () => {
         form.addEventListener("submit", function (e) {
             e.preventDefault();
             const fecha = document.getElementById("env-fecha-entrega").value;
-            if (!fecha) {
+            const tipo = document.getElementById("env-tipo") ? document.getElementById("env-tipo").value : "modelo";
+            if (!fecha && tipo !== "casting") {
                 mostrarToast("Por favor, indica la fecha de entrega acordada.", true);
                 return;
             }

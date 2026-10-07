@@ -208,11 +208,8 @@
                         <th rowspan="2" class="col-fecha-mex">FECHA ENTREGA MEXICO</th>
                         <th rowspan="2" class="col-fecha-prom" style="background-color: yellow;">FECHA PROMETIDA ENTREGA
                         </th>
-                        <th colspan="2" class="col-obs text-center">OBSERVACIONES</th>
+                        <th rowspan="2" class="col-obs text-center">OBSERVACIONES</th>
                     </tr>
-                    <tr>
-                        <th class="col-pzas">PZAS</th>
-                        <th class="col-cav">CAV</th>
                 </thead>
                 <tbody>
                     @php
@@ -267,13 +264,16 @@
                                         ];
                                     }
 
+                                    $hasCastingPfc = \App\Models\PreOrdenFundicion::where('ot', 'LIKE', '%' . $wo->id . '%')->exists();
+                                    
                                     $wosJsData[$wo->id] = [
                                         'id' => $wo->id,
                                         'cliente' => $wo->cliente ?? 'Sin Cliente',
                                         'moldura' => $wo->moldura ? $wo->moldura->nombre : ($wo->nombre_producto ?? 'Sin Moldura'),
                                         'proveedor_material' => $wo->proveedor_material ?? '',
                                         'fecha_entrega_fundicion' => safeDateParse($wo->fecha_entrega_fundicion),
-                                        'clases' => $clasesJsArr
+                                        'clases' => $clasesJsArr,
+                                        'hasCastingPfc' => $hasCastingPfc
                                     ];
                                 @endphp
                                 <tr class="pm-table-row {{ $isInactive ? 'is-inactive-ot' : '' }}" data-ot-id="{{ $wo->id }}" data-is-inactive="{{ $isInactive ? '1' : '0' }}" style="background-color: {{ $rowColor }};">
@@ -355,24 +355,24 @@
                                         }
                                     @endphp
                                     @if($sortedClases->count() <= 1)
-                                        <td class="text-center cell-suppliers" style="cursor: pointer; font-weight: 500;" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para seleccionar proveedor de fundición">
+                                        <td class="text-center cell-suppliers" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} font-weight: {{ $hasCastingPfc ? '900' : '500' }};" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para seleccionar proveedor de fundición">
                                             {{ $supplierBlocks[0]['supplier'] ?? $wo->proveedor_material ?? '-' }}
                                         </td>
                                     @elseif(count($supplierBlocks) === 1)
-                                        <td class="text-center cell-suppliers" style="cursor: pointer; font-weight: 500;" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para abrir gestor de proveedor de fundición">
+                                        <td class="text-center cell-suppliers" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} font-weight: {{ $hasCastingPfc ? '900' : '500' }};" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para abrir gestor de proveedor de fundición">
                                             {{ $supplierBlocks[0]['supplier'] }}
                                         </td>
                                     @else
-                                        <td class="text-center p-0 cell-suppliers cell-subcells" style="cursor: pointer; vertical-align: stretch; height: 1px; font-weight: 500;" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para abrir gestor de proveedor de fundición">
+                                        <td class="text-center p-0 cell-suppliers cell-subcells" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px; font-weight: {{ $hasCastingPfc ? '900' : '500' }};" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para abrir gestor de proveedor de fundición">
                                             <div class="subcell-container">
                                                 @foreach($supplierBlocks as $bIdx => $block)
-                                                    <div class="subcell-row supplier-cell" style="flex: {{ $block['count'] }} {{ $block['count'] }} auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; box-sizing: border-box; min-height: 28px; font-weight: 500;">
+                                                    <div class="subcell-row supplier-cell" style="flex: {{ $block['count'] }} {{ $block['count'] }} auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; box-sizing: border-box; min-height: 28px; font-weight: {{ $hasCastingPfc ? '900' : '500' }};">
                                                         @if(!empty($block['clases']) && count($supplierBlocks) > 1 && count($supplierBlocks) < $sortedClases->count())
                                                             <span class="subcell-class-label font-bold" style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
                                                                 {{ implode(', ', $block['clases']) }}
                                                             </span>
                                                         @endif
-                                                        <span style="font-weight: 500;">{{ $block['supplier'] }}</span>
+                                                        <span style="font-weight: {{ $hasCastingPfc ? '900' : '500' }};">{{ $block['supplier'] }}</span>
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -420,18 +420,18 @@
                                         $singleFundDate = $singleClass ? ($singleClass->fecha_entrega_fundicion ?: $wo->fecha_entrega_fundicion) : $wo->fecha_entrega_fundicion;
                                     @endphp
                                     @if($sortedClases->count() <= 1)
-                                        <td class="text-center p-0 date-cell cell-subcells" style="cursor: pointer; vertical-align: stretch; height: 1px;" onclick="openDatePicker(this)" title="Hacer clic para seleccionar fecha de fundición">
+                                        <td class="text-center p-0 date-cell cell-subcells" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px;" onclick="openDatePicker(this)" title="Hacer clic para seleccionar fecha de fundición">
                                             <div class="subcell-container">
                                                 <div class="date-single-box subcell-row" style="padding: 6px; width: 100%; box-sizing: border-box;">
-                                                    <span class="date-display" style="font-size: 11px; color: #000000; font-weight: 500;">{!! renderDateDisplayOrIcon($singleFundDate) !!}</span>
+                                                    <span class="date-display" style="font-size: 11px; color: {{ $hasCastingPfc ? '#033966' : '#000000' }}; font-weight: {{ $hasCastingPfc ? '900' : '500' }};">{!! renderDateDisplayOrIcon($singleFundDate) !!}</span>
                                                     <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
                                                         value="{{ safeDateParse($singleFundDate) }}"
-                                                        onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_entrega_fundicion'{{ $singleClass ? ', '.$singleClass->id : '' }})">
+                                                        onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_entrega_fundicion'{{ $singleClass ? ', '.$singleClass->id : '' }})" {{ $hasCastingPfc ? 'disabled' : '' }}>
                                                 </div>
                                             </div>
                                         </td>
                                     @else
-                                        <td class="text-center p-0 date-cell-group cell-subcells" style="cursor: pointer; vertical-align: stretch; height: 1px;" onclick="openFundicionModal({{ $wo->id }})" title="Hacer clic para abrir gestor de fechas de fundición">
+                                        <td class="text-center p-0 date-cell-group cell-subcells" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px;" onclick="openFundicionModal({{ $wo->id }})" title="Hacer clic para abrir gestor de fechas de fundición">
                                             <div class="subcell-container">
                                                 @foreach($fundDateBlocks as $bIdx => $block)
                                                     <div class="subcell-row date-cell" style="flex: {{ $block['count'] }} {{ $block['count'] }} auto;">
@@ -440,7 +440,7 @@
                                                                 {{ implode(', ', $block['clases']) }}
                                                             </span>
                                                         @endif
-                                                        <span class="date-display" style="font-size: 11px; color: #000000; font-weight: 500; line-height: 1.1;">{!! renderDateDisplayOrIcon($block['date']) !!}</span>
+                                                        <span class="date-display" style="font-size: 11px; color: {{ $hasCastingPfc ? '#033966' : '#000000' }}; font-weight: {{ $hasCastingPfc ? '900' : '500' }}; line-height: 1.1;">{!! renderDateDisplayOrIcon($block['date']) !!}</span>
                                                     </div>
                                                 @endforeach
                                             </div>
@@ -517,7 +517,7 @@
                                         {{ safeDateParseDisplay($wo->fecha_entrega_cliente) }}
                                     </td>
                                     <td class="text-center" contenteditable="true"
-                                        onblur="autosaveField({{ $wo->id }}, 'observaciones_prioridad', this)" colspan="2">
+                                        onblur="autosaveField({{ $wo->id }}, 'observaciones_prioridad', this)">
                                         {!! renderEditableTextOrIcon($wo->observaciones_prioridad) !!}</td>
                                 </tr>
                             @endforeach
@@ -539,6 +539,17 @@
             
             var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
             if (!woData) return;
+
+            if (woData.hasCastingPfc) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '<div style="text-align: center !important; width: 100%;">Acción no permitida</div>',
+                    html: '<style>.gis-center-alert { text-align: center !important; display: block; width: 100%; }</style><div class="gis-center-alert">Esta OT ya tiene una pre-orden de casting generada, por lo que la fecha de fundición ya no puede ser modificada.</div>',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#033966'
+                });
+                return;
+            }
 
             var clases = woData.clases || [];
             if (clases.length === 0) {
@@ -730,6 +741,17 @@
 
             var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
             if (!woData) return;
+
+            if (woData.hasCastingPfc) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '<div style="text-align: center !important; width: 100%;">Acción no permitida</div>',
+                    html: '<style>.gis-center-alert { text-align: center !important; display: block; width: 100%; }</style><div class="gis-center-alert">Esta OT ya tiene una pre-orden de casting generada, por lo que el proveedor de fundición ya no puede ser modificado.</div>',
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#033966'
+                });
+                return;
+            }
 
             var clases = woData.clases || [];
             var currentSupplier = woData.proveedor_material || '';
@@ -961,6 +983,17 @@
         function openDatePicker(td) {
             var input = td.querySelector('input[type="date"]');
             if (input) {
+                var onchangeStr = input.getAttribute('onchange') || '';
+                if (onchangeStr.includes('fecha_entrega_fundicion')) {
+                    var tr = td.closest('tr');
+                    var otId = tr ? tr.getAttribute('data-ot-id') : null;
+                    var woData = window.prioritiesWOsData && otId ? window.prioritiesWOsData[otId] : null;
+                    if (woData && woData.hasCastingPfc) {
+                        Swal.fire('Acción no permitida', 'Esta OT ya tiene una pre-orden de casting generada, por lo que la fecha de fundición ya no puede ser modificada.', 'warning');
+                        return;
+                    }
+                }
+                
                 try {
                     input.showPicker();
                 } catch (e) {

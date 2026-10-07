@@ -120,7 +120,8 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
                 
                 availableClasses = [];
                 if (data.clases_vinculadas && data.clases_vinculadas.length > 0) {
-                    data.clases_vinculadas.forEach((cv) => {
+                    data.clases_vinculadas.forEach((cvObj) => {
+                        const cv = typeof cvObj === 'string' ? cvObj : cvObj.nombre;
                         const cvNorm = normalizeStr(cv);
                         const found = dbClasses.find(
                             (ac) =>
@@ -248,7 +249,8 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
                             window._clasesYaProcesadasEnModelo || []
                         ).filter((yp) => yp && yp.trim() !== "");
                         const clasesPendientes = data.clases_vinculadas.filter(
-                            (claseNombre) => {
+                            (claseObj) => {
+                                const claseNombre = typeof claseObj === 'string' ? claseObj : claseObj.nombre;
                                 const nombreNorm = claseNombre.toLowerCase();
                                 return !yaUsadas.some(
                                     (yp) =>
@@ -259,7 +261,8 @@ window.abrirModalPreOrden = function (ot, clasesYaProcesadas = []) {
                         );
                         if (clasesPendientes.length > 0) {
                             const fragment = document.createDocumentFragment();
-                            clasesPendientes.forEach((claseNombre) => {
+                            clasesPendientes.forEach((claseObj) => {
+                                const claseNombre = typeof claseObj === 'string' ? claseObj : claseObj.nombre;
                                 fragment.appendChild(
                                     createRowElement(claseNombre),
                                 );

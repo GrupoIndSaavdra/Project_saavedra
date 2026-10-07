@@ -1618,12 +1618,21 @@ class CalidadTableRowViewModel
         $this->almacenAprobadosDocs = [];
         $this->calidadAprobadosLdm = [];
 
+        $seenAlmacen = [];
+        $seenCalidad = [];
+
         foreach ($this->archivosAprobados as $doc) {
             $baseLow = strtolower(basename($doc['nombre']));
             if (strpos($baseLow, 'ldm') !== false || strpos($baseLow, 'f-ccl-ldm') !== false || strpos($baseLow, 'liberacion') !== false) {
-                $this->calidadAprobadosLdm[] = $doc;
+                if (!isset($seenCalidad[$baseLow])) {
+                    $seenCalidad[$baseLow] = true;
+                    $this->calidadAprobadosLdm[] = $doc;
+                }
             } else {
-                $this->almacenAprobadosDocs[] = $doc;
+                if (!isset($seenAlmacen[$baseLow])) {
+                    $seenAlmacen[$baseLow] = true;
+                    $this->almacenAprobadosDocs[] = $doc;
+                }
             }
         }
 

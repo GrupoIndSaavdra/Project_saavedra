@@ -1,8 +1,8 @@
-<div id="modalGestionVeredicto" class="alm-modal" role="dialog" aria-modal="true">
-    <div class="alm-modal-content lib-modal-content"
-        style="max-width: 1720px; width: 97vw; max-height: 96vh; height: 95vh; border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; margin: auto;">
+<div id="modalGestionVeredicto" class="alm-modal" role="dialog" aria-modal="true" style="padding: 0;">
+    <div class="alm-modal-content lib-modal-content alm-border-radius-20px alm-overflow-hidden"
+        style="max-width: 1750px; width: 98vw; max-height: 97vh; height: 97vh; display: flex; flex-direction: column; margin: auto;">
         <div id="mgv-header" class="alm-modal-header lib-modal-header"
-            style="background: linear-gradient(135deg, #16a34a, #15803d); padding: 0.9em 2.2em; transition: background 0.3s ease; flex-shrink: 0;">
+            style="background: linear-gradient(135deg, #16a34a, #15803d); padding: 10px 28px; transition: background 0.3s ease; flex-shrink: 0;">
             @include('layouts.partials.close_button', ['onclick' => 'cerrarModalGestionVeredicto()'])
             <h3 style="font-size: 1.45em; margin: 0; font-family:'Poppins', sans-serif; font-weight: 700; color: #fff;"
                 id="mgv-title">
@@ -28,7 +28,7 @@
         </div>
 
         <div class="alm-modal-body lib-modal-body"
-            style="padding: 1.1em 1.6em; background: #fafafa; flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
+            style="padding: 1em 1.6em 1.2em 1.6em; background: #fafafa; flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0;">
             <input type="hidden" id="mgv-ot" name="ot">
             <input type="hidden" id="mgv-fecha" name="fecha_recepcion">
 
