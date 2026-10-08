@@ -78,14 +78,22 @@ const ModeloStateMachine = (() => {
             );
             return;
         }
+
+        let labelStr = cfg.label;
+        let titleStr = cfg.title;
+        if (/_R\d+$/i.test(ot) && estado !== 'reproceso' && estado !== 'rechazos_procesados_rechazado' && estado !== 'rechazos_procesados_aprobado') {
+            labelStr += ' (Reproceso)';
+            titleStr += ' (Reproceso)';
+        }
+
         const src = _baseUrl() + "images/" + cfg.img;
         el.innerHTML = `
 <div class="status-modelo-container" style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px; border-radius: 8px;">
-<span class="badge-modelo-icon" title="${cfg.title}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: ${cfg.bgColor}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid ${cfg.borderColor}; transition: all 0.2s ease;">
-<img src="${src}" alt="${cfg.label}" style="width: 34px; height: 34px; object-fit: contain;">
+<span class="badge-modelo-icon" title="${titleStr}" style="display: flex; align-items: center; justify-content: center; width: 52px; height: 52px; border-radius: 50%; background: ${cfg.bgColor}; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); border: 2px solid ${cfg.borderColor}; transition: all 0.2s ease;">
+<img src="${src}" alt="${labelStr}" style="width: 34px; height: 34px; object-fit: contain;">
 </span>
 <span class="status-modelo-label" style="font-size: 11px; font-weight: 700; color: ${cfg.textColor}; margin-top: 4px; text-transform: uppercase; white-space: nowrap;">
-${cfg.label}
+${labelStr}
 </span>
 </div>
 `;

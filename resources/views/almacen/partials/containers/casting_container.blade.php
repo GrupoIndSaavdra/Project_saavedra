@@ -164,6 +164,7 @@
             $resultado = [];
             foreach ($archivos as $archivo) {
                 $nombre = strtolower(basename($archivo['nombre']));
+                $rutaCompleta = strtolower($archivo['nombre']);
                 $claseEnArchivo = strtolower($archivo['clase'] ?? '');
 
                 $match = false;
@@ -179,9 +180,11 @@
                         $claseEnArchivo === $cp ||
                         strpos($claseEnArchivo, $cp) !== false ||
                         strpos($nombre, $cp) !== false ||
+                        strpos($rutaCompleta, $cp) !== false ||
                         strpos($nombre, '_' . $cp . '_') !== false ||
                         strpos($nombre, '-' . $cp . '-') !== false ||
-                        ($cpWord !== '' && strpos($nombre, $cpWord) !== false)
+                        ($cpWord !== '' && strpos($nombre, $cpWord) !== false) ||
+                        ($cpWord !== '' && strpos($rutaCompleta, $cpWord) !== false)
                     ) {
                         $match = true;
                         break;
@@ -258,8 +261,6 @@ $almacenPreordenesCastingBase = array_values(
     }),
 );
 
-
-
 $ldmCastingPendientesRaw = $filtrarArchivosCasting($calidadAprobadosLdmCasting, $aprobadosPendientesCasting);
 $preordenesCastingPendientes = $filtrarArchivosCasting(
     $almacenPreordenesCastingBase,
@@ -286,7 +287,12 @@ $ldmCastingPendientes = array_values(
             strpos($n, 'confirmacion') === false &&
             (strpos($n, 'fdldm') !== false ||
                 strpos($n, 'documentos_aprobados/calidad') !== false ||
-                strpos($n, 'f_ccl_ldm') !== false);
+                strpos($n, 'formatos_liberacion') !== false ||
+                strpos($n, 'f_ccl_ldm') !== false ||
+                strpos($n, 'f-ccl-ldm') !== false ||
+                strpos($n, 'escaneado') !== false ||
+                strpos($n, '_e_') !== false ||
+                strpos($n, '-e-') !== false);
     }),
 );
 
@@ -303,7 +309,12 @@ $ldmCastingProcesados = array_values(
             strpos($n, 'confirmacion') === false &&
             (strpos($n, 'fdldm') !== false ||
                 strpos($n, 'documentos_aprobados/calidad') !== false ||
-                strpos($n, 'f_ccl_ldm') !== false);
+                strpos($n, 'formatos_liberacion') !== false ||
+                strpos($n, 'f_ccl_ldm') !== false ||
+                strpos($n, 'f-ccl-ldm') !== false ||
+                strpos($n, 'escaneado') !== false ||
+                strpos($n, '_e_') !== false ||
+                strpos($n, '-e-') !== false);
     }),
 );
 
@@ -354,7 +365,9 @@ $ldmCastingProcesados = array_values(
                     } elseif (
                         strpos($n, 'fdldm') !== false ||
                         strpos($n, 'documentos_aprobados/calidad') !== false ||
-                        strpos($n, 'f_ccl_ldm') !== false
+                        strpos($n, 'formatos_liberacion') !== false ||
+                        strpos($n, 'f_ccl_ldm') !== false ||
+                        strpos($n, 'f-ccl-ldm') !== false
                     ) {
                         $ldmCastingPendientes[] = $a;
                     }
@@ -364,7 +377,9 @@ $ldmCastingProcesados = array_values(
                     } elseif (
                         strpos($n, 'fdldm') !== false ||
                         strpos($n, 'documentos_aprobados/calidad') !== false ||
-                        strpos($n, 'f_ccl_ldm') !== false
+                        strpos($n, 'formatos_liberacion') !== false ||
+                        strpos($n, 'f_ccl_ldm') !== false ||
+                        strpos($n, 'f-ccl-ldm') !== false
                     ) {
                         $ldmCastingProcesados[] = $a;
                     }
@@ -584,7 +599,7 @@ $ldmCastingProcesados = array_values(
                 {{-- Documentos Aprobados LDM --}}
                 @if (count($ldmCastingPendientes) > 0)
                     <h4 style="margin-top: 15px; margin-bottom: 10px; color: #155724; font-weight: 700;">Documentos
-                        Aprobados</h4>
+                        Aprobados por el Dpto. de Calidad (F_CCL_LDM)</h4>
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($ldmCastingPendientes as $otroArchivo)
@@ -696,21 +711,21 @@ $ldmCastingProcesados = array_values(
                                         style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Pre-orden
                                         de casting</span> generada
                                     {!! count($aprobadosPendientesCasting) > 0
-                                        ? 'para los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobadosPendientesCasting))) . '</strong>'
-                                        : '' !!}.
+                                        ? 'para ' . (preg_match('/_R\d+$/i', $targetReg->ot) ? 'el <strong style="color: #b91c1c; text-decoration: underline;">REPROCESO</strong> de ' : '') . 'los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobadosPendientesCasting))) . '</strong>'
+                                        : (preg_match('/_R\d+$/i', $targetReg->ot) ? 'para el <strong style="color: #b91c1c; text-decoration: underline;">REPROCESO</strong>' : '') !!}.
                                     Puedes editar los datos o enviar la pre-orden por correo.
                                 @elseif ($pendientesHasLdmSubido)
                                     <span
                                         style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Formatos
                                         LDM subidos</span>
                                     {!! count($aprobadosPendientesCasting) > 0
-                                        ? 'para los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobadosPendientesCasting))) . '</strong>'
-                                        : '' !!}.
+                                        ? 'para ' . (preg_match('/_R\d+$/i', $targetReg->ot) ? 'el <strong style="color: #b91c1c; text-decoration: underline;">REPROCESO</strong> de ' : '') . 'los modelos: <strong>' . e(implode(', ', array_map('ucfirst', $aprobadosPendientesCasting))) . '</strong>'
+                                        : (preg_match('/_R\d+$/i', $targetReg->ot) ? 'para el <strong style="color: #b91c1c; text-decoration: underline;">REPROCESO</strong>' : '') !!}.
                                     Procede a generar la <span
                                         style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Pre-Orden
                                         de Fabricación de Casting (PFC)</span>.
                                 @else
-                                    Modelos Aprobados por
+                                    Modelos {!! preg_match('/_R\d+$/i', $targetReg->ot) ? 'de <strong style="color: #b91c1c; text-decoration: underline;">REPROCESO</strong> ' : '' !!}Aprobados por
                                     <span
                                         style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Calidad</span>{!! !empty($aprobadosPendientesCasting)
                                             ? ': <strong>' . e(implode(', ', array_map('ucfirst', $aprobadosPendientesCasting))) . '</strong>'
@@ -725,9 +740,10 @@ $ldmCastingProcesados = array_values(
                                 {{-- Paso 1: Subir LDMs (solo cuando aún no se han subido por Almacén para las clases aprobadas
                                 y no hay pre-orden) --}}
                                 <button class="btn-modelo btn-modelo-si"
-                                    onclick="abrirModalGestionVeredicto('{{ $targetReg->ot }}', {{ json_encode($aprobadosPendientesCasting ?: $aprobados) }}, [])"
-                                    title="Subir los formatos F-CCL-LDM firmados para iniciar el casting"
-                                    style="{{ $pendientesHasCastingPre || $pendientesHasLdmSubido ? 'display: none;' : '' }}">
+                                    @if(!$hasPendingChanges) onclick="abrirModalGestionVeredicto('{{ $targetReg->ot }}', {{ json_encode($aprobadosPendientesCasting ?: $aprobados) }}, [])" @endif
+                                    title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Subir los formatos F-CCL-LDM firmados para iniciar el casting' }}"
+                                    style="{{ $pendientesHasCastingPre || $pendientesHasLdmSubido ? 'display: none;' : '' }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                    @if($hasPendingChanges) disabled @endif>
                                     <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado">
                                     <span>Procesar Aceptados
                                         ({{ implode(', ', array_map('ucfirst', $aprobadosPendientesCasting ?: $aprobados)) }})</span>
@@ -736,27 +752,30 @@ $ldmCastingProcesados = array_values(
                                 {{-- Paso 2: Generar Pre-Orden PFC (solo cuando los LDMs ya se subieron en Almacén y no hay
                                 pre-orden) --}}
                                 <button class="btn-modelo btn-modelo-casting"
-                                    onclick="abrirModalPreOrdenCasting('{{ $targetReg->ot }}')"
-                                    title="Generar la pre-orden de fabricación de Casting (PFC)"
-                                    style="{{ $pendientesHasCastingPre || !$pendientesHasLdmSubido ? 'display: none;' : '' }}">
+                                    @if(!$hasPendingChanges) onclick="abrirModalPreOrdenCasting('{{ $targetReg->ot }}')" @endif
+                                    title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Generar la pre-orden de fabricación de Casting (PFC)' }}"
+                                    style="{{ $pendientesHasCastingPre || !$pendientesHasLdmSubido ? 'display: none;' : '' }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                    @if($hasPendingChanges) disabled @endif>
                                     <img src="{{ asset('images/pdf-view.png') }}" alt="Pre-Orden">
                                     <span>Generar Pre-Orden PFC</span>
                                 </button>
 
                                 {{-- Paso 3a: Editar pre-orden (cuando ya existe) --}}
                                 <button class="btn-modelo btn-modelo-edit"
-                                    onclick="abrirModalPreOrdenCasting('{{ $targetReg->ot }}')"
-                                    title="Editar información de la preorden existente"
-                                    style="{{ !$pendientesHasCastingPre ? 'display: none;' : '' }}">
+                                    @if(!$hasPendingChanges) onclick="abrirModalPreOrdenCasting('{{ $targetReg->ot }}')" @endif
+                                    title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Editar información de la preorden existente' }}"
+                                    style="{{ !$pendientesHasCastingPre ? 'display: none;' : '' }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                    @if($hasPendingChanges) disabled @endif>
                                     <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
                                     <span>Editar PFC</span>
                                 </button>
 
                                 {{-- Paso 3b: Enviar correo (cuando ya existe pre-orden) --}}
                                 <button class="btn-modelo btn-modelo-email"
-                                    onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'casting', {{ json_encode($clasesAccionCasting) }})"
-                                    title="Enviar pre-orden por correo electrónico"
-                                    style="{{ !$pendientesHasCastingPre ? 'display: none;' : '' }}">
+                                    @if(!$hasPendingChanges) onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'casting', {{ json_encode($clasesAccionCasting) }})" @endif
+                                    title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Enviar pre-orden por correo electrónico' }}"
+                                    style="{{ !$pendientesHasCastingPre ? 'display: none;' : '' }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                    @if($hasPendingChanges) disabled @endif>
                                     <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
                                     <span>Enviar Correo</span>
                                 </button>
@@ -855,7 +874,7 @@ $ldmCastingProcesados = array_values(
                 {{-- LDM Procesados --}}
                 @if (count($ldmCastingProcesados) > 0)
                     <h4 style="margin-top: 15px; margin-bottom: 10px; color: #15803d; font-weight: 700;">Documentos
-                        Aprobados</h4>
+                        Aprobados por el Dpto. de Calidad (F_CCL_LDM)</h4>
                     <div class="alm-pdf-grid"
                         style="background-color: #dcfce7; border: 1px solid #bbf7d0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
                         @foreach ($ldmCastingProcesados as $otroArchivo)

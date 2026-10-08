@@ -1,6 +1,6 @@
 # Guía Maestra (Master Skill) — Arquitectura Project_saavedra
 
-> ** Directorio de Referencia:** `(Raíz del Proyecto y Configuración global)`
+> **Directorio de Referencia:** `(Raíz del Proyecto y Configuración global)`
 > *Esta es la skill de arranque. Léela primero antes que cualquier otra.*
 
 ---
@@ -36,6 +36,7 @@ Analiza mentalmente cuál de las skills del Índice de abajo cubre el contexto d
 | Actualización dinámica de UI sin recargar | `dynamic_ui_skill.md` |
 | Emails, Mailables, plantillas de correo | `emails_skill.md` |
 | Rutas, `routes/web.php`, API routes | `routes_skill.md` |
+| Adquisición de skills externos, npx skills, SKILL.md | `agent_skills_standard.md` |
 
 ### Paso 2 — Leer el archivo `.md` completo con `view_file`
 Usa la herramienta `view_file` para leer el contenido de la skill identificada **antes** de proponer o escribir cualquier solución.
@@ -44,10 +45,22 @@ Usa la herramienta `view_file` para leer el contenido de la skill identificada *
 Si el patrón existe en la skill, aplícalo directamente. No improvises ni reescribas desde cero lo que ya está documentado.
 
 ### Paso 4 — Documentar lo nuevo y cerrar sesión
-- Si la tarea te obligó a deducir algo que no estaba en ninguna skill, agrégalo a la skill más cercana para que futuras sesiones sean más rápidas.
+- Si la tarea te obligó a deducir algo que no estaba en ninguna skill, agrégalo a la skill más cercana o crea una nueva con `agent_skills_standard.md` para que futuras sesiones sean más rápidas.
 - **Antes de dar por finalizada la sesión:** Ejecuta el comando `php artisan app:analizar-aprendizajes` para escanear tus propios commits de la sesión y los logs recientes. Así, si cometiste algún error que corregiste más tarde, el buffer quedará listo para la siguiente IA.
 
 > **FALLA EN SEGUIR ESTE PROTOCOLO** resultará en código inconsistente, inseguro o incompatible con la arquitectura establecida.
+
+---
+
+## Directivas Anti-Sobreingeniería (Ponytail & YAGNI)
+
+Antes de proponer o implementar cualquier solución, evalúa mentalmente esta escalera de decisión:
+
+1. **YAGNI (You Ain't Gonna Need It):** Si el usuario no lo pidió explícitamente o no agrega valor inmediato, NO lo construyas.
+2. **Reutilizar existente:** Usa `grep_search` en `app/Models`, `app/Http/Controllers`, `resources/js`, etc., para reutilizar scopes, traits y helpers existentes.
+3. **Plataforma web nativa:** Usa elementos HTML5/JS nativos antes de inventar componentes JS o wrappers complejos.
+4. **Respetar el stack nativo:** No agregues frameworks JS (React, Vue, Alpine) ni bibliotecas CSS (Tailwind, Bootstrap). Todo es **Blade + Vanilla JS + Vanilla CSS**.
+5. **Cero clases vacías o wrappers de una línea:** Si una función del controlador o scope del modelo lo resuelve, no crees una Service Class ni Repository innecesario.
 
 ---
 
@@ -82,6 +95,7 @@ Si el patrón existe en la skill, aplícalo directamente. No improvises ni reesc
 14. **[Emails](emails_skill.md)** — Mailables Laravel, plantillas Blade, configuración SMTP
 15. **[Rutas](routes_skill.md)** — Convenciones, grupos de rutas, naming, middlewares en rutas
 16. **[No Testing](no_testing_skill.md)** — Límites del agente: no browser_subagent, verificaciones de backend permitidas
+17. **[Agent Skills Standard](agent_skills_standard.md)** — Integración con npx skills, creación y adquisición dinámica de habilidades SKILL.md
 
 ---
 

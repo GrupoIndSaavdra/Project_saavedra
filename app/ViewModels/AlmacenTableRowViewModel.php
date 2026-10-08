@@ -182,6 +182,8 @@ class AlmacenTableRowViewModel
     public $hasKnownClass;
     /** @var mixed */
     public $hasPendingChanges;
+    /** @var string|null OT que tiene los cambios pendientes por revisar (la propia OT o su OT original si es reproceso) */
+    public $pendingChangesOt;
     /** @var mixed */
     public $hasPreorden;
     /** @var mixed */
@@ -2230,7 +2232,9 @@ class AlmacenTableRowViewModel
                 $archivosRechazados[] = $archivo;
             } elseif (
                 strpos($nameLow, 'fdldm') !== false ||
-                strpos($nameLow, 'f_ccl_ldm') !== false
+                strpos($nameLow, 'f_ccl_ldm') !== false ||
+                strpos($nameLow, '_ldm_e_') !== false ||
+                strpos($nameLow, 'ldm_escaneado') !== false
             ) {
                 $calidadAprobadosLdm[] = $archivo;
             } elseif (
@@ -2892,6 +2896,21 @@ class AlmacenTableRowViewModel
             ? json_decode($reg->pending_almacen_changes, true)
             : $reg->pending_almacen_changes ?? [];
         $hasPendingChanges = !empty($pendingChanges);
+        $pendingChangesOt = $reg->ot;
+
+        // Un reproceso queda bloqueado mientras su OT original tenga cambios pendientes por resolver.
+        if (!$hasPendingChanges && $esReproceso && !empty($baseOtOfReg) && $baseOtOfReg !== $reg->ot) {
+            $originalReg = FundicionHistory::where('ot', '=', $baseOtOfReg)->first();
+            if ($originalReg) {
+                $originalPending = is_string($originalReg->pending_almacen_changes)
+                    ? json_decode($originalReg->pending_almacen_changes, true)
+                    : $originalReg->pending_almacen_changes ?? [];
+                if (!empty($originalPending)) {
+                    $hasPendingChanges = true;
+                    $pendingChangesOt = $originalReg->ot;
+                }
+            }
+        }
         if (isset($activeClassesForOt))
             $this->activeClassesForOt = $activeClassesForOt;
         if (isset($allOtNames))
@@ -3060,6 +3079,8 @@ class AlmacenTableRowViewModel
             $this->hasKnownClass = $hasKnownClass;
         if (isset($hasPendingChanges))
             $this->hasPendingChanges = $hasPendingChanges;
+        if (isset($pendingChangesOt))
+            $this->pendingChangesOt = $pendingChangesOt;
         if (isset($hasPreorden))
             $this->hasPreorden = $hasPreorden;
         if (isset($hasRechazosRealLocal))

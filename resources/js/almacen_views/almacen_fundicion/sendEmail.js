@@ -91,6 +91,10 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
     window.adicionalesSelectedFiles = adicionalesSelectedFiles;
     renderSelectedFilesBadges();
     
+    if (typeof window.envRenderCalendar === 'function') {
+        window.envRenderCalendar(true);
+    }
+    
     filesContainer.innerHTML = `
         <div style="text-align: center; padding: 10px;">
             <div class="alm-spinner" style="border-top-color: #033966; display: inline-block;"></div>
@@ -106,6 +110,9 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
             const inputFecha = document.getElementById("env-fecha-entrega");
             if (inputFecha) {
                 inputFecha.value = data.fecha_entrega || "";
+                if (typeof window.envRenderCalendar === 'function') {
+                    window.envRenderCalendar(false);
+                }
             }
             if (data.existe && data.archivos && data.archivos.length > 0) {
                 let baseUrl = window.baseUrl || window.location.origin + "/";
@@ -211,12 +218,13 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         }
                         let fechasHtml = '';
                         if (tipo === 'casting' && po.clases_fechas) {
-                            fechasHtml = `<div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed #cbd5e1; width: 100%;">
-                                <div style="font-size: 0.82em; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Fechas de Entrega Acordadas:</div>
-                                <div style="display: flex; flex-direction: column; gap: 6px; max-height: 38px; overflow-y: auto; padding-right: 4px;" class="custom-scrollbar-mini">`;
+                            fechasHtml = `
+                                <div style="display: flex; flex-direction: column; flex-shrink: 0; width: 200px; padding-left: 10px; border-left: 1px dashed #cbd5e1; margin-left: 10px;">
+                                    <div style="font-size: 0.82em; font-weight: 700; color: #475569; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Fechas de Entrega Acordadas:</div>
+                                    <div style="display: flex; flex-direction: column; gap: 6px; max-height: 80px; overflow-y: auto; padding-right: 4px;" class="custom-scrollbar-mini">`;
                             for (const [clase, fecha] of Object.entries(po.clases_fechas)) {
                                 fechasHtml += `<div style="display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 6px 10px; border-radius: 6px; border: 1px solid #e2e8f0; flex-shrink: 0;">
-                                    <span style="color: #334155; font-weight: 600; font-size: 0.82em;">${clase}</span>
+                                    <span style="color: #334155; font-weight: 600; font-size: 0.82em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px;" title="${clase}">${clase}</span>
                                     <span style="color: #0369a1; font-weight: 700; font-size: 0.82em; background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">${fecha}</span>
                                 </div>`;
                             }
@@ -224,21 +232,23 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                         }
                         
                         html += `
-                            <label class="select-preorden-card" style="display: flex; align-items: flex-start; gap: 14px; cursor: pointer; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 14px 18px; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04); position: relative; overflow: hidden;"
+                            <label class="select-preorden-card" style="display: flex; align-items: center; gap: 14px; cursor: pointer; background: linear-gradient(145deg, #ffffff, #f8fafc); padding: 14px 18px; border: 1px solid #e2e8f0; border-radius: 12px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04); position: relative; overflow: hidden;"
                                 onmouseover="this.style.borderColor='#38bdf8'; this.style.boxShadow='0 8px 20px rgba(56,189,248,0.15)'; this.style.transform='translateY(-1px)';"
                                 onmouseout="this.style.borderColor='#e2e8f0'; this.style.boxShadow='0 2px 8px rgba(15, 23, 42, 0.04)'; this.style.transform='translateY(0)';">
                                 <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(to bottom, #0ea5e9, #38bdf8); border-radius: 4px 0 0 4px;"></div>
-                                <div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; flex-shrink: 0; margin-top: 2px;">
+                                <div style="display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; flex-shrink: 0;">
                                     <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked data-clases="${po.clases_str || ""}" onchange="if(window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden()" style="width: 16px; height: 16px; accent-color: #0ea5e9; cursor: pointer; margin: 0;">
                                 </div>
-                                <div style="display: flex; flex-direction: column; flex: 1; width: 100%;">
-                                    <strong style="color: #0f172a; font-size: 0.98em; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
-                                        <span style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-size: 0.85em; font-weight: 800; letter-spacing: 0.5px;">PO</span>
-                                        ${po.clases_str || "General"}
-                                    </strong>
-                                    <div style="font-size: 0.82em; color: #64748b; margin-top: 6px; display: flex; align-items: center; gap: 10px; font-family: 'Inter', sans-serif;">
-                                        <span style="display: flex; align-items: center; gap: 4px; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #f1f5f9;"><strong style="color: #334155;">PDF:</strong> <span style="color: #0284c7; font-weight: 500;">${po.pdf_filename}</span></span>
-                                        <span style="display: flex; align-items: center; gap: 4px; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #f1f5f9;"><strong style="color: #334155;">Creada:</strong> ${po.fecha_creacion}</span>
+                                <div style="display: flex; align-items: stretch; justify-content: space-between; flex: 1; width: 100%; min-width: 0;">
+                                    <div style="display: flex; flex-direction: column; flex: 1; justify-content: center; min-width: 0; gap: 6px;">
+                                        <strong style="color: #0f172a; font-size: 0.95em; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <span style="background: #e0f2fe; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-size: 0.85em; font-weight: 800; letter-spacing: 0.5px; flex-shrink: 0;">PO</span>
+                                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${po.clases_str || "General"}">${po.clases_str || "General"}</span>
+                                        </strong>
+                                        <div style="font-size: 0.82em; color: #64748b; display: flex; flex-direction: column; gap: 4px; font-family: 'Inter', sans-serif; width: 100%;">
+                                            <span style="display: inline-flex; align-items: center; gap: 4px; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #f1f5f9; width: fit-content; max-width: 100%; box-sizing: border-box;"><strong style="color: #334155; flex-shrink: 0;">PDF:</strong> <span style="color: #0284c7; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; max-width: calc(100% - 40px);" title="${po.pdf_filename}">${po.pdf_filename}</span></span>
+                                            <span style="display: inline-flex; align-items: center; gap: 4px; background: #f8fafc; padding: 3px 8px; border-radius: 6px; border: 1px solid #f1f5f9; width: fit-content; max-width: 100%; box-sizing: border-box;"><strong style="color: #334155; flex-shrink: 0;">Creada:</strong> ${po.fecha_creacion}</span>
+                                        </div>
                                     </div>
                                     ${fechasHtml}
                                 </div>

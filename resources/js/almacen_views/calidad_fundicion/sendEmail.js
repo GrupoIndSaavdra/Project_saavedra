@@ -54,6 +54,10 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
     adicionalesSelectedFiles = [];
     window.adicionalesSelectedFiles = adicionalesSelectedFiles;
     renderSelectedFilesBadges();
+
+    if (typeof window.envRenderCalendar === 'function') {
+        window.envRenderCalendar(true);
+    }
     
     filesContainer.innerHTML = `
         <div style="text-align: center; padding: 10px;">
@@ -70,6 +74,9 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
             const inputFecha = document.getElementById("env-fecha-entrega");
             if (inputFecha) {
                 inputFecha.value = data.fecha_entrega || "";
+                if (typeof window.envRenderCalendar === 'function') {
+                    window.envRenderCalendar(false);
+                }
             }
             if (data.existe && data.archivos && data.archivos.length > 0) {
                 let baseUrl = window.baseUrl || window.location.origin + "/";

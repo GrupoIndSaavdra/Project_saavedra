@@ -529,6 +529,8 @@
 
                                                         $isBtnDisabled =
                                                             ($hasEnviadas && !$hasPendingOrMod) || $allEmpty;
+                                                        
+                                                        $isReproceso = preg_match('/_R\d+$/i', $otName);
 
                                                         if ($allEmpty) {
                                                             $btnTitle = 'No hay dibujos subidos para enviar alerta';
@@ -538,7 +540,7 @@
                                                                 $hasEnviadas && !$hasPendingOrMod
                                                                     ? 'Alerta ya enviada para esta OT (sin cambios pendientes en los dibujos)'
                                                                     : ($hasNuevas
-                                                                        ? 'Enviar correo de notificación para la nueva clase'
+                                                                        ? ($isReproceso ? 'Enviar correo de notificación para la clase reiniciada' : 'Enviar correo de notificación para la nueva clase')
                                                                         : ($hasEnviadas
                                                                             ? 'Enviar correo de actualización de dibujos modificados'
                                                                             : 'Enviar correo de alerta global'));
@@ -546,7 +548,7 @@
                                                                 $hasEnviadas && !$hasPendingOrMod
                                                                     ? 'Correo Enviado'
                                                                     : ($hasNuevas
-                                                                        ? 'Enviar Nueva Clase'
+                                                                        ? ($isReproceso ? 'Enviar Reinicio' : 'Enviar Nueva Clase')
                                                                         : ($hasEnviadas
                                                                             ? 'Enviar Actualización'
                                                                             : 'Enviar Correo'));

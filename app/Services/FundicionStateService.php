@@ -15,7 +15,7 @@ class FundicionStateService
 {
     /**
      * Resuelve el estado de una OT, devolviendo la configuración para la UI.
-     * 
+     *
      * @param FundicionHistory $reg El registro de la OT.
      * @param FundicionHistory $targetReg El registro destino (útil para reprocesos).
      * @param array $aprobados Lista de clases aprobadas.
@@ -43,7 +43,14 @@ class FundicionStateService
 
         $stateKey = self::determinarStateKey($reg, $targetReg, $aprobados, $isReproceso, $libStatus, $userPerfil);
 
-        return self::getUIConfig($stateKey);
+        $uiConfig = self::getUIConfig($stateKey);
+
+        if ($isReproceso && !in_array($stateKey, ['REPROCESO_RECHAZADO', 'RECHAZOS_PROCESADOS_RECHAZADO', 'RECHAZOS_PROCESADOS_APROBADO'])) {
+            $uiConfig['label'] .= ' (Reproceso)';
+            $uiConfig['tooltip'] .= ' (Reproceso)';
+        }
+
+        return $uiConfig;
     }
 
     /**
@@ -53,6 +60,17 @@ class FundicionStateService
     {
         $isCalidadUser = in_array($userPerfil, [3, 4, '3', '4']);
         $alertaCalidadEnviada = self::alertaCalidadEnviada($targetReg);
+
+        // Fix: Reprocesos inherit pre_orden_sent = 1, so we validate if PFM exists
+        $preOrdenSentValid = $targetReg->pre_orden_sent;
+        if ($isReproceso && $preOrdenSentValid) {
+            $tienePreOrdenFab = PreOrdenFundicion::where('ot', $reg->ot)
+                ->where('pdf_filename', 'LIKE', '%F_ALM_PFM%')
+                ->exists();
+            if (!$tienePreOrdenFab) {
+                $preOrdenSentValid = false;
+            }
+        }
 
         // 1. ENVIADO A PROVEEDOR (Casting Aprobado)
         if ($libStatus === 'casting_aprobado' || $libStatus === FundicionStateConstants::CASTING_APROBADO) {
@@ -104,16 +122,16 @@ class FundicionStateService
         }
 
         // B) Pre-Orden Generada pero NO enviada
-        if ($targetReg->pre_orden_sent) {
+        if ($preOrdenSentValid) {
             return $isCalidadUser ? 'PEND_CORREO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? ($isReproceso ? 'REPROCESO_RECHAZADO' : 'PROCESO_PARCIAL_PRE_ORDEN') : 'POR_ESCANEAR_PFM');
         }
 
         // C) Tengo Modelo Reportado
         if ($targetReg->tiene_modelo) {
-            return $isCalidadUser ? 'PEND_CORREO_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? ($isReproceso ? 'REPROCESO_RECHAZADO' : 'PROCESO_PARCIAL_MODELO') : 'TIENE_MODELO');
+            return $isCalidadUser ? 'POR_LIBERAR_CALIDAD' : (!$targetReg->isAlmacenFullyProcessed() ? ($isReproceso ? 'REPROCESO_RECHAZADO' : 'PROCESO_PARCIAL_MODELO') : 'TIENE_MODELO');
         }
 
-        if ($isReproceso && in_array($libStatus, [null, 'pendiente']) && !$targetReg->tiene_modelo && !$targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent) {
+        if ($isReproceso && in_array($libStatus, [null, 'pendiente']) && !$targetReg->tiene_modelo && !$preOrdenSentValid && !$targetReg->pre_orden_email_sent) {
             return 'REPROCESO_RECHAZADO';
         }
 

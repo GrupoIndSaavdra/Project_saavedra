@@ -54,7 +54,7 @@
                             }
                         }
                     }
-                    
+
                     // También agregar clases que tienen documentos subidos por Almacén
                     $docsToCheck = array_merge($almacenAprobadosDocs ?? [], $otrosArchivos ?? []);
                     $todasPosibles = $targetReg->ayudas_config ?? [];
@@ -65,7 +65,13 @@
                         foreach ($docsToCheck as $doc) {
                             $nomLower = strtolower($doc['nombre']);
                             foreach ($todasPosibles as $posible) {
-                                $normClass = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', \App\Services\FundicionPaths::normalizeClass($posible)));
+                                $normClass = strtolower(
+                                    preg_replace(
+                                        '/[^a-zA-Z0-9]/',
+                                        '',
+                                        \App\Services\FundicionPaths::normalizeClass($posible),
+                                    ),
+                                );
                                 $normDoc = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', basename($nomLower)));
                                 if (strpos($normDoc, $normClass) !== false && !in_array($posible, $clasesBase)) {
                                     $clasesBase[] = $posible;
@@ -283,19 +289,7 @@
                         $decisionGlobal = 'aprobar';
                     }
 
-                    // Fallback de seguridad: si ambos arreglos están vacíos pero hay clases pendientes de alertar
-                    if (empty($tiposAprobadosArr) && empty($tiposRechazadosArr) && !empty($clasesActivas)) {
-                        foreach ($clasesActivas as $cAct) {
-                            $cLow = strtolower(trim($cAct));
-                            if (!in_array($cLow, $clasesAlertadasArr)) {
-                                if ($decisionGlobal === 'rechazar') {
-                                    $tiposRechazadosArr[] = $cAct;
-                                } else {
-                                    $tiposAprobadosArr[] = $cAct;
-                                }
-                            }
-                        }
-                    }
+                    // Se eliminó el fallback de seguridad: solo los borradores guardados pueden ser alertados.
 
                     $tiposAprobadosJson = json_encode(array_values(array_unique($tiposAprobadosArr)));
                     $tiposRechazadosJson = json_encode(array_values(array_unique($tiposRechazadosArr)));
@@ -383,7 +377,8 @@
                                             <button class="btn-calidad-action btn-calidad-borrador"
                                                 onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
                                                 title="Generar el formato de acción correctiva SCAR">
-                                                <img src="{{ asset('images/SCAR_RDM_Incorrectos.png') }}" alt="" />
+                                                <img src="{{ asset('images/SCAR_RDM_Incorrectos.png') }}"
+                                                    alt="" />
                                                 <span>Generar Formato SCAR</span>
                                             </button>
                                             <button
@@ -405,13 +400,21 @@
                                                 <span>Enviar Alerta</span>
                                             </button>
                                         @endif
-                                    @else
+                                    @elseif ($hasAprobadoBorrador)
                                         <button class="btn-calidad-action btn-calidad-iniciar"
                                             onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                             title="Enviar alerta de calidad y notificar por correo">
                                             <img src="{{ asset('images/enviando.png') }}" alt=""
                                                 style="filter: none !important;" />
                                             <span>Enviar Alerta</span>
+                                        </button>
+                                    @else
+                                        <button class="btn-calidad-action btn-calidad-email" disabled
+                                            style="background: #e2e8f0 !important; color: #64748b !important; border: 2px solid #cbd5e1 !important; pointer-events: none; opacity: 0.8; cursor: not-allowed;"
+                                            title="No hay modelos listos para alertar. Inicia o continúa la liberación primero.">
+                                            <img src="{{ asset('images/enviando.png') }}"
+                                                style="filter: grayscale(1) opacity(0.6);" alt="" />
+                                            <span>Esperando Borrador</span>
                                         </button>
                                     @endif
                                 </div>
@@ -485,11 +488,21 @@
                                 @elseif (in_array($targetReg->calidad_revision_status, ['rechazado', 'calidad_rechazado']))
                                     El modelo fue rechazado antes. ¿Quieres revisarlo de nuevo?
                                 @else
-                                    Ha llegado una nueva solicitud e liberación de modelo, ¿Deseas generar el <span
-                                        style="background: #f0fdf4; color: #15803d; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #86efac; display: inline-block; margin: 2px 0;">Formato
-                                        de Liberación (F-CCL-LDM)</span> o un <span
-                                        style="background: #fef2f2; color: #b91c1c; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #fca5a5; display: inline-block; margin: 2px 0;">Formato
-                                        de Rechazo (F-CCL-RDM) con su Solicitud de Acción Correctiva (SCAR)</span>?
+                                    @if (preg_match('/_R\d+$/i', $targetReg->ot))
+                                        Ha llegado una nueva solicitud de liberación para un <strong
+                                            style="color: #b91c1c; text-decoration: underline;">REPROCESO</strong>.
+                                        ¿Deseas generar el <span
+                                            style="background: #f0fdf4; color: #15803d; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #86efac; display: inline-block; margin: 2px 0;">Formato
+                                            de Liberación (F-CCL-LDM)</span> o un <span
+                                            style="background: #fef2f2; color: #b91c1c; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #fca5a5; display: inline-block; margin: 2px 0;">Formato
+                                            de Rechazo (F-CCL-RDM) con su Solicitud de Acción Correctiva (SCAR)</span>?
+                                    @else
+                                        Ha llegado una nueva solicitud de liberación de modelo, ¿Deseas generar el <span
+                                            style="background: #f0fdf4; color: #15803d; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #86efac; display: inline-block; margin: 2px 0;">Formato
+                                            de Liberación (F-CCL-LDM)</span> o un <span
+                                            style="background: #fef2f2; color: #b91c1c; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #fca5a5; display: inline-block; margin: 2px 0;">Formato
+                                            de Rechazo (F-CCL-RDM) con su Solicitud de Acción Correctiva (SCAR)</span>?
+                                    @endif
                                 @endif
                             </h4>
                             <div class="lib-calidad-card-btns"
@@ -537,7 +550,8 @@
                                             <button class="btn-calidad-action btn-calidad-borrador"
                                                 onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
                                                 title="Generar el formato de acción correctiva SCAR">
-                                                <img src="{{ asset('images/SCAR_RDM_Incorrectos.png') }}" alt="" />
+                                                <img src="{{ asset('images/SCAR_RDM_Incorrectos.png') }}"
+                                                    alt="" />
                                                 <span>Generar Formato SCAR</span>
                                             </button>
                                             <button
@@ -557,12 +571,20 @@
                                                 <span>Enviar Alerta</span>
                                             </button>
                                         @endif
-                                    @else
+                                    @elseif ($hasAprobadoBorrador)
                                         <button class="btn-calidad-action btn-calidad-iniciar"
                                             onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                             title="Enviar alerta de calidad y notificar por correo">
                                             <img src="{{ asset('images/enviando.png') }}" alt="" />
                                             <span>Enviar Alerta</span>
+                                        </button>
+                                    @else
+                                        <button class="btn-calidad-action btn-calidad-email" disabled
+                                            style="background: #e2e8f0 !important; color: #64748b !important; border: 2px solid #cbd5e1 !important; pointer-events: none; opacity: 0.8; cursor: not-allowed;"
+                                            title="No hay modelos listos para alertar. Inicia o continúa la liberación primero.">
+                                            <img src="{{ asset('images/enviando.png') }}"
+                                                style="filter: grayscale(1) opacity(0.6);" alt="" />
+                                            <span>Esperando Borrador</span>
                                         </button>
                                     @endif
                                 @endif

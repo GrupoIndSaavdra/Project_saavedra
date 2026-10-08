@@ -1024,6 +1024,21 @@ class DibujosFundicionPdfController extends Controller
         $history = FundicionHistory::where('ot', '=', $otName, 'and')->first();
         $pendingChanges = $history && is_array($history->pending_almacen_changes) ? $history->pending_almacen_changes : [];
 
+        // Eliminar reprocesos en caso de reinicio total, parcial o reemplazo de dibujo
+        $baseOtName = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $otName);
+        $clasesAfectadas = [];
+        if ($resetFlags) {
+            $clasesAfectadas = ['ALL'];
+        } elseif (!empty($onlyClasses)) {
+            $clasesAfectadas = $onlyClasses;
+        } elseif (!empty($pendingChanges)) {
+            $clasesAfectadas = $pendingChanges;
+        }
+        if (!empty($clasesAfectadas)) {
+            // REMOVED: Deleting active reprocesos was destroying the ongoing workflow and pre-orders.
+            // Reprocesos should continue their flow even if new drawings are uploaded from base OT.
+        }
+
         // 1. Sincronizar dibujos por clase → nueva ruta: {Clase}/Dibujos/
         if (Storage::disk('local')->exists($srcDir)) {
             if (!Storage::disk('local')->exists($dstDir)) {
@@ -1266,25 +1281,21 @@ class DibujosFundicionPdfController extends Controller
         // Esto garantiza que al reiniciar el proceso se empiece desde 0 (borrón y cuenta nueva)
         if ($resetFlags) {
             Log::info("COPY_TO_ALMACEN_RESET_FLAGS", ['ot' => $otName, 'onlyClasses' => $onlyClasses]);
-            $baseOtName = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $otName);
 
             \App\Models\PreOrdenFundicion::query()
                 ->where('ot', '=', $otName)
-                ->orWhere('ot', 'LIKE', $baseOtName . '%')
                 ->delete();
 
             \App\Models\LiberacionModeloFundicion::query()
                 ->where('ot', '=', $otName)
-                ->orWhere('ot', 'LIKE', $baseOtName . '%')
                 ->delete();
 
             \App\Models\ScarModelo::query()
                 ->where('ot', '=', $otName)
-                ->orWhere('ot', 'LIKE', $baseOtName . '%')
                 ->delete();
 
             // Eliminar físicamente los documentos aprobados, rechazados, SCAR y preórdenes en Almacén y Calidad
-            $targetOtNames = array_unique([$otName, $baseOtName]);
+            $targetOtNames = [$otName];
             $baseRoots = [
                 self::ALMACEN_DIR,
                 'DOCUMENTACION_GIS/ALMACEN_FUNDICION',
@@ -1314,7 +1325,9 @@ class DibujosFundicionPdfController extends Controller
                                     'fdldm',
                                     'fdrdm',
                                     'scar',
-                                    'evidencias'
+                                    'evidencias',
+                                    'escaneados',
+                                    'formatos_liberacion'
                                 ])
                             ) {
                                 Storage::disk('local')->deleteDirectory($subDir);
@@ -1393,12 +1406,19 @@ class DibujosFundicionPdfController extends Controller
             foreach ($allAlmacenFiles as $srcFile) {
                 $relPath = ltrim(substr(str_replace('\\', '/', $srcFile), strlen(str_replace('\\', '/', $dstDir))), '/');
 
+                $relLower = strtolower($relPath);
                 // Excluir carpetas exclusivas de Calidad (documentos generados y escaneados)
                 if (
-                    str_starts_with($relPath, 'Documentos_Aprobados/') ||
-                    str_starts_with($relPath, 'Documentos_Rechazados/') ||
-                    str_starts_with($relPath, 'ayudas_visuales/preordenes/') ||
-                    str_starts_with($relPath, 'preordenes/')
+                    str_contains($relLower, '/documentos_aprobados/') || str_starts_with($relLower, 'documentos_aprobados/') ||
+                    str_contains($relLower, '/documentos_rechazados/') || str_starts_with($relLower, 'documentos_rechazados/') ||
+                    str_contains($relLower, '/preordenes/') || str_starts_with($relLower, 'preordenes/') ||
+                    str_contains($relLower, '/formatos_liberacion/') || str_starts_with($relLower, 'formatos_liberacion/') ||
+                    str_contains($relLower, '/scar/') || str_starts_with($relLower, 'scar/') ||
+                    str_contains($relLower, '/evidencias/') || str_starts_with($relLower, 'evidencias/') ||
+                    str_contains($relLower, '/fdldm/') || str_starts_with($relLower, 'fdldm/') ||
+                    str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/') ||
+                    str_contains($relLower, '/escaneados/') || str_starts_with($relLower, 'escaneados/') ||
+                    str_contains($relLower, 'ayudas_visuales/preordenes/')
                 ) {
                     continue;
                 }
@@ -1424,11 +1444,18 @@ class DibujosFundicionPdfController extends Controller
                 $allCalidadFiles = Storage::disk('local')->allFiles($calidadDir);
                 foreach ($allCalidadFiles as $cFile) {
                     $cRel = ltrim(substr(str_replace('\\', '/', $cFile), strlen(str_replace('\\', '/', $calidadDir))), '/');
+                    $cRelLower = strtolower($cRel);
                     if (
-                        str_starts_with($cRel, 'Documentos_Aprobados/') ||
-                        str_starts_with($cRel, 'Documentos_Rechazados/') ||
-                        str_starts_with($cRel, 'ayudas_visuales/preordenes/') ||
-                        str_starts_with($cRel, 'preordenes/')
+                        str_contains($cRelLower, '/documentos_aprobados/') || str_starts_with($cRelLower, 'documentos_aprobados/') ||
+                        str_contains($cRelLower, '/documentos_rechazados/') || str_starts_with($cRelLower, 'documentos_rechazados/') ||
+                        str_contains($cRelLower, '/preordenes/') || str_starts_with($cRelLower, 'preordenes/') ||
+                        str_contains($cRelLower, '/formatos_liberacion/') || str_starts_with($cRelLower, 'formatos_liberacion/') ||
+                        str_contains($cRelLower, '/scar/') || str_starts_with($cRelLower, 'scar/') ||
+                        str_contains($cRelLower, '/evidencias/') || str_starts_with($cRelLower, 'evidencias/') ||
+                        str_contains($cRelLower, '/fdldm/') || str_starts_with($cRelLower, 'fdldm/') ||
+                        str_contains($cRelLower, '/fdrdm/') || str_starts_with($cRelLower, 'fdrdm/') ||
+                        str_contains($cRelLower, '/escaneados/') || str_starts_with($cRelLower, 'escaneados/') ||
+                        str_contains($cRelLower, 'ayudas_visuales/preordenes/')
                     ) {
                         continue;
                     }

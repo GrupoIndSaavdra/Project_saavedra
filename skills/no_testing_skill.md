@@ -191,3 +191,72 @@ npm run build 2>&1
 
 ## Archivos de Prueba Temporales (Scratchpads)
 Los scripts sueltos o archivos de prueba (ej. 	est_*.php, script.php, etc.) utilizados para depuración rápida de arrays, modelos o funciones (como 	est_diff.php o 	est_calidad_ayudas.php) **DEBEN ELIMINARSE** tan pronto como el problema esté resuelto o la tarea concluida. No dejes scripts basura en la raíz del proyecto. El historial del repositorio debe mantenerse limpio.
+
+### Ejemplo de test aislado: Validación de Reinicio Parcial
+Para validar que el reinicio parcial afecta solo a una clase y mantiene el resto, puedes usar un script temporal (`test_reinicio.php`) sin usar el navegador. (¡No olvides borrarlo después!):
+
+```php
+<?php
+require __DIR__.'/vendor/autoload.php';
+$app = require_once __DIR__.'/bootstrap/app.php';
+$app->make(\Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+
+use App\Models\FundicionHistory;
+use App\Models\PreOrdenFundicion;
+use Illuminate\Support\Facades\Storage;
+use App\Http\Controllers\AlmacenFundicionController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+
+Auth::loginUsingId(1); // Bypass auth
+
+$ot = 'OT 9999 - TEST PARCIAL';
+
+// 1. Setup inicial
+FundicionHistory::updateOrCreate(
+    ['ot' => $ot], 
+    [
+        'status' => 'activa', 
+        'alert_sent_at' => now(), 
+        'tiene_modelo' => 1,
+        'pending_almacen_changes' => ['1 - MOLDE']
+    ]
+);
+
+DB::table('pre_ordenes_fundicion')->where('ot', $ot)->delete();
+DB::table('pre_ordenes_fundicion')->insert([
+    'ot' => $ot,
+    'pdf_filename' => 'Casting.pdf',
+    'is_sent' => 0,
+    'folio' => 'PFC-9999',
+    'proveedor' => 'TEST_PROV',
+    'fecha_creacion' => now()->toDateString(),
+    'filas' => json_encode([['clase' => '1 - MOLDE'], ['clase' => '2 - FONDO']]),
+    'created_at' => now(),
+    'updated_at' => now()
+]);
+
+Storage::disk('local')->makeDirectory('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/1 - MOLDE/FORMATOS_LIBERACION');
+Storage::disk('local')->makeDirectory('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/2 - FONDO/FORMATOS_LIBERACION');
+Storage::disk('local')->put('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/1 - MOLDE/FORMATOS_LIBERACION/F-CCL-LDM_1_MOLDE.pdf', 'dummy');
+Storage::disk('local')->put('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/2 - FONDO/FORMATOS_LIBERACION/F-CCL-LDM_2_FONDO.pdf', 'dummy');
+
+// 2. Ejecutar Controller
+$req = new Request();
+$req->merge(['ot' => $ot, 'action' => 'reiniciar_parcial', 'pending' => ['1 - MOLDE']]);
+$controller = new AlmacenFundicionController();
+$controller->resolvePendingChanges($req);
+
+// 3. Verificaciones (Asserts)
+$po = PreOrdenFundicion::where('ot', $ot)->where('pdf_filename', 'Casting.pdf')->first();
+$filas = is_array($po->filas) ? $po->filas : json_decode($po->filas, true);
+echo "Clases en PreOrden tras reinicio: " . count($filas) . " (Debe ser 1)\n";
+echo "Formato Molde borrado? " . (Storage::disk('local')->exists('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/1 - MOLDE/FORMATOS_LIBERACION/F-CCL-LDM_1_MOLDE.pdf') ? 'NO' : 'SI') . "\n";
+echo "Formato Fondo conservado? " . (Storage::disk('local')->exists('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot . '/2 - FONDO/FORMATOS_LIBERACION/F-CCL-LDM_2_FONDO.pdf') ? 'SI' : 'NO') . "\n";
+
+// 4. Teardown
+Storage::disk('local')->deleteDirectory('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $ot);
+FundicionHistory::where('ot', $ot)->delete();
+PreOrdenFundicion::where('ot', $ot)->delete();
+```

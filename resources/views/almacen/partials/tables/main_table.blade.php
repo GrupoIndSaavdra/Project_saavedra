@@ -84,6 +84,7 @@
                                 $targetReg = $vm->targetReg;
                                 $hasFilesOrControl = $vm->hasFilesOrControl;
                                 $hasPendingChanges = $vm->hasPendingChanges;
+                                $pendingChangesOt = $vm->pendingChangesOt ?? $reg->ot;
                                 $fsmState = $vm->fsmState;
                                 $bgColor = $vm->bgColor ?? '#ffffff';
                                 $textColor = $vm->textColor ?? '#000000';
@@ -93,6 +94,7 @@
                                 $tooltip = $vm->tooltip ?? '';
                                 $count = $vm->count ?? 0;
                                 extract(get_object_vars($vm));
+                                $pendingChangesOt = $pendingChangesOt ?? $reg->ot;
                             @endphp
 
                             {{-- Fila principal --}}
@@ -140,7 +142,8 @@
                                     @if ($hasPendingChanges)
                                         <button class="btn-toggle-files"
                                             style="background: linear-gradient(135deg, #f97316, #ea580c); color: white; border: 1px solid #c2410c;"
-                                            onclick="almacenRevisarCambios('{{ $reg->ot }}')">
+                                            onclick="almacenRevisarCambios('{{ $pendingChangesOt }}')"
+                                            @if ($pendingChangesOt !== $reg->ot) title="La OT original tiene cambios pendientes. Resuélvelos para continuar con este reproceso." @endif>
                                             Revisar Cambios
                                         </button>
                                     @elseif ($hasFilesOrControl)

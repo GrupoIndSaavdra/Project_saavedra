@@ -273,6 +273,18 @@
                 $faltantesEnPreOrdenPendiente = $todasCubiertas;
             }
 
+            // Tras un reinicio, las clases faltantes no tienen ninguna pre-orden activa ni modelo físico;
+            // los flags del OT (tiene_modelo / pre_orden_*) pueden venir de otras clases ya procesadas,
+            // así que se ignoran para mostrar los controles completos desde cero.
+            $controlesFrescos =
+                !$esReproceso &&
+                count($clasesActivasFaltantes) > 0 &&
+                $poPendienteEnvioFab === null &&
+                !(isset($hayRechazadosSinPreorden) && $hayRechazadosSinPreorden);
+            $flagTieneModelo = $controlesFrescos ? false : (bool) $targetReg->tiene_modelo;
+            $flagPreOrdenSent = $controlesFrescos ? false : (bool) $targetReg->pre_orden_sent;
+            $flagPreOrdenEmailSent = $controlesFrescos ? false : (bool) $targetReg->pre_orden_email_sent;
+
             $controlDisabled =
                 count($clasesFabricacion) > 0 || $esReinicioParcial
                     ? ''
@@ -292,7 +304,7 @@
                             ? 'display: none;'
                             : ''));
             $hideTengoModelo =
-                $todasClasesProcesadas || $targetReg->tiene_modelo || $faltantesEnPreOrdenPendiente
+                $todasClasesProcesadas || $flagTieneModelo || $faltantesEnPreOrdenPendiente
                     ? 'display: none;'
                     : '';
             $hideGenerarFormato =
@@ -693,22 +705,32 @@
                                                 clases
                                                 enviadas). Puedes generar o enviar las pre-órdenes restantes.
                                             </span>
-                                        @elseif($targetReg->pre_orden_sent && !$targetReg->pre_orden_email_sent && !$esReinicioParcial)
-                                            Pre-orden de fabricación de modelo generada y guardada. Pendiente de enviar
+                                        @elseif($flagPreOrdenSent && !$flagPreOrdenEmailSent && !$esReinicioParcial && (!$esReproceso || $tienePreOrdenFab))
+                                            Pre-orden de {{ $esReproceso ? 're-proceso' : 'fabricación' }} de modelo generada y guardada. Pendiente de enviar
                                             al <span
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Proveedor</span>.
-                                        @elseif($targetReg->pre_orden_email_sent && !$esReinicioParcial)
-                                            Pre-orden enviada por correo al <span
+                                        @elseif($flagPreOrdenEmailSent && !$esReinicioParcial && (!$esReproceso || $tienePreOrdenFab))
+                                            Pre-orden de {{ $esReproceso ? 're-proceso' : 'fabricación' }} enviada por correo al <span
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Proveedor</span>.
                                             Esperando entrega de modelo físico para revisión de
                                             <span
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Calidad</span>.
-                                        @elseif($targetReg->tiene_modelo && !$esReinicioParcial && !$esReproceso)
+                                        @elseif($flagTieneModelo && !$esReinicioParcial && !$esReproceso)
                                             Modelo físico disponible en <span
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Almacén</span>,
                                             en espera de revisión por <span
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Calidad</span>.
-                                        @elseif($esReproceso || (isset($hayRechazadosSinPreorden) && $hayRechazadosSinPreorden))
+                                        @elseif($esReproceso && !$tienePreOrdenFab)
+                                            El departamento de <span
+                                                style="background: #fdf4ff; color: #a21caf; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #f0abfc; display: inline-block; margin: 2px 0;">Calidad</span>
+                                            te notificó un <span
+                                                style="background: #fef2f2; color: #dc2626; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #fca5a5; display: inline-block; margin: 2px 0;">Re-proceso</span>. ¿Cuentas con el
+                                            modelo en físico para hacer la <span
+                                                style="background: #f0fdf4; color: #15803d; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #86efac; display: inline-block; margin: 2px 0;">Confirmación
+                                                Física de Modelo (F_ALM_CFM)</span> o quieres hacer la <span
+                                                style="background: #fff7ed; color: #7c2d12; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #fca574; display: inline-block; margin: 2px 0;">Pre-Orden
+                                                de Re-proceso de Modelo (F_ALM_PFM)</span>?
+                                        @elseif((isset($hayRechazadosSinPreorden) && $hayRechazadosSinPreorden))
                                             Modelos Retornados / Rechazados. Procede a generar la <span
                                                 style="background: #f0f9ff; color: #0369a1; padding: 3px 8px; border-radius: 6px; font-weight: 700; font-size: 0.95em; border: 1px solid #7dd3fc; display: inline-block; margin: 2px 0;">Pre-Orden
                                                 de Fabricación de Modelo</span>.
@@ -727,44 +749,49 @@
                                         @endif
                                     </h4>
                                     <div class="lib-calidad-card-btns" style="{{ $hideAllBtns }}">
-                                        @if (!$targetReg->tiene_modelo || $esReinicioParcial)
+                                        @if (!$flagTieneModelo || $esReinicioParcial)
                                             <button class="btn-modelo btn-modelo-si"
-                                                onclick="abrirModalConfirmarModelo('{{ $targetReg->ot }}', '{{ md5($reg->ot) }}', {{ $clasesActivasFaltantesJson }}, {{ $todasClasesActivasJson }})"
-                                                title="Confirmar que se tiene el modelo físico en almacén"
-                                                style="{{ $hideTengoModelo }}">
+                                                @if(!$hasPendingChanges) onclick="abrirModalConfirmarModelo('{{ $targetReg->ot }}', '{{ md5($reg->ot) }}', {{ $clasesActivasFaltantesJson }}, {{ $todasClasesActivasJson }})" @endif
+                                                title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Confirmar que se tiene el modelo físico en almacén' }}"
+                                                style="{{ $hideTengoModelo }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                                @if($hasPendingChanges) disabled @endif>
                                                 <img src="{{ asset('images/Espera.png') }}" alt="Si">
                                                 <span>Sí, tengo modelo</span>
                                             </button>
                                         @endif
 
                                         <button class="btn-modelo btn-modelo-no"
-                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                            title="No cuento con él, generar formato PDF"
-                                            style="{{ $hideGenerarFormato }}">
+                                            @if(!$hasPendingChanges) onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})" @endif
+                                            title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'No cuento con él, generar formato PDF' }}"
+                                            style="{{ $hideGenerarFormato }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                            @if($hasPendingChanges) disabled @endif>
                                             <img src="{{ asset('images/pdf-view.png') }}" alt="PDF">
                                             <span>No, generar formato</span>
                                         </button>
 
                                         <button class="btn-modelo btn-modelo-no"
-                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                            title="Generar / editar la pre-orden de fabricación de modelo"
-                                            style="{{ $hideReprocesoPreOrden }}">
+                                            @if(!$hasPendingChanges) onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})" @endif
+                                            title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Generar / editar la pre-orden de fabricación de modelo' }}"
+                                            style="{{ $hideReprocesoPreOrden }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                            @if($hasPendingChanges) disabled @endif>
                                             <img src="{{ asset('images/pdf-view.png') }}" alt="Pre-Orden">
                                             <span>Pre-Orden Modelo</span>
                                         </button>
 
                                         <button class="btn-modelo btn-modelo-edit"
-                                            onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})"
-                                            title="Editar información de la preorden existente"
-                                            style="{{ $hideEditPreOrden }}">
+                                            @if(!$hasPendingChanges) onclick="abrirModalPreOrden('{{ $targetReg->ot }}', {{ $clasesYaProcesadasJson }})" @endif
+                                            title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Editar información de la preorden existente' }}"
+                                            style="{{ $hideEditPreOrden }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                            @if($hasPendingChanges) disabled @endif>
                                             <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
                                             <span>Editar Pre-orden</span>
                                         </button>
 
                                         <button class="btn-modelo btn-modelo-email"
-                                            onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo', {{ $clasesParaEnvioJson }})"
-                                            title="{{ $esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico' }}"
-                                            style="{{ $hideSendEmail }}">
+                                            @if(!$hasPendingChanges) onclick="abrirModalEnviarPreOrden('{{ $targetReg->ot }}', 'modelo', {{ $clasesParaEnvioJson }})" @endif
+                                            title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : ($esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico') }}"
+                                            style="{{ $hideSendEmail }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
+                                            @if($hasPendingChanges) disabled @endif>
                                             <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
                                             <span>{{ $esReproceso ? 'Enviar Alerta' : 'Enviar Correo' }}</span>
                                         </button>

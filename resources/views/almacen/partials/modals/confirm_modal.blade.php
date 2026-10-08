@@ -62,11 +62,21 @@
                             </div>
 
                             <div class="form-group" style="margin-top: 6px;">
-                                <label for="cm-fecha"
-                                    style="font-weight: 700; color: #334155; display: block; margin-bottom: 2px; font-size: 0.84em;">Fecha
-                                    de Envío <span class="alm-text-dark-red">*</span>:</label>
-                                <input type="date" id="cm-fecha" name="fecha" class="form-control"
-                                    style="font-size: 0.84em; padding: 6px 10px; height: auto;" required>
+                                <label id="cm-fecha-label"
+                                    style="font-weight: 700; color: #334155; display: block; margin-bottom: 6px; font-size: 0.9em;">Fecha
+                                    de Envío <span class="alm-color-dc2626">*</span>:</label>
+                                <input type="hidden" id="cm-fecha" name="fecha" required />
+                                <button type="button"
+                                    onclick="document.getElementById('modalCmCalendar').style.display='flex'"
+                                    style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff8f1; border: 2px dashed #f97316; padding: 12px 16px; border-radius: 12px; width: 100%; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(249, 115, 22, 0.05);"
+                                    onmouseover="this.style.background='#ffedd5'; this.style.borderColor='#ea580c';"
+                                    onmouseout="this.style.background='#fff8f1'; this.style.borderColor='#f97316';">
+                                    <img src="{{ asset('images/Fecha.png') }}"
+                                        style="width: 26px; height: 26px; object-fit: contain;">
+                                    <span id="cm-fecha-seleccionada-btn"
+                                        style="color: #c2410c; font-weight: 700; font-size: 1.05em; font-family: 'Poppins', sans-serif;">Seleccionar
+                                        Fecha...</span>
+                                </button>
                             </div>
 
                             <div class="form-group"
@@ -252,5 +262,194 @@
 
         // Initial check
         setInterval(checkFormValidity, 500);
+
+        // --- Inline Calendar Logic for Confirm Modal ---
+        const cmMonthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
+            "Septiembre", "Octubre", "Noviembre", "Diciembre"
+        ];
+        let cmCalCurrentDate = new Date();
+        const hiddenInputCm = document.getElementById("cm-fecha");
+
+        window.cmRenderCalendar = function(reset = false) {
+            if (reset) {
+                cmCalCurrentDate = new Date();
+                if (hiddenInputCm) {
+                    hiddenInputCm.value = "";
+                    hiddenInputCm.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+            if (!hiddenInputCm) return;
+
+            const year = cmCalCurrentDate.getFullYear();
+            const month = cmCalCurrentDate.getMonth();
+            const selectedDate = hiddenInputCm.value;
+
+            const monthYearEl = document.getElementById("cm-cal-month-year");
+            if (monthYearEl) {
+                monthYearEl.textContent = `${cmMonthNames[month]} ${year}`;
+            }
+
+            const labelSelBtn = document.getElementById("cm-fecha-seleccionada-btn");
+            const btnContainer = labelSelBtn ? labelSelBtn.closest("button") : null;
+            if (labelSelBtn && btnContainer) {
+                if (selectedDate) {
+                    const parts = selectedDate.split('-');
+                    if (parts.length === 3) {
+                        labelSelBtn.textContent = `Fecha Elegida: ${parts[2]}/${parts[1]}/${parts[0]}`;
+                        labelSelBtn.style.color = '#15803d';
+                        btnContainer.style.background = '#f0fdf4';
+                        btnContainer.style.border = '2px solid #16a34a';
+                        btnContainer.onmouseover = function() {
+                            this.style.background = '#dcfce7';
+                        };
+                        btnContainer.onmouseout = function() {
+                            this.style.background = '#f0fdf4';
+                        };
+                    } else {
+                        labelSelBtn.textContent = "Seleccionar Fecha...";
+                        labelSelBtn.style.color = '#c2410c';
+                        btnContainer.style.background = '#fff8f1';
+                        btnContainer.style.border = '2px dashed #f97316';
+                        btnContainer.onmouseover = function() {
+                            this.style.background = '#ffedd5';
+                            this.style.borderColor = '#ea580c';
+                        };
+                        btnContainer.onmouseout = function() {
+                            this.style.background = '#fff8f1';
+                            this.style.borderColor = '#f97316';
+                        };
+                    }
+                } else {
+                    labelSelBtn.textContent = "Seleccionar Fecha...";
+                    labelSelBtn.style.color = '#c2410c';
+                    btnContainer.style.background = '#fff8f1';
+                    btnContainer.style.border = '2px dashed #f97316';
+                    btnContainer.onmouseover = function() {
+                        this.style.background = '#ffedd5';
+                        this.style.borderColor = '#ea580c';
+                    };
+                    btnContainer.onmouseout = function() {
+                        this.style.background = '#fff8f1';
+                        this.style.borderColor = '#f97316';
+                    };
+                }
+            }
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const daysContainer = document.getElementById("cm-cal-days");
+            if (!daysContainer) return;
+            daysContainer.innerHTML = "";
+
+            for (let i = 0; i < firstDay; i++) {
+                daysContainer.innerHTML += `<div></div>`;
+            }
+
+            const today = new Date();
+
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                let bg = "transparent";
+                let color = "#334155";
+                let fw = "500";
+                let extraStyles = "border: 1px solid transparent;";
+
+                if (selectedDate === dStr) {
+                    bg = "#0a8504";
+                    color = "#fff";
+                    fw = "700";
+                    extraStyles = "border: 1px solid #0a8504; box-shadow: 0 2px 5px rgba(10, 133, 4, 0.4);";
+                } else if (today.getFullYear() === year && today.getMonth() === month && today.getDate() ===
+                    i) {
+                    color = "#0a8504";
+                    fw = "700";
+                    extraStyles = "border: 1px solid #bbf7d0; background: #dcfce7;";
+                }
+
+                daysContainer.innerHTML += `
+                    <div class="cm-cal-day" data-date="${dStr}" style="padding: 8px 0; border-radius: 8px; cursor: pointer; background: ${bg}; color: ${color}; font-weight: ${fw}; font-size: 1.1em; transition: all 0.2s; ${extraStyles}"
+                         onmouseover="if(this.dataset.date !== '${selectedDate}') this.style.background='#e2e8f0';"
+                         onmouseout="if(this.dataset.date !== '${selectedDate}') this.style.background='${today.getFullYear() === year && today.getMonth() === month && today.getDate() === i ? '#dcfce7' : 'transparent'}';">
+                        ${i}
+                    </div>
+                `;
+            }
+
+            document.querySelectorAll(".cm-cal-day").forEach(el => {
+                el.addEventListener("click", function() {
+                    hiddenInputCm.value = this.dataset.date;
+                    hiddenInputCm.dispatchEvent(new Event('input', { bubbles: true }));
+                    hiddenInputCm.dispatchEvent(new Event('change', { bubbles: true }));
+                    window.cmRenderCalendar(false);
+                    document.getElementById('modalCmCalendar').style.display = 'none';
+                });
+            });
+        };
+
+        const cmPrevBtn = document.getElementById("cm-cal-prev");
+        const cmNextBtn = document.getElementById("cm-cal-next");
+        if (cmPrevBtn) {
+            cmPrevBtn.addEventListener("click", () => {
+                cmCalCurrentDate.setMonth(cmCalCurrentDate.getMonth() - 1);
+                window.cmRenderCalendar(false);
+            });
+        }
+        if (cmNextBtn) {
+            cmNextBtn.addEventListener("click", () => {
+                cmCalCurrentDate.setMonth(cmCalCurrentDate.getMonth() + 1);
+                window.cmRenderCalendar(false);
+            });
+        }
+
+        // Initialize calendar
+        window.cmRenderCalendar(false);
     });
 </script>
+
+<!-- Mini Modal for Calendar Confirmar Modelo -->
+<div id="modalCmCalendar" class="alm-modal"
+    style="padding: 0; z-index: 999999 !important; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center;">
+    <div
+        style="background: #fff; padding: 24px 30px; border-radius: 16px; border: 2px solid #0a8504; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 450px; position: relative;">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
+            <h4
+                style="margin: 0; color: #0a8504; font-size: 1.15em; font-family: 'Poppins', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 8px;">
+                <img src="{{ asset('images/Fecha.png') }}" style="width: 26px; height: 26px; object-fit: contain;">
+                Seleccionar Fecha
+            </h4>
+            <button type="button" onclick="document.getElementById('modalCmCalendar').style.display='none'"
+                style="background: none; border: none; cursor: pointer; color: #ef4444; font-weight: bold; font-size: 1.6em; padding: 0; line-height: 1;">&times;</button>
+        </div>
+        <div id="cm-inline-calendar" style="user-select: none;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px;">
+                <button type="button" id="cm-cal-prev"
+                    style="border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 1.3em; color: #475569; padding: 4px 14px; transition: 0.2s;"
+                    onmouseover="this.style.background='#e2e8f0'"
+                    onmouseout="this.style.background='#f1f5f9'">&#9664;</button>
+                <span id="cm-cal-month-year"
+                    style="font-weight: 700; color: #0f172a; font-size: 1.2em; text-transform: capitalize;"></span>
+                <button type="button" id="cm-cal-next"
+                    style="border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 1.3em; color: #475569; padding: 4px 14px; transition: 0.2s;"
+                    onmouseover="this.style.background='#e2e8f0'"
+                    onmouseout="this.style.background='#f1f5f9'">&#9654;</button>
+            </div>
+            <div
+                style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 1em; font-weight: 700; color: #64748b; margin-bottom: 8px;">
+                <div>Do</div>
+                <div>Lu</div>
+                <div>Ma</div>
+                <div>Mi</div>
+                <div>Ju</div>
+                <div>Vi</div>
+                <div>Sa</div>
+            </div>
+            <div id="cm-cal-days"
+                style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center;">
+            </div>
+        </div>
+    </div>
+</div>
