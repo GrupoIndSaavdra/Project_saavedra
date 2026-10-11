@@ -56,7 +56,7 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
             group.style.flexShrink = "0";
             group.style.boxShadow = "0 4px 10px rgba(220, 38, 38, 0.05)";
             group.style.overflow = "hidden";
-            
+
             let existingRechazo = null;
             let existingScar = null;
             if (files && files.length > 0) {
@@ -99,7 +99,7 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
                 </div>
                 <div style="padding: 18px; display: flex; flex-direction: column; gap: 20px;">
             `;
-            
+
             // Rechazo
             const cleanRechazoName = existingRechazo ? existingRechazo.nombre.split("/").pop() : "";
             if (!existingRechazo) {
@@ -273,30 +273,20 @@ window.quitarArchivoRechazo = function (ot, archivo, buttonEl) {
                                     return true;
                                 },
                             );
-                            const clasesMonitoreadas = [
-                                "candado obturador",
-                                "cabeza de soplo",
-                                "obturador",
-                                "bombillo",
-                                "embudo",
-                                "corona",
-                                "plato",
-                                "molde",
-                                "fondo",
-                                "guias",
-                                "pistones",
-                            ];
+                            const clasesMonitoreadas = typeof window.getSearchableClassesJS === "function"
+                                ? window.getSearchableClassesJS()
+                                : [];
                             const filtrados = baseRech.filter((f) => {
                                 const nombre = (f.nombre || "").toLowerCase();
-                                  const perteneceAClase = clasesMonitoreadas.some(
-                                      (c) => window.compararClasesSurgico ? window.compararClasesSurgico(nombre, c) : nombre.includes(c),
-                                  );
-                                  if (perteneceAClase) {
-                                      return clasesRechazadas.some((c) =>
-                                          window.compararClasesSurgico ? window.compararClasesSurgico(nombre, c.toLowerCase()) : nombre.includes(c.toLowerCase()),
-                                      );
-                                  }
-                                  return false;
+                                const perteneceAClase = clasesMonitoreadas.some(
+                                    (c) => window.compararClasesSurgico ? window.compararClasesSurgico(nombre, c) : nombre.includes(c),
+                                );
+                                if (perteneceAClase) {
+                                    return clasesRechazadas.some((c) =>
+                                        window.compararClasesSurgico ? window.compararClasesSurgico(nombre, c.toLowerCase()) : nombre.includes(c.toLowerCase()),
+                                    );
+                                }
+                                return false;
                             });
                             const sectionsHtml =
                                 window.generarHtmlCategorizadoCastingAprobados
@@ -423,7 +413,7 @@ window._onRechFileSelected = function (input, ot, tipo) {
         let base = window.baseUrl || window.location.origin + "/";
         if (!base.endsWith("/")) base += "/";
         const btnColor = tipo === "scar" ? "#ca8a04" : "#dc2626";
-        
+
         previewContainer.style.display = 'flex';
         previewContainer.style.justifyContent = 'center';
         previewContainer.style.width = '100%';

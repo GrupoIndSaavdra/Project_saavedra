@@ -590,10 +590,9 @@ window.abrirModalEnviarAlertaLiberacion = function (
             if (data.existe && data.archivos?.length > 0) {
                 const archivoPerteneceAModelos = (nombre, modelosActivos) => {
                     const pl = nombre.toLowerCase();
-                    const todosModelosPosibles = [
-                        "candado obturador", "cabeza de soplo", "obturador", "bombillo",
-                        "embudo", "corona", "plato", "molde", "fondo", "pistones", "guías", "guias"
-                    ];
+                    const todosModelosPosibles = typeof window.getSearchableClassesJS === "function"
+                        ? window.getSearchableClassesJS()
+                        : [];
                     const modelosEncontrados = todosModelosPosibles.filter((m) => {
                         return (
                             pl.includes("/" + m + "/") ||
@@ -860,10 +859,9 @@ window.abrirModalFinalizarCalidad = function (
                     if (!modelosActivos || modelosActivos.length === 0) return true;
                     const pl = nombre.toLowerCase();
                     if (pl.includes("_anterior_n")) return false;
-                    const todosModelosPosibles = [
-                        "candado obturador", "cabeza de soplo", "obturador", "bombillo",
-                        "embudo", "corona", "plato", "molde", "fondo", "pistones", "guías", "guias"
-                    ];
+                    const todosModelosPosibles = typeof window.getSearchableClassesJS === "function"
+                        ? window.getSearchableClassesJS()
+                        : [];
                     const modelosEncontrados = todosModelosPosibles.filter((m) => {
                         return (
                             pl.includes("/" + m + "/") ||

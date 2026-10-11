@@ -1,7 +1,32 @@
+---
+name: dynamic_ui_skill
+description: Guía y patrones para actualización dinámica del DOM sin recargar la página (CRUD estático en window.* y render quirúrgico) en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de UI Dinámica — Actualización sin Recargar Página (Dynamic UI Skill)
 
-> **Directorio de Referencia:** `resources/js/` — Funciones de renderizado dinámico del proyecto.
-> *Evita `location.reload()` cuando puedas actualizar el DOM quirúrgicamente.*
+> **Directorio de Referencia:** `resources/js/`
+
+## Cuándo usar esta habilidad
+- Al implementar operaciones CRUD (crear, editar, eliminar) que actualizan el DOM en tiempo real.
+- Al manipular estados locales `window.*` para evitar recargas totales de la página (`location.reload()`).
+- Al construir modales u overlays de pantalla completa con estética premium.
+
+---
+
+## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
+
+Cuando implementes UI dinámica, DEBES cumplir estrictamente estas 4 reglas:
+
+1. **PROHIBIDO window.location.reload():** Salvo en casos extremos donde el usuario cambie de sesión o perfil, NUNCA uses `window.location.reload()`. Actualiza el estado local (`window.estructura`, etc.) y vuelve a renderizar quirúrgicamente la tabla o componente.
+2. **Mutar el estado `window.*` primero:** Tras recibir un JSON exitoso (`data.success`), actualiza el objeto JS local en memoria antes de volver a llamar a las funciones de pintado (`renderEstructuraTable()`, etc.).
+3. **Overlays sin blur excesivo:** En modales de pantalla completa, usa `background: rgba(0, 10, 25, 0.85)` sin filtros de desenfoque pesados (`blur(15px)`) que alenten la GPU.
+4. **Respuesta completa desde el controlador:** Asegúrate de que el controlador devuelva los IDs e identificadores (`ot`, `clase`, `proceso`, `id`) necesarios para que el JS pueda mutar el objeto en memoria.
+
+---
+
+## Instrucciones y Patrones Estándar
 
 ## El Problema
 Al hacer operaciones CRUD (crear carpetas, subir PDFs, eliminar archivos), la práctica común es hacer `setTimeout(() => window.location.reload(), 1500);` después de una respuesta exitosa. Sin embargo, esto provoca una recarga total de la página, generando una experiencia lenta y torpe.

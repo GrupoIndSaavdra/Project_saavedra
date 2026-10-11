@@ -1,11 +1,21 @@
+---
+name: emails_skill
+description: Guía y patrones para Mailables de Laravel, plantillas Markdown/HTML, adjuntos y alertas SMTP en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Emails y Mailables (Emails Skill) — Project Saavedra
 
-> ** Directorio de Referencia:** `app/Mail/ y resources/views/emails/`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades de correo.*
+> **Directorio de Referencia:** `app/Mail/ y resources/views/emails/`
 
-Los correos en `Project_saavedra` se envían vía **Laravel Mailables** usando SMTP configurado en `.env`. Se usan principalmente para alertas operativas: pre-órdenes de fundición, notificaciones de SCARs y confirmaciones de procesos críticos.
+## Cuándo usar esta habilidad
+- Al crear o modificar Mailables en `app/Mail/`.
+- Al redactar o modificar plantillas de correo en `resources/views/emails/`.
+- Al configurar o depurar notificaciones por correo SMTP.
 
 ---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. Configuración SMTP (`.env`)
 

@@ -16,7 +16,7 @@ window.pintarCardsArchivosAprobados = function (archivos, ot, contenedorId, tipo
             const defaultIcon = esImg ? "galeria-shadow.png" : "pdf-view-shadow.png";
             
             let matchModelo = false;
-            const knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo", "pistones", "guías", "guias"];
+            const knownClasses = typeof window.getSearchableClassesJS === "function" ? window.getSearchableClassesJS() : [];
             let foundClass = null;
             for (let kc of knownClasses) {
                 if (window.compararClasesSurgico(fileNameLower, kc)) {

@@ -1,9 +1,21 @@
+---
+name: commands_skill
+description: Guía y patrones para comandos Artisan, PowerShell, scripts en Python, Vite, Git y manipulación de archivos en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Comandos de Entorno (Commands Skill) — Project Saavedra
 
-> ** Directorio de Referencia:** `(Raíz del Proyecto — PowerShell en Windows)`
-> *Referencia rápida de los comandos más frecuentes. Úsalos para buscar, editar, depurar y verificar sin perder tiempo.*
+> **Directorio de Referencia:** `(Raíz del Proyecto — PowerShell en Windows)`
+
+## Cuándo usar esta habilidad
+- Al ejecutar comandos Artisan, scripts de Python o builds de NPM/Vite.
+- Al manipular archivos grandes o realizar búsquedas/reemplazos con Python.
+- Al consultar logs, administrar Git o ejecutar migraciones de base de datos.
 
 ---
+
+## Instrucciones y Patrones Estándar
 
 ## REGLA CRÍTICA: Siempre usar Python para búsquedas/ediciones en archivos grandes Blade/JS
 

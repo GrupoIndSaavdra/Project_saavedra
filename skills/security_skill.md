@@ -1,12 +1,21 @@
+---
+name: security_skill
+description: Guía y patrones para prevención de SQL Injection, XSS, CSRF, control de acceso por perfiles (1,2,4,5,6,8) y middlewares en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Seguridad y Protección de Datos (Security Skill)
 
-> ** Directorio de Referencia:** `app/Http/Middleware/ y app/Providers/`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `app/Http/Middleware/ y app/Providers/`
 
-
-La seguridad en `Project_saavedra` garantiza que sólo el personal autorizado ejecute las acciones adecuadas según su rol, y protege los servidores contra ataques externos y fugas de datos.
+## Cuándo usar esta habilidad
+- Al validar permisos de acceso por perfil de usuario (`auth()->user()->perfil`).
+- Al proteger endpoints contra inyecciones SQL, ataques XSS o vulnerabilidades CSRF.
+- Al crear o editar middlewares en `app/Http/Middleware/`.
 
 ---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. Prevención de Inyección SQL (SQL Injection)
 Laravel protege el sistema de inyecciones SQL de manera nativa si usas el Query Builder de Eloquent o enlaces de parámetros.

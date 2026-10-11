@@ -1,12 +1,21 @@
+---
+name: error_logging_skill
+description: Guía y patrones para logging de errores (storage/logs/laravel.log) y auditoría de negocio (SystemLog) en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Registro de Errores y Depuración (Error Logging Skill)
 
-> ** Directorio de Referencia:** `storage/logs/ y app/Exceptions/`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `storage/logs/ y app/Exceptions/`
 
-
-El registro adecuado de errores es vital para mantener la estabilidad de `Project_saavedra` y diagnosticar fallos silenciosos en la planta sin interrumpir la operación de los operarios.
+## Cuándo usar esta habilidad
+- Al manejar excepciones `try/catch` y registrar errores técnicos con `Log::error()`.
+- Al crear o consultar registros de auditoría de negocio con `SystemLog`.
+- Al depurar fallos en producción o consultar `laravel.log`.
 
 ---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. La Diferencia entre Logs de Sistema y Logs de Auditoría de Negocio
 En este sistema existen dos tipos de registros muy diferenciados:

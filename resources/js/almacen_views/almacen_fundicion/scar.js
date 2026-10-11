@@ -90,58 +90,18 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     if (otDisplay) otDisplay.textContent = cleanOt;
     const molduraInput = document.getElementById("scar-nombre-moldura");
     if (molduraInput) molduraInput.value = molduraName;
-    const codigoInput = document.getElementById("scar-codigo-modelo");
     if (codigoInput) {
-        let prefix = "F";
-        if (tipoModelo) {
-            const tLow = tipoModelo.toLowerCase();
-            if (tLow.includes("templadera")) {
-                if (tLow.includes("obturador")) prefix = "TO";
-                else if (tLow.includes("molde")) prefix = "TM";
-                else if (tLow.includes("fondo")) prefix = "TF";
-                else if (tLow.includes("bombillo")) prefix = "TB";
-                else prefix = "T";
-            } else {
-                if (tLow === "bombillo" || tLow.includes("bombillo")) {
-                    prefix = "B";
-                } else if (tLow === "obturador" || tLow.includes("obturador")) {
-                    prefix = "O";
-                } else if (tLow === "molde" || tLow.includes("molde")) {
-                    prefix = "M";
-                } else if (tLow === "fondo" || tLow.includes("fondo")) {
-                    prefix = "F";
-                } else if (tLow.includes("pistones")) {
-                    prefix = "P";
-                } else if (tLow.includes("guías") || tLow.includes("guias")) {
-                    prefix = "G";
-                } else if (tLow.includes("cabeza") && tLow.includes("soplo")) {
-                    prefix = "CS";
-                } else {
-                    prefix = tipoModelo.charAt(0).toUpperCase();
-                }
-            }
-        }
+        const prefix = typeof window.getClassPrefixJS === "function"
+            ? window.getClassPrefixJS(tipoModelo, tipoModelo)
+            : (tipoModelo || "F").charAt(0).toUpperCase();
         codigoInput.value = otNumber ? prefix + otNumber : "";
     }
     const tipoInput = document.getElementById("scar-tipo");
     if (tipoInput) tipoInput.value = tipoModelo || "";
 
-    const DISPLAY_MAP = {
-        "fondo": "4 - FONDO",
-        "obturador": "6 - OBTURADOR",
-        "molde": "1 - MOLDES",
-        "bombillo": "2 - BOMBILLO",
-        "corona": "3 - CORONA",
-        "plato": "5 - PLATO",
-        "embudo": "8 - EMBUDO",
-        "cabeza de soplo": "7 - CABEZA DE SOPLO",
-        "candado obturador": "9 - CANDADO OBTURADOR",
-        "pistones": "10 - PISTONES",
-        "guías": "11 - GUÍAS",
-        "guias": "11 - GUÍAS",
-    };
-    const tLowerForMap = (tipoModelo || "").toLowerCase();
-    const mappedTipo = DISPLAY_MAP[tLowerForMap] || tipoModelo || "General";
+    const mappedTipo = typeof window.normalizeClassJS === "function"
+        ? window.normalizeClassJS(tipoModelo)
+        : (tipoModelo || "General");
 
     const tipoDisplay = document.getElementById("scar-tipo-display");
     if (tipoDisplay) tipoDisplay.textContent = mappedTipo;
@@ -172,57 +132,9 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
                         codigoInput.value = data.preorden_codigo_modelo;
                     }
                 } else {
-                    let prefix = "F";
-                    const tLow = (tipoModelo || "").toLowerCase();
-                    const cLow = (data.clase_nombre || "").toLowerCase();
-                    const esTempladera = data.es_templadera
-                        || tLow.includes("templadera")
-                        || cLow.includes("templadera");
-                    if (esTempladera) {
-                        if (
-                            tLow.includes("obturador")
-                            || cLow.includes("obturador")
-                        ) {
-                            prefix = "TO";
-                        } else if (
-                            tLow.includes("molde")
-                            || cLow.includes("molde")
-                        ) {
-                            prefix = "TM";
-                        } else if (
-                            tLow.includes("fondo")
-                            || cLow.includes("fondo")
-                        ) {
-                            prefix = "TF";
-                        } else if (
-                            tLow.includes("bombillo")
-                            || cLow.includes("bombillo")
-                        ) {
-                            prefix = "TB";
-                        } else prefix = "T";
-                    } else {
-                        if (tLow === "bombillo" || cLow.includes("bombillo")) {
-                            prefix = "B";
-                        } else if (
-                            tLow === "obturador"
-                            || cLow.includes("obturador")
-                        ) {
-                            prefix = "O";
-                        } else if (tLow === "molde" || cLow.includes("molde")) {
-                            prefix = "M";
-                        } else if (tLow === "fondo" || cLow.includes("fondo")) {
-                            prefix = "F";
-                        } else if (
-                            cLow.includes("cabeza")
-                            && cLow.includes("soplo")
-                        ) {
-                            prefix = "CS";
-                        } else {
-                            prefix = (data.clase_nombre || tipoModelo || "F")
-                                .charAt(0)
-                                .toUpperCase();
-                        }
-                    }
+                    const prefix = typeof window.getClassPrefixJS === "function"
+                        ? window.getClassPrefixJS(tipoModelo, data.clase_nombre, data.es_templadera)
+                        : (data.clase_nombre || tipoModelo || "F").charAt(0).toUpperCase();
                     if (codigoInput) {
                         codigoInput.value = otNumber ? prefix + otNumber : "";
                     }

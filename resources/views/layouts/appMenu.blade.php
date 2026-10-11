@@ -136,8 +136,73 @@
     window.FundicionWelding = @json(config('global_classes.welding_classes', []));
     window.FundicionProcess = @json(config('global_classes.process_classes', []));
     window.FundicionProcessExcluded = @json(config('global_classes.process_excluded_classes', []));
+    window.FundicionSearchableAliases = @json(config('global_classes.searchable_aliases', []));
+    window.FundicionClassPrefixes = @json(config('global_classes.class_prefixes', []));
     window.GlobalClasses = @json(config('global_classes.clases', []));
+    window.getSearchableClassesJS = function () {
+        var globalClasses = window.GlobalClasses || {};
+        var processClasses = window.FundicionProcess || [];
+        var searchableAliases = window.FundicionSearchableAliases || [];
+        var keywords = [];
+        
+        searchableAliases.forEach(function (sa) {
+            if (sa) keywords.push(String(sa).toLowerCase().trim());
+        });
+        processClasses.forEach(function (pc) {
+            if (pc) keywords.push(String(pc).toLowerCase().trim());
+        });
+        Object.values(globalClasses).forEach(function (c) {
+            if (c) keywords.push(String(c).toLowerCase().trim());
+        });
+        
+        var unique = Array.from(new Set(keywords.filter(Boolean)));
+        return unique.sort(function (a, b) { return b.length - a.length; });
+    };
+    window.FundicionStandardMap = @json(\App\Services\FundicionPaths::getStandardMap());
+    window.normalizeClassJS = function (clase) {
+        if (!clase) return "GENERAL";
+        var s = String(clase).toUpperCase().trim().replace(/^MODELO\s+/i, '');
+        var sinNum = s.replace(/^\d+\s*-\s*/, '').trim();
+        var map = window.FundicionStandardMap || {};
+        
+        if (map[s]) return map[s];
+        if (map[sinNum]) return map[sinNum];
+        
+        var sinTilde = sinNum.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (map[sinTilde]) return map[sinTilde];
+
+        return s;
+    };
+    window.getClassPrefixJS = function (tipoModelo, claseNombre, esTempladera) {
+        var prefixes = window.FundicionClassPrefixes || {};
+        var tLow = (tipoModelo || '').toLowerCase().trim();
+        var cLow = (claseNombre || '').toLowerCase().trim();
+        var isTempladera = Boolean(esTempladera || tLow.includes('templadera') || cLow.includes('templadera'));
+
+        if (isTempladera) {
+            if (tLow.includes('obturador') || cLow.includes('obturador')) return prefixes['templadera obturador'] || 'TO';
+            if (tLow.includes('molde') || cLow.includes('molde')) return prefixes['templadera molde'] || 'TM';
+            if (tLow.includes('fondo') || cLow.includes('fondo')) return prefixes['templadera fondo'] || 'TF';
+            if (tLow.includes('bombillo') || cLow.includes('bombillo')) return prefixes['templadera bombillo'] || 'TB';
+            return prefixes['templadera'] || 'T';
+        }
+
+        var keys = Object.keys(prefixes).sort(function (a, b) { return b.length - a.length; });
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            if (k.startsWith('templadera')) continue;
+            if (tLow.includes(k) || cLow.includes(k)) {
+                return prefixes[k];
+            }
+        }
+
+        var fallbackStr = claseNombre || tipoModelo || 'F';
+        return fallbackStr.charAt(0).toUpperCase();
+    };
 </script>
+
+
+
 @isset($pieces_Released)
     <script>
         window.pieces_Released = ({{ auth()->user()->perfil }} == 4 || ({{ auth()->user()->perfil }} == 3 && "{{ request('sec') }}" === "calidad")) ? @json($pieces_Released) : [];

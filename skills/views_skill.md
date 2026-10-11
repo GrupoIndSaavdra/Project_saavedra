@@ -1,10 +1,33 @@
+---
+name: views_skill
+description: Guía y patrones para vistas Blade, layouts, directivas de seguridad CSRF/XSS, componentes, Vite e inyección window.routes en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Vistas Blade (Views Skill) - Máximo Nivel
 
-> ** Directorio de Referencia:** `resources/views/`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `resources/views/`
 
+## Cuándo usar esta habilidad
+- Al crear o editar vistas Blade en `resources/views/`.
+- Al incluir scripts `@vite`, modales, partials, mensajes de validación o `window.routes`.
+- Al asegurar formularios con `@csrf`, `@method` y escapar variables contra XSS.
 
-`Project_saavedra` usa Blade como motor de renderizado. Las vistas deben ser ligeras, modulares y seguras. 
+---
+
+## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
+
+Cuando crees o modifiques vistas Blade, DEBES cumplir estrictamente estas 5 reglas:
+
+1. **CSRF en todo formulario POST/PUT/DELETE:** Todo formulario HTML `<form>` de acción modificadora DEBE incluir la directiva `@csrf`.
+2. **Carga estricta de CSS/JS vía `@vite`:** Incluye siempre los assets compilados con Vite dentro de `@section('head')`: `@vite(['resources/css/...', 'resources/js/...'])`. Jamás pongas etiquetas `<script>` o `<link>` con rutas absolutas locales a menos que sea un recurso estático en `public/`.
+3. **Inyección limpia de `window.routes`:** Inyecta siempre las rutas de Laravel necesarias para JavaScript usando `@json(route(...))` dentro de un bloque `<script>` seguro.
+4. **Protección XSS estricta:** Usa `{{ $variable }}` para escapar variables. Reserva `{!! $variable !!}` ÚNICAMENTE para fragmentos HTML previamente sanitizados por el backend.
+5. **No usar `style=` inline para colores/fuentes estáticas:** Usa clases CSS declarativas (`.btns`, `.status-ok`, `.glass-container`).
+
+---
+
+## Instrucciones y Patrones Estándar 
 
 ## 1. Directivas de Seguridad (CSRF y Method Spoofing)
 Todo formulario POST/PUT/DELETE tradicional **DEBE** incluir las directivas protectoras.

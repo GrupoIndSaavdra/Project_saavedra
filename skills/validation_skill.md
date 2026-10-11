@@ -1,12 +1,21 @@
+---
+name: validation_skill
+description: Guía y patrones para validación de datos, Form Requests, sanitización de entradas, reglas after hooks y seguridad en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Validación y Sanitización de Datos (Validation Skill)
 
-> ** Directorio de Referencia:** `app/Http/Requests/ y Validaciones en Controladores`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `app/Http/Requests/ y Validaciones en Controladores`
 
-
-La integridad de los datos en `Project_saavedra` es prioritaria. Ningún dato provisto por el usuario debe insertarse en la base de datos sin ser debidamente validado y sanitizado.
+## Cuándo usar esta habilidad
+- Al validar datos recibidos en controladores o Form Requests (`app/Http/Requests/`).
+- Al sanitizar nombres de archivos, cadenas o datos de formularios.
+- Al implementar reglas de validación cruzada (`withValidator` / `after`).
 
 ---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. Regla Básica: Validar en el Punto de Entrada
 La validación debe realizarse inmediatamente al entrar al controlador. Nunca proceses lógica de negocio antes de validar que los parámetros requeridos estén presentes y en el formato correcto.

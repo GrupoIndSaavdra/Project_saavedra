@@ -917,7 +917,7 @@ class ProcessProductionController extends Controller
                         if ($processString === 'Soldadura PTA') {
                             // Defaults de pre-llenado para Soldadura PTA (Molde y Bombillo)
                             $claseNormPTA = strtolower(trim($class->nombre ?? ''));
-                            $ptaDefaults = in_array($claseNormPTA, ['molde', 'bombillo', 'obturador', 'fondo', 'plato']) ? [
+                            $ptaDefaults = in_array($claseNormPTA, config('global_classes.welding_classes', ['molde', 'fondo', 'bombillo', 'obturador', 'corona'])) ? [
                                 'D_Conexion_pico' => [
                                     'vl' => 2.000,
                                     'sold_inicial' => 3.000,

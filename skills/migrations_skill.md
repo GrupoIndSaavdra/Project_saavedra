@@ -1,12 +1,21 @@
+---
+name: migrations_skill
+description: Guía y patrones para migraciones de base de datos, llaves foráneas, índices, soft deletes y esquema en Project_saavedra.
+version: 1.0.0
+---
+
 # Habilidad de Migraciones — Estructura de Base de Datos y Cambios Recientes
 
-> ** Directorio de Referencia:** `database/migrations/`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `database/migrations/`
 
-
-Esta habilidad detalla el estándar para la creación, modificación y mantenimiento de las migraciones de base de datos en `Project_saavedra`.
+## Cuándo usar esta habilidad
+- Al crear o modificar migraciones en `database/migrations/`.
+- Al alterar esquemas de tablas existentes o definir índices compuestos.
+- Al configurar llaves foráneas o `softDeletes()`.
 
 ---
+
+## Instrucciones y Patrones Estándar
 
 ## Regla de Oro para Modificación de Tablas
 

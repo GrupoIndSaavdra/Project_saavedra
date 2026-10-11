@@ -42,52 +42,21 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
         .querySelectorAll(".mgv-form-fecha")
         .forEach((i) => (i.value = formattedToday));
     
-    // Normaliza cualquier variante de nombre de clase al formato corto canónico
-    const normalizeClaseJS = (c) => {
-        const s = (c || "").toLowerCase().trim();
-        // Quitar prefijo "modelo " o "modelo "
-        const sinModelo = s.replace(/^modelo\s+/i, '');
-        // Quitar prefijo numérico "1 - ", "2 - " etc.
-        const sinNum = sinModelo.replace(/^\d+\s*-\s*/, '');
-        const map = {
-            'moldes': 'molde', 'molde': 'molde',
-            'bombillo': 'bombillo',
-            'embudo': 'embudo',
-            'corona': 'corona',
-            'plato': 'plato',
-            'fondo': 'fondo',
-            'obturador': 'obturador',
-            'cabeza de soplo': 'cabeza de soplo',
-            'candado obturador': 'candado obturador',
-            'guias': 'guias', 'guías': 'guias',
-            'pistones': 'pistones',
-        };
-        return map[sinNum] || map[sinModelo] || sinNum || sinModelo || s;
-    };
-    const requiredClasses = [
-        "candado obturador",
-        "cabeza de soplo",
-        "obturador",
-        "bombillo",
-        "embudo",
-        "corona",
-        "plato",
-        "molde",
-        "fondo",
-        "guias",
-        "pistones",
-    ];
+    const normalizeClase = (c) => (typeof window.normalizeClassJS === "function" ? window.normalizeClassJS(c) : c);
+    const requiredClasses = typeof window.getSearchableClassesJS === "function"
+        ? window.getSearchableClassesJS().map((c) => normalizeClase(c))
+        : [];
     const filteredAprobados = (aprobados || []).filter((c) =>
-        requiredClasses.includes(normalizeClaseJS(c)),
+        requiredClasses.includes(normalizeClase(c)),
     );
     const filteredRechazados = (rechazados || []).filter((c) =>
-        requiredClasses.includes(normalizeClaseJS(c)),
+        requiredClasses.includes(normalizeClase(c)),
     );
     const hiddenClasesRech = document.getElementById("mgv-clases-rechazadas");
     if (hiddenClasesRech) {
-        hiddenClasesRech.value = JSON.stringify(filteredRechazados.map(normalizeClaseJS));
+        hiddenClasesRech.value = JSON.stringify(filteredRechazados.map(normalizeClase));
     }
-    window.micRequiredClasses = filteredAprobados.map(normalizeClaseJS);
+    window.micRequiredClasses = filteredAprobados.map(normalizeClase);
     window.cargarInputsCasting(ot, []);
     
     const dynamicRechInputs = document.getElementById("mgv-rechazados-inputs");
@@ -150,21 +119,10 @@ window.abrirModalGestionVeredicto = function (ot, aprobados, rechazados) {
                     clasesActivas,
                 ) => {
                     if (!clasesActivas || clasesActivas.length === 0) return archivosList;
-                    const clasesMonitoreadas = [
-                        "candado obturador",
-                        "cabeza de soplo",
-                        "obturador",
-                        "bombillo",
-                        "embudo",
-                        "corona",
-                        "plato",
-                        "molde",
-                        "fondo",
-                        "guias",
-                        "pistones",
-                    ];
-                    // Normalizar clases activas al formato corto para comparar con nombres de archivo
-                    const clasesActivasNorm = clasesActivas.map((c) => normalizeClaseJS(c));
+                    const clasesMonitoreadas = typeof window.getSearchableClassesJS === "function"
+                        ? window.getSearchableClassesJS()
+                        : [];
+                    const clasesActivasNorm = clasesActivas.map((c) => normalizeClase(c));
                     return archivosList.filter((f) => {
                         const nombre = (f.nombre || "").toLowerCase();
                         if (nombre.includes("ayuda_visual") || nombre.includes("ayudas_visuales") || nombre.includes("ayudas visuales") || (f.tipo || "").toLowerCase() === "ayuda") {

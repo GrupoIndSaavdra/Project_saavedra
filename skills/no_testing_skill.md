@@ -1,12 +1,32 @@
+---
+name: no_testing_skill
+description: Definición de límites de pruebas del agente IA (sin subagentes de navegador) y verificaciones permitidas de backend/sintaxis en Project_saavedra.
+version: 1.0.0
+---
+
 # Habilidad de No Pruebas (No Testing Rule)
 
-> ** Directorio de Referencia:** `(Aplicable a todo el flujo de pruebas/verificación manual)`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `(Límites y verificación de código)`
 
-
-Esta regla define el alcance del agente IA en relación con las pruebas de interfaz de usuario y del navegador, así como las pruebas que sí están permitidas para el desarrollo.
+## Cuándo usar esta habilidad
+- Al finalizar una tarea para aplicar el checklist de verificación.
+- Al realizar comprobaciones de sintaxis PHP (`php -l`), linting o borrado de cachés de Laravel.
+- Para recordar los límites de pruebas del agente (sin uso de browser subagent).
 
 ---
+
+## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
+
+Cuando finalices cualquier tarea o verifiques código, DEBES cumplir estrictamente estas 4 reglas:
+
+1. **NO usar subagentes de navegador (`browser_subagent`):** Queda prohibido lanzar automatizaciones de navegador o capturas interactivas del DOM. La verificación del frontend la realiza el usuario.
+2. **Verificación de sintaxis PHP obligatoria:** Ejecuta `php -l [archivo.php]` en todo controlador o archivo PHP modificado antes de declarar éxito.
+3. **Limpieza de scripts temporales:** Si creaste scripts sueltos de prueba (`test_*.php`, `scratch_*.py`), DEBES eliminarlos con `Remove-Item` antes de dar por terminada la tarea.
+4. **Validar compilación de Vite:** Si modificaste CSS o JS, verifica que `npm run build` o la compilación no arroje errores de sintaxis.
+
+---
+
+## Instrucciones y Patrones Estándar
 
 ## Límite estricto de pruebas en Navegador
 * **El agente NO debe realizar pruebas en el navegador:** Queda totalmente prohibido iniciar subagentes de navegador (`browser_subagent`), interactuar con el DOM del navegador en tiempo real para validar flujos, o realizar capturas de pantalla para validar si el HTML/JS funciona de manera interactiva.

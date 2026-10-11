@@ -1,3 +1,9 @@
+---
+name: general_skill
+description: Guía maestra y protocolo de inicio para arquitectura, stack tecnológico y selección de habilidades en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía Maestra (Master Skill) — Arquitectura Project_saavedra
 
 > **Directorio de Referencia:** `(Raíz del Proyecto y Configuración global)`
@@ -37,18 +43,23 @@ Analiza mentalmente cuál de las skills del Índice de abajo cubre el contexto d
 | Emails, Mailables, plantillas de correo | `emails_skill.md` |
 | Rutas, `routes/web.php`, API routes | `routes_skill.md` |
 | Adquisición de skills externos, npx skills, SKILL.md | `agent_skills_standard.md` |
+| Gestión de archivos en disco, carpetas, Storage | `file_storage_skill.md` |
+| Optimización extrema de rendimiento y RAM | `performance_opt_skill.md` |
+| Ciclo de reprocesos (_R1), liberaciones y reinicios | `rework_cycle_skill.md` |
+| Catálogo global de clases, normalización y reglas | `classes_skill.md` |
 
 ### Paso 2 — Leer el archivo `.md` completo con `view_file`
 Usa la herramienta `view_file` para leer el contenido de la skill identificada **antes** de proponer o escribir cualquier solución.
 
-### Paso 3 — Aplicar el patrón definido en la skill
-Si el patrón existe en la skill, aplícalo directamente. No improvises ni reescribas desde cero lo que ya está documentado.
+### Paso 3 — Aplicación Estricta del Patrón (PROHIBIDO IMPROVISAR)
+- **Cero improvisación:** Si la skill define una estructura (ej. `almacenToast` en vez de `Swal.fire` en Almacén, `where()` con 4 argumentos en Eloquent, `@vite` en `@section('head')`, `async/await` con `try/catch` y `setVisualLoading`, `DB::transaction()` en escrituras multi-tabla), debes aplicar ese patrón **al 100% sin excepciones ni atajos**.
+- **Autoverificación pre-entrega:** Antes de aplicar o presentar cambios en código, audita tu solución contra las directivas obligatorias de la skill aplicable. Si tu código viola alguna regla documentada, corrígelo antes de entregarlo.
 
 ### Paso 4 — Documentar lo nuevo y cerrar sesión
 - Si la tarea te obligó a deducir algo que no estaba en ninguna skill, agrégalo a la skill más cercana o crea una nueva con `agent_skills_standard.md` para que futuras sesiones sean más rápidas.
 - **Antes de dar por finalizada la sesión:** Ejecuta el comando `php artisan app:analizar-aprendizajes` para escanear tus propios commits de la sesión y los logs recientes. Así, si cometiste algún error que corregiste más tarde, el buffer quedará listo para la siguiente IA.
 
-> **FALLA EN SEGUIR ESTE PROTOCOLO** resultará en código inconsistente, inseguro o incompatible con la arquitectura establecida.
+> ⚠️ **DIRECTIVA MÁXIMA DE EJECUCIÓN:** Cualquier propuesta o cambio de código que ignore o contradiga las directivas marcadas en la skill correspondiente es considerado una **falla grave de arquitectura**. El agente debe respetar y ejecutar las reglas de cada skill de forma literal.
 
 ---
 
@@ -96,6 +107,10 @@ Antes de proponer o implementar cualquier solución, evalúa mentalmente esta es
 15. **[Rutas](routes_skill.md)** — Convenciones, grupos de rutas, naming, middlewares en rutas
 16. **[No Testing](no_testing_skill.md)** — Límites del agente: no browser_subagent, verificaciones de backend permitidas
 17. **[Agent Skills Standard](agent_skills_standard.md)** — Integración con npx skills, creación y adquisición dinámica de habilidades SKILL.md
+18. **[Gestión de Archivos en Disco](file_storage_skill.md)** — Storage, normalización cross-platform, sufijos _R1 y auditoría de archivos
+19. **[Optimización de Rendimiento](performance_opt_skill.md)** — Prevención de memoria exhausta, DB::table(), lazyById() y desfragmentación
+20. **[Ciclo de Reprocesos y Liberaciones](rework_cycle_skill.md)** — Reinicios destructivos vs reemplazos seguros, aislamiento de clases y SCARs
+21. **[Catálogo y Normalización de Clases](classes_skill.md)** — config/global_classes.php, normalización de nombres, categorizaciones y matching singular/plural
 
 ---
 

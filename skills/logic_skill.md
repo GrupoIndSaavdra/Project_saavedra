@@ -1,11 +1,33 @@
+---
+name: logic_skill
+description: Guía y patrones para Eloquent ORM, Scopes, Carbon, control de permisos por perfil, optimización de memoria y lógica de negocio en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Lógica y Modelos (Logic Skill) — Project Saavedra
 
-> ** Directorio de Referencia:** `app/Models/ y Lógica de Negocio Central`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `app/Models/ y Lógica de Negocio Central`
 
-Los modelos en `Project_saavedra` gestionan la estructura profunda de datos. Esta guía define cómo filtrar de forma masiva, cómo manipular fechas correctamente y cómo orquestar permisos de usuario complejos.
+## Cuándo usar esta habilidad
+- Al modificar o crear modelos Eloquent en `app/Models/`.
+- Al escribir consultas complejas, scopes, mutadores o agregaciones de base de datos.
+- Al optimizar el uso de memoria (evitar `PHP Fatal: memory exhausted`) en tablas grandes.
 
 ---
+
+## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
+
+Cuando crees o modifiques modelos o consultas Eloquent, DEBES cumplir estrictamente estas 5 reglas:
+
+1. **Evitar `PHP Fatal: memory exhausted` en tablas grandes:** En tablas masivas (`piezas`, `metas`, `tiempos_produccion`, `*_pza`), NUNCA hagas `Model::all()` o `->get()` sin `->select(['col1', 'col2'])`.
+2. **Consultas de sólo lectura en `DB::table()`:** Para dropdowns o conteos simples, usa `DB::table(...)` para evitar instanciar modelos Eloquent pesados en memoria.
+3. **where() con 4 argumentos en encadenamientos:** Para compatibilidad con los IDE helpers del proyecto, usa `->where('columna', '=', $valor, 'and')`.
+4. **Agrupar `orWhere()` con Closures:** Nunca encadenes `orWhere()` suelto. Usa `where(function($q) use (...) { $q->where(...)->orWhere(...); })`.
+5. **Manejo de Fechas con Carbon::parse():** Manipula y compara fechas con `\Carbon\Carbon::parse()`.
+
+---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. El Pilar de Perfiles (`auth()->user()->perfil`)
 

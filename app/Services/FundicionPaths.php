@@ -97,6 +97,102 @@ final class FundicionPaths
      * Normaliza un nombre de clase para asegurar consistencia (ej: Molde -> 1 - MOLDES).
      */
     /**
+     * Devuelve las palabras clave de búsqueda de clases ordenadas por longitud descendente
+     * para evitar falsos positivos en substring (ej: 'candado obturador' antes de 'obturador').
+     *
+     * @return string[]
+     */
+    public static function getSearchableClasses(): array
+    {
+        $clasesConfig = config('global_classes.clases', []);
+        $processClasses = config('global_classes.process_classes', []);
+        $aliasesConfig = config('global_classes.searchable_aliases', []);
+        
+        $keywords = [];
+        
+        foreach ($aliasesConfig as $alias) {
+            if (!empty($alias)) {
+                $keywords[] = strtolower(trim($alias));
+            }
+        }
+        
+        foreach ($processClasses as $pc) {
+            if (!empty($pc)) {
+                $keywords[] = strtolower(trim($pc));
+            }
+        }
+        
+        foreach ($clasesConfig as $nombre) {
+            $clean = strtolower(trim($nombre));
+            if (!empty($clean)) {
+                $keywords[] = $clean;
+            }
+        }
+        
+        $keywords = array_values(array_unique(array_filter($keywords)));
+        
+        // Ordenar por longitud descendente para emparejar frases más largas primero
+        usort($keywords, fn($a, $b) => strlen($b) <=> strlen($a));
+        
+        return $keywords;
+    }
+
+    /**
+     * Limpia sufijos de clase y reproceso de un nombre de OT (ej: OT_1234_molde_R1 -> OT_1234).
+     */
+    public static function cleanOtRevision(?string $ot): string
+    {
+        if (empty($ot)) {
+            return '';
+        }
+        
+        $searchable = self::getSearchableClasses();
+        $escaped = array_map(function($c) {
+            $q = preg_quote($c, '/');
+            return preg_replace('/\s+/', '\s+', $q);
+        }, $searchable);
+        
+        $classPattern = implode('|', $escaped);
+        $pattern = '/_(?:(?:' . $classPattern . ')(?:_(?:' . $classPattern . '))*_)?R\d+$/iu';
+        
+        return preg_replace($pattern, '', $ot);
+    }
+
+    /**
+     * Obtiene el prefijo de código para una clase/modelo (ej: B para Bombillo, TO para Templadera Obturador).
+     */
+    public static function getClassPrefix(?string $tipoModelo, ?string $claseNombre = null, bool $esTempladera = false): string
+    {
+        $prefixes = config('global_classes.class_prefixes', []);
+        $tLow = strtolower(trim($tipoModelo ?? ''));
+        $cLow = strtolower(trim($claseNombre ?? ''));
+        $isTempladera = $esTempladera || str_contains($tLow, 'templadera') || str_contains($cLow, 'templadera');
+
+        if ($isTempladera) {
+            if (str_contains($tLow, 'obturador') || str_contains($cLow, 'obturador')) return $prefixes['templadera obturador'] ?? 'TO';
+            if (str_contains($tLow, 'molde') || str_contains($cLow, 'molde')) return $prefixes['templadera molde'] ?? 'TM';
+            if (str_contains($tLow, 'fondo') || str_contains($cLow, 'fondo')) return $prefixes['templadera fondo'] ?? 'TF';
+            if (str_contains($tLow, 'bombillo') || str_contains($cLow, 'bombillo')) return $prefixes['templadera bombillo'] ?? 'TB';
+            return $prefixes['templadera'] ?? 'T';
+        }
+
+        $keys = array_keys($prefixes);
+        usort($keys, fn($a, $b) => strlen($b) <=> strlen($a));
+
+        foreach ($keys as $k) {
+            if (str_starts_with($k, 'templadera')) continue;
+            if (str_contains($tLow, $k) || str_contains($cLow, $k)) {
+                return $prefixes[$k];
+            }
+        }
+
+        $fallbackStr = !empty($claseNombre) ? $claseNombre : (!empty($tipoModelo) ? $tipoModelo : 'F');
+        return strtoupper(substr(trim($fallbackStr), 0, 1));
+    }
+
+
+
+    /**
      * Obtiene el mapa estandarizado de clases desde la configuración
      */
     public static function getStandardMap(): array
@@ -106,20 +202,33 @@ final class FundicionPaths
         foreach ($clases as $id => $nombre) {
             if (empty(trim($nombre))) continue;
             $nombreVal = trim(strtoupper($nombre));
-            $map[$nombreVal] = "$id - $nombreVal";
+            $nombreOficial = "$id - $nombreVal";
+            $map[$nombreVal] = $nombreOficial;
+            $map[$nombreOficial] = $nombreOficial;
             
             // Variaciones comunes y plurales
             if ($nombreVal === 'MOLDE') {
-                $map['MOLDES'] = "$id - $nombreVal";
+                $map['MOLDES'] = $nombreOficial;
             }
             if ($nombreVal === 'FONDO') {
-                $map['FONDOS'] = "$id - $nombreVal";
+                $map['FONDOS'] = $nombreOficial;
             }
             if ($nombreVal === 'BOMBILLO') {
-                $map['BOMBILLOS'] = "$id - $nombreVal";
+                $map['BOMBILLOS'] = $nombreOficial;
             }
             if ($nombreVal === 'OBTURADOR') {
-                $map['OBTURADORES'] = "$id - $nombreVal";
+                $map['OBTURADORES'] = $nombreOficial;
+            }
+            if (str_contains($nombreVal, 'GUÍA')) {
+                $map['GUIAS'] = $nombreOficial;
+                $map['GUÍAS'] = $nombreOficial;
+                $map['GUIA'] = $nombreOficial;
+                $map['GUÍA'] = $nombreOficial;
+            }
+            if (str_contains($nombreVal, 'PISTÓN')) {
+                $map['PISTONES'] = $nombreOficial;
+                $map['PISTON'] = $nombreOficial;
+                $map['PISTÓN'] = $nombreOficial;
             }
             
             // Agregar versiones sin tildes para búsqueda flexible
@@ -129,11 +238,28 @@ final class FundicionPaths
                 $nombreVal
             );
             if ($sinTilde !== $nombreVal) {
-                $map[$sinTilde] = "$id - $nombreVal";
+                $map[$sinTilde] = $nombreOficial;
             }
         }
+
+        // Mapear aliases adicionales de global_classes a su entrada oficial
+        $aliases = config('global_classes.searchable_aliases', []);
+        foreach ($aliases as $alias) {
+            $aUpper = trim(strtoupper($alias));
+            if (!isset($map[$aUpper])) {
+                foreach ($clases as $id => $nombre) {
+                    $nUpper = trim(strtoupper($nombre));
+                    if (str_contains($nUpper, $aUpper) || str_contains($aUpper, $nUpper)) {
+                        $map[$aUpper] = "$id - $nUpper";
+                        break;
+                    }
+                }
+            }
+        }
+
         return $map;
     }
+
 
     public static function normalizeClass(string $clase): string
     {
@@ -187,7 +313,7 @@ final class FundicionPaths
         $cNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $claseClean));
         $matched = false;
 
-        // 1. Buscar en el root de destino (nombre canónico o raw)
+        // 1. Buscar en el root de destino (nombre oficial o original)
         foreach ($existingDirs as $dir) {
             $dirBase = basename($dir);
             $dNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dirBase));

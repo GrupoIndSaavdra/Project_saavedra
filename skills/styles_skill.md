@@ -1,9 +1,33 @@
+---
+name: styles_skill
+description: Guía y patrones para Vanilla CSS, paleta GIS, glassmorphism, botones .btns, animación y responsividad en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Estilos y Colores (Styles Skill) — Project Saavedra
 
 > **Directorio de Referencia:** `resources/css/`
-> *`Project_saavedra` NO usa TailwindCSS ni Bootstrap. Todo es Vanilla CSS con Poppins. El diseño debe ser absolutamente premium.*
+
+## Cuándo usar esta habilidad
+- Al crear o modificar archivos CSS en `resources/css/`.
+- Al definir colores corporativos GIS, layouts con Flexbox/Grid o animaciones `@keyframes`.
+- Al aplicar glassmorphism, clases de estado (`.status-ok`, `.status-error`) o responsive design.
 
 ---
+
+## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
+
+Cuando crees o modifiques estilos CSS, DEBES cumplir estrictamente estas 5 reglas:
+
+1. **NO USAR TailwindCSS ni Bootstrap:** Todo el diseño es **Vanilla CSS** con la fuente **Poppins**.
+2. **Importar `global.css`:** En todo CSS de módulo nuevo, incluye `@import "../global.css";` al inicio.
+3. **Usar Variables CSS Corporativas:** Usa `var(--gis-green)`, `var(--gis-blue)`, `var(--gis-red)`, `var(--gis-gray)`. NUNCA hardcodees colores hex/rgb sueltos.
+4. **Prefijos `-webkit-` SIEMPRE ANTES del estándar:** Por ejemplo `-webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);`.
+5. **No dejar rulesets vacíos (`.clase {}`):** Todo selector creado debe contener propiedades válidas o comentarse para evitar warnings de IDE.
+
+---
+
+## Instrucciones y Patrones Estándar
 
 ## 0. Protocolo Obligatorio — ANTES de Escribir Cualquier Estilo
 

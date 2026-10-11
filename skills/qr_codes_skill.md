@@ -1,12 +1,21 @@
+---
+name: qr_codes_skill
+description: Guía y patrones para generación de JSON payload en QRs, parseo defensivo contra emulación de teclado de lectores físicos e interfaz de escaneo en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Generación y Lectura de Códigos QR (QR Codes Skill)
 
-> ** Directorio de Referencia:** `Generación y vistas de QR en todo el proyecto`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `Generación y vistas de QR en todo el proyecto`
 
-
-Los códigos QR son el medio principal para el rastreo físico de materiales en planta (como soldaduras, lotes y botes). Su correcta generación y lectura previenen fallos operativos.
+## Cuándo usar esta habilidad
+- Al generar códigos QR para piezas, botes o lotes.
+- Al implementar o depurar la lectura de escáneres físicos en planta.
+- Al procesar payloads JSON de QR y corregir caracteres corruptos por emulación de teclado.
 
 ---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. Estructura Estándar del Contenido del QR
 Todo código QR generado por el sistema debe contener una cadena en formato **JSON** con los siguientes datos mínimos de identificación. Esto permite al backend identificar el tipo de entidad al escanearla:

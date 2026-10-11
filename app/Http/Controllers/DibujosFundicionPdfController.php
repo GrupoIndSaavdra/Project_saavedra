@@ -1025,7 +1025,7 @@ class DibujosFundicionPdfController extends Controller
         $pendingChanges = $history && is_array($history->pending_almacen_changes) ? $history->pending_almacen_changes : [];
 
         // Eliminar reprocesos en caso de reinicio total, parcial o reemplazo de dibujo
-        $baseOtName = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $otName);
+        $baseOtName = FundicionPaths::cleanOtRevision($otName);
         $clasesAfectadas = [];
         if ($resetFlags) {
             $clasesAfectadas = ['ALL'];

@@ -27,6 +27,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\DibujosFundicionPdfController;
+use App\Services\FundicionPaths;
 
 /**
  * @noinspection PhpUndefinedFieldInspection
@@ -812,7 +813,7 @@ class WOController extends Controller
                         }
                     }
                 } else {
-                    $baseId = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $idWOrder);
+                    $baseId = FundicionPaths::cleanOtRevision($idWOrder);
                     $histories = FundicionHistory::query()
                         ->where('ot', 'LIKE', "OT {$baseId}%", 'and')
                         ->where('ot', 'NOT LIKE', '%_del%', 'and')

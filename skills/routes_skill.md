@@ -1,11 +1,21 @@
+---
+name: routes_skill
+description: Guía y patrones para definición de rutas, grupos, middlewares, naming conventions e inyección en window.routes en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Rutas (Routes Skill) — Project Saavedra
 
-> ** Directorio de Referencia:** `routes/web.php y routes/api.php`
-> *Usa los archivos en este directorio como referencia para convenciones de naming y agrupación de rutas.*
+> **Directorio de Referencia:** `routes/web.php y routes/api.php`
 
-Las rutas de `Project_saavedra` definen el contrato entre el frontend y los controladores. Deben ser predecibles, con nombres claros y middlewares correctos.
+## Cuándo usar esta habilidad
+- Al añadir o editar rutas en `routes/web.php` o `routes/api.php`.
+- Al definir grupos de rutas, prefijos, nombres (`->name()`) y middlewares.
+- Al inyectar URLs dinámicas en `window.routes` para JavaScript.
 
 ---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. Convenciones de Nomenclatura (Naming)
 

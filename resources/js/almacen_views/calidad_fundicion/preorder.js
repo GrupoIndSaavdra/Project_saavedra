@@ -10,7 +10,7 @@ const normalizeStr = (str) => {
         .trim();
 };
 // ── Clases que usan N/A en impresiones ─────────────────────────────────────────
-const CLASES_SIN_IMPRESIONES = ["molde", "bombillo", "embudo", "corona", "plato"];
+const CLASES_SIN_IMPRESIONES = window.FundicionWelding || [];
 
 /**
  * Si la clase seleccionada no usa impresiones, pone "N/A" y bloquea el campo.
@@ -396,38 +396,12 @@ window.eliminarFilaPreOrden = function (btn) {
  * Función centralizada para calcular el código de modelo
  */
 function calculateModelCode(ot, nombreClase, tipoModelo = "") {
-    const nameUpper = (nombreClase || "").toUpperCase();
-    let sigla = "X";
-
-    const mappings = [
-        { keys: ["MOLDE"], val: "M" },
-        { keys: ["BOMBILLO"], val: "B" },
-        { keys: ["FONDO"], val: "F" },
-        { keys: ["CORONA"], val: "C" },
-        { keys: ["CABEZA DE SOPLO", "CABEZA SOPLO"], val: "CS" },
-        { keys: ["CANDADO OBTURADOR", "CANDADO"], val: "CO" },
-        { keys: ["OBTURADOR"], val: "O" },
-        { keys: ["GUIA", "GUÍA"], val: "G" },
-        { keys: ["PISTON", "PISTÓN"], val: "P" },
-        { keys: ["PLATO"], val: "PL" },
-        { keys: ["EMBUDO"], val: "E" }
-    ];
-
-    for (const mapping of mappings) {
-        if (mapping.keys.some(key => nameUpper.includes(key))) {
-            sigla = mapping.val;
-            break;
-        }
-    }
-
-    const matches = ot.match(/\d+/);
+    const sigla = typeof window.getClassPrefixJS === "function"
+        ? window.getClassPrefixJS(tipoModelo, nombreClase)
+        : "F";
+    const matches = (ot || "").match(/\d+/);
     const otNum = matches ? matches[0] : ot;
-    
-    // Regla especial: Templadera → prefijo T en cualquier clase
-    if (tipoModelo === "Templadera") {
-        return `T${sigla}${otNum}`;
-    }
-    return `${sigla}${otNum}`;
+    return sigla + otNum;
 }
 window.generarCodigoFila = function (select) {
     const row = select.closest("tr");

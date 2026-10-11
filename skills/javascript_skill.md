@@ -1,9 +1,34 @@
+---
+name: javascript_skill
+description: Guía y patrones para Vanilla JS, async/await, FormData, delegación de eventos, SweetAlert2/almacenToast y rutas inyectadas en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de JavaScript (JS Skill) — Project Saavedra
 
-> ** Directorio de Referencia:** `resources/js/`
-> *Todo script en `Project_saavedra` debe estar diseñado para manejar fallos de red sin romper la UI.*
+> **Directorio de Referencia:** `resources/js/`
+
+## Cuándo usar esta habilidad
+- Al crear, modificar o depurar scripts JS en `resources/js/`.
+- Al realizar peticiones AJAX/Fetch, manejar modales, FormData o eventos del DOM.
+- Al implementar estados de carga, alertas SweetAlert2 o `almacenToast`.
 
 ---
+
+## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
+
+Cuando crees o modifiques JavaScript, DEBES cumplir estrictamente estas 6 reglas:
+
+1. **PROHIBIDO Swal.fire en Almacén:** En cualquier vista o script del módulo de Almacén (`almacen_fundicion.js`, `preorder.js`, etc.), usa **SIEMPRE `almacenToast(mensaje, tipo)`** en lugar de `Swal.fire`.
+2. **Uso de async/await con try/catch/finally:** Toda función que realice Fetch o peticiones de red DEBE usar `async/await` dentro de `try/catch/finally`.
+3. **Estado de Carga Visual Obligatorio:** Activa el estado de carga (`setVisualLoading(btn, true)`) en el botón que inició la acción al inicio del `try`, y restaura el botón (`setVisualLoading(btn, false)`) en el bloque `finally`.
+4. **Validación defensiva del DOM:** Usa encadenamiento opcional `?.` o comprobación de existencia `if (!element) return;` antes de leer o modificar propiedades del DOM para evitar `TypeError: Cannot read properties of null`.
+5. **No hardcodear URLs:** Usa `window.routes` inyectado desde Blade y reemplaza placeholders con `.replace(':id', id)`.
+6. **Aislamiento en IIFE + DOMContentLoaded:** Encapsula siempre los módulos de JS en una función autoejecutable IIFE con `document.addEventListener('DOMContentLoaded', ...)`.
+
+---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. Patrón Asíncrono Definitivo (Async / Await)
 

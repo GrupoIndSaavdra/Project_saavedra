@@ -189,7 +189,7 @@ class CalidadTableRowViewModel
         // Así mantenemos las clases independientes (Ej: original para Bombillo, R1 para Fondo).
         $this->targetReg = $this->reg;
         // ── RESOLVER TODOS LOS REGISTROS RELACIONADOS ──
-        $this->baseOtName = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $this->reg->ot);
+        $this->baseOtName = \App\Services\FundicionPaths::cleanOtRevision($this->reg->ot);
         $this->relatedRecords = FundicionHistory::where('ot', '=', $this->baseOtName, 'or')
             ->where('ot', 'LIKE', $this->baseOtName . '_R%', 'or')
             ->where('ot', 'LIKE', $this->baseOtName . '_%_R%', 'or')
@@ -1400,7 +1400,7 @@ class CalidadTableRowViewModel
                     $tipo = 'Guías';
                 }
                 if ($tipo) {
-                    $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $this->targetReg->ot);
+                    $baseOt = \App\Services\FundicionPaths::cleanOtRevision($this->targetReg->ot);
                     $isAprobado = \App\Models\LiberacionModeloFundicion::where(
                         function ($q) use ($baseOt) {
                             $q->where('ot', '=', $baseOt, 'and')

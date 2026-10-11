@@ -1,12 +1,32 @@
+---
+name: pdf_skill
+description: Guía y patrones para generación de PDFs con DomPDF (tablas HTML, public_path, optimización de memoria y layout) en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Generación de PDFs (PDF Skill) - Máximo Nivel
 
-> ** Directorio de Referencia:** `resources/views/pdf/ y Controladores que usen dompdf`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `resources/views/pdf/ y Controladores que usen dompdf`
 
+## Cuándo usar esta habilidad
+- Al crear o modificar plantillas de PDF en `resources/views/pdf/`.
+- Al generar PDFs con `Barryvdh\DomPDF` desde controladores.
+- Al optimizar la generación masiva de PDFs y solucionar fallos de memoria o maquetación.
 
-`domPDF` es una herramienta excelente en Laravel, pero su motor de renderizado HTML/CSS equivale a un navegador muy antiguo (piensa en Internet Explorer 8). Debes hackear visualmente la estructura para lograr resultados modernos.
+---
 
-## 1. La Regla de Oro: ¡Todo es una Tabla!
+## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
+
+Cuando maquetes o generes PDFs con DomPDF, DEBES cumplir estrictamente estas 4 reglas:
+
+1. **SOLO TABLAS para Maquetación:** PROHIBIDO usar Flexbox, Grid o CSS flotante (`float`). Todo el maquetado multi-columna se realiza obligatoriamente mediante tablas HTML (`<table>`, `<tr>`, `<td>`).
+2. **Rutas Absolutas de Disco para Imágenes:** Usa `public_path('images/...')` para logotipos e imágenes en Blade. NUNCA uses URLs relativas `images/...` ni el helper `asset(...)`.
+3. **Liberación de Memoria en Bucles:** Si generas múltiples PDFs en bucle, ejecuta `unset($pdf)` y `gc_collect_cycles()` tras guardar cada archivo en disco.
+4. **Evitar Fuentes Remotas Externas:** Usa fuentes estándar de PDF (`Helvetica`, `Arial`, `Times-Roman`) o fuentes localmente alojadas mediante `@font-face` con `public_path()`.
+
+---
+
+## Instrucciones y Patrones Estándar
 Nunca uses `div` para crear layouts de columnas. No uses flexbox, grid, ni floats.
 **SOLO TABLAS.**
 

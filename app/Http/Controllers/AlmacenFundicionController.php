@@ -137,7 +137,7 @@ class AlmacenFundicionController extends Controller
         }
 
         // Check by base OT if not found directly
-        $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $ot);
+        $baseOt = FundicionPaths::cleanOtRevision($ot);
         if (!$history) {
             $history = FundicionHistory::where('ot', '=', $baseOt, 'and')->first();
         }
@@ -1403,12 +1403,13 @@ class AlmacenFundicionController extends Controller
         $otId = isset($matches[1]) ? (int) $matches[1] : 0;
         $otFullRaw = Orden_trabajo::query()->find($otId);
 
+        $searchableClasses = FundicionPaths::getSearchableClasses();
         $clasesActivasNorm = [];
         if ($otFullRaw) {
             $clRawList = Clase::query()->where('id_ot', '=', $otFullRaw->id)->pluck('nombre')->toArray();
             foreach ($clRawList as $cr) {
                 $crLow = strtolower($cr);
-                foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                foreach ($searchableClasses as $kc) {
                     if (strpos($crLow, $kc) !== false) {
                         $clasesActivasNorm[] = $kc;
                     }
@@ -1421,7 +1422,7 @@ class AlmacenFundicionController extends Controller
         if (is_array($clasesSeleccionadas)) {
             foreach ($clasesSeleccionadas as $cs) {
                 $csLow = strtolower($cs);
-                foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                foreach ($searchableClasses as $kc) {
                     if (strpos($csLow, $kc) !== false) {
                         $clasesSeleccionadasNorm[] = $kc;
                     }
@@ -1440,7 +1441,7 @@ class AlmacenFundicionController extends Controller
             foreach ($clasesSeleccionadas as $claseNombre) {
                 $tipo = null;
                 $clLow = strtolower($claseNombre);
-                foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                foreach ($searchableClasses as $kc) {
                     if (strpos($clLow, $kc) !== false) {
                         $tipo = $kc;
                         break;
@@ -1913,7 +1914,7 @@ class AlmacenFundicionController extends Controller
 
         $type = $request->query('type', '');
 
-        $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $otFull);
+        $baseOt = FundicionPaths::cleanOtRevision($otFull);
 
         $modelPreOrden = PreOrdenFundicion::where('ot', '=', $otFull, 'and')
             ->where(function ($q) {
@@ -1936,7 +1937,7 @@ class AlmacenFundicionController extends Controller
                         $val = strtolower($f['clase_nombre']);
                     }
                     if ($val) {
-                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                        foreach (FundicionPaths::getSearchableClasses() as $kc) {
                             if (strpos($val, $kc) !== false) {
                                 $activeClasses[] = $kc;
                                 break;
@@ -2581,7 +2582,7 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $otRaw);
+        $baseOt = FundicionPaths::cleanOtRevision($otRaw);
         $esReprocesoRegistro = (bool) preg_match('/_R\d+$/i', $otRaw);
 
         // VALIDACIÓN ESTRICTA: Para generar una pre-orden de modelo de reproceso, el SCAR debe estar emitido.
@@ -4989,7 +4990,7 @@ class AlmacenFundicionController extends Controller
             foreach ($pending as $clase) {
                 $clLow = strtolower(trim($clase));
                 $tipoDb = null;
-                foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                foreach (FundicionPaths::getSearchableClasses() as $kc) {
                     if (strpos($clLow, $kc) !== false) {
                         $tipoDb = $kc;
                         break;

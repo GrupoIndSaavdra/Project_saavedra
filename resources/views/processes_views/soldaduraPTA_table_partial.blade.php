@@ -124,7 +124,7 @@ tipo_medida = 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
                 $optsPreparacion = ['P1 - 3', 'P2 - 2.5', 'P3 - 2', 'P4 - 1.5', 'N/A'];
 
                 $claseNormPTA = strtolower(trim($claseNombreVal ?? ''));
-                $def = in_array($claseNormPTA, ['molde', 'bombillo', 'obturador', 'fondo', 'plato']) ? [
+                $def = in_array($claseNormPTA, config('global_classes.welding_classes', ['molde', 'fondo', 'bombillo', 'obturador', 'corona'])) ? [
                     'D_Conexion_pico' => [
                         'vl'            => 2.000,
                         'sold_inicial'  => 3.000,

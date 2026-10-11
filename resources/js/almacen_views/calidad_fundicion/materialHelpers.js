@@ -143,25 +143,9 @@ window.autoGenerarCodigo = function (tipo, claseNombre, ot) {
     } else {
         otNumber = cleanOt;
     }
-    let prefix = "F";
-    const tLow = (tipo || "").toLowerCase();
-    const cLow = (claseNombre || "").toLowerCase();
-    const esTempladera = tLow.includes("templadera") || cLow.includes("templadera");
-    if (esTempladera) {
-        if (tLow.includes("obturador") || cLow.includes("obturador")) prefix = "TO";
-        else if (tLow.includes("molde") || cLow.includes("molde")) prefix = "TM";
-        else if (tLow.includes("fondo") || cLow.includes("fondo")) prefix = "TF";
-        else if (tLow.includes("bombillo") || cLow.includes("bombillo")) prefix = "TB";
-        else prefix = "T";
-    } else {
-        if (tLow === "bombillo" || cLow.includes("bombillo")) prefix = "B";
-        else if (tLow === "obturador" || cLow.includes("obturador")) prefix = "O";
-        else if (tLow === "molde" || cLow.includes("molde")) prefix = "M";
-        else if (tLow === "fondo" || cLow.includes("fondo")) prefix = "F";
-        else if (cLow.includes("cabeza") && cLow.includes("soplo")) prefix = "CS";
-        else {
-            prefix = (claseNombre || tipo || "F").charAt(0).toUpperCase();
-        }
-    }
+    const prefix = typeof window.getClassPrefixJS === "function"
+        ? window.getClassPrefixJS(tipo, claseNombre)
+        : (claseNombre || tipo || "F").charAt(0).toUpperCase();
     return otNumber ? prefix + otNumber : "";
 };
+

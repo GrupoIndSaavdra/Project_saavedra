@@ -296,11 +296,13 @@ function createFilters() {
                         // Ordenar operadores alfabéticamente si es el filtro de operador
                         let dataToIterate = window.filtersData[item];
 
-                        if (item == "class" && !dataToIterate.includes("Cabeza de Soplo")) {
-                            dataToIterate.push("Cabeza de Soplo");
-                        }
-                        if (item == "class" && !dataToIterate.includes("Candado Obturador")) {
-                            dataToIterate.push("Candado Obturador");
+                        if (item == "class" && typeof window.getSearchableClassesJS === "function") {
+                            window.getSearchableClassesJS().forEach(c => {
+                                const formatted = c.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                                if (!dataToIterate.includes(formatted)) {
+                                    dataToIterate.push(formatted);
+                                }
+                            });
                         }
 
                         if (item == "operator") {
@@ -913,7 +915,9 @@ function sortPiezasDatabaseOrder(piezas, infoPiezas) {
         ordered: orderedArray(p)
     }));
 
-    const classOrder = ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo", "Candado Obturador"];
+    const classOrder = typeof window.getSearchableClassesJS === "function"
+        ? window.getSearchableClassesJS().map(c => c.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '))
+        : [];
     const processOrder = [
         "Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion",
         "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA",

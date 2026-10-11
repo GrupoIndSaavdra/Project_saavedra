@@ -138,7 +138,7 @@ class CalidadFundicionController extends Controller
         }
 
         // Check by base OT if not found directly
-        $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $ot);
+        $baseOt = FundicionPaths::cleanOtRevision($ot);
         if (!$history) {
             $history = FundicionHistory::where('ot', '=', $baseOt, 'and')->first();
         }
@@ -674,7 +674,7 @@ class CalidadFundicionController extends Controller
 
         // Si el directorio principal no existe, intentar fallback cross-OT (base ↔ _R1/_R2)
         if (!Storage::disk('local')->exists($baseDir)) {
-            $baseOtRaw = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $ot);
+            $baseOtRaw = FundicionPaths::cleanOtRevision($ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $altDirs = [
                 self::ALMACEN_DIR . '/' . $baseFolder,
@@ -725,7 +725,7 @@ class CalidadFundicionController extends Controller
 
         // FALLBACK ampliado: buscar en todas las carpetas relacionadas de la OT (base + reprocesos + public/liberaciones_pdf)
         if (!$foundFile) {
-            $baseOtRaw = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $ot);
+            $baseOtRaw = FundicionPaths::cleanOtRevision($ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $possibleDirs = [
                 self::ALMACEN_DIR . '/' . $baseFolder,
@@ -873,7 +873,7 @@ class CalidadFundicionController extends Controller
 
         if (!Storage::disk('local')->exists($baseDir)) {
             // Fallback ampliado incluyendo la OT base para reprocesos
-            $baseOtRaw = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $ot);
+            $baseOtRaw = FundicionPaths::cleanOtRevision($ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $altDirs = [
                 self::ALMACEN_DIR . '/' . $baseFolder,
@@ -921,7 +921,7 @@ class CalidadFundicionController extends Controller
 
         // FALLBACK ampliado: buscar en todas las carpetas relacionadas de la OT (base + reprocesos + public/liberaciones_pdf)
         if (!$foundFile) {
-            $baseOtRaw = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $ot);
+            $baseOtRaw = FundicionPaths::cleanOtRevision($ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $possibleDirs = [
                 self::ALMACEN_DIR . '/' . $baseFolder,
@@ -1365,7 +1365,8 @@ class CalidadFundicionController extends Controller
                         $val = strtolower($val);
                         if (str_contains($val, 'opcional') && !str_contains($val, 'pistones') && !str_contains($val, 'guías') && !str_contains($val, 'guias'))
                             continue;
-                        foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                        $searchableClasses = FundicionPaths::getSearchableClasses();
+                        foreach ($searchableClasses as $kc) {
                             if (strpos($val, $kc) !== false) {
                                 $clasesRequeridas[] = ucfirst($kc);
                             }
@@ -1383,9 +1384,10 @@ class CalidadFundicionController extends Controller
                         $filas = json_decode($filas, true);
                     }
                     if (is_array($filas)) {
+                        $searchableClasses = FundicionPaths::getSearchableClasses();
                         foreach ($filas as $fila) {
                             $val = strtolower($fila['clase'] ?? ($fila['clase_nombre'] ?? ''));
-                            foreach (['candado obturador', 'cabeza de soplo', 'obturador', 'bombillo', 'embudo', 'corona', 'plato', 'molde', 'fondo', 'pistones', 'guías', 'guias'] as $kc) {
+                            foreach ($searchableClasses as $kc) {
                                 if (strpos($val, $kc) !== false) {
                                     $clasesRequeridas[] = ucfirst($kc);
                                     break;
@@ -1398,7 +1400,7 @@ class CalidadFundicionController extends Controller
 
             // 3. Fallback a todas si no se pudo determinar
             if (empty($clasesRequeridas)) {
-                $clasesRequeridas = ['Candado obturador', 'Cabeza de soplo', 'Obturador', 'Bombillo', 'Embudo', 'Corona', 'Plato', 'Molde', 'Fondo', 'Pistones', 'Guías', 'Guias'];
+                $clasesRequeridas = array_map('ucfirst', FundicionPaths::getSearchableClasses());
             }
             $clasesRequeridas = array_unique($clasesRequeridas);
 
@@ -2241,7 +2243,7 @@ class CalidadFundicionController extends Controller
         $preordenCodigoModelo = null;
         $preOrdenes = PreOrdenFundicion::where('ot', '=', $ot, 'and')->get();
         if ($preOrdenes->isEmpty()) {
-            $baseOt = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $ot);
+            $baseOt = FundicionPaths::cleanOtRevision($ot);
             $preOrdenes = PreOrdenFundicion::where('ot', '=', $baseOt, 'and')->get();
         }
 
@@ -2557,7 +2559,7 @@ class CalidadFundicionController extends Controller
 
         // Dibujos y Ayudas del servidor (filtrados por los archivos seleccionados en el modal)
         // Buscamos en todas las carpetas de OTs relacionadas (base y reprocesos)
-        $baseOtForSearch = preg_replace('/_(?:(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias)(?:_(?:candado\s+obturador|cabeza\s+de\s+soplo|obturador|bombillo|embudo|corona|plato|molde|fondo|pistones|guías|guias))*_)?R\d+$/iu', '', $ot);
+        $baseOtForSearch = FundicionPaths::cleanOtRevision($ot);
         $allOtNamesForSearch = FundicionHistory::where('ot', '=', $baseOtForSearch, 'or')
             ->where('ot', 'LIKE', $baseOtForSearch . '_R%', 'or')
             ->where('ot', 'LIKE', $baseOtForSearch . '_%_R%', 'or')

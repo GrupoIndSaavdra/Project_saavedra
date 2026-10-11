@@ -1,11 +1,33 @@
+---
+name: controllers_skill
+description: Guía y patrones para controladores Laravel, Form Requests, eager loading, transacciones DB y arquitectura en Project_saavedra.
+version: 1.0.0
+---
+
 # Guía de Controladores (Controllers Skill) — Project Saavedra
 
-> ** Directorio de Referencia:** `app/Http/Controllers/`
-> *Usa los archivos en este directorio como base o inspiración al crear/modificar funcionalidades relacionadas con esta skill.*
+> **Directorio de Referencia:** `app/Http/Controllers/`
 
-Los controladores en `Project_saavedra` son el corazón del sistema. Deben ser robustos, a prueba de fallos y estrictamente optimizados. No se permite código espagueti.
+## Cuándo usar esta habilidad
+- Al crear, modificar o refactorizar controladores en `app/Http/Controllers/`.
+- Al definir endpoints AJAX/JSON, Form Requests o controladores delgados (Thin Controllers).
+- Al implementar transacciones DB, eager loading o manejo de errores `try/catch`.
 
 ---
+
+## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
+
+Cuando crees o modifiques controladores, DEBES cumplir estrictamente estas 5 reglas:
+
+1. **DB::transaction() en escrituras multi-tabla:** Todo método que cree/actualice/elimine en más de un modelo DEBE usar `DB::beginTransaction()` y `DB::commit()` dentro de `try/catch (\Throwable $e)`. Jamás hagas escrituras encadenadas sin transacción.
+2. **Respuesta Mixta o JSON estructurada:** Si es un endpoint invocado vía Fetch/AJAX, responde `response()->json(['success' => bool, 'message' => string, ...], $statusCode)`. Devuelve código HTTP adecuado (200 para éxito, 400/422 para error de entrada, 500 para excepciones internas).
+3. **Controladores Delgados (Thin Controllers):** No pongas formateos pesados de HTML o strings gigantes en el controlador; pásalos al ViewModel, Helper o vista Blade.
+4. **where() de 4 argumentos en este proyecto:** Para compatibilidad con el helper del proyecto, escribe la forma canónica `->where('columna', '=', $valor, 'and')`.
+5. **No tragar excepciones silenciosamente:** En bloques `catch (\Throwable $e)`, DEBES registrar el error en `Log::error(...)` con contexto (`user`, `ot`, `error`) antes de responder.
+
+---
+
+## Instrucciones y Patrones Estándar
 
 ## 1. Nomenclatura, Rutas y Middlewares
 

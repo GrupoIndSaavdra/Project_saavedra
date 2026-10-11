@@ -179,7 +179,7 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
                             const n = (f.nombre || "").toLowerCase();
                             if (n.includes("documentos_aprobados") || n.includes("documentos_rechazados") || n.includes("pre-orden"))
                                 return true;
-                            const knownClasses = ["candado obturador", "cabeza de soplo", "obturador", "bombillo", "embudo", "corona", "plato", "molde", "fondo", "pistones", "guías", "guias"];
+                            const knownClasses = typeof window.getSearchableClassesJS === "function" ? window.getSearchableClassesJS() : [];
                             let foundClass = null;
                             for (let kc of knownClasses) {
                                 if (window.compararClasesSurgico(n, kc)) {
