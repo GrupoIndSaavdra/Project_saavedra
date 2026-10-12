@@ -247,35 +247,69 @@ body {
     width: 100% !important;
     height: auto !important;
 }
-.icon {
-    width: 32px;
-    height: 32px;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
 .open-menu {
-    border: none;
-    background-color: #ffffff00;
+    border: 1px solid transparent;
+    background-color: transparent;
     width: 40px;
     height: 40px;
     padding: 4px;
-    border-radius: 8px;
+    border-radius: 10px;
     cursor: pointer;
-    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.1s ease;
 }
+
+.open-menu .icon {
+    width: 32px;
+    height: 32px;
+    transform-origin: center center;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    will-change: transform;
+    transition: transform 0.22s ease-in;
+}
+
+/* Hover: fondo suave y micro-escala fluida sin sacudidas */
 .open-menu:hover {
-    background-color: #c9c9c99b;
+    background-color: rgba(3, 57, 102, 0.07);
+    border-color: rgba(3, 57, 102, 0.15);
+    box-shadow: 0 2px 8px var(--shadow-blue);
 }
+
 .open-menu:hover .icon {
-    transform: scale(1.15); /* Zoom al pasar el mouse */
+    transform: scale(1.06);
 }
+
+/* Clic táctil instantáneo */
 .open-menu:active {
-    transform: scale(0.95); /* El botón se hunde un poco */
+    transform: scale(0.94);
 }
-.open-menu:active .icon {
-    transform: scale(1.15) rotate(360deg); /* Gira la vuelta completa al hacer clic */
+
+/* Menú Abierto: Giro ágil y limpio de 90° */
+.open-menu.is-open {
+    background-color: rgba(3, 57, 102, 0.12);
+    border-color: rgba(3, 57, 102, 0.24);
+    box-shadow: 0 2px 8px var(--shadow-blue);
+}
+
+.open-menu.is-open .icon {
+    transform: rotate(90deg);
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.open-menu.is-open:hover {
+    background-color: rgba(3, 57, 102, 0.16);
+    border-color: rgba(3, 57, 102, 0.3);
+}
+
+.open-menu.is-open:hover .icon {
+    transform: rotate(90deg) scale(1.06);
 }
 .text-header {
     font-weight: 700;
@@ -301,17 +335,19 @@ body {
     z-index: 1000;
     visibility: hidden;
     opacity: 0;
+    pointer-events: none; /* Desbloquea de inmediato los clics en la pantalla al cerrarse */
     will-change: opacity, visibility;
     transition:
-        opacity 0.25s ease,
-        visibility 0.25s step-end;
+        opacity 0.22s ease,
+        visibility 0.22s step-end;
 }
 .filter-opacity[style*="visibility: visible"],
 .filter-opacity.is-open {
     visibility: visible;
     opacity: 1;
+    pointer-events: auto; /* Solo captura clics mientras está completamente abierto */
     transition:
-        opacity 0.25s ease,
+        opacity 0.38s ease,
         visibility 0s linear;
 }
 .nav {
@@ -321,15 +357,19 @@ body {
     background-color: #ffffff;
     width: 320px;
     height: 100%;
-    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.08);
+    box-shadow: 8px 0 25px rgba(0, 0, 0, 0.15);
     border-right: 1px solid rgba(0, 0, 0, 0.05);
     transform: translateX(-100%);
+    pointer-events: auto;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
     will-change: transform;
-    transition: transform 0.25s ease;
+    transition: transform 0.22s ease-in; /* Cierre rápido: se guarda de volada */
 }
 .filter-opacity[style*="visibility: visible"] .nav,
 .filter-opacity.is-open .nav {
     transform: translateX(0);
+    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1); /* Apertura suave y fluida */
 }
 .nav-list {
     list-style-type: none;

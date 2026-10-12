@@ -10,18 +10,26 @@ function initAppMenu() {
     let profile = profileEl.value;
     createMenu(profile);
 
+    let closeTimer = null;
+
     if (btn_open && nav) {
         btn_open.addEventListener("click", function () {
             if (nav.classList.contains("is-open")) {
                 nav.classList.remove("is-open");
+                btn_open.classList.remove("is-open");
+                btn_open.setAttribute("aria-expanded", "false");
                 nav.style.opacity = "0";
-                setTimeout(() => {
+                if (closeTimer) clearTimeout(closeTimer);
+                closeTimer = setTimeout(() => {
                     if (!nav.classList.contains("is-open")) {
                         nav.style.visibility = "hidden";
                     }
-                }, 250);
+                }, 220);
             } else {
+                if (closeTimer) clearTimeout(closeTimer);
                 nav.classList.add("is-open");
+                btn_open.classList.add("is-open");
+                btn_open.setAttribute("aria-expanded", "true");
                 nav.style.visibility = "visible";
                 nav.style.opacity = "1";
             }
@@ -30,12 +38,15 @@ function initAppMenu() {
         nav.addEventListener("click", function (e) {
             if (e.target === nav) {
                 nav.classList.remove("is-open");
+                btn_open.classList.remove("is-open");
+                btn_open.setAttribute("aria-expanded", "false");
                 nav.style.opacity = "0";
-                setTimeout(() => {
+                if (closeTimer) clearTimeout(closeTimer);
+                closeTimer = setTimeout(() => {
                     if (!nav.classList.contains("is-open")) {
                         nav.style.visibility = "hidden";
                     }
-                }, 250);
+                }, 220);
             }
         });
     }

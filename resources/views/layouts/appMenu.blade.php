@@ -51,8 +51,8 @@
     <header>
         @auth
             <!--Menu-->
-            <button class="open-menu">
-                <img class="icon" src="{{ asset('images/icono.png') }}">
+            <button class="open-menu" aria-label="Menú principal" aria-expanded="false">
+                <img class="icon" src="{{ asset('images/icono.png') }}" alt="Icono Menú">
             </button>
             <div class="filter-opacity">
                 <nav class="nav" id="nav">
