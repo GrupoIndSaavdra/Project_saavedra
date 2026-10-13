@@ -2024,19 +2024,28 @@ class AlmacenFundicionController extends Controller
                 $folders = array_unique($folders);
 
                 foreach ($folders as $relFolder) {
-                    $pathsToCheck = [
-                        self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados/FDLDM',
-                        self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados/FDLDM',
-                    ];
+                    $calDir = self::CALIDAD_DIR . '/' . $relFolder;
+                    $almDir = self::ALMACEN_DIR . '/' . $relFolder;
+                    $pathsToCheck = [];
 
-                    $classFolders = FundicionPaths::getClassFoldersForOt(self::CALIDAD_DIR . '/' . $relFolder, $tipo);
-                    foreach ($classFolders as $cf) {
-                        $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_APROBADOS/FDLDM';
-                        $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_APROBADOS';
-                        $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/FORMATOS_LIBERACION';
-                        $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_APROBADOS/FDLDM';
-                        $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_APROBADOS';
-                        $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/FORMATOS_LIBERACION';
+                    if (\Storage::disk('local')->exists($calDir)) {
+                        $pathsToCheck[] = $calDir . '/Documentos_Aprobados/FDLDM';
+                        $classFolders = FundicionPaths::getClassFoldersForOt($calDir, $tipo);
+                        foreach ($classFolders as $cf) {
+                            $pathsToCheck[] = $calDir . '/' . $cf . '/DOCUMENTOS_APROBADOS/FDLDM';
+                            $pathsToCheck[] = $calDir . '/' . $cf . '/DOCUMENTOS_APROBADOS';
+                            $pathsToCheck[] = $calDir . '/' . $cf . '/FORMATOS_LIBERACION';
+                        }
+                    }
+
+                    if (\Storage::disk('local')->exists($almDir)) {
+                        $pathsToCheck[] = $almDir . '/Documentos_Aprobados/FDLDM';
+                        $classFoldersAlm = FundicionPaths::getClassFoldersForOt($almDir, $tipo);
+                        foreach ($classFoldersAlm as $cf) {
+                            $pathsToCheck[] = $almDir . '/' . $cf . '/DOCUMENTOS_APROBADOS/FDLDM';
+                            $pathsToCheck[] = $almDir . '/' . $cf . '/DOCUMENTOS_APROBADOS';
+                            $pathsToCheck[] = $almDir . '/' . $cf . '/FORMATOS_LIBERACION';
+                        }
                     }
 
                     foreach ($pathsToCheck as $dir) {
@@ -2112,17 +2121,26 @@ class AlmacenFundicionController extends Controller
             $foldersToCheck = array_unique(array_filter($foldersToCheck));
 
             foreach ($foldersToCheck as $relFolder) {
-                $pathsToCheck = [
-                    self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados/FDRDM',
-                    self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Rechazados/FDRDM',
-                ];
+                $calDir = self::CALIDAD_DIR . '/' . $relFolder;
+                $almDir = self::ALMACEN_DIR . '/' . $relFolder;
+                $pathsToCheck = [];
 
-                $classFolders = FundicionPaths::getClassFoldersForOt(self::CALIDAD_DIR . '/' . $relFolder, $tipo);
-                foreach ($classFolders as $cf) {
-                    $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_RECHAZADOS/FDRDM';
-                    $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_RECHAZADOS';
-                    $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_RECHAZADOS/FDRDM';
-                    $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_RECHAZADOS';
+                if (\Storage::disk('local')->exists($calDir)) {
+                    $pathsToCheck[] = $calDir . '/Documentos_Rechazados/FDRDM';
+                    $classFolders = FundicionPaths::getClassFoldersForOt($calDir, $tipo);
+                    foreach ($classFolders as $cf) {
+                        $pathsToCheck[] = $calDir . '/' . $cf . '/DOCUMENTOS_RECHAZADOS/FDRDM';
+                        $pathsToCheck[] = $calDir . '/' . $cf . '/DOCUMENTOS_RECHAZADOS';
+                    }
+                }
+
+                if (\Storage::disk('local')->exists($almDir)) {
+                    $pathsToCheck[] = $almDir . '/Documentos_Rechazados/FDRDM';
+                    $classFoldersAlm = FundicionPaths::getClassFoldersForOt($almDir, $tipo);
+                    foreach ($classFoldersAlm as $cf) {
+                        $pathsToCheck[] = $almDir . '/' . $cf . '/DOCUMENTOS_RECHAZADOS/FDRDM';
+                        $pathsToCheck[] = $almDir . '/' . $cf . '/DOCUMENTOS_RECHAZADOS';
+                    }
                 }
 
                 foreach ($pathsToCheck as $dir) {

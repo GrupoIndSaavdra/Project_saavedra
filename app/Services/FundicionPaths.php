@@ -311,21 +311,7 @@ final class FundicionPaths
     {
         $disk = \Illuminate\Support\Facades\Storage::disk('local');
         if (!$disk->exists($baseOtPath)) {
-            // Intentar resolver la carpeta de la OT de forma insensible a mayúsculas si no existe exacta
-            $parent = dirname($baseOtPath);
-            $otTarget = basename($baseOtPath);
-            if ($disk->exists($parent)) {
-                $subdirs = $disk->directories($parent);
-                foreach ($subdirs as $sd) {
-                    if (strcasecmp(basename($sd), $otTarget) === 0) {
-                        $baseOtPath = $sd;
-                        break;
-                    }
-                }
-            }
-            if (!$disk->exists($baseOtPath)) {
-                return null;
-            }
+            return null;
         }
 
         $reserved = [
@@ -367,41 +353,13 @@ final class FundicionPaths
 
         // Si hay más de una carpeta para la misma clase (duplicados como BOMBILLO y 3 - BOMBILLO):
         $normOfficial = self::normalizeClass($clase);
-        $chosen = null;
-
-        // Si alguna coincide con el nombre oficial estandarizado (ej: "3 - BOMBILLO"), preferirla
         foreach ($matching as $mName) {
             if (strtoupper($mName) === strtoupper($normOfficial)) {
-                $chosen = $mName;
-                break;
+                return $mName;
             }
         }
 
-        // Si ninguna es la oficial, elegir la que tenga más archivos
-        if (!$chosen) {
-            $maxFiles = -1;
-            foreach ($matching as $mName) {
-                $count = count($disk->allFiles($baseOtPath . '/' . $mName));
-                if ($count > $maxFiles) {
-                    $maxFiles = $count;
-                    $chosen = $mName;
-                }
-            }
-        }
-
-        if (!$chosen) {
-            $chosen = $matching[0];
-        }
-
-        // Consolidar recursivamente los duplicados hacia la carpeta elegida
-        foreach ($matching as $mName) {
-            if ($mName === $chosen) {
-                continue;
-            }
-            self::mergeClassDirectories($baseOtPath . '/' . $chosen, $baseOtPath . '/' . $mName);
-        }
-
-        return $chosen;
+        return $matching[0];
     }
 
     /**
@@ -472,9 +430,41 @@ final class FundicionPaths
      */
     public static function getClassFoldersForOt(string $baseOtPath, string $clase): array
     {
-        $existing = self::findExistingClassFolder($baseOtPath, $clase);
-        if ($existing !== null) {
-            return [$existing];
+        $disk = \Illuminate\Support\Facades\Storage::disk('local');
+        if (!$disk->exists($baseOtPath)) {
+            $norm = self::normalizeClass($clase);
+            $cleanNoNum = strtoupper(trim(preg_replace('/^\d+\s*[-_.]?\s*/', '', $clase)));
+            return array_values(array_unique(array_filter([$norm, $clase, $cleanNoNum])));
+        }
+
+        $reserved = [
+            'ayudas_visuales',
+            'ayudas_visuales_fundicion',
+            'dibujos_fundicion',
+            'documentos_aprobados',
+            'documentos_rechazados',
+            'escaneados',
+            'preordenes',
+            'formatos_liberacion',
+            'scar',
+            'fdrdm',
+            'fdldm',
+            'dwg_fundicion',
+            'extras',
+        ];
+
+        $subdirs = $disk->directories($baseOtPath);
+        $matching = [];
+
+        foreach ($subdirs as $dir) {
+            $base = basename($dir);
+            if (!in_array(strtolower($base), $reserved) && self::isSameClass($base, $clase)) {
+                $matching[] = $base;
+            }
+        }
+
+        if (!empty($matching)) {
+            return $matching;
         }
 
         $norm = self::normalizeClass($clase);
