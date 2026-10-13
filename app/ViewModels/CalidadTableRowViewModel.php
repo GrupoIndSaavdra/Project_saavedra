@@ -151,6 +151,21 @@ class CalidadTableRowViewModel
     /** @var mixed */
     public $deptName;
 
+    // Caches estáticos en memoria para evitar I/O redundante en ciclo Blade
+    protected static array $dirExistsCache = [];
+    protected static array $dirDirectoriesCache = [];
+    protected static array $globalAyudasFilesCache = [];
+
+    protected static function safeStorageExists(string $path): bool
+    {
+        return self::$dirExistsCache[$path] ??= \Illuminate\Support\Facades\Storage::disk('local')->exists($path);
+    }
+
+    protected static function safeStorageDirectories(string $path): array
+    {
+        return self::$dirDirectoriesCache[$path] ??= \Illuminate\Support\Facades\Storage::disk('local')->directories($path);
+    }
+
     public function __construct(FundicionHistory $reg, string $estado, string $deptName)
     {
         $this->reg = $reg;
@@ -345,9 +360,9 @@ class CalidadTableRowViewModel
                         $norm = \App\Models\Clase::normalizeClassName($cdb);
                         if ($norm) {
                             $cdbTrim = trim($cdb);
-                            $hasFolder = \Illuminate\Support\Facades\Storage::disk('local')->exists('DOCUMENTACION_GIS/DIBUJOS_FUNDICION/' . $otNameSanitized . '/' . $cdbTrim) ||
-                                \Illuminate\Support\Facades\Storage::disk('local')->exists('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $cdbTrim) ||
-                                \Illuminate\Support\Facades\Storage::disk('local')->exists('DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $cdbTrim);
+                            $hasFolder = self::safeStorageExists('DOCUMENTACION_GIS/DIBUJOS_FUNDICION/' . $otNameSanitized . '/' . $cdbTrim) ||
+                                self::safeStorageExists('DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized . '/' . $cdbTrim) ||
+                                self::safeStorageExists('DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized . '/' . $cdbTrim);
 
                             if ($hasFolder) {
                                 $parsedDb[] = strtolower($norm);
@@ -516,47 +531,48 @@ class CalidadTableRowViewModel
                 $this->normBaseNames[] = strtolower(preg_replace('/[\s_]+/', '', (string) $dbn));
             }
         }
-        // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION ---
+        // --- NUEVO: Escanear ayudas visuales globales desde AYUDAS_FUNDICION (con memoización estática) ---
         $this->ayudasGlobalesBase = 'DOCUMENTACION_GIS/AYUDAS_FUNDICION';
         foreach ($this->activeClassesForOt as $activeClass) {
             $classNameProper = ucfirst(strtolower($activeClass));
-            $candidateDirs = [
-                $this->ayudasGlobalesBase . '/' . $classNameProper,
-                $this->ayudasGlobalesBase . '/' . $classNameProper . '/Fundicion',
-            ];
-            foreach ($candidateDirs as $globalClassDir) {
-                if (
-                    \Illuminate\Support\Facades\Storage::disk('local')->exists(
-                        $globalClassDir,
-                    )
-                ) {
-                    $files = \Illuminate\Support\Facades\Storage::disk(
-                        'local',
-                    )->files($globalClassDir);
-                    foreach ($files as $f) {
-                        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                        if ($ext === 'pdf') {
-                            $base = basename($f);
-                            $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
-                            if (!in_array($normBase, $this->normBaseNames)) {
-                                $ayudaData = [
-                                    'nombre' => $classNameProper . '/' . $base,
-                                    'url' => route('ayudas_fundicion.serve', [
-                                        'clase' => $classNameProper,
-                                        'archivo' => $base,
-                                    ]),
-                                    'tipo' => 'ayuda',
-                                    'ot' => $this->reg->ot,
-                                ];
-
-                                // Las ayudas globales SIEMPRE se muestran, sin importar si la clase fue rechazada.
-                                // Son documentos de referencia permanentes.
-                                $this->ayudasArchivos[] = $ayudaData;
-
-                                $this->baseNames[] = $base;
-                                $this->normBaseNames[] = $normBase;
-                            }
+            if (!isset(self::$globalAyudasFilesCache[$classNameProper])) {
+                $candidateDirs = [
+                    $this->ayudasGlobalesBase . '/' . $classNameProper,
+                    $this->ayudasGlobalesBase . '/' . $classNameProper . '/Fundicion',
+                ];
+                $cachedFiles = [];
+                foreach ($candidateDirs as $globalClassDir) {
+                    if (self::safeStorageExists($globalClassDir)) {
+                        $files = \Illuminate\Support\Facades\Storage::disk('local')->files($globalClassDir);
+                        foreach ($files as $f) {
+                            $cachedFiles[] = $f;
                         }
+                    }
+                }
+                self::$globalAyudasFilesCache[$classNameProper] = $cachedFiles;
+            }
+
+            foreach (self::$globalAyudasFilesCache[$classNameProper] as $f) {
+                $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+                if ($ext === 'pdf') {
+                    $base = basename($f);
+                    $normBase = strtolower(preg_replace('/[\s_]+/', '', $base));
+                    if (!in_array($normBase, $this->normBaseNames)) {
+                        $ayudaData = [
+                            'nombre' => $classNameProper . '/' . $base,
+                            'url' => route('ayudas_fundicion.serve', [
+                                'clase' => $classNameProper,
+                                'archivo' => $base,
+                            ]),
+                            'tipo' => 'ayuda',
+                            'ot' => $this->reg->ot,
+                        ];
+
+                        // Las ayudas globales SIEMPRE se muestran, sin importar si la clase fue rechazada.
+                        // Son documentos de referencia permanentes.
+                        $this->ayudasArchivos[] = $ayudaData;
+                        $this->baseNames[] = $base;
+                        $this->normBaseNames[] = $normBase;
                     }
                 }
             }
@@ -578,42 +594,28 @@ class CalidadTableRowViewModel
             $calidadRootScan =
                 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' . $otNameSanitized;
             $scanDirs = [];
-            if (
-                \Illuminate\Support\Facades\Storage::disk('local')->exists(
-                    $ayudasDir,
-                )
-            ) {
-                $scanDirs[] = [
-                    'path' => $ayudasDir,
-                    'base_dir' => $ayudasDir,
-                ];
-            }
-            foreach (
-                array_values(\App\Services\FundicionPaths::getStandardMap())
-                as $claseDir
-            ) {
-                $newAyDir =
-                    $calidadRootScan . '/' . $claseDir . '/' . \App\Services\FundicionPaths::AYUDAS_VISUALES;
-                if (
-                    \Illuminate\Support\Facades\Storage::disk('local')->exists(
-                        $newAyDir,
-                    )
-                ) {
+            if (self::safeStorageExists($calidadRootScan)) {
+                if (self::safeStorageExists($ayudasDir)) {
                     $scanDirs[] = [
-                        'path' => $newAyDir,
-                        'base_dir' => $calidadRootScan,
-                    ];
-                }
-                $legacyClaseAyDir = $ayudasDir . '/' . $claseDir;
-                if (
-                    \Illuminate\Support\Facades\Storage::disk('local')->exists(
-                        $legacyClaseAyDir,
-                    )
-                ) {
-                    $scanDirs[] = [
-                        'path' => $legacyClaseAyDir,
+                        'path' => $ayudasDir,
                         'base_dir' => $ayudasDir,
                     ];
+                    foreach (self::safeStorageDirectories($ayudasDir) as $legacyClaseAyDir) {
+                        $scanDirs[] = [
+                            'path' => $legacyClaseAyDir,
+                            'base_dir' => $ayudasDir,
+                        ];
+                    }
+                }
+                foreach (self::safeStorageDirectories($calidadRootScan) as $rDir) {
+                    $newAyDir =
+                        $rDir . '/' . \App\Services\FundicionPaths::AYUDAS_VISUALES;
+                    if (self::safeStorageExists($newAyDir)) {
+                        $scanDirs[] = [
+                            'path' => $newAyDir,
+                            'base_dir' => $calidadRootScan,
+                        ];
+                    }
                 }
             }
             foreach ($scanDirs as $sInfo) {
@@ -714,11 +716,7 @@ class CalidadTableRowViewModel
                 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' .
                 $otNameSanitized .
                 '/' . \App\Services\FundicionPaths::LEGACY_PREORDENES;
-            if (
-                \Illuminate\Support\Facades\Storage::disk('local')->exists(
-                    $calidadDir,
-                )
-            ) {
+            if (self::safeStorageExists($calidadDir)) {
                 $files = \Illuminate\Support\Facades\Storage::disk(
                     'local',
                 )->allFiles($calidadDir);
@@ -850,8 +848,37 @@ class CalidadTableRowViewModel
                         'owner' => 'calidad',
                     ],
                 ];
-                // --- NUEVO: ESCANEAR PREORDENES Y DOCUMENTOS POR CLASE ---
-                foreach (array_values(\App\Services\FundicionPaths::getStandardMap()) as $claseDir) {
+                // --- NUEVO: ESCANEAR PREORDENES Y DOCUMENTOS POR CLASE (Solo carpetas existentes y clases activas) ---
+                $clasesBaseList = [];
+                foreach (['ALMACEN_FUNDICION', 'CALIDAD_FUNDICION'] as $depto) {
+                    $deptoDir = 'DOCUMENTACION_GIS/' . $depto . '/' . $otNameSanitized;
+                    if (self::safeStorageExists($deptoDir)) {
+                        $dirs = self::safeStorageDirectories($deptoDir);
+                        foreach ($dirs as $d) {
+                            $clasesBaseList[] = basename($d);
+                        }
+                    }
+                }
+                $parentOtSanitized = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $otNameSanitized);
+                if ($parentOtSanitized && $parentOtSanitized !== $otNameSanitized) {
+                    foreach (['ALMACEN_FUNDICION', 'CALIDAD_FUNDICION'] as $depto) {
+                        $pDir = 'DOCUMENTACION_GIS/' . $depto . '/' . $parentOtSanitized;
+                        if (self::safeStorageExists($pDir)) {
+                            $dirs = self::safeStorageDirectories($pDir);
+                            foreach ($dirs as $d) {
+                                $clasesBaseList[] = basename($d);
+                            }
+                        }
+                    }
+                }
+                if (!empty($this->activeClassesForOt)) {
+                    foreach ($this->activeClassesForOt as $ac) {
+                        $clasesBaseList[] = $ac;
+                    }
+                }
+                $clasesBaseList = array_unique(array_filter($clasesBaseList));
+
+                foreach ($clasesBaseList as $claseDir) {
                     $cUnderscore = strtoupper(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $claseDir));
                     $cUpper = strtoupper($claseDir);
                     $cTitle = $claseDir;
@@ -1031,11 +1058,7 @@ class CalidadTableRowViewModel
                     $targetDir = $dirInfo['dir'];
                     $origin = $dirInfo['origin'];
                     $prefix = $dirInfo['prefix'];
-                    if (
-                        \Illuminate\Support\Facades\Storage::disk('local')->exists(
-                            $targetDir,
-                        )
-                    ) {
+                    if (self::safeStorageExists($targetDir)) {
                         $files = \Illuminate\Support\Facades\Storage::disk(
                             'local',
                         )->allFiles($targetDir);

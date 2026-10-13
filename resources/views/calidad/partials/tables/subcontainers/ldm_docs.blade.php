@@ -16,7 +16,7 @@
                 }
                 $rawClasses = array_values(array_unique($extractedFromFiles));
             }
-            
+
             $clasesAprobadasLista = [];
             foreach ($rawClasses as $rc) {
                 $rcClean = preg_replace('/[^a-z0-9]/', '', strtolower($rc));
@@ -60,7 +60,7 @@
             style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
             <h4
                 style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/Aprobado.png') }}"
+                <img src="{{ asset('images/aprobado.png') }}"
                     style="width: 22px; height: 22px; object-fit: contain; vertical-align: middle;"> Formato de
                 Liberación
                 de
@@ -114,12 +114,14 @@
                                 <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
                                     class="file-icon icon-hover" />
                             </div>
-                            <div class="file-name cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
+                            <div class="file-name cal-cursor-pointer"
+                                title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
                                 onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">
                                 {{ basename($otroArchivo['nombre']) }}
                             </div>
                             <div class="file-actions cal-display-flex cal-gap-5px">
-                                <button class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-155724 cal-color-white"
+                                <button
+                                    class="btn-dibujos btn-dibujos-sm btn-ver cal-background-color-155724 cal-color-white"
                                     onclick="calidadVerPdf('{{ $otroArchivo['ot'] }}', '{{ $otroArchivo['nombre'] }}', '{{ $otroArchivo['tipo'] }}')">{{ $isDwg ? 'Descargar' : 'Ver' }}</button>
                                 @if ($canDelete)
                                     <button

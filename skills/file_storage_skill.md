@@ -122,3 +122,22 @@ $fileName = "F_ALM_PFM_{$clasesStr}{$suffixReproceso}.pdf";
     'ip' => request()->ip(),
 ]);
 ```
+
+---
+
+## 6. Prevención de I/O Masivo y Timeout de Disco (Flysystem en Windows)
+
+```php
+// ❌ PROHIBIDO: Escanear todas las combinaciones teóricas con exists() por cada fila (genera 13,000+ I/O calls y timeout de 30s)
+foreach (array_values(FundicionPaths::getStandardMap()) as $clase) { ... }
+
+// ✅ PATRÓN CORRECTO: 
+// 1. Descubrir únicamente las carpetas que realmente existen en disco con directories():
+$clasesBaseList = [];
+if (Storage::disk('local')->exists($otDir)) {
+    foreach (Storage::disk('local')->directories($otDir) as $d) {
+        $clasesBaseList[] = basename($d);
+    }
+}
+// 2. Memoizar estáticamente llamadas Storage::exists/directories/files en ViewModels durante el ciclo Blade.
+```

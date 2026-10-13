@@ -381,6 +381,21 @@ class AlmacenTableRowViewModel
     /** @var mixed */
     public $userPerfil;
 
+    // Caches estáticos en memoria para evitar I/O redundante en ciclo Blade
+    protected static array $dirExistsCache = [];
+    protected static array $dirDirectoriesCache = [];
+    protected static array $globalAyudasFilesCache = [];
+
+    protected static function safeStorageExists(string $path): bool
+    {
+        return self::$dirExistsCache[$path] ??= \Illuminate\Support\Facades\Storage::disk('local')->exists($path);
+    }
+
+    protected static function safeStorageDirectories(string $path): array
+    {
+        return self::$dirDirectoriesCache[$path] ??= \Illuminate\Support\Facades\Storage::disk('local')->directories($path);
+    }
+
     public function __construct(FundicionHistory $reg, string $estado, string $deptName)
     {
         $this->reg = $reg;
@@ -703,19 +718,19 @@ class AlmacenTableRowViewModel
                         if ($norm) {
                             $cdbTrim = trim($cdb);
                             $hasFolder =
-                                \Illuminate\Support\Facades\Storage::disk('local')->exists(
+                                self::safeStorageExists(
                                     'DOCUMENTACION_GIS/DIBUJOS_FUNDICION/' .
                                     $otNameSanitized .
                                     '/' .
                                     $cdbTrim,
                                 ) ||
-                                \Illuminate\Support\Facades\Storage::disk('local')->exists(
+                                self::safeStorageExists(
                                     'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' .
                                     $otNameSanitized .
                                     '/' .
                                     $cdbTrim,
                                 ) ||
-                                \Illuminate\Support\Facades\Storage::disk('local')->exists(
+                                self::safeStorageExists(
                                     'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' .
                                     $otNameSanitized .
                                     '/' .
@@ -975,18 +990,24 @@ class AlmacenTableRowViewModel
         foreach ($activeClassesForOt as $activeClass) {
             $classNameProper = ucfirst(strtolower($activeClass));
 
-            $candidateDirs = [
-                $ayudasGlobalesBase . '/' . $classNameProper,
-                $ayudasGlobalesBase . '/' . $classNameProper . '/Fundicion',
-            ];
+            if (!isset(self::$globalAyudasFilesCache[$classNameProper])) {
+                $candidateDirs = [
+                    $ayudasGlobalesBase . '/' . $classNameProper,
+                    $ayudasGlobalesBase . '/' . $classNameProper . '/Fundicion',
+                ];
+                $cachedFiles = [];
+                foreach ($candidateDirs as $globalClassDir) {
+                    if (self::safeStorageExists($globalClassDir)) {
+                        $files = \Illuminate\Support\Facades\Storage::disk('local')->files($globalClassDir);
+                        foreach ($files as $f) {
+                            $cachedFiles[] = $f;
+                        }
+                    }
+                }
+                self::$globalAyudasFilesCache[$classNameProper] = $cachedFiles;
+            }
 
-            foreach ($candidateDirs as $globalClassDir) {
-                if (
-                    \Illuminate\Support\Facades\Storage::disk('local')->exists($globalClassDir)
-                ) {
-                    $files = \Illuminate\Support\Facades\Storage::disk('local')->files(
-                        $globalClassDir,
-                    );
+            $files = self::$globalAyudasFilesCache[$classNameProper];
                     foreach ($files as $f) {
                         $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
                         if ($ext === 'pdf') {
@@ -1035,8 +1056,6 @@ class AlmacenTableRowViewModel
                             }
                         }
                     }
-                }
-            }
         }
 
         $liberacionesPath = storage_path('app/public/liberaciones_pdf');
@@ -1063,14 +1082,21 @@ class AlmacenTableRowViewModel
             $almacenRootScan = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $otNameSanitized;
 
             $scanDirs = [];
-            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($ayudasDir)) {
-                $scanDirs[] = [
-                    'path' => $ayudasDir,
-                    'base_dir' => $ayudasDir,
-                ];
-            }
-            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($almacenRootScan)) {
-                $rootDirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($almacenRootScan);
+            if (self::safeStorageExists($almacenRootScan)) {
+                if (self::safeStorageExists($ayudasDir)) {
+                    $scanDirs[] = [
+                        'path' => $ayudasDir,
+                        'base_dir' => $ayudasDir,
+                    ];
+                    $legacyDirs = self::safeStorageDirectories($ayudasDir);
+                    foreach ($legacyDirs as $lDir) {
+                        $scanDirs[] = [
+                            'path' => $lDir,
+                            'base_dir' => $ayudasDir,
+                        ];
+                    }
+                }
+                $rootDirs = self::safeStorageDirectories($almacenRootScan);
                 foreach ($rootDirs as $rDir) {
                     $subDirs = [
                         $rDir . '/Ayudas_Visuales',
@@ -1078,23 +1104,13 @@ class AlmacenTableRowViewModel
                         $rDir . '/ayudas_visuales',
                     ];
                     foreach ($subDirs as $newAyDir) {
-                        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($newAyDir)) {
+                        if (self::safeStorageExists($newAyDir)) {
                             $scanDirs[] = [
                                 'path' => $newAyDir,
                                 'base_dir' => $almacenRootScan,
                             ];
                         }
                     }
-                }
-            }
-            
-            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($ayudasDir)) {
-                $legacyDirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($ayudasDir);
-                foreach ($legacyDirs as $lDir) {
-                    $scanDirs[] = [
-                        'path' => $lDir,
-                        'base_dir' => $ayudasDir,
-                    ];
                 }
             }
 
@@ -1224,7 +1240,7 @@ class AlmacenTableRowViewModel
                 'DOCUMENTACION_GIS/CALIDAD_FUNDICION/' .
                 $otNameSanitized .
                 '/ayudas_visuales/preordenes';
-            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($calidadDir)) {
+            if (self::safeStorageExists($calidadDir)) {
                 $files = \Illuminate\Support\Facades\Storage::disk('local')->allFiles(
                     $calidadDir,
                 );
@@ -1469,40 +1485,39 @@ class AlmacenTableRowViewModel
                     }
                 }
 
-                $clasesBaseList = [
-                    '1 - MOLDES',
-                    '2 - BOMBILLO',
-                    '3 - EMBUDO',
-                    '4 - CORONA',
-                    '5 - PLATO',
-                    '6 - FONDO',
-                    '7 - OBTURADOR',
-                    '8 - CABEZA DE SOPLO',
-                    '9 - CANDADO OBTURADOR',
-                    'Candado obturador',
-                    'Cabeza de soplo',
-                    'Obturador',
-                    'Bombillo',
-                    'Embudo',
-                    'Corona',
-                    'Plato',
-                    'Molde',
-                    'Fondo',
-                    'Pistones',
-                    'Guías',
-                    'Guias',
-                ];
+                $clasesBaseList = [];
                 
                 foreach (['ALMACEN_FUNDICION', 'CALIDAD_FUNDICION'] as $depto) {
                     $deptoDir = 'DOCUMENTACION_GIS/' . $depto . '/' . $otNameSanitized;
-                    if (\Illuminate\Support\Facades\Storage::disk('local')->exists($deptoDir)) {
-                        $dirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($deptoDir);
+                    if (self::safeStorageExists($deptoDir)) {
+                        $dirs = self::safeStorageDirectories($deptoDir);
                         foreach ($dirs as $d) {
                             $clasesBaseList[] = basename($d);
                         }
                     }
                 }
-                $clasesBaseList = array_unique($clasesBaseList);
+                $parentOtSanitized = preg_replace(
+                    '/_.*_R\d+$|_R\d+$/i',
+                    '',
+                    $otNameSanitized,
+                );
+                if ($parentOtSanitized && $parentOtSanitized !== $otNameSanitized) {
+                    foreach (['ALMACEN_FUNDICION', 'CALIDAD_FUNDICION'] as $depto) {
+                        $pDir = 'DOCUMENTACION_GIS/' . $depto . '/' . $parentOtSanitized;
+                        if (self::safeStorageExists($pDir)) {
+                            $dirs = self::safeStorageDirectories($pDir);
+                            foreach ($dirs as $d) {
+                                $clasesBaseList[] = basename($d);
+                            }
+                        }
+                    }
+                }
+                if (!empty($activeClassesForOt)) {
+                    foreach ($activeClassesForOt as $ac) {
+                        $clasesBaseList[] = $ac;
+                    }
+                }
+                $clasesBaseList = array_unique(array_filter($clasesBaseList));
 
                 foreach ($clasesBaseList as $claseDir) {
                     $claseVariants = array_values(
@@ -1846,7 +1861,7 @@ class AlmacenTableRowViewModel
                     $prefix = $dirInfo['prefix'];
 
                     if (
-                        \Illuminate\Support\Facades\Storage::disk('local')->exists($targetDir)
+                        self::safeStorageExists($targetDir)
                     ) {
                         $files = \Illuminate\Support\Facades\Storage::disk('local')->allFiles(
                             $targetDir,

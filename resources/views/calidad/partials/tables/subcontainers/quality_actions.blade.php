@@ -134,7 +134,7 @@
                 @if (in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado']))
                     <div
                         class="lib-estado-badge lib-estado-aprobado cal-padding-12px-16px cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
-                        <img src="{{ asset('images/Aprobado.png') }}" alt=""
+                        <img src="{{ asset('images/aprobado.png') }}" alt=""
                             class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0" />
                         <span>Liberación aprobada. Puedes revisar las clases procesadas o
                             modificar su estado si es necesario.</span>
