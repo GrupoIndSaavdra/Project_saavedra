@@ -3,7 +3,7 @@
 @section('head')
     @php
         $perfil = Auth::user()->perfil;
-        $deptName = in_array($perfil, [1, 2, 3]) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
+        $deptName = in_array($perfil, [1, 2, 3, 6]) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
     @endphp
     <title>Almacén — Dibujos de Fundición | GIS</title>
     <meta name="description"
@@ -18,7 +18,7 @@
     <div class="alm-wrapper">
         @php
             $perfil = Auth::user()->perfil;
-            $deptName = in_array($perfil, [1, 2, 3]) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
+            $deptName = in_array($perfil, [1, 2, 3, 6]) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
             $deptIcon = $perfil == 4 ? 'Quality.png' : 'almacen.png';
         @endphp
 

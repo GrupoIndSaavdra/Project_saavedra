@@ -524,8 +524,8 @@ class ProcessProductionController extends Controller
     public function validatePasswordAdmin($passwordEntered)
     {
         if ($passwordEntered) {
-            // ── OPTIMIZACIÓN: solo cargar admins y calidad, no User::all() ──
-            $users = User::query()->whereIn('perfil', [1, 4, 5], 'and', false)->get();
+            // ── OPTIMIZACIÓN: solo cargar admins, master, calidad, almacén y supervisor ──
+            $users = User::query()->whereIn('perfil', [1, 3, 4, 5, 6], 'and', false)->get();
             foreach ($users as $user) {
                 if (Hash::check($passwordEntered, $user->contrasena)) {
                     return true;

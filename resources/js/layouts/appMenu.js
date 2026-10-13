@@ -222,6 +222,14 @@ function isPathMatching(currentPath, aHref) {
             }
         }
 
+        // Sub-rutas de Soldadura Regenerar QR
+        if (currentPath.startsWith('/soldadura/regenerar-qr')) {
+            if (window.routes && window.routes['soldadura.regenerarQR']) {
+                const regenPath = new URL(window.routes['soldadura.regenerarQR'], window.location.origin).pathname;
+                if (linkPath === regenPath) return true;
+            }
+        }
+
         return false;
     } catch (e) {
         return false;
@@ -383,9 +391,81 @@ function getRoutes(profile) {
     const routeHome = ["home", "Inicio"];
     let sections = [];
 
+    const adminSubsections = [
+        {
+            title: "Molduras",
+            routes: [
+                ["createMolding", "Crear nueva moldura"],
+                ["editMolding", "Editar moldura"],
+            ],
+        },
+        {
+            title: "Orden de Trabajo",
+            routes: [
+                ["createMasterWO", "Crear o Modificar Orden de Trabajo (Master)"],
+                ["manageWO", "Programación de O.T"],
+                ["piecesInProgress", "Orden de Trabajo en Progreso"],
+                ["priorityManager", "Prioridad de Órdenes de Trabajo"],
+                ["showPiecesReport_view", "Reporte de piezas"],
+                ["showReleasePieces_view", "Liberación de piezas"],
+            ],
+        },
+        {
+            title: "Documentación Técnica",
+            routes: [
+                ["ayudas_fundicion.manage", "Ayudas Visuales de Fundición"],
+                ["ayudas.manage", "Ayudas Visuales de Maquinados"],
+                ["fundicion.manage", "Dibujos de Fundición"],
+                ["dibujos.manage", "Dibujos de Maquinados"],
+                ["programas.manage", "Programas CNC"],
+                ["manuales.manage", "Manuales de Procesos"],
+            ],
+        },
+        {
+            title: "Usuarios",
+            routes: [
+                ['users', 'Ver usuarios'],
+                ['usersOrganigrama', 'Organigrama'],
+                ["createUser", "Registrar usuario"],
+                ["recoverPassword", "Recuperar contraseña"],
+            ],
+        },
+        {
+            title: "Producción",
+            routes: [
+                ["productionData", "Datos de productividad"],
+                ["cNominals", "Editar C.Nominales y Tolerancias"],
+                ["machinesOccupied", "Máquinas ocupadas"],
+                ["show_panelWO", "Panel de progreso de O.T"],
+                ["systemLogsReport", "Auditoría de Producción"],
+                ["adminLogsReport", "Logs de Administradores"],
+            ],
+        },
+        {
+            title: "Soldadura PTA",
+            routes: [
+                ["pta.analysis", "Análisis de Resultados PTA"],
+                ["pta.segunda_pasada", "Segunda Pasada PTA"],
+            ],
+        },
+        {
+            title: "Reportes",
+            routes: [
+                ["reportes.reenvio", "Reenviar Reporte Diario"],
+                ["reportes.pta", "Envío de Reportes PTA"],
+            ],
+        },
+        {
+            title: "Herramientas",
+            routes: [
+                ["herramientas.tecamac.index", "Herramientas Tecamac"],
+            ],
+        },
+    ];
+
     switch (profile) {
         case "1":
-            // Admin (perfil 1 en BD): secciones directas sin título "Administración"
+            // Administración original (perfil 1 en BD): Administración completa + Almacén (Documentación Técnica y Herramientas)
             sections = [
                 {
                     title: null,
@@ -398,78 +478,24 @@ function getRoutes(profile) {
                     ],
                 },
                 {
-                    title: "Molduras",
-                    routes: [
-                        ["createMolding", "Crear nueva moldura"],
-                        ["editMolding", "Editar moldura"],
-                    ],
+                    title: "Administración",
+                    routes: adminSubsections,
                 },
                 {
-                    title: "Orden de Trabajo",
+                    title: "Almacén",
                     routes: [
-                        ["manageWO", "Programación de O.T"],
-                        ["piecesInProgress", "Orden de Trabajo en Progreso"],
-                        ["priorityManager", "Prioridad de Órdenes de Trabajo"],
-                        ["showPiecesReport_view", "Reporte de piezas"],
-                        ["showReleasePieces_view", "Liberación de piezas"],
-                    ],
-                },
-                {
-                    title: "Documentación Técnica",
-                    routes: [
-                        ["ayudas_fundicion.manage", "Ayudas Visuales de Fundición"],
-                        ["ayudas.manage", "Ayudas Visuales de Maquinados"],
-                        ["fundicion.manage", "Dibujos de Fundición"],
-                        ["dibujos.manage", "Dibujos de Maquinados"],
-                        ["programas.manage", "Programas CNC"],
-                        ["manuales.manage", "Manuales de Procesos"],
-                    ],
-                },
-                {
-                    title: "Usuarios",
-                    routes: [
-                        ['users', 'Ver usuarios'],
-                        ['usersOrganigrama', 'Organigrama'],
-                        ["createUser", "Registrar usuario"],
-                        ["recoverPassword", "Recuperar contraseña"],
-                    ],
-                },
-                {
-                    title: "Producción",
-                    routes: [
-                        ["productionData", "Datos de productividad"],
-                        ["cNominals", "Editar C.Nominales y Tolerancias"],
-                        ["machinesOccupied", "Máquinas ocupadas"],
-                        ["show_panelWO", "Panel de progreso de O.T"],
-                        ["systemLogsReport", "Auditoría de Producción"],
-                        ["adminLogsReport", "Logs de Administradores"],
-                    ],
-                },
-                {
-                    title: "Soldadura PTA",
-                    routes: [
-                        ["pta.analysis", "Análisis de Resultados PTA"],
-                        ["pta.segunda_pasada", "Segunda Pasada PTA"],
-                    ],
-                },
-                {
-                    title: "Reportes",
-                    routes: [
-                        ["reportes.reenvio", "Reenviar Reporte Diario"],
-                        ["reportes.pta", "Envío de Reportes PTA"],
-                    ],
-                },
-                {
-                    title: "Herramientas",
-                    routes: [
-                        ["herramientas.tecamac.index", "Herramientas Tecamac"],
-                    ],
-                },
-                {
-                    title: "Reportes de Calidad",
-                    routes: [
-                        ["calidad.r_interno_salidas.index", "Reporte de Inspección Visual"],
-                        ["calidad.inspeccion_visual.index", "Reporte Volumétrico y Dimensional"],
+                        {
+                            title: "Documentación Técnica",
+                            routes: [
+                                ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                            ],
+                        },
+                        {
+                            title: "Herramientas",
+                            routes: [
+                                ["herramientas.tecamac.index", "Herramientas Tecamac", "sec=almacen"],
+                            ],
+                        },
                     ],
                 },
             ];
@@ -507,77 +533,7 @@ function getRoutes(profile) {
                 },
                 {
                     title: "Administración",
-                    routes: [
-                        {
-                            title: "Molduras",
-                            routes: [
-                                ["createMolding", "Crear nueva moldura"],
-                                ["editMolding", "Editar moldura"],
-                            ],
-                        },
-                        {
-                            title: "Orden de Trabajo",
-                            routes: [
-                                ["createMasterWO", "Crear o Modificar Orden de Trabajo (Master)"],
-                                ["manageWO", "Programación de O.T"],
-                                ["piecesInProgress", "Orden de Trabajo en Progreso"],
-                                ["priorityManager", "Prioridad de Órdenes de Trabajo"],
-                                ["showPiecesReport_view", "Reporte de piezas"],
-                                ["showReleasePieces_view", "Liberación de piezas"],
-                            ],
-                        },
-                        {
-                            title: "Documentación Técnica",
-                            routes: [
-                                ["ayudas_fundicion.manage", "Ayudas Visuales de Fundición"],
-                                ["ayudas.manage", "Ayudas Visuales de Maquinados"],
-                                ["fundicion.manage", "Dibujos de Fundición"],
-                                ["dibujos.manage", "Dibujos de Maquinados"],
-                                ["programas.manage", "Programas CNC"],
-                                ["manuales.manage", "Manuales de Procesos"],
-                            ],
-                        },
-                        {
-                            title: "Usuarios",
-                            routes: [
-                                ['users', 'Ver usuarios'],
-                                ['usersOrganigrama', 'Organigrama'],
-                                ["createUser", "Registrar usuario"],
-                                ["recoverPassword", "Recuperar contraseña"],
-                            ],
-                        },
-                        {
-                            title: "Producción",
-                            routes: [
-                                ["productionData", "Datos de productividad"],
-                                ["cNominals", "Editar C.Nominales y Tolerancias"],
-                                ["machinesOccupied", "Máquinas ocupadas"],
-                                ["show_panelWO", "Panel de progreso de O.T"],
-                                ["systemLogsReport", "Auditoría de Producción"],
-                                ["adminLogsReport", "Logs de Administradores"],
-                            ],
-                        },
-                        {
-                            title: "Soldadura PTA",
-                            routes: [
-                                ["pta.analysis", "Análisis de Resultados PTA"],
-                                ["pta.segunda_pasada", "Segunda Pasada PTA"],
-                            ],
-                        },
-                        {
-                            title: "Reportes",
-                            routes: [
-                                ["reportes.reenvio", "Reenviar Reporte Diario"],
-                                ["reportes.pta", "Envío de Reportes PTA"],
-                            ],
-                        },
-                        {
-                            title: "Herramientas",
-                            routes: [
-                                ["herramientas.tecamac.index", "Herramientas Tecamac"],
-                            ],
-                        },
-                    ],
+                    routes: adminSubsections,
                 },
                 {
                     title: "Calidad",
@@ -639,6 +595,47 @@ function getRoutes(profile) {
                             title: "Herramientas",
                             routes: [
                                 ["herramientas.tecamac.index", "Herramientas Tecamac", "sec=almacen"],
+                            ],
+                        },
+                    ],
+                },
+            ];
+            break;
+        case "6":
+            // Supervisor (perfil 6 en BD): Administración completa + Almacén (Orden de Trabajo y Soldadura)
+            sections = [
+                {
+                    title: null,
+                    routes: [routeHome],
+                },
+                {
+                    title: "Prioridades",
+                    routes: [
+                        ["masterPriorities", "Prioridades GIS"],
+                    ],
+                },
+                {
+                    title: "Administración",
+                    routes: adminSubsections,
+                },
+                {
+                    title: "Almacén",
+                    routes: [
+                        {
+                            title: "Orden de Trabajo",
+                            routes: [
+                                ["manageWO", "Modificar O.T", "almacen_only=1"],
+                                ["piecesInProgress", "Orden de Trabajo en Progreso", "sec=almacen"],
+                            ],
+                        },
+                        {
+                            title: "Soldadura",
+                            routes: [
+                                ["soldadura.generarQRLote", "Generar QR por Lote"],
+                                ["soldadura.generarQRIndividual", "Generar QRs Botes"],
+                                ["soldadura.recepcionPlanta", "Registrar entrada de Soldadura"],
+                                ["soldadura.liberarQRPlanta", "Entrega de Soldadura a Planta"],
+                                ["soldadura.regenerarQR", "Regenerar QRs"],
                             ],
                         },
                     ],

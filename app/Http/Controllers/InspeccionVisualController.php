@@ -33,7 +33,7 @@ class InspeccionVisualController extends Controller
      */
     public function index(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -66,9 +66,9 @@ class InspeccionVisualController extends Controller
     /**
      * Vista de detalle / formulario de inspección visual para una OT y Clase específicas (4CAL-01)
      */
-    public function show(Request $request, $ot, $clase)
+    public function show(Request $request, string $ot, string $clase)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -212,7 +212,7 @@ class InspeccionVisualController extends Controller
         ]);
 
         $reporte = RVisual::findOrFail($request->reporte_id);
-        $claseData = \App\Models\Clase::where('id_ot', $reporte->ot_id)->where('nombre', $reporte->clase)->first();
+        $claseData = Clase::where('id_ot', $reporte->ot_id)->where('nombre', $reporte->clase)->first();
         $otData = DB::table('orden_trabajo')->where('id', $reporte->ot_id)->first();
         $pedido = $claseData ? (int) $claseData->pedido : (int) ($otData->cantidad ?? 0);
         $totalPiezas = $claseData ? (int) $claseData->piezas : $pedido;
@@ -316,7 +316,7 @@ class InspeccionVisualController extends Controller
      */
     public function uploadArchivo(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -462,7 +462,7 @@ class InspeccionVisualController extends Controller
      */
     public function viewArchivo(Request $request, int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -515,7 +515,7 @@ class InspeccionVisualController extends Controller
      */
     public function downloadArchivo(Request $request, int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -552,7 +552,7 @@ class InspeccionVisualController extends Controller
      */
     public function deleteArchivo(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -626,20 +626,20 @@ class InspeccionVisualController extends Controller
     /**
      * Generar y guardar el PDF oficial en el historial (DomPDF)
      */
-    public function generatePdf(Request $request, $id)
+    public function generatePdf(Request $request, int|string $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
-        $reporte = \App\Models\RVisual::with(['medidas', 'inspector'])->findOrFail($id);
+        $reporte = RVisual::with(['medidas', 'inspector'])->findOrFail($id);
         $otData = DB::table('orden_trabajo as ot')
             ->join('molduras as m', 'm.id', '=', 'ot.id_moldura')
             ->where('ot.id', $reporte->ot_id)
             ->select('ot.*', 'm.nombre as nombre_moldura')
             ->first();
 
-        $claseData = \App\Models\Clase::where('id_ot', $reporte->ot_id)->where('nombre', $reporte->clase)->first();
+        $claseData = Clase::where('id_ot', $reporte->ot_id)->where('nombre', $reporte->clase)->first();
         $pedido = $claseData ? (int) $claseData->pedido : (int) ($otData->cantidad ?? 0);
         $totalPiezas = $claseData ? (int) $claseData->piezas : $pedido;
         if ($totalPiezas <= 0) $totalPiezas = $pedido;
@@ -665,11 +665,9 @@ class InspeccionVisualController extends Controller
         ));
 
         $pdf->setPaper('letter', 'landscape');
-        $pdf->setOptions([
-            'isHtml5ParserEnabled' => true,
-            'isRemoteEnabled' => true,
-            'defaultFont' => 'DejaVu Sans'
-        ]);
+        $pdf->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true)
+            ->setOption('defaultFont', 'DejaVu Sans');
 
         // Sanitizar nombres de archivo y carpetas
         $fechaStr = \Carbon\Carbon::now()->format('Y-m-d');
@@ -727,9 +725,9 @@ class InspeccionVisualController extends Controller
     /**
      * Descargar un PDF específico del historial
      */
-    public function downloadPdf($id, $pdf_id)
+    public function downloadPdf(int|string $id, int|string $pdf_id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -745,9 +743,9 @@ class InspeccionVisualController extends Controller
     /**
      * Visualizar un PDF específico del historial en el navegador
      */
-    public function viewPdf($id, $pdf_id)
+    public function viewPdf(int|string $id, int|string $pdf_id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 

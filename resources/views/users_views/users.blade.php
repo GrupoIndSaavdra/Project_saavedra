@@ -61,6 +61,7 @@
         <select id="role-filter" class="role-select-toolbar">
             <option value="todos">Todos los roles</option>
             <option value="Administrador">Administrador</option>
+            <option value="Supervisor">Supervisor</option>
             <option value="Operador">Operador</option>
             <option value="Master">Master</option>
             <option value="Calidad">Calidad</option>
@@ -104,6 +105,7 @@
                         '3' => 'Master',
                         '4' => 'Calidad',
                         '5' => 'Almacén',
+                        '6' => 'Supervisor',
                         default => $user->perfil,
                     };
                     $rolClass = match((string)$user->perfil) {
@@ -112,6 +114,7 @@
                         '3' => 'badge-master',
                         '4' => 'badge-calidad',
                         '5' => 'badge-almacen',
+                        '6' => 'badge-supervisor',
                         default => 'badge-default',
                     };
                 @endphp
@@ -262,6 +265,7 @@
                         <label class="modal-label" for="edit_perfil">Tipo de Perfil (Rol) *</label>
                         <select id="edit_perfil" name="perfil" class="modal-select" required>
                             <option value="1">Administrador</option>
+                            <option value="6">Supervisor</option>
                             <option value="2">Operador</option>
                             <option value="3">Master</option>
                             <option value="4">Calidad</option>

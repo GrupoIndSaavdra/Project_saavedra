@@ -619,6 +619,11 @@ class WOController extends Controller
      */
     public function autosavePriority(Request $request)
     {
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if ($userProfile !== '3') {
+            return response()->json(['success' => false, 'message' => 'No tienes permisos para modificar información en Prioridades (Modo Solo Lectura).'], 403);
+        }
+
         $request->validate([
             'ot_id' => 'required|exists:orden_trabajo,id',
             'clase_id' => 'nullable|exists:clases,id',
@@ -1565,7 +1570,7 @@ class WOController extends Controller
     {
         // Guard de perfil: solo Master (1) y Admin/Gerencia (3)
         $userProfile = auth()->user()->perfil ?? null;
-        if (!in_array($userProfile, ['1', '3'])) {
+        if (!in_array($userProfile, ['1', '3', '6'])) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
@@ -1639,10 +1644,10 @@ class WOController extends Controller
      */
     public function savePriorities(Request $request)
     {
-        // Guard de perfil: solo Master (1) y Admin/Gerencia (3)
-        $userProfile = auth()->user()->perfil ?? null;
-        if (!in_array($userProfile, ['1', '3'])) {
-            return response()->json(['success' => false, 'message' => 'Sin permiso.'], 403);
+        // Guard de perfil: solo Master (3) puede reordenar y guardar prioridades
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if ($userProfile !== '3') {
+            return response()->json(['success' => false, 'message' => 'No tienes permisos para modificar el orden de prioridades (Modo Solo Lectura).'], 403);
         }
 
         $priorities = $request->input('priorities');

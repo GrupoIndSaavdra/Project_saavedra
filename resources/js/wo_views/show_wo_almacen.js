@@ -137,6 +137,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateResumen(idClase, pedido, piezas) {
         if (!resumenEl) return;
         resumenEl.hidden = false;
+        resumenEl.removeAttribute('hidden');
+        resumenEl.classList.remove('hidden');
 
         let total = 0;
         document.querySelectorAll('.grupo-parcialidad').forEach(g => {
@@ -183,6 +185,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateResumenTratamiento(idClase, pedido, piezas) {
         if (!resumenTratamientoEl) return;
         resumenTratamientoEl.hidden = false;
+        resumenTratamientoEl.removeAttribute('hidden');
+        resumenTratamientoEl.classList.remove('hidden');
 
         let total = 0;
         document.querySelectorAll('.grupo-tratamiento').forEach(g => {
@@ -216,17 +220,6 @@ document.addEventListener('DOMContentLoaded', () => {
             valPedido.textContent = totalParcialidades;
         }
 
-        const formTratamiento = document.getElementById('form-tratamiento');
-        if (formTratamiento) {
-            if (totalParcialidades === 0) {
-                formTratamiento.classList.add("alm-form-disabled");
-                formTratamiento.setAttribute('title', 'Se requiere recibir piezas en parcialidades primero');
-            } else {
-                formTratamiento.classList.remove("alm-form-disabled");
-                formTratamiento.removeAttribute('title');
-            }
-        }
-
         const valConsignacion = resumenTratamientoEl.querySelector('.val-consignacion-tratamiento');
         if (valConsignacion) {
             valConsignacion.textContent = piezasNum || '0';
@@ -238,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
             bar.style.width = pct + '%';
             bar.style.background = pct >= 100
                 ? '#0a8504'
-                : pct >= 50 ? '#f39c12' : '#033966';
+                : pct >= 50 ? '#f59e0b' : '#d97706';
         }
     }
 
@@ -359,12 +352,18 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const row = btn.closest('.fila-parcialidad-item');
             const id = row.dataset.id;
-            const cantidad = parseInt(row.querySelector('.edit-cantidad').value) || 0;
-            const descripcion = row.querySelector('.edit-descripcion').value;
+            const rawCant = row.querySelector('.edit-cantidad').value.trim();
+            const cantidad = parseInt(rawCant);
+            const descripcion = (row.querySelector('.edit-descripcion').value || '').trim();
             const fecha = row.querySelector('.edit-fecha').value;
             
-            if (!cantidad || cantidad < 1) {
-                alert('La cantidad debe ser al menos 1.');
+            if (rawCant === '' || isNaN(cantidad) || cantidad < 0) {
+                alert('La cantidad debe ser 0 o un número positivo.');
+                return;
+            }
+            if (cantidad === 0 && !descripcion) {
+                alert('Es obligatorio ingresar el motivo en la descripción cuando la cantidad es 0.');
+                row.querySelector('.edit-descripcion').focus();
                 return;
             }
             if (!fecha) {
@@ -388,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                if (currentTotal + cantidad > limit) {
+                if (cantidad > 0 && currentTotal + cantidad > limit) {
                     alert(`No puedes recibir más piezas de las que tiene en Consignación (${limit}). Las otras entregas suman ${currentTotal}, intentando cambiar esta a: ${cantidad}.`);
                     return;
                 }
@@ -448,23 +447,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Habilitar/deshabilitar botón registrar según cantidad, archivo y fecha
+    // ── Lógica de validación y alerta en Cero para Parcialidades ──
+    const btnRegistrar = document.getElementById('btn-registrar-parcialidad');
     const inputCantidad = document.getElementById('parcialidad-cantidad');
     const inputArchivo = document.getElementById('parcialidad-archivo');
     const inputFecha = document.getElementById('parcialidad-fecha');
-    const btnRegistrar = document.getElementById('btn-registrar-parcialidad');
+    const inputDescripcion = document.getElementById('parcialidad-descripcion');
+    const alertaCeroParcialidad = document.getElementById('alerta-cero-parcialidad');
+    const labelParcialidadDesc = document.getElementById('label-parcialidad-descripcion');
 
     function checkRegistrarButton() {
-        if (btnRegistrar && inputCantidad && inputArchivo && inputFecha) {
-            const hasQty = inputCantidad.value.trim() !== '' && parseInt(inputCantidad.value) >= 1;
-            const hasFile = inputArchivo.files && inputArchivo.files.length > 0;
-            const hasDate = inputFecha.value.trim() !== '';
-            btnRegistrar.disabled = !(hasQty && hasFile && hasDate);
+        if (!btnRegistrar || !inputCantidad || !inputArchivo || !inputFecha) return;
+        const rawQty = inputCantidad.value.trim();
+        const qtyNum = parseInt(rawQty);
+        const hasFile = inputArchivo.files && inputArchivo.files.length > 0;
+        const hasDate = inputFecha.value.trim() !== '';
+        const descVal = inputDescripcion ? inputDescripcion.value.trim() : '';
+
+        // Alerta y obligatoriedad de descripción si es 0
+        if (rawQty !== '' && !isNaN(qtyNum) && qtyNum === 0) {
+            if (alertaCeroParcialidad) alertaCeroParcialidad.style.display = 'flex';
+            if (inputDescripcion) {
+                inputDescripcion.required = true;
+                inputDescripcion.classList.add('input-requerido-cero');
+                inputDescripcion.placeholder = '⚠️ Obligatorio: explica por qué registras 0 piezas...';
+            }
+            if (labelParcialidadDesc) {
+                labelParcialidadDesc.innerHTML = 'Descripción <span class="badge-requerido-cero">* Obligatorio</span>';
+            }
+        } else {
+            if (alertaCeroParcialidad) alertaCeroParcialidad.style.display = 'none';
+            if (inputDescripcion) {
+                inputDescripcion.required = false;
+                inputDescripcion.classList.remove('input-requerido-cero');
+                inputDescripcion.placeholder = 'Ej: 1ra entrega...';
+            }
+            if (labelParcialidadDesc) {
+                labelParcialidadDesc.innerHTML = 'Descripción';
+            }
         }
+
+        let qtyOk = false;
+        if (rawQty !== '' && !isNaN(qtyNum)) {
+            if (qtyNum > 0) {
+                qtyOk = true;
+            } else if (qtyNum === 0) {
+                qtyOk = (descVal.length > 0);
+            }
+        }
+
+        btnRegistrar.disabled = !(qtyOk && hasFile && hasDate);
     }
 
     if (inputCantidad) {
         inputCantidad.addEventListener('input', checkRegistrarButton);
+        inputCantidad.addEventListener('change', checkRegistrarButton);
     }
     if (inputArchivo) {
         inputArchivo.addEventListener('change', checkRegistrarButton);
@@ -472,6 +509,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (inputFecha) {
         inputFecha.addEventListener('input', checkRegistrarButton);
         inputFecha.addEventListener('change', checkRegistrarButton);
+    }
+    if (inputDescripcion) {
+        inputDescripcion.addEventListener('input', checkRegistrarButton);
     }
 
     // Validar límite al enviar el formulario de nueva parcialidad
@@ -482,23 +522,100 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!activeRow) return;
 
             const limit = parseInt(activeRow.dataset.piezas) || 0;
-            const newQty = parseInt(document.getElementById('parcialidad-cantidad').value) || 0;
-            
-            let currentTotal = 0;
-            const idClase = activeRow.dataset.idClase;
-            document.querySelectorAll('.grupo-parcialidad').forEach(g => {
-                if (g.dataset.idClase === idClase) {
-                    g.querySelectorAll('.badge-cantidad').forEach(badge => {
-                        currentTotal += parseInt(badge.textContent.trim()) || 0;
-                    });
-                }
-            });
+            const newQty = parseInt(document.getElementById('parcialidad-cantidad').value);
+            const desc = (document.getElementById('parcialidad-descripcion')?.value || '').trim();
 
-            if (currentTotal + newQty > limit) {
+            if (newQty === 0 && !desc) {
                 e.preventDefault();
-                alert(`No puedes recibir más piezas de las que tiene en Consignación (${limit}). Actualmente recibidas: ${currentTotal}, ingresando: ${newQty}.`);
+                alert('Es obligatorio ingresar el motivo en la descripción cuando registras una remisión con 0 piezas.');
+                document.getElementById('parcialidad-descripcion')?.focus();
+                return;
+            }
+
+            if (newQty > 0) {
+                let currentTotal = 0;
+                const idClase = activeRow.dataset.idClase;
+                document.querySelectorAll('.grupo-parcialidad').forEach(g => {
+                    if (g.dataset.idClase === idClase) {
+                        g.querySelectorAll('.badge-cantidad').forEach(badge => {
+                            currentTotal += parseInt(badge.textContent.trim()) || 0;
+                        });
+                    }
+                });
+
+                if (currentTotal + newQty > limit) {
+                    e.preventDefault();
+                    alert(`No puedes recibir más piezas de las que tiene en Consignación (${limit}). Actualmente recibidas: ${currentTotal}, ingresando: ${newQty}.`);
+                }
             }
         });
+    }
+
+    // ── Lógica de validación y alerta en Cero para Tratamiento Térmico ──
+    const btnRegistrarTratamiento = document.getElementById('btn-registrar-tratamiento');
+    const inputCantidadTratamiento = document.getElementById('tratamiento-cantidad');
+    const inputArchivoTratamiento = document.getElementById('tratamiento-archivo');
+    const inputDescTratamiento = document.getElementById('tratamiento-descripcion');
+    const alertaCeroTratamiento = document.getElementById('alerta-cero-tratamiento');
+    const labelTratamientoDesc = document.getElementById('label-tratamiento-descripcion');
+
+    function checkTratamientoForm() {
+        if (!btnRegistrarTratamiento || !inputCantidadTratamiento || !inputArchivoTratamiento) return;
+        const rawQty = inputCantidadTratamiento.value.trim();
+        const qtyNum = parseInt(rawQty);
+        const fileHasValue = inputArchivoTratamiento.files && inputArchivoTratamiento.files.length > 0;
+        const descVal = inputDescTratamiento ? inputDescTratamiento.value.trim() : '';
+
+        // Alerta y obligatoriedad de descripción si es 0
+        if (rawQty !== '' && !isNaN(qtyNum) && qtyNum === 0) {
+            if (alertaCeroTratamiento) alertaCeroTratamiento.style.display = 'flex';
+            if (inputDescTratamiento) {
+                inputDescTratamiento.required = true;
+                inputDescTratamiento.classList.add('input-requerido-cero');
+                inputDescTratamiento.placeholder = '⚠️ Obligatorio: explica por qué registras 0 piezas...';
+            }
+            if (labelTratamientoDesc) {
+                labelTratamientoDesc.innerHTML = 'Descripción <span class="badge-requerido-cero">* Obligatorio</span>';
+            }
+        } else {
+            if (alertaCeroTratamiento) alertaCeroTratamiento.style.display = 'none';
+            if (inputDescTratamiento) {
+                inputDescTratamiento.required = false;
+                inputDescTratamiento.classList.remove('input-requerido-cero');
+                inputDescTratamiento.placeholder = 'Ej: Reporte de tratamiento...';
+            }
+            if (labelTratamientoDesc) {
+                labelTratamientoDesc.innerHTML = 'Descripción';
+            }
+        }
+
+        let qtyOk = false;
+        if (rawQty !== '' && !isNaN(qtyNum)) {
+            if (qtyNum > 0) {
+                qtyOk = true;
+            } else if (qtyNum === 0) {
+                qtyOk = (descVal.length > 0);
+            }
+        }
+
+        if (qtyOk && fileHasValue) {
+            btnRegistrarTratamiento.disabled = false;
+            btnRegistrarTratamiento.classList.remove("alm-btn-disabled");
+        } else {
+            btnRegistrarTratamiento.disabled = true;
+            btnRegistrarTratamiento.classList.add("alm-btn-disabled");
+        }
+    }
+
+    if (inputCantidadTratamiento) {
+        inputCantidadTratamiento.addEventListener('input', checkTratamientoForm);
+        inputCantidadTratamiento.addEventListener('change', checkTratamientoForm);
+    }
+    if (inputArchivoTratamiento) {
+        inputArchivoTratamiento.addEventListener('change', checkTratamientoForm);
+    }
+    if (inputDescTratamiento) {
+        inputDescTratamiento.addEventListener('input', checkTratamientoForm);
     }
 
     // Validar límite al enviar el formulario de nuevo tratamiento
@@ -508,54 +625,38 @@ document.addEventListener('DOMContentLoaded', () => {
             const activeRow = document.querySelector('.fila-clase.selected');
             if (!activeRow) return;
 
-            const idClase = activeRow.dataset.idClase;
-            let limit = 0;
-            document.querySelectorAll(`.grupo-parcialidad[data-id-clase="${idClase}"] .fila-parcialidad-item`).forEach(fila => {
-                limit += parseInt(fila.getAttribute('data-cantidad')) || 0;
-            });
+            const newQty = parseInt(document.getElementById('tratamiento-cantidad').value);
+            const desc = (document.getElementById('tratamiento-descripcion')?.value || '').trim();
 
-            const newQty = parseInt(document.getElementById('tratamiento-cantidad').value) || 0;
-            
-            let currentTotal = 0;
-            document.querySelectorAll('.grupo-tratamiento').forEach(g => {
-                if (g.dataset.idClase === idClase) {
-                    g.querySelectorAll('.badge-cantidad').forEach(badge => {
-                        currentTotal += parseInt(badge.textContent.trim()) || 0;
-                    });
-                }
-            });
-
-            if (currentTotal + newQty > limit) {
+            if (newQty === 0 && !desc) {
                 e.preventDefault();
-                alert(`No puedes tratar más piezas de las que se han recibido en almacén (${limit}). Actualmente tratadas: ${currentTotal}, ingresando: ${newQty}.`);
+                alert('Es obligatorio ingresar el motivo en la descripción cuando registras un tratamiento térmico con 0 piezas.');
+                document.getElementById('tratamiento-descripcion')?.focus();
+                return;
+            }
+
+            if (newQty > 0) {
+                const idClase = activeRow.dataset.idClase;
+                let limit = 0;
+                document.querySelectorAll(`.grupo-parcialidad[data-id-clase="${idClase}"] .fila-parcialidad-item`).forEach(fila => {
+                    limit += parseInt(fila.getAttribute('data-cantidad')) || 0;
+                });
+
+                let currentTotal = 0;
+                document.querySelectorAll('.grupo-tratamiento').forEach(g => {
+                    if (g.dataset.idClase === idClase) {
+                        g.querySelectorAll('.badge-cantidad').forEach(badge => {
+                            currentTotal += parseInt(badge.textContent.trim()) || 0;
+                        });
+                    }
+                });
+
+                if (currentTotal + newQty > limit) {
+                    e.preventDefault();
+                    alert(`No puedes tratar más piezas de las que se han recibido en almacén (${limit}). Actualmente tratadas: ${currentTotal}, ingresando: ${newQty}.`);
+                }
             }
         });
-    }
-
-    // ── Lógica para deshabilitar botón de Tratamiento Térmico hasta que cantidad y archivo estén llenos ──
-    const btnRegistrarTratamiento = document.getElementById('btn-registrar-tratamiento');
-    const inputCantidadTratamiento = document.getElementById('tratamiento-cantidad');
-    const inputArchivoTratamiento = document.getElementById('tratamiento-archivo');
-
-    function checkTratamientoForm() {
-        if (!btnRegistrarTratamiento || !inputCantidadTratamiento || !inputArchivoTratamiento) return;
-        const cantidadValue = inputCantidadTratamiento.value.trim();
-        const fileHasValue = inputArchivoTratamiento.files.length > 0;
-
-        if (cantidadValue !== '' && parseInt(cantidadValue) > 0 && fileHasValue) {
-            btnRegistrarTratamiento.disabled = false;
-            btnRegistrarTratamiento.classList.remove("alm-btn-disabled");
-        } else {
-            btnRegistrarTratamiento.disabled = true;
-            btnRegistrarTratamiento.classList.add("alm-btn-disabled");
-        }
-    }
-
-    if (inputCantidadTratamiento && inputArchivoTratamiento) {
-        // Inicialmente deshabilitado si está vacío
-        checkTratamientoForm();
-        inputCantidadTratamiento.addEventListener('input', checkTratamientoForm);
-        inputArchivoTratamiento.addEventListener('change', checkTratamientoForm);
     }
 
     // ── Lógica de edición de tratamientos en línea ──
@@ -598,11 +699,17 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.addEventListener('click', () => {
             const row = btn.closest('.fila-tratamiento-item');
             const id = row.dataset.id;
-            const cantidad = parseInt(row.querySelector('.edit-cantidad').value) || 0;
-            const descripcion = row.querySelector('.edit-descripcion').value;
+            const rawCant = row.querySelector('.edit-cantidad').value.trim();
+            const cantidad = parseInt(rawCant);
+            const descripcion = (row.querySelector('.edit-descripcion').value || '').trim();
             
-            if (!cantidad || cantidad < 1) {
-                alert('La cantidad debe ser al menos 1.');
+            if (rawCant === '' || isNaN(cantidad) || cantidad < 0) {
+                alert('La cantidad debe ser 0 o un número positivo.');
+                return;
+            }
+            if (cantidad === 0 && !descripcion) {
+                alert('Es obligatorio ingresar el motivo en la descripción cuando la cantidad es 0.');
+                row.querySelector('.edit-descripcion').focus();
                 return;
             }
             
@@ -626,7 +733,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
 
-                if (currentTotal + cantidad > limit) {
+                if (cantidad > 0 && currentTotal + cantidad > limit) {
                     alert(`No puedes tratar más piezas de las que se han recibido en almacén (${limit}). Los otros tratamientos suman ${currentTotal}, intentando cambiar esta a: ${cantidad}.`);
                     return;
                 }

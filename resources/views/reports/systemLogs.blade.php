@@ -86,7 +86,7 @@
                 </div>
 
                 <!-- Botón de Depuración Manual (Izquierda) -->
-                @if(in_array(auth()->user()->perfil, [1, 3]))
+                @if(in_array(auth()->user()->perfil, [1, 3, 6]))
                     <div id="manual-purge-container">
                         <button type="button" id="btn-manual-purge" class="btn-manual-purge-premium">
                             <span id="purge-btn-icon">🗑</span>
@@ -330,7 +330,7 @@
         </div>
 
         {{-- Overlay de progreso de depuración (fuera de la tabla y del formulario para abarcar toda la pantalla) --}}
-        @if(in_array(auth()->user()->perfil, [1, 3]))
+        @if(in_array(auth()->user()->perfil, [1, 3, 6]))
             <div id="purge-progress-overlay" class="gis-lock-overlay" style="display:none;">
                 <div class="gis-premium-modal" style="border-color: #033966;">
                     {{-- Spinner GIS --}}

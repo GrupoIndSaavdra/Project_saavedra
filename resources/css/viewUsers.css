@@ -309,12 +309,13 @@ table td:last-child {
     white-space: nowrap;
 }
 
-.badge-admin    { background: var(--gis-blue); color: #ffffff; }
-.badge-operador { background: #0e6db5; color: #ffffff; }
-.badge-master   { background: #6d1a5e; color: #ffffff; }
-.badge-calidad  { background: #057a55; color: #ffffff; }
-.badge-almacen  { background: #9a4a0e; color: #ffffff; }
-.badge-default  { background: #475569; color: #ffffff; }
+.badge-admin      { background: var(--gis-blue); color: #ffffff; }
+.badge-supervisor { background: #4f46e5; color: #ffffff; }
+.badge-operador   { background: #0e6db5; color: #ffffff; }
+.badge-master     { background: #6d1a5e; color: #ffffff; }
+.badge-calidad    { background: #057a55; color: #ffffff; }
+.badge-almacen    { background: #9a4a0e; color: #ffffff; }
+.badge-default    { background: #475569; color: #ffffff; }
 
 .badge-planta {
     display: inline-block;

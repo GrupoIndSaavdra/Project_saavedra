@@ -2184,7 +2184,7 @@ class AlmacenTableRowViewModel
                 }
             }
 
-            if ($userPerfil != 1 && $userPerfil != 2) {
+            if ($userPerfil != 1 && $userPerfil != 2 && $userPerfil != 6) {
                 if ($userPerfil == 4 || $userPerfil == 3) {
                     // Calidad o Master
                     // Calidad/Master solo ve preordenes si pre_orden_email_sent es true

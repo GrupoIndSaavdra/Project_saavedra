@@ -83,7 +83,7 @@
                         $canDelete = false;
                         $fileOwner = $otroArchivo['owner'] ?? '';
                         $userPerfil = Auth::user()->perfil;
-                        if (in_array($userPerfil, [1, 2, 3, '1', '2', '3'])) {
+                        if (in_array($userPerfil, [1, 2, 3, 6, '1', '2', '3', '6'])) {
                             $canDelete = true;
                         } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
                             if (!$targetReg->pre_orden_email_sent && !$targetReg->pre_orden_sent) {

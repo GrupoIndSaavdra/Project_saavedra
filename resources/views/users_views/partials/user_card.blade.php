@@ -6,6 +6,7 @@
         '3' => 'Master',
         '4' => 'Calidad',
         '5' => 'Almacén',
+        '6' => 'Supervisor',
         default => $user->perfil,
     };
     $fullName = trim($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno));

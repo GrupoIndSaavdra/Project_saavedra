@@ -102,9 +102,11 @@ class AlmacenWOController extends Controller
             'id_ot'           => 'required|string',
             'id_clase'        => 'required|integer',
             'archivo'         => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
-            'cantidad'        => 'required|integer|min:1',
-            'descripcion'     => 'nullable|string|max:255',
+            'cantidad'        => 'required|integer|min:0',
+            'descripcion'     => 'required_if:cantidad,0|nullable|string|max:255',
             'fecha_recepcion' => 'required|date',
+        ], [
+            'descripcion.required_if' => 'Es obligatorio ingresar una descripción del motivo cuando se registra una remisión con 0 piezas.',
         ]);
 
         $file = $request->file('archivo');
@@ -194,10 +196,12 @@ class AlmacenWOController extends Controller
     public function updateParcialidad(Request $request, int|string $id)
     {
         $request->validate([
-            'cantidad'        => 'required|integer|min:1',
-            'descripcion'     => 'nullable|string|max:255',
+            'cantidad'        => 'required|integer|min:0',
+            'descripcion'     => 'required_if:cantidad,0|nullable|string|max:255',
             'fecha_recepcion' => 'required|date',
             'archivo'         => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:10240',
+        ], [
+            'descripcion.required_if' => 'Es obligatorio ingresar una descripción del motivo cuando se registra una remisión con 0 piezas.',
         ]);
 
         $parcialidad = ParcialidadOt::findOrFail($id);

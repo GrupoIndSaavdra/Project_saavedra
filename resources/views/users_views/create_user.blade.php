@@ -85,6 +85,7 @@
                     </label>
                     <select class="form-select" id="floatingSelect" name="perfil" required>
                         <option value="1" {{ old('perfil') == '1' ? 'selected' : '' }}>Administrador</option>
+                        <option value="6" {{ old('perfil') == '6' ? 'selected' : '' }}>Supervisor</option>
                         <option value="2" {{ old('perfil', '2') == '2' ? 'selected' : '' }}>Operador</option>
                         <option value="3" {{ old('perfil') == '3' ? 'selected' : '' }}>Maestro</option>
                         <option value="4" {{ old('perfil') == '4' ? 'selected' : '' }}>Calidad</option>

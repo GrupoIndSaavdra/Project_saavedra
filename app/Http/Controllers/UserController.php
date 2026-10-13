@@ -21,8 +21,9 @@ class UserController extends Controller
             3 => "layouts.menu.appMaster",
             4 => "layouts.menu.appQuality",
             5 => "layouts.menu.appWarehouse",
+            6 => "layouts.menu.appAdmin",
         ];
-        return $layout[$profile];
+        return $layout[$profile] ?? "layouts.menu.appAdmin";
     }
     public function show(){
         $layout = $this->getLayout();

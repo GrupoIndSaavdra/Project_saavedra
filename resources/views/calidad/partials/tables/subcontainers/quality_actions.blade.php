@@ -1,5 +1,5 @@
 {{-- ── ACCIONES DE CALIDAD / ESTADOS DE LIBERACION ── --}}
-@if (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $estado === 'activa')
+@if (in_array(Auth::user()->perfil, [1, 2, 3, 4, 6, '1', '2', '3', '4', '6']) && $estado === 'activa')
     @if ($targetReg->calidad_revision_status === 'casting_aprobado')
         {{-- Banner informativo de casting_aprobado --}}
         <div class="lib-calidad-card" style="background:#f3e8ff; border:2px solid #9333ea;">
@@ -625,7 +625,7 @@
         </div>
     @endif
 @endif
-@if (in_array(Auth::user()->perfil, [1, 2, 3, 4, '1', '2', '3', '4']) && $isQualityFinalized)
+@if (in_array(Auth::user()->perfil, [1, 2, 3, 4, 6, '1', '2', '3', '4', '6']) && $isQualityFinalized)
     @php
         $libStatusClean = str_replace('calidad_', '', $targetReg->calidad_revision_status);
     @endphp

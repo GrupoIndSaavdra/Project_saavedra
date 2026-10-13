@@ -24,7 +24,9 @@ class HomeController extends Controller
             $objectiveT = 'Nuestro objetivo es producir moldes de alta calidad para botellas de vidrio que cumplan con las especificaciones de los clientes y sean eficientes en términos de costos de producción.';
             $pieces_Released = [];
             $info_Pieces = [];
-            switch (auth()->user()->perfil) {
+            $layout = "layouts.menu.appAdmin";
+            $welcomeT = 'Bienvenido a Administración';
+            switch ((int) auth()->user()->perfil) {
                 case 1:
                     $layout = "layouts.menu.appAdmin";
                     $welcomeT = 'Bienvenido a Administración';
@@ -50,6 +52,14 @@ class HomeController extends Controller
                     $layout = "layouts.menu.appWarehouse";
                     $backgroundImage = "images/fondoalmacen.png";
                     $welcomeT = 'Bienvenido a Almacen';
+                    break;
+                case 6:
+                    $layout = "layouts.menu.appAdmin";
+                    $welcomeT = 'Bienvenido Supervisor';
+                    break;
+                default:
+                    $layout = "layouts.menu.appAdmin";
+                    $welcomeT = 'Bienvenido a Administración';
                     break;
             }
 

@@ -8,52 +8,64 @@
 @endsection
 
 @php
+    $userPerfil = (string) (auth()->user()->perfil ?? '');
+    $canEditPriorities = $userPerfil === '3';
+    $isReadOnly = !$canEditPriorities;
+
     if (!function_exists('safeDateParse')) {
         function safeDateParse($value)
         {
-            if (empty($value))
+            if (empty($value)) {
                 return '';
+            }
             try {
                 // Handle common formats before parsing
                 $clean = str_replace('/', '-', $value);
                 return \Carbon\Carbon::parse($clean)->format('Y-m-d');
             } catch (\Exception $e) {
                 return ''; // If it's text like "FGF", return empty for the datepicker
-            }
         }
     }
+}
 
-    if (!function_exists('safeDateParseDisplay')) {
-        function safeDateParseDisplay($value)
-        {
-            if (empty($value))
-                return '';
-            try {
-                $clean = str_replace('/', '-', $value);
-                return \Carbon\Carbon::parse($clean)->format('d/m/Y');
-            } catch (\Exception $e) {
-                return $value; // If it's text, just display the text
+if (!function_exists('safeDateParseDisplay')) {
+    function safeDateParseDisplay($value)
+    {
+        if (empty($value)) {
+            return '';
+        }
+        try {
+            $clean = str_replace('/', '-', $value);
+            return \Carbon\Carbon::parse($clean)->format('d/m/Y');
+        } catch (\Exception $e) {
+            return $value; // If it's text, just display the text
             }
         }
     }
 
     if (!function_exists('renderDateDisplayOrIcon')) {
-        function renderDateDisplayOrIcon($value)
+        function renderDateDisplayOrIcon($value, $isReadOnly = false)
         {
             $parsed = safeDateParseDisplay($value);
             if (!empty($parsed)) {
                 return e($parsed);
+            }
+            if ($isReadOnly) {
+                return '-';
             }
             return '<span class="empty-date-icon-wrap" title="Hacer clic para asignar fecha"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-date-svg" style="vertical-align: middle; opacity: 0.65;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>';
         }
     }
 
     if (!function_exists('renderEditableTextOrIcon')) {
-        function renderEditableTextOrIcon($value)
+        function renderEditableTextOrIcon($value, $isReadOnly = false)
         {
             $clean = trim($value ?? '');
             if (!empty($clean) && $clean !== '-') {
                 return e($clean);
+            }
+            if ($isReadOnly) {
+                return '-';
             }
             return '<span class="empty-editable-ph" style="color: #94a3b8; font-size: 0.85em; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" title="Hacer clic para editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>-</span>';
         }
@@ -83,7 +95,7 @@
                 '#e0e8f5', // Azul lavanda
                 '#f0fff0', // Honeydew
                 '#fff0f5', // Lavender blush
-                '#fdf5e6'  // Old lace
+                '#fdf5e6', // Old lace
             ];
 
             $weekNum = (int) preg_replace('/[^0-9]/', '', $weekString);
@@ -108,180 +120,234 @@
     background-attachment: fixed;
 @endsection
 
-    <div class="priorities-wrapper">
-        <!-- Barra de Filtros y Herramientas (Oculta al imprimir) -->
-        <div class="toolbar no-print">
-            <form method="GET" action="{{ route('master.priorities') }}" class="filters-form">
-                <div class="filter-group">
-                    <label for="start_week">De Semana:</label>
-                    <select id="start_week" name="start_week" onchange="this.form.submit()">
-                        <option value="">Cualquiera</option>
-                        @for($i = 1; $i <= 52; $i++)
-                            <option value="{{ $i }}" {{ ($startWeek == $i) ? 'selected' : '' }}>Semana {{ $i }}</option>
-                        @endfor
-                    </select>
-                </div>
+<div class="priorities-wrapper">
+    <!-- Barra de Filtros y Herramientas (Oculta al imprimir) -->
+    <div class="toolbar no-print">
+        <form method="GET" action="{{ route('master.priorities') }}" class="filters-form">
+            <div class="filter-group">
+                <label for="start_week">De Semana:</label>
+                <select id="start_week" name="start_week" onchange="this.form.submit()">
+                    <option value="">Cualquiera</option>
+                    @for ($i = 1; $i <= 52; $i++)
+                        <option value="{{ $i }}" {{ $startWeek == $i ? 'selected' : '' }}>Semana
+                            {{ $i }}</option>
+                    @endfor
+                </select>
+            </div>
 
-                <div class="filter-group">
-                    <label for="end_week">A Semana:</label>
-                    <select id="end_week" name="end_week" onchange="this.form.submit()">
-                        <option value="">Cualquiera</option>
-                        @for($i = 1; $i <= 52; $i++)
-                            <option value="{{ $i }}" {{ ($endWeek == $i) ? 'selected' : '' }}>Semana {{ $i }}</option>
-                        @endfor
-                    </select>
-                </div>
+            <div class="filter-group">
+                <label for="end_week">A Semana:</label>
+                <select id="end_week" name="end_week" onchange="this.form.submit()">
+                    <option value="">Cualquiera</option>
+                    @for ($i = 1; $i <= 52; $i++)
+                        <option value="{{ $i }}" {{ $endWeek == $i ? 'selected' : '' }}>Semana
+                            {{ $i }}</option>
+                    @endfor
+                </select>
+            </div>
 
-                <div class="filter-group">
-                    <label for="ot_id">Por OT:</label>
-                    <select id="ot_id" name="ot_id" onchange="this.form.submit()">
-                        <option value="">Todas las OTs</option>
-                        @foreach($allOts as $ot)
-                            <option value="{{ $ot->id }}" {{ ($otId == $ot->id) ? 'selected' : '' }}>
-                                OT {{ $ot->id }} - {{ $ot->cliente ?? 'Sin Cliente' }}
-                                ({{ $ot->moldura->nombre ?? 'Sin Moldura' }})
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
+            <div class="filter-group">
+                <label for="ot_id">Por OT:</label>
+                <select id="ot_id" name="ot_id" onchange="this.form.submit()">
+                    <option value="">Todas las OTs</option>
+                    @foreach ($allOts as $ot)
+                        <option value="{{ $ot->id }}" {{ $otId == $ot->id ? 'selected' : '' }}>
+                            OT {{ $ot->id }} - {{ $ot->cliente ?? 'Sin Cliente' }}
+                            ({{ $ot->moldura->nombre ?? 'Sin Moldura' }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
 
-                <div class="filter-actions">
-                    <a href="{{ route('master.priorities') }}" class="btn-clear">General / Limpiar</a>
-                </div>
-            </form>
+            <div class="filter-actions">
+                <a href="{{ route('master.priorities') }}" class="btn-clear">General / Limpiar</a>
+            </div>
+        </form>
 
-            <div class="export-actions">
-                <div id="pm-status-badge" class="pm-table-status-badge no-print" title="Estado de sincronización">
+        <div class="export-actions">
+            @if (!$isReadOnly)
+                <div id="pm-status-badge" class="pm-table-status-badge no-print"
+                    title="Estado de sincronización: Modo Edición Activo">
                     <span class="pm-table-spinner" hidden></span>
-                    <span class="pm-table-status-text">Autoguardado Activo</span>
+                    <svg class="pm-table-power-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                        style="vertical-align: middle;">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                        <line x1="12" y1="2" x2="12" y2="12"></line>
+                    </svg>
+                    <span class="pm-table-status-text">Modo Edición y Autoguardado Activo</span>
                 </div>
-                <button type="button" class="btn-export-excel"
-                    onclick="exportTableToExcel('prioritiesTable', 'Prioridades_GIS')">Descargar Excel</button>
-                <a href="{{ route('master.priorities.pdf', request()->all()) }}" class="btn-export-pdf"
-                    style="text-decoration:none; display:inline-block;">Descargar PDF</a>
-                <button type="button" class="btn-print" onclick="window.print()">Imprimir</button>
+            @else
+                <div class="pm-table-status-badge pm-status-readonly no-print" title="Modo Solo Lectura">
+                    <span
+                        style="font-size: 13px; font-weight: 700; color: #94a3b8; display: inline-flex; align-items: center; gap: 6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        Modo Solo Lectura Activo
+                    </span>
+                </div>
+            @endif
+            <button type="button" class="btn-export-excel"
+                onclick="exportTableToExcel('prioritiesTable', 'Prioridades_GIS')">Descargar Excel</button>
+            <a href="{{ route('master.priorities.pdf', request()->all()) }}" class="btn-export-pdf"
+                style="text-decoration:none; display:inline-block;">Descargar PDF</a>
+            <button type="button" class="btn-print" onclick="window.print()">Imprimir</button>
+        </div>
+    </div>
+
+    <!-- Tabla y Encabezado -->
+    <div class="excel-table-container">
+        <!-- Encabezado Estilo Excel -->
+        <div class="excel-header">
+            <div class="header-logo">
+                <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" />
+            </div>
+            <div class="header-title">
+                <h1>PRIORIDADES</h1>
+            </div>
+            <div class="header-week">
+                @if (!empty($startWeek) && !empty($endWeek) && $startWeek == $endWeek)
+                    <h2>SEMANA {{ $startWeek }}</h2>
+                @elseif(!empty($startWeek) || !empty($endWeek))
+                    <h2>SEMANAS {{ $startWeek ?? 1 }}-{{ $endWeek ?? 52 }}</h2>
+                @else
+                    <h2>SEMANA {{ \Carbon\Carbon::now()->isoWeek() }}</h2>
+                @endif
+                <p>REPORTE GENERAL</p>
+            </div>
+            <div class="header-date">
+                <h3>{{ \Carbon\Carbon::now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</h3>
             </div>
         </div>
 
-        <!-- Tabla y Encabezado -->
-        <div class="excel-table-container">
-            <!-- Encabezado Estilo Excel -->
-            <div class="excel-header">
-                <div class="header-logo">
-                    <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" />
-                </div>
-                <div class="header-title">
-                    <h1>PRIORIDADES</h1>
-                </div>
-                <div class="header-week">
-                    @if(!empty($startWeek) && !empty($endWeek) && $startWeek == $endWeek)
-                        <h2>SEMANA {{ $startWeek }}</h2>
-                    @elseif(!empty($startWeek) || !empty($endWeek))
-                        <h2>SEMANAS {{ $startWeek ?? 1 }}-{{ $endWeek ?? 52 }}</h2>
-                    @else
-                        <h2>SEMANA {{ \Carbon\Carbon::now()->isoWeek() }}</h2>
-                    @endif
-                    <p>REPORTE GENERAL</p>
-                </div>
-                <div class="header-date">
-                    <h3>{{ \Carbon\Carbon::now()->locale('es')->isoFormat('dddd, D [de] MMMM [de] YYYY') }}</h3>
-                </div>
-            </div>
-
-            <table class="excel-table" id="prioritiesTable">
-                <thead>
-                    <tr>
+        <table class="excel-table" id="prioritiesTable">
+            <thead>
+                <tr>
+                    @if (!$isReadOnly)
                         <th rowspan="2" class="col-drag no-print">MOVER</th>
-                        <th rowspan="2" class="col-num">Nº</th>
-                        <th rowspan="2" class="col-ot">ORDEN DE TRABAJO</th>
-                        <th rowspan="2" class="col-compra">FECHA Y ORDEN DE COMPRA CLIENTE</th>
-                        <th rowspan="2" class="col-cliente">CLIENTE</th>
-                        <th rowspan="2" class="col-producto">NOMBRE DEL PRODUCTO</th>
-                        <th rowspan="2" class="col-cantidades">CANTIDADES</th>
-                        <th rowspan="2" class="col-piezas">PIEZAS</th>
-                        <th rowspan="2" class="col-forma">FORMA<br>GRABADOS<br>1,2,3,4</th>
-                        <th rowspan="2" class="col-prov">PROVEEDOR DE MATERIAL</th>
-                        <th rowspan="2" class="col-material">MATERIAL</th>
-                        <th rowspan="2" class="col-fecha-fund">FECHA DE ENTREGA PROVEEDOR FUNDICION</th>
-                        <th rowspan="2" class="col-fecha-tec">FECHA ENTREGA TECAMAC</th>
-                        <th rowspan="2" class="col-semana">N° DE SEMANA</th>
-                        <th rowspan="2" class="col-fecha-mex">FECHA ENTREGA MEXICO</th>
-                        <th rowspan="2" class="col-fecha-prom" style="background-color: yellow;">FECHA PROMETIDA ENTREGA
-                        </th>
-                        <th rowspan="2" class="col-obs text-center">OBSERVACIONES</th>
+                    @endif
+                    <th rowspan="2" class="col-num">Nº</th>
+                    <th rowspan="2" class="col-ot">ORDEN DE TRABAJO</th>
+                    <th rowspan="2" class="col-compra">FECHA Y ORDEN DE COMPRA CLIENTE</th>
+                    <th rowspan="2" class="col-cliente">CLIENTE</th>
+                    <th rowspan="2" class="col-producto">NOMBRE DEL PRODUCTO</th>
+                    <th rowspan="2" class="col-cantidades">CANTIDADES</th>
+                    <th rowspan="2" class="col-piezas">PIEZAS</th>
+                    <th rowspan="2" class="col-forma">FORMA<br>GRABADOS<br>1,2,3,4</th>
+                    <th rowspan="2" class="col-prov">PROVEEDOR DE MATERIAL</th>
+                    <th rowspan="2" class="col-material">MATERIAL</th>
+                    <th rowspan="2" class="col-fecha-fund">FECHA DE ENTREGA PROVEEDOR FUNDICION</th>
+                    <th rowspan="2" class="col-fecha-tec">FECHA ENTREGA TECAMAC</th>
+                    <th rowspan="2" class="col-semana">N° DE SEMANA</th>
+                    <th rowspan="2" class="col-fecha-mex">FECHA ENTREGA MEXICO</th>
+                    <th rowspan="2" class="col-fecha-prom" style="background-color: yellow;">FECHA PROMETIDA
+                        ENTREGA
+                    </th>
+                    <th rowspan="2" class="col-obs text-center">OBSERVACIONES</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php
+                    $rowCount = 1;
+                    $wosJsData = [];
+                    $totalWosCount = 0;
+                    foreach ($groupedWOs as $semana => $wos) {
+                        $totalWosCount += count($wos);
+                    }
+                @endphp
+                @if ($totalWosCount === 0)
+                    <tr>
+                        <td colspan="{{ $isReadOnly ? '16' : '17' }}" class="text-center p-4"
+                            style="background-color: #ffffff; padding: 48px 20px !important;">
+                            <div
+                                style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                                <img src="{{ asset('images/calendario.png') }}" alt="Calendario"
+                                    style="width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.25));">
+                                <span
+                                    style="color: #dc2626; font-size: 1.15em; font-weight: 700; letter-spacing: 0.3px;">
+                                    Esta semana o consulta no tiene ninguna Orden de Trabajo asignada actualmente.
+                                </span>
+                                <span style="color: #64748b; font-size: 0.88em; font-weight: 500;">
+                                    Intenta seleccionando otro número de semana o limpiando los filtros de búsqueda.
+                                </span>
+                            </div>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @php
-                        $rowCount = 1;
-                        $wosJsData = [];
-                        $totalWosCount = 0;
-                        foreach($groupedWOs as $semana => $wos) {
-                            $totalWosCount += count($wos);
-                        }
-                    @endphp
-                    @if($totalWosCount === 0)
-                        <tr>
-                            <td colspan="18" class="text-center p-4" style="background-color: #ffffff; padding: 48px 20px !important;">
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
-                                    <img src="{{ asset('images/calendario.png') }}" alt="Calendario" style="width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.25));">
-                                    <span style="color: #dc2626; font-size: 1.15em; font-weight: 700; letter-spacing: 0.3px;">
-                                        Esta semana o consulta no tiene ninguna Orden de Trabajo asignada actualmente.
-                                    </span>
-                                    <span style="color: #64748b; font-size: 0.88em; font-weight: 500;">
-                                        Intenta seleccionando otro número de semana o limpiando los filtros de búsqueda.
-                                    </span>
-                                </div>
-                            </td>
-                        </tr>
-                    @else
-                        @foreach($groupedWOs as $semana => $wos)
+                @else
+                    @foreach ($groupedWOs as $semana => $wos)
+                        @php
+                            $rowColor = getPastelColorForWeek($semana);
+                        @endphp
+                        @foreach ($wos as $wo)
                             @php
-                                $rowColor = getPastelColorForWeek($semana);
-                            @endphp
-                            @foreach($wos as $wo)
-                                @php
-                                    $isInactive = ($wo->clases->where('finalizada', 0)->count() === 0);
-                                    $rowColor = $isInactive ? '#d6d6d6' : getPastelColorForWeek($semana);
+                                $isInactive = $wo->clases->where('finalizada', 0)->count() === 0;
+                                $rowColor = $isInactive ? '#d6d6d6' : getPastelColorForWeek($semana);
 
-                                    $rawClases = $wo->clases ?? collect();
-                                    if ($rawClases->count() > 0) {
-                                        $sortedClases = $rawClases->sortBy(function($cl) use ($wo) {
-                                            return !empty($cl->fecha_entrega_fundicion) ? trim($cl->fecha_entrega_fundicion) : (!empty($wo->fecha_entrega_fundicion) ? trim($wo->fecha_entrega_fundicion) : '');
-                                        })->values();
-                                    } else {
-                                        $sortedClases = collect();
-                                    }
+                                $rawClases = $wo->clases ?? collect();
+                                if ($rawClases->count() > 0) {
+                                    $sortedClases = $rawClases
+                                        ->sortBy(function ($cl) use ($wo) {
+                                            return !empty($cl->fecha_entrega_fundicion)
+                                                ? trim($cl->fecha_entrega_fundicion)
+                                                : (!empty($wo->fecha_entrega_fundicion)
+                                                    ? trim($wo->fecha_entrega_fundicion)
+                                                    : '');
+                                        })
+                                        ->values();
+                                } else {
+                                    $sortedClases = collect();
+                                }
 
-                                    $clasesJsArr = [];
-                                    foreach($sortedClases as $cl) {
-                                        $clasesJsArr[] = [
-                                            'id' => $cl->id,
-                                            'nombre' => $cl->nombre,
-                                            'pedido' => $cl->pedido,
-                                            'proveedor' => !empty($cl->proveedor) ? trim($cl->proveedor) : (!empty($wo->proveedor_material) ? trim($wo->proveedor_material) : ''),
-                                            'fecha_entrega_fundicion' => safeDateParse(!empty($cl->fecha_entrega_fundicion) ? $cl->fecha_entrega_fundicion : $wo->fecha_entrega_fundicion)
-                                        ];
-                                    }
-
-                                    $hasCastingPfc = \App\Models\PreOrdenFundicion::where('ot', 'LIKE', '%' . $wo->id . '%')->exists();
-                                    
-                                    $wosJsData[$wo->id] = [
-                                        'id' => $wo->id,
-                                        'cliente' => $wo->cliente ?? 'Sin Cliente',
-                                        'moldura' => $wo->moldura ? $wo->moldura->nombre : ($wo->nombre_producto ?? 'Sin Moldura'),
-                                        'proveedor_material' => $wo->proveedor_material ?? '',
-                                        'fecha_entrega_fundicion' => safeDateParse($wo->fecha_entrega_fundicion),
-                                        'clases' => $clasesJsArr,
-                                        'hasCastingPfc' => $hasCastingPfc
+                                $clasesJsArr = [];
+                                foreach ($sortedClases as $cl) {
+                                    $clasesJsArr[] = [
+                                        'id' => $cl->id,
+                                        'nombre' => $cl->nombre,
+                                        'pedido' => $cl->pedido,
+                                        'proveedor' => !empty($cl->proveedor)
+                                            ? trim($cl->proveedor)
+                                            : (!empty($wo->proveedor_material)
+                                                ? trim($wo->proveedor_material)
+                                                : ''),
+                                        'fecha_entrega_fundicion' => safeDateParse(
+                                            !empty($cl->fecha_entrega_fundicion)
+                                                ? $cl->fecha_entrega_fundicion
+                                                : $wo->fecha_entrega_fundicion,
+                                        ),
                                     ];
-                                @endphp
-                                <tr class="pm-table-row {{ $isInactive ? 'is-inactive-ot' : '' }}" data-ot-id="{{ $wo->id }}" data-is-inactive="{{ $isInactive ? '1' : '0' }}" style="background-color: {{ $rowColor }};">
+                                }
+
+                                $hasCastingPfc = \App\Models\PreOrdenFundicion::where(
+                                    'ot',
+                                    'LIKE',
+                                    '%' . $wo->id . '%',
+                                )->exists();
+
+                                $wosJsData[$wo->id] = [
+                                    'id' => $wo->id,
+                                    'cliente' => $wo->cliente ?? 'Sin Cliente',
+                                    'moldura' => $wo->moldura
+                                        ? $wo->moldura->nombre
+                                        : $wo->nombre_producto ?? 'Sin Moldura',
+                                    'proveedor_material' => $wo->proveedor_material ?? '',
+                                    'fecha_entrega_fundicion' => safeDateParse($wo->fecha_entrega_fundicion),
+                                    'clases' => $clasesJsArr,
+                                    'hasCastingPfc' => $hasCastingPfc,
+                                ];
+                            @endphp
+                            <tr class="pm-table-row {{ $isInactive ? 'is-inactive-ot' : '' }}"
+                                data-ot-id="{{ $wo->id }}" data-is-inactive="{{ $isInactive ? '1' : '0' }}"
+                                style="background-color: {{ $rowColor }};">
+                                @if (!$isReadOnly)
                                     <td class="text-center no-print cell-drag">
-                                        <div class="table-drag-handle" title="Sujeta y arrastra para mover de posición la OT">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                                                fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                                                stroke-linejoin="round">
+                                        <div class="table-drag-handle"
+                                            title="Sujeta y arrastra para mover de posición la OT">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                                                viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                                 <circle cx="9" cy="5" r="1.5" fill="currentColor" />
                                                 <circle cx="9" cy="12" r="1.5" fill="currentColor" />
                                                 <circle cx="9" cy="19" r="1.5" fill="currentColor" />
@@ -291,177 +357,353 @@
                                             </svg>
                                         </div>
                                     </td>
-                                    <td class="text-center font-bold font-large cell-row-num">{{ $rowCount++ }}</td>
-                                    <td class="text-center font-bold cell-ot-val">{{ $wo->id }}</td>
-                                    <td class="text-center font-bold">
-                                        @if($wo->fecha_compra)
-                                            {{ \Carbon\Carbon::parse($wo->fecha_compra)->format('d/m/Y') }}<br>
+                                @endif
+                                <td class="text-center font-bold font-large cell-row-num">{{ $rowCount++ }}</td>
+                                <td class="text-center font-bold cell-ot-val">{{ $wo->id }}</td>
+                                <td class="text-center font-bold">
+                                    @if ($wo->fecha_compra)
+                                        {{ \Carbon\Carbon::parse($wo->fecha_compra)->format('d/m/Y') }}<br>
+                                    @endif
+                                    {{ $wo->orden_compra }}
+                                </td>
+                                <td class="text-center font-bold cell-cliente-val">{{ $wo->cliente }}</td>
+                                <td class="text-center font-bold cell-producto-val">
+                                    {{ $wo->moldura ? $wo->moldura->nombre : $wo->nombre_producto }}
+                                </td>
+                                <td class="text-center p-0 font-bold cell-subcells"
+                                    style="vertical-align: stretch; height: 1px;">
+                                    <div class="subcell-container">
+                                        @if ($sortedClases->count() > 0)
+                                            @foreach ($sortedClases as $cl)
+                                                <div class="subcell-row font-bold">{{ $cl->pedido }}</div>
+                                            @endforeach
+                                        @else
+                                            <div class="subcell-row font-bold">{{ $wo->cantidad }}</div>
                                         @endif
-                                        {{ $wo->orden_compra }}
-                                    </td>
-                                    <td class="text-center font-bold cell-cliente-val">{{ $wo->cliente }}</td>
-                                    <td class="text-center font-bold cell-producto-val">
-                                        {{ $wo->moldura ? $wo->moldura->nombre : $wo->nombre_producto }}
-                                    </td>
-                                    <td class="text-center p-0 font-bold cell-subcells" style="vertical-align: stretch; height: 1px;">
-                                        <div class="subcell-container">
-                                            @if($sortedClases->count() > 0)
-                                                @foreach($sortedClases as $cl)
-                                                    <div class="subcell-row font-bold">{{ $cl->pedido }}</div>
-                                                @endforeach
-                                            @else
-                                                <div class="subcell-row font-bold">{{ $wo->cantidad }}</div>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    <td class="text-center p-0 text-uppercase font-bold cell-subcells" style="vertical-align: stretch; height: 1px;">
-                                        <div class="subcell-container">
-                                            @if($sortedClases->count() > 0)
-                                                @foreach($sortedClases as $cl)
-                                                    <div class="subcell-row font-bold">{{ $cl->nombre }}</div>
-                                                @endforeach
-                                            @else
-                                                <div class="subcell-row font-bold">-</div>
-                                            @endif
-                                        </div>
-                                    </td>
+                                    </div>
+                                </td>
+                                <td class="text-center p-0 text-uppercase font-bold cell-subcells"
+                                    style="vertical-align: stretch; height: 1px;">
+                                    <div class="subcell-container">
+                                        @if ($sortedClases->count() > 0)
+                                            @foreach ($sortedClases as $cl)
+                                                <div class="subcell-row font-bold">{{ $cl->nombre }}</div>
+                                            @endforeach
+                                        @else
+                                            <div class="subcell-row font-bold">-</div>
+                                        @endif
+                                    </div>
+                                </td>
+                                @if (!$isReadOnly)
                                     <td class="text-center" contenteditable="true"
-                                        onblur="autosaveField({{ $wo->id }}, 'forma_grabados', this)">{!! renderEditableTextOrIcon($wo->forma_grabados) !!}</td>
-                                    @php
-                                        $supplierBlocks = [];
-                                        if ($sortedClases->count() > 0) {
-                                            $currentBlock = null;
-                                            foreach ($sortedClases as $cl) {
-                                                $clProv = !empty($cl->proveedor) ? trim($cl->proveedor) : (!empty($wo->proveedor_material) ? trim($wo->proveedor_material) : '-');
-                                                $rawName = $cl->nombre ?? 'Clase';
-                                                $cleanName = trim(preg_replace('/^[0-9]+\s*-\s*/', '', $rawName));
-                                                if (empty($cleanName)) { $cleanName = $rawName; }
+                                        onblur="autosaveField({{ $wo->id }}, 'forma_grabados', this)">
+                                        {!! renderEditableTextOrIcon($wo->forma_grabados, false) !!}</td>
+                                @else
+                                    <td class="text-center">{!! renderEditableTextOrIcon($wo->forma_grabados, true) !!}</td>
+                                @endif
+                                @php
+                                    $supplierBlocks = [];
+                                    if ($sortedClases->count() > 0) {
+                                        $currentBlock = null;
+                                        foreach ($sortedClases as $cl) {
+                                            $clProv = !empty($cl->proveedor)
+                                                ? trim($cl->proveedor)
+                                                : (!empty($wo->proveedor_material)
+                                                    ? trim($wo->proveedor_material)
+                                                    : '-');
+                                            $rawName = $cl->nombre ?? 'Clase';
+                                            $cleanName = trim(preg_replace('/^[0-9]+\s*-\s*/', '', $rawName));
+                                            if (empty($cleanName)) {
+                                                $cleanName = $rawName;
+                                            }
 
-                                                if ($currentBlock === null) {
-                                                    $currentBlock = ['supplier' => $clProv, 'count' => 1, 'clases' => [$cleanName]];
-                                                } elseif ($currentBlock['supplier'] === $clProv) {
-                                                    $currentBlock['count']++;
-                                                    $currentBlock['clases'][] = $cleanName;
-                                                } else {
-                                                    $supplierBlocks[] = $currentBlock;
-                                                    $currentBlock = ['supplier' => $clProv, 'count' => 1, 'clases' => [$cleanName]];
-                                                }
-                                            }
-                                            if ($currentBlock !== null) {
+                                            if ($currentBlock === null) {
+                                                $currentBlock = [
+                                                    'supplier' => $clProv,
+                                                    'count' => 1,
+                                                    'clases' => [$cleanName],
+                                                ];
+                                            } elseif ($currentBlock['supplier'] === $clProv) {
+                                                $currentBlock['count']++;
+                                                $currentBlock['clases'][] = $cleanName;
+                                            } else {
                                                 $supplierBlocks[] = $currentBlock;
+                                                $currentBlock = [
+                                                    'supplier' => $clProv,
+                                                    'count' => 1,
+                                                    'clases' => [$cleanName],
+                                                ];
                                             }
-                                        } else {
-                                            $supplierBlocks[] = ['supplier' => $wo->proveedor_material ?? '-', 'count' => 1, 'clases' => []];
                                         }
-                                    @endphp
-                                    @if($sortedClases->count() <= 1)
-                                        <td class="text-center cell-suppliers" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} font-weight: {{ $hasCastingPfc ? '900' : '500' }};" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para seleccionar proveedor de fundición">
-                                            {{ $supplierBlocks[0]['supplier'] ?? $wo->proveedor_material ?? '-' }}
+                                        if ($currentBlock !== null) {
+                                            $supplierBlocks[] = $currentBlock;
+                                        }
+                                    } else {
+                                        $supplierBlocks[] = [
+                                            'supplier' => $wo->proveedor_material ?? '-',
+                                            'count' => 1,
+                                            'clases' => [],
+                                        ];
+                                    }
+                                @endphp
+                                @if ($isReadOnly)
+                                    @if ($sortedClases->count() <= 1)
+                                        <td class="text-center cell-suppliers font-bold">
+                                            {{ $supplierBlocks[0]['supplier'] ?? ($wo->proveedor_material ?? '-') }}
                                         </td>
                                     @elseif(count($supplierBlocks) === 1)
-                                        <td class="text-center cell-suppliers" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} font-weight: {{ $hasCastingPfc ? '900' : '500' }};" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para abrir gestor de proveedor de fundición">
+                                        <td class="text-center cell-suppliers font-bold">
                                             {{ $supplierBlocks[0]['supplier'] }}
                                         </td>
                                     @else
-                                        <td class="text-center p-0 cell-suppliers cell-subcells" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px; font-weight: {{ $hasCastingPfc ? '900' : '500' }};" onclick="openSupplierModal({{ $wo->id }})" title="Hacer clic para abrir gestor de proveedor de fundición">
+                                        <td class="text-center p-0 cell-suppliers cell-subcells"
+                                            style="vertical-align: stretch; height: 1px;">
                                             <div class="subcell-container">
-                                                @foreach($supplierBlocks as $bIdx => $block)
-                                                    <div class="subcell-row supplier-cell" style="flex: {{ $block['count'] }} {{ $block['count'] }} auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; box-sizing: border-box; min-height: 28px; font-weight: {{ $hasCastingPfc ? '900' : '500' }};">
-                                                        @if(!empty($block['clases']) && count($supplierBlocks) > 1 && count($supplierBlocks) < $sortedClases->count())
-                                                            <span class="subcell-class-label font-bold" style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
+                                                @foreach ($supplierBlocks as $bIdx => $block)
+                                                    <div class="subcell-row supplier-cell"
+                                                        style="flex: {{ $block['count'] }} {{ $block['count'] }} auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; box-sizing: border-box; min-height: 28px;">
+                                                        @if (!empty($block['clases']) && count($supplierBlocks) > 1 && count($supplierBlocks) < $sortedClases->count())
+                                                            <span class="subcell-class-label font-bold"
+                                                                style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
                                                                 {{ implode(', ', $block['clases']) }}
                                                             </span>
                                                         @endif
-                                                        <span style="font-weight: {{ $hasCastingPfc ? '900' : '500' }};">{{ $block['supplier'] }}</span>
+                                                        <span
+                                                            style="font-weight: 600;">{{ $block['supplier'] }}</span>
                                                     </div>
                                                 @endforeach
                                             </div>
                                         </td>
                                     @endif
-                                    <td class="text-center p-0 cell-materials font-bold cell-subcells" style="vertical-align: stretch; height: 1px;">
-                                        <div class="subcell-container">
-                                            @if($sortedClases->count() > 0)
-                                                @foreach($sortedClases as $cl)
-                                                    <div class="subcell-row font-bold">{{ $cl->material ?? '-' }}</div>
-                                                @endforeach
-                                            @else
-                                                <div class="subcell-row font-bold">{{ $wo->material }}</div>
-                                            @endif
-                                        </div>
-                                    </td>
-                                    @php
-                                        $fundDateBlocks = [];
-                                        if ($sortedClases->count() > 0) {
-                                            $currentBlock = null;
-                                            foreach ($sortedClases as $cl) {
-                                                $rawDate = !empty($cl->fecha_entrega_fundicion) ? $cl->fecha_entrega_fundicion : $wo->fecha_entrega_fundicion;
-                                                $clFundDate = safeDateParse($rawDate);
-                                                $rawName = $cl->nombre ?? 'Clase';
-                                                $cleanName = trim(preg_replace('/^[0-9]+\s*-\s*/', '', $rawName));
-                                                if (empty($cleanName)) { $cleanName = $rawName; }
-
-                                                if ($currentBlock === null) {
-                                                    $currentBlock = ['date' => $clFundDate, 'count' => 1, 'clases' => [$cleanName]];
-                                                } elseif ($currentBlock['date'] === $clFundDate) {
-                                                    $currentBlock['count']++;
-                                                    $currentBlock['clases'][] = $cleanName;
-                                                } else {
-                                                    $fundDateBlocks[] = $currentBlock;
-                                                    $currentBlock = ['date' => $clFundDate, 'count' => 1, 'clases' => [$cleanName]];
-                                                }
-                                            }
-                                            if ($currentBlock !== null) {
-                                                $fundDateBlocks[] = $currentBlock;
-                                            }
-                                        } else {
-                                            $fundDateBlocks[] = ['date' => safeDateParse($wo->fecha_entrega_fundicion ?? ''), 'count' => 1, 'clases' => []];
-                                        }
-                                        $singleClass = $sortedClases->count() === 1 ? $sortedClases->first() : null;
-                                        $singleFundDate = $singleClass ? ($singleClass->fecha_entrega_fundicion ?: $wo->fecha_entrega_fundicion) : $wo->fecha_entrega_fundicion;
-                                    @endphp
-                                    @if($sortedClases->count() <= 1)
-                                        <td class="text-center p-0 date-cell cell-subcells" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px;" onclick="openDatePicker(this)" title="Hacer clic para seleccionar fecha de fundición">
+                                @else
+                                    @if ($sortedClases->count() <= 1)
+                                        <td class="text-center cell-suppliers"
+                                            style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} font-weight: {{ $hasCastingPfc ? '900' : '500' }};"
+                                            onclick="openSupplierModal({{ $wo->id }})"
+                                            title="Hacer clic para seleccionar proveedor de fundición">
+                                            {{ $supplierBlocks[0]['supplier'] ?? ($wo->proveedor_material ?? '-') }}
+                                        </td>
+                                    @elseif(count($supplierBlocks) === 1)
+                                        <td class="text-center cell-suppliers"
+                                            style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} font-weight: {{ $hasCastingPfc ? '900' : '500' }};"
+                                            onclick="openSupplierModal({{ $wo->id }})"
+                                            title="Hacer clic para abrir gestor de proveedor de fundición">
+                                            {{ $supplierBlocks[0]['supplier'] }}
+                                        </td>
+                                    @else
+                                        <td class="text-center p-0 cell-suppliers cell-subcells"
+                                            style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px; font-weight: {{ $hasCastingPfc ? '900' : '500' }};"
+                                            onclick="openSupplierModal({{ $wo->id }})"
+                                            title="Hacer clic para abrir gestor de proveedor de fundición">
                                             <div class="subcell-container">
-                                                <div class="date-single-box subcell-row" style="padding: 6px; width: 100%; box-sizing: border-box;">
-                                                    <span class="date-display" style="font-size: 11px; color: {{ $hasCastingPfc ? '#033966' : '#000000' }}; font-weight: {{ $hasCastingPfc ? '900' : '500' }};">{!! renderDateDisplayOrIcon($singleFundDate) !!}</span>
-                                                    <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
-                                                        value="{{ safeDateParse($singleFundDate) }}"
-                                                        onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_entrega_fundicion'{{ $singleClass ? ', '.$singleClass->id : '' }})" {{ $hasCastingPfc ? 'disabled' : '' }}>
+                                                @foreach ($supplierBlocks as $bIdx => $block)
+                                                    <div class="subcell-row supplier-cell"
+                                                        style="flex: {{ $block['count'] }} {{ $block['count'] }} auto; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 4px 2px; box-sizing: border-box; min-height: 28px; font-weight: {{ $hasCastingPfc ? '900' : '500' }};">
+                                                        @if (!empty($block['clases']) && count($supplierBlocks) > 1 && count($supplierBlocks) < $sortedClases->count())
+                                                            <span class="subcell-class-label font-bold"
+                                                                style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
+                                                                {{ implode(', ', $block['clases']) }}
+                                                            </span>
+                                                        @endif
+                                                        <span
+                                                            style="font-weight: {{ $hasCastingPfc ? '900' : '500' }};">{{ $block['supplier'] }}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                    @endif
+                                @endif
+                                <td class="text-center p-0 cell-materials font-bold cell-subcells"
+                                    style="vertical-align: stretch; height: 1px;">
+                                    <div class="subcell-container">
+                                        @if ($sortedClases->count() > 0)
+                                            @foreach ($sortedClases as $cl)
+                                                <div class="subcell-row font-bold">{{ $cl->material ?? '-' }}</div>
+                                            @endforeach
+                                        @else
+                                            <div class="subcell-row font-bold">{{ $wo->material }}</div>
+                                        @endif
+                                    </div>
+                                </td>
+                                @php
+                                    $fundDateBlocks = [];
+                                    if ($sortedClases->count() > 0) {
+                                        $currentBlock = null;
+                                        foreach ($sortedClases as $cl) {
+                                            $rawDate = !empty($cl->fecha_entrega_fundicion)
+                                                ? $cl->fecha_entrega_fundicion
+                                                : $wo->fecha_entrega_fundicion;
+                                            $clFundDate = safeDateParse($rawDate);
+                                            $rawName = $cl->nombre ?? 'Clase';
+                                            $cleanName = trim(preg_replace('/^[0-9]+\s*-\s*/', '', $rawName));
+                                            if (empty($cleanName)) {
+                                                $cleanName = $rawName;
+                                            }
+
+                                            if ($currentBlock === null) {
+                                                $currentBlock = [
+                                                    'date' => $clFundDate,
+                                                    'count' => 1,
+                                                    'clases' => [$cleanName],
+                                                ];
+                                            } elseif ($currentBlock['date'] === $clFundDate) {
+                                                $currentBlock['count']++;
+                                                $currentBlock['clases'][] = $cleanName;
+                                            } else {
+                                                $fundDateBlocks[] = $currentBlock;
+                                                $currentBlock = [
+                                                    'date' => $clFundDate,
+                                                    'count' => 1,
+                                                    'clases' => [$cleanName],
+                                                ];
+                                            }
+                                        }
+                                        if ($currentBlock !== null) {
+                                            $fundDateBlocks[] = $currentBlock;
+                                        }
+                                    } else {
+                                        $fundDateBlocks[] = [
+                                            'date' => safeDateParse($wo->fecha_entrega_fundicion ?? ''),
+                                            'count' => 1,
+                                            'clases' => [],
+                                        ];
+                                    }
+                                    $singleClass = $sortedClases->count() === 1 ? $sortedClases->first() : null;
+                                    $singleFundDate = $singleClass
+                                        ? ($singleClass->fecha_entrega_fundicion ?:
+                                        $wo->fecha_entrega_fundicion)
+                                        : $wo->fecha_entrega_fundicion;
+                                @endphp
+                                @if ($isReadOnly)
+                                    @if ($sortedClases->count() <= 1)
+                                        <td class="text-center p-0 date-cell cell-subcells"
+                                            style="vertical-align: stretch; height: 1px;">
+                                            <div class="subcell-container">
+                                                <div class="date-single-box subcell-row"
+                                                    style="padding: 6px; width: 100%; box-sizing: border-box;">
+                                                    <span class="date-display"
+                                                        style="font-size: 11px; color: {{ $hasCastingPfc ? '#033966' : '#000000' }}; font-weight: {{ $hasCastingPfc ? '900' : '600' }};">{!! renderDateDisplayOrIcon($singleFundDate, true) !!}</span>
                                                 </div>
                                             </div>
                                         </td>
                                     @else
-                                        <td class="text-center p-0 date-cell-group cell-subcells" style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px;" onclick="openFundicionModal({{ $wo->id }})" title="Hacer clic para abrir gestor de fechas de fundición">
+                                        <td class="text-center p-0 date-cell-group cell-subcells"
+                                            style="vertical-align: stretch; height: 1px;">
                                             <div class="subcell-container">
-                                                @foreach($fundDateBlocks as $bIdx => $block)
-                                                    <div class="subcell-row date-cell" style="flex: {{ $block['count'] }} {{ $block['count'] }} auto;">
-                                                        @if(!empty($block['clases']) && count($fundDateBlocks) > 1 && count($fundDateBlocks) < $sortedClases->count())
-                                                            <span class="subcell-class-label font-bold" style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
+                                                @foreach ($fundDateBlocks as $bIdx => $block)
+                                                    <div class="subcell-row date-cell"
+                                                        style="flex: {{ $block['count'] }} {{ $block['count'] }} auto;">
+                                                        @if (!empty($block['clases']) && count($fundDateBlocks) > 1 && count($fundDateBlocks) < $sortedClases->count())
+                                                            <span class="subcell-class-label font-bold"
+                                                                style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
                                                                 {{ implode(', ', $block['clases']) }}
                                                             </span>
                                                         @endif
-                                                        <span class="date-display" style="font-size: 11px; color: {{ $hasCastingPfc ? '#033966' : '#000000' }}; font-weight: {{ $hasCastingPfc ? '900' : '500' }}; line-height: 1.1;">{!! renderDateDisplayOrIcon($block['date']) !!}</span>
+                                                        <span class="date-display"
+                                                            style="font-size: 11px; color: {{ $hasCastingPfc ? '#033966' : '#000000' }}; font-weight: {{ $hasCastingPfc ? '900' : '600' }}; line-height: 1.1;">{!! renderDateDisplayOrIcon($block['date'], true) !!}</span>
                                                     </div>
                                                 @endforeach
                                             </div>
                                         </td>
                                     @endif
-                                    @php
-                                        $classTecDates = $sortedClases->map(function($cl) use ($wo) {
-                                            return !empty($cl->entrega_tecamac) ? trim($cl->entrega_tecamac) : (!empty($wo->entrega_tecamac) ? trim($wo->entrega_tecamac) : '');
-                                        })->filter();
-                                        $uniqueTecDates = $classTecDates->unique();
-                                    @endphp
-                                    @if($sortedClases->count() > 0 && $uniqueTecDates->count() > 1)
-                                        <td class="text-center p-0 cell-subcells" style="vertical-align: stretch; height: 1px;">
+                                @else
+                                    @if ($sortedClases->count() <= 1)
+                                        <td class="text-center p-0 date-cell cell-subcells"
+                                            style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px;"
+                                            onclick="openDatePicker(this)"
+                                            title="Hacer clic para seleccionar fecha de fundición">
                                             <div class="subcell-container">
-                                                @foreach($sortedClases as $cl)
+                                                <div class="date-single-box subcell-row"
+                                                    style="padding: 6px; width: 100%; box-sizing: border-box;">
+                                                    <span class="date-display"
+                                                        style="font-size: 11px; color: {{ $hasCastingPfc ? '#033966' : '#000000' }}; font-weight: {{ $hasCastingPfc ? '900' : '500' }};">{!! renderDateDisplayOrIcon($singleFundDate) !!}</span>
+                                                    <input type="date"
+                                                        style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                                        value="{{ safeDateParse($singleFundDate) }}"
+                                                        onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_entrega_fundicion'{{ $singleClass ? ', ' . $singleClass->id : '' }})"
+                                                        {{ $hasCastingPfc ? 'disabled' : '' }}>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    @else
+                                        <td class="text-center p-0 date-cell-group cell-subcells"
+                                            style="{{ !$hasCastingPfc ? 'cursor: pointer;' : '' }} vertical-align: stretch; height: 1px;"
+                                            onclick="openFundicionModal({{ $wo->id }})"
+                                            title="Hacer clic para abrir gestor de fechas de fundición">
+                                            <div class="subcell-container">
+                                                @foreach ($fundDateBlocks as $bIdx => $block)
+                                                    <div class="subcell-row date-cell"
+                                                        style="flex: {{ $block['count'] }} {{ $block['count'] }} auto;">
+                                                        @if (!empty($block['clases']) && count($fundDateBlocks) > 1 && count($fundDateBlocks) < $sortedClases->count())
+                                                            <span class="subcell-class-label font-bold"
+                                                                style="font-size: 10px; color: #033966; text-transform: uppercase; font-weight: 800; line-height: 1.1; margin-bottom: 1px; display: block; text-align: center; word-break: break-word;">
+                                                                {{ implode(', ', $block['clases']) }}
+                                                            </span>
+                                                        @endif
+                                                        <span class="date-display"
+                                                            style="font-size: 11px; color: {{ $hasCastingPfc ? '#033966' : '#000000' }}; font-weight: {{ $hasCastingPfc ? '900' : '500' }}; line-height: 1.1;">{!! renderDateDisplayOrIcon($block['date']) !!}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                    @endif
+                                @endif
+                                @php
+                                    $classTecDates = $sortedClases
+                                        ->map(function ($cl) use ($wo) {
+                                            return !empty($cl->entrega_tecamac)
+                                                ? trim($cl->entrega_tecamac)
+                                                : (!empty($wo->entrega_tecamac)
+                                                    ? trim($wo->entrega_tecamac)
+                                                    : '');
+                                        })
+                                        ->filter();
+                                    $uniqueTecDates = $classTecDates->unique();
+                                @endphp
+                                @if ($isReadOnly)
+                                    @if ($sortedClases->count() > 0 && $uniqueTecDates->count() > 1)
+                                        <td class="text-center p-0 cell-subcells"
+                                            style="vertical-align: stretch; height: 1px;">
+                                            <div class="subcell-container">
+                                                @foreach ($sortedClases as $cl)
                                                     @php
-                                                        $clTecDate = !empty($cl->entrega_tecamac) ? $cl->entrega_tecamac : $wo->entrega_tecamac;
+                                                        $clTecDate = !empty($cl->entrega_tecamac)
+                                                            ? $cl->entrega_tecamac
+                                                            : $wo->entrega_tecamac;
                                                     @endphp
-                                                    <div class="subcell-row date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
-                                                        <span class="date-display" style="font-weight: 500;">{!! renderDateDisplayOrIcon($clTecDate) !!}</span>
-                                                        <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                                    <div class="subcell-row date-cell">
+                                                        <span class="date-display"
+                                                            style="font-weight: 600;">{!! renderDateDisplayOrIcon($clTecDate, true) !!}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                    @else
+                                        @php
+                                            $singleTecDate = $uniqueTecDates->first() ?? $wo->entrega_tecamac;
+                                        @endphp
+                                        <td class="text-center p-0 date-cell">
+                                            <span class="date-display"
+                                                style="font-weight: 600;">{!! renderDateDisplayOrIcon($singleTecDate, true) !!}</span>
+                                        </td>
+                                    @endif
+                                @else
+                                    @if ($sortedClases->count() > 0 && $uniqueTecDates->count() > 1)
+                                        <td class="text-center p-0 cell-subcells"
+                                            style="vertical-align: stretch; height: 1px;">
+                                            <div class="subcell-container">
+                                                @foreach ($sortedClases as $cl)
+                                                    @php
+                                                        $clTecDate = !empty($cl->entrega_tecamac)
+                                                            ? $cl->entrega_tecamac
+                                                            : $wo->entrega_tecamac;
+                                                    @endphp
+                                                    <div class="subcell-row date-cell" style="cursor: pointer;"
+                                                        onclick="openDatePicker(this)">
+                                                        <span class="date-display"
+                                                            style="font-weight: 500;">{!! renderDateDisplayOrIcon($clTecDate) !!}</span>
+                                                        <input type="date"
+                                                            style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
                                                             value="{{ safeDateParse($clTecDate) }}"
                                                             onchange="handleDateChange(this, {{ $wo->id }}, 'entrega_tecamac', {{ $cl->id }})">
                                                     </div>
@@ -472,30 +714,75 @@
                                         @php
                                             $singleTecDate = $uniqueTecDates->first() ?? $wo->entrega_tecamac;
                                         @endphp
-                                        <td class="text-center p-0 date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
-                                            <span class="date-display" style="font-weight: 500;">{!! renderDateDisplayOrIcon($singleTecDate) !!}</span>
-                                            <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                        <td class="text-center p-0 date-cell" style="cursor: pointer;"
+                                            onclick="openDatePicker(this)">
+                                            <span class="date-display"
+                                                style="font-weight: 500;">{!! renderDateDisplayOrIcon($singleTecDate) !!}</span>
+                                            <input type="date"
+                                                style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
                                                 value="{{ safeDateParse($singleTecDate) }}"
                                                 onchange="handleDateChange(this, {{ $wo->id }}, 'entrega_tecamac')">
                                         </td>
                                     @endif
-                                    <td class="text-center font-large font-bold cell-semana">{{ $wo->semana_entrega_cliente }}</td>
-                                    @php
-                                        $classMexDates = $sortedClases->map(function($cl) use ($wo) {
-                                            return !empty($cl->fecha_real) ? trim($cl->fecha_real) : (!empty($wo->fecha_real) ? trim($wo->fecha_real) : '');
-                                        })->filter();
-                                        $uniqueMexDates = $classMexDates->unique();
-                                    @endphp
-                                    @if($sortedClases->count() > 0 && $uniqueMexDates->count() > 1)
-                                        <td class="text-center p-0 cell-subcells" style="vertical-align: stretch; height: 1px;">
+                                @endif
+                                <td class="text-center font-large font-bold cell-semana">
+                                    {{ $wo->semana_entrega_cliente }}</td>
+                                @php
+                                    $classMexDates = $sortedClases
+                                        ->map(function ($cl) use ($wo) {
+                                            return !empty($cl->fecha_real)
+                                                ? trim($cl->fecha_real)
+                                                : (!empty($wo->fecha_real)
+                                                    ? trim($wo->fecha_real)
+                                                    : '');
+                                        })
+                                        ->filter();
+                                    $uniqueMexDates = $classMexDates->unique();
+                                @endphp
+                                @if ($isReadOnly)
+                                    @if ($sortedClases->count() > 0 && $uniqueMexDates->count() > 1)
+                                        <td class="text-center p-0 cell-subcells"
+                                            style="vertical-align: stretch; height: 1px;">
                                             <div class="subcell-container">
-                                                @foreach($sortedClases as $cl)
+                                                @foreach ($sortedClases as $cl)
                                                     @php
-                                                        $clMexDate = !empty($cl->fecha_real) ? $cl->fecha_real : $wo->fecha_real;
+                                                        $clMexDate = !empty($cl->fecha_real)
+                                                            ? $cl->fecha_real
+                                                            : $wo->fecha_real;
                                                     @endphp
-                                                    <div class="subcell-row date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
-                                                        <span class="date-display" style="font-weight: 500;">{!! renderDateDisplayOrIcon($clMexDate) !!}</span>
-                                                        <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                                    <div class="subcell-row date-cell">
+                                                        <span class="date-display"
+                                                            style="font-weight: 600;">{!! renderDateDisplayOrIcon($clMexDate, true) !!}</span>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </td>
+                                    @else
+                                        @php
+                                            $singleMexDate = $uniqueMexDates->first() ?? $wo->fecha_real;
+                                        @endphp
+                                        <td class="text-center p-0 date-cell">
+                                            <span class="date-display"
+                                                style="font-weight: 600;">{!! renderDateDisplayOrIcon($singleMexDate, true) !!}</span>
+                                        </td>
+                                    @endif
+                                @else
+                                    @if ($sortedClases->count() > 0 && $uniqueMexDates->count() > 1)
+                                        <td class="text-center p-0 cell-subcells"
+                                            style="vertical-align: stretch; height: 1px;">
+                                            <div class="subcell-container">
+                                                @foreach ($sortedClases as $cl)
+                                                    @php
+                                                        $clMexDate = !empty($cl->fecha_real)
+                                                            ? $cl->fecha_real
+                                                            : $wo->fecha_real;
+                                                    @endphp
+                                                    <div class="subcell-row date-cell" style="cursor: pointer;"
+                                                        onclick="openDatePicker(this)">
+                                                        <span class="date-display"
+                                                            style="font-weight: 500;">{!! renderDateDisplayOrIcon($clMexDate) !!}</span>
+                                                        <input type="date"
+                                                            style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
                                                             value="{{ safeDateParse($clMexDate) }}"
                                                             onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_real', {{ $cl->id }})">
                                                     </div>
@@ -506,85 +793,99 @@
                                         @php
                                             $singleMexDate = $uniqueMexDates->first() ?? $wo->fecha_real;
                                         @endphp
-                                        <td class="text-center p-0 date-cell" style="cursor: pointer;" onclick="openDatePicker(this)">
-                                            <span class="date-display" style="font-weight: 500;">{!! renderDateDisplayOrIcon($singleMexDate) !!}</span>
-                                            <input type="date" style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
+                                        <td class="text-center p-0 date-cell" style="cursor: pointer;"
+                                            onclick="openDatePicker(this)">
+                                            <span class="date-display"
+                                                style="font-weight: 500;">{!! renderDateDisplayOrIcon($singleMexDate) !!}</span>
+                                            <input type="date"
+                                                style="opacity:0; position:absolute; z-index:-1; width:1px; height:1px;"
                                                 value="{{ safeDateParse($singleMexDate) }}"
                                                 onchange="handleDateChange(this, {{ $wo->id }}, 'fecha_real')">
                                         </td>
                                     @endif
-                                    <td class="text-center font-bold">
-                                        {{ safeDateParseDisplay($wo->fecha_entrega_cliente) }}
-                                    </td>
+                                @endif
+                                <td class="text-center font-bold">
+                                    {{ safeDateParseDisplay($wo->fecha_entrega_cliente) }}
+                                </td>
+                                @if (!$isReadOnly)
                                     <td class="text-center" contenteditable="true"
                                         onblur="autosaveField({{ $wo->id }}, 'observaciones_prioridad', this)">
-                                        {!! renderEditableTextOrIcon($wo->observaciones_prioridad) !!}</td>
-                                </tr>
-                            @endforeach
+                                        {!! renderEditableTextOrIcon($wo->observaciones_prioridad, false) !!}</td>
+                                @else
+                                    <td class="text-center">{!! renderEditableTextOrIcon($wo->observaciones_prioridad, true) !!}</td>
+                                @endif
+                            </tr>
                         @endforeach
-                    @endif
-                </tbody>   </tbody>
-            </table>
-        </div>
+                    @endforeach
+                @endif
+            </tbody>
+            </tbody>
+        </table>
     </div>
+</div>
 
-    <script>
-        window.prioritiesWOsData = @json($wosJsData);
+<script>
+    window.isReadOnlyPriorities = @json($isReadOnly);
+    window.prioritiesWOsData = @json($wosJsData);
 
-        window.openFundicionModal = function(otId) {
-            if (typeof Swal === 'undefined') {
-                alert("No se pudo cargar el componente visual. Por favor, revisa tu conexión a internet.");
-                return;
-            }
-            
-            var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
-            if (!woData) return;
+    window.openFundicionModal = function(otId) {
+        if (typeof Swal === 'undefined') {
+            alert("No se pudo cargar el componente visual. Por favor, revisa tu conexión a internet.");
+            return;
+        }
 
-            if (woData.hasCastingPfc) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '<div style="text-align: center !important; width: 100%;">Acción no permitida</div>',
-                    html: '<style>.gis-center-alert { text-align: center !important; display: block; width: 100%; }</style><div class="gis-center-alert">Esta OT ya tiene una pre-orden de casting generada, por lo que la fecha de fundición ya no puede ser modificada.</div>',
-                    confirmButtonText: 'OK',
-                    confirmButtonColor: '#033966'
-                });
-                return;
-            }
+        var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
+        if (!woData) return;
 
-            var clases = woData.clases || [];
-            if (clases.length === 0) {
-                var currentVal = woData.fecha_entrega_fundicion || '';
-                Swal.fire({
-                    title: 'Fecha Entrega Proveedor Fundición',
-                    html: `<strong>OT ${otId}</strong> - ${woData.moldura}<br><br>Ingresa la fecha de entrega:`,
-                    input: 'date',
-                    inputValue: currentVal,
-                    showCancelButton: true,
-                    confirmButtonText: 'Guardar Fecha',
-                    cancelButtonText: 'Cancelar',
-                    customClass: {
-                        popup: 'gis-date-modal-popup',
-                        title: 'gis-date-modal-title',
-                        confirmButton: 'gis-swal-confirm',
-                        cancelButton: 'gis-swal-cancel'
-                    }
-                }).then(function(result) {
-                    if (result.isConfirmed && result.value !== undefined) {
-                        _doAutosave(otId, 'fecha_entrega_fundicion', result.value, document.body);
-                        setTimeout(function() { window.location.reload(); }, 600);
-                    }
-                });
-                return;
-            }
+        if (woData.hasCastingPfc) {
+            Swal.fire({
+                icon: 'warning',
+                title: '<div style="text-align: center !important; width: 100%;">Acción no permitida</div>',
+                html: '<style>.gis-center-alert { text-align: center !important; display: block; width: 100%; }</style><div class="gis-center-alert">Esta OT ya tiene una pre-orden de casting generada, por lo que la fecha de fundición ya no puede ser modificada.</div>',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#033966'
+            });
+            return;
+        }
 
-            var firstDate = clases[0].fecha_entrega_fundicion || '';
-            var allSame = clases.every(function(c) { return (c.fecha_entrega_fundicion || '') === firstDate; });
-            var masterDate = allSame ? firstDate : (firstDate || woData.fecha_entrega_fundicion || '');
+        var clases = woData.clases || [];
+        if (clases.length === 0) {
+            var currentVal = woData.fecha_entrega_fundicion || '';
+            Swal.fire({
+                title: 'Fecha Entrega Proveedor Fundición',
+                html: `<strong>OT ${otId}</strong> - ${woData.moldura}<br><br>Ingresa la fecha de entrega:`,
+                input: 'date',
+                inputValue: currentVal,
+                showCancelButton: true,
+                confirmButtonText: 'Guardar Fecha',
+                cancelButtonText: 'Cancelar',
+                customClass: {
+                    popup: 'gis-date-modal-popup',
+                    title: 'gis-date-modal-title',
+                    confirmButton: 'gis-swal-confirm',
+                    cancelButton: 'gis-swal-cancel'
+                }
+            }).then(function(result) {
+                if (result.isConfirmed && result.value !== undefined) {
+                    _doAutosave(otId, 'fecha_entrega_fundicion', result.value, document.body);
+                    setTimeout(function() {
+                        window.location.reload();
+                    }, 600);
+                }
+            });
+            return;
+        }
 
-            var rowsHtml = '';
-            clases.forEach(function(c, index) {
-                var cDate = c.fecha_entrega_fundicion || '';
-                rowsHtml += `
+        var firstDate = clases[0].fecha_entrega_fundicion || '';
+        var allSame = clases.every(function(c) {
+            return (c.fecha_entrega_fundicion || '') === firstDate;
+        });
+        var masterDate = allSame ? firstDate : (firstDate || woData.fecha_entrega_fundicion || '');
+
+        var rowsHtml = '';
+        clases.forEach(function(c, index) {
+            var cDate = c.fecha_entrega_fundicion || '';
+            rowsHtml += `
                     <tr>
                         <td style="font-weight: 700;">${index + 1}</td>
                         <td style="font-weight: 700; text-align: left;">${c.nombre}</td>
@@ -594,9 +895,9 @@
                         </td>
                     </tr>
                 `;
-            });
+        });
 
-            var modalHtml = `
+        var modalHtml = `
                 <div class="gis-date-modal-info-card">
                     <div class="gis-date-modal-info-item">
                         <span class="gis-date-modal-info-label">OT</span>
@@ -648,172 +949,208 @@
                 </div>
             `;
 
+        Swal.fire({
+            title: 'Fecha Entrega Proveedor Fundición',
+            html: modalHtml,
+            width: '740px',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar Fechas',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'gis-date-modal-popup',
+                title: 'gis-date-modal-title',
+                confirmButton: 'gis-swal-confirm',
+                cancelButton: 'gis-swal-cancel'
+            },
+            allowOutsideClick: false
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                var mode = document.querySelector('input[name="swal_date_mode"]:checked')?.value || 'same';
+                var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+                if (mode === 'same') {
+                    var val = document.getElementById('swal-master-date')?.value || '';
+                    fetch("{{ route('master.priorities.autosave') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            ot_id: otId,
+                            field: 'fecha_entrega_fundicion',
+                            value: val,
+                            apply_to_all: true
+                        })
+                    }).then(function(r) {
+                        return r.json();
+                    }).then(function(d) {
+                        if (d.success) {
+                            window.location.reload();
+                        }
+                    });
+                } else {
+                    var batch = [];
+                    document.querySelectorAll('.swal-class-date-input').forEach(function(inp) {
+                        var cId = inp.dataset.claseId;
+                        batch.push({
+                            clase_id: cId,
+                            fecha: inp.value
+                        });
+                    });
+                    fetch("{{ route('master.priorities.autosave') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            ot_id: otId,
+                            field: 'fecha_entrega_fundicion',
+                            batch_dates: batch
+                        })
+                    }).then(function(r) {
+                        return r.json();
+                    }).then(function(d) {
+                        if (d.success) {
+                            window.location.reload();
+                        }
+                    });
+                }
+            }
+        });
+    };
+
+    window.toggleSwalDateMode = function(mode) {
+        var masterContainer = document.getElementById('swal-master-date-container');
+        if (masterContainer) {
+            masterContainer.style.display = mode === 'same' ? 'block' : 'none';
+        }
+        var isSame = mode === 'same';
+        document.querySelectorAll('.swal-class-date-input').forEach(function(inp) {
+            inp.disabled = isSame;
+            if (isSame) {
+                inp.style.opacity = '0.5';
+                inp.style.cursor = 'not-allowed';
+            } else {
+                inp.style.opacity = '1';
+                inp.style.cursor = 'pointer';
+            }
+        });
+        if (isSame) {
+            var masterVal = document.getElementById('swal-master-date')?.value || '';
+            window.applyMasterDateToAllClasses(masterVal);
+        }
+    };
+
+    window.applyMasterDateToAllClasses = function(val) {
+        document.querySelectorAll('.swal-class-date-input').forEach(function(inp) {
+            inp.value = val;
+        });
+    };
+
+    const FOUNDRY_PROVIDERS_LIST = [
+        "SS Metal Foundry, S. de R. L. de C. V.",
+        "SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS",
+        "EXTERNO",
+        "Sin proveedor actual"
+    ];
+
+    window.openSupplierModal = function(otId) {
+        if (typeof Swal === 'undefined') {
+            alert("No se pudo cargar el componente visual. Por favor, revisa tu conexión a internet.");
+            return;
+        }
+
+        var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
+        if (!woData) return;
+
+        if (woData.hasCastingPfc) {
             Swal.fire({
-                title: 'Fecha Entrega Proveedor Fundición',
-                html: modalHtml,
-                width: '740px',
+                icon: 'warning',
+                title: '<div style="text-align: center !important; width: 100%;">Acción no permitida</div>',
+                html: '<style>.gis-center-alert { text-align: center !important; display: block; width: 100%; }</style><div class="gis-center-alert">Esta OT ya tiene una pre-orden de casting generada, por lo que el proveedor de fundición ya no puede ser modificado.</div>',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#033966'
+            });
+            return;
+        }
+
+        var clases = woData.clases || [];
+        var currentSupplier = woData.proveedor_material || '';
+
+        function buildSupplierOptions(selectedVal) {
+            var opts = `<option value="">-- Seleccione Proveedor --</option>`;
+            FOUNDRY_PROVIDERS_LIST.forEach(function(p) {
+                var sel = (selectedVal === p) ? 'selected' : '';
+                opts += `<option value="${p}" ${sel}>${p}</option>`;
+            });
+            if (selectedVal && !FOUNDRY_PROVIDERS_LIST.includes(selectedVal)) {
+                opts += `<option value="${selectedVal}" selected>${selectedVal}</option>`;
+            }
+            return opts;
+        }
+
+        if (clases.length <= 1) {
+            var singleSupplier = (clases.length === 1 && clases[0].proveedor) ? clases[0].proveedor :
+                currentSupplier;
+            var selectHtml = `<select id="swal-single-supplier" class="gis-date-input-clean" style="width: 100%; box-sizing: border-box;">
+                    ${buildSupplierOptions(singleSupplier)}
+                </select>`;
+
+            Swal.fire({
+                title: 'Proveedor de Fundición',
+                html: `<strong>OT ${otId}</strong> - ${woData.moldura || ''}<br><br>Selecciona el proveedor:<br><br>${selectHtml}`,
+                width: '420px',
                 showCancelButton: true,
-                confirmButtonText: 'Guardar Fechas',
+                confirmButtonText: 'Guardar Proveedor',
                 cancelButtonText: 'Cancelar',
                 customClass: {
                     popup: 'gis-date-modal-popup',
                     title: 'gis-date-modal-title',
                     confirmButton: 'gis-swal-confirm',
                     cancelButton: 'gis-swal-cancel'
-                },
-                allowOutsideClick: false
+                }
             }).then(function(result) {
                 if (result.isConfirmed) {
-                    var mode = document.querySelector('input[name="swal_date_mode"]:checked')?.value || 'same';
-                    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                    var val = document.getElementById('swal-single-supplier')?.value || '';
+                    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute(
+                        'content');
 
-                    if (mode === 'same') {
-                        var val = document.getElementById('swal-master-date')?.value || '';
-                        fetch("{{ route('master.priorities.autosave') }}", {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                            body: JSON.stringify({ ot_id: otId, field: 'fecha_entrega_fundicion', value: val, apply_to_all: true })
-                        }).then(function(r) { return r.json(); }).then(function(d) {
-                            if (d.success) {
-                                window.location.reload();
-                            }
-                        });
-                    } else {
-                        var batch = [];
-                        document.querySelectorAll('.swal-class-date-input').forEach(function(inp) {
-                            var cId = inp.dataset.claseId;
-                            batch.push({ clase_id: cId, fecha: inp.value });
-                        });
-                        fetch("{{ route('master.priorities.autosave') }}", {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                            body: JSON.stringify({ ot_id: otId, field: 'fecha_entrega_fundicion', batch_dates: batch })
-                        }).then(function(r) { return r.json(); }).then(function(d) {
-                            if (d.success) {
-                                window.location.reload();
-                            }
-                        });
-                    }
+                    fetch("{{ route('master.priorities.autosave') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            ot_id: otId,
+                            field: 'proveedor',
+                            value: val,
+                            apply_to_all: true
+                        })
+                    }).then(function(r) {
+                        return r.json();
+                    }).then(function(d) {
+                        if (d.success) {
+                            window.location.reload();
+                        }
+                    });
                 }
             });
-        };
+            return;
+        }
 
-        window.toggleSwalDateMode = function(mode) {
-            var masterContainer = document.getElementById('swal-master-date-container');
-            if (masterContainer) {
-                masterContainer.style.display = mode === 'same' ? 'block' : 'none';
-            }
-            var isSame = mode === 'same';
-            document.querySelectorAll('.swal-class-date-input').forEach(function(inp) {
-                inp.disabled = isSame;
-                if (isSame) {
-                    inp.style.opacity = '0.5';
-                    inp.style.cursor = 'not-allowed';
-                } else {
-                    inp.style.opacity = '1';
-                    inp.style.cursor = 'pointer';
-                }
-            });
-            if (isSame) {
-                var masterVal = document.getElementById('swal-master-date')?.value || '';
-                window.applyMasterDateToAllClasses(masterVal);
-            }
-        };
+        var firstProv = clases[0].proveedor || '';
+        var allSame = clases.every(function(c) {
+            return (c.proveedor || '') === firstProv;
+        });
+        var masterProv = allSame ? firstProv : (firstProv || woData.proveedor_material || '');
 
-        window.applyMasterDateToAllClasses = function(val) {
-            document.querySelectorAll('.swal-class-date-input').forEach(function(inp) {
-                inp.value = val;
-            });
-        };
-
-        const FOUNDRY_PROVIDERS_LIST = [
-            "SS Metal Foundry, S. de R. L. de C. V.",
-            "SOCIEDAD COOPERATIVA DE PRODUCCIÓN JACARANDAS",
-            "EXTERNO",
-            "Sin proveedor actual"
-        ];
-
-        window.openSupplierModal = function(otId) {
-            if (typeof Swal === 'undefined') {
-                alert("No se pudo cargar el componente visual. Por favor, revisa tu conexión a internet.");
-                return;
-            }
-
-            var woData = window.prioritiesWOsData ? window.prioritiesWOsData[otId] : null;
-            if (!woData) return;
-
-            if (woData.hasCastingPfc) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: '<div style="text-align: center !important; width: 100%;">Acción no permitida</div>',
-                    html: '<style>.gis-center-alert { text-align: center !important; display: block; width: 100%; }</style><div class="gis-center-alert">Esta OT ya tiene una pre-orden de casting generada, por lo que el proveedor de fundición ya no puede ser modificado.</div>',
-                    confirmButtonText: 'OK',
-                    confirmButtonColor: '#033966'
-                });
-                return;
-            }
-
-            var clases = woData.clases || [];
-            var currentSupplier = woData.proveedor_material || '';
-
-            function buildSupplierOptions(selectedVal) {
-                var opts = `<option value="">-- Seleccione Proveedor --</option>`;
-                FOUNDRY_PROVIDERS_LIST.forEach(function(p) {
-                    var sel = (selectedVal === p) ? 'selected' : '';
-                    opts += `<option value="${p}" ${sel}>${p}</option>`;
-                });
-                if (selectedVal && !FOUNDRY_PROVIDERS_LIST.includes(selectedVal)) {
-                    opts += `<option value="${selectedVal}" selected>${selectedVal}</option>`;
-                }
-                return opts;
-            }
-
-            if (clases.length <= 1) {
-                var singleSupplier = (clases.length === 1 && clases[0].proveedor) ? clases[0].proveedor : currentSupplier;
-                var selectHtml = `<select id="swal-single-supplier" class="gis-date-input-clean" style="width: 100%; box-sizing: border-box;">
-                    ${buildSupplierOptions(singleSupplier)}
-                </select>`;
-
-                Swal.fire({
-                    title: 'Proveedor de Fundición',
-                    html: `<strong>OT ${otId}</strong> - ${woData.moldura || ''}<br><br>Selecciona el proveedor:<br><br>${selectHtml}`,
-                    width: '420px',
-                    showCancelButton: true,
-                    confirmButtonText: 'Guardar Proveedor',
-                    cancelButtonText: 'Cancelar',
-                    customClass: {
-                        popup: 'gis-date-modal-popup',
-                        title: 'gis-date-modal-title',
-                        confirmButton: 'gis-swal-confirm',
-                        cancelButton: 'gis-swal-cancel'
-                    }
-                }).then(function(result) {
-                    if (result.isConfirmed) {
-                        var val = document.getElementById('swal-single-supplier')?.value || '';
-                        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
-
-                        fetch("{{ route('master.priorities.autosave') }}", {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                            body: JSON.stringify({ ot_id: otId, field: 'proveedor', value: val, apply_to_all: true })
-                        }).then(function(r) { return r.json(); }).then(function(d) {
-                            if (d.success) {
-                                window.location.reload();
-                            }
-                        });
-                    }
-                });
-                return;
-            }
-
-            var firstProv = clases[0].proveedor || '';
-            var allSame = clases.every(function(c) { return (c.proveedor || '') === firstProv; });
-            var masterProv = allSame ? firstProv : (firstProv || woData.proveedor_material || '');
-
-            var rowsHtml = '';
-            clases.forEach(function(c, index) {
-                var cProv = c.proveedor || '';
-                rowsHtml += `
+        var rowsHtml = '';
+        clases.forEach(function(c, index) {
+            var cProv = c.proveedor || '';
+            rowsHtml += `
                     <tr>
                         <td style="font-weight: 700;">${index + 1}</td>
                         <td style="font-weight: 700; text-align: left;">${c.nombre}</td>
@@ -825,9 +1162,9 @@
                         </td>
                     </tr>
                 `;
-            });
+        });
 
-            var modalHtml = `
+        var modalHtml = `
                 <div class="gis-date-modal-info-card">
                     <div class="gis-date-modal-info-item">
                         <span class="gis-date-modal-info-label">OT</span>
@@ -881,165 +1218,192 @@
                 </div>
             `;
 
-            Swal.fire({
-                title: 'Proveedor de Fundición',
-                html: modalHtml,
-                width: '740px',
-                showCancelButton: true,
-                confirmButtonText: 'Guardar Proveedor',
-                cancelButtonText: 'Cancelar',
-                customClass: {
-                    popup: 'gis-date-modal-popup',
-                    title: 'gis-date-modal-title',
-                    confirmButton: 'gis-swal-confirm',
-                    cancelButton: 'gis-swal-cancel'
-                },
-                allowOutsideClick: false
-            }).then(function(result) {
-                if (result.isConfirmed) {
-                    var mode = document.querySelector('input[name="swal_supplier_mode"]:checked')?.value || 'same';
-                    var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        Swal.fire({
+            title: 'Proveedor de Fundición',
+            html: modalHtml,
+            width: '740px',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar Proveedor',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'gis-date-modal-popup',
+                title: 'gis-date-modal-title',
+                confirmButton: 'gis-swal-confirm',
+                cancelButton: 'gis-swal-cancel'
+            },
+            allowOutsideClick: false
+        }).then(function(result) {
+            if (result.isConfirmed) {
+                var mode = document.querySelector('input[name="swal_supplier_mode"]:checked')?.value ||
+                    'same';
+                var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-                    if (mode === 'same') {
-                        var val = document.getElementById('swal-master-supplier')?.value || '';
-                        fetch("{{ route('master.priorities.autosave') }}", {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                            body: JSON.stringify({ ot_id: otId, field: 'proveedor', value: val, apply_to_all: true })
-                        }).then(function(r) { return r.json(); }).then(function(d) {
-                            if (d.success) {
-                                window.location.reload();
-                            }
-                        });
-                    } else {
-                        var batch = [];
-                        document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
-                            var cId = inp.dataset.claseId;
-                            batch.push({ clase_id: cId, proveedor: inp.value });
-                        });
-                        fetch("{{ route('master.priorities.autosave') }}", {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrfToken },
-                            body: JSON.stringify({ ot_id: otId, field: 'proveedor', batch_suppliers: batch })
-                        }).then(function(r) { return r.json(); }).then(function(d) {
-                            if (d.success) {
-                                window.location.reload();
-                            }
-                        });
-                    }
-                }
-            });
-        };
-
-        window.toggleSwalSupplierMode = function(mode) {
-            var masterContainer = document.getElementById('swal-master-supplier-container');
-            if (masterContainer) {
-                masterContainer.style.display = mode === 'same' ? 'block' : 'none';
-            }
-            var isSame = mode === 'same';
-            document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
-                inp.disabled = isSame;
-                if (isSame) {
-                    inp.style.opacity = '0.5';
-                    inp.style.cursor = 'not-allowed';
+                if (mode === 'same') {
+                    var val = document.getElementById('swal-master-supplier')?.value || '';
+                    fetch("{{ route('master.priorities.autosave') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            ot_id: otId,
+                            field: 'proveedor',
+                            value: val,
+                            apply_to_all: true
+                        })
+                    }).then(function(r) {
+                        return r.json();
+                    }).then(function(d) {
+                        if (d.success) {
+                            window.location.reload();
+                        }
+                    });
                 } else {
-                    inp.style.opacity = '1';
-                    inp.style.cursor = 'pointer';
-                }
-            });
-            if (isSame) {
-                var masterVal = document.getElementById('swal-master-supplier')?.value || '';
-                window.applyMasterSupplierToAllClasses(masterVal);
-            }
-        };
-
-        window.applyMasterSupplierToAllClasses = function(val) {
-            document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
-                inp.value = val;
-            });
-        };
-    </script>
-
-    <!-- Menú Contextual para Liberar Piezas -->
-
-    <script>
-        document.addEventListener('focusin', function(e) {
-            if (e.target && e.target.getAttribute('contenteditable') === 'true') {
-                if (e.target.querySelector('.empty-editable-ph')) {
-                    e.target.innerText = '';
+                    var batch = [];
+                    document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
+                        var cId = inp.dataset.claseId;
+                        batch.push({
+                            clase_id: cId,
+                            proveedor: inp.value
+                        });
+                    });
+                    fetch("{{ route('master.priorities.autosave') }}", {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken
+                        },
+                        body: JSON.stringify({
+                            ot_id: otId,
+                            field: 'proveedor',
+                            batch_suppliers: batch
+                        })
+                    }).then(function(r) {
+                        return r.json();
+                    }).then(function(d) {
+                        if (d.success) {
+                            window.location.reload();
+                        }
+                    });
                 }
             }
         });
+    };
 
-        function autosaveField(otId, fieldName, element) {
-            var value = element.innerText.trim();
-            if (value === '' || value === '-') {
-                element.innerHTML = '<span class="empty-editable-ph" style="color: #94a3b8; font-size: 0.85em; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" title="Hacer clic para editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>-</span>';
-                value = '';
-            }
-            _doAutosave(otId, fieldName, value, element);
+    window.toggleSwalSupplierMode = function(mode) {
+        var masterContainer = document.getElementById('swal-master-supplier-container');
+        if (masterContainer) {
+            masterContainer.style.display = mode === 'same' ? 'block' : 'none';
         }
-
-        function openDatePicker(td) {
-            var input = td.querySelector('input[type="date"]');
-            if (input) {
-                var onchangeStr = input.getAttribute('onchange') || '';
-                if (onchangeStr.includes('fecha_entrega_fundicion')) {
-                    var tr = td.closest('tr');
-                    var otId = tr ? tr.getAttribute('data-ot-id') : null;
-                    var woData = window.prioritiesWOsData && otId ? window.prioritiesWOsData[otId] : null;
-                    if (woData && woData.hasCastingPfc) {
-                        Swal.fire('Acción no permitida', 'Esta OT ya tiene una pre-orden de casting generada, por lo que la fecha de fundición ya no puede ser modificada.', 'warning');
-                        return;
-                    }
-                }
-                
-                try {
-                    input.showPicker();
-                } catch (e) {
-                    input.focus();
-                }
-            }
-        }
-
-        function handleDateChange(input, otId, fieldName, claseId) {
-            var value = input.value;
-            var td = input.parentElement;
-            var span = td.querySelector('.date-display');
-
-            // Update display text immediately
-            if (value) {
-                var parts = value.split('-');
-                span.innerText = parts[2] + '/' + parts[1] + '/' + parts[0];
+        var isSame = mode === 'same';
+        document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
+            inp.disabled = isSame;
+            if (isSame) {
+                inp.style.opacity = '0.5';
+                inp.style.cursor = 'not-allowed';
             } else {
-                span.innerHTML = '<span class="empty-date-icon-wrap" title="Hacer clic para asignar fecha"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-date-svg" style="vertical-align: middle; opacity: 0.65;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>';
+                inp.style.opacity = '1';
+                inp.style.cursor = 'pointer';
+            }
+        });
+        if (isSame) {
+            var masterVal = document.getElementById('swal-master-supplier')?.value || '';
+            window.applyMasterSupplierToAllClasses(masterVal);
+        }
+    };
+
+    window.applyMasterSupplierToAllClasses = function(val) {
+        document.querySelectorAll('.swal-class-supplier-select').forEach(function(inp) {
+            inp.value = val;
+        });
+    };
+</script>
+
+<!-- Menú Contextual para Liberar Piezas -->
+
+<script>
+    document.addEventListener('focusin', function(e) {
+        if (e.target && e.target.getAttribute('contenteditable') === 'true') {
+            if (e.target.querySelector('.empty-editable-ph')) {
+                e.target.innerText = '';
+            }
+        }
+    });
+
+    function autosaveField(otId, fieldName, element) {
+        var value = element.innerText.trim();
+        if (value === '' || value === '-') {
+            element.innerHTML =
+                '<span class="empty-editable-ph" style="color: #94a3b8; font-size: 0.85em; display: inline-flex; align-items: center; justify-content: center; gap: 3px;" title="Hacer clic para editar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>-</span>';
+            value = '';
+        }
+        _doAutosave(otId, fieldName, value, element);
+    }
+
+    function openDatePicker(td) {
+        var input = td.querySelector('input[type="date"]');
+        if (input) {
+            var onchangeStr = input.getAttribute('onchange') || '';
+            if (onchangeStr.includes('fecha_entrega_fundicion')) {
+                var tr = td.closest('tr');
+                var otId = tr ? tr.getAttribute('data-ot-id') : null;
+                var woData = window.prioritiesWOsData && otId ? window.prioritiesWOsData[otId] : null;
+                if (woData && woData.hasCastingPfc) {
+                    Swal.fire('Acción no permitida',
+                        'Esta OT ya tiene una pre-orden de casting generada, por lo que la fecha de fundición ya no puede ser modificada.',
+                        'warning');
+                    return;
+                }
             }
 
-            _doAutosave(otId, fieldName, value, td, claseId);
+            try {
+                input.showPicker();
+            } catch (e) {
+                input.focus();
+            }
+        }
+    }
+
+    function handleDateChange(input, otId, fieldName, claseId) {
+        var value = input.value;
+        var td = input.parentElement;
+        var span = td.querySelector('.date-display');
+
+        // Update display text immediately
+        if (value) {
+            var parts = value.split('-');
+            span.innerText = parts[2] + '/' + parts[1] + '/' + parts[0];
+        } else {
+            span.innerHTML =
+                '<span class="empty-date-icon-wrap" title="Hacer clic para asignar fecha"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="empty-date-svg" style="vertical-align: middle; opacity: 0.65;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>';
         }
 
-        function _doAutosave(otId, fieldName, value, feedbackElement, claseId) {
-            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        _doAutosave(otId, fieldName, value, td, claseId);
+    }
 
-            if (!csrfToken) {
-                console.error("CSRF token not found.");
-                return;
-            }
+    function _doAutosave(otId, fieldName, value, feedbackElement, claseId) {
+        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
-            // Add a visual indicator of saving (border outline)
-            feedbackElement.style.outline = "2px solid #0d6efd";
-            feedbackElement.style.outlineOffset = "-2px";
+        if (!csrfToken) {
+            console.error("CSRF token not found.");
+            return;
+        }
 
-            var payload = {
-                ot_id: otId,
-                field: fieldName,
-                value: value
-            };
-            if (claseId) {
-                payload.clase_id = claseId;
-            }
+        // Add a visual indicator of saving (border outline)
+        feedbackElement.style.outline = "2px solid #0d6efd";
+        feedbackElement.style.outlineOffset = "-2px";
 
-            fetch("{{ route('master.priorities.autosave') }}", {
+        var payload = {
+            ot_id: otId,
+            field: fieldName,
+            value: value
+        };
+        if (claseId) {
+            payload.clase_id = claseId;
+        }
+
+        fetch("{{ route('master.priorities.autosave') }}", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -1047,244 +1411,259 @@
                 },
                 body: JSON.stringify(payload)
             })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Success indicator (green)
-                        feedbackElement.style.outline = "2px solid #198754";
-                        setTimeout(() => {
-                            feedbackElement.style.outline = "none";
-                        }, 1000);
-                    } else {
-                        // Error indicator (red)
-                        feedbackElement.style.outline = "2px solid #dc3545";
-                        console.error(data.message);
-                    }
-                })
-                .catch(error => {
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Success indicator (green)
+                    feedbackElement.style.outline = "2px solid #198754";
+                    setTimeout(() => {
+                        feedbackElement.style.outline = "none";
+                    }, 1000);
+                } else {
+                    // Error indicator (red)
                     feedbackElement.style.outline = "2px solid #dc3545";
-                    console.error("Error al guardar:", error);
-                });
+                    console.error(data.message);
+                }
+            })
+            .catch(error => {
+                feedbackElement.style.outline = "2px solid #dc3545";
+                console.error("Error al guardar:", error);
+            });
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // DRAG AND DROP EN LA TABLA DE PRIORIDADES CON SELECCIÓN DE SEMANA
+    // ══════════════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.isReadOnlyPriorities) {
+            // Modo solo lectura: inhabilitar drag & drop, autosaves y selectores
+            window.openDatePicker = function() {};
+            window.openFundicionModal = function() {};
+            window.openSupplierModal = function() {};
+            window.autosaveField = function() {};
+            window.handleDateChange = function() {};
+            return;
         }
 
-        // ══════════════════════════════════════════════════════════════
-        // DRAG AND DROP EN LA TABLA DE PRIORIDADES CON SELECCIÓN DE SEMANA
-        // ══════════════════════════════════════════════════════════════
-        document.addEventListener('DOMContentLoaded', function () {
-            var tableBody = document.querySelector('#prioritiesTable tbody');
-            if (!tableBody) return;
+        var tableBody = document.querySelector('#prioritiesTable tbody');
+        if (!tableBody) return;
 
-            var draggedRow = null;
-            var originalNextSibling = null;
-            var originalParent = null;
-            var isSavingPriorities = false;
-            var savePrioritiesPending = false;
+        var draggedRow = null;
+        var originalNextSibling = null;
+        var originalParent = null;
+        var isSavingPriorities = false;
+        var savePrioritiesPending = false;
 
-            // Auto-scroll durante el arrastre
-            var autoScrollSpeed = 0;
-            var autoScrollInterval = null;
+        // Auto-scroll durante el arrastre
+        var autoScrollSpeed = 0;
+        var autoScrollInterval = null;
 
-            document.addEventListener('dragover', function(e) {
-                if (!draggedRow) return;
-                
-                var container = document.querySelector('.excel-table-container');
-                if (!container) return;
+        document.addEventListener('dragover', function(e) {
+            if (!draggedRow) return;
 
-                var rect = container.getBoundingClientRect();
-                var edgeSize = 100; // Píxeles desde el borde del contenedor
-                
-                if (e.clientY < rect.top + edgeSize) {
-                    autoScrollSpeed = -15; // Hacia arriba
-                } else if (e.clientY > rect.bottom - edgeSize) {
-                    autoScrollSpeed = 15; // Hacia abajo
-                } else {
-                    autoScrollSpeed = 0;
-                }
-                
-                if (autoScrollSpeed !== 0 && !autoScrollInterval) {
-                    autoScrollInterval = setInterval(function() {
-                        container.scrollTop += autoScrollSpeed;
-                    }, 20);
-                } else if (autoScrollSpeed === 0 && autoScrollInterval) {
-                    clearInterval(autoScrollInterval);
-                    autoScrollInterval = null;
-                }
-            });
+            var container = document.querySelector('.excel-table-container');
+            if (!container) return;
 
-            document.addEventListener('dragend', function() {
-                if (autoScrollInterval) {
-                    clearInterval(autoScrollInterval);
-                    autoScrollInterval = null;
-                }
-            });
+            var rect = container.getBoundingClientRect();
+            var edgeSize = 100; // Píxeles desde el borde del contenedor
 
-            var premiumPastels = [
-                '#d4f0f0', '#ffdfd3', '#e2f0cb', '#f3e5f5', '#ffebd2',
-                '#d6e4ff', '#ffe5e5', '#e8f4d9', '#f0e6ff', '#fff2cc',
-                '#d9f0f9', '#fbe4e4', '#e0f7fa', '#f5f5dc', '#e6e6fa',
-                '#ffefd5', '#e0e8f5', '#f0fff0', '#fff0f5', '#fdf5e6'
-            ];
-
-            function getJsPastelColor(weekStr) {
-                var weekNum = parseInt(String(weekStr).replace(/[^0-9]/g, ''), 10) || 0;
-                var index = weekNum % premiumPastels.length;
-                return premiumPastels[index];
+            if (e.clientY < rect.top + edgeSize) {
+                autoScrollSpeed = -15; // Hacia arriba
+            } else if (e.clientY > rect.bottom - edgeSize) {
+                autoScrollSpeed = 15; // Hacia abajo
+            } else {
+                autoScrollSpeed = 0;
             }
 
-            function initRowDrag(row) {
-                var handle = row.querySelector('.table-drag-handle');
-                if (!handle) return;
+            if (autoScrollSpeed !== 0 && !autoScrollInterval) {
+                autoScrollInterval = setInterval(function() {
+                    container.scrollTop += autoScrollSpeed;
+                }, 20);
+            } else if (autoScrollSpeed === 0 && autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+        });
 
-                handle.addEventListener('mousedown', function () {
-                    row.draggable = true;
-                });
-                handle.addEventListener('touchstart', function () {
-                    row.draggable = true;
-                }, { passive: true });
+        document.addEventListener('dragend', function() {
+            if (autoScrollInterval) {
+                clearInterval(autoScrollInterval);
+                autoScrollInterval = null;
+            }
+        });
 
-                row.addEventListener('dragstart', function (e) {
-                    draggedRow = row;
-                    originalNextSibling = row.nextSibling;
-                    originalParent = row.parentNode;
-                    row.classList.add('is-row-dragging');
-                    e.dataTransfer.effectAllowed = 'move';
-                    e.dataTransfer.setData('text/plain', row.dataset.otId || '');
-                });
+        var premiumPastels = [
+            '#d4f0f0', '#ffdfd3', '#e2f0cb', '#f3e5f5', '#ffebd2',
+            '#d6e4ff', '#ffe5e5', '#e8f4d9', '#f0e6ff', '#fff2cc',
+            '#d9f0f9', '#fbe4e4', '#e0f7fa', '#f5f5dc', '#e6e6fa',
+            '#ffefd5', '#e0e8f5', '#f0fff0', '#fff0f5', '#fdf5e6'
+        ];
 
-                row.addEventListener('dragover', function (e) {
-                    e.preventDefault();
-                    e.dataTransfer.dropEffect = 'move';
+        function getJsPastelColor(weekStr) {
+            var weekNum = parseInt(String(weekStr).replace(/[^0-9]/g, ''), 10) || 0;
+            var index = weekNum % premiumPastels.length;
+            return premiumPastels[index];
+        }
 
-                    if (!draggedRow || draggedRow === row) return;
+        function initRowDrag(row) {
+            var handle = row.querySelector('.table-drag-handle');
+            if (!handle) return;
 
-                    var rect = row.getBoundingClientRect();
-                    var isBottom = e.clientY > (rect.top + rect.height / 2);
+            handle.addEventListener('mousedown', function() {
+                row.draggable = true;
+            });
+            handle.addEventListener('touchstart', function() {
+                row.draggable = true;
+            }, {
+                passive: true
+            });
 
-                    if (isBottom) {
-                        row.classList.remove('drag-over-top');
-                        row.classList.add('drag-over-bottom');
-                    } else {
-                        row.classList.remove('drag-over-bottom');
-                        row.classList.add('drag-over-top');
-                    }
-                });
+            row.addEventListener('dragstart', function(e) {
+                draggedRow = row;
+                originalNextSibling = row.nextSibling;
+                originalParent = row.parentNode;
+                row.classList.add('is-row-dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', row.dataset.otId || '');
+            });
 
-                row.addEventListener('dragleave', function (e) {
-                    var rect = row.getBoundingClientRect();
-                    if (
-                        e.clientX < rect.left ||
-                        e.clientX >= rect.right ||
-                        e.clientY < rect.top ||
-                        e.clientY >= rect.bottom
-                    ) {
-                        row.classList.remove('drag-over-top', 'drag-over-bottom');
-                    }
-                });
+            row.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
 
-                row.addEventListener('drop', function (e) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                if (!draggedRow || draggedRow === row) return;
 
+                var rect = row.getBoundingClientRect();
+                var isBottom = e.clientY > (rect.top + rect.height / 2);
+
+                if (isBottom) {
+                    row.classList.remove('drag-over-top');
+                    row.classList.add('drag-over-bottom');
+                } else {
+                    row.classList.remove('drag-over-bottom');
+                    row.classList.add('drag-over-top');
+                }
+            });
+
+            row.addEventListener('dragleave', function(e) {
+                var rect = row.getBoundingClientRect();
+                if (
+                    e.clientX < rect.left ||
+                    e.clientX >= rect.right ||
+                    e.clientY < rect.top ||
+                    e.clientY >= rect.bottom
+                ) {
                     row.classList.remove('drag-over-top', 'drag-over-bottom');
-                    if (!draggedRow || draggedRow === row) return;
+                }
+            });
 
-                    var activeDragRow = draggedRow;
-                    var otId = activeDragRow.dataset.otId;
-                    var semanaCell = activeDragRow.querySelector('.cell-semana');
-                    var currentWeekRaw = semanaCell ? semanaCell.textContent.trim() : '';
+            row.addEventListener('drop', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
 
-                    var rect = row.getBoundingClientRect();
-                    var isBottom = e.clientY > (rect.top + rect.height / 2);
+                row.classList.remove('drag-over-top', 'drag-over-bottom');
+                if (!draggedRow || draggedRow === row) return;
 
-                    if (isBottom) {
-                        row.parentNode.insertBefore(activeDragRow, row.nextSibling);
+                var activeDragRow = draggedRow;
+                var otId = activeDragRow.dataset.otId;
+                var semanaCell = activeDragRow.querySelector('.cell-semana');
+                var currentWeekRaw = semanaCell ? semanaCell.textContent.trim() : '';
+
+                var rect = row.getBoundingClientRect();
+                var isBottom = e.clientY > (rect.top + rect.height / 2);
+
+                if (isBottom) {
+                    row.parentNode.insertBefore(activeDragRow, row.nextSibling);
+                } else {
+                    row.parentNode.insertBefore(activeDragRow, row);
+                }
+
+                renumberRows();
+
+                var prevRow = activeDragRow.previousElementSibling;
+                var nextRow = activeDragRow.nextElementSibling;
+
+                function extractWeek(r) {
+                    if (!r) return null;
+                    var c = r.querySelector('.cell-semana');
+                    if (!c) return null;
+                    var txt = c.textContent.trim();
+                    var w = parseInt(txt.replace(/[^0-9]/g, ''), 10);
+                    return isNaN(w) || w <= 0 ? null : w;
+                }
+
+                var wPrev = extractWeek(prevRow);
+                var wNext = extractWeek(nextRow);
+
+                function applyRowBg(r, week) {
+                    if (r.dataset.isInactive === '1') {
+                        r.style.backgroundColor = '#d6d6d6';
                     } else {
-                        row.parentNode.insertBefore(activeDragRow, row);
+                        r.style.backgroundColor = getJsPastelColor(week);
                     }
+                }
 
-                    renumberRows();
+                var currentW = parseInt(String(currentWeekRaw).replace(/[^0-9]/g, ''), 10);
+                if (isNaN(currentW) || currentW <= 0) currentW = null;
 
-                    var prevRow = activeDragRow.previousElementSibling;
-                    var nextRow = activeDragRow.nextElementSibling;
+                var sameTargetWeek = (wPrev !== null && wNext !== null && wPrev === wNext) ? wPrev :
+                    null;
 
-                    function extractWeek(r) {
-                        if (!r) return null;
-                        var c = r.querySelector('.cell-semana');
-                        if (!c) return null;
-                        var txt = c.textContent.trim();
-                        var w = parseInt(txt.replace(/[^0-9]/g, ''), 10);
-                        return isNaN(w) || w <= 0 ? null : w;
+                // Si se movió estrictamente DENTRO de su misma semana (los vecinos pertenecen a su misma semana original)
+                if (sameTargetWeek !== null && currentW !== null && sameTargetWeek === currentW) {
+                    if (semanaCell) {
+                        semanaCell.textContent = currentW;
                     }
+                    applyRowBg(activeDragRow, currentW);
+                    autoSaveTablePriorities(otId, currentW);
+                    return;
+                }
 
-                    var wPrev = extractWeek(prevRow);
-                    var wNext = extractWeek(nextRow);
+                var targetW = sameTargetWeek || wNext || wPrev || currentW || 1;
 
-                    function applyRowBg(r, week) {
-                        if (r.dataset.isInactive === '1') {
-                            r.style.backgroundColor = '#d6d6d6';
-                        } else {
-                            r.style.backgroundColor = getJsPastelColor(week);
-                        }
-                    }
+                // Calcular rango lógico permitido de semanas para la posición donde se soltó la OT
+                var startW = 1;
+                var endW = 52;
 
-                    var currentW = parseInt(String(currentWeekRaw).replace(/[^0-9]/g, ''), 10);
-                    if (isNaN(currentW) || currentW <= 0) currentW = null;
-
-                    var sameTargetWeek = (wPrev !== null && wNext !== null && wPrev === wNext) ? wPrev : null;
-
-                    // Si se movió estrictamente DENTRO de su misma semana (los vecinos pertenecen a su misma semana original)
-                    if (sameTargetWeek !== null && currentW !== null && sameTargetWeek === currentW) {
-                        if (semanaCell) {
-                            semanaCell.textContent = currentW;
-                        }
-                        applyRowBg(activeDragRow, currentW);
-                        autoSaveTablePriorities(otId, currentW);
-                        return;
-                    }
-
-                    var targetW = sameTargetWeek || wNext || wPrev || currentW || 1;
-
-                    // Calcular rango lógico permitido de semanas para la posición donde se soltó la OT
-                    var startW = 1;
-                    var endW = 52;
-
-                    if (wPrev !== null && wNext !== null) {
-                        var minB = Math.min(wPrev, wNext);
-                        var maxB = Math.max(wPrev, wNext);
-                        if (currentW) {
-                            startW = Math.min(minB, currentW);
-                            endW = Math.max(maxB, currentW);
-                        } else {
-                            startW = minB;
-                            endW = maxB;
-                        }
+                if (wPrev !== null && wNext !== null) {
+                    var minB = Math.min(wPrev, wNext);
+                    var maxB = Math.max(wPrev, wNext);
+                    if (currentW) {
+                        startW = Math.min(minB, currentW);
+                        endW = Math.max(maxB, currentW);
                     } else {
-                        // Si se coloca como primera, antes de la semana 1, o junto a una fila con "-", permitir todas las semanas (1-52)
-                        startW = 1;
-                        endW = 52;
+                        startW = minB;
+                        endW = maxB;
+                    }
+                } else {
+                    // Si se coloca como primera, antes de la semana 1, o junto a una fila con "-", permitir todas las semanas (1-52)
+                    startW = 1;
+                    endW = 52;
+                }
+
+                var optionsHtml = '';
+                for (var w = startW; w <= endW; w++) {
+                    var isOrigin = (currentW && w === currentW);
+                    var isTarget = (w === targetW || w === wPrev || w === wNext);
+                    var isSelected = (w === targetW);
+
+                    var optionStyle = '';
+                    if (isOrigin || isTarget) {
+                        optionStyle =
+                            'background-color: #e0f2fe; color: #033966; font-weight: 800; padding: 6px;';
+                    } else {
+                        optionStyle = 'color: #1e293b; font-weight: 500;';
                     }
 
-                    var optionsHtml = '';
-                    for (var w = startW; w <= endW; w++) {
-                        var isOrigin = (currentW && w === currentW);
-                        var isTarget = (w === targetW || w === wPrev || w === wNext);
-                        var isSelected = (w === targetW);
+                    var selAttr = isSelected ? 'selected' : '';
+                    optionsHtml +=
+                        `<option value="${w}" ${selAttr} style="${optionStyle}">Semana ${w}</option>`;
+                }
 
-                        var optionStyle = '';
-                        if (isOrigin || isTarget) {
-                            optionStyle = 'background-color: #e0f2fe; color: #033966; font-weight: 800; padding: 6px;';
-                        } else {
-                            optionStyle = 'color: #1e293b; font-weight: 500;';
-                        }
+                var origLabel = currentW ? `Semana ${currentW}` : 'Sin Semana';
+                var targetLabel = targetW ? `Semana ${targetW}` : 'Sin Semana';
 
-                        var selAttr = isSelected ? 'selected' : '';
-                        optionsHtml += `<option value="${w}" ${selAttr} style="${optionStyle}">Semana ${w}</option>`;
-                    }
-
-                    var origLabel = currentW ? `Semana ${currentW}` : 'Sin Semana';
-                    var targetLabel = targetW ? `Semana ${targetW}` : 'Sin Semana';
-
-                    var modalHtml = `
+                var modalHtml = `
                         <div style="background: #f8fafc; border: 1.5px solid rgba(3, 57, 102, 0.2); border-radius: 12px; padding: 18px 20px; margin-bottom: 20px; text-align: left; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 12px; border-bottom: 1px dashed rgba(3, 57, 102, 0.25);">
                                 <span style="font-size: 0.88em; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px;">Orden de Trabajo</span>
@@ -1313,78 +1692,54 @@
                         </div>
                     `;
 
-                    if (typeof Swal !== 'undefined') {
-                        Swal.fire({
-                            title: 'Asignación de Número de Semana',
-                            html: modalHtml,
-                            width: '540px',
-                            showCancelButton: true,
-                            confirmButtonText: 'Guardar Orden y Semana',
-                            cancelButtonText: 'Cancelar Cambio',
-                            customClass: {
-                                popup: 'gis-date-modal-popup',
-                                title: 'gis-date-modal-title',
-                                confirmButton: 'gis-swal-confirm',
-                                cancelButton: 'gis-swal-cancel'
-                            },
-                            allowOutsideClick: false,
-                            allowEscapeKey: false,
-                            didOpen: function() {
-                                var sel = document.getElementById('swal-week-select');
-                                if (sel) {
-                                    sel.addEventListener('change', function() {
-                                        var badge = document.getElementById('swal-target-week-badge');
-                                        if (badge) {
-                                            badge.innerText = 'Semana ' + this.value;
-                                        }
-                                    });
-                                }
-                            },
-                            preConfirm: function() {
-                                var sel = document.getElementById('swal-week-select');
-                                var val = sel ? parseInt(sel.value, 10) : null;
-                                if (!val || isNaN(val)) {
-                                    Swal.showValidationMessage('Debes seleccionar un número de semana válido.');
-                                    return false;
-                                }
-                                return val;
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: 'Asignación de Número de Semana',
+                        html: modalHtml,
+                        width: '540px',
+                        showCancelButton: true,
+                        confirmButtonText: 'Guardar Orden y Semana',
+                        cancelButtonText: 'Cancelar Cambio',
+                        customClass: {
+                            popup: 'gis-date-modal-popup',
+                            title: 'gis-date-modal-title',
+                            confirmButton: 'gis-swal-confirm',
+                            cancelButton: 'gis-swal-cancel'
+                        },
+                        allowOutsideClick: false,
+                        allowEscapeKey: false,
+                        didOpen: function() {
+                            var sel = document.getElementById('swal-week-select');
+                            if (sel) {
+                                sel.addEventListener('change', function() {
+                                    var badge = document.getElementById(
+                                        'swal-target-week-badge');
+                                    if (badge) {
+                                        badge.innerText = 'Semana ' + this.value;
+                                    }
+                                });
                             }
-                        }).then(function (result) {
-                            if (result.isConfirmed && result.value) {
-                                var newWeek = result.value;
-                                if (semanaCell) {
-                                    semanaCell.textContent = newWeek;
-                                }
-                                applyRowBg(activeDragRow, newWeek);
-                                autoSaveTablePriorities(otId, newWeek);
-                            } else {
-                                // Revertir cambio si se cancela
-                                if (originalNextSibling) {
-                                    originalParent.insertBefore(activeDragRow, originalNextSibling);
-                                } else {
-                                    originalParent.appendChild(activeDragRow);
-                                }
-                                renumberRows();
+                        },
+                        preConfirm: function() {
+                            var sel = document.getElementById('swal-week-select');
+                            var val = sel ? parseInt(sel.value, 10) : null;
+                            if (!val || isNaN(val)) {
+                                Swal.showValidationMessage(
+                                    'Debes seleccionar un número de semana válido.');
+                                return false;
                             }
-                        });
-                    } else {
-                        var promptWeek = prompt("Has movido la OT " + otId + ". Ingresa el número de semana (1-52):", targetW);
-                        if (promptWeek && promptWeek.trim() !== '') {
-                            var parsedW = parseInt(promptWeek.replace(/[^0-9]/g, ''), 10);
-                            if (parsedW > 0 && parsedW <= 52) {
-                                if (semanaCell) semanaCell.textContent = parsedW;
-                                applyRowBg(activeDragRow, parsedW);
-                                autoSaveTablePriorities(otId, parsedW);
-                            } else {
-                                alert("Semana inválida. Se cancela el movimiento.");
-                                if (originalNextSibling) {
-                                    originalParent.insertBefore(activeDragRow, originalNextSibling);
-                                } else {
-                                    originalParent.appendChild(activeDragRow);
-                                }
-                                renumberRows();
+                            return val;
+                        }
+                    }).then(function(result) {
+                        if (result.isConfirmed && result.value) {
+                            var newWeek = result.value;
+                            if (semanaCell) {
+                                semanaCell.textContent = newWeek;
                             }
+                            applyRowBg(activeDragRow, newWeek);
+                            autoSaveTablePriorities(otId, newWeek);
                         } else {
+                            // Revertir cambio si se cancela
                             if (originalNextSibling) {
                                 originalParent.insertBefore(activeDragRow, originalNextSibling);
                             } else {
@@ -1392,60 +1747,87 @@
                             }
                             renumberRows();
                         }
-                    }
-                });
-
-                row.addEventListener('dragend', function () {
-                    row.draggable = false;
-                    row.classList.remove('is-row-dragging');
-                    document.querySelectorAll('#prioritiesTable tbody tr').forEach(function (r) {
-                        r.classList.remove('drag-over-top', 'drag-over-bottom', 'is-row-dragging');
                     });
-                    draggedRow = null;
-                });
-            }
-
-            document.querySelectorAll('#prioritiesTable tbody tr').forEach(initRowDrag);
-
-            function renumberRows() {
-                var rows = document.querySelectorAll('#prioritiesTable tbody tr');
-                rows.forEach(function (r, index) {
-                    var numCell = r.querySelector('.cell-row-num');
-                    if (numCell) {
-                        numCell.textContent = index + 1;
-                    }
-                });
-            }
-
-            function autoSaveTablePriorities(updatedOtId, updatedWeek) {
-                if (isSavingPriorities) {
-                    savePrioritiesPending = true;
-                    return;
-                }
-                isSavingPriorities = true;
-                savePrioritiesPending = false;
-
-                updateTableStatus('saving');
-
-                var rows = document.querySelectorAll('#prioritiesTable tbody tr');
-                var priorities = [];
-                rows.forEach(function (r, index) {
-                    var otId = r.dataset.otId;
-                    if (otId) {
-                        var item = {
-                            ot_id: otId,
-                            prioridad: index + 1
-                        };
-                        if (updatedOtId && String(otId) === String(updatedOtId) && updatedWeek) {
-                            item.semana_entrega_cliente = updatedWeek;
+                } else {
+                    var promptWeek = prompt("Has movido la OT " + otId +
+                        ". Ingresa el número de semana (1-52):", targetW);
+                    if (promptWeek && promptWeek.trim() !== '') {
+                        var parsedW = parseInt(promptWeek.replace(/[^0-9]/g, ''), 10);
+                        if (parsedW > 0 && parsedW <= 52) {
+                            if (semanaCell) semanaCell.textContent = parsedW;
+                            applyRowBg(activeDragRow, parsedW);
+                            autoSaveTablePriorities(otId, parsedW);
+                        } else {
+                            alert("Semana inválida. Se cancela el movimiento.");
+                            if (originalNextSibling) {
+                                originalParent.insertBefore(activeDragRow, originalNextSibling);
+                            } else {
+                                originalParent.appendChild(activeDragRow);
+                            }
+                            renumberRows();
                         }
-                        priorities.push(item);
+                    } else {
+                        if (originalNextSibling) {
+                            originalParent.insertBefore(activeDragRow, originalNextSibling);
+                        } else {
+                            originalParent.appendChild(activeDragRow);
+                        }
+                        renumberRows();
                     }
+                }
+            });
+
+            row.addEventListener('dragend', function() {
+                row.draggable = false;
+                row.classList.remove('is-row-dragging');
+                document.querySelectorAll('#prioritiesTable tbody tr').forEach(function(r) {
+                    r.classList.remove('drag-over-top', 'drag-over-bottom', 'is-row-dragging');
                 });
+                draggedRow = null;
+            });
+        }
 
-                var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        document.querySelectorAll('#prioritiesTable tbody tr').forEach(initRowDrag);
 
-                fetch("{{ route('savePriorities') }}", {
+        function renumberRows() {
+            var rows = document.querySelectorAll('#prioritiesTable tbody tr');
+            rows.forEach(function(r, index) {
+                var numCell = r.querySelector('.cell-row-num');
+                if (numCell) {
+                    numCell.textContent = index + 1;
+                }
+            });
+        }
+
+        function autoSaveTablePriorities(updatedOtId, updatedWeek) {
+            if (isSavingPriorities) {
+                savePrioritiesPending = true;
+                return;
+            }
+            isSavingPriorities = true;
+            savePrioritiesPending = false;
+
+            updateTableStatus('saving');
+
+            var rows = document.querySelectorAll('#prioritiesTable tbody tr');
+            var priorities = [];
+            rows.forEach(function(r, index) {
+                var otId = r.dataset.otId;
+                if (otId) {
+                    var item = {
+                        ot_id: otId,
+                        prioridad: index + 1
+                    };
+                    if (updatedOtId && String(otId) === String(updatedOtId) && updatedWeek) {
+                        item.semana_entrega_cliente = updatedWeek;
+                    }
+                    priorities.push(item);
+                }
+            });
+
+            var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+            fetch("{{ route('savePriorities') }}", {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1453,55 +1835,64 @@
                         'X-CSRF-TOKEN': csrfToken,
                         'X-Requested-With': 'XMLHttpRequest'
                     },
-                    body: JSON.stringify({ priorities: priorities })
+                    body: JSON.stringify({
+                        priorities: priorities
+                    })
                 })
-                    .then(function (res) { return res.json(); })
-                    .then(function (data) {
-                        if (data && data.success) {
-                            updateTableStatus('saved');
-                            setTimeout(function () {
-                                window.location.reload();
-                            }, 300);
-                        } else {
-                            updateTableStatus('error');
-                        }
-                    })
-                    .catch(function (err) {
-                        console.error("Error al autoguardar prioridades:", err);
+                .then(function(res) {
+                    return res.json();
+                })
+                .then(function(data) {
+                    if (data && data.success) {
+                        updateTableStatus('saved');
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 300);
+                    } else {
                         updateTableStatus('error');
-                    })
-                    .finally(function () {
-                        isSavingPriorities = false;
-                        if (savePrioritiesPending) {
-                            autoSaveTablePriorities();
-                        }
-                    });
-            }
+                    }
+                })
+                .catch(function(err) {
+                    console.error("Error al autoguardar prioridades:", err);
+                    updateTableStatus('error');
+                })
+                .finally(function() {
+                    isSavingPriorities = false;
+                    if (savePrioritiesPending) {
+                        autoSaveTablePriorities();
+                    }
+                });
+        }
 
-            function updateTableStatus(state) {
-                var badge = document.getElementById('pm-status-badge');
-                if (!badge) return;
-                var spinner = badge.querySelector('.pm-table-spinner');
-                var text = badge.querySelector('.pm-table-status-text');
+        function updateTableStatus(state) {
+            var badge = document.getElementById('pm-status-badge');
+            if (!badge) return;
+            var spinner = badge.querySelector('.pm-table-spinner');
+            var powerIcon = badge.querySelector('.pm-table-power-icon');
+            var text = badge.querySelector('.pm-table-status-text');
 
-                if (state === 'saving') {
-                    badge.className = 'pm-table-status-badge pm-status-saving no-print';
-                    if (spinner) spinner.hidden = false;
-                    if (text) text.textContent = 'Guardando orden...';
-                } else if (state === 'saved') {
-                    badge.className = 'pm-table-status-badge pm-status-saved no-print';
-                    if (spinner) spinner.hidden = true;
-                    if (text) text.textContent = '✓ Orden Guardado';
-                } else if (state === 'error') {
-                    badge.className = 'pm-table-status-badge pm-status-error no-print';
-                    if (spinner) spinner.hidden = true;
-                    if (text) text.textContent = '⚠ Error al guardar';
-                } else {
-                    badge.className = 'pm-table-status-badge no-print';
-                    if (spinner) spinner.hidden = true;
-                    if (text) text.textContent = 'Autoguardado Activo';
-                }
+            if (state === 'saving') {
+                badge.className = 'pm-table-status-badge pm-status-saving no-print';
+                if (spinner) spinner.hidden = false;
+                if (powerIcon) powerIcon.style.display = 'none';
+                if (text) text.textContent = 'Guardando orden...';
+            } else if (state === 'saved') {
+                badge.className = 'pm-table-status-badge pm-status-saved no-print';
+                if (spinner) spinner.hidden = true;
+                if (powerIcon) powerIcon.style.display = 'none';
+                if (text) text.textContent = '✓ Orden Guardado';
+            } else if (state === 'error') {
+                badge.className = 'pm-table-status-badge pm-status-error no-print';
+                if (spinner) spinner.hidden = true;
+                if (powerIcon) powerIcon.style.display = 'none';
+                if (text) text.textContent = '⚠ Error al guardar';
+            } else {
+                badge.className = 'pm-table-status-badge no-print';
+                if (spinner) spinner.hidden = true;
+                if (powerIcon) powerIcon.style.display = '';
+                if (text) text.textContent = 'Modo Edición y Autoguardado Activo';
             }
-        });
-    </script>
+        }
+    });
+</script>
 @endsection

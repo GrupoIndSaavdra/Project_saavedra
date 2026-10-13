@@ -16,9 +16,11 @@ class TratamientoTermicoController extends Controller
         $request->validate([
             'id_clase' => 'required|exists:clases,id',
             'archivo' => 'required|mimes:pdf|max:10240',
-            'descripcion' => 'nullable|string|max:255',
-            'cantidad' => 'required|integer|min:1',
+            'descripcion' => 'required_if:cantidad,0|nullable|string|max:255',
+            'cantidad' => 'required|integer|min:0',
             'id_ot' => 'required'
+        ], [
+            'descripcion.required_if' => 'Es obligatorio ingresar una descripción del motivo cuando se registra un tratamiento térmico con 0 piezas.',
         ]);
 
         $path = $request->file('archivo')->store('tratamientos_termicos', 'public');
@@ -52,12 +54,12 @@ class TratamientoTermicoController extends Controller
         $password = $request->input('password');
         $authorized = false;
 
-        // Si el usuario firmado es admin (1) o master (3), está autorizado automáticamente
-        if (auth()->check() && in_array(auth()->user()->perfil, [1, 3])) {
+        // Si el usuario firmado es admin (1), master (3) o supervisor (6), está autorizado automáticamente
+        if (auth()->check() && in_array(auth()->user()->perfil, [1, 3, 6])) {
             $authorized = true;
         } elseif ($password) {
-            // Verificar si el password corresponde a algún admin (1) o master (3)
-            $users = User::whereIn('perfil', [1, 3], 'and', false)->get();
+            // Verificar si el password corresponde a algún admin (1), master (3) o supervisor (6)
+            $users = User::whereIn('perfil', [1, 3, 6], 'and', false)->get();
             foreach ($users as $user) {
                 if (Hash::check($password, $user->contrasena)) {
                     $authorized = true;
@@ -85,9 +87,11 @@ class TratamientoTermicoController extends Controller
     public function update(Request $request, int|string $id)
     {
         $request->validate([
-            'descripcion' => 'nullable|string|max:255',
-            'cantidad'    => 'required|integer|min:1',
+            'descripcion' => 'required_if:cantidad,0|nullable|string|max:255',
+            'cantidad'    => 'required|integer|min:0',
             'archivo'     => 'nullable|file|mimes:pdf|max:10240',
+        ], [
+            'descripcion.required_if' => 'Es obligatorio ingresar una descripción del motivo cuando se registra un tratamiento térmico con 0 piezas.',
         ]);
 
         $tratamiento = TratamientoTermico::findOrFail($id);

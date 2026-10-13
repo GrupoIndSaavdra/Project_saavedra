@@ -34,7 +34,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function index(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -67,9 +67,9 @@ class InspeccionDimensionalController extends Controller
     /**
      * Vista de detalle / formulario de reporte dimensional para una OT y Clase específicas
      */
-    public function show(Request $request, $ot, $clase)
+    public function show(Request $request, string $ot, string $clase)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -183,12 +183,15 @@ class InspeccionDimensionalController extends Controller
     /**
      * Verificar si una fila de medidas tiene todos los campos obligatorios llenos
      * Cotas exactas: C1, C2, CUELLO ",500", E, D, F1, A. TOTAL, F, ALTURA, ALTURA 2, AL CUELLO
+     *
+     * @param mixed $m
+     * @return bool
      */
-    public static function isMedidaCompleta(RDimensionalMedida $m): bool
+    public static function isMedidaCompleta($m): bool
     {
         $campos = ['c1', 'c2', 'cuello', 'e', 'd', 'f1', 'a_total', 'f', 'altura', 'altura_2', 'al_cuello'];
         foreach ($campos as $campo) {
-            $val = $m->{$campo};
+            $val = is_object($m) ? ($m->{$campo} ?? null) : (is_array($m) ? ($m[$campo] ?? null) : null);
             if (is_null($val) || trim((string) $val) === '') {
                 return false;
             }
@@ -201,7 +204,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function autosaveMedida(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -272,7 +275,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function updateNominalTolerancia(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -303,7 +306,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function addRow(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -375,7 +378,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deleteRow(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -419,7 +422,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function uploadExcel(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -565,7 +568,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function viewExcel(Request $request, int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -618,7 +621,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function downloadExcel(Request $request, int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -655,7 +658,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deleteExcel(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -731,7 +734,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function updateHeader(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -757,9 +760,9 @@ class InspeccionDimensionalController extends Controller
     /**
      * Generar y guardar el PDF oficial en el historial (DomPDF)
      */
-    public function generatePdf(Request $request, $id)
+    public function generatePdf(Request $request, int|string $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -803,11 +806,9 @@ class InspeccionDimensionalController extends Controller
         ));
 
         $pdf->setPaper('letter', 'landscape');
-        $pdf->setOptions([
-            'isHtml5ParserEnabled' => true,
-            'isRemoteEnabled' => true,
-            'defaultFont' => 'DejaVu Sans'
-        ]);
+        $pdf->setOption('isHtml5ParserEnabled', true)
+            ->setOption('isRemoteEnabled', true)
+            ->setOption('defaultFont', 'DejaVu Sans');
 
         // Sanitizar nombres de archivo y carpetas para almacenamiento
         $fechaStr = \Carbon\Carbon::now()->format('Y-m-d');
@@ -865,9 +866,9 @@ class InspeccionDimensionalController extends Controller
     /**
      * Descargar un PDF específico del historial
      */
-    public function downloadPdf($id, $pdf_id)
+    public function downloadPdf(int|string $id, int|string $pdf_id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -883,9 +884,9 @@ class InspeccionDimensionalController extends Controller
     /**
      * Visualizar un PDF específico del historial en el navegador
      */
-    public function viewPdf($id, $pdf_id)
+    public function viewPdf(int|string $id, int|string $pdf_id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -907,7 +908,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deletePdf(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 

@@ -58,7 +58,7 @@ class FundicionStateService
      */
     private static function determinarStateKey(FundicionHistory $reg, FundicionHistory $targetReg, array $aprobados, bool $isReproceso, ?string $libStatus, ?int $userPerfil): string
     {
-        $isCalidadUser = in_array($userPerfil, [3, 4, '3', '4']);
+        $isCalidadUser = in_array($userPerfil, [3, 4, 6, '3', '4', '6']);
         $alertaCalidadEnviada = self::alertaCalidadEnviada($targetReg);
 
         // Fix: Reprocesos inherit pre_orden_sent = 1, so we validate if PFM exists

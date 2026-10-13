@@ -1,289 +1,827 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
-/* ── Layout principal ── */
+/* ── Layout principal (GIS Saavedra) ── */
 .almacen-layout {
     display: flex;
     gap: 1.5rem;
     width: 96vw;
-    max-width: 1650px;
+    max-width: 1700px;
     margin: 0 auto;
-    padding: 5.5rem 0 5rem;
-    min-height: 100vh;
+    padding: 5.2rem 0 3rem;
+    min-height: calc(100vh - 78px);
     align-items: flex-start;
+    box-sizing: border-box;
 }
 
-/* ── Panel izquierdo (info OT) ── */
+/* ── Panel izquierdo (Información de la OT) ── */
 .panel-ot {
-    flex: 0 0 540px;
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 4px 24px rgba(3,57,102,.13);
-    padding: 1.8rem 2rem;
+    flex: 0 0 520px;
+    background: #ffffff;
+    border: 1px solid rgba(3, 57, 102, 0.12);
+    border-radius: 12px;
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 1.5rem 1.8rem;
     position: sticky;
     top: 5.5rem;
+    box-sizing: border-box;
 }
 
 .panel-ot h3 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     font-weight: 600;
     color: var(--gis-blue);
     text-align: center;
-    margin-bottom: 1.4rem;
-    border-bottom: 2px solid #e8f0f8;
-    padding-bottom: 0.8rem;
+    margin: 0 0 1.2rem 0;
+    border-bottom: 2px solid rgba(3, 57, 102, 0.1);
+    padding-bottom: 0.6rem;
 }
 
 .field-group {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0.8rem;
-    margin-bottom: 1.2rem;
+    gap: 0.85rem;
+    margin-bottom: 1rem;
 }
 .field-group.full { grid-template-columns: 1fr; }
 
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    box-sizing: border-box;
+}
+
 .field label {
     display: block;
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 700;
     color: var(--gis-blue);
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 4px;
+    letter-spacing: 0.04em;
+    margin: 0;
 }
 
-.field input, .field select {
+.field input, .field select, .form-control {
     width: 100%;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid #d0dff0;
-    border-radius: 8px;
-    font-size: 1rem;
-    color: #1a1a2e;
-    background: #f5f8fc;
-    transition: border .2s, box-shadow .2s;
+    height: 38px;
+    min-height: 38px;
+    padding: 6px 12px;
+    border: 1px solid rgba(3, 57, 102, 0.22);
+    border-radius: 6px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    color: var(--gis-black);
+    background: rgba(3, 57, 102, 0.04);
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: all 0.2s ease;
 }
 
-.field input:disabled, .field select:disabled {
-    background: #eef2f8;
-    color: #555;
-    cursor: default;
+.field input[type="file"] {
+    padding: 3px 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    line-height: 1.4;
 }
 
-.field input:focus, .field select:focus {
+.field input[type="file"]::-webkit-file-upload-button {
+    background-color: var(--gis-blue);
+    color: #ffffff;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 5px rgba(3, 57, 102, 0.25);
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.field input[type="file"]::file-selector-button {
+    background-color: var(--gis-blue);
+    color: #ffffff;
+    border: none;
+    padding: 5px 14px;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    margin-right: 10px;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 5px rgba(3, 57, 102, 0.25);
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.field input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #044b85;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(3, 57, 102, 0.4);
+}
+
+.field input[type="file"]::file-selector-button:hover {
+    background-color: #044b85;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(3, 57, 102, 0.4);
+}
+
+/* File input para Tratamiento Térmico */
+.form-tratamiento input[type="file"]::-webkit-file-upload-button {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    box-shadow: 0 2px 5px rgba(217, 119, 6, 0.3);
+}
+
+.form-tratamiento input[type="file"]::file-selector-button {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    box-shadow: 0 2px 5px rgba(217, 119, 6, 0.3);
+}
+
+.form-tratamiento input[type="file"]::-webkit-file-upload-button:hover {
+    background: linear-gradient(135deg, #b45309 0%, #9a3412 100%);
+    box-shadow: 0 4px 8px rgba(217, 119, 6, 0.45);
+}
+
+.form-tratamiento input[type="file"]::file-selector-button:hover {
+    background: linear-gradient(135deg, #b45309 0%, #9a3412 100%);
+    box-shadow: 0 4px 8px rgba(217, 119, 6, 0.45);
+}
+
+.field input:hover:not(:disabled), .field select:hover:not(:disabled), .form-control:hover:not(:disabled) {
+    border: 1px solid var(--gis-green);
+}
+
+.field input:focus, .field select:focus, .form-control:focus {
     outline: none;
     border-color: var(--gis-blue);
-    box-shadow: 0 0 0 3px var(--shadow-blue);
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }
 
-/* Tabla de clases */
+.field input:disabled, .field select:disabled, .form-control:disabled {
+    background-color: rgba(3, 57, 102, 0.05) !important;
+    color: var(--gis-blue) !important;
+    border: 1px solid rgba(3, 57, 102, 0.18) !important;
+    cursor: not-allowed;
+    font-weight: 600;
+}
+
+/* ── Tabla de clases ── */
 .tabla-clases-wrap {
     margin: 1rem 0;
-    border-radius: 8px;
+    border-radius: 10px;
     overflow-y: auto;
-    border: 1px solid #d0dff0;
+    border: 1px solid rgba(3, 57, 102, 0.16);
+    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.06);
+    background: #ffffff;
+    max-height: 250px;
 }
 
 .tabla-clases {
     width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.88rem;
 }
 
 .tabla-clases thead th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: var(--gis-blue);
+    background: linear-gradient(90deg, #033966 0%, #0a4f8a 100%);
     color: var(--gis-white);
-    padding: 0.55rem 0.5rem;
+    padding: 11px 10px;
     text-align: center;
-    font-weight: 600;
-    letter-spacing: 0.04em;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
 }
 
 .tabla-clases tbody tr {
     cursor: pointer;
-    transition: background .15s;
+    transition: all 0.15s ease;
+}
+
+.tabla-clases tbody tr:nth-child(even) {
+    background-color: rgba(3, 57, 102, 0.015);
 }
 
 .tabla-clases tbody tr:hover {
-    background: #e8f0fb;
+    background-color: rgba(3, 57, 102, 0.06);
 }
 
 .tabla-clases tbody tr.selected {
-    background: #033966;
-    color: #fff;
+    background: linear-gradient(135deg, #033966 0%, #075985 100%) !important;
+    color: #ffffff !important;
+    box-shadow: inset 4px 0 0 #38bdf8;
 }
 
 .tabla-clases tbody td {
-    padding: 0.5rem 0.6rem;
+    padding: 9px 10px;
     text-align: center;
-    border-top: 1px solid #e8eef6;
+    border-bottom: 1px solid rgba(3, 57, 102, 0.08);
     font-weight: 500;
+    vertical-align: middle;
 }
 
-.tabla-clases tbody tr.selected td { color: #fff; }
+.tabla-clases tbody tr.selected td {
+    color: #ffffff !important;
+    font-weight: 600;
+    border-bottom-color: rgba(255, 255, 255, 0.15);
+}
+
+.clase-nombre-pill {
+    font-weight: 700;
+    color: var(--gis-blue);
+    font-size: 0.9rem;
+}
+
+.tabla-clases tbody tr.selected .clase-nombre-pill {
+    color: #ffffff !important;
+}
+
+.badge-tabla-num {
+    display: inline-block;
+    padding: 2px 9px;
+    border-radius: 14px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.badge-num-consignacion {
+    background: rgba(3, 57, 102, 0.08);
+    color: var(--gis-blue);
+    border: 1px solid rgba(3, 57, 102, 0.18);
+}
+
+.badge-num-pedido {
+    background: rgba(10, 133, 4, 0.1);
+    color: var(--gis-green);
+    border: 1px solid rgba(10, 133, 4, 0.25);
+}
+
+.tabla-clases tbody tr.selected .badge-num-consignacion,
+.tabla-clases tbody tr.selected .badge-num-pedido {
+    background: rgba(255, 255, 255, 0.22) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* ── Botones GIS (.btns) ── */
+.btns, .btn-subir {
+    background-color: var(--gis-green);
+    color: #ffffff;
+    border: none;
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 6px var(--shadow-green);
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+                background-color 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.btns:hover:not(:disabled), .btn-subir:hover:not(:disabled) {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 8px 15px rgba(10, 133, 4, 0.45);
+    color: #ffffff;
+}
+
+.btns:disabled, .btn-subir:disabled {
+    opacity: 0.55;
+    background-color: #cbd5e1 !important;
+    color: #64748b !important;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
 
 .btn-pdf {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
-    background: var(--gis-blue);
+    background-color: var(--gis-blue);
     color: var(--gis-white);
     border: none;
     border-radius: 8px;
-    padding: 0.55rem 1.2rem;
-    font-size: 1rem;
-    font-weight: 600;
+    padding: 9px 24px;
+    font-size: 0.95rem;
+    font-weight: bold;
     cursor: pointer;
     text-decoration: none;
-    margin: 0.8rem auto 0;
-    transition: background .2s, transform .15s;
+    margin: 0.9rem auto 0;
+    box-shadow: 0 4px 6px var(--shadow-blue);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .btn-pdf:hover {
-    background: #0a5a9c;
-    transform: translateY(-1px);
-    color: #fff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(3, 57, 102, 0.45);
+    color: #ffffff;
+}
+
+.btn-regresar {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gis-blue);
+    background: rgba(3, 57, 102, 0.08);
+    border: 1px solid rgba(3, 57, 102, 0.18);
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-regresar:hover {
+    background: rgba(3, 57, 102, 0.15);
+    transform: translateX(-2px);
+    color: var(--gis-blue);
+    text-decoration: none;
+}
+
+/* ── Modern Edit Buttons (Panel Izquierdo) ── */
+.edicion-clase-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.btn-habilitar-edicion-modern {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: rgba(3, 57, 102, 0.06);
+    color: var(--gis-blue);
+    border: 1.5px solid rgba(3, 57, 102, 0.25);
+    padding: 9px 22px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.06);
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.btn-habilitar-edicion-modern:hover {
+    background: var(--gis-blue);
+    color: #ffffff;
+    border-color: var(--gis-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(3, 57, 102, 0.28);
+}
+
+.btn-guardar-clase-modern {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0.75rem 1.5rem;
+    background-color: var(--gis-green);
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.98rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 10px var(--shadow-green);
+    transition: all 0.2s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.btn-guardar-clase-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 18px rgba(10, 133, 4, 0.45);
 }
 
 /* Sección editable de la clase seleccionada */
 .clase-detail {
     margin-top: 1.2rem;
     padding-top: 1rem;
-    border-top: 2px solid #e8f0f8;
+    border-top: 2px solid rgba(3, 57, 102, 0.1);
     display: none;
 }
-
 .clase-detail.visible { display: block; }
-
 .clase-detail h4 {
     font-size: 1.05rem;
     font-weight: 600;
-    color: #033966;
+    color: var(--gis-blue);
     margin-bottom: 0.8rem;
 }
 
-.btn-guardar {
-    width: 100%;
-    padding: 0.65rem;
-    background: linear-gradient(135deg, var(--gis-green), #06a500);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    font-size: 1.05rem;
-    font-weight: 600;
-    cursor: pointer;
-    margin-top: 1rem;
-    transition: transform .15s, box-shadow .15s;
-}
-
-.btn-guardar:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px var(--shadow-green);
-}
-
-/* ── Panel derecho (remisiones + parcialidades) ── */
+/* ── Panel derecho (Actividad / Remisiones / Tratamientos) ── */
 .panel-actividad {
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 1.4rem;
+    gap: 1.6rem;
     min-width: 0;
 }
 
 .card-actividad {
-    background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 4px 24px rgba(3,57,102,.10);
-    padding: 1rem 1.2rem;
+    background: #ffffff;
+    border: 1px solid rgba(3, 57, 102, 0.12);
+    border-radius: 12px;
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
+    padding: 1.4rem 1.8rem;
+    box-sizing: border-box;
+    transition: box-shadow 0.25s ease;
 }
 
-.card-actividad h3 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #033966;
-    margin-bottom: 0.8rem;
+.card-actividad:hover {
+    box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Temas de Sección: Remisiones vs Tratamiento ── */
+.card-seccion-remisiones {
+    border-top: 4px solid var(--gis-blue);
+}
+
+.card-seccion-tratamiento {
+    border-top: 4px solid #d97706;
+}
+
+.card-header-styled {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    border-bottom: 2px solid #e8f0f8;
-    padding-bottom: 0.5rem;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 2px solid rgba(3, 57, 102, 0.1);
+    padding-bottom: 0.75rem;
+    margin-bottom: 1.2rem;
 }
 
-.card-actividad h3 .icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
+.card-seccion-tratamiento .card-header-styled {
+    border-bottom-color: rgba(217, 119, 6, 0.18);
+}
+
+.card-header-styled h3 {
+    font-size: 1.18rem;
+    font-weight: 700;
+    color: var(--gis-blue);
+    margin: 0;
     display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.card-seccion-tratamiento .card-header-styled h3 {
+    color: #78350f;
+}
+
+.card-header-icon-wrap {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 1rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    flex-shrink: 0;
 }
 
-.icon-blue { background: #e8f0fb; color: #033966; }
-.icon-green { background: #e6f9e6; color: #0a8504; }
+.card-header-icon-wrap.icon-blue {
+    background: rgba(3, 57, 102, 0.1);
+    color: var(--gis-blue);
+}
 
-/* Placeholder cuando no hay clase seleccionada */
+.card-header-icon-wrap.icon-amber {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.badge-tipo {
+    font-size: 0.74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 4px 11px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.badge-tipo-blue {
+    background: rgba(3, 57, 102, 0.08);
+    color: var(--gis-blue);
+    border: 1px solid rgba(3, 57, 102, 0.22);
+}
+
+.badge-tipo-amber {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+/* Placeholder */
 .placeholder-msg {
     text-align: center;
     color: #8a9ab8;
-    font-size: 1.05rem;
-    padding: 2rem;
-    background: #f8fafd;
-    border-radius: 10px;
-    border: 2px dashed #d0dff0;
-}
-
-/* Form de subir remisión */
-.form-remision {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 0.8rem;
-    align-items: end;
-    margin-bottom: 0.8rem;
-}
-
-/* Form de subir tratamiento térmico (4 elementos) */
-.form-tratamiento {
-    display: grid;
-    grid-template-columns: 80px 230px 1fr auto;
-    gap: 0.8rem;
-    align-items: end;
-    margin-bottom: 0.8rem;
-}
-
-.form-remision .field { margin: 0; }
-
-.btn-subir {
-    padding: 0.58rem 1.2rem;
-    background: #033966;
-    color: #fff;
-    border: none;
+    font-size: 0.95rem;
+    padding: 1.5rem;
+    background: rgba(3, 57, 102, 0.02);
     border-radius: 8px;
-    font-size: 0.98rem;
+    border: 2px dashed rgba(3, 57, 102, 0.18);
+}
+
+.placeholder-msg-amber {
+    color: #92400e;
+    background: rgba(217, 119, 6, 0.02);
+    border: 2px dashed rgba(217, 119, 6, 0.3);
+}
+
+/* ── Resumen de métricas (KPIs) ── */
+.resumen-parcialidades, .resumen-tratamientos {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 1.3rem;
+    align-items: center;
+    flex-wrap: wrap;
+    border-radius: 10px;
+    padding: 12px 14px;
+}
+
+.resumen-parcialidades-blue {
+    background: rgba(3, 57, 102, 0.03);
+    border: 1px solid rgba(3, 57, 102, 0.12);
+}
+
+.resumen-tratamientos-amber {
+    background: rgba(217, 119, 6, 0.04);
+    border: 1px solid rgba(217, 119, 6, 0.22);
+}
+
+.resumen-item {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 7px 14px;
+    text-align: center;
+    min-width: 95px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.resumen-item.item-blue {
+    border: 1px solid rgba(3, 57, 102, 0.12);
+}
+
+.resumen-item.item-blue:hover {
+    border-color: var(--gis-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(3, 57, 102, 0.15);
+}
+
+.resumen-item.item-amber {
+    border: 1px solid rgba(217, 119, 6, 0.2);
+}
+
+.resumen-item.item-amber:hover {
+    border-color: #d97706;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.2);
+}
+
+.resumen-item .resumen-valor {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.resumen-item.item-blue .resumen-valor {
+    color: var(--gis-blue);
+}
+
+.resumen-item.item-amber .resumen-valor {
+    color: #b45309;
+}
+
+.resumen-item .resumen-label {
+    font-size: 0.72rem;
+    color: var(--gis-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     font-weight: 600;
-    cursor: pointer;
-    white-space: nowrap;
-    transition: background .2s, transform .15s;
-    height: fit-content;
+    margin-top: 2px;
 }
 
-.btn-subir:hover {
-    background: #0a5a9c;
-    transform: translateY(-1px);
+.progress-track {
+    border-radius: 10px;
+    height: 10px;
+    overflow: hidden;
 }
 
-.btn-subir:disabled {
-    background: #ccc;
-    color: #666;
-    cursor: not-allowed;
-    transform: none !important;
-    box-shadow: none !important;
+.progress-track.track-blue {
+    background: #e2e8f0;
 }
 
-/* Lista de remisiones */
+.progress-track.track-amber {
+    background: #fef3c7;
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 10px;
+    transition: width 0.4s ease;
+}
+
+.progress-fill.fill-blue {
+    background: linear-gradient(90deg, #033966 0%, #0284c7 100%);
+}
+
+.progress-fill.fill-amber {
+    background: linear-gradient(90deg, #d97706 0%, #f59e0b 100%);
+}
+
+/* ── Formularios estructurados en filas (GIS Grid/Flex) ── */
+.form-parcialidad, .form-tratamiento {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 1.3rem;
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.form-parcialidad {
+    background: rgba(3, 57, 102, 0.02);
+    border: 1px solid rgba(3, 57, 102, 0.12);
+}
+
+.form-tratamiento {
+    background: rgba(217, 119, 6, 0.02);
+    border: 1px solid rgba(217, 119, 6, 0.18);
+}
+
+.form-row-gis {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    width: 100%;
+}
+
+.mt-0-5 { margin-top: 0.5rem; }
+
+.field-qty {
+    flex: 0 0 110px;
+}
+
+.field-file {
+    flex: 1 1 240px;
+    min-width: 180px;
+}
+
+.field-date {
+    flex: 0 0 160px;
+}
+
+.field-desc {
+    flex: 1 1 300px;
+    min-width: 200px;
+}
+
+.field-btn {
+    flex: 0 0 auto;
+}
+
+.btn-registrar-gis {
+    height: 38px;
+    min-height: 38px;
+    padding: 0 22px;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+
+.btn-registrar-blue {
+    background-color: var(--gis-blue);
+    box-shadow: 0 4px 8px var(--shadow-blue);
+}
+
+.btn-registrar-blue:hover:not(:disabled) {
+    background-color: #044b85;
+    box-shadow: 0 8px 16px rgba(3, 57, 102, 0.45);
+}
+
+.btn-registrar-amber {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+    box-shadow: 0 4px 8px rgba(217, 119, 6, 0.35);
+}
+
+.btn-registrar-amber:hover:not(:disabled) {
+    background: linear-gradient(135deg, #b45309 0%, #9a3412 100%);
+    box-shadow: 0 8px 16px rgba(217, 119, 6, 0.5);
+}
+
+.input-theme-amber:focus {
+    border-color: #d97706 !important;
+    background: #ffffff !important;
+    box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.18) !important;
+}
+
+/* Form remisión antigua */
+.form-remision {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    margin-bottom: 1rem;
+    width: 100%;
+}
+
+/* ── Alerta en Registro Cero (0) ── */
+.alerta-cero-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background-color: #fffbeb;
+    border: 1px solid #f59e0b;
+    border-left: 4px solid #d97706;
+    border-radius: 8px;
+    color: #92400e;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    animation: gis-fadeIn 0.3s ease-out forwards;
+    margin-top: 6px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.alerta-cero-amber {
+    background-color: #fff7ed;
+    border-color: #ea580c;
+    border-left-color: #c2410c;
+    color: #9a3412;
+}
+
+.alerta-cero-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.alerta-cero-text {
+    flex: 1;
+    font-weight: 500;
+}
+
+.alerta-cero-text strong {
+    font-weight: 700;
+    color: #78350f;
+}
+
+.input-requerido-cero {
+    border-color: #f59e0b !important;
+    background-color: #fffdf5 !important;
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.25) !important;
+}
+
+.badge-requerido-cero {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #b45309;
+    background: #fef3c7;
+    border: 1px solid #fde68a;
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* ── Lista de remisiones e historiales ── */
 .lista-remisiones {
     display: flex;
     flex-direction: column;
@@ -295,13 +833,13 @@
     align-items: center;
     gap: 0.8rem;
     padding: 0.65rem 1rem;
-    background: #f5f8fc;
-    border-radius: 9px;
-    border: 1px solid #e0ebf8;
-    transition: background .15s;
+    background: rgba(3, 57, 102, 0.03);
+    border-radius: 8px;
+    border: 1px solid rgba(3, 57, 102, 0.1);
+    transition: background 0.15s;
 }
 
-.item-remision:hover { background: #eaf0fb; }
+.item-remision:hover { background: rgba(3, 57, 102, 0.06); }
 
 .item-remision .file-icon {
     font-size: 1.4rem;
@@ -314,203 +852,300 @@
 }
 
 .item-remision .file-name {
-    font-size: 1rem;
+    font-size: 0.95rem;
     font-weight: 600;
-    color: #1a1a2e;
+    color: var(--gis-black);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
 .item-remision .file-meta {
-    font-size: 0.85rem;
-    color: #6b7a99;
+    font-size: 0.82rem;
+    color: var(--gis-gray);
 }
 
 .btn-download {
-    font-size: 0.88rem;
+    font-size: 0.82rem;
     padding: 0.35rem 0.75rem;
-    background: #e8f0fb;
-    color: #033966;
-    border: none;
+    background: rgba(3, 57, 102, 0.08);
+    color: var(--gis-blue);
+    border: 1px solid rgba(3, 57, 102, 0.18);
     border-radius: 6px;
     cursor: pointer;
     font-weight: 600;
     text-decoration: none;
-    transition: background .15s;
+    transition: background 0.15s;
     flex-shrink: 0;
 }
 
-.btn-download:hover { background: #d0e2f8; color: #033966; }
-
-.btn-eliminar-remision {
-    font-size: 0.88rem;
-    padding: 0.35rem 0.75rem;
-    background: #fde8e8;
-    color: var(--gis-red);
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: 600;
-    flex-shrink: 0;
-    transition: background .15s;
-}
-
-.btn-eliminar-remision:hover { background: #f8c8c8; }
+.btn-download:hover { background: rgba(3, 57, 102, 0.15); color: var(--gis-blue); }
 
 .empty-state {
     text-align: center;
-    color: #a0a8c0;
-    font-size: 0.85rem;
+    color: var(--gis-gray);
+    font-size: 0.88rem;
     padding: 1.5rem;
-    background: #f8fafd;
+    background: rgba(3, 57, 102, 0.02);
     border-radius: 8px;
+    border: 1px dashed rgba(3, 57, 102, 0.15);
 }
 
-/* Form de parcialidades */
-.form-parcialidad {
-    display: grid;
-    grid-template-columns: 80px 230px 1fr 140px auto;
-    gap: 0.8rem;
-    align-items: end;
-    margin-bottom: 0.8rem;
+/* ── Tablas de historial (Parcialidades y Tratamientos) ── */
+.log-header-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: rgba(3, 57, 102, 0.04);
+    border-bottom: 1px solid rgba(3, 57, 102, 0.1);
 }
 
-.form-parcialidad .field { margin: 0; }
+.log-header-bar-amber {
+    background: rgba(217, 119, 6, 0.06);
+    border-bottom: 1px solid rgba(217, 119, 6, 0.18);
+}
 
-/* Log label encima de la tabla de parcialidades */
 .log-label {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     font-weight: 700;
-    color: #033966;
+    color: var(--gis-blue);
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin: 0 0 0.4rem 0;
-    padding: 0;
+    letter-spacing: 0.05em;
+    margin: 0;
 }
 
-/* Tabla de parcialidades */
-.tabla-parcialidades-wrap {
+.log-label-amber {
+    color: #b45309;
+}
+
+.log-count-badge {
+    font-size: 0.74rem;
+    font-weight: 700;
+    background: rgba(3, 57, 102, 0.1);
+    color: var(--gis-blue);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.log-count-amber {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+
+.tabla-parcialidades-wrap, .lista-tratamientos {
     overflow-x: auto;
     overflow-y: auto;
-    max-height: 250px;
-    border-radius: 8px;
-    border: 1px solid #e0ebf8;
+    max-height: 270px;
+    border-radius: 10px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+    background: #ffffff;
+}
+
+.tabla-wrap-blue {
+    border: 1px solid rgba(3, 57, 102, 0.16);
+}
+
+.tabla-wrap-amber {
+    border: 1px solid rgba(217, 119, 6, 0.22);
 }
 
 .tabla-parcialidades {
     width: 100%;
-    border-collapse: collapse;
-    font-size: 0.95rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.86rem;
 }
 
 .tabla-parcialidades thead th {
     position: sticky;
     top: 0;
     z-index: 1;
-    background: #f0f4fa;
-    color: var(--gis-blue);
+    color: var(--gis-white);
     font-weight: 700;
-    padding: 0.55rem 0.8rem;
+    padding: 10px 12px;
     text-align: left;
-    border-bottom: 2px solid #d0dff0;
+    font-size: 0.78rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.18);
+}
+
+.tabla-parcialidades-blue thead th {
+    background: linear-gradient(90deg, #033966 0%, #0a4f8a 100%);
+}
+
+.tabla-tratamientos-amber thead th {
+    background: linear-gradient(90deg, #78350f 0%, #b45309 100%);
 }
 
 .tabla-parcialidades tbody td {
-    padding: 0.55rem 0.8rem;
-    border-bottom: 1px solid #eef2f8;
-    color: #2d3748;
+    padding: 9px 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    color: var(--gis-black);
+    vertical-align: middle;
 }
 
 .tabla-parcialidades tbody tr:last-child td { border-bottom: none; }
+.tabla-parcialidades tbody tr:nth-child(even) { background-color: rgba(0, 0, 0, 0.015); }
+.tabla-parcialidades tbody tr:hover { background-color: rgba(3, 57, 102, 0.04); }
 
-.tabla-parcialidades tbody tr:hover { background: #f5f8fd; }
+.tabla-tratamientos-amber tbody tr:hover { background-color: rgba(217, 119, 6, 0.04); }
 
+/* Badges de Cantidad */
 .badge-cantidad {
     display: inline-block;
-    background: #e6f9e6;
+    background-color: rgba(10, 133, 4, 0.1);
     color: var(--gis-green);
     font-weight: 700;
-    font-size: 0.92rem;
-    padding: 0.2rem 0.6rem;
-    border-radius: 20px;
+    font-size: 0.84rem;
+    padding: 2px 10px;
+    border-radius: 14px;
+    border: 1px solid rgba(10, 133, 4, 0.25);
 }
 
-.resumen-parcialidades, .resumen-tratamientos {
-    display: flex;
-    gap: 0.8rem;
-    margin-bottom: 0.8rem;
-    flex-wrap: wrap;
+.badge-cantidad-tt {
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
 }
 
-.resumen-item {
-    background: #f0f4fa;
-    border-radius: 8px;
-    padding: 0.4rem 0.8rem;
-    text-align: center;
-    min-width: 100px;
+.badge-cantidad-cero {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fca5a5 !important;
 }
 
-.resumen-item .resumen-valor {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #033966;
-}
-
-.resumen-item .resumen-label {
-    font-size: 0.75rem;
-    color: #6b7a99;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-/* Mensajes flash */
-.flash-success, .flash-error {
-    border-radius: 8px;
-    padding: 0.7rem 1rem;
-    margin-bottom: 1rem;
-    font-size: 1rem;
-    font-weight: 500;
-}
-
-.flash-success { background: #e6f9e6; color: #0a5e04; border: 1px solid #a3d9a3; }
-.flash-error   { background: #fde8e8; color: #7a0404; border: 1px solid #f5a3a3; }
-
-/* Botón Regresar y botón editar */
-.btn-regresar {
+/* Document Pill Link */
+.doc-pill-link {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 6px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(3, 57, 102, 0.05);
+    border: 1px solid rgba(3, 57, 102, 0.15);
     color: var(--gis-blue);
-    background: rgba(3, 57, 102, 0.08);
-    border: none;
-    border-radius: 8px;
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
+    font-size: 0.82rem;
     text-decoration: none;
-    transition: background .2s, transform .15s;
+    transition: all 0.2s ease;
 }
 
-.btn-regresar:hover {
-    background: #d0e2f8;
-    color: #033966;
-    transform: translateY(-1px);
+.doc-pill-link:hover {
+    background: rgba(3, 57, 102, 0.12);
+    color: var(--gis-blue);
     text-decoration: none;
 }
 
-.btn-editar-clase-icon {
+.doc-pill-amber {
+    background: #fef3c7;
+    border-color: #fde68a;
+    color: #b45309;
+}
+
+.doc-pill-amber:hover {
+    background: #fde68a;
+    color: #78350f;
+}
+
+/* ── Modern Table Action Buttons ── */
+.col-acciones {
     display: flex;
     align-items: center;
-    justify-content: center;
-    transition: transform 0.2s ease-in-out;
+    gap: 6px;
+    justify-content: flex-start;
 }
 
-.btn-editar-clase-icon:hover {
-    transform: scale(1.15);
+.btn-action-edit, .btn-action-delete, .btn-action-save, .btn-action-cancel {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.18s cubic-bezier(0.25, 0.8, 0.25, 1);
+    border: 1px solid transparent;
+    line-height: 1;
+    text-decoration: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-/* Estilos para los campos de edición en la tabla de parcialidades y tratamientos (solo cuando se edita la fila) */
+/* Edit button - Blue (Parcialidades) */
+.btn-action-edit-blue {
+    background: rgba(3, 57, 102, 0.08);
+    color: var(--gis-blue);
+    border-color: rgba(3, 57, 102, 0.2);
+}
+
+.btn-action-edit-blue:hover {
+    background: var(--gis-blue);
+    color: #ffffff;
+    border-color: var(--gis-blue);
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 10px rgba(3, 57, 102, 0.25);
+}
+
+/* Edit button - Amber (Tratamiento Térmico) */
+.btn-action-edit-amber {
+    background: #fef3c7;
+    color: #b45309;
+    border-color: #fde68a;
+}
+
+.btn-action-edit-amber:hover {
+    background: #d97706;
+    color: #ffffff;
+    border-color: #d97706;
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 10px rgba(217, 119, 6, 0.3);
+}
+
+/* Delete button */
+.btn-action-delete {
+    background: rgba(156, 3, 3, 0.08);
+    color: var(--gis-red);
+    border-color: rgba(156, 3, 3, 0.2);
+}
+
+.btn-action-delete:hover {
+    background: var(--gis-red);
+    color: #ffffff;
+    border-color: var(--gis-red);
+    transform: translateY(-1.5px);
+    box-shadow: 0 4px 10px var(--shadow-red);
+}
+
+/* Save button */
+.btn-action-save {
+    background-color: var(--gis-green) !important;
+    color: #ffffff !important;
+    border-color: var(--gis-green) !important;
+    box-shadow: 0 2px 6px var(--shadow-green) !important;
+}
+
+.btn-action-save:hover {
+    transform: translateY(-1.5px);
+    box-shadow: 0 5px 12px rgba(10, 133, 4, 0.45) !important;
+}
+
+/* Cancel button */
+.btn-action-cancel {
+    background: #f1f5f9 !important;
+    color: #475569 !important;
+    border-color: #cbd5e1 !important;
+}
+
+.btn-action-cancel:hover {
+    background: #e2e8f0 !important;
+    color: #0f172a !important;
+    transform: translateY(-1.5px);
+}
+
+/* ── Edición en línea en tablas ── */
 .fila-parcialidad-item .edit-fecha,
 .fila-parcialidad-item .edit-cantidad,
 .fila-parcialidad-item .edit-descripcion,
@@ -526,7 +1161,6 @@
     display: none !important;
 }
 
-/* Cuando la fila está en modo edición (clase .editando) */
 .fila-parcialidad-item.editando .view-fecha,
 .fila-parcialidad-item.editando .view-cantidad,
 .fila-parcialidad-item.editando .view-descripcion,
@@ -536,7 +1170,7 @@
 .fila-tratamiento-item.editando .view-cantidad,
 .fila-tratamiento-item.editando .view-descripcion,
 .fila-tratamiento-item.editando .view-remision,
-.fila-tratamiento-item.editando .btn-editar-parcialidad,
+.fila-tratamiento-item.editando .btn-editar-tratamiento,
 .fila-tratamiento-item.editando .form-eliminar-tratamiento {
     display: none !important;
 }
@@ -565,135 +1199,104 @@
 .fila-parcialidad-item.editando .btn-cancelar-parcialidad,
 .fila-tratamiento-item.editando .btn-guardar-parcialidad,
 .fila-tratamiento-item.editando .btn-cancelar-parcialidad {
-    display: inline-block !important;
+    display: inline-flex !important;
 }
 
-/* Inputs de edición */
 .tabla-parcialidades tr.editando input.form-control {
     width: 100% !important;
-    padding: 0.4rem 0.6rem !important;
-    font-size: 0.85rem !important;
-    border: 1px solid #ccd9e8 !important;
-    border-radius: 6px !important;
-    background: #fff !important;
-    color: #1a1a2e !important;
-    box-shadow: none !important;
-    transition: border-color .2s, box-shadow .2s !important;
-    height: auto !important;
+    padding: 4px 8px !important;
+    font-size: 0.82rem !important;
+    border: 1px solid rgba(3, 57, 102, 0.22) !important;
+    border-radius: 4px !important;
+    background: #ffffff !important;
+    color: var(--gis-black) !important;
+    height: 32px !important;
+    min-height: 32px !important;
 }
 
-.tabla-parcialidades tr.editando input.form-control:focus {
-    outline: none !important;
-    border-color: #033966 !important;
-    box-shadow: 0 0 0 3px rgba(3,57,102,.12) !important;
-}
+.tabla-parcialidades tr.editando .edit-fecha { max-width: 140px !important; }
+.tabla-parcialidades tr.editando .edit-cantidad { max-width: 80px !important; }
 
-.tabla-parcialidades tr.editando .edit-fecha {
-    max-width: 150px !important;
-}
-
-.tabla-parcialidades tr.editando .edit-cantidad {
-    max-width: 80px !important;
-}
-
-.tabla-parcialidades tr.editando .edit-descripcion {
-    max-width: 100% !important;
-}
-
-/* Input file en modo edición */
-.tabla-parcialidades tr.editando .edit-archivo {
-    font-size: 0.78rem !important;
-    padding: 0.3rem !important;
-    margin-bottom: 5px !important;
-}
-
-/* Badge de Quitar Archivo */
-.edit-eliminar-file-lbl {
+/* ── Modales de autorización ── */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 10, 25, 0.75);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    gap: 6px;
-    background: #fdf2f2;
-    color: var(--gis-red);
-    padding: 4px 8px;
+}
+.modal-overlay[hidden] {
+    display: none !important;
+}
+
+.modal-content-box-v2 {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    border: 2px solid var(--gis-blue);
+}
+
+.modal-title {
+    margin-top: 0;
+    color: var(--gis-blue);
+    font-size: 1.2rem;
+    font-weight: 700;
+}
+
+.modal-text {
+    font-size: 0.9rem;
+    color: var(--gis-gray);
+    margin-bottom: 1.2rem;
+    line-height: 1.5;
+}
+
+.modal-input-v2 {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid rgba(3, 57, 102, 0.22);
     border-radius: 6px;
-    font-size: 0.72rem;
+    margin-bottom: 1.2rem;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.8rem;
+    justify-content: center;
+}
+
+.modal-btn-cancel {
+    background: rgba(3, 57, 102, 0.08);
+    color: var(--gis-blue);
+    border: 1px solid rgba(3, 57, 102, 0.18);
+    padding: 0.5rem 1.4rem;
+    border-radius: 6px;
     font-weight: 600;
     cursor: pointer;
-    border: 1px solid #f8d7d7;
-    transition: all 0.2s;
-    -webkit-user-select: none;
-    user-select: none;
-    margin-top: 4px;
 }
 
-.edit-eliminar-file-lbl:hover {
-    background: #fde8e8;
-    border-color: #f5c2c2;
-    color: #b30000;
-}
-
-.edit-eliminar-file-chk {
+.modal-btn-confirm {
+    background: var(--gis-red);
+    color: #ffffff;
+    border: none;
+    padding: 0.5rem 1.4rem;
+    border-radius: 6px;
+    font-weight: 600;
     cursor: pointer;
-    margin: 0;
+    box-shadow: 0 4px 6px var(--shadow-red);
 }
 
-/* Botones de acción en edición */
-.btn-guardar-parcialidad {
-    background: #e6f9e6 !important;
-    color: #0a8504 !important;
-    border: 1px solid #c2f0c2 !important;
-    padding: 0.4rem 0.8rem !important;
-    font-size: 0.8rem !important;
-    font-weight: 600 !important;
-    border-radius: 6px !important;
-    cursor: pointer !important;
-    transition: all 0.2s !important;
-}
-
-.btn-guardar-parcialidad:hover {
-    background: #0a8504 !important;
-    color: #fff !important;
-    border-color: #0a8504 !important;
-}
-
-.btn-cancelar-parcialidad {
-    background: #fde8e8 !important;
-    color: #9c0303 !important;
-    border: 1px solid #f8c8c8 !important;
-    padding: 0.4rem 0.8rem !important;
-    font-size: 0.8rem !important;
-    font-weight: 600 !important;
-    border-radius: 6px !important;
-    cursor: pointer !important;
-    transition: all 0.2s !important;
-    margin-left: 5px !important;
-}
-
-.btn-cancelar-parcialidad:hover {
-    background: #9c0303 !important;
-    color: #fff !important;
-    border-color: #9c0303 !important;
-}
-
-/* Alerta de aviso sin remisión más pequeña */
-#aviso-sin-remision {
-    padding: 0.6rem 1rem !important;
-    font-size: 0.88rem !important;
-    border-style: solid !important;
-    border-width: 1px !important;
-    border-radius: 8px !important;
-    margin-bottom: 1.2rem !important;
-    text-align: left !important;
-}
-
-/* ── Tratamientos térmicos list wrap ── */
-.lista-tratamientos {
-    max-height: 200px;
-    overflow-y: auto;
-    border-radius: 8px;
-    border: 1px solid #e0ebf8;
-}
-
-/* ── Custom scrollbars for premium look ── */
+/* ── Scrollbars con @supports (styles_skill.md) ── */
 .panel-ot::-webkit-scrollbar,
 .panel-actividad::-webkit-scrollbar,
 .tabla-clases-wrap::-webkit-scrollbar,
@@ -707,57 +1310,29 @@
 .tabla-clases-wrap::-webkit-scrollbar-track,
 .tabla-parcialidades-wrap::-webkit-scrollbar-track,
 .lista-tratamientos::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.03);
-    border-radius: 10px;
+    background: #f1f5f9;
 }
 .panel-ot::-webkit-scrollbar-thumb,
 .panel-actividad::-webkit-scrollbar-thumb,
 .tabla-clases-wrap::-webkit-scrollbar-thumb,
 .tabla-parcialidades-wrap::-webkit-scrollbar-thumb,
 .lista-tratamientos::-webkit-scrollbar-thumb {
-    background: rgba(3, 57, 102, 0.2);
-    border-radius: 10px;
-}
-.panel-ot::-webkit-scrollbar-thumb:hover,
-.panel-actividad::-webkit-scrollbar-thumb:hover,
-.tabla-clases-wrap::-webkit-scrollbar-thumb:hover,
-.tabla-parcialidades-wrap::-webkit-scrollbar-thumb:hover,
-.lista-tratamientos::-webkit-scrollbar-thumb:hover {
-    background: rgba(3, 57, 102, 0.4);
+    background: var(--gis-blue);
+    border-radius: 4px;
 }
 
-/* ── Layout sin scroll en desktop (min-width: 901px) ── */
-@media (min-width: 901px) {
-    body {
-        overflow: hidden;
-    }
-    .almacen-layout {
-        height: 95vh;
-        max-height: 95vh;
-        padding: 1rem 0;
-        align-items: stretch;
-    }
-    .panel-ot {
-        height: auto;
-        max-height: 100%;
-        overflow-y: auto;
-        position: static;
-        align-self: flex-start;
-    }
-    .panel-actividad {
-        height: 100%;
-        max-height: 100%;
-        overflow-y: auto;
-        padding: 0.5rem 1rem;
+@supports (scrollbar-width: thin) {
+    .panel-ot, .panel-actividad, .tabla-clases-wrap, .tabla-parcialidades-wrap, .lista-tratamientos {
+        scrollbar-width: thin;
+        scrollbar-color: var(--gis-blue) #f1f5f9;
     }
 }
 
-/* ── Responsive stack layout (max-width: 900px) ── */
-@media (max-width: 900px) {
+/* ── Responsive Layout (styles_skill.md) ── */
+@media (max-width: 992px) {
     .almacen-layout {
         flex-direction: column;
-        width: 96vw;
-        padding: 4.5rem 0 3rem;
+        padding: 5rem 0 3rem;
     }
 
     .panel-ot {
@@ -766,53 +1341,36 @@
         position: static;
     }
 
-    .form-remision, .form-tratamiento {
-        grid-template-columns: 1fr;
+    .form-row-gis {
+        flex-wrap: wrap;
     }
 
-    .form-parcialidad {
-        grid-template-columns: 1fr 1fr;
+    .field-qty, .field-date {
+        flex: 1 1 130px;
+    }
+
+    .field-file {
+        flex: 1 1 100%;
     }
 }
 
-/* Extracted utility classes from Blade */
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
-.modal-content-box { background: var(--gis-white, #fff); padding: 1.8rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); text-align: center; position: relative; }
-.modal-title { margin-top: 0; color: var(--gis-blue, #033966); font-size: 1.15rem; font-weight: 700; }
-.modal-text { font-size: 0.9rem; color: #555; margin-bottom: 1rem; }
-.modal-input { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1.2rem; text-align: center; font-family: var(--font-data, sans-serif); font-size: 1rem; }
-.modal-actions { display: flex; gap: 0.8rem; justify-content: center; }
-.modal-btn-cancel { background: #e8f0fb; color: var(--gis-blue, #033966); border: none; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
-.modal-btn-confirm { background: var(--gis-red, #9c0303); color: #fff; border: none; padding: 0.5rem 1.2rem; border-radius: 6px; font-weight: 600; cursor: pointer; }
-.btn-small { font-size: .8rem; padding: .35rem; }
+/* Clases utilitarias Blade */
 .d-inline { display: inline; }
 .ws-nowrap { white-space: nowrap; }
 .icon-16 { width: 16px; height: 16px; object-fit: contain; }
 .icon-48 { width: 48px; height: 48px; object-fit: contain; }
-.progress-track { background: #e8eef6; border-radius: 10px; height: 10px; overflow: hidden; }
-.progress-fill { height: 100%; background: var(--gis-blue, #033966); border-radius: 10px; transition: width .4s; }
 .w-0 { width: 0%; }
 .flex-1 { flex: 1; }
 .self-center { align-self: center; }
 .px-0-5 { padding: 0 0.5rem; }
-.link-action { font-size: 0.82rem; color: var(--gis-blue, #033966); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 4px; transition: background 0.2s; }
-.link-action:hover { background: #e8f0fb; }
-.p-0-55-0-4 { padding: 0.55rem 0.4rem; }
 .text-center { text-align: center; }
-.badge-blue { font-size: 0.85rem; font-weight: bold; color: var(--gis-blue, #033966); background: #e8f0fb; padding: 3px 6px; border-radius: 4px; }
 .mb-0-8 { margin-bottom: 0.8rem; }
 .btn-reset { background: none; border: none; cursor: pointer; padding: 0; }
 .mx-auto { margin-left: auto; margin-right: auto; }
 .d-block { display: block; }
 .mt-1 { margin-top: 1rem; }
 .text-truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.max-w-120 { max-width: 120px; }
-.text-muted-sm { font-size: 0.85rem; color: #a0a8c0; }
-.alert-warning-custom { background: #fff8e1; border-color: #f0c040; color: #7a5c00; }
+.text-muted-sm { font-size: 0.85rem; color: var(--gis-gray); }
 .mb-1 { margin-bottom: 1rem; }
 .d-justify-start { justify-content: flex-start; }
-
-.link-action-modal { font-size: 0.82rem; color: var(--gis-blue, #033966); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
-.modal-content-box-v2 { background: #fff; padding: 1.8rem; border-radius: 12px; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.25); text-align: center; }
-.modal-input-v2 { width: 100%; padding: 0.6rem; border: 1px solid #ccc; border-radius: 6px; margin-bottom: 1.2rem; text-align: center; font-size: 1rem; }
-
+.link-action-modal { font-size: 0.82rem; color: var(--gis-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }

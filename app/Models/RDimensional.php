@@ -5,6 +5,17 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property int $ot_id
+ * @property string $clase
+ * @property int $cantidad_pedido
+ * @property int $cantidad_consignacion
+ * @property int $cantidad_inspeccionada
+ * @property float $porcentaje_inspeccion
+ * @property \Illuminate\Database\Eloquent\Collection<\App\Models\RDimensionalMedida> $medidas
+ * @property \Illuminate\Database\Eloquent\Collection<\App\Models\RDimensionalPdf> $pdfs
+ */
 class RDimensional extends Model
 {
     use HasFactory;
@@ -74,6 +85,7 @@ class RDimensional extends Model
 
     /**
      * Medidas registradas para este reporte
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\RDimensionalMedida>
      */
     public function medidas()
     {
@@ -82,6 +94,7 @@ class RDimensional extends Model
 
     /**
      * Formatos PDF generados para este reporte
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<\App\Models\RDimensionalPdf>
      */
     public function pdfs()
     {

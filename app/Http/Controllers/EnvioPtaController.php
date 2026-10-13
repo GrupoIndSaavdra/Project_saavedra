@@ -26,9 +26,9 @@ class EnvioPtaController extends Controller
 
     public function __construct()
     {
-        // Acceso permitido para perfil 1 (Administrador) y perfil 3 (Master)
+        // Acceso permitido para perfil 1 (Administrador), perfil 3 (Master) y perfil 6 (Supervisor)
         $this->middleware(function ($request, $next) {
-            if (auth()->check() && !in_array(auth()->user()->perfil, [1, 3])) {
+            if (auth()->check() && !in_array(auth()->user()->perfil, [1, 3, 6])) {
                 abort(403, 'No tienes permiso para acceder a esta sección.');
             }
             return $next($request);

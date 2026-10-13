@@ -1254,7 +1254,7 @@ class CalidadTableRowViewModel
         }
         // Aplicar filtros de visibilidad según perfil de usuario
         $this->userPerfil = \Auth::user()->perfil;
-        if ($this->userPerfil != 1 && $this->userPerfil != 2 && $this->userPerfil != 3) {
+        if ($this->userPerfil != 1 && $this->userPerfil != 2 && $this->userPerfil != 3 && $this->userPerfil != 6) {
             $filteredOtros = [];
             foreach ($this->otrosArchivos as $archivo) {
                 $nameLow = strtolower($archivo['nombre']);
@@ -1494,7 +1494,7 @@ class CalidadTableRowViewModel
         ]);
         $this->isQualityFinalized = $this->hasFinalStatus && $this->todosGuardados;
         $this->showQualityCard =
-            in_array(\Auth::user()->perfil, ['1', '3', '4', 1, 3, 4]) &&
+            in_array(\Auth::user()->perfil, ['1', '3', '4', '6', 1, 3, 4, 6]) &&
             $this->estado === 'activa' &&
             $this->targetReg->calidad_revision_status !== 'casting_aprobado';
         $this->hasFilesOrControl = $this->count > 0 || $this->showQualityCard;

@@ -100,7 +100,7 @@
                         @php
                             $canDelete = false;
                             $userPerfil = Auth::user()->perfil;
-                            if (in_array($userPerfil, [1, 2, 3, 4, '1', '2', '3', '4'])) {
+                            if (in_array($userPerfil, [1, 2, 3, 4, 6, '1', '2', '3', '4', '6'])) {
                                 $canDelete = true;
                             }
                         @endphp
