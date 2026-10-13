@@ -121,6 +121,58 @@ class MigrateFundicionPaths extends Command
             $otBase . '/Documentos_Rechazados/Scar',
             $otBase . '/Documentos_Rechazados/SCAR'
         );
+
+        // ─── 6. Consolidar carpetas de clase duplicadas (ej: "3 - BOMBILLO" vs "BOMBILLO") ───
+        $allSubdirs = Storage::disk('local')->directories($otBase);
+        $grouped = [];
+        foreach ($allSubdirs as $sd) {
+            $baseName = basename($sd);
+            if (in_array(strtolower($baseName), ['documentos_aprobados', 'documentos_rechazados', 'ayudas_visuales', 'preordenes'])) {
+                continue;
+            }
+            $cleanKey = FundicionPaths::cleanClassName($baseName);
+            if (!empty($cleanKey)) {
+                $grouped[$cleanKey][] = $baseName;
+            }
+        }
+
+        foreach ($grouped as $cleanKey => $matchingFolders) {
+            if (count($matchingFolders) > 1) {
+                // Hay duplicados (ej: "BOMBILLO" y "3 - BOMBILLO")
+                $normOfficial = FundicionPaths::normalizeClass($cleanKey);
+                $chosen = null;
+
+                foreach ($matchingFolders as $mf) {
+                    if (strtoupper($mf) === strtoupper($normOfficial)) {
+                        $chosen = $mf;
+                        break;
+                    }
+                }
+
+                if (!$chosen) {
+                    $maxFiles = -1;
+                    foreach ($matchingFolders as $mf) {
+                        $cnt = count(Storage::disk('local')->allFiles($otBase . '/' . $mf));
+                        if ($cnt > $maxFiles) {
+                            $maxFiles = $cnt;
+                            $chosen = $mf;
+                        }
+                    }
+                }
+                if (!$chosen) {
+                    $chosen = $matchingFolders[0];
+                }
+
+                $this->info("  [CONSOLIDAR duplicados clase {$cleanKey}] Manteniendo: {$chosen}");
+                foreach ($matchingFolders as $mf) {
+                    if ($mf === $chosen) continue;
+                    $this->warn("    → Fusionando {$mf} hacia {$chosen}...");
+                    if (!$this->dryRun) {
+                        FundicionPaths::mergeClassDirectories($otBase . '/' . $chosen, $otBase . '/' . $mf);
+                    }
+                }
+            }
+        }
     }
 
     private function moveFile(string $src, string $dst): void

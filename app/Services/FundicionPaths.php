@@ -261,6 +261,227 @@ final class FundicionPaths
     }
 
 
+    /**
+     * Limpia un nombre de clase eliminando prefijos numéricos ("1 - "), "modelo", "casting",
+     * acentos, espacios y sufijos de plural para comparación canónica independiente del formato.
+     */
+    public static function cleanClassName(?string $name): string
+    {
+        if (empty($name)) {
+            return '';
+        }
+        // Quitar prefijos "modelo" o "casting"
+        $name = preg_replace('/^(?:modelo|casting)\s+/iu', '', trim($name));
+        // Quitar prefijo numérico como "1 - ", "01 - ", "1-", "1 "
+        $name = preg_replace('/^\d+\s*[-_.]?\s*/u', '', $name);
+        // Convertir a minúsculas UTF-8
+        $name = mb_strtolower($name, 'UTF-8');
+        // Remover acentos
+        $name = str_replace(
+            ['á', 'é', 'í', 'ó', 'ú', 'ü', 'ñ'],
+            ['a', 'e', 'i', 'o', 'u', 'u', 'n'],
+            $name
+        );
+        // Remover caracteres no alfanuméricos
+        $name = preg_replace('/[^a-z0-9]/u', '', $name);
+        // Singularizar términos comunes en molduras
+        if (str_ends_with($name, 'es')) {
+            $name = substr($name, 0, -2);
+        } elseif (str_ends_with($name, 's')) {
+            $name = substr($name, 0, -1);
+        }
+        return $name;
+    }
+
+    /**
+     * Compara si dos nombres representan la misma clase (ej: "3 - BOMBILLO" vs "BOMBILLO" vs "bombillo").
+     */
+    public static function isSameClass(?string $a, ?string $b): bool
+    {
+        $cleanA = self::cleanClassName($a);
+        $cleanB = self::cleanClassName($b);
+        return $cleanA !== '' && $cleanA === $cleanB;
+    }
+
+    /**
+     * Busca si ya existe una carpeta en disco para una clase dada dentro de una OT.
+     * Si existen duplicados (ej: "BOMBILLO" y "3 - BOMBILLO"), consolida los archivos y unifica la carpeta.
+     */
+    public static function findExistingClassFolder(string $baseOtPath, string $clase): ?string
+    {
+        $disk = \Illuminate\Support\Facades\Storage::disk('local');
+        if (!$disk->exists($baseOtPath)) {
+            // Intentar resolver la carpeta de la OT de forma insensible a mayúsculas si no existe exacta
+            $parent = dirname($baseOtPath);
+            $otTarget = basename($baseOtPath);
+            if ($disk->exists($parent)) {
+                $subdirs = $disk->directories($parent);
+                foreach ($subdirs as $sd) {
+                    if (strcasecmp(basename($sd), $otTarget) === 0) {
+                        $baseOtPath = $sd;
+                        break;
+                    }
+                }
+            }
+            if (!$disk->exists($baseOtPath)) {
+                return null;
+            }
+        }
+
+        $reserved = [
+            'ayudas_visuales',
+            'ayudas_visuales_fundicion',
+            'dibujos_fundicion',
+            'documentos_aprobados',
+            'documentos_rechazados',
+            'escaneados',
+            'preordenes',
+            'formatos_liberacion',
+            'scar',
+            'fdrdm',
+            'fdldm',
+            'dwg_fundicion',
+            'extras',
+        ];
+
+        $subdirs = $disk->directories($baseOtPath);
+        $matching = [];
+
+        foreach ($subdirs as $dir) {
+            $base = basename($dir);
+            if (in_array(strtolower($base), $reserved)) {
+                continue;
+            }
+            if (self::isSameClass($base, $clase)) {
+                $matching[] = $base;
+            }
+        }
+
+        if (empty($matching)) {
+            return null;
+        }
+
+        if (count($matching) === 1) {
+            return $matching[0];
+        }
+
+        // Si hay más de una carpeta para la misma clase (duplicados como BOMBILLO y 3 - BOMBILLO):
+        $normOfficial = self::normalizeClass($clase);
+        $chosen = null;
+
+        // Si alguna coincide con el nombre oficial estandarizado (ej: "3 - BOMBILLO"), preferirla
+        foreach ($matching as $mName) {
+            if (strtoupper($mName) === strtoupper($normOfficial)) {
+                $chosen = $mName;
+                break;
+            }
+        }
+
+        // Si ninguna es la oficial, elegir la que tenga más archivos
+        if (!$chosen) {
+            $maxFiles = -1;
+            foreach ($matching as $mName) {
+                $count = count($disk->allFiles($baseOtPath . '/' . $mName));
+                if ($count > $maxFiles) {
+                    $maxFiles = $count;
+                    $chosen = $mName;
+                }
+            }
+        }
+
+        if (!$chosen) {
+            $chosen = $matching[0];
+        }
+
+        // Consolidar recursivamente los duplicados hacia la carpeta elegida
+        foreach ($matching as $mName) {
+            if ($mName === $chosen) {
+                continue;
+            }
+            self::mergeClassDirectories($baseOtPath . '/' . $chosen, $baseOtPath . '/' . $mName);
+        }
+
+        return $chosen;
+    }
+
+    /**
+     * Mueve recursivamente todos los archivos y subdirectorios de una carpeta secundaria a una primaria,
+     * y elimina la carpeta secundaria vacía.
+     */
+    public static function mergeClassDirectories(string $primaryPath, string $secondaryPath): void
+    {
+        $disk = \Illuminate\Support\Facades\Storage::disk('local');
+        if (!$disk->exists($secondaryPath)) {
+            return;
+        }
+
+        $allFiles = $disk->allFiles($secondaryPath);
+        $secNorm = trim(str_replace('\\', '/', $secondaryPath), '/');
+        $primNorm = trim(str_replace('\\', '/', $primaryPath), '/');
+
+        foreach ($allFiles as $file) {
+            $fNorm = trim(str_replace('\\', '/', $file), '/');
+            if (str_starts_with(strtolower($fNorm), strtolower($secNorm) . '/')) {
+                $rel = substr($fNorm, strlen($secNorm) + 1);
+            } else {
+                $rel = basename($fNorm);
+            }
+            $dest = $primNorm . '/' . $rel;
+            $destDir = dirname($dest);
+            if (!$disk->exists($destDir)) {
+                $disk->makeDirectory($destDir);
+            }
+            if (!$disk->exists($dest)) {
+                $disk->move($file, $dest);
+            } else {
+                $disk->delete($file);
+            }
+        }
+
+        $disk->deleteDirectory($secondaryPath);
+    }
+
+    /**
+     * Resuelve el nombre exacto de la carpeta de clase a usar:
+     * Si ya existe una carpeta para la clase en la OT (en root propio o alterno), la respeta y reutiliza.
+     * Si no existe, usa la versión normalizada oficial.
+     */
+    public static function resolveClassFolder(string $baseOtPath, string $clase, ?string $altOtPath = null): string
+    {
+        // 1. Buscar en root propio (respetar la estructura como se haya creado originalmente)
+        $existing = self::findExistingClassFolder($baseOtPath, $clase);
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        // 2. Buscar en root alterno si se proporciona (Calidad ↔ Almacén)
+        if ($altOtPath !== null) {
+            $existingAlt = self::findExistingClassFolder($altOtPath, $clase);
+            if ($existingAlt !== null) {
+                return $existingAlt;
+            }
+        }
+
+        // 3. Si no existe aún en disco, usar el catálogo oficial
+        return self::normalizeClass($clase);
+    }
+
+    /**
+     * Devuelve todas las carpetas en disco para una OT que correspondan a una clase.
+     * Si no existe ninguna en disco, devuelve los candidatos posibles para búsqueda.
+     */
+    public static function getClassFoldersForOt(string $baseOtPath, string $clase): array
+    {
+        $existing = self::findExistingClassFolder($baseOtPath, $clase);
+        if ($existing !== null) {
+            return [$existing];
+        }
+
+        $norm = self::normalizeClass($clase);
+        $cleanNoNum = strtoupper(trim(preg_replace('/^\d+\s*[-_.]?\s*/', '', $clase)));
+        return array_values(array_unique(array_filter([$norm, $clase, $cleanNoNum])));
+    }
+
     public static function normalizeClass(string $clase): string
     {
         $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
@@ -284,70 +505,18 @@ final class FundicionPaths
     public static function crearEstructuraClase(string $otFolder, string $clase, string $root): string
     {
         $otFolderUpper = strtoupper($otFolder);
-        $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
-        if (empty($claseClean)) {
-            $claseClean = 'GENERAL';
-        }
-
-        // Guardar nombre raw antes de mapear (para búsqueda cruzada)
-        $claseRawNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $claseClean));
-
-        $standardMap = self::getStandardMap();
-
-        // Normalizar nombre sin numeros para mapearlo
-        $claseNoNum = strtoupper(trim(preg_replace('/^\d+\s*-\s*/', '', $claseClean)));
-
-        if (array_key_exists($claseNoNum, $standardMap)) {
-            $claseClean = $standardMap[$claseNoNum];
-        } else {
-            $claseClean = preg_replace('/^(\d+)([a-zA-Z]+)/', '$1 - $2', $claseClean);
-            $claseClean = strtoupper($claseClean);
-        }
-        
         $baseOtPath = strtoupper($root) . '/' . $otFolderUpper;
-        $existingDirs = [];
-        if (\Illuminate\Support\Facades\Storage::disk('local')->exists($baseOtPath)) {
-            $existingDirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($baseOtPath);
-        }
 
-        $cNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $claseClean));
-        $matched = false;
+        $altRoot = (strtoupper($root) === strtoupper(self::CALIDAD_ROOT))
+            ? self::ALMACEN_ROOT
+            : self::CALIDAD_ROOT;
+        $altBaseOtPath = strtoupper($altRoot) . '/' . $otFolderUpper;
 
-        // 1. Buscar en el root de destino (nombre oficial o original)
-        foreach ($existingDirs as $dir) {
-            $dirBase = basename($dir);
-            $dNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dirBase));
-            if ($cNorm === $dNorm || $claseRawNorm === $dNorm) {
-                $claseClean = strtoupper($dirBase);
-                $matched = true;
-                break;
-            }
-        }
+        // Respetar la carpeta existente si ya fue creada (ej: BOMBILLO, 3 - BOMBILLO, Molde, etc.)
+        $claseClean = self::resolveClassFolder($baseOtPath, $clase, $altBaseOtPath);
 
-        // 2. Si no encontró en root propio, buscar en el root alterno
-        //    (Calidad mira en Almacén y viceversa) para reutilizar el mismo nombre
-        if (!$matched) {
-            $altRoot = (strtoupper($root) === strtoupper(self::CALIDAD_ROOT))
-                ? self::ALMACEN_ROOT
-                : self::CALIDAD_ROOT;
-            $altBaseOtPath = strtoupper($altRoot) . '/' . $otFolderUpper;
-            $altDirs = [];
-            if (\Illuminate\Support\Facades\Storage::disk('local')->exists($altBaseOtPath)) {
-                $altDirs = \Illuminate\Support\Facades\Storage::disk('local')->directories($altBaseOtPath);
-            }
-            foreach ($altDirs as $dir) {
-                $dirBase = basename($dir);
-                $dNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dirBase));
-                if ($cNorm === $dNorm || $claseRawNorm === $dNorm) {
-                    $claseClean = strtoupper($dirBase);
-                    $matched = true;
-                    break;
-                }
-            }
-        }
-        
         $basePath = $baseOtPath . '/' . $claseClean;
-        
+
         $dirs = [
             $basePath . '/' . self::DIBUJOS,
             $basePath . '/' . self::DIBUJOS . '/' . self::DWG_FUNDICION,
@@ -359,13 +528,13 @@ final class FundicionPaths
             $basePath . '/' . self::DOCUMENTOS_RECHAZADOS,
             $basePath . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::EXTRAS,
         ];
-        
+
         foreach ($dirs as $dir) {
             if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($dir)) {
                 \Illuminate\Support\Facades\Storage::disk('local')->makeDirectory($dir);
             }
         }
-        
+
         return $claseClean;
     }
 
@@ -459,60 +628,73 @@ final class FundicionPaths
     public static function candidatos(string $root, string $otFolder, string $tipo, ?string $clase = null): array
     {
         $base = strtoupper($root . '/' . $otFolder);
-        $claseClean = $clase ? strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase)))) : 'GENERAL';
-        if (empty($claseClean)) {
-            $claseClean = 'GENERAL';
+        $candidates = [];
+
+        $classVariants = [];
+        if ($clase) {
+            $classVariants = self::getClassFoldersForOt($base, $clase);
+            $rawClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+            if (!empty($rawClean) && !in_array($rawClean, $classVariants)) {
+                $classVariants[] = $rawClean;
+            }
+        } else {
+            $classVariants = ['GENERAL'];
         }
 
-        return match ($tipo) {
-            'dibujo' => array_filter([
-                $claseClean ? $base . '/' . $claseClean . '/' . self::DIBUJOS : null,  // Nueva: {CLASE}/DIBUJOS_FUNDICION
-                $claseClean ? $base . '/' . $claseClean . '/Dibujo' : null,
-                $claseClean ? $base . '/' . $claseClean . '/Dibujos_Fundicion' : null,
-                $claseClean ? $base . '/' . $claseClean . '/Dibujos' : null,
-                $claseClean ? $base . '/' . $claseClean : null,
-            ]),
-            'ayuda' => array_filter([
-                $claseClean ? $base . '/' . $claseClean . '/' . self::AYUDAS_VISUALES : null,  // Nueva: {CLASE}/AYUDAS_VISUALES_FUNDICION
-                $claseClean ? $base . '/' . $claseClean . '/Ayuda_Visual' : null,
-                $claseClean ? $base . '/' . $claseClean . '/Ayudas_Visuales_Fundicion' : null,
-                $claseClean ? $base . '/' . $claseClean . '/Ayudas_Visuales' : null,
-                $claseClean ? $base . '/' . self::LEGACY_AYUDAS . '/' . $claseClean : null,
-            ]),
-            'preorden_modelo', 'preorden_casting' => [
-                $base . '/' . $claseClean . '/' . self::PREORDENES,
-                $base . '/' . $claseClean . '/Preordenes',
-                $base . '/' . self::PREORDEN_MODELO,
-                $base . '/' . self::PREORDEN_CASTING,
-                $base . '/' . self::LEGACY_PREORDENES,
-            ],
-            'fdldm' => [
-                $base . '/' . $claseClean . '/' . self::FORMATOS_LIBERACION,
-                $base . '/' . $claseClean . '/' . self::DOCUMENTOS_APROBADOS,
-                $base . '/' . $claseClean . '/' . self::DOCUMENTOS_APROBADOS . '/' . self::ALMACEN,
-                $base . '/' . $claseClean . '/' . self::DOCUMENTOS_APROBADOS . '/' . self::CALIDAD,
-                $base . '/' . $claseClean . '/Documentos_Aprobados/Calidad',
-                $base . '/' . $claseClean . '/Documentos_Aprobados/Almacen',
-                $base . '/' . self::FDLDM,
-                $base . '/' . self::LEGACY_LIB_MODELO_APR,
-                $base . '/' . self::LEGACY_DOC_APROBADOS,
-            ],
-            'fdrdm', 'scar' => [
-                $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS,
-                $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::EXTRAS,
-                $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::ALMACEN,
-                $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::CALIDAD,
-                $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::CALIDAD . '/' . self::EXTRAS,
-                $base . '/' . $claseClean . '/Documentos_Rechazados/Calidad',
-                $base . '/' . $claseClean . '/Documentos_Rechazados/Almacen',
-                $base . '/' . self::FDRDM,
-                $base . '/' . self::SCAR,
-                $base . '/' . self::LEGACY_LIB_MODELO_REC,
-                $base . '/' . self::LEGACY_DOC_RECHAZADOS,
-                $base . '/' . self::LEGACY_SCAR,
-            ],
-            default => [],
-        };
+        foreach ($classVariants as $claseClean) {
+            switch ($tipo) {
+                case 'dibujo':
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DIBUJOS;
+                    $candidates[] = $base . '/' . $claseClean . '/Dibujo';
+                    $candidates[] = $base . '/' . $claseClean . '/Dibujos_Fundicion';
+                    $candidates[] = $base . '/' . $claseClean . '/Dibujos';
+                    $candidates[] = $base . '/' . $claseClean;
+                    break;
+                case 'ayuda':
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::AYUDAS_VISUALES;
+                    $candidates[] = $base . '/' . $claseClean . '/Ayuda_Visual';
+                    $candidates[] = $base . '/' . $claseClean . '/Ayudas_Visuales_Fundicion';
+                    $candidates[] = $base . '/' . $claseClean . '/Ayudas_Visuales';
+                    $candidates[] = $base . '/' . self::LEGACY_AYUDAS . '/' . $claseClean;
+                    break;
+                case 'preorden_modelo':
+                case 'preorden_casting':
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::PREORDENES;
+                    $candidates[] = $base . '/' . $claseClean . '/Preordenes';
+                    $candidates[] = $base . '/' . self::PREORDEN_MODELO;
+                    $candidates[] = $base . '/' . self::PREORDEN_CASTING;
+                    $candidates[] = $base . '/' . self::LEGACY_PREORDENES;
+                    break;
+                case 'fdldm':
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::FORMATOS_LIBERACION;
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DOCUMENTOS_APROBADOS;
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DOCUMENTOS_APROBADOS . '/' . self::ALMACEN;
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DOCUMENTOS_APROBADOS . '/' . self::CALIDAD;
+                    $candidates[] = $base . '/' . $claseClean . '/Documentos_Aprobados/Calidad';
+                    $candidates[] = $base . '/' . $claseClean . '/Documentos_Aprobados/Almacen';
+                    $candidates[] = $base . '/' . self::FDLDM;
+                    $candidates[] = $base . '/' . self::LEGACY_LIB_MODELO_APR;
+                    $candidates[] = $base . '/' . self::LEGACY_DOC_APROBADOS;
+                    break;
+                case 'fdrdm':
+                case 'scar':
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS;
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::EXTRAS;
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::ALMACEN;
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::CALIDAD;
+                    $candidates[] = $base . '/' . $claseClean . '/' . self::DOCUMENTOS_RECHAZADOS . '/' . self::CALIDAD . '/' . self::EXTRAS;
+                    $candidates[] = $base . '/' . $claseClean . '/Documentos_Rechazados/Calidad';
+                    $candidates[] = $base . '/' . $claseClean . '/Documentos_Rechazados/Almacen';
+                    $candidates[] = $base . '/' . self::FDRDM;
+                    $candidates[] = $base . '/' . self::SCAR;
+                    $candidates[] = $base . '/' . self::LEGACY_LIB_MODELO_REC;
+                    $candidates[] = $base . '/' . self::LEGACY_DOC_RECHAZADOS;
+                    $candidates[] = $base . '/' . self::LEGACY_SCAR;
+                    break;
+            }
+        }
+
+        return array_values(array_unique(array_filter($candidates)));
     }
     /**
      * Devuelve las posibles rutas relativas para un adjunto (legacy y nuevo).

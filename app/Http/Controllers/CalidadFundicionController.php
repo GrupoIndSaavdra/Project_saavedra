@@ -254,37 +254,39 @@ class CalidadFundicionController extends Controller
                     if (!in_array($claseDir, $activeClasses))
                         continue;
 
-                    $claseDirMapped = FundicionPaths::normalizeClass($claseDir);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::CALIDAD_DIR . '/' . $relFolder, $claseDir);
 
-                    $newDibjPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::DIBUJOS);
-                    $legacyDibjPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDirMapped);
+                    foreach ($classFolders as $claseDirMapped) {
+                        $newDibjPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::DIBUJOS);
+                        $legacyDibjPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDirMapped);
 
-                    $scanFiles = [];
-                    if ($newDibjPath && Storage::disk('local')->exists($newDibjPath)) {
-                        $scanFiles = Storage::disk('local')->allFiles($newDibjPath);
-                    } elseif ($legacyDibjPath && Storage::disk('local')->exists($legacyDibjPath)) {
-                        $scanFiles = Storage::disk('local')->files($legacyDibjPath);
-                    }
+                        $scanFiles = [];
+                        if ($newDibjPath && Storage::disk('local')->exists($newDibjPath)) {
+                            $scanFiles = Storage::disk('local')->allFiles($newDibjPath);
+                        } elseif ($legacyDibjPath && Storage::disk('local')->exists($legacyDibjPath)) {
+                            $scanFiles = Storage::disk('local')->files($legacyDibjPath);
+                        }
 
-                    if (!empty($scanFiles)) {
-                        $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
-                        $relatedDibujos = collect($scanFiles)
-                            ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
-                            ->map(function ($f) use ($relatedOt, $relFolder) {
-                                $otBaseDirNorm = str_replace('\\', '/', self::CALIDAD_DIR . '/' . $relFolder);
-                                $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
-                                $utf8RelName = $this->toUtf8($relName);
-                                return [
-                                    'nombre' => $utf8RelName,
-                                    'tipo' => 'dibujo',
-                                    'url' => route('calidad.fundicion.serve', [
-                                        'ot' => $relatedOt,
-                                        'archivo' => $utf8RelName,
+                        if (!empty($scanFiles)) {
+                            $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
+                            $relatedDibujos = collect($scanFiles)
+                                ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
+                                ->map(function ($f) use ($relatedOt, $relFolder) {
+                                    $otBaseDirNorm = str_replace('\\', '/', self::CALIDAD_DIR . '/' . $relFolder);
+                                    $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
+                                    $utf8RelName = $this->toUtf8($relName);
+                                    return [
+                                        'nombre' => $utf8RelName,
                                         'tipo' => 'dibujo',
-                                    ]),
-                                ];
-                            });
-                        $dibujos = $dibujos->merge($relatedDibujos);
+                                        'url' => route('calidad.fundicion.serve', [
+                                            'ot' => $relatedOt,
+                                            'archivo' => $utf8RelName,
+                                            'tipo' => 'dibujo',
+                                        ]),
+                                    ];
+                                });
+                            $dibujos = $dibujos->merge($relatedDibujos);
+                        }
                     }
                 }
 
@@ -347,37 +349,39 @@ class CalidadFundicionController extends Controller
                     if (!in_array($claseDir, $activeClasses))
                         continue;
 
-                    $claseDirMapped = FundicionPaths::normalizeClass($claseDir);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::CALIDAD_DIR . '/' . $relFolder, $claseDir);
 
-                    $newAyPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::AYUDAS_VISUALES);
-                    $legacyAyPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDirMapped);
+                    foreach ($classFolders as $claseDirMapped) {
+                        $newAyPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::AYUDAS_VISUALES);
+                        $legacyAyPath = $this->resolveCaseInsensitivePath(self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDirMapped);
 
-                    $scanFiles = [];
-                    if ($newAyPath && Storage::disk('local')->exists($newAyPath)) {
-                        $scanFiles = Storage::disk('local')->allFiles($newAyPath);
-                    } elseif ($legacyAyPath && Storage::disk('local')->exists($legacyAyPath)) {
-                        $scanFiles = Storage::disk('local')->files($legacyAyPath);
-                    }
+                        $scanFiles = [];
+                        if ($newAyPath && Storage::disk('local')->exists($newAyPath)) {
+                            $scanFiles = Storage::disk('local')->allFiles($newAyPath);
+                        } elseif ($legacyAyPath && Storage::disk('local')->exists($legacyAyPath)) {
+                            $scanFiles = Storage::disk('local')->files($legacyAyPath);
+                        }
 
-                    if (!empty($scanFiles)) {
-                        $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
-                        $relatedAyudas = collect($scanFiles)
-                            ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
-                            ->map(function ($f) use ($relatedOt, $relFolder) {
-                                $otBaseDirNorm = str_replace('\\', '/', self::CALIDAD_DIR . '/' . $relFolder);
-                                $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
-                                $utf8RelName = $this->toUtf8($relName);
-                                return [
-                                    'nombre' => $utf8RelName,
-                                    'tipo' => 'ayuda',
-                                    'url' => route('calidad.fundicion.serve', [
-                                        'ot' => $relatedOt,
-                                        'archivo' => $utf8RelName,
+                        if (!empty($scanFiles)) {
+                            $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
+                            $relatedAyudas = collect($scanFiles)
+                                ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
+                                ->map(function ($f) use ($relatedOt, $relFolder) {
+                                    $otBaseDirNorm = str_replace('\\', '/', self::CALIDAD_DIR . '/' . $relFolder);
+                                    $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
+                                    $utf8RelName = $this->toUtf8($relName);
+                                    return [
+                                        'nombre' => $utf8RelName,
                                         'tipo' => 'ayuda',
-                                    ]),
-                                ];
-                            });
-                        $ayudas = $ayudas->merge($relatedAyudas);
+                                        'url' => route('calidad.fundicion.serve', [
+                                            'ot' => $relatedOt,
+                                            'archivo' => $utf8RelName,
+                                            'tipo' => 'ayuda',
+                                        ]),
+                                    ];
+                                });
+                            $ayudas = $ayudas->merge($relatedAyudas);
+                        }
                     }
                 }
             }
@@ -389,26 +393,26 @@ class CalidadFundicionController extends Controller
 
                 // --- RUTAS EXCLUSIVAMENTE ESPECÍFICAS DE CADA CLASE ---
                 foreach ($activeClasses as $clase) {
-                    $cLow = trim(preg_replace('/^modelo\s+/i', '', strtolower($clase)));
-                    $claseClean = FundicionPaths::normalizeClass($cLow);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::CALIDAD_DIR . '/' . $relFolder, $clase);
 
-                    // Calidad dirs
-                    $classCalidadBase = self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseClean;
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::PREORDENES),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::PREORDENES . '/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::FORMATOS_LIBERACION),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::FORMATOS_LIBERACION . '/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
-                    ];
+                    foreach ($classFolders as $claseClean) {
+                        // Calidad dirs
+                        $classCalidadBase = self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseClean;
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::PREORDENES),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::PREORDENES . '/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::FORMATOS_LIBERACION),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::FORMATOS_LIBERACION . '/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
+                        ];
                     $dirsToScan[] = [
                         'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/ESCANEADOS'),
                         'origin' => 'aprobado',
@@ -420,8 +424,9 @@ class CalidadFundicionController extends Controller
                         'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
                     ];
                 }
+            }
 
-                foreach ($dirsToScan as $scanInfo) {
+            foreach ($dirsToScan as $scanInfo) {
                     $scanPath = $scanInfo['path'];
                     $origin = $scanInfo['origin'];
                     $prefix = $scanInfo['prefix'];
@@ -3023,7 +3028,7 @@ class CalidadFundicionController extends Controller
                 $baseNorm = preg_replace('/\s+/', ' ', $baseNorm);
                 $baseNorm = trim($baseNorm);
 
-                if ($baseNorm === $partNorm) {
+                if ($baseNorm === $partNorm || FundicionPaths::isSameClass($base, $part)) {
                     $resolved = $resolved ? $resolved . '/' . $base : $base;
                     $found = true;
                     break;

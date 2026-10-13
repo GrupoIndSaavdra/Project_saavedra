@@ -1127,7 +1127,7 @@ class DibujosFundicionPdfController extends Controller
                     if (is_array($onlyClasses) && count($onlyClasses) > 0) {
                         $claseMatch = false;
                         foreach ($onlyClasses as $oc) {
-                            if (strtolower(trim($clase)) === strtolower(trim($oc))) {
+                            if (FundicionPaths::isSameClass($clase, $oc)) {
                                 $claseMatch = true;
                                 break;
                             }
@@ -1136,7 +1136,8 @@ class DibujosFundicionPdfController extends Controller
                             continue;
                     }
 
-                    $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+                    // Respetar carpeta existente en la OT (ej: BOMBILLO, 3 - BOMBILLO, Molde, etc.)
+                    $claseClean = FundicionPaths::resolveClassFolder($dstDir, $clase);
                     if (empty($claseClean))
                         $claseClean = 'GENERAL';
 
@@ -1177,7 +1178,7 @@ class DibujosFundicionPdfController extends Controller
                 if (is_array($onlyClasses) && count($onlyClasses) > 0) {
                     $claseMatch = false;
                     foreach ($onlyClasses as $oc) {
-                        if (strtolower(trim($clase)) === strtolower(trim($oc))) {
+                        if (FundicionPaths::isSameClass($clase, $oc)) {
                             $claseMatch = true;
                             break;
                         }
@@ -1186,7 +1187,8 @@ class DibujosFundicionPdfController extends Controller
                         continue;
                 }
 
-                $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
+                // Respetar carpeta existente en la OT
+                $claseClean = FundicionPaths::resolveClassFolder($dstDir, $clase);
                 if (empty($claseClean))
                     $claseClean = 'GENERAL';
 

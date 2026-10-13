@@ -343,88 +343,87 @@ class AlmacenFundicionController extends Controller
             if (!$soloPreorden) {
                 // 1a. Dibujos — nueva ruta: {Clase}/Dibujos/ (con fallback a raíz de clase)
                 foreach ($activeClasses as $claseDir) {
-                    $claseNorm = strtolower($claseDir);
-                    $claseDirMapped = FundicionPaths::normalizeClass($claseDir);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR . '/' . $relFolder, $claseDir);
 
-                    // Nueva ruta primero
-                    $newDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::DIBUJOS);
-                    // Legacy: dibujos en raíz de carpeta de clase
-                    $legacyDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped);
+                    foreach ($classFolders as $claseDirMapped) {
+                        // Nueva ruta primero
+                        $newDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::DIBUJOS);
+                        // Legacy: dibujos en raíz de carpeta de clase
+                        $legacyDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped);
 
-                    $scanFiles = [];
-                    if ($newDibjPath && (Storage::disk('local')->directoryExists($newDibjPath) || Storage::disk('local')->exists($newDibjPath))) {
-                        $scanFiles = Storage::disk('local')->allFiles($newDibjPath);
-                    } elseif ($legacyDibjPath && (Storage::disk('local')->directoryExists($legacyDibjPath) || Storage::disk('local')->exists($legacyDibjPath))) {
-                        $scanFiles = Storage::disk('local')->files($legacyDibjPath);
-                    }
+                        $scanFiles = [];
+                        if ($newDibjPath && (Storage::disk('local')->directoryExists($newDibjPath) || Storage::disk('local')->exists($newDibjPath))) {
+                            $scanFiles = Storage::disk('local')->allFiles($newDibjPath);
+                        } elseif ($legacyDibjPath && (Storage::disk('local')->directoryExists($legacyDibjPath) || Storage::disk('local')->exists($legacyDibjPath))) {
+                            $scanFiles = Storage::disk('local')->files($legacyDibjPath);
+                        }
 
-                    if (!empty($scanFiles)) {
-                        $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
-                        $relatedDibujos = collect($scanFiles)
-                            ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
-                            ->filter(function ($f) {
-                                $nameLower = strtolower(basename($f));
-                                return !str_contains($nameLower, 'f_ccl_') && !str_contains($nameLower, 'f-ccl-') && !str_contains($nameLower, 'scar') && !str_contains($nameLower, 'fdrdm') && !str_contains($nameLower, 'fdldm') && !str_contains($nameLower, 'rdm') && !str_contains($nameLower, '_anterior_n') && !str_contains($nameLower, '_anterior_');
-                            })
-                            ->map(function ($f) use ($relatedOt, $relFolder) {
-                                $otBaseDirNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $relFolder);
-                                $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
-                                $utf8RelName = $this->toUtf8($relName);
-                                return [
-                                    'nombre' => $utf8RelName,
-                                    'tipo' => 'dibujo',
-                                    'url' => route('almacen.fundicion.serve', [
-                                        'ot' => $relatedOt,
-                                        'archivo' => $utf8RelName,
+                        if (!empty($scanFiles)) {
+                            $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
+                            $relatedDibujos = collect($scanFiles)
+                                ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
+                                ->filter(function ($f) {
+                                    $nameLower = strtolower(basename($f));
+                                    return !str_contains($nameLower, 'f_ccl_') && !str_contains($nameLower, 'f-ccl-') && !str_contains($nameLower, 'scar') && !str_contains($nameLower, 'fdrdm') && !str_contains($nameLower, 'fdldm') && !str_contains($nameLower, 'rdm') && !str_contains($nameLower, '_anterior_n') && !str_contains($nameLower, '_anterior_');
+                                })
+                                ->map(function ($f) use ($relatedOt, $relFolder) {
+                                    $otBaseDirNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $relFolder);
+                                    $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
+                                    $utf8RelName = $this->toUtf8($relName);
+                                    return [
+                                        'nombre' => $utf8RelName,
                                         'tipo' => 'dibujo',
-                                    ]),
-                                ];
-                            });
-                        $dibujos = $dibujos->merge($relatedDibujos);
-                        if ($relatedOt === 'OT-MIXED-FILES-TEST') {
-                            dd($dibujos);
+                                        'url' => route('almacen.fundicion.serve', [
+                                            'ot' => $relatedOt,
+                                            'archivo' => $utf8RelName,
+                                            'tipo' => 'dibujo',
+                                        ]),
+                                    ];
+                                });
+                            $dibujos = $dibujos->merge($relatedDibujos);
                         }
                     }
                 }
 
                 // 2a. Ayudas Visuales — nueva ruta: {Clase}/Ayudas_Visuales/ (con fallback legacy)
                 foreach ($activeClasses as $claseDir) {
-                    $claseNorm = strtolower($claseDir);
-                    $claseDirMapped = FundicionPaths::normalizeClass($claseDir);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR . '/' . $relFolder, $claseDir);
 
-                    $newAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::AYUDAS_VISUALES);
-                    $legacyAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDirMapped);
+                    foreach ($classFolders as $claseDirMapped) {
+                        $newAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::AYUDAS_VISUALES);
+                        $legacyAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDirMapped);
 
-                    $scanFiles = [];
-                    if ($newAyPath && (Storage::disk('local')->directoryExists($newAyPath) || Storage::disk('local')->exists($newAyPath))) {
-                        $scanFiles = Storage::disk('local')->allFiles($newAyPath);
-                    } elseif ($legacyAyPath && (Storage::disk('local')->directoryExists($legacyAyPath) || Storage::disk('local')->exists($legacyAyPath))) {
-                        $scanFiles = Storage::disk('local')->files($legacyAyPath);
-                    }
+                        $scanFiles = [];
+                        if ($newAyPath && (Storage::disk('local')->directoryExists($newAyPath) || Storage::disk('local')->exists($newAyPath))) {
+                            $scanFiles = Storage::disk('local')->allFiles($newAyPath);
+                        } elseif ($legacyAyPath && (Storage::disk('local')->directoryExists($legacyAyPath) || Storage::disk('local')->exists($legacyAyPath))) {
+                            $scanFiles = Storage::disk('local')->files($legacyAyPath);
+                        }
 
-                    if (!empty($scanFiles)) {
-                        $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
-                        $relatedAyudas = collect($scanFiles)
-                            ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
-                            ->filter(function ($f) {
-                                $nameLower = strtolower(basename($f));
-                                return !str_contains($nameLower, 'f_ccl_') && !str_contains($nameLower, 'f-ccl-') && !str_contains($nameLower, 'scar') && !str_contains($nameLower, 'fdrdm') && !str_contains($nameLower, 'fdldm') && !str_contains($nameLower, '_anterior_n') && !str_contains($nameLower, '_anterior_');
-                            })
-                            ->map(function ($f) use ($relatedOt, $relFolder) {
-                                $otBaseDirNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $relFolder);
-                                $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
-                                $utf8RelName = $this->toUtf8($relName);
-                                return [
-                                    'nombre' => $utf8RelName,
-                                    'tipo' => 'ayuda',
-                                    'url' => route('almacen.fundicion.serve', [
-                                        'ot' => $relatedOt,
-                                        'archivo' => $utf8RelName,
+                        if (!empty($scanFiles)) {
+                            $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
+                            $relatedAyudas = collect($scanFiles)
+                                ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
+                                ->filter(function ($f) {
+                                    $nameLower = strtolower(basename($f));
+                                    return !str_contains($nameLower, 'f_ccl_') && !str_contains($nameLower, 'f-ccl-') && !str_contains($nameLower, 'scar') && !str_contains($nameLower, 'fdrdm') && !str_contains($nameLower, 'fdldm') && !str_contains($nameLower, '_anterior_n') && !str_contains($nameLower, '_anterior_');
+                                })
+                                ->map(function ($f) use ($relatedOt, $relFolder) {
+                                    $otBaseDirNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $relFolder);
+                                    $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
+                                    $utf8RelName = $this->toUtf8($relName);
+                                    return [
+                                        'nombre' => $utf8RelName,
                                         'tipo' => 'ayuda',
-                                    ]),
-                                ];
-                            });
-                        $ayudas = $ayudas->merge($relatedAyudas);
+                                        'url' => route('almacen.fundicion.serve', [
+                                            'ot' => $relatedOt,
+                                            'archivo' => $utf8RelName,
+                                            'tipo' => 'ayuda',
+                                        ]),
+                                    ];
+                                });
+                            $ayudas = $ayudas->merge($relatedAyudas);
+                        }
                     }
                 }
             }
@@ -436,63 +435,65 @@ class AlmacenFundicionController extends Controller
 
                 // --- RUTAS EXCLUSIVAMENTE ESPECÍFICAS DE CADA CLASE ---
                 foreach ($activeClasses as $clase) {
-                    $claseClean = FundicionPaths::normalizeClass($clase);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR . '/' . $relFolder, $clase);
 
-                    // Almacen dirs
-                    $classAlmacenBase = self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseClean;
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::PREORDENES),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::PREORDENES . '/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::FORMATOS_LIBERACION),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::FORMATOS_LIBERACION . '/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/ESCANEADOS'),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/ESCANEADOS/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
-                        'origin' => 'rechazado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
-                    ];
+                    foreach ($classFolders as $claseClean) {
+                        // Almacen dirs
+                        $classAlmacenBase = self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseClean;
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::PREORDENES),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::PREORDENES . '/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::FORMATOS_LIBERACION),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::FORMATOS_LIBERACION . '/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/ESCANEADOS'),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/ESCANEADOS/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
+                            'origin' => 'rechazado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
+                        ];
 
-                    // Calidad dirs
-                    $classCalidadBase = self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseClean;
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::PREORDENES),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::PREORDENES . '/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::FORMATOS_LIBERACION),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::FORMATOS_LIBERACION . '/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/ESCANEADOS'),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/ESCANEADOS/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
-                        'origin' => 'rechazado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
-                    ];
+                        // Calidad dirs
+                        $classCalidadBase = self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseClean;
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::PREORDENES),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::PREORDENES . '/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::FORMATOS_LIBERACION),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::FORMATOS_LIBERACION . '/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/ESCANEADOS'),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/ESCANEADOS/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
+                            'origin' => 'rechazado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
+                        ];
+                    }
                 }
 
                 foreach ($dirsToScan as $scanInfo) {
@@ -1242,7 +1243,7 @@ class AlmacenFundicionController extends Controller
                 $baseNorm = preg_replace('/\s+/', ' ', $baseNorm);
                 $baseNorm = trim($baseNorm);
 
-                if ($baseNorm === $partNorm) {
+                if ($baseNorm === $partNorm || FundicionPaths::isSameClass($base, $part)) {
                     $resolved = $resolved ? $resolved . '/' . $base : $base;
                     $found = true;
                     break;
@@ -2028,6 +2029,16 @@ class AlmacenFundicionController extends Controller
                         self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados/FDLDM',
                     ];
 
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::CALIDAD_DIR . '/' . $relFolder, $tipo);
+                    foreach ($classFolders as $cf) {
+                        $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_APROBADOS/FDLDM';
+                        $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_APROBADOS';
+                        $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/FORMATOS_LIBERACION';
+                        $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_APROBADOS/FDLDM';
+                        $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_APROBADOS';
+                        $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/FORMATOS_LIBERACION';
+                    }
+
                     foreach ($pathsToCheck as $dir) {
                         if (\Storage::disk('local')->exists($dir)) {
                             $files = \Storage::disk('local')->files($dir);
@@ -2105,6 +2116,14 @@ class AlmacenFundicionController extends Controller
                     self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados/FDRDM',
                     self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Rechazados/FDRDM',
                 ];
+
+                $classFolders = FundicionPaths::getClassFoldersForOt(self::CALIDAD_DIR . '/' . $relFolder, $tipo);
+                foreach ($classFolders as $cf) {
+                    $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_RECHAZADOS/FDRDM';
+                    $pathsToCheck[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_RECHAZADOS';
+                    $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_RECHAZADOS/FDRDM';
+                    $pathsToCheck[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $cf . '/DOCUMENTOS_RECHAZADOS';
+                }
 
                 foreach ($pathsToCheck as $dir) {
                     if (\Storage::disk('local')->exists($dir)) {
@@ -2700,34 +2719,10 @@ class AlmacenFundicionController extends Controller
         $savedPathForUrl = null;
 
         $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
-        $existingDirs = [];
-        if (Storage::disk('local')->exists($baseOtPath)) {
-            $existingDirs = Storage::disk('local')->directories($baseOtPath);
-        }
-
-        foreach ($clasesParaGuardar as &$claseParaGuardar) {
-            $cNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $claseParaGuardar));
-            $matched = false;
-            foreach ($existingDirs as $dir) {
-                $dirBase = basename($dir);
-                $dNorm = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $dirBase));
-                if ($cNorm === $dNorm) {
-                    $claseParaGuardar = strtoupper($dirBase);
-                    $matched = true;
-                    break;
-                }
-            }
-            if (!$matched) {
-                // Formatear estéticamente si no existe la carpeta (ej. 1Moldes -> 1 - MOLDES)
-                $claseParaGuardar = preg_replace('/^(\d+)([a-zA-Z]+)/', '$1 - $2', $claseParaGuardar);
-                $claseParaGuardar = strtoupper($claseParaGuardar);
-            }
-        }
-        unset($claseParaGuardar);
 
         foreach ($clasesParaGuardar as $claseParaGuardar) {
-            $claseParaGuardar = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
-            $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
+            $claseFolder = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
+            $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseFolder . '/PREORDENES';
             $savePath = $otPath . '/' . $fileName;
 
             if (!Storage::disk('local')->exists($otPath)) {
@@ -2750,7 +2745,7 @@ class AlmacenFundicionController extends Controller
             }
 
             // Limpiar duplicados accidentales de Pre-órdenes en DOCUMENTOS_APROBADOS
-            $docAprobPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/DOCUMENTOS_APROBADOS';
+            $docAprobPath = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseFolder . '/DOCUMENTOS_APROBADOS';
             if (Storage::disk('local')->exists($docAprobPath)) {
                 foreach (Storage::disk('local')->files($docAprobPath) as $docFile) {
                     $baseDoc = strtolower(basename($docFile));
@@ -2764,7 +2759,7 @@ class AlmacenFundicionController extends Controller
             Storage::disk('local')->put($savePath, $pdfOutput);
 
             if (!$savedPathForUrl) {
-                $savedPathForUrl = strtoupper($claseParaGuardar) . '/PREORDENES/' . $fileName;
+                $savedPathForUrl = $claseFolder . '/PREORDENES/' . $fileName;
             }
         }
 
@@ -4310,14 +4305,15 @@ class AlmacenFundicionController extends Controller
 
                 // 1. Asegurar la creación de la nueva estructura de directorios vacía para la OT de Reproceso primero
                 foreach ($clases as $clase) {
-                    $clase = FundicionPaths::crearEstructuraClase($newOt, $clase, self::ALMACEN_DIR);
+                    FundicionPaths::crearEstructuraClase($folderNameNew, $clase, self::ALMACEN_DIR);
                 }
 
                 $clasesParaGuardar = empty($clasesInvolucradas) ? ['GENERAL'] : $clasesInvolucradas;
                 $savedPathForUrl = null;
 
                 foreach ($clasesParaGuardar as $claseParaGuardar) {
-                    $otPathNew = self::ALMACEN_DIR . '/' . $folderNameNew . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
+                    $claseFolder = FundicionPaths::crearEstructuraClase($folderNameNew, $claseParaGuardar, self::ALMACEN_DIR);
+                    $otPathNew = self::ALMACEN_DIR . '/' . $folderNameNew . '/' . $claseFolder . '/PREORDENES';
                     $savePathNew = $otPathNew . '/' . $fileName;
 
                     if (!Storage::disk('local')->exists($otPathNew)) {
@@ -4328,7 +4324,7 @@ class AlmacenFundicionController extends Controller
                     $newHistoryArchivos[] = $savePathNew;
 
                     if (!$savedPathForUrl) {
-                        $savedPathForUrl = strtoupper($claseParaGuardar) . '/PREORDENES/' . $fileName;
+                        $savedPathForUrl = $claseFolder . '/PREORDENES/' . $fileName;
                     }
                 }
 
@@ -4362,8 +4358,7 @@ class AlmacenFundicionController extends Controller
         $newBaseDir = self::ALMACEN_DIR . '/' . $folderNameNew;
 
         foreach ($clases as $clase) {
-            $clase = FundicionPaths::normalizeClass($clase); // Normalizar antes de crear estructura (ej: 'Molde' → '1 - MOLDES')
-            $clase = FundicionPaths::crearEstructuraClase($newOt, $clase, self::ALMACEN_DIR);
+            FundicionPaths::crearEstructuraClase($folderNameNew, $clase, self::ALMACEN_DIR);
         }
 
         // ── 2. COPIAR SÓLO DIBUJOS Y AYUDAS VISUALES DE LAS CLASES RECHAZADAS ──
@@ -4399,13 +4394,17 @@ class AlmacenFundicionController extends Controller
                     if ($isDrawing || $isVisualAid) {
                         $claseTarget = null;
                         foreach ($clases as $clase) {
+                            if (FundicionPaths::isSameClass($clase, $relPath) || FundicionPaths::isSameClass($clase, $filename)) {
+                                $claseTarget = FundicionPaths::resolveClassFolder($newBaseDir, $clase);
+                                break;
+                            }
                             $claseLower = strtolower($clase);
                             $segments = explode('/', $pathLower);
                             $normFilename = preg_replace('/[^a-z0-9]/', '_', strtolower($filename));
                             $fnSegments = explode('_', $normFilename);
 
                             if (in_array($claseLower, $segments) || in_array($claseLower, $fnSegments)) {
-                                $claseTarget = strtoupper(preg_replace('/[^a-zA-Z0-9_\-]/', '_', trim($clase)));
+                                $claseTarget = FundicionPaths::resolveClassFolder($newBaseDir, $clase);
                                 break;
                             }
                         }
