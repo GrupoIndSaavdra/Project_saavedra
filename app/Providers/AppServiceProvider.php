@@ -19,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Asegurar memoria suficiente para procesamiento de vistas pesadas y modelos
+        if ((int) ini_get('memory_limit') < 512) {
+            @ini_set('memory_limit', '512M');
+        }
+
         // Cargar todas las migraciones que estén dentro de subcarpetas en database/migrations/
         $mainPath = database_path('migrations');
         $directories = glob($mainPath . '/*' , GLOB_ONLYDIR);

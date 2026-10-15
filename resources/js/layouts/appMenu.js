@@ -436,6 +436,7 @@ function getRoutes(profile) {
                 ["productionData", "Datos de productividad"],
                 ["cNominals", "Editar C.Nominales y Tolerancias"],
                 ["machinesOccupied", "Máquinas ocupadas"],
+                ["piecesOccupied", "Piezas ocupadas"],
                 ["show_panelWO", "Panel de progreso de O.T"],
                 ["systemLogsReport", "Auditoría de Producción"],
                 ["adminLogsReport", "Logs de Administradores"],

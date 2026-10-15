@@ -188,6 +188,18 @@ Route::controller(MachinesController::class)->group(function () {
     Route::post('/machinesOccupied/freeUp', 'freeUp')->name('freeUp'); //Vista de máquinas ocupadas
 });
 
+//Rutas para el controlador de PiecesOccupiedController (Piezas Ocupadas)
+Route::controller(\App\Http\Controllers\PiecesOccupiedController::class)->group(function () {
+    Route::get('/piecesOccupied', 'show')->name('piecesOccupied');
+    Route::get('/piecesOccupied/classes', 'getClassesByOt')->name('piecesOccupied.classes');
+    Route::post('/piecesOccupied/getPieces', 'getOccupiedPieces')->name('piecesOccupied.getPieces');
+    Route::post('/piecesOccupied/freeUp', 'freeUp')->name('piecesOccupied.freeUp');
+    Route::post('/piecesOccupied/freeUpBatch', 'freeUpBatch')->name('piecesOccupied.freeUpBatch');
+    Route::post('/piecesOccupied/update', 'update')->name('piecesOccupied.update');
+    Route::post('/piecesOccupied/destroy', 'destroy')->name('piecesOccupied.destroy');
+    Route::post('/piecesOccupied/logs', 'getLogs')->name('piecesOccupied.logs');
+});
+
 //Rutas para el controlador de ProgressPanelController
 Route::get('/panel-progreso', fn() => view('wo_views.progressPanel_wo'))->name('panelProgreso');
 

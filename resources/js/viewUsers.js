@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Cerrar el menú contextual si se hace clic fuera de él
     document.addEventListener('click', function(event) {
-        if (!contextMenu.contains(event.target)) {
+        if (contextMenu && !contextMenu.contains(event.target)) {
             contextMenu.hidden = true;
         }
     });

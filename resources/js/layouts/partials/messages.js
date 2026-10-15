@@ -27,19 +27,50 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /**
- * Función global para lanzar notificaciones premium
+ * Función global para lanzar notificaciones premium (Estándar SweetAlert2 GIS)
  * @param {string} message - Texto a mostrar
- * @param {string} type - 'success', 'error', 'warning'
+ * @param {string} type - 'success', 'error', 'warning', 'info'
  */
 function toastpremium(message, type = "success") {
-    // 1. OBTENER BASE URL (Prioriza window.baseUrl definida en Blade)
+    // Normalizar tipo de alerta
+    let swalIcon = type;
+    if (type === 'danger') swalIcon = 'error';
+
+    // Lógica de Registro en Bitácora (si existe la función logUserAction)
+    if (typeof window.logUserAction === 'function') {
+        if (swalIcon === 'error') {
+            window.logUserAction("Alerta de Error en Sistema", `Se mostró mensaje al operador: ${message}`);
+        } else if (swalIcon === 'warning') {
+            window.logUserAction("Avisos de Sistema", `Se mostró aviso al operador: ${message}`);
+        }
+    }
+
+    // Estándar 1: SweetAlert2 Toast Ultra-Fluido
+    if (typeof Swal !== 'undefined') {
+        Swal.mixin({
+            toast: true,
+            position: 'bottom-end',
+            showConfirmButton: false,
+            timer: 3200,
+            timerProgressBar: true,
+            showClass: {
+                popup: 'swal2-toast-in',
+            },
+            hideClass: {
+                popup: 'swal2-toast-out',
+            },
+        }).fire({
+            icon: swalIcon,
+            title: message,
+        });
+        return;
+    }
+
+    // Estándar 2: Fallback nativo Saavedra si SweetAlert2 no estuviera en memoria
     let baseUrl = window.baseUrl || (window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') + '/');
     if (!baseUrl.endsWith('/')) baseUrl += '/';
-    
-    // Si baseUrl parece terminar en el nombre del archivo (ej. login), subir un nivel
     if (baseUrl.includes('/login/')) baseUrl = baseUrl.replace('/login/', '/');
-    
-    // Contenedor global si no existe
+
     let container = document.getElementById('toast-container-premium');
     if (!container) {
         container = document.createElement('div');
@@ -48,16 +79,15 @@ function toastpremium(message, type = "success") {
     }
 
     const toast = document.createElement('div');
-    const alertTypeClass = type === 'error' ? 'alert-danger' : (type === 'warning' ? 'alert-warning' : 'alert-success');
-    toast.className = `alert ${alertTypeClass} custom-alert-saavedra ${type}`;
+    const alertTypeClass = swalIcon === 'error' ? 'alert-danger' : (swalIcon === 'warning' ? 'alert-warning' : 'alert-success');
+    toast.className = `alert ${alertTypeClass} custom-alert-saavedra ${swalIcon}`;
 
-    // Selección de imagen según el tipo
     let iconSrc = baseUrl + 'images/ready.png';
-    if (type === 'error') iconSrc = baseUrl + 'images/error.png';
-    if (type === 'warning') iconSrc = baseUrl + 'images/Aviso.png';
+    if (swalIcon === 'error') iconSrc = baseUrl + 'images/error.png';
+    if (swalIcon === 'warning') iconSrc = baseUrl + 'images/Aviso.png';
 
     toast.innerHTML = `
-        <img src="${iconSrc}" class="alert-icon-small" alt="${type}">
+        <img src="${iconSrc}" class="alert-icon-small" alt="${swalIcon}">
         <div class="alert-content">
             ${message}
         </div>
@@ -66,28 +96,13 @@ function toastpremium(message, type = "success") {
 
     container.appendChild(toast);
 
-    // Botón cerrar manual
     const closeBtn = toast.querySelector('.close-alert-x');
-    closeBtn.onclick = () => {
-        toast.remove();
-    };
+    if (closeBtn) closeBtn.onclick = () => toast.remove();
 
-    // Lógica de Registro en Bitácora (si existe la función logUserAction)
-    if (typeof window.logUserAction === 'function') {
-        if (type === 'error') {
-            window.logUserAction("Alerta de Error en Sistema", `Se mostró mensaje al operador: ${message}`);
-        } else if (type === 'warning') {
-            window.logUserAction("Avisos de Sistema", `Se mostró aviso al operador: ${message}`);
-        }
-    }
-
-    // Auto-cierre para success y warning (10 segundos)
-    if (type !== 'error') {
+    if (swalIcon !== 'error') {
         setTimeout(() => {
-            if (toast.parentElement) {
-                toast.remove();
-            }
-        }, 10000);
+            if (toast.parentElement) toast.remove();
+        }, 5000);
     }
 }
 
@@ -192,3 +207,57 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 window.toastpremium = toastpremium;
+window.gisToast = toastpremium;
+
+/**
+ * Alerta Modal Estándar GIS (Reemplazo moderno de alert-NoCotas / alert nativo)
+ */
+window.gisAlert = function({ title, text = '', icon = 'info', confirmButtonText = 'Entendido', confirmButtonColor = '#033966' }) {
+    if (typeof Swal !== 'undefined') {
+        return Swal.fire({
+            title,
+            text,
+            icon,
+            confirmButtonText,
+            confirmButtonColor,
+            customClass: { popup: 'swal2-gis-popup' }
+        });
+    }
+    alert(`${title}\n\n${text}`);
+    return Promise.resolve({ isConfirmed: true });
+};
+
+/**
+ * Diálogo de Confirmación Estándar GIS
+ */
+window.gisConfirm = async function({ title, text = '', icon = 'question', confirmButtonText = 'Aceptar', confirmButtonColor = '#10b981', preConfirm = null }) {
+    if (typeof Swal !== 'undefined') {
+        const options = {
+            title,
+            text,
+            icon,
+            showCancelButton: true,
+            confirmButtonColor,
+            cancelButtonColor: '#64748b',
+            confirmButtonText,
+            cancelButtonText: 'Cancelar',
+            customClass: { popup: 'swal2-gis-popup' }
+        };
+        if (preConfirm) {
+            options.showLoaderOnConfirm = true;
+            options.preConfirm = preConfirm;
+            options.allowOutsideClick = () => !Swal.isLoading();
+        }
+        return await Swal.fire(options);
+    }
+    const ok = confirm(`${title}\n\n${text}`);
+    if (ok && preConfirm) {
+        try {
+            const res = await preConfirm();
+            return { isConfirmed: true, value: res };
+        } catch (e) {
+            return { isConfirmed: false };
+        }
+    }
+    return { isConfirmed: ok };
+};

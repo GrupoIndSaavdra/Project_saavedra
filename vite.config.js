@@ -78,6 +78,8 @@ export default defineConfig({
                 //Views machines
                 'resources/css/machines_views/machinesOccupied.css',
                 'resources/js/machines_views/machinesOccupied.js',
+                'resources/css/pieces_views/piecesOccupied.css',
+                'resources/js/pieces_views/piecesOccupied.js',
 
                 'resources/css/maquinas2.css',
                 'resources/css/viewUsers.css',

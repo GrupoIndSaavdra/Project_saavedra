@@ -1,89 +1,175 @@
 @extends('layouts.appMenu')
 
 @section('head')
-<title>Recuperar Contraseña</title>
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
-@vite('resources/css/users_views/recoverPassword.css')
+<title>Recuperar Contraseña | GIS</title>
+<link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+@vite(['resources/css/users_views/recoverPassword.css', 'resources/js/layouts/partials/messages.js'])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
 
 @section('content')
-<div class="container py-4">
-    <div class="cascading-right">
-        <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-        <h2 class="sub-title">Recuperar contraseña</h2>
-        <form action="{{route('recover')}}" method="post" class="form-container">
+<div class="recover-viewport">
+    <div class="recover-card">
+        
+        {{-- Cabecera con Logo e Icono de Candado --}}
+        <div class="recover-header">
+            <a href="{{ route('home') }}" class="logo-link" title="Volver al inicio">
+                <img src="{{ asset('images/lg_saavedra.png') }}" class="recover-logo" alt="Grupo Industrial Saavedra" />
+            </a>
+
+            <div class="security-badge-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                    <circle cx="12" cy="16" r="1"></circle>
+                </svg>
+            </div>
+
+            <h1 class="recover-heading">Restablecer Contraseña</h1>
+            <p class="recover-subheading">Ingresa tu matrícula institucional y define tu nueva clave de acceso.</p>
+        </div>
+
+        {{-- Formulario --}}
+        <form action="{{ route('recover') }}" method="post" class="recover-form-body">
             @csrf
             @include('layouts.partials.messages')
-            <div class="row">
-                <div class="col-md-12 mb-2">
-                    <div class="form-outline">
-                        <input type="text" id="formMatricula" class="form-control" name="matricula" required />
-                        <label class="form-label" for="formMatricula">Matrícula</label>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-2">
-                    <div class="form-outline">
-                        <div class="password-wrapper">
-                            <input type="password" id="formPassword" class="form-control" name="nueva_contraseña" required minlength="8" maxlength="12" />
-                            <span class="password-toggle-icon" onclick="togglePasswordVisibility('formPassword', this)">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                                  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                                  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                                </svg>
-                            </span>
-                        </div>
-                        <label class="form-label" for="formPassword">Nueva Contraseña</label>
-                    </div>
-                </div>
-                <div class="col-md-6 mb-2">
-                    <div class="form-outline">
-                        <div class="password-wrapper">
-                            <input type="password" id="formPasswordConfirmation" class="form-control" name="nueva_contraseña_confirmation" required minlength="8" maxlength="12" />
-                            <span class="password-toggle-icon" onclick="togglePasswordVisibility('formPasswordConfirmation', this)">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                                  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                                  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
-                                </svg>
-                            </span>
-                        </div>
-                        <label class="form-label" for="formPasswordConfirmation">Confirmar Contraseña</label>
-                    </div>
+
+            {{-- Campo: Matrícula --}}
+            <div class="input-group-custom">
+                <label for="formMatricula" class="field-label">Matrícula</label>
+                <div class="field-wrapper">
+                    <span class="field-prefix-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                    </span>
+                    <input 
+                        type="text" 
+                        id="formMatricula" 
+                        name="matricula" 
+                        class="form-input" 
+                        placeholder="Ej. 1321124015" 
+                        autocomplete="username"
+                        required 
+                    />
                 </div>
             </div>
 
-            <!-- Submit button -->
-            <button type="submit" class="custom-btn">
-                Restaurar contraseña
-            </button>
-        </form>
-    </div>
+            {{-- Campo: Nueva Contraseña --}}
+            <div class="input-group-custom">
+                <label for="formPassword" class="field-label">Nueva Contraseña</label>
+                <div class="field-wrapper">
+                    <span class="field-prefix-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </span>
+                    <input 
+                        type="password" 
+                        id="formPassword" 
+                        name="nueva_contraseña" 
+                        class="form-input has-toggle" 
+                        placeholder="Mínimo 8 caracteres" 
+                        minlength="8" 
+                        maxlength="12" 
+                        required 
+                    />
+                    <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('formPassword', this)" title="Ver / Ocultar contraseña">
+                        <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+                <span class="field-hint">Entre 8 y 12 caracteres</span>
+            </div>
 
-    <img src="{{ asset('images/img-login.png') }}" class="img-saavedra" alt="" />
+            {{-- Campo: Confirmar Contraseña --}}
+            <div class="input-group-custom">
+                <label for="formPasswordConfirmation" class="field-label">Confirmar Contraseña</label>
+                <div class="field-wrapper">
+                    <span class="field-prefix-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                    </span>
+                    <input 
+                        type="password" 
+                        id="formPasswordConfirmation" 
+                        name="nueva_contraseña_confirmation" 
+                        class="form-input has-toggle" 
+                        placeholder="Repite la contraseña" 
+                        minlength="8" 
+                        maxlength="12" 
+                        required 
+                    />
+                    <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('formPasswordConfirmation', this)" title="Ver / Ocultar contraseña">
+                        <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            {{-- Botón de Acción --}}
+            <button type="submit" class="submit-action-btn">
+                <span>Actualizar Contraseña</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </button>
+
+            {{-- Enlaces secundarios --}}
+            <div class="recover-footer">
+                @auth
+                    <a href="{{ route('home') }}" class="back-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        Volver al Menú Principal
+                    </a>
+                @else
+                    <a href="{{ route('login') }}" class="back-link">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="15 18 9 12 15 6"></polyline>
+                        </svg>
+                        Regresar a Iniciar Sesión
+                    </a>
+                @endauth
+            </div>
+        </form>
+
+    </div>
 </div>
 
 <script>
-    function togglePasswordVisibility(inputId, toggleEl) {
+    function togglePasswordVisibility(inputId, btnEl) {
         const input = document.getElementById(inputId);
         if (!input) return;
-        
-        if (input.type === 'password') {
-            input.type = 'text';
-            toggleEl.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye-slash" viewBox="0 0 16 16">
-                  <path d="M13.359 11.238C15.06 9.72 16 8 16 8s-3-5.5-8-5.5a8.8 8.8 0 0 0-2.79.444l.746.893C6.883 3.654 7.425 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.154.22-.381.536-.684.896z"/>
-                  <path d="M8.586 5.694A5 5 0 0 1 11.5 8.586l-2.914-2.914zm3.002 6.004L1.17 2.489a.5.5 0 0 0-.708.708l.747.747C1.16 4.195 0 8 0 8s3 5.5 8 5.5a8.74 8.74 0 0 0 5.258-1.743l.866.866a.5.5 0 0 0 .708-.708L11.588 11.7zM7.92 12.492A13 13 0 0 1 1.172 8c.196-.281.472-.605.802-.94l1.528 1.528A2.5 2.5 0 0 0 6.5 10.5c.345 0 .672-.07.97-.196l.45.45c-.347.168-.732.257-1.144.257z"/>
-                  <path d="M13.657 2.235A2.23 2.23 0 1 1 9.9 5.98l.54-.54a1.23 1.23 0 1 0 1.674-1.674l.543-.543z"/>
-                  <path d="M5.5 8a2.5 2.5 0 1 1 5 0 2.5 2.5 0 0 1-5 0"/>
+
+        const isPassword = input.type === 'password';
+        input.type = isPassword ? 'text' : 'password';
+
+        if (isPassword) {
+            btnEl.classList.add('active');
+            btnEl.innerHTML = `
+                <svg class="eye-closed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                    <line x1="1" y1="1" x2="23" y2="23"></line>
                 </svg>
             `;
         } else {
-            input.type = 'password';
-            toggleEl.innerHTML = `
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" class="bi bi-eye" viewBox="0 0 16 16">
-                  <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8M1.173 8a13 13 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5s3.879 1.168 5.168 2.457A13 13 0 0 1 14.828 8q-.086.13-.195.288c-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5s-3.879-1.168-5.168-2.457A13 13 0 0 1 1.172 8z"/>
-                  <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5M4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0"/>
+            btnEl.classList.remove('active');
+            btnEl.innerHTML = `
+                <svg class="eye-open" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
                 </svg>
             `;
         }

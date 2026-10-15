@@ -202,8 +202,8 @@
     background-position: right 14px center;
     background-size: 14px 10px;
     padding-right: 36px;
-    appearance: none;
     -webkit-appearance: none;
+    appearance: none;
 }
 
 /* ── Barra de Acciones Inferior ───────────────────────────── */

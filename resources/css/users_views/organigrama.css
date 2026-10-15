@@ -328,6 +328,7 @@ body {
     position: relative;
     box-sizing: border-box;
     cursor: grab;
+    -webkit-user-select: none;
     user-select: none;
     scroll-behavior: auto;
 }
@@ -893,7 +894,7 @@ body {
     .org-canvas-container {
         width: 100% !important;
         max-height: none !important;
-        min-height: auto !important;
+        min-height: 0 !important;
         overflow: visible !important;
         background: #ffffff !important;
         border: none !important;

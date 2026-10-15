@@ -924,6 +924,40 @@ function createDivOpacity() {
 
 
 function showDivAlert(text, close, img) {
+    const cleanText = text ? text.replace(/<[^>]*>/g, '').trim() : '';
+
+    // REGISTRO AUTOMÁTICO EN BITÁCORA:
+    if (typeof window.logUserAction === 'function') {
+        window.logUserAction("Avisos de Sistema", `Se mostró mensaje al operador: ${cleanText}`);
+    }
+
+    // Estándar SweetAlert2 GIS
+    if (typeof Swal !== 'undefined') {
+        let icon = 'info';
+        const lower = cleanText.toLowerCase();
+        if (lower.includes('error') || lower.includes('incorrecto') || lower.includes('falla') || lower.includes('rechazad')) {
+            icon = 'error';
+        } else if (lower.includes('advertencia') || lower.includes('aviso') || lower.includes('atención')) {
+            icon = 'warning';
+        } else if (lower.includes('correcto') || lower.includes('éxito') || lower.includes('completad') || lower.includes('registrad')) {
+            icon = 'success';
+        }
+
+        Swal.fire({
+            title: cleanText,
+            icon: icon,
+            confirmButtonColor: '#033966',
+            confirmButtonText: 'Entendido',
+            customClass: { popup: 'swal2-gis-popup' }
+        });
+
+        // Retorna nodo invisible para llamadas tipo parent.appendChild(showDivAlert(...))
+        let dummy = document.createElement("div");
+        dummy.style.display = "none";
+        return dummy;
+    }
+
+    // Fallback nativo
     let div_padre = createDivOpacity();
 
     let div = document.createElement("div");
@@ -937,13 +971,7 @@ function showDivAlert(text, close, img) {
     image.className = "img-error";
     image.src = img || window.imgError;
 
-    // REGISTRO AUTOMÁTICO EN BITÁCORA:
-    if (typeof window.logUserAction === 'function') {
-        window.logUserAction("Avisos de Sistema", `Se mostró mensaje al operador: ${text.replace(/<[^>]*>/g, '')}`);
-    }
-
     if (close) {
-        // Permitir cerrar la alerta
         let div_cerrar = document.createElement("div");
         div_cerrar.className = "div-cerrar";
         let btn_cerrar = document.createElement("button");
