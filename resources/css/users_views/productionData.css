@@ -8,10 +8,12 @@
     width: 96%;
     max-width: 1650px;
     margin: 75px auto 10px;
-    background-color: var(--gis-white);
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
     border-radius: 12px;
-    border: 4px solid var(--gis-blue);
-    box-shadow: 0 8px 32px rgba(3, 57, 102, 0.18);
+    border: 5px solid var(--glass-border-white);
+    box-shadow: var(--glass-shadow);
     padding: var(--sp-md) var(--sp-xl) var(--sp-lg);
     box-sizing: border-box;
     display: flex;

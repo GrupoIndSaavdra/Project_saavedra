@@ -33,10 +33,12 @@ body {
     width: 98%;
     max-width: 98%;
     margin: 70px auto 40px;
-    background: #ffffff;
-    border: 5px solid var(--gis-blue);
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     border-radius: 12px;
-    box-shadow: 0 8px 32px rgba(3, 57, 102, 0.2);
+    box-shadow: var(--glass-shadow);
     padding: 24px 28px 40px;
     box-sizing: border-box;
     display: flex;

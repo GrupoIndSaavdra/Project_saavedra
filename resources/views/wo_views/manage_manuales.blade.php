@@ -16,7 +16,10 @@
 
         {{-- Encabezado --}}
         <div class="dibujos-header">
-            <h1>{{ $pageTitle ?? 'Gestión de Documentación' }}</h1>
+            <div class="dibujos-header-left">
+                <img src="{{ asset('images/manual.png') }}" alt="Manuales de Procesos" class="dibujos-header-icon">
+                <h1>{{ $pageTitle ?? 'Gestión de Documentación' }}</h1>
+            </div>
             <span>Directorio: {{ $directoryName ?? 'GIS' }} &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
 

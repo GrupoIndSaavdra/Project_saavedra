@@ -4,21 +4,33 @@
 header {
     box-sizing: border-box;
     width: 100%;
-    height: 5vh;
+    height: auto;
+    min-height: 52px;
     z-index: 995;
     position: sticky;
     top: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 5px;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Agregamos sombra ligera para separarlo del contenido escroleable */
+    padding: 2px 20px;
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border-bottom: 2px solid var(--glass-border-white);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+html {
+    min-height: 100%;
+    height: 100%;
 }
 body {
-    background-size: cover;
-    background-repeat: no-repeat;
-    /* font-family heredado de global.css */
+    min-height: 100vh;
+    width: 100%;
+    background-size: cover !important;
+    background-position: center center !important;
+    background-repeat: no-repeat !important;
+    background-attachment: fixed !important;
+    overflow-x: hidden;
 }
 /* MODAL PARA OBSERVACIONES DE LIBERACION (Estilo Unificado y Global) */
 .form-liberation {
@@ -248,21 +260,27 @@ body {
     height: auto !important;
 }
 .open-menu {
-    border: 1px solid transparent;
-    background-color: transparent;
-    width: 40px;
-    height: 40px;
-    padding: 4px;
-    border-radius: 10px;
+    border: 1.5px solid var(--glass-border-white) !important;
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    width: 48px;
+    height: 48px;
+    padding: 8px !important;
+    border-radius: 14px !important;
     cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.08),
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.04) !important;
     transition:
-        background-color 0.2s ease,
+        background 0.2s ease,
         border-color 0.2s ease,
         box-shadow 0.2s ease,
-        transform 0.1s ease;
+        transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
 }
 
 .open-menu .icon {
@@ -273,29 +291,45 @@ body {
     backface-visibility: hidden;
     will-change: transform;
     transition: transform 0.22s ease-in;
+    display: block;
 }
 
-/* Hover: fondo suave y micro-escala fluida sin sacudidas */
+/* Hover: resplandor glassmorphism y ajuste exacto a los bordes */
 .open-menu:hover {
-    background-color: rgba(3, 57, 102, 0.07);
-    border-color: rgba(3, 57, 102, 0.15);
-    box-shadow: 0 2px 8px var(--shadow-blue);
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.94) 0%,
+        rgba(255, 255, 255, 0.7) 100%
+    ) !important;
+    border-color: rgba(255, 255, 255, 1) !important;
+    transform: scale(1.042) !important;
+    box-shadow:
+        0 4px 16px rgba(3, 57, 102, 0.18),
+        inset 0 1px 1px rgba(255, 255, 255, 1) !important;
 }
 
 .open-menu:hover .icon {
-    transform: scale(1.06);
+    transform: scale(1.04);
 }
 
-/* Clic táctil instantáneo */
+/* Clic táctil */
 .open-menu:active {
-    transform: scale(0.94);
+    transform: scale(0.96) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1) !important;
 }
 
-/* Menú Abierto: Giro ágil y limpio de 90° */
+/* Menú Abierto: Giro ágil de 90° con borde y halo activo */
 .open-menu.is-open {
-    background-color: rgba(3, 57, 102, 0.12);
-    border-color: rgba(3, 57, 102, 0.24);
-    box-shadow: 0 2px 8px var(--shadow-blue);
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.95) 0%,
+        rgba(240, 246, 255, 0.85) 100%
+    ) !important;
+    border-color: var(--gis-blue) !important;
+    box-shadow:
+        0 0 0 3px rgba(3, 57, 102, 0.18),
+        0 6px 18px var(--shadow-blue),
+        inset 0 1px 1px rgba(255, 255, 255, 1) !important;
 }
 
 .open-menu.is-open .icon {
@@ -304,30 +338,88 @@ body {
 }
 
 .open-menu.is-open:hover {
-    background-color: rgba(3, 57, 102, 0.16);
-    border-color: rgba(3, 57, 102, 0.3);
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(240, 246, 255, 0.9) 100%
+    ) !important;
+    border-color: var(--gis-blue) !important;
+    transform: scale(1.042) !important;
 }
 
 .open-menu.is-open:hover .icon {
-    transform: rotate(90deg) scale(1.06);
+    transform: rotate(90deg) scale(1.04);
 }
 .text-header {
-    font-weight: 700;
-    font-size: 2em;
-    letter-spacing: 0.5rem;
+    font-weight: 800;
+    font-size: 1.35em;
+    letter-spacing: 0.35rem;
     color: var(--gis-blue);
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1.5px solid var(--glass-border-white);
+    border-radius: 12px;
+    height: 48px;
+    padding: 0 24px;
+    box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.04);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
+
+.text-header:hover {
+    transform: scale(1.042);
+    border-color: rgba(255, 255, 255, 1);
+    box-shadow:
+        0 4px 16px rgba(3, 57, 102, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
+}
+
 .logo {
-    width: 6em;
+    height: 48px;
+    width: auto;
+    max-width: 140px;
+    object-fit: contain;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 1.5px solid var(--glass-border-white);
+    border-radius: 12px;
+    padding: 6px 16px;
+    box-shadow:
+        0 3px 12px rgba(0, 0, 0, 0.08),
+        inset 0 1px 1px rgba(255, 255, 255, 0.95),
+        inset 0 -1px 2px rgba(0, 0, 0, 0.04);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.logo:hover {
+    transform: scale(1.042);
+    border-color: rgba(255, 255, 255, 1);
+    box-shadow:
+        0 4px 16px rgba(3, 57, 102, 0.15),
+        inset 0 1px 1px rgba(255, 255, 255, 1);
 }
 .filter-opacity {
-    position: fixed; /* Changed from absolute for better overlay */
-    background: rgba(
-        0,
-        10,
-        25,
-        0.85
-    ); /* Filtro azulito sin blur para evitar que se trabe */
+    position: fixed;
+    background: rgba(0, 15, 30, 0.45);
     top: 0;
     left: 0;
     width: 100%;
@@ -335,7 +427,7 @@ body {
     z-index: 1000;
     visibility: hidden;
     opacity: 0;
-    pointer-events: none; /* Desbloquea de inmediato los clics en la pantalla al cerrarse */
+    pointer-events: none;
     will-change: opacity, visibility;
     transition:
         opacity 0.22s ease,
@@ -345,39 +437,46 @@ body {
 .filter-opacity.is-open {
     visibility: visible;
     opacity: 1;
-    pointer-events: auto; /* Solo captura clics mientras está completamente abierto */
+    pointer-events: auto;
     transition:
-        opacity 0.38s ease,
+        opacity 0.24s ease,
         visibility 0s linear;
 }
 .nav {
     position: relative;
     display: flex;
     flex-direction: column;
-    background-color: #ffffff;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.94) 0%,
+        rgba(255, 255, 255, 0.86) 100%
+    );
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
     width: 320px;
     height: 100%;
-    box-shadow: 8px 0 25px rgba(0, 0, 0, 0.15);
-    border-right: 1px solid rgba(0, 0, 0, 0.05);
-    transform: translateX(-100%);
+    box-shadow:
+        8px 0 24px rgba(0, 0, 0, 0.15),
+        inset -1px 0 0 rgba(255, 255, 255, 0.85);
+    border-right: 1.5px solid var(--glass-border-white);
+    transform: translate3d(-100%, 0, 0);
     pointer-events: auto;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     will-change: transform;
-    transition: transform 0.22s ease-in; /* Cierre rápido: se guarda de volada */
+    transition: transform 0.22s ease-in;
 }
 .filter-opacity[style*="visibility: visible"] .nav,
 .filter-opacity.is-open .nav {
-    transform: translateX(0);
-    transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1); /* Apertura suave y fluida */
+    transform: translate3d(0, 0, 0);
+    transition: transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .nav-list {
     list-style-type: none;
     flex: 1;
     min-height: 0;
     overflow-y: auto;
-    padding-bottom: 80px; /* Espacio para el botón de cerrar sesión */
-    padding-top: 10px;
+    padding: 16px 14px 90px 14px;
 }
 
 /* Estilizar el scrollbar para que se vea premium */
@@ -394,107 +493,160 @@ body {
 .nav-list::-webkit-scrollbar-thumb:hover {
     background-color: rgba(3, 57, 102, 0.5);
 }
+
 .nav-link,
 .submenu-toggle {
     text-decoration: none;
-    color: #333;
-    font-size: 0.95em;
+    color: #1e293b;
+    font-size: 0.94em;
     font-weight: 600;
     font-family: "Poppins", sans-serif;
     display: flex;
     align-items: center;
     width: 100%;
-    padding: 14px 20px;
-    transition: all 0.3s ease;
-    border-radius: 0 25px 25px 0;
-    margin: 4px 0;
-    margin-right: 15px;
-}
-
-/* Opciones principales activas (Azul) - Incluyendo el Inicio y los Toggles desplegados */
-.nav-list > li > .nav-link.active,
-.menu-section.active > .submenu-toggle {
-    background: linear-gradient(90deg, var(--gis-blue), #0a4f8c) !important;
-    color: var(--gis-white) !important;
-    box-shadow: 0 4px 15px var(--shadow-blue);
-    border-left: none !important;
-}
-
-.menu-section.active > .submenu-toggle::after {
-    color: white;
-}
-
-/* Opciones secundarias activas (Gris) */
-.submenu .nav-link.active {
-    background: linear-gradient(90deg, #6c757d, #929ba3) !important;
-    color: white !important;
-    box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
-    border-left: none !important;
-}
-
-.nav-link:hover,
-.submenu-toggle:hover {
-    background: rgba(3, 57, 102, 0.1);
-    color: var(--gis-blue);
-    padding-left: 25px;
-}
-
-.submenu .nav-link:hover {
-    background: rgba(108, 117, 125, 0.1);
-    color: #6c757d;
-}
-.btn-close-session {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background-color: var(--gis-red);
-    color: var(--gis-white);
-    text-align: center;
-    padding: 1em;
-    border-radius: 10px;
-    border: none;
-    font-weight: 700;
-    font-size: 1em;
-    text-decoration: none;
-    transition: var(--trans);
-}
-.btn-close-session:hover {
-    background-color: #c00404;
-    transition: var(--trans);
-}
-
-.submenu {
-    display: none;
-    list-style: none;
-    padding-left: 15px;
-    margin-bottom: 10px;
-    overflow: hidden;
-    animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    padding: 11px 16px;
+    margin: 5px 0;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+    cursor: pointer;
+    transition: transform 0.16s ease, background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease;
 }
 
 .menu-section > .submenu-toggle {
     border-left: 4px solid var(--gis-blue);
-    background: transparent;
+    background: rgba(255, 255, 255, 0.68);
 }
+
+/* Opciones principales activas (Glass Azul GIS) */
+.nav-list > li > .nav-link.active,
+.menu-section.active > .submenu-toggle {
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #064e8a 100%) !important;
+    color: var(--gis-white) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-left: 4px solid #38bdf8 !important;
+    box-shadow: 0 4px 14px var(--shadow-blue) !important;
+}
+
+.menu-section.active > .submenu-toggle::after {
+    filter: brightness(0) invert(1);
+}
+
+/* Hover en enlaces y toggles principales */
+.nav-link:hover,
 .submenu-toggle:hover {
-    background: rgba(3, 57, 102, 0.05);
-    color: #033966;
+    background: rgba(3, 57, 102, 0.1);
+    border-color: rgba(3, 57, 102, 0.2);
+    color: var(--gis-blue);
+    padding-left: 20px;
+    transform: translateX(3px);
+    box-shadow: 0 3px 10px rgba(3, 57, 102, 0.12);
+}
+
+/* Submenús desplegados con contenedor Glass */
+.submenu {
+    display: none;
+    list-style: none;
+    padding: 6px 8px;
+    margin: 4px 0 10px 8px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.38);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.03);
+    overflow: hidden;
 }
 
 .menu-section.active > .submenu {
     display: block;
 }
+
+.submenu .nav-link,
+.submenu .submenu-toggle {
+    background: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    padding: 9px 14px;
+    margin: 4px 0;
+    border-radius: 10px;
+    font-size: 0.9em;
+    font-weight: 500;
+    color: #334155;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+}
+
+.submenu .nav-link:hover,
+.submenu .submenu-toggle:hover {
+    background: rgba(3, 57, 102, 0.09);
+    border-color: rgba(3, 57, 102, 0.2);
+    color: var(--gis-blue);
+    transform: translateX(3px);
+}
+
+/* Sub-sección anidada (segundo nivel, ej. Liberación de Piezas) activa */
+.nested-menu-section.active > .submenu-toggle {
+    background: linear-gradient(135deg, #0284c7 0%, var(--gis-blue) 100%) !important;
+    color: var(--gis-white) !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    border-left: 4px solid #7dd3fc !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25) !important;
+}
+
+.nested-menu-section.active > .submenu-toggle::after {
+    filter: brightness(0) invert(1);
+}
+
+/* Opciones secundarias activas (Glass Gris / Slate) */
+.submenu .nav-link.active {
+    background: linear-gradient(
+        135deg,
+        rgba(100, 116, 139, 0.95) 0%,
+        rgba(71, 85, 105, 0.98) 100%
+    ) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.45) !important;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.35) !important;
+}
+
+/* Botón de cerrar sesión con Glassmorphism Rojo GIS */
+.btn-close-session {
+    position: absolute;
+    bottom: 20px;
+    right: 18px;
+    background: linear-gradient(
+        135deg,
+        rgba(156, 3, 3, 0.92) 0%,
+        rgba(120, 2, 2, 0.98) 100%
+    );
+    color: var(--gis-white);
+    text-align: center;
+    padding: 0.75em 1.4em;
+    border-radius: 12px;
+    border: 1.5px solid rgba(255, 255, 255, 0.4);
+    font-weight: 700;
+    font-size: 0.95em;
+    text-decoration: none;
+    box-shadow: 0 4px 16px var(--shadow-red);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-close-session:hover {
+    background: linear-gradient(
+        135deg,
+        rgba(187, 4, 4, 0.96) 0%,
+        rgba(156, 3, 3, 1) 100%
+    );
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(156, 3, 3, 0.48);
+}
+
+.btn-close-session:active {
+    transform: translateY(0) scale(0.97);
+}
+
 .submenu-toggle {
     position: relative;
     display: flex;
@@ -506,18 +658,18 @@ body {
 .submenu-toggle::after {
     content: "";
     display: inline-block;
-    width: 1.2em;
-    height: 1.2em;
+    width: 1.1em;
+    height: 1.1em;
     background-image: var(--triangulo-abajo);
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Efecto de rebote (padre) */
+    transition: transform 0.28s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 /* Si la sección está activa, rotar la flecha */
 .menu-section.active > .submenu-toggle::after {
-    transform: rotate(-180deg); /* Gira hacia arriba fluidamente */
+    transform: rotate(-180deg);
 }
 
 @media (max-width: 991.98px) {
@@ -528,13 +680,16 @@ body {
     }
 
     .text-header {
-        font-size: 13px;
+        font-size: 11px;
         text-align: center;
-        letter-spacing: normal;
-        margin-left: 10px;
+        letter-spacing: 0.05rem;
+        padding: 4px 10px;
+        margin-left: 6px;
     }
     .logo {
-        width: 3em;
+        height: 36px;
+        width: auto;
+        padding: 4px 8px;
     }
     .intro-img {
         width: 60%;
@@ -575,11 +730,3 @@ body {
    SISTEMA DE MODALES PREMIUM (prod-viewer-*)
    Globalizado para alertas y visualizadores
    =========================== */
-
-/* Extracted from appMenu.blade.php */
-.open-menu {
-    padding: 4px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-}

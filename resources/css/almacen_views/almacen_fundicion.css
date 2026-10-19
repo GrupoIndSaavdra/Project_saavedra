@@ -1,5 +1,8 @@
 /* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
+@import "../components/lib-liberacion.css";
+@import "../components/alm-header.css";
+
 
 /* ====================================================
    almacen_fundicion.css — Vista Almacén/Calidad: Dibujos de Fundición
@@ -47,12 +50,15 @@ body.modal-open {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--gis-blue);
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-blue) !important;
     color: #fff;
     padding: 1em 1.5em;
     border-radius: 10px;
     margin-bottom: 1.5em;
-    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.4);
+    box-shadow: var(--glass-shadow) !important;
     gap: 1em;
 }
 
@@ -66,22 +72,7 @@ body.modal-open {
     justify-content: center;
     font-size: 22px;
     flex-shrink: 0;
-}
-
-.alm-header-text h1 {
-    font-size: 1.4em;
-    font-weight: 700;
-    letter-spacing: 1px;
-    line-height: 1.2;
-}
-
-.alm-header-text p {
-    font-size: 0.85em;
-    opacity: 0.8;
-    margin-top: 2px;
-}
-
-.alm-readonly-badge {
+}.alm-readonly-badge {
     margin-left: auto;
     padding: 0.35em 1em;
     border-radius: 20px;
@@ -115,11 +106,13 @@ body.modal-open {
 }
 
 .alm-stat-card {
-    background: #ffffff;
-    border: 5px solid #033966d4;
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white) !important;
     border-radius: 10px;
     padding: 1.2em 1.5em;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--glass-shadow) !important;
     display: flex;
     align-items: center;
     gap: 1em;
@@ -127,12 +120,6 @@ body.modal-open {
         transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
         box-shadow 0.3s ease;
 }
-
-.alm-stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
-}
-
 .alm-stat-icon {
     font-size: 24px;
     width: 80px;
@@ -184,25 +171,15 @@ body.modal-open {
    FILTROS
 ──────────────────────────────────────────────────── */
 .alm-filters-card {
-    background: #ffffff;
-    border: 5px solid #033966d4;
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white) !important;
     border-radius: 10px;
     padding: 0.5em;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--glass-shadow) !important;
     margin-bottom: 1em;
 }
-
-.alm-filters-card h2 {
-    color: var(--gis-blue);
-    font-size: 1.2em;
-    font-weight: 700;
-    margin-bottom: 1em;
-    padding-bottom: 0.5em;
-    border-bottom: 2px solid var(--gis-blue);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
 .filters {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -315,21 +292,16 @@ body.modal-open {
         background-color 0.3s ease,
         box-shadow 0.3s ease;
 }
-
-.alm-btn-ver:hover {
-    background: var(--gis-green);
-    transform: scale(1.05) translateY(-1px);
-    box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
-}
-
 /* ────────────────────────────────────────────────────
    TABLA PRINCIPAL
 ──────────────────────────────────────────────────── */
 .alm-table-card {
-    background: #ffffff;
-    border: 5px solid #033966d4;
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white) !important;
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--glass-shadow) !important;
     overflow: hidden;
 }
 
@@ -363,32 +335,7 @@ body.modal-open {
 
 .alm-table-scroll {
     overflow-x: auto;
-}
-
-table.alm-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.alm-table thead th {
-    background: var(--gis-blue);
-    color: #fff;
-    padding: 0.85em 1em;
-    text-align: left;
-    font-size: 0.85em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid #022847;
-    white-space: nowrap;
-}
-
-.alm-table tbody tr {
-    border-bottom: 1px solid #ddd;
-    transition: background 0.2s ease;
-}
-
-.alm-table tbody tr:last-child {
+}.alm-table tbody tr:last-child {
     border-bottom: none;
 }
 
@@ -399,42 +346,11 @@ table.alm-table {
 .alm-table tbody tr:hover {
     background: #e8f2ff;
 }
-
-.alm-table tbody td {
-    padding: 0.85em 1em;
-    vertical-align: middle;
-    font-size: 0.95em;
-    color: #333;
-    border: 1px solid #ddd;
-}
-
 /* OT label */
-.alm-ot-label {
-    font-weight: 700;
-    color: var(--gis-blue);
-    font-size: 0.95em;
-}
-
 /* Fecha */
-.alm-date {
-    color: #555;
-    font-size: 0.9em;
-}
-
 /* ────────────────────────────────────────────────────
    BADGES DE ESTADO
 ──────────────────────────────────────────────────── */
-.badge-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 0.25em 0.8em;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
 .badge-activa {
     background: #d4edda;
     color: #155724;
@@ -448,19 +364,6 @@ table.alm-table {
 }
 
 /* Badge conteo PDF */
-.badge-pdf-count {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #e8f2ff;
-    color: var(--gis-blue);
-    border: 1px solid var(--gis-blue);
-    padding: 0.2em 0.7em;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: 700;
-}
-
 /* ────────────────────────────────────────────────────
    FILA EXPANDIBLE DE ARCHIVOS
 ──────────────────────────────────────────────────── */
@@ -482,38 +385,12 @@ table.alm-table {
     justify-content: center;
     gap: 8px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-toggle-files:hover {
-    background: var(--gis-blue);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 81, 148, 0.3);
-}
-
-.btn-toggle-files.active {
-    background: #fff;
-    color: var(--gis-blue);
-    border-color: var(--gis-blue);
-    box-shadow: none;
-}
-
-.btn-toggle-files.active:hover {
-    background: #5a6268;
-    color: white;
-}
-
-.alm-files-row {
+}.alm-files-row {
     display: none;
 }
 .alm-files-row.open {
     display: table-row;
 }
-
-.alm-files-row > td {
-    padding: 0;
-    background: #f0f6ff;
-}
-
 .alm-files-inner {
     padding: 1.5em;
     background: #f8fbff;
@@ -561,52 +438,7 @@ table.alm-table {
     }
 }
 
-.dibujos-file-card {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 1.5em;
-    border: 3px solid var(--gis-blue);
-    border-radius: 12px;
-    background: #f5f9ff;
-    transition:
-        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-        background-color 0.3s ease,
-        box-shadow 0.3s ease;
-    cursor: pointer;
-    min-height: 180px;
-    position: relative;
-    overflow: hidden;
-    will-change: transform, background-color, box-shadow;
-    animation: prodCardPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-}
-
-.dibujos-file-card:hover {
-    background: var(--gis-blue);
-    transform: translateY(-5px);
-    box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
-}
-
-.dibujos-file-card .file-name {
-    font-size: 0.95em;
-    font-weight: 700;
-    color: var(--gis-blue);
-    word-break: break-word;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    margin-bottom: 1em;
-    transition: color 0.3s ease;
-}
-
-.dibujos-file-card:hover .file-name {
-    color: #ffffff;
-}
+/* Estilos de .dibujos-file-card consolidados en resources/css/components/cards.css */
 
 /* Modal Revisar Cambios Overrides */
 #modalRevisarCambios .dibujos-file-card:hover {
@@ -621,100 +453,6 @@ table.alm-table {
     filter: brightness(1.25);
 }
 
-.dibujos-file-card .file-icon-wrapper {
-    position: relative;
-    width: 50px;
-    height: 50px;
-    margin-bottom: 0.8em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.dibujos-file-card .file-icon {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transition:
-        opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-        transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    will-change: opacity, transform;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-}
-
-.dibujos-file-card .icon-hover {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-}
-
-.dibujos-file-card:hover .icon-default {
-    opacity: 0;
-    transform: scale(0.8);
-}
-
-.dibujos-file-card:hover .icon-hover {
-    opacity: 1;
-    transform: scale(1.15);
-    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.549));
-}
-
-.dibujos-file-card .file-actions {
-    display: flex;
-    gap: 0.6em;
-    margin-top: auto;
-    width: 100%;
-    justify-content: center;
-}
-
-.dibujos-file-card .btn-dibujos-sm {
-    padding: 0.6em 1.2em;
-    font-size: 0.9em;
-    flex: 1;
-    text-align: center;
-    border-radius: 6px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    background: var(--gis-blue) !important;
-    color: #fff !important;
-    border: none;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    will-change: transform, background-color, box-shadow;
-    transition:
-        transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275),
-        background-color 0.3s ease,
-        box-shadow 0.3s ease,
-        border 0.3s ease;
-}
-
-.dibujos-file-card:hover .btn-ver {
-    border: 2px solid #00d06f;
-    background: #006943 !important;
-}
-
-.dibujos-file-card .btn-ver:hover {
-    border: 2px solid #00d06f;
-    background: #00d06f !important;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 6px 18px rgba(0, 208, 111, 0.4) !important;
-}
-
-.dibujos-file-card:hover .btn-eliminar {
-    border: 2px solid #ff4d4d;
-    background: #a80000 !important;
-}
-
-.dibujos-file-card .btn-eliminar:hover {
-    border: 2px solid #ff4d4d;
-    background: #ff4d4d !important;
-    transform: scale(1.05) translateY(-2px);
-    box-shadow: 0 6px 18px rgba(255, 77, 77, 0.4) !important;
-}
 
 /* ── Estilos Globales de Botones de Documentos ── */
 .btn-dibujos {
@@ -885,18 +623,6 @@ table.alm-table {
 /* ────────────────────────────────────────────────────
    SPINNER
 ──────────────────────────────────────────────────── */
-.alm-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
-    margin-right: 6px;
-}
-
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -1835,72 +1561,11 @@ table.alm-table {
     background: var(--gis-green) !important;
     border: 2px solid #086d03 !important;
     color: #fff !important;
-}
-.btn-lib-aprobar:hover {
-    background: #e6f9ed !important;
-    color: var(--gis-green) !important;
-    transform: scale(1.08) translateY(-2px) !important;
-    box-shadow: 0 8px 20px rgba(10, 133, 4, 0.3) !important;
-}
-.btn-lib-rechazar {
+}.btn-lib-rechazar {
     background: var(--gis-red) !important;
     border: 2px solid #7a0200 !important;
     color: #fff !important;
-}
-.btn-lib-rechazar:hover {
-    background: #fdf2f2 !important;
-    color: var(--gis-red) !important;
-    transform: scale(1.08) translateY(-2px) !important;
-    box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
-}
-
-.lib-calidad-actions {
-    background: linear-gradient(135deg, #f0f6ff, #e8f2ff);
-    border: 2px solid var(--gis-blue);
-    border-left: 5px solid var(--gis-blue);
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.1);
-}
-.lib-calidad-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 1em;
-    font-weight: 800;
-    color: var(--gis-blue);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #c8ddf5;
-}
-.lib-estado-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0.5em 1em;
-    border-radius: 8px;
-    font-size: 0.88em;
-    font-weight: 700;
-}
-.lib-estado-aprobado {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #28a745;
-}
-.lib-estado-rechazado {
-    background: #fdf2f2;
-    color: var(--gis-red);
-    border: 1px solid var(--gis-red);
-}
-.lib-estado-info {
-    background: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffc107;
-}
-
-/* ── Modal — tamaño accesible (95vw x 95vh) ─── */
+}/* ── Modal — tamaño accesible (95vw x 95vh) ─── */
 .lib-modal-content {
     width: 95vw !important;
     height: 95vh !important;
@@ -1968,26 +1633,7 @@ table.alm-table {
     border-bottom-color: #6a0100 !important;
 }
 
-/* ── Datos del formato ─── */
-.lib-format-datos {
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 12px;
-    padding: 18px 22px;
-    margin: 1.5em 0;
-}
-.lib-datos-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 18px;
-    align-items: end;
-}
-.lib-dato-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-.lib-dato-label {
+/* ── Datos del formato ─── */.lib-dato-label {
     font-size: 1.05em;
     font-weight: 800;
     color: #64748b;
@@ -2014,12 +1660,6 @@ table.alm-table {
         box-shadow 0.2s;
     width: 100%;
 }
-.lib-select:focus {
-    outline: none;
-    border-color: var(--gis-blue);
-    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12);
-}
-
 /* ── Titulos de secciones ─── */
 .lib-section-title {
     font-size: 1.25em;
@@ -2080,16 +1720,7 @@ table.alm-table {
     display: flex;
     align-items: center;
     justify-content: center;
-}
-.lib-img-zoom-wrapper:hover {
-    border-color: var(--gis-blue);
-    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.25);
-}
-.lib-img-zoom-wrapper:focus-visible {
-    outline: 3px solid var(--gis-blue);
-    outline-offset: 2px;
-}
-.lib-ref-img {
+}.lib-ref-img {
     max-width: 100%;
     max-height: 100%;
     width: auto;
@@ -2123,14 +1754,6 @@ table.alm-table {
     background: rgba(0, 0, 0, 0.35);
     border-radius: 8px;
 }
-.lib-img-label {
-    font-size: 1.05em;
-    color: #64748b;
-    font-weight: 600;
-    text-align: center;
-    line-height: 1.3;
-}
-
 /* ── Zoom lupa flotante ─── */
 .lib-zoom-result {
     position: fixed;
@@ -2210,15 +1833,7 @@ table.alm-table {
 }
 .lib-th-measure {
     width: 180px;
-}
-.lib-td-item-wide {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 52px;
-    padding: 8px 12px;
-}
-.lib-td-input {
+}.lib-td-input {
     text-align: center;
 }
 
@@ -2233,54 +1848,8 @@ table.alm-table {
     font-size: 1em;
     background: var(--gis-blue);
     letter-spacing: 1px;
-}
-.lib-th-sub {
-    font-size: 0.9em;
-    padding: 8px 6px !important;
-}
-.lib-td-tipo {
-    font-weight: 800;
-    font-size: 1.1em;
-    color: var(--gis-blue);
-    padding: 12px 14px !important;
-    white-space: nowrap;
-}
-.lib-td-matrix {
-    padding: 6px 4px !important;
-    text-align: center;
-}
-
-/* Columnas de tabla fondo */
-.lib-td-fondo-item {
-    font-size: 1.25em;
-    font-weight: 700;
-    color: var(--gis-blue);
-    padding: 12px 16px !important;
-}
-
-/* Badges de item */
-.lib-item-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 48px;
-    height: 48px;
-    background: var(--gis-blue);
-    color: #fff;
-    border-radius: 8px;
-    font-size: 1.25em;
-    font-weight: 800;
-    padding: 0 8px;
-    /* font-family heredado de global.css */
-    flex-shrink: 0;
-}
-.lib-item-desc-inline {
-    font-size: 1.1em;
-    font-weight: 600;
-    color: #334155;
-}
-
-/* ── Inputs numéricos — GRANDES ─── */
+}/* Columnas de tabla fondo */
+/* Badges de item *//* ── Inputs numéricos — GRANDES ─── */
 .lib-input-unit-wrap {
     display: flex;
     align-items: center;
@@ -2298,13 +1867,7 @@ table.alm-table {
     font-weight: 700;
     transition: border-color 0.2s !important;
     height: 56px;
-}
-.lib-num-input:focus {
-    outline: none !important;
-    border-color: var(--gis-blue) !important;
-    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12) !important;
-}
-.lib-num-input::placeholder,
+}.lib-num-input::placeholder,
 .lib-num-input-sm::placeholder {
     color: #bdc5d1;
     font-weight: 500;
@@ -2355,17 +1918,7 @@ table.alm-table {
     padding: 22px;
 }
 
-/* ── Botones de accion del modal ─── */
-.lib-actions {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 2em;
-    padding-top: 1.5em;
-    border-top: 2px solid #e2e8f0;
-}
-.btn-lib-save,
+/* ── Botones de accion del modal ─── */.btn-lib-save,
 .btn-lib-aprobar-send,
 .btn-lib-rechazar-send,
 .btn-lib-enviar-scar {
@@ -2396,14 +1949,7 @@ table.alm-table {
 }
 .btn-lib-save img {
     filter: brightness(0) invert(1) !important;
-}
-.btn-lib-save:hover {
-    background: #e6f0fa !important;
-    color: var(--gis-blue) !important;
-    transform: scale(1.08) translateY(-2px) !important;
-    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.25) !important;
-}
-.btn-lib-save:hover img {
+}.btn-lib-save:hover img {
     filter: none !important;
 }
 
@@ -2415,14 +1961,7 @@ table.alm-table {
 }
 .btn-lib-aprobar-send img {
     filter: brightness(0) invert(1) !important;
-}
-.btn-lib-aprobar-send:hover {
-    background: #e6f9ed !important;
-    color: var(--gis-green) !important;
-    transform: scale(1.08) translateY(-2px) !important;
-    box-shadow: 0 8px 20px rgba(10, 133, 4, 0.25) !important;
-}
-.btn-lib-aprobar-send:hover img {
+}.btn-lib-aprobar-send:hover img {
     filter: none !important;
 }
 
@@ -2434,14 +1973,7 @@ table.alm-table {
 }
 .btn-lib-rechazar-send img {
     filter: brightness(0) invert(1) !important;
-}
-.btn-lib-rechazar-send:hover {
-    background: #fdf2f2 !important;
-    color: var(--gis-red) !important;
-    transform: scale(1.08) translateY(-2px) !important;
-    box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
-}
-.btn-lib-rechazar-send:hover img {
+}.btn-lib-rechazar-send:hover img {
     filter: none !important;
 }
 
@@ -2453,14 +1985,7 @@ table.alm-table {
 }
 .btn-lib-enviar-scar img {
     filter: brightness(0) invert(1) !important;
-}
-.btn-lib-enviar-scar:hover {
-    background: #f1f5f9 !important;
-    color: #0f172a !important;
-    transform: scale(1.08) translateY(-2px) !important;
-    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25) !important;
-}
-.btn-lib-enviar-scar:hover img {
+}.btn-lib-enviar-scar:hover img {
     filter: none !important;
 }
 
@@ -2771,7 +2296,6 @@ table.alm-table {
         padding-right: 0;
     }
 }
-
 
 /* Extracted from _btn_cerrar */
 .btn-cerrar-icon { width: 30px; margin-right: 5px; }

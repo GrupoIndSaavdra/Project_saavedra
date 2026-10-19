@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ========================================
@@ -17,10 +17,13 @@
 }
 
 .verificacion-card {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     border-radius: 1rem;
     padding: 2.5rem 2rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    box-shadow: var(--glass-shadow);
 }
 
 .icon-lock {
@@ -92,7 +95,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white) !important;
     padding: 1rem 1.5rem;
     border-radius: 1rem;
     width: 50%;
@@ -100,7 +106,7 @@
     right: 50%;
     transform: translateX(50%);
     margin-bottom: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--glass-shadow) !important;
 }
 
 .lg-saavedra-small {
@@ -134,11 +140,14 @@
 
 /* Tabla de lotes */
 .tabla-container {
-    background: rgba(255, 255, 255, 0.95);
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     border-radius: 1rem;
+    box-shadow: var(--glass-shadow);
     font-family: Poppins;
     overflow: hidden;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
 .tabla-lotes {

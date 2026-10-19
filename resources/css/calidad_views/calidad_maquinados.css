@@ -1,5 +1,8 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
+@import "../components/alm-header.css";
+@import "../components/file-actions.css";
+
 
 /* ====================================================
    calidad_maquinados.css — Vista Calidad: Dibujos y Ayudas de Maquinados
@@ -31,12 +34,15 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--gis-blue);
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-blue) !important;
     color: #fff;
     padding: 1em 1.5em;
     border-radius: 10px;
     margin-bottom: 1.5em;
-    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.4);
+    box-shadow: var(--glass-shadow) !important;
     gap: 1em;
 }
 
@@ -50,22 +56,7 @@ body {
     justify-content: center;
     font-size: 22px;
     flex-shrink: 0;
-}
-
-.alm-header-text h1 {
-    font-size: 1.4em;
-    font-weight: 700;
-    letter-spacing: 1px;
-    line-height: 1.2;
-}
-
-.alm-header-text p {
-    font-size: 0.85em;
-    opacity: 0.8;
-    margin-top: 2px;
-}
-
-.alm-readonly-badge {
+}.alm-readonly-badge {
     margin-left: auto;
     padding: 0.35em 1em;
     border-radius: 20px;
@@ -98,11 +89,13 @@ body {
 }
 
 .alm-stat-card {
-    background: #ffffff;
-    border: 5px solid #033966d4;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     border-radius: 10px;
     padding: 1.2em 1.5em;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--glass-shadow);
     display: flex;
     align-items: center;
     gap: 1em;
@@ -110,12 +103,6 @@ body {
         transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
         box-shadow 0.3s ease;
 }
-
-.alm-stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
-}
-
 .alm-stat-icon {
     font-size: 24px;
     width: 80px;
@@ -167,25 +154,15 @@ body {
    FILTROS
 ──────────────────────────────────────────────────── */
 .alm-filters-card {
-    background: #ffffff;
-    border: 5px solid #033966d4;
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white) !important;
     border-radius: 10px;
     padding: 0.5em;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--glass-shadow) !important;
     margin-bottom: 1em;
 }
-
-.alm-filters-card h2 {
-    color: var(--gis-blue);
-    font-size: 1.2em;
-    font-weight: 700;
-    margin-bottom: 1em;
-    padding-bottom: 0.5em;
-    border-bottom: 2px solid var(--gis-blue);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
 .filters {
     display: flex;
     flex-direction: column;
@@ -322,10 +299,12 @@ body {
    TABLA PRINCIPAL
 ──────────────────────────────────────────────────── */
 .alm-table-card {
-    background: #ffffff;
-    border: 5px solid #033966d4;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--glass-shadow);
     overflow: hidden;
     margin-bottom: 2em;
 }
@@ -372,27 +351,7 @@ body {
 
 .alm-table-scroll {
     overflow-x: auto;
-}
-
-table.alm-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.alm-table thead th {
-    background: var(--gis-blue);
-    color: #fff;
-    padding: 0.85em 1em;
-    text-align: left;
-    font-size: 0.85em;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    border: 1px solid #022847;
-    white-space: nowrap;
-}
-
-/* Cabecera verde para tabla de Ayudas */
+}/* Cabecera verde para tabla de Ayudas */
 .alm-table.table-ayudas thead th {
     background: #027a3a;
     border-color: #015c2c;
@@ -403,12 +362,6 @@ table.alm-table {
     background: #6c757d;
     border-color: #5a6268;
 }
-
-.alm-table tbody tr {
-    border-bottom: 1px solid #ddd;
-    transition: background 0.2s ease;
-}
-
 .alm-table tbody tr:last-child {
     border-bottom: none;
 }
@@ -428,42 +381,11 @@ table.alm-table {
 .alm-table.table-ayudas tbody tr:hover {
     background: #d0f5e3;
 }
-
-.alm-table tbody td {
-    padding: 0.85em 1em;
-    vertical-align: middle;
-    font-size: 0.95em;
-    color: #333;
-    border: 1px solid #ddd;
-}
-
 /* OT label */
-.alm-ot-label {
-    font-weight: 700;
-    color: var(--gis-blue);
-    font-size: 0.95em;
-}
-
 /* Fecha */
-.alm-date {
-    color: #555;
-    font-size: 0.9em;
-}
-
 /* ────────────────────────────────────────────────────
    BADGES
 ──────────────────────────────────────────────────── */
-.badge-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 0.25em 0.8em;
-    border-radius: 20px;
-    font-size: 0.85em;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-}
-
 .badge-activo {
     background: #d4edda;
     color: #155724;
@@ -520,13 +442,6 @@ table.alm-table {
         background-color 0.3s ease,
         box-shadow 0.3s ease;
 }
-
-.alm-btn-ver:hover {
-    background: var(--gis-green);
-    transform: scale(1.05) translateY(-1px);
-    box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
-}
-
 /* Variante verde para ayudas */
 .alm-btn-ver.btn-ayuda {
     background: #027a3a;
@@ -537,42 +452,12 @@ table.alm-table {
     box-shadow: 0 6px 18px rgba(2, 122, 58, 0.35);
 }
 
-/* ── Botones de acción con iconos ── */
-.td-actions {
-    display: flex;
-    gap: 2.5em;
-    justify-content: center;
-}
-
-.btn-action-icon {
-    background: #ffffff;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    cursor: pointer;
-    padding: 1em;
-    min-width: 90px;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-}
-
-.btn-action-icon span {
+/* ── Botones de acción con iconos ── */.btn-action-icon span {
     font-size: 0.85em;
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
-
-.btn-action-icon img {
-    width: 44px;
-    height: 44px;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-}
-
 /* Tema Azul (Ver Dibujos) */
 .btn-ver-dibujos {
     background: var(--gis-blue);
@@ -643,23 +528,9 @@ table.alm-table {
 }
 
 /* Tema Rojo (Eliminar carpeta) */
-.btn-eliminar-carpeta {
-    background: #dc3545;
-    border-color: #c82333;
-    color: #fff;
-}
-
 .btn-eliminar-carpeta img {
     filter: brightness(0) invert(1);
 }
-
-.btn-eliminar-carpeta:hover {
-    background: #fdf2f2;
-    color: #dc3545;
-    transform: scale(1.1);
-    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.15);
-}
-
 .btn-eliminar-carpeta:hover img {
     filter: none; /* Icono a color original en hover */
 }
@@ -671,20 +542,6 @@ table.alm-table {
 /* ────────────────────────────────────────────────────
    NOTA DE INACTIVO
 ──────────────────────────────────────────────────── */
-.alm-inactiva-note {
-    background: #fff3cd;
-    border: 1px solid #856404;
-    border-radius: 5px;
-    padding: 0.4em 0.8em;
-    color: #856404;
-    font-size: 0.78em;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: 5px;
-}
-
 /* ────────────────────────────────────────────────────
    EMPTY STATE
 ──────────────────────────────────────────────────── */
@@ -737,18 +594,6 @@ table.alm-table {
 /* ────────────────────────────────────────────────────
    SPINNER
 ──────────────────────────────────────────────────── */
-.alm-spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
-    border-top-color: #fff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    vertical-align: middle;
-    margin-right: 6px;
-}
-
 @keyframes spin {
     to {
         transform: rotate(360deg);
@@ -826,38 +671,12 @@ table.alm-table {
     justify-content: center;
     gap: 8px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.btn-toggle-files:hover {
-    background: var(--gis-blue);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 81, 148, 0.3);
-}
-
-.btn-toggle-files.active {
-    background: #fff;
-    color: var(--gis-blue);
-    border-color: var(--gis-blue);
-    box-shadow: none;
-}
-
-.btn-toggle-files.active:hover {
-    background: #5a6268;
-    color: white;
-}
-
-.alm-files-row {
+}.alm-files-row {
     display: none;
 }
 .alm-files-row.open {
     display: table-row;
 }
-
-.alm-files-row > td {
-    padding: 0;
-    background: #f0f6ff;
-}
-
 .alm-files-inner {
     padding: 0.5em;
     background: #f8fbff;
@@ -906,9 +725,12 @@ table.alm-table {
     align-items: center;
     justify-content: center;
     padding: 1.5em;
-    border: 3px solid var(--gis-blue);
+    background: rgba(255, 255, 255, 0.65) !important;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--glass-border-white) !important;
     border-radius: 12px;
-    background: #f5f9ff;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     cursor: pointer;
     min-height: 180px;
@@ -917,106 +739,23 @@ table.alm-table {
     animation: prodCardPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
 }
 
+/* Estilos de .dibujos-file-card consolidados en resources/css/components/cards.css */
 .dibujos-file-card.card-ayuda {
     border-color: #027a3a;
 }
-
-.dibujos-file-card:hover {
-    background: var(--gis-blue);
-    transform: translateY(-5px);
-    box-shadow: 0 8px 18px rgba(3, 57, 102, 0.4);
-}
-
 .dibujos-file-card.card-ayuda:hover {
-    background: #027a3a;
-    box-shadow: 0 8px 18px rgba(2, 122, 58, 0.4);
+    border-color: #027a3a !important;
 }
-
-.dibujos-file-card .file-name {
-    font-size: 0.95em;
-    font-weight: 700;
-    color: var(--gis-blue);
-    word-break: break-all;
-    text-align: center;
-    margin-bottom: 1em;
-    transition: color 0.3s ease;
-}
-
 .dibujos-file-card.card-ayuda .file-name {
     color: #027a3a;
 }
-
-.dibujos-file-card:hover .file-name {
-    color: #ffffff;
+.dibujos-file-card.card-ayuda:hover .file-name {
+    color: #027a3a !important;
 }
-
-.dibujos-file-card .file-icon-wrapper {
-    position: relative;
-    width: 50px;
-    height: 50px;
-    margin-bottom: 0.8em;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.dibujos-file-card .file-icon {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
-}
-
-.dibujos-file-card .icon-hover {
-    position: absolute;
-    top: 0;
-    left: 0;
-    opacity: 0;
-}
-
-.dibujos-file-card:hover .icon-default {
-    opacity: 0;
-    transform: scale(0.8);
-}
-
-.dibujos-file-card:hover .icon-hover {
-    opacity: 1;
-    transform: scale(1.15) rotate(3deg);
-    filter: drop-shadow(0 4px 8px rgba(255, 255, 255, 0.5));
-}
-
-.dibujos-file-card .file-actions {
-    display: flex;
-    gap: 0.6em;
-    margin-top: auto;
-    width: 100%;
-    justify-content: center;
-}
-
-.dibujos-file-card .btn-dibujos-sm {
-    padding: 0.6em 1.2em;
-    font-size: 0.9em;
-    flex: 1;
-    text-align: center;
-    border-radius: 6px;
-    background: var(--gis-blue) !important;
-    color: #fff !important;
-    border: none;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    transition: all 0.3s ease;
-}
-
 .dibujos-file-card.card-ayuda .btn-dibujos-sm {
     background: #027a3a !important;
 }
 
-.dibujos-file-card:hover .btn-ver {
-    border: 2px solid #00d06f;
-    background: #006943 !important;
-}
 
 .dibujos-file-card.card-ayuda:hover .btn-ayuda-color {
     background: var(--gis-blue) !important;

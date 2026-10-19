@@ -413,20 +413,20 @@ class CalidadFundicionController extends Controller
                             'origin' => 'aprobado',
                             'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
                         ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/ESCANEADOS'),
-                        'origin' => 'aprobado',
-                        'prefix' => $claseClean . '/ESCANEADOS/'
-                    ];
-                    $dirsToScan[] = [
-                        'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
-                        'origin' => 'rechazado',
-                        'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
-                    ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/ESCANEADOS'),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/ESCANEADOS/'
+                        ];
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
+                            'origin' => 'rechazado',
+                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
+                        ];
+                    }
                 }
-            }
 
-            foreach ($dirsToScan as $scanInfo) {
+                foreach ($dirsToScan as $scanInfo) {
                     $scanPath = $scanInfo['path'];
                     $origin = $scanInfo['origin'];
                     $prefix = $scanInfo['prefix'];
@@ -597,7 +597,11 @@ class CalidadFundicionController extends Controller
             if (
                 str_contains($archivoLower, 'documentos_aprobados') ||
                 str_contains($archivoLower, 'confirmacion') ||
-                str_contains($archivoLower, 'preorden_modelo')
+                str_contains($archivoLower, 'preorden_modelo') ||
+                str_contains($archivoLower, 'f_alm_pfc') ||
+                str_contains($archivoLower, 'f_alm_pfm') ||
+                str_contains($archivoLower, 'pfc') ||
+                str_contains($archivoLower, 'casting')
             ) {
                 $origin = 'aprobado';
             } elseif (
@@ -617,7 +621,7 @@ class CalidadFundicionController extends Controller
 
         // Aplicar filtros de visibilidad según perfil de usuario
         $user = Auth::user();
-        if ($user->perfil != 1 && $user->perfil != 2) { // 1 o 2 = Admin (ve todo)
+        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2, 3 = Admin/Master (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
             if (!$history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -626,16 +630,20 @@ class CalidadFundicionController extends Controller
                 abort(404, 'Historial de OT no encontrado.');
             }
 
-            if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
+            if ($user->perfil == 4) { // 4 = Calidad
                 $isReproceso = (bool) preg_match('/_R\d+$/i', $ot);
-                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
-                // EXCEPTO en reprocesos donde siempre tiene acceso a sus propios documentos
+                // Calidad solo ve preordenes si pre_orden_email_sent es true
+                // EXCEPTO en reprocesos donde siempre tiene acceso a sus propios documentos o PFC/aprobados
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert =
                     str_contains(strtolower($archivo), 'documentos_aprobados') ||
                     str_contains(strtolower($archivo), 'documentos_rechazados') ||
                     str_contains(strtolower($archivo), 'formatos_liberacion') ||
                     str_contains(strtolower($archivo), 'confirmacion') ||
+                    str_contains(strtolower($archivo), 'f_alm_pfc') ||
+                    str_contains(strtolower($archivo), 'f_alm_pfm') ||
+                    str_contains(strtolower($archivo), 'pfc') ||
+                    str_contains(strtolower($archivo), 'casting') ||
                     str_contains($archivo, 'F-CCL-LDM') ||
                     str_contains($archivo, 'F_CCL_LDM') ||
                     str_contains($archivo, 'F-CCL-SCAR') ||
@@ -820,7 +828,11 @@ class CalidadFundicionController extends Controller
             if (
                 str_contains($archivoLower, 'documentos_aprobados') ||
                 str_contains($archivoLower, 'confirmacion') ||
-                str_contains($archivoLower, 'preorden_modelo')
+                str_contains($archivoLower, 'preorden_modelo') ||
+                str_contains($archivoLower, 'f_alm_pfc') ||
+                str_contains($archivoLower, 'f_alm_pfm') ||
+                str_contains($archivoLower, 'pfc') ||
+                str_contains($archivoLower, 'casting')
             ) {
                 $origin = 'aprobado';
             } elseif (
@@ -840,7 +852,7 @@ class CalidadFundicionController extends Controller
 
         // Aplicar filtros de visibilidad según perfil de usuario
         $user = Auth::user();
-        if ($user->perfil != 1 && $user->perfil != 2) { // 1 o 2 = Admin (ve todo)
+        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2, 3 = Admin/Master (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
             if (!$history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -849,10 +861,19 @@ class CalidadFundicionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
             }
 
-            if ($user->perfil == 4 || $user->perfil == 3) { // 4 = Calidad, 3 = Master
-                // Calidad/Master solo ve preordenes si pre_orden_email_sent es true
+            if ($user->perfil == 4) { // 4 = Calidad
+                // Calidad solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
-                $isLdmOrScar = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados') || str_contains($archivo, 'F-CCL-LDM') || str_contains($archivo, 'SCAR');
+                $isLdmOrScar =
+                    str_contains(strtolower($archivo), 'documentos_aprobados') ||
+                    str_contains(strtolower($archivo), 'documentos_rechazados') ||
+                    str_contains(strtolower($archivo), 'confirmacion') ||
+                    str_contains(strtolower($archivo), 'f_alm_pfc') ||
+                    str_contains(strtolower($archivo), 'f_alm_pfm') ||
+                    str_contains(strtolower($archivo), 'pfc') ||
+                    str_contains(strtolower($archivo), 'casting') ||
+                    str_contains($archivo, 'F-CCL-LDM') ||
+                    str_contains($archivo, 'SCAR');
                 if ($isPreorden && !$isLdmOrScar && !$history->pre_orden_email_sent) {
                     return response()->json(['success' => false, 'error' => 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.'], 403);
                 }

@@ -34,8 +34,12 @@ html, body {
     max-width: 30rem;
     z-index: 1;
     margin-top: 10em;
-    background-color: rgba(255, 255, 255, 0.744);
-    box-shadow: #000000 0px 0px 10px 0px;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
+    border-radius: 12px;
+    box-shadow: var(--glass-shadow);
     padding: 3em;
 }
 .welcome-title {

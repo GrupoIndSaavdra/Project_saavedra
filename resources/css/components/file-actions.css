@@ -1,0 +1,53 @@
+/* =============================================================================
+   FILE-ACTIONS.CSS — Componente compartido (reglas idénticas consolidadas)
+   Grupo Industrial Saavedra · Importar:  @import "../components/file-actions.css";
+   Las vistas solo conservan medidas y ajustes particulares.
+   ============================================================================= */
+
+.td-actions {
+    display: flex;
+    gap: 2.5em;
+    justify-content: center;
+}
+
+.btn-action-icon {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    padding: 1em;
+    min-width: 90px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.btn-action-icon span {
+    font-size: 0.85em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.btn-action-icon img {
+    width: 44px;
+    height: 44px;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.btn-eliminar-carpeta {
+    background: #dc3545;
+    border-color: #c82333;
+    color: #fff;
+}
+
+.btn-eliminar-carpeta:hover {
+    background: #fdf2f2;
+    color: #dc3545;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(220, 53, 69, 0.15);
+}

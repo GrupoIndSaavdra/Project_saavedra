@@ -1,0 +1,78 @@
+/* =============================================================================
+   TABLES.CSS — Estilos Estándar de Tablas y Encabezados Tabulares
+   Grupo Industrial Saavedra
+   ============================================================================= */
+
+/* ── Encabezado de Tarjeta de Tabla ────────────────────────────────────────── */
+.table-card-header,
+.ht-table-header,
+.alm-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.6rem;
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #002244 100%);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+    color: #ffffff;
+    gap: 10px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+.table-card-header h2,
+.ht-table-header h2,
+.alm-table-header h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* ── Badges y Contadores de Resultados ─────────────────────────────────────── */
+.table-results-badge,
+.ht-results-count,
+.alm-results-count {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 4px 12px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    color: #ffffff;
+}
+
+/* ── Tabla Base GIS ────────────────────────────────────────────────────────── */
+.gis-table,
+.alm-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--gis-gray);
+    font-size: 0.9rem;
+    background: #ffffff;
+}
+
+.gis-table th,
+.alm-table th {
+    background: linear-gradient(180deg, #f0f6fc 0%, #e1edf8 100%);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 800;
+    border-bottom: 2.5px solid var(--gis-blue);
+    color: var(--gis-blue);
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.gis-table td,
+.alm-table td {
+    padding: 10px 16px;
+    border-bottom: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.gis-table tbody tr:hover,
+.alm-table tbody tr:hover {
+    background-color: #f1f7fc;
+}

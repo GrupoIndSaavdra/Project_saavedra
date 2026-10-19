@@ -29,8 +29,8 @@
             const icon = document.querySelector('.open-menu .icon');
             if (btn && icon) {
                 const ratio = window.devicePixelRatio || 1;
-                // Ajustar las dimensiones físicas reales para evitar desplazamiento
-                const btnSize = 40 / ratio;
+                // Botón espacioso (48px) con el ícono original intacto (32px)
+                const btnSize = 48 / ratio;
                 const iconSize = 32 / ratio;
                 
                 btn.style.width = btnSize + 'px';
@@ -47,7 +47,7 @@
     </script>
 </head>
 
-<body style="@yield('background-body')">
+<body style="@yield('background-body'); min-height: 100vh; background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
     <header>
         @auth
             <!--Menu-->
@@ -104,6 +104,7 @@
         productionData: @json(route('productionData')),
         panelProgreso: @json(route('panelProgreso')),
         machinesOccupied: @json(route('machinesOccupied')),
+        piecesOccupied: @json(route('piecesOccupied')),
         processProduction: @json(route('processProduction')),
         logout: @json(route('logout')),
         'soldadura.generarQRLote': @json(route('soldadura.generarQRLote')),

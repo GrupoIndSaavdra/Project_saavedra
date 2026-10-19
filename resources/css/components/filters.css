@@ -1,0 +1,80 @@
+/* =============================================================================
+   FILTERS.CSS — Barras de Búsqueda, Filtros y Herramientas Superiores
+   Grupo Industrial Saavedra
+   ============================================================================= */
+
+/* ── Contenedor General de Filtros y Barras de Acción (Blanco) ─────────────── */
+.filters-bar,
+.ht-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--glass-shadow);
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+/* ── Toolbar con Fondo Azul Oscuro Glassmorphism (Prioridades GIS) ──────────── */
+.toolbar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-blue);
+    border-radius: 12px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: var(--glass-shadow);
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    color: #ffffff;
+}
+
+/* ── Grupos de Filtros e Inputs Estandarizados ─────────────────────────────── */
+.filter-group,
+.filter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.filter-group label,
+.filter label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ── Selectores e Inputs de Búsqueda ───────────────────────────────────────── */
+.filter-select,
+.filter-input,
+.select-filter,
+.input-filter {
+    border-radius: 6px;
+    padding: 0.6rem 1rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    outline: none;
+    transition: all var(--trans);
+    box-sizing: border-box;
+}
+
+.filter-select:focus,
+.filter-input:focus,
+.select-filter:focus,
+.input-filter:focus {
+    border-color: var(--gis-blue);
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.25);
+}

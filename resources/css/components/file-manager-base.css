@@ -1,0 +1,294 @@
+/* =============================================================================
+   FILE-MANAGER-BASE.CSS — Componente compartido (reglas idénticas consolidadas)
+   Grupo Industrial Saavedra · Importar:  @import "../components/file-manager-base.css";
+   Las vistas solo conservan medidas y ajustes particulares.
+   ============================================================================= */
+
+.dibujos-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.1em;
+    min-width: 0;
+}
+
+.dibujos-header-icon {
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.28));
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+}
+
+.dibujos-header:hover .dibujos-header-icon {
+    transform: scale(1.08) rotate(-3deg);
+}
+
+.dibujos-header h1 {
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.dibujos-header span {
+    font-size: 0.9em;
+    opacity: 0.8;
+}
+
+.dibujos-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+.dibujos-dashboard-layout {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    gap: 2em;
+    align-items: start;
+}
+
+.dibujos-dashboard-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    position: sticky;
+    top: 165px;
+    z-index: 10;
+}
+
+.dibujos-dashboard-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
+}
+
+.dibujos-dashboard-layout .dibujos-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5em;
+    margin-bottom: 0;
+}
+
+.dibujos-card {
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
+    border-radius: 10px;
+    padding: 1.5em;
+    box-shadow: var(--glass-shadow);
+}
+
+.dibujos-form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1em;
+}
+
+.dibujos-form-group select option {
+    background: #fff;
+    color: #000;
+}
+
+.dibujos-form-group select:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dibujos-file-name {
+    font-size: 0.8em;
+    color: #666;
+    text-align: center;
+    word-break: break-all;
+}
+
+.btn-dibujos:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-dibujos-sm {
+    width: auto;
+    padding: 0.4em 0.9em;
+    font-size: 0.85em;
+    margin-top: 0;
+}
+
+.dibujos-table-section {
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
+    border-radius: 10px;
+    padding: 1.5em;
+    box-shadow: var(--glass-shadow);
+    margin-bottom: 1.5em;
+}
+
+.dibujos-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.dibujos-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.dibujos-table td {
+    padding: 0.8em 1em;
+    text-align: center;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+    font-size: 0.95em;
+    color: #333;
+}
+
+.dibujos-table .td-actions {
+    display: flex;
+    justify-content: center;
+    gap: 2em;
+}
+
+.dibujos-files-panel {
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
+    border-radius: 10px;
+    padding: 1.5em;
+    box-shadow: var(--glass-shadow);
+    margin-bottom: 1.5em;
+    display: none;
+}
+
+.dibujos-files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 1.6em;
+    margin-top: 1.2em;
+    max-height: 50vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 18px 20px 36px 26px !important;
+}
+
+.dibujos-empty-state {
+    text-align: center;
+    padding: 2.5em 1.5em;
+    color: #666;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.dibujos-empty-state p {
+    font-size: 1.1em;
+    color: #888;
+    margin: 0;
+    font-style: normal;
+    font-weight: 600;
+}
+
+.dibujos-spinner {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    border: 3px solid #fff3;
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}
+
+.dibujos-log-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85em;
+    background: #ffffff;
+}
+
+.dibujos-log-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 5;
+}
+
+.dibujos-log-table td {
+    padding: 0.5em 0.8em;
+    border: 1px solid #ddd;
+    vertical-align: middle;
+}
+
+.action-badge {
+    display: inline-block;
+    border-radius: 6px;
+    padding: 0.4em 0.8em;
+    font-size: 0.85em;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.action-badge.crear_carpeta {
+    background: #d4edda;
+    color: #155724;
+}
+
+.action-badge.subir_pdf {
+    background: #cce5ff;
+    color: #004085;
+}
+
+.action-badge.eliminar_pdf {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.action-badge.reemplazar_pdf {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.action-badge.eliminar_carpeta {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.action-badge.vaciar_carpeta {
+    background: #ffe8cc;
+    color: #855d00;
+}
+
+.dibujos-log-details summary::after {
+    content: "▼";
+    font-size: 0.9em;
+}
+
+.btn-ver-archivos {
+    background: #28a745;
+    border-color: #218838;
+    color: #fff;
+}
+
+.btn-ver-archivos:hover {
+    background: #e6f9ed;
+    color: #28a745;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(40, 167, 69, 0.15);
+}
+
+.dibujos-table-section-clean {
+    border: none;
+    padding: 0;
+    box-shadow: none;
+    background: transparent;
+    grid-column: 1 / -1;
+}

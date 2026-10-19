@@ -23,6 +23,7 @@ export default defineConfig({
 
                 //View login
                 "resources/css/auth/login.css",
+                "resources/js/auth/login.js",
 
                 //View moldings
                 "resources/css/moldings_views/create_molding.css",

@@ -1,0 +1,177 @@
+/* =============================================================================
+   ALM-INSPECCION.CSS — Componente compartido (reglas idénticas consolidadas)
+   Grupo Industrial Saavedra · Importar:  @import "../components/alm-inspeccion.css";
+   Las vistas solo conservan medidas y ajustes particulares.
+   ============================================================================= */
+
+.alm-header-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    min-width: 280px;
+}
+
+.alm-table-card {
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border-radius: 12px;
+    border: 5px solid var(--glass-border-white);
+    box-shadow: var(--glass-shadow);
+    margin-bottom: 1.8em;
+    overflow: hidden;
+}
+
+.alm-table-header {
+    padding: 1.1rem 1.6rem;
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #002244 100%);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    color: #ffffff;
+}
+
+.alm-table-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #ffffff;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
+
+.ri-search-form-wrapper {
+    padding: 1.8rem;
+    background: #ffffff;
+}
+
+.ri-search-form {
+    display: flex;
+    gap: 1.6rem;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.ri-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 280px;
+    flex: 1;
+}
+
+.ri-label {
+    font-size: 0.88rem;
+    font-weight: 800;
+    color: var(--gis-gray, #404040);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.rd-doc-header {
+    border: 2px solid var(--gis-blue, #033966);
+    margin-bottom: 1.2rem;
+}
+
+.rd-doc-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    border-bottom: 2px solid var(--gis-blue, #033966);
+    padding: 12px 16px;
+    background: linear-gradient(180deg, #f0f6fc 0%, #e1edf8 100%);
+}
+
+.rd-doc-logo {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+}
+
+.rd-logo-img {
+    height: 48px;
+    object-fit: contain;
+}
+
+.rd-meta-col-code {
+    background: #f0f6fc;
+    text-align: center;
+}
+
+.rd-meta-label {
+    font-size: 0.7rem;
+    font-weight: 800;
+    color: var(--gis-gray, #404040);
+    text-transform: uppercase;
+    line-height: 1.1;
+    margin-bottom: 3px;
+}
+
+.rd-meta-text-val {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: var(--gis-blue, #033966);
+    letter-spacing: 0.2px;
+}
+
+.rd-meta-code-val {
+    font-size: 1.05rem;
+    font-weight: 900;
+    color: var(--gis-blue, #033966);
+    letter-spacing: 0.5px;
+}
+
+.rd-info-section {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 14px;
+    margin-bottom: 1.2rem;
+}
+
+.rd-info-cell {
+    background: #fff;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+}
+
+.rd-lbl {
+    font-size: 0.72rem;
+    font-weight: 800;
+    color: var(--gis-gray, #404040);
+    text-transform: uppercase;
+    min-width: 65px;
+}
+
+.rd-val {
+    font-weight: 700;
+    color: var(--gis-blue, #033966);
+    font-size: 0.92rem;
+}
+
+.ri-btn-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc2626;
+    color: #ffffff;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 900;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.5);
+    border: 2px solid #ffffff;
+    z-index: 2;
+}

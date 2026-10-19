@@ -1,4 +1,5 @@
 @import "../global.css";
+@import "../components/alm-inspeccion.css";
 
 /* Variables Globales */
 :root {
@@ -40,15 +41,17 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #02203e 100%);
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-blue) !important;
     color: #ffffff;
     padding: 1.2rem 1.8rem;
     border-radius: 12px;
     margin-bottom: 1.5rem;
-    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.45);
+    box-shadow: var(--glass-shadow) !important;
     gap: 1.5rem;
     flex-wrap: wrap;
-    border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .alm-header-left {
@@ -260,15 +263,16 @@ body {
     box-shadow: 0 0 8px #ef4444;
 }
 
-
 .rd-sheet-container {
-    background: #ffffff;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
     color: #1e293b;
     border-radius: 10px;
-    box-shadow: 0 12px 36px rgba(3, 57, 102, 0.25);
+    box-shadow: var(--glass-shadow);
     overflow: hidden;
     padding: 1.6rem;
-    border: 2px solid var(--gis-blue, #033966);
+    border: 5px solid var(--glass-border-white);
 }
 
 /* ── Encabezado Institucional ── */
@@ -306,12 +310,6 @@ body {
     display: flex;
     align-items: center;
 }
-
-.rd-logo-img {
-    height: 48px;
-    object-fit: contain;
-}
-
 .rd-doc-meta-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr) 140px 140px;
@@ -670,6 +668,7 @@ body {
     font-weight: 800;
     font-size: 0.84rem;
     border-radius: 5px;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -883,10 +882,12 @@ body {
    7. VISTA INDEX (SELECTOR DE REPORTES Y TABLA)
 ──────────────────────────────────────────────────────── */
 .alm-table-card {
-    background: #ffffff;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
     border-radius: 12px;
-    border: 1.5px solid rgba(3, 57, 102, 0.22);
-    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.12);
+    border: 5px solid var(--glass-border-white);
+    box-shadow: var(--glass-shadow);
     margin-bottom: 1.8em;
     overflow: hidden;
 }

@@ -97,18 +97,13 @@ header {
 
 .title-div {
     flex: 1;
-    background: rgba(
-        2,
-        38,
-        68,
-        0.85
-    ) !important; /* Darker to match the process cards */
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-blue) !important;
     border-radius: 16px !important;
     padding: 2rem !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5) !important;
+    box-shadow: var(--glass-shadow) !important;
     display: flex;
     flex-direction: column;
     justify-content: center;

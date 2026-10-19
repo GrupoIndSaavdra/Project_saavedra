@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
@@ -16,12 +16,12 @@
     left: 50%;
     transform: translate(-50%, -50%);
     
-    background: rgba(255, 255, 255, 0.75);
+    background: var(--glass-bg-white);
     -webkit-backdrop-filter: blur(15px);
     backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 5px solid var(--glass-border-white);
     border-radius: 16px;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--glass-shadow);
     
     padding: 3.5rem 3rem;
     width: 90%;

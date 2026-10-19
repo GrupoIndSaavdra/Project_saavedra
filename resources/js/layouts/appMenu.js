@@ -265,7 +265,8 @@ function createList(sections, isNested = false) {
                     const li = document.createElement("li");
                     const a = document.createElement("a");
                     a.classList.add("nav-link");
-                    a.href = window.routes[route[0]];
+                    const targetRoute = (window.routes && window.routes[route[0]]) ? window.routes[route[0]] : ((window.baseUrl || '') + '/' + route[0]);
+                    a.href = targetRoute;
                     if (route[2]) {
                         if (a.href.includes('?')) {
                             a.href += '&' + route[2];

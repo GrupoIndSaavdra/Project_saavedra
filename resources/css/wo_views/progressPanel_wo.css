@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 .tex-center {
@@ -26,11 +26,14 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #ffffff;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     width: 90%;
     padding: 25px;
     border-radius: 12px;
-    box-shadow: 0 0 10px #404040;
+    box-shadow: var(--glass-shadow);
     overflow-x: auto;
 }
 
@@ -55,7 +58,11 @@
 }
 
 .fila.header {
-    background-color: var(--gis-blue);
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 3px solid var(--glass-border-blue) !important;
+    border-radius: 8px;
     font-weight: bold;
     color: var(--gis-white);
 }

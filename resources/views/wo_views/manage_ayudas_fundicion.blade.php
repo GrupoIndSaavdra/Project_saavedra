@@ -16,7 +16,10 @@
 
         {{-- Encabezado --}}
         <div class="dibujos-header">
-            <h1>{{ $pageTitle ?? 'Gestión de Documentación' }}</h1>
+            <div class="dibujos-header-left">
+                <img src="{{ asset('images/perspectiva-icon.png') }}" alt="Ayudas Visuales de Fundición" class="dibujos-header-icon">
+                <h1>{{ $pageTitle ?? 'Gestión de Documentación' }}</h1>
+            </div>
             <span>Directorio: {{ $directoryName ?? 'GIS' }} &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
 

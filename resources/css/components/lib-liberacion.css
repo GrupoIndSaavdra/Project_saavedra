@@ -1,0 +1,555 @@
+/* =============================================================================
+   LIB-LIBERACION.CSS — Componente compartido (reglas idénticas consolidadas)
+   Grupo Industrial Saavedra · Importar:  @import "../components/lib-liberacion.css";
+   Las vistas solo conservan medidas y ajustes particulares.
+   ============================================================================= */
+
+.btn-lib-aprobar:hover {
+    background: #e6f9ed !important;
+    color: var(--gis-green) !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(10, 133, 4, 0.3) !important;
+}
+
+.btn-lib-rechazar:hover {
+    background: #fdf2f2 !important;
+    color: var(--gis-red) !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
+}
+
+.lib-calidad-actions {
+    background: linear-gradient(135deg, #f0f6ff, #e8f2ff);
+    border: 2px solid var(--gis-blue);
+    border-left: 5px solid var(--gis-blue);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.1);
+}
+
+.lib-calidad-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1em;
+    font-weight: 800;
+    color: var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #c8ddf5;
+}
+
+.lib-estado-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0.5em 1em;
+    border-radius: 8px;
+    font-size: 0.88em;
+    font-weight: 700;
+}
+
+.lib-estado-aprobado {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #28a745;
+}
+
+.lib-estado-rechazado {
+    background: #fdf2f2;
+    color: var(--gis-red);
+    border: 1px solid var(--gis-red);
+}
+
+.lib-estado-info {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+}
+
+.lib-modal-content {
+    width: 95vw !important;
+    height: 95vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 2.5vh auto !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.lib-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0 2em 2em !important;
+}
+
+.lib-modal-header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.lib-header-top {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding-top: 4px;
+}
+
+.lib-format-meta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 8px;
+    padding: 5px 16px;
+    font-size: 1.05em;
+    letter-spacing: 0.5px;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.lib-modal-title-text {
+    margin: 0;
+    font-size: 1.4em;
+    font-weight: 800;
+    color: #fff;
+    text-align: center;
+}
+
+.lib-modal-subtitle {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 1.15em;
+    text-align: center;
+    margin: 0;
+}
+
+.lib-modal-header-rechazo {
+    background: linear-gradient(135deg, var(--gis-red), #7a0200) !important;
+    border-bottom-color: #6a0100 !important;
+}
+
+.lib-format-datos {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin: 1.5em 0;
+}
+
+.lib-datos-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 18px;
+    align-items: end;
+}
+
+.lib-dato-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.lib-dato-label {
+    font-size: 1.05em;
+    font-weight: 800;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.lib-dato-value {
+    font-size: 1.35em;
+    font-weight: 700;
+    color: var(--gis-blue);
+}
+
+.lib-select {
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 1.3em;
+    font-weight: 600;
+    color: #334155;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+
+.lib-select:focus {
+    outline: none;
+    border-color: var(--gis-blue);
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12);
+}
+
+.lib-section-title {
+    font-size: 1.25em;
+    font-weight: 800;
+    color: var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+}
+
+.lib-section-title-danger {
+    color: var(--gis-red) !important;
+    border-bottom-color: var(--gis-red) !important;
+}
+
+.lib-section-hint {
+    font-size: 1.1em;
+    color: #64748b;
+    margin: -0.5em 0 1em 0;
+}
+
+.lib-img-strip {
+    display: flex;
+    gap: 16px;
+    overflow-x: auto;
+    padding-bottom: 12px;
+    scroll-snap-type: x mandatory;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.lib-img-card {
+    flex: 0 0 auto;
+    width: 340px;
+    scroll-snap-align: start;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.lib-img-zoom-wrapper {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lib-img-zoom-wrapper:hover {
+    border-color: var(--gis-blue);
+    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.25);
+}
+
+.lib-img-zoom-wrapper:focus-visible {
+    outline: 3px solid var(--gis-blue);
+    outline-offset: 2px;
+}
+
+.lib-ref-img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    display: block;
+    padding: 10px;
+    transition: transform 0.25s ease;
+}
+
+.lib-img-overlay-hint {
+    position: absolute;
+    inset: 0;
+    background: rgba(3, 57, 102, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.lib-img-overlay-hint span {
+    color: #fff;
+    font-size: 1.15em;
+    font-weight: 800;
+    padding: 8px 14px;
+    background: rgba(0, 0, 0, 0.35);
+    border-radius: 8px;
+}
+
+.lib-img-label {
+    font-size: 1.05em;
+    color: #64748b;
+    font-weight: 600;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.lib-zoom-result {
+    position: fixed;
+    width: 450px;
+    height: 450px;
+    border: 3px solid var(--gis-blue);
+    border-radius: 12px;
+    background-repeat: no-repeat;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+    z-index: 19000;
+    display: none;
+}
+
+.lib-table-wrapper {
+    overflow-x: auto;
+    border: 2px solid var(--gis-blue);
+    border-radius: 12px;
+}
+
+.lib-report-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1.2em;
+}
+
+.lib-report-table thead tr {
+    background: var(--gis-blue);
+    color: #fff;
+}
+
+.lib-report-table th {
+    padding: 14px 16px;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
+}
+
+.lib-unit-th {
+    font-weight: 400;
+    font-size: 0.9em;
+    opacity: 0.8;
+    display: block;
+    margin-top: 2px;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.lib-report-table td {
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    vertical-align: middle;
+}
+
+.lib-th-item-wide {
+    width: 220px;
+    text-align: left;
+}
+
+.lib-td-item-wide {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 8px 12px;
+}
+
+.lib-th-tipo {
+    min-width: 170px;
+    background: #022847;
+    white-space: normal !important;
+    line-height: 1.2;
+}
+
+.lib-th-main-col {
+    font-size: 1em;
+    background: var(--gis-blue);
+    letter-spacing: 1px;
+}
+
+.lib-th-sub {
+    font-size: 0.9em;
+    padding: 8px 6px !important;
+}
+
+.lib-td-tipo {
+    font-weight: 800;
+    font-size: 1.1em;
+    color: var(--gis-blue);
+    padding: 12px 14px !important;
+    white-space: nowrap;
+}
+
+.lib-td-matrix {
+    padding: 6px 4px !important;
+    text-align: center;
+}
+
+.lib-td-fondo-item {
+    font-size: 1.25em;
+    font-weight: 700;
+    color: var(--gis-blue);
+    padding: 12px 16px !important;
+}
+
+.lib-item-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    height: 48px;
+    background: var(--gis-blue);
+    color: #fff;
+    border-radius: 8px;
+    font-size: 1.25em;
+    font-weight: 800;
+    padding: 0 8px;
+    flex-shrink: 0;
+}
+
+.lib-item-desc-inline {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #334155;
+}
+
+.lib-input-unit-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+}
+
+.lib-num-input {
+    width: 160px;
+    padding: 12px 16px !important;
+    font-size: 1.6em !important;
+    border-radius: 8px !important;
+    border: 2px solid #cbd5e1 !important;
+    text-align: right !important;
+    font-family: "Courier New", monospace;
+    font-weight: 700;
+    transition: border-color 0.2s !important;
+    height: 56px;
+}
+
+.lib-num-input:focus {
+    outline: none !important;
+    border-color: var(--gis-blue) !important;
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.12) !important;
+}
+
+.lib-num-input-sm {
+    width: 125px;
+    padding: 7px 8px !important;
+    font-size: 1.4em !important;
+    height: 48px;
+}
+
+.lib-unit-inline {
+    font-size: 1.2em;
+    font-weight: 700;
+    color: #64748b;
+    min-width: 16px;
+}
+
+.lib-tabla-aviso {
+    background: #fffbeb;
+    border: 2px dashed #fbbf24;
+    border-radius: 12px;
+    padding: 24px;
+    text-align: center;
+    color: #92400e;
+    font-weight: 700;
+    font-size: 1.25em;
+}
+
+.lib-textarea {
+    resize: vertical;
+    min-height: 100px;
+    font-size: 1.25em !important;
+}
+
+.lib-rechazo-block {
+    background: linear-gradient(135deg, #fff5f5, #fdf2f2);
+    border: 2px solid var(--gis-red);
+    border-left: 5px solid var(--gis-red);
+    border-radius: 12px;
+    padding: 22px;
+}
+
+.lib-actions {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 2em;
+    padding-top: 1.5em;
+    border-top: 2px solid #e2e8f0;
+}
+
+.btn-lib-save {
+    background: var(--gis-blue) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.25) !important;
+    border: 2px solid #022c50 !important;
+}
+
+.btn-lib-save:hover {
+    background: #e6f0fa !important;
+    color: var(--gis-blue) !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.25) !important;
+}
+
+.btn-lib-aprobar-send {
+    background: var(--gis-green) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(10, 133, 4, 0.3) !important;
+    border: 2px solid #086d03 !important;
+}
+
+.btn-lib-aprobar-send:hover {
+    background: #e6f9ed !important;
+    color: var(--gis-green) !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(10, 133, 4, 0.25) !important;
+}
+
+.btn-lib-rechazar-send {
+    background: var(--gis-red) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3) !important;
+    border: 2px solid #7a0200 !important;
+}
+
+.btn-lib-rechazar-send:hover {
+    background: #fdf2f2 !important;
+    color: var(--gis-red) !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(156, 3, 0, 0.25) !important;
+}
+
+.btn-lib-enviar-scar {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 15px rgba(15, 23, 42, 0.3) !important;
+    border: 2px solid #020617 !important;
+}
+
+.btn-lib-enviar-scar:hover {
+    background: #f1f5f9 !important;
+    color: #0f172a !important;
+    transform: scale(1.08) translateY(-2px) !important;
+    box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25) !important;
+}

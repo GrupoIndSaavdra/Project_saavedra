@@ -1,0 +1,332 @@
+/* =============================================================================
+   ALM-HEADER.CSS — Componente compartido (reglas idénticas consolidadas)
+   Grupo Industrial Saavedra · Importar:  @import "../components/alm-header.css";
+   Las vistas solo conservan medidas y ajustes particulares.
+   ============================================================================= */
+
+.alm-header-icon {
+    width: 120px;
+    height: 120px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.alm-header-text h1 {
+    font-size: 1.4em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    line-height: 1.2;
+}
+
+.alm-header-text p {
+    font-size: 0.85em;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.alm-readonly-badge {
+    margin-left: auto;
+    padding: 0.35em 1em;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    color: #fff;
+    font-size: 0.8em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+.alm-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
+}
+
+.alm-stat-icon {
+    font-size: 24px;
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.alm-stat-value {
+    font-size: 5em;
+    text-align: center;
+    font-weight: 800;
+    line-height: 100%;
+}
+
+.alm-stat-label {
+    font-size: 0.8em;
+    color: #666;
+    margin-top: 2px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.alm-filters-card {
+    background: #ffffff;
+    border: 5px solid #033966d4;
+    border-radius: 10px;
+    padding: 0.5em;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1em;
+}
+
+.alm-filters-card h2 {
+    color: var(--gis-blue);
+    font-size: 1.2em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btns:hover {
+    background-color: var(--gis-green);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.4);
+}
+
+.btn-clear-filters {
+    background-color: #6c757d;
+    align-items: center;
+    box-shadow: 0 2px 5px rgba(108, 117, 125, 0.6);
+}
+
+.btn-clear-filters:hover {
+    background-color: #28a745;
+    transform: scale(1.1);
+}
+
+.alm-btn-ver:hover {
+    background: var(--gis-green);
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 0 6px 18px rgba(10, 133, 4, 0.35);
+}
+
+.alm-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1em 1.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    background: var(--gis-blue);
+    color: #fff;
+}
+
+.alm-table-header h2 {
+    font-size: 1em;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.alm-results-count {
+    font-size: 0.8em;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 0.2em 0.8em;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+table.alm-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.alm-table thead th {
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 0.85em 1em;
+    text-align: left;
+    font-size: 0.85em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border: 1px solid #022847;
+    white-space: nowrap;
+}
+
+.alm-table tbody tr {
+    border-bottom: 1px solid #ddd;
+    transition: background 0.2s ease;
+}
+
+.alm-table tbody td {
+    padding: 0.85em 1em;
+    vertical-align: middle;
+    font-size: 0.95em;
+    color: #333;
+    border: 1px solid #ddd;
+}
+
+.alm-ot-label {
+    font-weight: 700;
+    color: var(--gis-blue);
+    font-size: 0.95em;
+}
+
+.alm-date {
+    color: #555;
+    font-size: 0.9em;
+}
+
+.badge-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0.25em 0.8em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.badge-pdf-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #e8f2ff;
+    color: var(--gis-blue);
+    border: 1px solid var(--gis-blue);
+    padding: 0.2em 0.7em;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 700;
+}
+
+.btn-toggle-files:hover {
+    background: var(--gis-blue);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 81, 148, 0.3);
+}
+
+.btn-toggle-files.active {
+    background: #fff;
+    color: var(--gis-blue);
+    border-color: var(--gis-blue);
+    box-shadow: none;
+}
+
+.btn-toggle-files.active:hover {
+    background: #5a6268;
+    color: white;
+}
+
+.alm-files-row > td {
+    padding: 0;
+    background: #f0f6ff;
+}
+
+.alm-files-inner h4 {
+    font-size: 1em;
+    font-weight: 700;
+    color: var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 1.5em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.alm-pdf-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5em;
+    margin-top: 1em;
+}
+
+.dibujos-file-card .file-icon-wrapper {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    margin-bottom: 0.8em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dibujos-file-card .file-actions {
+    display: flex;
+    gap: 0.6em;
+    margin-top: auto;
+    width: 100%;
+    justify-content: center;
+}
+
+.btn-ver {
+    background: #005194;
+    color: #fff;
+}
+
+.btn-ver:hover {
+    background: #00d06f !important;
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0, 208, 111, 0.4);
+}
+
+.alm-inactiva-note {
+    background: #fff3cd;
+    border: 1px solid #856404;
+    border-radius: 5px;
+    padding: 0.4em 0.8em;
+    color: #856404;
+    font-size: 0.78em;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 5px;
+}
+
+.alm-empty {
+    text-align: center;
+    padding: 3em 2em;
+    color: #999;
+}
+
+.alm-empty-icon {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+    opacity: 0.5;
+}
+
+.alm-empty p {
+    font-size: 1em;
+    color: #999;
+    font-weight: 400;
+}
+
+.alm-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    vertical-align: middle;
+    margin-right: 6px;
+}

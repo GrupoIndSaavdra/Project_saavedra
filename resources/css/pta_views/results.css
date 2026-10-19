@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ── Layout general ───────────────────────────────────────────────── */
@@ -9,7 +9,11 @@
 }
 
 .pta-header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-blue) !important;
+    box-shadow: var(--glass-shadow) !important;
     color: #fff;
     border-radius: 12px;
     padding: 1.4rem 1.8rem;
@@ -49,10 +53,13 @@
 .pta-ot-selector,
 .pta-clase-selector,
 .pta-piece-selector {
-    background: #f7f7f7;
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white) !important;
+    box-shadow: var(--glass-shadow) !important;
     border-radius: 10px;
     padding: 1rem 1.5rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     margin-bottom: 1.2rem;
     display: flex;
     align-items: center;
@@ -92,9 +99,12 @@
 
 /* ── Formulario resultados ────────────────────────────────────────── */
 .pta-form-card {
-    background: #f7f7f7;
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white) !important;
+    box-shadow: var(--glass-shadow) !important;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     overflow: hidden;
     margin-bottom: 1.5rem;
 }
@@ -109,7 +119,7 @@
 
 .pta-form-card-body {
     padding: 1.4rem;
-    background: #f7f7f7;
+    background: transparent;
 }
 
 .pta-grid {

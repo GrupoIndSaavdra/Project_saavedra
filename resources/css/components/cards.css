@@ -1,0 +1,351 @@
+/* =============================================================================
+   CARDS.CSS — Componentes de Tarjetas, Paneles y KPIs
+   Grupo Industrial Saavedra
+   ============================================================================= */
+
+/* ── Panel Principal Glassmorphism Blanco (Vistas, Formularios y Subcontenedores) ── */
+.glass-panel,
+.gis-card-glass,
+.gis-glass-white,
+.wrapper,
+.wrapper-master,
+.classes-table-container,
+.div-boxes,
+.scrollabe-table,
+.scrollable-table,
+.container1,
+.create-user-container,
+.org-master-wrapper,
+.org-toolbar-bar,
+.pieces-occupied-wrapper,
+.machines-occupied-wrapper,
+.progress-panel-container,
+.tabla-box,
+.panel-ot,
+.card-actividad,
+.verificacion-card,
+.header-lista,
+.tabla-container,
+.table-container,
+.reenvio-container,
+.reenvio-card,
+.reenvio-card-secondary,
+.dibujos-card,
+.dibujos-table-section,
+.dibujos-files-panel,
+.rd-sheet-container,
+.ht-table-card,
+.alm-table-card,
+.alm-filters-card,
+.pta-ot-selector,
+.pta-clase-selector,
+.pta-pieza-selector,
+.pta-piece-selector,
+.pta-results-table-wrap,
+.pta-overview-wrap,
+.pta-form-card,
+.envio-pta-header,
+.envio-pta-card,
+.envio-pta-logs-card,
+.div-table,
+.search,
+.checkbox-container,
+.intro-text,
+.intro-text-operator {
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1.5px solid var(--glass-border-white) !important;
+    border-radius: 24px;
+    box-shadow: var(--glass-shadow) !important;
+    box-sizing: border-box;
+}
+
+/* ── Tarjetas Subcontenedoras / Tiles tipo Cristal (Archivos y Fichas) ──────── */
+.dibujos-file-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.8em 1.5em 1.6em 1.5em;
+    margin: 4px 6px 10px 8px;
+    background: rgba(255, 255, 255, 0.95) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid var(--glass-border-white) !important;
+    border-radius: 16px;
+    /* Sombra más cercana y compacta hacia la izquierda y debajo */
+    box-shadow:
+        -6px 8px 16px rgba(0, 0, 0, 0.22),
+        -2px 4px 8px rgba(3, 57, 102, 0.15) !important;
+    box-sizing: border-box;
+    cursor: pointer;
+    min-height: 210px;
+    position: relative;
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.3s ease,
+        box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        border-color 0.3s ease;
+    will-change: transform, box-shadow;
+}
+
+.dibujos-file-card:hover {
+    background: #ffffff !important;
+    transform: translateY(-4px);
+    /* Sombra hover más cercana y nítida */
+    box-shadow:
+        -9px 12px 22px rgba(0, 0, 0, 0.3),
+        -3px 6px 12px rgba(3, 57, 102, 0.2) !important;
+    border-color: rgba(3, 57, 102, 0.35) !important;
+}
+
+.dibujos-file-card .file-name {
+    font-size: 0.95em;
+    font-weight: 700;
+    color: var(--gis-blue) !important;
+    word-break: break-word;
+    text-align: center;
+    margin-bottom: 0.9em;
+    line-height: 1.4;
+    padding: 0 4px;
+    transition: color 0.2s ease;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dibujos-file-card:hover .file-name {
+    color: var(--gis-blue) !important;
+}
+
+.dibujos-file-card .file-icon-wrapper {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    margin-top: 4px;
+    margin-bottom: 0.9em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dibujos-file-card .file-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition:
+        opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        filter 0.3s ease;
+    will-change: opacity, transform;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+}
+
+.dibujos-file-card .icon-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.dibujos-file-card:hover .icon-hover {
+    opacity: 1;
+    transform: scale(1.08);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.16));
+}
+
+.dibujos-file-card:hover .icon-default {
+    opacity: 0;
+    transform: scale(0.92);
+}
+
+.dibujos-file-card:hover .file-icon:not(.icon-default):not(.icon-hover) {
+    transform: scale(1.08);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.16));
+}
+
+.dibujos-file-card .file-actions {
+    display: flex;
+    gap: 0.8em;
+    margin-top: auto;
+    padding-top: 0.9em;
+    padding-bottom: 0.2em;
+    width: 100%;
+    justify-content: center;
+}
+
+/* ── Botones de acciones en tarjetas de archivos ───────────────────────────── */
+.dibujos-file-card .btn-dibujos-sm {
+    padding: 0.65em 1.1em;
+    font-size: 0.82em;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-radius: 8px;
+    flex: 1;
+    min-height: 38px;
+    text-align: center;
+    border: 1.5px solid transparent !important;
+    background: var(--gis-blue) !important;
+    color: #ffffff !important;
+    box-shadow: 0 3px 8px rgba(3, 57, 102, 0.25);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition:
+        transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275),
+        background-color 0.25s ease,
+        box-shadow 0.25s ease,
+        border-color 0.25s ease,
+        color 0.25s ease;
+    will-change: transform, background-color, box-shadow;
+}
+
+/* Nivel 1: Hover a la Card (los botones despiertan y revelan su color semántico) */
+.dibujos-file-card:hover .btn-ver {
+    background: #00874c !important;
+    border-color: #00a85e !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(0, 135, 76, 0.3);
+}
+
+.dibujos-file-card:hover .btn-reemplazar {
+    background: #b8860b !important;
+    border-color: #ffc107 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(184, 134, 11, 0.3);
+}
+
+.dibujos-file-card:hover .btn-eliminar,
+.dibujos-file-card:hover .btn-dibujos-danger {
+    background: #9c0303 !important;
+    border-color: #dc2626 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(156, 3, 3, 0.3);
+}
+
+.dibujos-file-card:hover .btn-alerta-fund {
+    background: #2e7d32 !important;
+    border-color: #4caf50 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 10px rgba(46, 125, 50, 0.3);
+}
+
+/* Nivel 2: Hover directo al Botón (pop-out, escala, brillo y glow vibrante) */
+.dibujos-file-card .btn-dibujos-sm:hover {
+    transform: scale(1.08) translateY(-3px) !important;
+    z-index: 2;
+}
+
+.dibujos-file-card .btn-ver:hover {
+    background: #00a85e !important;
+    border-color: #00ff88 !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(0, 208, 111, 0.5) !important;
+}
+
+.dibujos-file-card .btn-reemplazar:hover {
+    background: #ffc107 !important;
+    border-color: #ffe066 !important;
+    color: #000000 !important;
+    box-shadow: 0 8px 20px rgba(255, 193, 7, 0.55) !important;
+}
+
+.dibujos-file-card .btn-eliminar:hover,
+.dibujos-file-card .btn-dibujos-danger:hover {
+    background: #dc2626 !important;
+    border-color: #f87171 !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(220, 38, 38, 0.5) !important;
+}
+
+.dibujos-file-card .btn-alerta-fund:hover {
+    background: #4caf50 !important;
+    border-color: #81c784 !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.5) !important;
+}
+
+/* Estado Click / Active */
+.dibujos-file-card .btn-dibujos-sm:active {
+    transform: scale(0.96) translateY(0) !important;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* ── Panel Principal Glassmorphism Azul Oscuro (Toolbars, Encabezados y OTs) ─ */
+.gis-glass-blue,
+.toolbar,
+.pm-header,
+.pm-info-banner,
+.title-div,
+.dibujos-header,
+.fundicion-checklist-card,
+.planeacion-checklist-card,
+.termico-checklist-card,
+.process-section,
+.ht-header,
+.alm-header,
+.pta-header,
+.fila.header {
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1.5px solid var(--glass-border-blue) !important;
+    border-radius: 20px;
+    box-shadow: var(--glass-shadow) !important;
+    box-sizing: border-box;
+}
+
+/* ── Panel Principal Glassmorphism Cristal Ahumado Oscuro (Inspirado en Referencia) ── */
+.gis-glass-dark,
+.glass-panel-dark {
+    background: var(--glass-bg-dark) !important;
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+    border: 1.5px solid var(--glass-border-dark) !important;
+    border-radius: 28px;
+    box-shadow: var(--glass-shadow-dark) !important;
+    box-sizing: border-box;
+}
+
+/* ── Tarjetas de Estadísticas y KPIs (Almacén, Calidad, Herramientas) ────────── */
+.ht-stat-card,
+.alm-stat-card {
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 1.5px solid var(--glass-border-white);
+    border-radius: 20px;
+    padding: 1.2em 1.5em;
+    box-shadow: var(--glass-shadow);
+    display: flex;
+    align-items: center;
+    gap: 1.2em;
+    box-sizing: border-box;
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        box-shadow 0.3s ease;
+}
+
+.ht-stat-card:hover,
+.alm-stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+}
+
+.ht-stat-icon,
+.alm-stat-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 2rem;
+}

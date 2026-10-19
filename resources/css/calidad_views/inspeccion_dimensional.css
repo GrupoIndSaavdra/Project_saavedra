@@ -1,4 +1,5 @@
 @import "../global.css";
+@import "../components/alm-inspeccion.css";
 
 body {
     background-size: cover;
@@ -110,29 +111,7 @@ body {
     vertical-align: middle;
 }
 
-/* ── Card del Buscador / Selector (Paleta Oficial GIS) ── */
-.alm-table-card {
-    background: #ffffff;
-    border-radius: 12px;
-    border: 1.5px solid rgba(3, 57, 102, 0.22);
-    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.12);
-    margin-bottom: 1.8em;
-    overflow: hidden;
-}
-
-.alm-table-header {
-    padding: 1.1rem 1.6rem;
-    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #002244 100%);
-    border-bottom: 2px solid rgba(0, 0, 0, 0.15);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 10px;
-    color: #ffffff;
-}
-
-.alm-table-header h2 {
+/* ── Card del Buscador / Selector (Paleta Oficial GIS) ── */.alm-table-header h2 {
     margin: 0;
     font-size: 1.25rem;
     color: #ffffff;
@@ -144,29 +123,7 @@ body {
     font-size: 0.88rem;
     color: rgba(255, 255, 255, 0.85);
     font-weight: 600;
-}
-
-.ri-search-form-wrapper {
-    padding: 1.8rem;
-    background: #ffffff;
-}
-
-.ri-search-form {
-    display: flex;
-    gap: 1.6rem;
-    flex-wrap: wrap;
-    align-items: flex-start;
-}
-
-.ri-form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    min-width: 280px;
-    flex: 1;
-}
-
-.ri-label {
+}.ri-label {
     font-size: 0.88rem;
     font-weight: 800;
     color: var(--gis-gray, #404040);
@@ -320,6 +277,7 @@ body {
     color: #94a3b8;
     font-size: 1.3rem;
     font-weight: 800;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -749,12 +707,6 @@ body {
     display: flex;
     align-items: center;
 }
-
-.rd-logo-img {
-    height: 48px;
-    object-fit: contain;
-}
-
 .rd-doc-meta-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr) 140px 130px;
@@ -1413,6 +1365,7 @@ body {
     min-width: 26px;
     text-align: center;
     border: 1px solid #cbd5e1;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -1589,6 +1542,7 @@ body {
     transition: transform 0.12s ease-out;
     transform-origin: center center;
     pointer-events: none;
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -1666,8 +1620,8 @@ body {
     position: absolute;
     inset: 0;
     background: rgba(3, 27, 49, 0.88);
-    backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
     cursor: pointer;
 }
 
@@ -1783,8 +1737,8 @@ body {
     left: 12px;
     z-index: 15;
     background: rgba(3, 57, 102, 0.90);
-    backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
     border: 1px solid rgba(255, 255, 255, 0.25);
     border-radius: 30px;
     padding: 4px 10px;
@@ -1827,6 +1781,7 @@ body {
     max-height: 70vh;
     object-fit: contain;
     border-radius: 4px;
+    -webkit-user-select: none;
     user-select: none;
     transition: transform 0.15s ease-out;
     transform-origin: center center;
@@ -2007,6 +1962,7 @@ body {
     position: absolute;
     inset: 0;
     background: rgba(2, 6, 23, 0.85);
+    -webkit-backdrop-filter: blur(4px);
     backdrop-filter: blur(4px);
 }
 
@@ -2211,5 +2167,4 @@ body {
     color: #94a3b8;
     font-size: 0.95rem;
 }
-
 

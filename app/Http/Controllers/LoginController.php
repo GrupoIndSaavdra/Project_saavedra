@@ -14,7 +14,28 @@ class LoginController extends Controller
 {
     public function show()
     {
-        return view('auth.login');
+        $tecamacImages = [];
+        $tecamacPath = public_path('images/IMG_Planta_Tecamac');
+        if (is_dir($tecamacPath)) {
+            $files = scandir($tecamacPath);
+            foreach ($files as $file) {
+                if ($file !== '.' && $file !== '..') {
+                    $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                    if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
+                        $tecamacImages[] = asset('images/IMG_Planta_Tecamac/' . $file);
+                    }
+                }
+            }
+        }
+
+        if (empty($tecamacImages)) {
+            $tecamacImages[] = asset('images/img-login.png');
+        }
+
+        $randomInitialIndex = array_rand($tecamacImages);
+        $initialImage = $tecamacImages[$randomInitialIndex];
+
+        return view('auth.login', compact('tecamacImages', 'randomInitialIndex', 'initialImage'));
     }
         /**
      * @param LoginRequest $request

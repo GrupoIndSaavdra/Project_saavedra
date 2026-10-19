@@ -1,0 +1,667 @@
+/* =============================================================================
+   FILE-MANAGER-DOCS.CSS — Componente compartido (reglas idénticas consolidadas)
+   Grupo Industrial Saavedra · Importar:  @import "../components/file-manager-docs.css";
+   Las vistas solo conservan medidas y ajustes particulares.
+   ============================================================================= */
+
+.dibujos-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-blue) !important;
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 10px;
+    margin-bottom: 1.5em;
+    box-shadow: var(--glass-shadow);
+    position: sticky;
+    top: 75px;
+    z-index: 100;
+}
+
+.dibujos-card h2 {
+    color: var(--gis-blue);
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dibujos-form-group label {
+    font-size: 0.9em;
+    font-weight: 700;
+    color: var(--gis-blue);
+    margin-bottom: 0.3em;
+}
+
+.dibujos-form-group input[type="text"] {
+    background: #fff;
+    color: #000;
+    cursor: text;
+}
+
+.dibujos-file-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0.7em;
+    border: 3px dashed var(--gis-blue);
+    border-radius: 8px;
+    background: #f0f6ff;
+    color: var(--gis-blue);
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
+    margin-bottom: 0.5em;
+}
+
+.dibujos-file-label:hover {
+    background: var(--gis-blue);
+    color: #fff;
+}
+
+.btn-dibujos {
+    width: 100%;
+    background: #005194;
+    color: #ffffff;
+    padding: 0.8em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition:
+        transform 0.3s ease,
+        background-color 0.3s ease;
+    margin-top: 0.5em;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.btn-dibujos:hover {
+    transform: scale(1.03);
+    background: #036613;
+}
+
+.dibujos-table-section h2 {
+    color: var(--gis-blue);
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dibujos-table-container {
+    max-height: 25vh;
+    overflow-y: auto;
+    border: 2px solid var(--gis-blue);
+    border-radius: 8px;
+}
+
+.dibujos-table th {
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 0.9em 1em;
+    text-align: left;
+    font-weight: 700;
+    border: 1px solid #022847;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dibujos-table tbody tr:hover {
+    background: #e8f2ff;
+    transition: background 0.2s ease;
+}
+
+.badge-count {
+    display: inline-block;
+    background: var(--gis-blue);
+    color: #fff;
+    border-radius: 20px;
+    padding: 0.2em 0.7em;
+    font-size: 0.8em;
+    font-weight: 700;
+    min-width: 28px;
+    text-align: center;
+}
+
+.dibujos-files-panel h2 {
+    color: var(--gis-blue);
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 2px solid var(--gis-blue);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dibujos-files-breadcrumb {
+    font-size: 0.85em;
+    color: #666;
+    margin-bottom: 1em;
+    background: #f0f6ff;
+    border: 1px solid #c0d8f0;
+    border-radius: 6px;
+    padding: 0.5em 1em;
+}
+
+.dibujos-file-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2em;
+    background: rgba(255, 255, 255, 0.65) !important;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 2px solid var(--glass-border-white) !important;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition:
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        background-color 0.3s ease,
+        box-shadow 0.3s ease;
+    cursor: pointer;
+    min-height: 155px;
+    position: relative;
+    will-change: transform, background-color, box-shadow;
+    animation: prodCardPopIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.dibujos-file-card .file-icon-wrapper {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    margin-bottom: 0.5em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.dibujos-empty-state .empty-icon {
+    font-size: 3em;
+    margin-bottom: 0.5em;
+}
+
+.div-opacity {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: #0000003a;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(5px);
+    z-index: 900;
+}
+
+.alert-NoCotas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: white;
+    max-width: 800px;
+    width: 90%;
+    transition: 0.2s;
+    padding: 2em;
+    border-radius: 10px;
+    font-weight: 800;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.div-cerrar {
+    width: 3em;
+    margin-left: 95%;
+    margin-bottom: -1em;
+}
+
+.btn-cerrar {
+    border: none;
+    background: transparent;
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+.label-alert {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-top: 1em;
+    color: var(--gis-blue);
+    line-height: 1.5;
+}
+
+.dibujos-toast {
+    position: fixed;
+    bottom: 2em;
+    right: 2em;
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 1em 1.5em;
+    border-radius: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+    max-width: 400px;
+}
+
+.dibujos-spinner-sm {
+    border-width: 2px;
+    width: 14px;
+    height: 14px;
+}
+
+.icon-btn-alerta {
+    width: 14px;
+    vertical-align: middle;
+}
+
+.btn-action-icon.btn-alerta-fund img {
+    width: 44px;
+    height: 44px;
+}
+
+.dibujos-log-table th {
+    background: var(--gis-blue);
+    color: #fff;
+    font-weight: 700;
+    padding: 0.8em;
+    text-align: left;
+}
+
+.action-badge.enviar_alerta {
+    background: #fff8f0;
+    color: #ff8c00;
+}
+
+.action-badge.guardar_ayudas {
+    background: #e9d8fd;
+    color: #553c9a;
+}
+
+.action-badge.desvincular_ayudas {
+    background: #f0f0f0;
+    color: #555;
+}
+
+.dibujos-log-details summary {
+    cursor: pointer;
+    background: #f5f9ff;
+    color: var(--gis-blue);
+    padding: 0.8em 1.2em;
+    border: 3px solid var(--gis-blue);
+    border-radius: 8px;
+    font-weight: 700;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s;
+    font-size: 1.05em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.dibujos-log-details summary:hover {
+    background: var(--gis-blue);
+    color: #fff;
+}
+
+.lvl-1 {
+    color: #0056b3;
+    font-weight: 800;
+}
+
+.lvl-2 {
+    color: #d9534f;
+    font-weight: 800;
+}
+
+.lvl-sep {
+    color: #666;
+    font-weight: 400;
+    margin: 0 4px;
+}
+
+.d-alert {
+    padding: 0.7em 1em;
+    border-radius: 6px;
+    font-size: 0.9em;
+    font-weight: 600;
+    text-align: center;
+    border: 1px solid transparent;
+}
+
+.d-alert-success {
+    background: #d4edda;
+    border-color: #28a745;
+    color: #155724;
+}
+
+.d-alert-warning {
+    background: #fff3cd;
+    border-color: #856404;
+    color: #856404;
+}
+
+.d-alert-info {
+    background: #f0f6ff;
+    border-color: #a0c4e4;
+    color: var(--gis-blue);
+}
+
+.d-card-placeholder {
+    padding: 2em;
+    text-align: center;
+    color: #999;
+}
+
+.d-log-scroll {
+    max-height: 35vh;
+    overflow-y: auto;
+}
+
+.btn-alerta-fund {
+    background: #ff8c00;
+    border-color: #e67e00;
+    color: #fff;
+}
+
+.btn-alerta-fund:hover {
+    background: #fff8f0;
+    color: #ff8c00;
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(255, 140, 0, 0.15);
+}
+
+.confirm-portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 10, 25, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+}
+
+.confirm-modal {
+    max-width: 600px;
+    width: 95%;
+    background: #fff;
+    border-radius: 20px;
+    border: 4px solid var(--gis-blue);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: prodModalEntrance 0.5s cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+
+.confirm-modal-header {
+    padding: 1.5em 2em;
+    background: #fff;
+    border-bottom: 2px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.confirm-modal-header h3 {
+    color: var(--gis-blue);
+    font-size: 1.3em;
+    font-weight: 800;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.confirm-modal-body {
+    padding: 2.5em;
+    text-align: center;
+    background: #fdfdfd;
+}
+
+.confirm-icon-wrapper {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 1.5em;
+    background: #fdf2f2;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.confirm-modal-body p {
+    margin: 0 0 1.5em 0;
+    color: #444;
+    font-size: 1.1em;
+    line-height: 1.5;
+}
+
+.confirm-label-highlight {
+    display: block;
+    margin-top: 0.5em;
+    color: #ff0000;
+    font-weight: 800;
+    font-size: 1.3em;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    gap: 1.5em;
+    justify-content: center;
+}
+
+.btn-confirm-cancel {
+    background: #6c757d;
+    color: #fff;
+    padding: 1em 2em;
+    border-radius: 8px;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.btn-confirm-cancel:hover {
+    background: #475569;
+    color: #ffffff;
+    transform: scale(1.03) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(100, 116, 139, 0.35);
+}
+
+.btn-confirm-danger {
+    background: var(--gis-red);
+    color: #fff;
+    padding: 1em 2em;
+    border-radius: 8px;
+    border: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.2);
+}
+
+.btn-confirm-danger:hover {
+    background: #ff0000;
+    color: #fff;
+    transform: scale(1.03) translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 0, 0, 0.5);
+}
+
+.ayudas-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 1.5em 0;
+}
+
+.ayuda-chip {
+    position: relative;
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.ayuda-chip input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.ayuda-chip:hover .ayuda-chip-content {
+    background: #e0edff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(3, 57, 102, 0.2);
+}
+
+.ayuda-chip input:checked ~ .ayuda-chip-content {
+    background: var(--gis-blue);
+    color: #fff;
+    border-color: var(--gis-blue);
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.3);
+}
+
+.ayuda-chip-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #fff;
+    color: var(--gis-blue);
+    font-size: 10px;
+    font-weight: 900;
+    opacity: 0;
+    transform: scale(0);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.ayuda-chip input:checked ~ .ayuda-chip-content .ayuda-chip-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.ayuda-chip-label {
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.new-ayuda-badge {
+    background: #10b981;
+    color: #fff;
+    font-size: 0.7em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 800;
+    animation: pulse-green 2s infinite;
+}
+
+.ayuda-up-to-date {
+    cursor: default;
+    opacity: 0.7;
+}
+
+.ayuda-up-to-date .ayuda-chip-content {
+    background: #f1f5f9 !important;
+    border-color: #cbd5e1 !important;
+    color: #64748b !important;
+}
+
+.ayuda-up-to-date input:checked ~ .ayuda-chip-content {
+    background: #f8fafc !important;
+    color: #475569 !important;
+}
+
+.grid-ready {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: 1fr;
+    min-height: calc(100vh - 180px);
+    gap: 2em;
+    align-items: stretch;
+}
+
+.grid-not-ready {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    min-height: calc(100vh - 180px);
+    gap: 2em;
+    align-items: stretch;
+}
+
+.position-absolute-inset {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+.custom-select {
+    width: 100%;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 2px solid var(--gis-blue);
+    font-size: 0.9em;
+    outline: none;
+    background: #ffffff;
+    color: var(--gis-blue);
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.badge-legend {
+    padding: 8px 16px;
+    font-size: 0.85em;
+    pointer-events: none;
+    transform: none !important;
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.custom-alert-warning {
+    font-size: 0.95em;
+    border-left: 4px solid #f59e0b;
+    background-color: #fffbeb;
+    color: #b45309;
+    padding: 12px 15px;
+    border-radius: 6px;
+}

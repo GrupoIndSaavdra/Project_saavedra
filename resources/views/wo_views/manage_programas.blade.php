@@ -16,7 +16,10 @@
 
         {{-- Encabezado --}}
         <div class="dibujos-header">
-            <h1>Programas CNC — Gestión de Archivos</h1>
+            <div class="dibujos-header-left">
+                <img src="{{ asset('images/ProgramsCNC.png') }}" alt="Programas CNC" class="dibujos-header-icon">
+                <h1>Programas CNC — Gestión de Archivos</h1>
+            </div>
             <span>Directorio: DOCUMENTACION_GIS / PROGRAMAS_MAQUINADOS &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
 

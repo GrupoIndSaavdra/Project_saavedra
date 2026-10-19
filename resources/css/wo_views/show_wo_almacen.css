@@ -17,10 +17,12 @@
 /* ── Panel izquierdo (Información de la OT) ── */
 .panel-ot {
     flex: 0 0 520px;
-    background: #ffffff;
-    border: 1px solid rgba(3, 57, 102, 0.12);
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     border-radius: 12px;
-    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--glass-shadow);
     padding: 1.5rem 1.8rem;
     position: sticky;
     top: 5.5rem;
@@ -447,10 +449,12 @@
 }
 
 .card-actividad {
-    background: #ffffff;
-    border: 1px solid rgba(3, 57, 102, 0.12);
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     border-radius: 12px;
-    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--glass-shadow);
     padding: 1.4rem 1.8rem;
     box-sizing: border-box;
     transition: box-shadow 0.25s ease;

@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* Estilos del div buscador */
@@ -10,12 +10,15 @@
     max-width: 800px;
     box-sizing: border-box;
     padding: 1.2em;
-    background: #ffffff;
+    background: var(--glass-bg-white);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-white);
     border-radius: 10px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    box-shadow: 5px 10px 30px #000000b0;
+    box-shadow: var(--glass-shadow);
 }
 .lg-saavedra {
     width: 200px;

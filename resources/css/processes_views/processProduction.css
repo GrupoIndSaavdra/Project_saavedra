@@ -1639,12 +1639,12 @@ td select {
 
 .prod-viewer-card:hover .icon-default {
     opacity: 0;
-    transform: scale(0.8);
+    transform: scale(0.92);
 }
 
 .prod-viewer-card:hover .icon-hover {
     opacity: 1;
-    transform: scale(1.15) rotate(3deg);
+    transform: scale(1.08);
 }
 
 /* Botón "Ver Archivos" — Estilos heredados de .btn-submit-password */
@@ -1841,13 +1841,13 @@ td select {
 
 .tech-doc-card:hover .doc-icon-default {
     opacity: 0;
-    transform: scale(0.8);
+    transform: scale(0.92);
 }
 
 .tech-doc-card:hover .doc-icon-hover {
     opacity: 1;
-    transform: scale(1.15) rotate(3deg) translateY(-3px);
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+    transform: scale(1.08) translateY(-2px);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
  
 /* Asegurar que los contenedores en verificación e inputs de contraseña salgan por encima del overlay global */
