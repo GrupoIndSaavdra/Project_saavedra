@@ -9,6 +9,15 @@
         '6' => 'Supervisor',
         default => $user->perfil,
     };
+    $rolIcon = match((string)$user->perfil) {
+        '1' => 'Administracion-Icon.png',
+        '2' => 'Operador-Icon.png',
+        '3' => 'Master-Icon.png',
+        '4' => 'Calidad-Icon.png',
+        '5' => 'Almacen-Icon.png',
+        '6' => 'Supervision-Icon.png',
+        default => null,
+    };
     $fullName = trim($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno));
 @endphp
 
@@ -26,12 +35,14 @@
         </div>
         <div>
             @if($isInactive)
-                <span class="alert-falta-badge" title="Personal inactivo o vacante">
-                    🔴 FALTA / INACTIVO
+                <span class="alert-falta-badge" title="Personal inactivo o vacante" style="display:inline-flex; align-items:center; gap:5px;">
+                    <img src="{{ asset('images/inactivar.png') }}" alt="Inactivo" style="width:13px; height:13px; object-fit:contain;">
+                    FALTA / INACTIVO
                 </span>
             @else
-                <span class="badge-status-act">
-                    🟢 ACTIVO
+                <span class="badge-status-act" style="display:inline-flex; align-items:center; gap:5px;">
+                    <img src="{{ asset('images/activar.png') }}" alt="Activo" style="width:13px; height:13px; object-fit:contain;">
+                    ACTIVO
                 </span>
             @endif
         </div>
@@ -72,8 +83,13 @@
             </span>
         @endif
 
-        <span class="user-card-tag" style="background:#e2e8f0; color:#475569;">
-            👤 {{ $rolLabel }}
+        <span class="user-card-tag" style="background:#e2e8f0; color:#475569; display:inline-flex; align-items:center; gap:5px;">
+            @if($rolIcon)
+                <img src="{{ asset('images/' . $rolIcon) }}" alt="{{ $rolLabel }}" style="width:14px; height:14px; object-fit:contain;">
+            @else
+                👤
+            @endif
+            {{ $rolLabel }}
         </span>
     </div>
 </div>

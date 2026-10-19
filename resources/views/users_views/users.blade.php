@@ -17,16 +17,24 @@
 
     {{-- ── Encabezado ─────────────────────────────────────────── --}}
     <div class="page-header">
-        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
-            <h1>Gestión de Usuarios</h1>
-            <span class="record-count" id="record-count">{{ $users->count() }} usuarios</span>
+        <div class="header-left-group">
+            <img src="{{ asset('images/usuario.png') }}" alt="Gestión de Usuarios" class="header-module-icon">
+            <div class="header-title-content">
+                <div class="header-title-row">
+                    <h1>Gestión de Usuarios</h1>
+                    <span class="record-count" id="record-count">{{ $users->count() }} usuarios</span>
+                </div>
+                <span class="header-subtitle">Control de personal, asignación operativa y permisos de acceso</span>
+            </div>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-            <a href="{{ route('users.organigrama') }}" class="btn-clear-filters" style="background: var(--gis-blue); color: #ffffff; border-color: var(--gis-blue); text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" title="Ver organigrama jerárquico">
-                🏢 Organigrama
+        <div class="header-actions">
+            <a href="{{ route('users.organigrama') }}" class="btn-header-nav btn-nav-organigrama" title="Ver organigrama jerárquico">
+                <img src="{{ asset('images/organigrama.png') }}" alt="Organigrama" class="btn-nav-icon">
+                <span>Organigrama</span>
             </a>
-            <a href="{{ route('createUser') }}" class="btn-clear-filters" style="background: #28a745; color: #ffffff; border-color: #28a745; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;" title="Registrar nuevo usuario">
-                ➕ Registrar Usuario
+            <a href="{{ route('createUser') }}" class="btn-header-nav btn-nav-registrar" title="Registrar nuevo usuario">
+                <img src="{{ asset('images/anadir.png') }}" alt="Registrar" class="btn-nav-icon">
+                <span>Registrar Usuario</span>
             </a>
         </div>
     </div>
@@ -99,28 +107,47 @@
             <tbody id="users-tbody">
                 @forelse($users as $user)
                 @php
-                    $rolLabel = match((string)$user->perfil) {
-                        '1' => 'Administrador',
-                        '2' => 'Operador',
-                        '3' => 'Master',
-                        '4' => 'Calidad',
-                        '5' => 'Almacén',
-                        '6' => 'Supervisor',
-                        default => $user->perfil,
+                    $perfilStr = (string)$user->perfil;
+                    $rolLabel = match($perfilStr) {
+                        '1', 'Administrador'     => 'Administrador',
+                        '2', 'Operador'          => 'Operador',
+                        '3', 'Master', 'Maestro' => 'Master',
+                        '4', 'Calidad'           => 'Calidad',
+                        '5', 'Almacén', 'Almacen'=> 'Almacén',
+                        '6', 'Supervisor'        => 'Supervisor',
+                        default                  => $user->perfil,
                     };
-                    $rolClass = match((string)$user->perfil) {
-                        '1' => 'badge-admin',
-                        '2' => 'badge-operador',
-                        '3' => 'badge-master',
-                        '4' => 'badge-calidad',
-                        '5' => 'badge-almacen',
-                        '6' => 'badge-supervisor',
-                        default => 'badge-default',
+                    $rolClass = match($rolLabel) {
+                        'Administrador' => 'badge-admin',
+                        'Operador'      => 'badge-operador',
+                        'Master'        => 'badge-master',
+                        'Calidad'       => 'badge-calidad',
+                        'Almacén'       => 'badge-almacen',
+                        'Supervisor'    => 'badge-supervisor',
+                        default         => 'badge-default',
+                    };
+                    $rolIcon = match($rolLabel) {
+                        'Administrador' => 'Administracion-Icon.png',
+                        'Operador'      => 'Operador-Icon.png',
+                        'Master'        => 'Master-Icon.png',
+                        'Calidad'       => 'Calidad-Icon.png',
+                        'Almacén'       => 'Almacen-Icon.png',
+                        'Supervisor'    => 'Supervision-Icon.png',
+                        default         => null,
                     };
                 @endphp
                 <tr data-rol="{{ $rolLabel }}" data-status="{{ $user->estatus ? 'Activo' : 'Inactivo' }}">
-                    {{-- Rol --}}
-                    <td><span class="badge-rol {{ $rolClass }}">{{ $rolLabel }}</span></td>
+                    {{-- Rol (Icono superior en círculo temático + Texto debajo) --}}
+                    <td>
+                        <div class="role-cell-container">
+                            @if($rolIcon)
+                                <div class="role-icon-circle {{ $rolClass }}" title="{{ $rolLabel }}">
+                                    <img src="{{ asset('images/' . $rolIcon) }}" alt="{{ $rolLabel }}" class="role-img-icon">
+                                </div>
+                            @endif
+                            <span class="badge-rol {{ $rolClass }}">{{ $rolLabel }}</span>
+                        </div>
+                    </td>
 
                     {{-- Matrícula --}}
                     <td>
@@ -157,11 +184,14 @@
                         {{ $user->created_at ? $user->created_at->format('d/m/Y') : '—' }}
                     </td>
 
-                    {{-- Estatus --}}
+                    {{-- Estatus (Icono superior + Texto debajo) --}}
                     <td>
-                        <span class="badge-status {{ $user->estatus ? 'badge-activo' : 'badge-inactivo' }}">
-                            {{ $user->estatus ? 'Activo' : 'Inactivo' }}
-                        </span>
+                        <div class="status-cell-container">
+                            <img src="{{ asset($user->estatus ? 'images/activar.png' : 'images/inactivar.png') }}" alt="{{ $user->estatus ? 'Activo' : 'Inactivo' }}" class="status-img-icon">
+                            <span class="badge-status {{ $user->estatus ? 'badge-activo' : 'badge-inactivo' }}">
+                                {{ $user->estatus ? 'Activo' : 'Inactivo' }}
+                            </span>
+                        </div>
                     </td>
 
                     {{-- Acciones --}}
@@ -170,7 +200,7 @@
                             {{-- Editar --}}
                             <button
                                 type="button"
-                                class="btn-action-icon"
+                                class="btn-action-icon btn-action-edit"
                                 onclick="openEditModal({{ json_encode([
                                     'id' => $user->id,
                                     'matricula' => $user->matricula,
@@ -185,14 +215,14 @@
                                 ]) }})"
                                 title="Editar usuario"
                             >
-                                <img src="{{ asset('images/editaruser.png') }}" alt="Editar" class="action-img-icon" width="20" height="20" style="width:20px !important; height:20px !important; max-width:20px !important; max-height:20px !important; object-fit:contain; display:block;">
+                                <img src="{{ asset('images/editaruser.png') }}" alt="Editar" class="action-img-icon">
                             </button>
 
                             {{-- Activar / Inactivar --}}
                             <form action="{{ route($user->estatus ? 'baja_usuario' : 'alta_usuario', $user->id) }}" method="POST" class="use-display-inline">
                                 @csrf
-                                <button type="submit" class="btn-action-icon" title="{{ $user->estatus ? 'Inactivar usuario' : 'Activar usuario' }}">
-                                    <img src="{{ asset($user->estatus ? 'images/inactivar.png' : 'images/activar.png') }}" alt="{{ $user->estatus ? 'Inactivar' : 'Activar' }}" class="action-img-icon" width="20" height="20" style="width:20px !important; height:20px !important; max-width:20px !important; max-height:20px !important; object-fit:contain; display:block;">
+                                <button type="submit" class="btn-action-icon {{ $user->estatus ? 'btn-action-inactivate' : 'btn-action-activate' }}" title="{{ $user->estatus ? 'Inactivar usuario' : 'Activar usuario' }}">
+                                    <img src="{{ asset($user->estatus ? 'images/inactivar.png' : 'images/activar.png') }}" alt="{{ $user->estatus ? 'Inactivar' : 'Activar' }}" class="action-img-icon">
                                 </button>
                             </form>
 
@@ -205,8 +235,8 @@
                             >
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn-action-icon" title="Eliminar usuario">
-                                    <img src="{{ asset('images/delete.png') }}" alt="Eliminar" class="action-img-icon" width="20" height="20" style="width:20px !important; height:20px !important; max-width:20px !important; max-height:20px !important; object-fit:contain; display:block;">
+                                <button type="submit" class="btn-action-icon btn-action-delete" title="Eliminar usuario">
+                                    <img src="{{ asset('images/delete.png') }}" alt="Eliminar" class="action-img-icon">
                                 </button>
                             </form>
                         </div>

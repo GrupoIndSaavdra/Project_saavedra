@@ -13,15 +13,14 @@
     {{-- Encabezado Principal --}}
     <div class="page-header">
         <div class="header-left">
+            <img src="{{ asset('images/anadir.png') }}" alt="Registrar Usuario" class="create-header-icon">
             <div class="header-title-group">
                 <h1>REGISTRO DE USUARIO</h1>
                 <span class="subtitle-text">Alta de personal y asignación operativa en planta</span>
             </div>
         </div>
         <a href="{{ route('users') }}" class="btn-volver">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-            </svg>
+            <img src="{{ asset('images/usuario.png') }}" alt="Gestión de Usuarios" style="width:18px; height:18px; object-fit:contain; vertical-align:middle; margin-right:6px;">
             Gestión de Usuarios
         </a>
     </div>
@@ -164,7 +163,8 @@
                     Cancelar
                 </a>
                 <button type="submit" class="btn-registrar">
-                    Guardar Usuario
+                    <img src="{{ asset('images/anadir.png') }}" alt="Guardar" class="btn-reg-icon">
+                    <span>Guardar Usuario</span>
                 </button>
             </div>
         </div>

@@ -139,7 +139,9 @@
     {{-- ── Encabezado Principal ── --}}
     <div class="org-top-header">
         <div class="org-brand">
-            <img src="{{ asset('images/lg_saavedra.png') }}" alt="GIS Logo" class="org-brand-logo">
+            <div class="org-header-icon-circle">
+                <img src="{{ asset('images/organigrama.png') }}" alt="Organigrama" class="org-header-icon">
+            </div>
             <div class="org-brand-titles">
                 <h1>ORGANIGRAMA</h1>
                 <span>Grupo Industrial Saavedra &bull; Estructura Organizacional y Jerárquica</span>
@@ -148,13 +150,16 @@
 
         <div class="org-header-controls">
             <button type="button" id="btn-export-pdf" class="btn-header-action btn-action-pdf" title="Descargar organigrama en PDF">
-                📄 Descargar PDF
+                <img src="{{ asset('images/pdf-transparent.png') }}" alt="PDF" class="org-btn-icon">
+                <span>Descargar PDF</span>
             </button>
             <a href="{{ route('users') }}" class="btn-header-action btn-action-table" title="Ver tabla de usuarios">
-                📋 Tabla de Usuarios
+                <img src="{{ asset('images/usuario.png') }}" alt="Tabla" class="org-btn-icon">
+                <span>Tabla de Usuarios</span>
             </a>
             <a href="{{ route('createUser') }}" class="btn-header-action btn-action-create" title="Registrar nuevo usuario">
-                ➕ Registrar Personal
+                <img src="{{ asset('images/anadir.png') }}" alt="Registrar" class="org-btn-icon">
+                <span>Registrar Personal</span>
             </a>
         </div>
     </div>
@@ -162,15 +167,30 @@
     {{-- ── Barra de KPIs Resumen ── --}}
     <div class="org-kpi-bar">
         <div class="org-kpi-pill pill-total">
-            <span class="kpi-title">👥 Personal Asignado</span>
+            <div class="kpi-header-content">
+                <div class="kpi-icon-circle kpi-circle-total">
+                    <img src="{{ asset('images/usuario.png') }}" alt="Personal Asignado" class="kpi-icon">
+                </div>
+                <span class="kpi-title">Personal Asignado</span>
+            </div>
             <span class="kpi-num" id="kpi-total-val">{{ $totalCount }}</span>
         </div>
         <div class="org-kpi-pill pill-active">
-            <span class="kpi-title">🟢 Activos</span>
+            <div class="kpi-header-content">
+                <div class="kpi-icon-circle kpi-circle-active">
+                    <img src="{{ asset('images/activar.png') }}" alt="Activos" class="kpi-icon">
+                </div>
+                <span class="kpi-title">Activos</span>
+            </div>
             <span class="kpi-num" id="kpi-active-val">{{ $activeCount }}</span>
         </div>
         <div class="org-kpi-pill pill-inactive">
-            <span class="kpi-title">🔴 Inactivos / Faltantes</span>
+            <div class="kpi-header-content">
+                <div class="kpi-icon-circle kpi-circle-inactive">
+                    <img src="{{ asset('images/inactivar.png') }}" alt="Inactivos" class="kpi-icon">
+                </div>
+                <span class="kpi-title">Inactivos / Faltantes</span>
+            </div>
             <span class="kpi-num" id="kpi-inactive-val">{{ $inactiveCount }}</span>
         </div>
     </div>
@@ -214,8 +234,16 @@
         </div>
 
         <div class="zoom-controls">
-            <button type="button" class="btn-zoom" id="btn-zoom-fit" title="Ajustar organigrama a la pantalla" style="font-size: 0.76rem; width: auto; padding: 0 10px; gap: 4px; font-weight: 800;">
-                🎯 Ajustar
+            <button type="button" class="btn-zoom btn-zoom-fit" id="btn-zoom-fit" title="Ajustar organigrama a la pantalla">
+                <svg class="zoom-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <circle cx="12" cy="12" r="4"></circle>
+                    <line x1="12" y1="2" x2="12" y2="5"></line>
+                    <line x1="12" y1="19" x2="12" y2="22"></line>
+                    <line x1="2" y1="12" x2="5" y2="12"></line>
+                    <line x1="19" y1="12" x2="22" y2="12"></line>
+                </svg>
+                <span>Ajustar</span>
             </button>
             <button type="button" class="btn-zoom" id="btn-zoom-out" title="Alejar (Zoom Out)">−</button>
             <button type="button" class="btn-zoom" id="btn-zoom-reset" title="Restablecer 100%" style="font-size: 0.75rem; width: auto; padding: 0 8px;">100%</button>
