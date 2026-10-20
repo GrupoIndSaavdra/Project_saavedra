@@ -757,6 +757,7 @@ td select {
 .div-opacity {
     position: fixed;
     top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
     box-sizing: border-box;
@@ -764,10 +765,9 @@ td select {
     justify-content: center;
     align-items: center;
     text-align: center;
-    background: #0000003a;
-    -webkit-backdrop-filter: blur(5px);
-    backdrop-filter: blur(5px);
-    /* Safari */
+    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     z-index: 10000;
 }
 

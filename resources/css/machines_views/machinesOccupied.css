@@ -1,13 +1,17 @@
 /* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap");
 
 * {
     padding: 0;
     margin: 0;
     box-sizing: border-box;
-    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+    font-family:
+        "Poppins",
+        system-ui,
+        -apple-system,
+        sans-serif;
 }
 
 form {
@@ -27,30 +31,34 @@ form {
     flex-direction: column;
     align-items: center;
     box-sizing: border-box;
-    padding: 2.5em;
-    width: 90%;
-    max-width: 800px;
-    
+    padding: 2.8em 3.2em;
+    width: 96%;
+    max-width: 1400px;
+
     /* Glassmorphism */
     background: var(--glass-bg-white);
     -webkit-backdrop-filter: blur(15px);
     backdrop-filter: blur(15px);
     border: 5px solid var(--glass-border-white);
-    border-radius: 16px;
+    border-radius: 18px;
     box-shadow: var(--glass-shadow);
-    
-    animation: fadeIn 0.6s ease-out forwards;
+
+    animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
 .lg-saavedra {
     width: 180px;
-    padding: 0 0 1.5em 0;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    padding: 0 0 1.2em 0;
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
     transition: transform 0.3s ease;
 }
 
@@ -71,10 +79,13 @@ h2 {
 
 .machines-table-container {
     width: 100%;
-    max-height: 55vh;
+    max-height: 63vh;
     overflow-y: auto;
-    border-radius: 12px;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.08), 0 10px 20px rgba(0,0,0,0.05);
+    overflow-x: auto;
+    border-radius: 14px;
+    box-shadow:
+        inset 0 2px 8px rgba(0, 0, 0, 0.08),
+        0 10px 20px rgba(0, 0, 0, 0.05);
     background: rgba(255, 255, 255, 0.4);
     -webkit-backdrop-filter: blur(5px);
     backdrop-filter: blur(5px);
@@ -84,17 +95,26 @@ h2 {
 /* Custom scrollbar for table container */
 .machines-table-container::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
 }
 .machines-table-container::-webkit-scrollbar-track {
-    background: rgba(0,0,0,0.05);
+    background: rgba(0, 0, 0, 0.05);
     border-radius: 8px;
 }
 .machines-table-container::-webkit-scrollbar-thumb {
-    background: linear-gradient(180deg, rgba(3, 57, 102, 0.4), rgba(6, 84, 148, 0.6));
+    background: linear-gradient(
+        180deg,
+        rgba(3, 57, 102, 0.4),
+        rgba(6, 84, 148, 0.6)
+    );
     border-radius: 8px;
 }
 .machines-table-container::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(180deg, rgba(3, 57, 102, 0.6), rgba(6, 84, 148, 0.8));
+    background: linear-gradient(
+        180deg,
+        rgba(3, 57, 102, 0.6),
+        rgba(6, 84, 148, 0.8)
+    );
 }
 
 table {
@@ -113,12 +133,13 @@ thead {
 th {
     background: linear-gradient(135deg, var(--gis-blue) 0%, #065494 100%);
     color: #ffffff;
-    padding: 1.2em 1em;
+    padding: 1.25em 1.1em;
     font-weight: 600;
     text-align: center;
     letter-spacing: 0.5px;
     border: none;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    font-size: 0.98em;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     -webkit-backdrop-filter: blur(10px);
     backdrop-filter: blur(10px);
 }
@@ -130,93 +151,381 @@ th:last-child {
     border-top-right-radius: 10px;
 }
 
+/* Sortable Headers */
+th.sortable-th {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition:
+        background 0.25s ease,
+        filter 0.25s ease;
+}
+
+th.sortable-th:hover {
+    background: linear-gradient(135deg, #024b86 0%, #033966 100%);
+    filter: brightness(1.05);
+}
+
+.th-sort-wrapper {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.sort-icon {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+    transition:
+        transform 0.2s ease,
+        opacity 0.2s ease;
+    flex-shrink: 0;
+}
+
+th.sortable-th:hover .sort-icon {
+    transform: scale(1.2);
+}
+
 .machine-table-row {
     background-color: rgba(255, 255, 255, 0.3);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    animation: slideUpFade 0.5s ease-out forwards;
+    transition: background-color 0.22s ease, box-shadow 0.22s ease;
+    animation: slideUpFade 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(12px) translateZ(0);
+    will-change: transform, opacity;
+}
+
+.machine-table-row:hover {
+    background-color: rgba(
+        2,
+        132,
+        199,
+        0.12
+    ); /* Colorsito azul tenue en la fila */
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.08);
 }
 
 /* Staggered animation for rows */
-.machine-table-row:nth-child(1) { animation-delay: 0.1s; }
-.machine-table-row:nth-child(2) { animation-delay: 0.2s; }
-.machine-table-row:nth-child(3) { animation-delay: 0.3s; }
-.machine-table-row:nth-child(4) { animation-delay: 0.4s; }
-.machine-table-row:nth-child(5) { animation-delay: 0.5s; }
-.machine-table-row:nth-child(n+6) { animation-delay: 0.6s; }
+.machine-table-row:nth-child(1) {
+    animation-delay: 0.04s;
+}
+.machine-table-row:nth-child(2) {
+    animation-delay: 0.08s;
+}
+.machine-table-row:nth-child(3) {
+    animation-delay: 0.12s;
+}
+.machine-table-row:nth-child(4) {
+    animation-delay: 0.16s;
+}
+.machine-table-row:nth-child(5) {
+    animation-delay: 0.20s;
+}
+.machine-table-row:nth-child(n + 6) {
+    animation-delay: 0.24s;
+}
 
 @keyframes slideUpFade {
-    to {
+    0% {
+        opacity: 0;
+        transform: translateY(12px) translateZ(0);
+    }
+    100% {
         opacity: 1;
-        transform: translateY(0);
+        transform: translateY(0) translateZ(0);
     }
 }
 
 td {
-    padding: 0.8em;
+    padding: 1.25em 1.15em;
     text-align: center;
-    border-bottom: 1px solid rgba(0,0,0,0.05);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    vertical-align: middle;
 }
 
-input[type="text"] {
-    width: 100%;
-    padding: 0.8em;
-    border: none;
-    background: transparent;
-    font-size: 1em;
+/* 1. Proceso (Cápsula elegante con borde reforzado) */
+.td-process {
+    text-align: center;
+}
+
+.process-capsule {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55em 1.4em;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.75);
+    border: 2.5px solid rgba(3, 57, 102, 0.25);
+    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.05);
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* En hover: la píldora de proceso se pinta de azul más fuerte y letras blancas */
+.machine-table-row:hover .process-capsule {
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #0284c7 100%);
+    border-color: #033966;
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.3);
+}
+
+.process-name {
+    font-size: 0.96em;
     font-weight: 600;
-    text-align: center;
-    color: #334155;
-    cursor: default;
-    outline: none;
+    color: #1e293b;
+    letter-spacing: 0.2px;
+    transition: color 0.25s ease;
 }
 
-/* Remove hover and focus effects that made them look like inputs */
-.machine-table-row:hover input[type="text"]
+.machine-table-row:hover .process-capsule .process-name {
+    color: #ffffff;
+}
 
-input[type="text"]:focus {
-    outline: none;
+/* 2. Operador Asignado (Con icono circular y bordes reforzados) */
+.td-operator {
+    text-align: left;
+    padding-left: 1.5em;
+}
+
+.operator-cell-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    max-width: 100%;
+}
+
+/* Contenedor circular del icono de operador */
+.operator-icon-box {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #033966 0%, #0284c7 100%);
+    border: 2.5px solid #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(3, 57, 102, 0.22);
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+.machine-table-row:hover .operator-icon-box {
+    background: linear-gradient(135deg, #024b86 0%, #0369a1 100%);
+    border-color: #38bdf8;
+    transform: scale(1.06) translateZ(0);
+    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.35);
+}
+
+.operator-icon-img {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+    transition: filter 0.25s ease;
+}
+
+.machine-table-row:hover .operator-icon-img {
+    filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Columna de texto: nombre arriba y matrícula abajo */
+.operator-text-col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.operator-name {
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #0f172a;
+    line-height: 1.3;
+    letter-spacing: 0.2px;
+}
+
+.operator-matricula-badge {
+    display: inline-block;
+    font-size: 0.74em;
+    font-weight: 700;
+    color: #0369a1;
+    background: rgba(2, 132, 199, 0.12);
+    border: 1.5px solid rgba(2, 132, 199, 0.3);
+    border-radius: 6px;
+    padding: 2px 8px;
+    letter-spacing: 0.3px;
+}
+
+.operator-cell-content.unassigned .unassigned-badge {
+    display: inline-block;
+    font-size: 0.85em;
+    font-weight: 500;
+    font-style: italic;
+    color: #64748b;
+    background: rgba(100, 116, 139, 0.08);
+    border: 1.5px dashed rgba(100, 116, 139, 0.4);
+    border-radius: 8px;
+    padding: 0.4em 0.9em;
+}
+
+/* 3. Máquina (Píldora con icono CNC más grande y bordes reforzados) */
+.td-machine {
+    text-align: center;
+}
+
+.machine-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 0.52em 1.4em;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.75);
+    border: 2.5px solid rgba(3, 57, 102, 0.28);
+    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.06);
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+/* En hover: la píldora de la máquina se pinta de azul más fuerte y letras blancas */
+.machine-table-row:hover .machine-pill {
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #0284c7 100%);
+    border-color: #033966;
+    transform: translateY(-2px) translateZ(0);
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.3);
+}
+
+.cnc-machine-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+    transition: filter 0.25s ease;
+}
+
+.machine-table-row:hover .cnc-machine-icon {
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.35)) brightness(1.05);
+}
+
+.machine-name {
+    font-weight: 700;
+    font-size: 1.05em;
+    color: #033966;
+    letter-spacing: 0.3px;
+    transition: color 0.25s ease;
+}
+
+.machine-table-row:hover .machine-pill .machine-name {
+    color: #ffffff;
+}
+
+/* 4. Acciones (Botón con icono arriba y texto abajo, rojo oscuro normal y rojo intenso hover) */
+.td-actions {
+    text-align: center;
 }
 
 .btn {
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 4px;
     color: #fff;
-    font-size: 0.9em;
+    font-size: 0.84em;
     font-weight: 700;
     border: none;
-    padding: 0.8em 1.5em;
-    border-radius: 8px;
-    letter-spacing: 0.5px;
+    padding: 0.72em 1.5em;
+    min-width: 125px;
+    border-radius: 11px;
+    letter-spacing: 0.6px;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    transform: translateZ(0);
+    will-change: transform;
     text-transform: uppercase;
     position: relative;
     overflow: hidden;
 }
 
+/* Contenedor del candado más grande y centrado encima del texto */
+.btn-lock-icon-wrapper {
+    position: relative;
+    width: 26px;
+    height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.btn-icon-lock {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition:
+        opacity 0.28s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+}
+
+/* Estado normal: candado bloqueado visible */
+.icon-locked {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Estado normal: candado desbloqueado oculto */
+.icon-unlocked {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+/* Color rojo oscuro en estado normal */
 .btn-desoccupied {
-    background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
-    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+    background: linear-gradient(135deg, #7f1d1d 0%, #4c0519 100%);
+    box-shadow: 0 4px 10px rgba(76, 5, 25, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .btn-desoccupied::after {
-    content: '';
+    content: "";
     position: absolute;
     top: -50%;
     left: -50%;
     width: 200%;
     height: 200%;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.25);
     transform: rotate(45deg) translateY(-100%);
     transition: all 0.4s ease;
 }
 
+/* Color rojo más intenso en hover */
 .btn-desoccupied:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 8px 15px rgba(239, 68, 68, 0.4);
+    background: linear-gradient(135deg, #ff1e1e 0%, #dc2626 100%);
+    box-shadow: 0 6px 18px rgba(255, 30, 30, 0.6);
+    border-color: rgba(255, 255, 255, 0.35);
+    transform: translateY(-2px);
+}
+
+/* Al hacer hover: candado bloqueado desaparece y desbloqueado aparece con escala */
+.btn-desoccupied:hover .icon-locked {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+.btn-desoccupied:hover .icon-unlocked {
+    opacity: 1;
+    transform: scale(1.15);
 }
 
 .btn-desoccupied:hover::after {
@@ -225,7 +534,23 @@ input[type="text"]:focus {
 
 .btn-desoccupied:active {
     transform: translateY(1px);
-    box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.4);
+}
+
+/* Empty State */
+.empty-table-row td {
+    padding: 3em 1em;
+}
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: #64748b;
+    font-size: 1em;
+    font-weight: 500;
 }
 
 @media (max-width: 991.98px) {
@@ -233,7 +558,7 @@ input[type="text"]:focus {
         overflow-x: hidden;
     }
     .wrapper {
-        width: 95%;
+        width: 96%;
         padding: 1.5em 1em;
         border-radius: 12px;
     }
@@ -246,19 +571,34 @@ input[type="text"]:focus {
         margin-bottom: 0.8em;
     }
     table {
+        min-width: 600px;
         font-size: 0.85em;
     }
     th {
         padding: 0.8em 0.4em;
     }
     td {
-        padding: 0.4em;
-    }
-    input[type="text"] {
-        padding: 0.4em;
+        padding: 0.5em 0.4em;
     }
     .btn {
         padding: 0.5em 0.8em;
-        font-size: 0.85em;
+        font-size: 0.82em;
     }
 }
+
+/* Fila de la tabla marcada en rojo mientras el diálogo de confirmación está abierto */
+.machine-table-row.machine-row-targeting {
+    background-color: rgba(220, 38, 38, 0.14) !important;
+    box-shadow: inset 0 0 0 2px #dc2626, 0 4px 18px rgba(220, 38, 38, 0.25) !important;
+}
+
+.machine-table-row.machine-row-targeting .machine-pill {
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%) !important;
+    border-color: #ef4444 !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4) !important;
+}
+
+.machine-table-row.machine-row-targeting .machine-pill .machine-name {
+    color: #ffffff !important;
+}
+

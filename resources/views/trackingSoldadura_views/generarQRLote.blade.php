@@ -10,8 +10,14 @@
 
 @section('content')
     <div class="wrapper">
-        <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-        <h2>Generación de QR por Lote</h2>
+        <div class="report-header">
+            <div class="title-row">
+                <img src="{{ asset('images/Iconos_Vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
+                <h1>Generación de QR por Lote</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
+            </div>
+            <p class="subtitle">Creación y registro de código QR para lotes de soldadura</p>
+        </div>
 
         <form action="{{ route('soldadura.generarQRLote.store') }}" method="POST">
             @csrf

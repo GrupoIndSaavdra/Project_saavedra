@@ -12,11 +12,12 @@
 
 @section('content')
 <div class="pieces-occupied-wrapper">
-    <!-- Encabezado centrado con icono de la vista (sin lg_saavedra) -->
+    <!-- Encabezado centrado con icono de la vista al inicio y al final (sin lg_saavedra) -->
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/Piezas_Ocupadas-icon.png') }}" class="header-view-icon" alt="Piezas Ocupadas" />
+            <img src="{{ asset('images/Iconos_Vistas/Piezas_Ocupadas.png') }}" class="header-view-icon" alt="Piezas Ocupadas" />
             <h1>Control de Piezas Ocupadas</h1>
+            <img src="{{ asset('images/Iconos_Vistas/Piezas_Ocupadas.png') }}" class="header-view-icon" alt="Piezas Ocupadas" />
         </div>
         <p class="subtitle">Monitoreo, liberación y reasignación de piezas retenidas o huérfanas en procesos de producción</p>
     </div>
@@ -322,3 +323,4 @@
     };
 </script>
 @endsection
+

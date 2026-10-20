@@ -1428,9 +1428,9 @@ body {
 .excel-modal-backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(2, 6, 23, 0.85);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
 }
 
 .excel-modal-container {

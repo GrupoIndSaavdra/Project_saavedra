@@ -163,6 +163,50 @@
     width: 80px;
 }
 
+/* ── Overlay estándar para modales, eventos, menús y pantallas de bloqueo ────────────────── */
+.div-opacity,
+.opacity-div,
+.filter-opacity,
+.filter-opacity-home,
+.gis-lock-overlay,
+.productivity-lock-overlay,
+.modal-overlay,
+.ht-modal-overlay,
+.ht-confirm-overlay,
+.pta-modal-overlay,
+.confirm-portal,
+.diagram-modal-backdrop,
+.excel-modal-backdrop,
+.modal-soldadura-overlay,
+.alm-modal,
+.swal2-container,
+.swal2-container.swal2-backdrop-show,
+.gis-modal-backdrop,
+.modal-backdrop {
+    background: rgba(0, 10, 25, 0.85) !important; /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+.div-opacity,
+.opacity-div,
+.gis-lock-overlay,
+.productivity-lock-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 100001; /* Arriba de los toasts */
+    padding: 20px;
+}
+
+
 /* ── Tabla de datos estándar ─────────────────────────────────────────────────── */
 .data-table {
     width: 100%;
@@ -750,3 +794,73 @@
 .alm-text-danger {
     color: #ef4444 !important;
 }
+
+/* ── Encabezado Estándar de Vistas (Report Header) ─────────────────────────── */
+.report-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    width: 100%;
+    margin-bottom: 0.5rem;
+    flex-shrink: 0;
+}
+
+.report-header .title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+}
+
+.report-header .header-view-icon {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.2));
+    -webkit-transition: transform 0.2s ease;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.report-header .header-view-icon:hover {
+    -webkit-transform: scale(1.12);
+    transform: scale(1.12);
+}
+
+.report-header h1,
+.report-header h2 {
+    font-size: clamp(1.3rem, 2.6vh, 1.85rem);
+    color: #1e293b;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    border-bottom: 3px solid var(--gis-blue);
+    display: inline-block;
+    padding-bottom: 0.1em;
+    margin: 0;
+}
+
+.report-header .subtitle {
+    font-size: 0.84rem;
+    color: #475569;
+    margin: 0.25rem 0 0 0;
+    font-weight: 500;
+}
+
+.wrapper > .report-header,
+.wrapper-master > .report-header,
+.recover-card > .report-header,
+.container > .report-header,
+.pta-analysis-wrapper > .report-header,
+.reenvio-container > .report-header,
+.envio-pta-container > .report-header,
+.pm-page > .report-header,
+.ht-wrapper > .report-header,
+.wrapper-lista > .report-header,
+.wrapper-verificacion > .report-header {
+    margin-bottom: 1.5rem;
+}
+

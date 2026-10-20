@@ -17,8 +17,9 @@
         {{-- Encabezado --}}
         <div class="dibujos-header">
             <div class="dibujos-header-left">
-                <img src="{{ asset('images/ProgramsCNC.png') }}" alt="Programas CNC" class="dibujos-header-icon">
+                <img src="{{ asset('images/Iconos_Vistas/Programas_CNC.png') }}" alt="Programas CNC" class="dibujos-header-icon">
                 <h1>Programas CNC — Gestión de Archivos</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Programas_CNC.png') }}" class="header-view-icon dibujos-header-icon" alt="Programas CNC">
             </div>
             <span>Directorio: DOCUMENTACION_GIS / PROGRAMAS_MAQUINADOS &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
@@ -368,3 +369,4 @@
         window.activeParam3 = @json($procesoSeleccionado ?? null);
     </script>
 @endsection
+

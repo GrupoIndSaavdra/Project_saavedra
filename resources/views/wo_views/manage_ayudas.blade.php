@@ -17,8 +17,9 @@
         {{-- Encabezado --}}
         <div class="dibujos-header">
             <div class="dibujos-header-left">
-                <img src="{{ asset('images/galeria.png') }}" alt="Ayudas Visuales de Maquinados" class="dibujos-header-icon">
+                <img src="{{ asset('images/Iconos_Vistas/Ayudas_Visuales_Maquinados.png') }}" alt="Ayudas Visuales de Maquinados" class="dibujos-header-icon">
                 <h1>{{ $pageTitle ?? 'Gestión de Documentación' }}</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Ayudas_Visuales_Maquinados.png') }}" alt="Ayudas Visuales de Maquinados" class="dibujos-header-icon">
             </div>
             <span>Directorio: {{ $directoryName ?? 'GIS' }} &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
@@ -299,3 +300,4 @@
         window.activeParam2 = null;
     </script>
 @endsection
+

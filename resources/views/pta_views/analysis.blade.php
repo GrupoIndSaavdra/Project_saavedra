@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Análisis Resultados Sold. PTA</title>
@@ -12,9 +12,13 @@
     <div class="pta-analysis-wrapper">
 
         {{-- Header --}}
-        <div class="pta-header">
-            <h2>Análisis de Resultados Sold. PTA</h2>
-            <p>Vista administrativa — Visualización de resultados por OT</p>
+        <div class="report-header">
+            <div class="title-row">
+                <img src="{{ asset('images/Iconos_Vistas/Analisis_Soldadura_PTA.png') }}" class="header-view-icon" alt="Soldadura PTA" />
+                <h1>Análisis de Resultados Sold. PTA</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Analisis_Soldadura_PTA.png') }}" class="header-view-icon" alt="Soldadura PTA" />
+            </div>
+            <p class="subtitle">Vista administrativa — Visualización de resultados por OT</p>
         </div>
 
         {{-- Alertas --}}
@@ -402,3 +406,4 @@
             });
         </script>
 @endsection
+

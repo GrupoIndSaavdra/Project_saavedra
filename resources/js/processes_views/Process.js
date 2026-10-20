@@ -504,9 +504,9 @@ export class Process {
                             th.className = "table-title";
                             th.innerHTML = title;
                             if (index == 0) {
-                                th.style = isCompact ? "width:150px;" : "width:300px;";
+                                th.style = isCompact ? "width:130px;" : (!this.tablePieces ? "width:130px;" : "width:150px;");
                             } else if (title == "Observaciones") {
-                                th.style = isCompact ? "width:220px;" : "width:500px;";
+                                th.style = isCompact ? "width:200px;" : "width:350px;";
                             }
 
                             if (this.nameProcess == "Cavidades" && title.includes("Altura")) {

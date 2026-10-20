@@ -140,7 +140,7 @@
     <div class="org-top-header">
         <div class="org-brand">
             <div class="org-header-icon-circle">
-                <img src="{{ asset('images/organigrama.png') }}" alt="Organigrama" class="org-header-icon">
+                <img src="{{ file_exists(public_path('images/Iconos_Vistas/Organigrama.png')) ? asset('images/Iconos_Vistas/Organigrama.png') : asset('images/organigrama.png') }}" alt="Organigrama" class="org-header-icon">
             </div>
             <div class="org-brand-titles">
                 <h1>ORGANIGRAMA</h1>

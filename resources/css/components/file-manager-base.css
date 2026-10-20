@@ -21,7 +21,7 @@
 }
 
 .dibujos-header:hover .dibujos-header-icon {
-    transform: scale(1.08) rotate(-3deg);
+    transform: scale(1.08);
 }
 
 .dibujos-header h1 {

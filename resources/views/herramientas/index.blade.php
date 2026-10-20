@@ -1,585 +1,920 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
-    <title>Herramientas Tecamac | GIS</title>
+    <title>Herramientas Planta Tecámac | GIS</title>
     <meta name="description"
-        content="Catálogo de Herramientas y Tornillería Tecamac: descripción, inserto, condiciones de corte, imágenes y stock.">
-    @vite([
-        'resources/css/herramientas_views/herramientas_tecamac.css',
-        'resources/js/herramientas_views/herramientas_tecamac.js',
-    ])
+        content="Catálogo de Herramientas y Tornillería Planta Tecámac: descripción, inserto, condiciones de corte, imágenes y stock.">
+    @vite(['resources/css/herramientas_views/herramientas_tecamac.css', 'resources/js/herramientas_views/herramientas_tecamac.js'])
 @endsection
 
 @section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
 
 @php
-/** Paleta pastel por proceso (soft, legible) */
-$procesoPaleta = [
-    'Cepillado'              => ['bg' => '#e8f5e9', 'text' => '#2e7d32', 'border' => '#a5d6a7'],
-    'Desbaste Exterior'      => ['bg' => '#e3f2fd', 'text' => '#1565c0', 'border' => '#90caf9'],
-    'Revisión Laterales'     => ['bg' => '#fce4ec', 'text' => '#880e4f', 'border' => '#f48fb1'],
-    '1ª Operación'           => ['bg' => '#fff3e0', 'text' => '#e65100', 'border' => '#ffcc80'],
-    'Barreno Maniobra'       => ['bg' => '#f3e5f5', 'text' => '#6a1b9a', 'border' => '#ce93d8'],
-    '2ª Operación'           => ['bg' => '#e0f7fa', 'text' => '#006064', 'border' => '#80deea'],
-    'Soldadura'              => ['bg' => '#fafafa', 'text' => '#37474f', 'border' => '#b0bec5'],
-    'Soldadura PTA'          => ['bg' => '#f1f8e9', 'text' => '#33691e', 'border' => '#aed581'],
-    'Rectificado'            => ['bg' => '#e8eaf6', 'text' => '#283593', 'border' => '#9fa8da'],
-    'Asentado'               => ['bg' => '#fbe9e7', 'text' => '#bf360c', 'border' => '#ffab91'],
-    'Calificado'             => ['bg' => '#e0f2f1', 'text' => '#004d40', 'border' => '#80cbc4'],
-    'Acabado Bombillo'       => ['bg' => '#fff8e1', 'text' => '#ff6f00', 'border' => '#ffe082'],
-    'Acabado Molde'          => ['bg' => '#ede7f6', 'text' => '#4527a0', 'border' => '#b39ddb'],
-    'Barreno Profundidad'    => ['bg' => '#e8f5e9', 'text' => '#1b5e20', 'border' => '#81c784'],
-    'Cavidades'              => ['bg' => '#e3f2fd', 'text' => '#0d47a1', 'border' => '#64b5f6'],
-    'Copiado'                => ['bg' => '#fce4ec', 'text' => '#ad1457', 'border' => '#f06292'],
-    'OffSet'                 => ['bg' => '#fff9c4', 'text' => '#827717', 'border' => '#fff176'],
-    'Palomas'                => ['bg' => '#f9fbe7', 'text' => '#558b2f', 'border' => '#c5e1a5'],
-    'Rebajes'                => ['bg' => '#fdf6e3', 'text' => '#8d6e63', 'border' => '#d7ccc8'],
-    'Grabado'                => ['bg' => '#e8eaf6', 'text' => '#1a237e', 'border' => '#7986cb'],
-    'Operación Equipo'       => ['bg' => '#f3e5f5', 'text' => '#7b1fa2', 'border' => '#ba68c8'],
-    'Embudo CM'              => ['bg' => '#e0f7fa', 'text' => '#00838f', 'border' => '#4dd0e1'],
-    '1ª Op. Cabeza Soplo'    => ['bg' => '#fbe9e7', 'text' => '#d84315', 'border' => '#ff8a65'],
-    '2ª Op. Cabeza Soplo'    => ['bg' => '#e8f5e9', 'text' => '#388e3c', 'border' => '#66bb6a'],
-];
+    /** Paleta pastel por proceso (soft, legible) */
+    $procesoPaleta = [
+        'Cepillado' => ['bg' => '#e8f5e9', 'text' => '#2e7d32', 'border' => '#a5d6a7'],
+        'Desbaste Exterior' => ['bg' => '#e3f2fd', 'text' => '#1565c0', 'border' => '#90caf9'],
+        'Revisión Laterales' => ['bg' => '#fce4ec', 'text' => '#880e4f', 'border' => '#f48fb1'],
+        '1ª Operación' => ['bg' => '#fff3e0', 'text' => '#e65100', 'border' => '#ffcc80'],
+        'Barreno Maniobra' => ['bg' => '#f3e5f5', 'text' => '#6a1b9a', 'border' => '#ce93d8'],
+        '2ª Operación' => ['bg' => '#e0f7fa', 'text' => '#006064', 'border' => '#80deea'],
+        'Soldadura' => ['bg' => '#fafafa', 'text' => '#37474f', 'border' => '#b0bec5'],
+        'Soldadura PTA' => ['bg' => '#f1f8e9', 'text' => '#33691e', 'border' => '#aed581'],
+        'Rectificado' => ['bg' => '#e8eaf6', 'text' => '#283593', 'border' => '#9fa8da'],
+        'Asentado' => ['bg' => '#fbe9e7', 'text' => '#bf360c', 'border' => '#ffab91'],
+        'Calificado' => ['bg' => '#e0f2f1', 'text' => '#004d40', 'border' => '#80cbc4'],
+        'Acabado Bombillo' => ['bg' => '#fff8e1', 'text' => '#ff6f00', 'border' => '#ffe082'],
+        'Acabado Molde' => ['bg' => '#ede7f6', 'text' => '#4527a0', 'border' => '#b39ddb'],
+        'Barreno Profundidad' => ['bg' => '#e8f5e9', 'text' => '#1b5e20', 'border' => '#81c784'],
+        'Cavidades' => ['bg' => '#e3f2fd', 'text' => '#0d47a1', 'border' => '#64b5f6'],
+        'Copiado' => ['bg' => '#fce4ec', 'text' => '#ad1457', 'border' => '#f06292'],
+        'OffSet' => ['bg' => '#fff9c4', 'text' => '#827717', 'border' => '#fff176'],
+        'Palomas' => ['bg' => '#f9fbe7', 'text' => '#558b2f', 'border' => '#c5e1a5'],
+        'Rebajes' => ['bg' => '#fdf6e3', 'text' => '#8d6e63', 'border' => '#d7ccc8'],
+        'Grabado' => ['bg' => '#e8eaf6', 'text' => '#1a237e', 'border' => '#7986cb'],
+        'Operación Equipo' => ['bg' => '#f3e5f5', 'text' => '#7b1fa2', 'border' => '#ba68c8'],
+        'Embudo CM' => ['bg' => '#e0f7fa', 'text' => '#00838f', 'border' => '#4dd0e1'],
+        '1ª Op. Cabeza Soplo' => ['bg' => '#fbe9e7', 'text' => '#d84315', 'border' => '#ff8a65'],
+        '2ª Op. Cabeza Soplo' => ['bg' => '#e8f5e9', 'text' => '#388e3c', 'border' => '#66bb6a'],
+    ];
 
-function paletaProceso($proceso, &$paleta) {
-    return $paleta[$proceso] ?? ['bg' => '#f5f5f5', 'text' => '#555', 'border' => '#ccc'];
-}
+    function paletaProceso($proceso, &$paleta)
+    {
+        return $paleta[$proceso] ?? ['bg' => '#f5f5f5', 'text' => '#555', 'border' => '#ccc'];
+    }
 @endphp
 
 @section('content')
 
-<div class="ht-wrapper">
+    <div class="ht-wrapper">
 
-    {{-- ── HEADER ──────────────────────────────────────────────────────── --}}
-    <div class="ht-header">
-        <div class="ht-header-icon">
-            <img src="{{ asset('images/herramientas.png') }}" alt="Herramientas" class="herr-width-85px">
-        </div>
-        <div class="ht-header-text">
-            <h1>Herramientas Tecamac</h1>
-            <p>Catálogo de herramientas de corte y tornillería — Planta Tecamac.</p>
+        {{-- ── HEADER ──────────────────────────────────────────────────────── --}}
+        <div class="report-header">
+            <div class="title-row">
+                <img src="{{ asset('images/Iconos_Vistas/Herramientas_Tecamac.png') }}" class="header-view-icon"
+                    alt="Herramientas Planta Tecámac" />
+                <h1>Herramientas Planta Tecámac</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Herramientas_Tecamac.png') }}" class="header-view-icon"
+                    alt="Herramientas Planta Tecámac" />
+            </div>
+            <p class="subtitle">Catálogo de herramientas de corte y tornillería — Planta Tecámac.</p>
+
+            {{-- Badge de rol diferenciado --}}
+            @if ($esAlmacen)
+                <span class="ht-rol-badge ht-rol-almacen">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                    </svg>
+                    Almacén — Acceso Completo
+                </span>
+            @elseif($esAdmin)
+                <span class="ht-rol-badge ht-rol-admin">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <path d="M12 8v4M12 16h.01" />
+                    </svg>
+                    Administrador — Solo Stock
+                </span>
+            @endif
         </div>
 
-        {{-- Badge de rol diferenciado --}}
-        @if($esAlmacen)
-            <span class="ht-rol-badge ht-rol-almacen">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
-                Almacén — Acceso Completo
-            </span>
-        @elseif($esAdmin)
-            <span class="ht-rol-badge ht-rol-admin">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
-                Administrador — Solo Stock
-            </span>
+        {{-- ── STATS ───────────────────────────────────────────────────────── --}}
+        <div class="ht-stats">
+            <a href="{{ route('herramientas.tecamac.index', ['modo' => 'activas']) }}"
+                class="ht-stat-card stat-activas {{ $modo === 'activas' ? 'stat-activo' : '' }}">
+                <div class="ht-stat-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path
+                            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                    </svg>
+                </div>
+                <div>
+                    <div class="ht-stat-value">{{ $totalActivas }}</div>
+                    <div class="ht-stat-label">Herramientas Activas</div>
+                    <div class="{{ $modo === 'activas' ? 'stat-modo-badge' : 'stat-click-hint' }}">
+                        {{ $modo === 'activas' ? 'Mostrando ahora' : 'Clic para ver' }}
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('herramientas.tecamac.index', ['modo' => 'stock_bajo']) }}"
+                class="ht-stat-card stat-stock {{ $modo === 'stock_bajo' ? 'stat-activo' : '' }}">
+                <div class="ht-stat-icon">
+                    @if ($totalStockBajo > 0)
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                    @else
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    @endif
+                </div>
+                <div>
+                    <div class="ht-stat-value {{ $totalStockBajo > 0 ? 'valor-rojo' : '' }}">{{ $totalStockBajo }}</div>
+                    <div class="ht-stat-label">Con Stock Bajo
+                        @if ($totalStockBajo > 0)
+                            <span class="stock-bajo-tip">cantidad &lt; mínimo</span>
+                        @endif
+                    </div>
+                    <div class="{{ $modo === 'stock_bajo' ? 'stat-modo-badge warning' : 'stat-click-hint' }}">
+                        {{ $modo === 'stock_bajo' ? 'Mostrando ahora' : 'Clic para ver' }}
+                    </div>
+                </div>
+            </a>
+
+            <a href="{{ route('herramientas.tecamac.index', ['modo' => 'inactivas']) }}"
+                class="ht-stat-card stat-inactivas {{ $modo === 'inactivas' ? 'stat-activo' : '' }}">
+                <div class="ht-stat-icon">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m7.5 4.27 9 5.15" />
+                        <path
+                            d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                        <path d="m3.3 7 8.7 5 8.7-5" />
+                        <path d="M12 22V12" />
+                    </svg>
+                </div>
+                <div>
+                    <div class="ht-stat-value">{{ $totalInactivas }}</div>
+                    <div class="ht-stat-label">Inactivas</div>
+                    <div class="{{ $modo === 'inactivas' ? 'stat-modo-badge' : 'stat-click-hint' }}">
+                        {{ $modo === 'inactivas' ? 'Mostrando ahora' : 'Clic para ver' }}
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        {{-- ── TOOLBAR ─────────────────────────────────────────────────────── --}}
+        <div class="ht-toolbar">
+            {{-- Búsqueda única --}}
+            <div class="ht-search-wrap">
+                <span class="ht-search-icon">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                </span>
+                <input type="text" id="ht-search" class="ht-search-input"
+                    placeholder="Buscar por nombre, descripción…" value="{{ $busqueda }}" autocomplete="off">
+            </div>
+
+            @if ($esAlta && $modo === 'activas')
+                <button id="ht-btn-nuevo" class="ht-btn-nuevo">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                    </svg>
+                    Nueva Herramienta
+                </button>
+            @endif
+        </div>
+
+        {{-- ── BANNER CONTEXTUAL ───────────────────────────────────────────── --}}
+        @if ($modo === 'stock_bajo')
+            <div class="ht-banner banner-warning">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                    <line x1="12" y1="9" x2="12" y2="13" />
+                    <line x1="12" y1="17" x2="12.01" y2="17" />
+                </svg>
+                <span>Mostrando herramientas cuya <strong>cantidad es menor al mínimo</strong>.</span>
+            </div>
+        @elseif($modo === 'inactivas')
+            <div class="ht-banner banner-info">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="m7.5 4.27 9 5.15" />
+                    <path
+                        d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                    <path d="m3.3 7 8.7 5 8.7-5" />
+                    <path d="M12 22V12" />
+                </svg>
+                <span>Herramientas dadas de baja.
+                    @if ($esAlmacen)
+                        Usa <strong>Reactivar</strong> para devolverlas al catálogo.
+                    @endif
+                </span>
+            </div>
         @endif
-    </div>
 
-    {{-- ── STATS ───────────────────────────────────────────────────────── --}}
-    <div class="ht-stats">
-        <a href="{{ route('herramientas.tecamac.index', ['modo' => 'activas']) }}"
-           class="ht-stat-card stat-activas {{ $modo === 'activas' ? 'stat-activo' : '' }}">
-            <div class="ht-stat-icon">🔧</div>
-            <div>
-                <div class="ht-stat-value">{{ $totalActivas }}</div>
-                <div class="ht-stat-label">Herramientas Activas</div>
-                <div class="{{ $modo === 'activas' ? 'stat-modo-badge' : 'stat-click-hint' }}">
-                    {{ $modo === 'activas' ? 'Mostrando ahora' : 'Clic para ver' }}
+        {{-- ── TABLA ───────────────────────────────────────────────────────── --}}
+        <div class="ht-table-card">
+            <div class="ht-table-header">
+                <h2>
+                    @if ($modo === 'stock_bajo')
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #dc2626;">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
+                            <line x1="12" y1="9" x2="12" y2="13" />
+                            <line x1="12" y1="17" x2="12.01" y2="17" />
+                        </svg>
+                        Stock Bajo
+                    @elseif($modo === 'inactivas')
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m7.5 4.27 9 5.15" />
+                            <path
+                                d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                            <path d="m3.3 7 8.7 5 8.7-5" />
+                            <path d="M12 22V12" />
+                        </svg>
+                        Inactivas
+                    @else
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                        </svg>
+                        Catálogo — Herramientas Planta Tecámac
+                    @endif
+                </h2>
+                <span class="ht-results-count" id="ht-count">
+                    {{ $herramientas->count() }} resultado{{ $herramientas->count() !== 1 ? 's' : '' }}
+                </span>
+            </div>
+
+            @if ($herramientas->isEmpty())
+                <div class="ht-empty">
+                    <div class="ht-empty-icon">
+                        @if ($modo === 'stock_bajo')
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                <polyline points="22 4 12 14.01 9 11.01" />
+                            </svg>
+                        @elseif($modo === 'inactivas')
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path d="m7.5 4.27 9 5.15" />
+                                <path
+                                    d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+                                <path d="m3.3 7 8.7 5 8.7-5" />
+                                <path d="M12 22V12" />
+                            </svg>
+                        @else
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <path
+                                    d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                            </svg>
+                        @endif
+                    </div>
+                    <p>
+                        @if ($filtroProceso) No hay herramientas para el
+                            proceso <strong>{{ $filtroProceso }}</strong>.
+                        @elseif($modo === 'stock_bajo')
+                            No hay herramientas con stock bajo.
+                        @elseif($modo === 'inactivas')
+                            No hay herramientas inactivas.
+                        @else
+                            No hay herramientas registradas.
+                            @if ($esAlta)
+                                Usa <strong>Nueva Herramienta</strong>.
+                            @endif
+                        @endif
+                    </p>
+                </div>
+            @else
+                <div class="ht-table-scroll">
+                    <table class="ht-table">
+                        <thead>
+                            <tr class="ht-thead-group">
+                                <th colspan="5" class="th-group-herramientas">
+                                    <span class="th-group-content">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path
+                                                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                                        </svg>
+                                        HERRAMIENTAS
+                                    </span>
+                                </th>
+                                <th colspan="3" class="th-group-condiciones">
+                                    <span class="th-group-content">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <circle cx="12" cy="12" r="10" />
+                                            <polyline points="12 6 12 12 16 14" />
+                                        </svg>
+                                        CONDICIONES DE CORTE (PULG.)
+                                    </span>
+                                </th>
+                                <th colspan="1" class="th-group-tornilleria">
+                                    <span class="th-group-content">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <path d="m14 7 3 3" />
+                                            <path d="m17 4 3 3" />
+                                            <path d="m20 1 3 3" />
+                                            <path d="m6.5 12.5-4 4a2 2 0 0 0 0 2.83l2.17 2.17a2 2 0 0 0 2.83 0l4-4" />
+                                            <path d="m11 9 7 7" />
+                                        </svg>
+                                        TORNILLERÍA
+                                    </span>
+                                </th>
+                                <th colspan="1" class="th-group-fisica">
+                                    <span class="th-group-content">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <rect x="3" y="3" width="18" height="18" rx="2"
+                                                ry="2" />
+                                            <circle cx="8.5" cy="8.5" r="1.5" />
+                                            <polyline points="21 15 16 10 5 21" />
+                                        </svg>
+                                        IMAGEN FÍSICA
+                                    </span>
+                                </th>
+                                <th colspan="2" class="th-group-stock">
+                                    <span class="th-group-content">
+                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round">
+                                            <line x1="18" y1="20" x2="18" y2="10" />
+                                            <line x1="12" y1="20" x2="12" y2="4" />
+                                            <line x1="6" y1="20" x2="6" y2="14" />
+                                        </svg>
+                                        STOCK
+                                    </span>
+                                </th>
+                                @if ($esCrud || $esAdmin)
+                                    <th rowspan="2" class="th-acciones">ACCIONES</th>
+                                @endif
+                            </tr>
+                            <tr class="ht-thead-cols">
+                                <th>NOMBRE<br>HERRAMIENTA</th>
+                                <th>INSERTO</th>
+                                <th>CANTIDAD</th>
+                                <th>FOTOS<br>HERRAMIENTA</th>
+                                <th>FOTOS<br>ACCESORIO</th>
+                                <th class="th-sub-condicion">PROF.<br>CORTE</th>
+                                <th class="th-sub-condicion">RPM</th>
+                                <th class="th-sub-condicion">AVANCES</th>
+                                <th class="th-sub-tornilleria">FOTOS<br>TORNILLERÍA</th>
+                                <th class="th-sub-fisica">IMAGEN<br>FÍSICA</th>
+                                <th class="th-minmax">MÍN.</th>
+                                <th class="th-minmax">MÁX.</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ht-tbody">
+                            @foreach ($herramientas as $h)
+                                @php
+                                    $stockBajoFila = $h->minimo !== null && $h->cantidad_portaherramientas < $h->minimo;
+                                    $imgsHerramienta = $h->imagenesPorTipo('herramienta');
+                                    $imgsAccesorio = $h->imagenesPorTipo('accesorio');
+                                    $imgsTornilleria = $h->imagenesPorTipo('tornilleria');
+                                    $imgsFisica = $h->imagenesPorTipo('imagen_fisica');
+                                    $procesos = is_array($h->proceso) ? $h->proceso : [];
+                                    $imgData = $h->imagenes
+                                        ->map(
+                                            fn($i) => [
+                                                'id' => $i->id,
+                                                'tipo' => $i->tipo,
+                                                'nombre' => $i->nombre,
+                                                'url' => asset($i->ruta),
+                                            ],
+                                        )
+                                        ->values()
+                                        ->toJson(JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+                                @endphp
+                                <tr class="ht-row {{ $stockBajoFila ? 'fila-stock-bajo' : '' }}"
+                                    data-id="{{ $h->id }}"
+                                    data-search="{{ strtolower(implode(' ', $procesos) . ' ' . $h->nombre_herramienta . ' ' . $h->descripcion_herramienta . ' ' . $h->descripcion_inserto) }}"
+                                    data-nombre-herramienta="{{ $h->nombre_herramienta }}"
+                                    data-proceso='{{ json_encode($procesos) }}'
+                                    data-desc="{{ $h->descripcion_herramienta }}"
+                                    data-inserto="{{ $h->descripcion_inserto }}"
+                                    data-cantidad="{{ $h->cantidad_portaherramientas }}"
+                                    data-profundidad="{{ $h->profundidad_corte }}" data-rpm="{{ $h->rpm }}"
+                                    data-avances="{{ $h->avances }}" data-minimo="{{ $h->minimo }}"
+                                    data-maximo="{{ $h->maximo }}" data-imgs='{{ $imgData }}'>
+
+                                    {{-- NOMBRE HERRAMIENTA --}}
+                                    <td class="td-desc">
+                                        @if ($h->nombre_herramienta)
+                                            <div class="ht-nombre-label">{{ $h->nombre_herramienta }}</div>
+                                        @endif
+                                        @if ($h->descripcion_herramienta)
+                                            <div class="ht-desc-label">{{ $h->descripcion_herramienta }}</div>
+                                        @endif
+                                        @if (!$h->activo)
+                                            <span class="badge-inactiva">Inactiva</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="d-center">{{ $h->descripcion_inserto ?? '—' }}</td>
+
+                                    <td class="d-center">
+                                        @if ($stockBajoFila)
+                                            <span class="ht-cantidad-badge ht-stock-low"
+                                                title="Mín: {{ $h->minimo }}">
+                                                {{ $h->cantidad_portaherramientas }}<span class="stock-low-arrow">▼</span>
+                                            </span>
+                                        @else
+                                            <span class="ht-cantidad-badge">{{ $h->cantidad_portaherramientas }}</span>
+                                        @endif
+                                    </td>
+
+                                    <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsHerramienta])</td>
+                                    <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsAccesorio])</td>
+
+                                    {{-- CONDICIONES DE CORTE --}}
+                                    <td class="d-center">
+                                        {{ $h->profundidad_corte !== null ? number_format($h->profundidad_corte, 3) : '—' }}
+                                    </td>
+                                    <td class="d-center">{{ $h->rpm !== null ? number_format($h->rpm) : '—' }}</td>
+                                    <td class="d-center">{{ $h->avances ?? '—' }}</td>
+
+                                    {{-- TORNILLERÍA --}}
+                                    <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsTornilleria])</td>
+
+                                    {{-- IMAGEN FÍSICA --}}
+                                    <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsFisica])</td>
+
+                                    <td class="d-center">
+                                        @if ($h->minimo !== null)
+                                            <span
+                                                class="ht-minmax-val {{ $stockBajoFila ? 'minimo-alerta' : '' }}">{{ $h->minimo }}</span>
+                                        @else
+                                            <span class="ht-na">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="d-center">
+                                        @if ($h->maximo !== null)
+                                            <span class="ht-minmax-val">{{ $h->maximo }}</span>
+                                        @else
+                                            <span class="ht-na">—</span>
+                                        @endif
+                                    </td>
+
+                                    {{-- ACCIONES según rol --}}
+                                    @if ($esAlmacen)
+                                        <td class="d-center">
+                                            <div class="ht-actions">
+                                                @if ($h->activo)
+                                                    <button class="ht-btn-accion ht-btn-edit"
+                                                        onclick="htAbrirEditar({{ $h->id }})"
+                                                        title="Editar herramienta">
+                                                        <svg width="13" height="13" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2.5">
+                                                            <path
+                                                                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                                            <path
+                                                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                                        </svg>
+                                                        Editar
+                                                    </button>
+                                                    <button class="ht-btn-accion ht-btn-delete"
+                                                        onclick="htEliminar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')"
+                                                        title="Dar de baja">
+                                                        <svg width="13" height="13" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2.5">
+                                                            <circle cx="12" cy="12" r="10" />
+                                                            <line x1="15" y1="9" x2="9"
+                                                                y2="15" />
+                                                            <line x1="9" y1="9" x2="15"
+                                                                y2="15" />
+                                                        </svg>
+                                                        Inactivar
+                                                    </button>
+                                                @else
+                                                    <button class="ht-btn-accion ht-btn-reactivar"
+                                                        onclick="htReactivar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')"
+                                                        title="Reactivar">
+                                                        <svg width="13" height="13" viewBox="0 0 24 24"
+                                                            fill="none" stroke="currentColor" stroke-width="2.5">
+                                                            <polyline points="1 4 1 10 7 10" />
+                                                            <path d="M3.51 15a9 9 0 1 0 .49-3.38" />
+                                                        </svg>
+                                                        Reactivar
+                                                    </button>
+                                                @endif
+                                            </div>
+                                        </td>
+                                    @elseif($esAdmin)
+                                        <td class="d-center">
+                                            <div class="ht-actions">
+                                                <button class="ht-btn-accion ht-btn-stock"
+                                                    onclick="htAbrirStock({{ $h->id }})"
+                                                    title="Editar mínimo y máximo de stock">
+                                                    <svg width="13" height="13" viewBox="0 0 24 24"
+                                                        fill="none" stroke="currentColor" stroke-width="2.5">
+                                                        <line x1="18" y1="20" x2="18"
+                                                            y2="10" />
+                                                        <line x1="12" y1="20" x2="12"
+                                                            y2="4" />
+                                                        <line x1="6" y1="20" x2="6"
+                                                            y2="14" />
+                                                    </svg>
+                                                    Stock
+                                                </button>
+                                            </div>
+                                        </td>
+                                    @endif
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                    <div id="ht-no-results" class="ht-empty herr-display-none">
+                        <div class="ht-empty-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1.5">
+                                <circle cx="11" cy="11" r="8" />
+                                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                            </svg>
+                        </div>
+                        <p>Ninguna herramienta coincide con la búsqueda.</p>
+                    </div>
+                </div>
+            @endif
+        </div>
+    </div>{{-- /.ht-wrapper --}}
+
+    {{-- ════════════════════════════════════════════════
+     MODAL CRUD COMPLETO — Solo Almacén
+════════════════════════════════════════════════ --}}
+    @if ($esAlmacen)
+        <div class="ht-modal-overlay" id="ht-modal-overlay" role="dialog" aria-modal="true"
+            aria-labelledby="ht-modal-title">
+            <div class="ht-modal">
+                <div class="ht-modal-header">
+                    <div>
+                        <h3 id="ht-modal-title">Nueva Herramienta</h3>
+                        <p class="ht-modal-subtitle" id="ht-modal-subtitle">Complete los datos de la herramienta</p>
+                    </div>
+                    <button class="ht-modal-close" id="ht-modal-close" type="button">✕</button>
+                </div>
+                <div class="ht-modal-body">
+                    <form id="ht-form" enctype="multipart/form-data" novalidate>
+                        @csrf
+
+                        {{-- ═══════════════════════════════
+                     SECCIÓN: HERRAMIENTA
+                ═══════════════════════════════ --}}
+                        <div class="ht-modal-section">
+                            <div class="ht-modal-section-header herr-background-linear-gradient-135deg-033966-0d5ca8">
+                                <span class="ht-section-header-title">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path
+                                            d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+                                    </svg>
+                                    Herramienta
+                                </span>
+                            </div>
+                            <div class="ht-modal-section-body">
+                                <div class="ht-form-grid">
+                                    <div class="ht-form-field">
+                                        <label for="ht-f-nombre">Nombre de la Herramienta</label>
+                                        <input type="text" id="ht-f-nombre" name="nombre_herramienta"
+                                            placeholder="Ej. PORTAINSERTO IZQUIERDO" maxlength="255">
+                                    </div>
+
+                                    <div class="ht-form-field">
+                                        <label for="ht-f-inserto">Descripción de Inserto</label>
+                                        <input type="text" id="ht-f-inserto" name="descripcion_inserto"
+                                            placeholder="Ej. WNMG080412" maxlength="255">
+                                    </div>
+                                    <div class="ht-form-field">
+                                        <label for="ht-f-cantidad">Cantidad Planta Tecamac <span
+                                                class="req">*</span></label>
+                                        <input type="number" id="ht-f-cantidad" name="cantidad_portaherramientas"
+                                            min="0" value="0" required>
+                                    </div>
+                                </div>
+                                <div class="ht-img-section">
+                                    <div class="ht-img-section-header herramienta-color">
+                                        <span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path
+                                                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                                <circle cx="12" cy="13" r="4" />
+                                            </svg>
+                                            Foto de inserto
+                                        </span>
+                                        <button type="button" class="ht-btn-add-img"
+                                            onclick="htAgregarFoto('herramienta')">+ Agregar</button>
+                                    </div>
+                                    <div class="ht-img-list" id="ht-imgs-herramienta"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ═══════════════════════════════
+                     SECCIÓN: ACCESORIO
+                ═══════════════════════════════ --}}
+                        <div class="ht-modal-section">
+                            <div class="ht-modal-section-header herr-background-linear-gradient-135deg-4a148c-6a1b9a">
+                                <span class="ht-section-header-title">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="m14 7 3 3" />
+                                        <path d="m17 4 3 3" />
+                                        <path d="m20 1 3 3" />
+                                        <path d="m6.5 12.5-4 4a2 2 0 0 0 0 2.83l2.17 2.17a2 2 0 0 0 2.83 0l4-4" />
+                                        <path d="m11 9 7 7" />
+                                    </svg>
+                                    Accesorio de Herramienta
+                                </span>
+                            </div>
+                            <div class="ht-modal-section-body">
+                                <div class="ht-img-section">
+                                    <div class="ht-img-section-header accesorio-color">
+                                        <span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path
+                                                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                                <circle cx="12" cy="13" r="4" />
+                                            </svg>
+                                            Fotos de Accesorio
+                                        </span>
+                                        <button type="button" class="ht-btn-add-img"
+                                            onclick="htAgregarFoto('accesorio')">+ Agregar</button>
+                                    </div>
+                                    <div class="ht-img-list" id="ht-imgs-accesorio"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ═══════════════════════════════
+                     SECCIÓN: TORNILLERÍA
+                ═══════════════════════════════ --}}
+                        <div class="ht-modal-section">
+                            <div class="ht-modal-section-header herr-background-linear-gradient-135deg-7a5200-a06a00">
+                                <span class="ht-section-header-title">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <path d="m14 7 3 3" />
+                                        <path d="m17 4 3 3" />
+                                        <path d="m20 1 3 3" />
+                                        <path d="m6.5 12.5-4 4a2 2 0 0 0 0 2.83l2.17 2.17a2 2 0 0 0 2.83 0l4-4" />
+                                        <path d="m11 9 7 7" />
+                                    </svg>
+                                    Tornillería
+                                </span>
+                            </div>
+                            <div class="ht-modal-section-body">
+                                <div class="ht-img-section">
+                                    <div class="ht-img-section-header tornilleria-color">
+                                        <span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path
+                                                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                                <circle cx="12" cy="13" r="4" />
+                                            </svg>
+                                            Fotos de Tornillería
+                                        </span>
+                                        <button type="button" class="ht-btn-add-img"
+                                            onclick="htAgregarFoto('tornilleria')">+ Agregar</button>
+                                    </div>
+                                    <div class="ht-img-list" id="ht-imgs-tornilleria"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ═══════════════════════════════
+                     SECCIÓN: IMAGEN FÍSICA
+                ═══════════════════════════════ --}}
+                        <div class="ht-modal-section">
+                            <div class="ht-modal-section-header herr-background-linear-gradient-135deg-1b5e20-2e7d32">
+                                <span class="ht-section-header-title">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                                        <circle cx="8.5" cy="8.5" r="1.5" />
+                                        <polyline points="21 15 16 10 5 21" />
+                                    </svg>
+                                    Imagen Física
+                                </span>
+                            </div>
+                            <div class="ht-modal-section-body">
+                                <div class="ht-img-section">
+                                    <div class="ht-img-section-header imagen-fisica-color">
+                                        <span>
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <path
+                                                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                                <circle cx="12" cy="13" r="4" />
+                                            </svg>
+                                            Fotos de Imagen Física
+                                        </span>
+                                        <button type="button" class="ht-btn-add-img"
+                                            onclick="htAgregarFoto('imagen_fisica')">+ Agregar</button>
+                                    </div>
+                                    <div class="ht-img-list" id="ht-imgs-imagen_fisica"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ═══════════════════════════════
+                     SECCIÓN: CONDICIONES DE CORTE
+                ═══════════════════════════════ --}}
+                        <div class="ht-modal-section">
+                            <div class="ht-modal-section-header herr-background-linear-gradient-135deg-9c0300-c62828">
+                                <span class="ht-section-header-title">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10" />
+                                        <polyline points="12 6 12 12 16 14" />
+                                    </svg>
+                                    Condiciones de Corte (PULG.)
+                                </span>
+                            </div>
+                            <div class="ht-modal-section-body">
+                                <div class="ht-form-grid">
+                                    <div class="ht-form-field">
+                                        <label for="ht-f-profundidad">Profundidad de Corte</label>
+                                        <input type="number" id="ht-f-profundidad" name="profundidad_corte"
+                                            step="0.0001" min="0" placeholder="Ej. 0.0600">
+                                    </div>
+                                    <div class="ht-form-field">
+                                        <label for="ht-f-rpm">RPM</label>
+                                        <input type="number" id="ht-f-rpm" name="rpm" min="0"
+                                            placeholder="Ej. 600">
+                                    </div>
+                                    <div class="ht-form-field full-width">
+                                        <label for="ht-f-avances">Avances</label>
+                                        <input type="text" id="ht-f-avances" name="avances"
+                                            placeholder="Ej. 0.012 AVANCE/MIN" maxlength="100">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- ═══════════════════════════════
+                     SECCIÓN: STOCK
+                ═══════════════════════════════ --}}
+                        <div class="ht-modal-section">
+                            <div class="ht-modal-section-header herr-background-linear-gradient-135deg-027a3a-02903f">
+                                <span class="ht-section-header-title">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
+                                        stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="20" x2="18" y2="10" />
+                                        <line x1="12" y1="20" x2="12" y2="4" />
+                                        <line x1="6" y1="20" x2="6" y2="14" />
+                                    </svg>
+                                    Control de Stock
+                                </span>
+                            </div>
+                            <div class="ht-modal-section-body">
+                                <div class="ht-form-grid">
+                                    <div class="ht-form-field">
+                                        <label for="ht-f-minimo">Mínimo en Stock</label>
+                                        <input type="number" id="ht-f-minimo" name="minimo" min="0"
+                                            placeholder="Ej. 5">
+                                    </div>
+                                    <div class="ht-form-field">
+                                        <label for="ht-f-maximo">Máximo en Stock</label>
+                                        <input type="number" id="ht-f-maximo" name="maximo" min="0"
+                                            placeholder="Ej. 30">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="ht-modal-footer">
+                    <button class="ht-btn-cancel" id="ht-btn-cancel" type="button">Cancelar</button>
+                    <button class="ht-btn-save" id="ht-btn-save" type="button">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                            <polyline points="17 21 17 13 7 13 7 21" />
+                            <polyline points="7 3 7 8 15 8" />
+                        </svg>
+                        Guardar
+                    </button>
                 </div>
             </div>
-        </a>
-
-        <a href="{{ route('herramientas.tecamac.index', ['modo' => 'stock_bajo']) }}"
-           class="ht-stat-card stat-stock {{ $modo === 'stock_bajo' ? 'stat-activo' : '' }}">
-            <div class="ht-stat-icon">{{ $totalStockBajo > 0 ? '⚠️' : '✅' }}</div>
-            <div>
-                <div class="ht-stat-value {{ $totalStockBajo > 0 ? 'valor-rojo' : '' }}">{{ $totalStockBajo }}</div>
-                <div class="ht-stat-label">Con Stock Bajo
-                    @if($totalStockBajo > 0)<span class="stock-bajo-tip">cantidad &lt; mínimo</span>@endif
-                </div>
-                <div class="{{ $modo === 'stock_bajo' ? 'stat-modo-badge warning' : 'stat-click-hint' }}">
-                    {{ $modo === 'stock_bajo' ? 'Mostrando ahora' : 'Clic para ver' }}
-                </div>
-            </div>
-        </a>
-
-        <a href="{{ route('herramientas.tecamac.index', ['modo' => 'inactivas']) }}"
-           class="ht-stat-card stat-inactivas {{ $modo === 'inactivas' ? 'stat-activo' : '' }}">
-            <div class="ht-stat-icon">📦</div>
-            <div>
-                <div class="ht-stat-value">{{ $totalInactivas }}</div>
-                <div class="ht-stat-label">Inactivas</div>
-                <div class="{{ $modo === 'inactivas' ? 'stat-modo-badge' : 'stat-click-hint' }}">
-                    {{ $modo === 'inactivas' ? 'Mostrando ahora' : 'Clic para ver' }}
-                </div>
-            </div>
-        </a>
-    </div>
-
-    {{-- ── TOOLBAR ─────────────────────────────────────────────────────── --}}
-    <div class="ht-toolbar">
-        {{-- Búsqueda única --}}
-        <div class="ht-search-wrap">
-            <span class="ht-search-icon">🔍</span>
-            <input type="text" id="ht-search" class="ht-search-input"
-                   placeholder="Buscar por nombre, descripción…"
-                   value="{{ $busqueda }}" autocomplete="off">
         </div>
 
-        @if($esAlta && $modo === 'activas')
-            <button id="ht-btn-nuevo" class="ht-btn-nuevo">＋ Nueva Herramienta</button>
-        @endif
-    </div>
-
-    {{-- ── BANNER CONTEXTUAL ───────────────────────────────────────────── --}}
-    @if($modo === 'stock_bajo')
-        <div class="ht-banner banner-warning">⚠️ Mostrando herramientas cuya <strong>cantidad es menor al mínimo</strong>.</div>
-    @elseif($modo === 'inactivas')
-        <div class="ht-banner banner-info">📦 Herramientas dadas de baja.
-            @if($esAlmacen) Usa <strong>Reactivar</strong> para devolverlas al catálogo. @endif
+        {{-- Confirmación --}}
+        <div class="ht-confirm-overlay" id="ht-confirm-overlay">
+            <div class="ht-confirm-box">
+                <h4 id="ht-confirm-titulo">¿Confirmar acción?</h4>
+                <p id="ht-confirm-desc"></p>
+                <div class="ht-confirm-actions">
+                    <button class="ht-btn-accion ht-btn-edit" id="ht-confirm-no">Cancelar</button>
+                    <button class="ht-btn-accion ht-btn-delete" id="ht-confirm-si">Confirmar</button>
+                </div>
+            </div>
         </div>
     @endif
 
-    {{-- ── TABLA ───────────────────────────────────────────────────────── --}}
-    <div class="ht-table-card">
-        <div class="ht-table-header">
-            <h2>
-                @if($modo === 'stock_bajo') ⚠️ Stock Bajo
-                @elseif($modo === 'inactivas') 📦 Inactivas
-                @else 🔧 Catálogo — Herramientas Tecamac
-                @endif
-            </h2>
-            <span class="ht-results-count" id="ht-count">
-                {{ $herramientas->count() }} resultado{{ $herramientas->count() !== 1 ? 's' : '' }}
-            </span>
-        </div>
-
-        @if($herramientas->isEmpty())
-            <div class="ht-empty">
-                <div class="ht-empty-icon">
-                    @if($modo === 'stock_bajo') ✅ @elseif($modo === 'inactivas') 📦 @else 🔧 @endif
-                </div>
-                <p>
-                    @if($filtroProceso) No hay herramientas para el proceso <strong>{{ $filtroProceso }}</strong>.
-                    @elseif($modo === 'stock_bajo') No hay herramientas con stock bajo.
-                    @elseif($modo === 'inactivas') No hay herramientas inactivas.
-                    @else No hay herramientas registradas.
-                        @if($esAlta) Usa <strong>Nueva Herramienta</strong>. @endif
-                    @endif
-                </p>
-            </div>
-        @else
-            <div class="ht-table-scroll">
-                <table class="ht-table">
-                    <thead>
-                        <tr class="ht-thead-group">
-                            <th colspan="5" class="th-group-herramientas">⚙️ HERRAMIENTAS</th>
-                            <th colspan="3" class="th-group-condiciones">🔴 CONDICIONES DE CORTE PULG.</th>
-                            <th colspan="1" class="th-group-tornilleria">🔩 TORNILLERÍA</th>
-                            <th colspan="1" class="th-group-fisica">🖼️ IMAGEN FÍSICA</th>
-                            <th colspan="2" class="th-group-stock">📊 STOCK</th>
-                            @if($esCrud || $esAdmin)<th rowspan="2" class="th-acciones">ACCIONES</th>@endif
-                        </tr>
-                        <tr class="ht-thead-cols">
-                            <th>NOMBRE<br>HERRAMIENTA</th>
-                            <th>INSERTO</th>
-                            <th>CANTIDAD</th>
-                            <th>FOTOS<br>HERRAMIENTA</th>
-                            <th>FOTOS<br>ACCESORIO</th>
-                            <th class="th-sub-condicion">PROF.<br>CORTE</th>
-                            <th class="th-sub-condicion">RPM</th>
-                            <th class="th-sub-condicion">AVANCES</th>
-                            <th class="th-sub-tornilleria">FOTOS<br>TORNILLERÍA</th>
-                            <th class="th-sub-fisica">IMAGEN<br>FÍSICA</th>
-                            <th class="th-minmax">MÍN.</th>
-                            <th class="th-minmax">MÁX.</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ht-tbody">
-                        @foreach($herramientas as $h)
-                            @php
-                                $stockBajoFila   = $h->minimo !== null && $h->cantidad_portaherramientas < $h->minimo;
-                                $imgsHerramienta = $h->imagenesPorTipo('herramienta');
-                                $imgsAccesorio   = $h->imagenesPorTipo('accesorio');
-                                $imgsTornilleria = $h->imagenesPorTipo('tornilleria');
-                                $imgsFisica      = $h->imagenesPorTipo('imagen_fisica');
-                                $procesos        = is_array($h->proceso) ? $h->proceso : [];
-                                $imgData = $h->imagenes->map(fn($i) => [
-                                    'id'     => $i->id,
-                                    'tipo'   => $i->tipo,
-                                    'nombre' => $i->nombre,
-                                    'url'    => asset($i->ruta),
-                                ])->values()->toJson(JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-                            @endphp
-                            <tr class="ht-row {{ $stockBajoFila ? 'fila-stock-bajo' : '' }}"
-                                data-id="{{ $h->id }}"
-                                data-search="{{ strtolower(implode(' ', $procesos) . ' ' . $h->nombre_herramienta . ' ' . $h->descripcion_herramienta . ' ' . $h->descripcion_inserto) }}"
-                                data-nombre-herramienta="{{ $h->nombre_herramienta }}"
-                                data-proceso='{{ json_encode($procesos) }}'
-                                data-desc="{{ $h->descripcion_herramienta }}"
-                                data-inserto="{{ $h->descripcion_inserto }}"
-                                data-cantidad="{{ $h->cantidad_portaherramientas }}"
-                                data-profundidad="{{ $h->profundidad_corte }}"
-                                data-rpm="{{ $h->rpm }}"
-                                data-avances="{{ $h->avances }}"
-                                data-minimo="{{ $h->minimo }}"
-                                data-maximo="{{ $h->maximo }}"
-                                data-imgs='{{ $imgData }}'>
-
-                                {{-- NOMBRE HERRAMIENTA --}}
-                                <td class="td-desc">
-                                    @if($h->nombre_herramienta)
-                                        <div class="ht-nombre-label">{{ $h->nombre_herramienta }}</div>
-                                    @endif
-                                    @if($h->descripcion_herramienta)
-                                        <div class="ht-desc-label">{{ $h->descripcion_herramienta }}</div>
-                                    @endif
-                                    @if(!$h->activo)
-                                        <span class="badge-inactiva">Inactiva</span>
-                                    @endif
-                                </td>
-
-                                <td class="d-center">{{ $h->descripcion_inserto ?? '—' }}</td>
-
-                                <td class="d-center">
-                                    @if($stockBajoFila)
-                                        <span class="ht-cantidad-badge ht-stock-low" title="Mín: {{ $h->minimo }}">
-                                            {{ $h->cantidad_portaherramientas }}<span class="stock-low-arrow">▼</span>
-                                        </span>
-                                    @else
-                                        <span class="ht-cantidad-badge">{{ $h->cantidad_portaherramientas }}</span>
-                                    @endif
-                                </td>
-
-                                <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsHerramienta])</td>
-                                <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsAccesorio])</td>
-
-                                {{-- CONDICIONES DE CORTE --}}
-                                <td class="d-center">{{ $h->profundidad_corte !== null ? number_format($h->profundidad_corte, 3) : '—' }}</td>
-                                <td class="d-center">{{ $h->rpm !== null ? number_format($h->rpm) : '—' }}</td>
-                                <td class="d-center">{{ $h->avances ?? '—' }}</td>
-
-                                {{-- TORNILLERÍA --}}
-                                <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsTornilleria])</td>
-
-                                {{-- IMAGEN FÍSICA --}}
-                                <td class="d-center">@include('herramientas._mini_gallery', ['imgs' => $imgsFisica])</td>
-
-                                <td class="d-center">
-                                    @if($h->minimo !== null)
-                                        <span class="ht-minmax-val {{ $stockBajoFila ? 'minimo-alerta' : '' }}">{{ $h->minimo }}</span>
-                                    @else <span class="ht-na">—</span> @endif
-                                </td>
-                                <td class="d-center">
-                                    @if($h->maximo !== null)
-                                        <span class="ht-minmax-val">{{ $h->maximo }}</span>
-                                    @else <span class="ht-na">—</span> @endif
-                                </td>
-
-                                {{-- ACCIONES según rol --}}
-                                @if($esAlmacen)
-                                <td class="d-center">
-                                    <div class="ht-actions">
-                                        @if($h->activo)
-                                            <button class="ht-btn-accion ht-btn-edit"
-                                                    onclick="htAbrirEditar({{ $h->id }})" title="Editar herramienta">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                                                Editar
-                                            </button>
-                                            <button class="ht-btn-accion ht-btn-delete"
-                                                    onclick="htEliminar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')" title="Dar de baja">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                                                Inactivar
-                                            </button>
-                                        @else
-                                            <button class="ht-btn-accion ht-btn-reactivar"
-                                                    onclick="htReactivar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')" title="Reactivar">
-                                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.38"/></svg>
-                                                Reactivar
-                                            </button>
-                                        @endif
-                                    </div>
-                                </td>
-                                @elseif($esAdmin)
-                                <td class="d-center">
-                                    <div class="ht-actions">
-                                        <button class="ht-btn-accion ht-btn-stock"
-                                                onclick="htAbrirStock({{ $h->id }})" title="Editar mínimo y máximo de stock">
-                                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-                                            Stock
-                                        </button>
-                                    </div>
-                                </td>
-                                @endif
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-                <div class="ht-empty herr-display-none">
-                    <div class="ht-empty-icon">🔍</div>
-                    <p>Ninguna herramienta coincide con la búsqueda.</p>
-                </div>
-            </div>
-        @endif
-    </div>
-</div>{{-- /.ht-wrapper --}}
-
-{{-- ════════════════════════════════════════════════
-     MODAL CRUD COMPLETO — Solo Almacén
-════════════════════════════════════════════════ --}}
-@if($esAlmacen)
-<div class="ht-modal-overlay" id="ht-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="ht-modal-title">
-    <div class="ht-modal">
-        <div class="ht-modal-header">
-            <div>
-                <h3 id="ht-modal-title">Nueva Herramienta</h3>
-                <p class="ht-modal-subtitle" id="ht-modal-subtitle">Complete los datos de la herramienta</p>
-            </div>
-            <button class="ht-modal-close" id="ht-modal-close" type="button">✕</button>
-        </div>
-        <div class="ht-modal-body">
-            <form id="ht-form" enctype="multipart/form-data" novalidate>
-                @csrf
-
-                {{-- ═══════════════════════════════
-                     SECCIÓN: HERRAMIENTA
-                ═══════════════════════════════ --}}
-                <div class="ht-modal-section">
-                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-033966-0d5ca8">
-                        <span>⚙️ Herramienta</span>
-                    </div>
-                    <div class="ht-modal-section-body">
-                        <div class="ht-form-grid">
-                            <div class="ht-form-field">
-                                <label for="ht-f-nombre">Nombre de la Herramienta</label>
-                                <input type="text" id="ht-f-nombre" name="nombre_herramienta"
-                                       placeholder="Ej. PORTAINSERTO IZQUIERDO" maxlength="255">
-                            </div>
-
-                            <div class="ht-form-field">
-                                <label for="ht-f-inserto">Descripción de Inserto</label>
-                                <input type="text" id="ht-f-inserto" name="descripcion_inserto"
-                                       placeholder="Ej. WNMG080412" maxlength="255">
-                            </div>
-                            <div class="ht-form-field">
-                                <label for="ht-f-cantidad">Cantidad Planta Tecamac <span class="req">*</span></label>
-                                <input type="number" id="ht-f-cantidad" name="cantidad_portaherramientas"
-                                       min="0" value="0" required>
-                            </div>
-                        </div>
-                        <div class="ht-img-section">
-                            <div class="ht-img-section-header herramienta-color">
-                                📷 Foto de inserto
-                                <button type="button" class="ht-btn-add-img" onclick="htAgregarFoto('herramienta')">+ Agregar</button>
-                            </div>
-                            <div class="ht-img-list" id="ht-imgs-herramienta"></div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ═══════════════════════════════
-                     SECCIÓN: ACCESORIO
-                ═══════════════════════════════ --}}
-                <div class="ht-modal-section">
-                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-4a148c-6a1b9a">
-                        <span>🔩 Accesorio de Herramienta</span>
-                    </div>
-                    <div class="ht-modal-section-body">
-                        <div class="ht-img-section">
-                            <div class="ht-img-section-header accesorio-color">
-                                📷 Fotos de Accesorio
-                                <button type="button" class="ht-btn-add-img" onclick="htAgregarFoto('accesorio')">+ Agregar</button>
-                            </div>
-                            <div class="ht-img-list" id="ht-imgs-accesorio"></div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ═══════════════════════════════
-                     SECCIÓN: TORNILLERÍA
-                ═══════════════════════════════ --}}
-                <div class="ht-modal-section">
-                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-7a5200-a06a00">
-                        <span>🔩 Tornillería</span>
-                    </div>
-                    <div class="ht-modal-section-body">
-                        <div class="ht-img-section">
-                            <div class="ht-img-section-header tornilleria-color">
-                                📷 Fotos de Tornillería
-                                <button type="button" class="ht-btn-add-img" onclick="htAgregarFoto('tornilleria')">+ Agregar</button>
-                            </div>
-                            <div class="ht-img-list" id="ht-imgs-tornilleria"></div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ═══════════════════════════════
-                     SECCIÓN: IMAGEN FÍSICA
-                ═══════════════════════════════ --}}
-                <div class="ht-modal-section">
-                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-1b5e20-2e7d32">
-                        <span>🖼️ Imagen Física</span>
-                    </div>
-                    <div class="ht-modal-section-body">
-                        <div class="ht-img-section">
-                            <div class="ht-img-section-header imagen-fisica-color">
-                                📷 Fotos de Imagen Física
-                                <button type="button" class="ht-btn-add-img" onclick="htAgregarFoto('imagen_fisica')">+ Agregar</button>
-                            </div>
-                            <div class="ht-img-list" id="ht-imgs-imagen_fisica"></div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ═══════════════════════════════
-                     SECCIÓN: CONDICIONES DE CORTE
-                ═══════════════════════════════ --}}
-                <div class="ht-modal-section">
-                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-9c0300-c62828">
-                        <span>🔴 Condiciones de Corte (PULG.)</span>
-                    </div>
-                    <div class="ht-modal-section-body">
-                        <div class="ht-form-grid">
-                            <div class="ht-form-field">
-                                <label for="ht-f-profundidad">Profundidad de Corte</label>
-                                <input type="number" id="ht-f-profundidad" name="profundidad_corte"
-                                       step="0.0001" min="0" placeholder="Ej. 0.0600">
-                            </div>
-                            <div class="ht-form-field">
-                                <label for="ht-f-rpm">RPM</label>
-                                <input type="number" id="ht-f-rpm" name="rpm" min="0" placeholder="Ej. 600">
-                            </div>
-                            <div class="ht-form-field full-width">
-                                <label for="ht-f-avances">Avances</label>
-                                <input type="text" id="ht-f-avances" name="avances"
-                                       placeholder="Ej. 0.012 AVANCE/MIN" maxlength="100">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- ═══════════════════════════════
-                     SECCIÓN: STOCK
-                ═══════════════════════════════ --}}
-                <div class="ht-modal-section">
-                    <div class="ht-modal-section-header herr-background-linear-gradient-135deg-027a3a-02903f">
-                        <span>📊 Control de Stock</span>
-                    </div>
-                    <div class="ht-modal-section-body">
-                        <div class="ht-form-grid">
-                            <div class="ht-form-field">
-                                <label for="ht-f-minimo">Mínimo en Stock</label>
-                                <input type="number" id="ht-f-minimo" name="minimo" min="0" placeholder="Ej. 5">
-                            </div>
-                            <div class="ht-form-field">
-                                <label for="ht-f-maximo">Máximo en Stock</label>
-                                <input type="number" id="ht-f-maximo" name="maximo" min="0" placeholder="Ej. 30">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </form>
-        </div>
-        <div class="ht-modal-footer">
-            <button class="ht-btn-cancel" id="ht-btn-cancel" type="button">Cancelar</button>
-            <button class="ht-btn-save"   id="ht-btn-save"   type="button">💾 Guardar</button>
-        </div>
-    </div>
-</div>
-
-{{-- Confirmación --}}
-<div class="ht-confirm-overlay" id="ht-confirm-overlay">
-    <div class="ht-confirm-box">
-        <h4 id="ht-confirm-titulo">¿Confirmar acción?</h4>
-        <p id="ht-confirm-desc"></p>
-        <div class="ht-confirm-actions">
-            <button class="ht-btn-accion ht-btn-edit" id="ht-confirm-no">Cancelar</button>
-            <button class="ht-btn-accion ht-btn-delete" id="ht-confirm-si">Confirmar</button>
-        </div>
-    </div>
-</div>
-@endif
-
-{{-- ════════════════════════════════════════════════
+    {{-- ════════════════════════════════════════════════
      MODAL STOCK — Solo Admin (mín/máx + datos readonly)
 ════════════════════════════════════════════════ --}}
-@if($esAdmin)
-<div class="ht-modal-overlay" id="ht-modal-stock-overlay" role="dialog" aria-modal="true" aria-labelledby="ht-stock-title">
-    <div class="ht-modal ht-modal-stock">
-        <div class="ht-modal-header herr-background-linear-gradient-135deg-027a3a-02903f">
-            <div>
-                <h3 id="ht-stock-title">📊 Editar Stock</h3>
-                <p class="ht-modal-subtitle" id="ht-stock-subtitle">Solo puede editar Mínimo y Máximo</p>
-            </div>
-            <button class="ht-modal-close" id="ht-stock-close" type="button">✕</button>
-        </div>
-        <div class="ht-modal-body">
-
-            {{-- Datos de referencia (solo lectura) --}}
-            <div class="ht-stock-readonly-card">
-                <div class="ht-stock-readonly-label">Herramienta</div>
-                <div class="ht-stock-readonly-value" id="ht-stock-nombre">—</div>
-                <div class="ht-stock-readonly-label herr-margin-top-0-6em">Descripción / Inserto</div>
-                <div class="ht-stock-readonly-value" id="ht-stock-desc">—</div>
-                <div class="ht-stock-readonly-label herr-margin-top-0-6em">Cantidad en Planta</div>
-                <div class="ht-stock-readonly-value" id="ht-stock-cantidad">—</div>
-            </div>
-
-            {{-- Campos editables --}}
-            <div class="ht-stock-edit-grid">
-                <div class="ht-form-field">
-                    <label for="ht-stock-minimo">
-                        <span class="ht-stock-field-icon herr-color-9c0300">▼</span>
-                        Mínimo en Stock
-                    </label>
-                    <input type="number" id="ht-stock-minimo" name="minimo" min="0"
-                           placeholder="Ej. 5" class="ht-stock-input">
+    @if ($esAdmin)
+        <div class="ht-modal-overlay" id="ht-modal-stock-overlay" role="dialog" aria-modal="true"
+            aria-labelledby="ht-stock-title">
+            <div class="ht-modal ht-modal-stock">
+                <div class="ht-modal-header herr-background-linear-gradient-135deg-027a3a-02903f">
+                    <div>
+                        <h3 id="ht-stock-title">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5" style="vertical-align: -2px; margin-right: 6px;">
+                                <line x1="18" y1="20" x2="18" y2="10" />
+                                <line x1="12" y1="20" x2="12" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg>
+                            Editar Stock
+                        </h3>
+                        <p class="ht-modal-subtitle" id="ht-stock-subtitle">Solo puede editar Mínimo y Máximo</p>
+                    </div>
+                    <button class="ht-modal-close" id="ht-stock-close" type="button">✕</button>
                 </div>
-                <div class="ht-form-field">
-                    <label for="ht-stock-maximo">
-                        <span class="ht-stock-field-icon herr-color-027a3a">▲</span>
-                        Máximo en Stock
-                    </label>
-                    <input type="number" id="ht-stock-maximo" name="maximo" min="0"
-                           placeholder="Ej. 30" class="ht-stock-input">
+                <div class="ht-modal-body">
+
+                    {{-- Datos de referencia (solo lectura) --}}
+                    <div class="ht-stock-readonly-card">
+                        <div class="ht-stock-readonly-label">Herramienta</div>
+                        <div class="ht-stock-readonly-value" id="ht-stock-nombre">—</div>
+                        <div class="ht-stock-readonly-label herr-margin-top-0-6em">Descripción / Inserto</div>
+                        <div class="ht-stock-readonly-value" id="ht-stock-desc">—</div>
+                        <div class="ht-stock-readonly-label herr-margin-top-0-6em">Cantidad en Planta</div>
+                        <div class="ht-stock-readonly-value" id="ht-stock-cantidad">—</div>
+                    </div>
+
+                    {{-- Campos editables --}}
+                    <div class="ht-stock-edit-grid">
+                        <div class="ht-form-field">
+                            <label for="ht-stock-minimo">
+                                <span class="ht-stock-field-icon herr-color-9c0300">▼</span>
+                                Mínimo en Stock
+                            </label>
+                            <input type="number" id="ht-stock-minimo" name="minimo" min="0"
+                                placeholder="Ej. 5" class="ht-stock-input">
+                        </div>
+                        <div class="ht-form-field">
+                            <label for="ht-stock-maximo">
+                                <span class="ht-stock-field-icon herr-color-027a3a">▲</span>
+                                Máximo en Stock
+                            </label>
+                            <input type="number" id="ht-stock-maximo" name="maximo" min="0"
+                                placeholder="Ej. 30" class="ht-stock-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="ht-modal-footer">
+                    <button class="ht-btn-cancel" id="ht-stock-cancel" type="button">Cancelar</button>
+                    <button class="ht-btn-save ht-btn-save-stock" id="ht-stock-save" type="button">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                            <polyline points="17 21 17 13 7 13 7 21" />
+                            <polyline points="7 3 7 8 15 8" />
+                        </svg>
+                        Guardar Stock
+                    </button>
                 </div>
             </div>
         </div>
-        <div class="ht-modal-footer">
-            <button class="ht-btn-cancel" id="ht-stock-cancel" type="button">Cancelar</button>
-            <button class="ht-btn-save ht-btn-save-stock" id="ht-stock-save" type="button">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-                Guardar Stock
-            </button>
+    @endif
+
+    {{-- Lightbox --}}
+    <div class="ht-lightbox-overlay" id="ht-lightbox-overlay">
+        <button class="ht-lightbox-close" id="ht-lightbox-close" type="button">✕</button>
+        <div class="ht-lightbox-img-wrap">
+            <img id="ht-lightbox-img" class="ht-lightbox-img" src="" alt="Imagen ampliada">
         </div>
+        <p id="ht-lightbox-caption"></p>
     </div>
-</div>
-@endif
 
-{{-- Lightbox --}}
-<div class="ht-lightbox-overlay" id="ht-lightbox-overlay">
-    <button class="ht-lightbox-close" id="ht-lightbox-close" type="button">✕</button>
-    <div class="ht-lightbox-img-wrap">
-        <img id="ht-lightbox-img" class="ht-lightbox-img" src="" alt="Imagen ampliada">
-    </div>
-    <p id="ht-lightbox-caption"></p>
-</div>
-
-<script>
-    window.htRoutes = {
-        store      : "{{ route('herramientas.tecamac.store') }}",
-        update     : "{{ url('herramientas/tecamac') }}/{id}",
-        destroy    : "{{ url('herramientas/tecamac') }}/{id}",
-        reactivar  : "{{ url('herramientas/tecamac') }}/{id}/reactivar",
-        updateStock: "{{ url('herramientas/tecamac') }}/{id}/stock",
-    };
-    window.htModo      = "{{ $modo }}";
-    window.htEsCrud    = {{ $esCrud    ? 'true' : 'false' }};
-    window.htEsAlta    = {{ $esAlta   ? 'true' : 'false' }};
-    window.htEsAlmacen = {{ $esAlmacen ? 'true' : 'false' }};
-    window.htEsAdmin   = {{ $esAdmin  ? 'true' : 'false' }};
-    // Paleta de colores por proceso (para preview en modal)
-    window.htProcesoPaleta = @json($procesoPaleta);
-</script>
+    <script>
+        window.htRoutes = {
+            store: "{{ route('herramientas.tecamac.store') }}",
+            update: "{{ url('herramientas/tecamac') }}/{id}",
+            destroy: "{{ url('herramientas/tecamac') }}/{id}",
+            reactivar: "{{ url('herramientas/tecamac') }}/{id}/reactivar",
+            updateStock: "{{ url('herramientas/tecamac') }}/{id}/stock",
+        };
+        window.htModo = "{{ $modo }}";
+        window.htEsCrud = {{ $esCrud ? 'true' : 'false' }};
+        window.htEsAlta = {{ $esAlta ? 'true' : 'false' }};
+        window.htEsAlmacen = {{ $esAlmacen ? 'true' : 'false' }};
+        window.htEsAdmin = {{ $esAdmin ? 'true' : 'false' }};
+        // Paleta de colores por proceso (para preview en modal)
+        window.htProcesoPaleta = @json($procesoPaleta);
+    </script>
 
 @endsection

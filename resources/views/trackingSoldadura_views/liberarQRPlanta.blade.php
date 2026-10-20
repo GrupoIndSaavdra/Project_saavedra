@@ -11,9 +11,14 @@
 
 @section('content')
     <div class="wrapper">
-        <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-        <h2>Entrega de Soldadura</h2>
-        <p class="subtitle">Entrega de botes de soldadura a operadores de planta</p>
+        <div class="report-header">
+            <div class="title-row">
+                <img src="{{ asset('images/Iconos_Vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
+                <h1>Entrega de Soldadura a Planta</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
+            </div>
+            <p class="subtitle">Entrega y asignación de botes de soldadura a operadores de producción</p>
+        </div>
 
         {{-- Contador de botes disponibles --}}
         <div class="info-badge {{ ($botesEnPlanta ?? 0) > 0 ? 'badge-success' : 'badge-warning' }}">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Maquinas;
 use App\Models\Metas;
 use App\Models\SystemLog;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -23,15 +24,44 @@ class MachinesController extends Controller
         $machines = $this->machinesOccupied();
         return view('machines_views.machinesOccupied', compact('machines'));
     }
+
     public function machinesOccupied()
     {
         $machines = Maquinas::all();
         $occupiedMachines = array();
+
+        // Obtener las metas relacionadas para identificar al operador asignado
+        $metaIds = $machines->pluck('id_meta')->filter()->unique();
+        $metas = Metas::whereIn('id', $metaIds)->get()->keyBy('id');
+
+        // Obtener los usuarios correspondientes por id_usuario (matricula)
+        $matriculas = $metas->pluck('id_usuario')->filter()->unique();
+        $users = User::whereIn('matricula', $matriculas)->get()->keyBy('matricula');
+
         foreach ($machines as $key => $machine) {
+            $meta = $metas->get($machine->id_meta);
+            $operatorName = 'Sin asignar';
+            $operatorMatricula = '';
+
+            if ($meta && !empty($meta->id_usuario)) {
+                $user = $users->get($meta->id_usuario);
+                if ($user) {
+                    $fullName = trim("{$user->nombre} {$user->a_paterno} {$user->a_materno}");
+                    $operatorName = $fullName !== '' ? $fullName : trim("{$user->nombre} {$user->a_paterno}");
+                    $operatorMatricula = (string) $user->matricula;
+                } else {
+                    $operatorName = "Matrícula {$meta->id_usuario}";
+                    $operatorMatricula = (string) $meta->id_usuario;
+                }
+            }
+
             $occupiedMachines[$key] = array(
                 'id' => $machine->id,
                 'process' => $machine->proceso,
-                'machine' => $machine->maquina
+                'machine' => $machine->maquina,
+                'operator' => $operatorName,
+                'operator_matricula' => $operatorMatricula,
+                'id_meta' => $machine->id_meta,
             );
         }
         return $occupiedMachines;

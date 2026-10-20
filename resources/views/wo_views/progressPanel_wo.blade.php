@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>Panel de OT's</title>

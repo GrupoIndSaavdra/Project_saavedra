@@ -56,17 +56,38 @@
             </button>
             <div class="filter-opacity">
                 <nav class="nav" id="nav">
-                    <ul class="nav-list"></ul>
-                    @php
-                        // Si tiene sesión temporal Y NO ES perfil 1 (Admin/Sistemas) ni 6 (Gerencia) ni 8 (Calidad/Ingeniería), se recorta su menú
-                        $isPtaTemp = session('pta_temp_auth') && !in_array(auth()->user()->perfil, ['1', '3', '6', '8']);
-                    @endphp
+                    <!-- Cabecera del Menú Lateral -->
+                    <div class="nav-drawer-header">
+                        <div class="nav-drawer-brand">
+                            <img src="{{ asset('images/lg_saavedra.png') }}" alt="GIS Logo" class="nav-drawer-logo">
+                            <div class="nav-drawer-titles">
+                                <span class="nav-drawer-title">PORTAL SAAVEDRA</span>
+                                <span class="nav-drawer-subtitle">Navegación del Sistema</span>
+                            </div>
+                        </div>
+                    </div>
 
-                    @if($isPtaTemp)
-                        <a class="btn-close-session" href="{{ route('pta.close_temp_session') }}">Regresar al Reporte</a>
-                    @else
-                        <a class="btn-close-session" href="{{ route('logout') }}">Cerrar sesión</a>
-                    @endif
+                    <ul class="nav-list"></ul>
+
+                    <!-- Pie del Menú con Cerrar Sesión -->
+                    <div class="nav-drawer-footer">
+                        @php
+                            // Si tiene sesión temporal Y NO ES perfil 1 (Admin/Sistemas) ni 6 (Gerencia) ni 8 (Calidad/Ingeniería), se recorta su menú
+                            $isPtaTemp = session('pta_temp_auth') && !in_array(auth()->user()->perfil, ['1', '3', '6', '8']);
+                        @endphp
+
+                        @if($isPtaTemp)
+                            <a class="btn-close-session" href="{{ route('pta.close_temp_session') }}">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                <span>Regresar al Reporte</span>
+                            </a>
+                        @else
+                            <a class="btn-close-session" href="{{ route('logout') }}">
+                                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                                <span>Cerrar sesión</span>
+                            </a>
+                        @endif
+                    </div>
                     <input type="hidden" value="{{ $isPtaTemp ? 'pta_temp' : auth()->user()->perfil }}" id="profile">
                 </nav>
             </div>
@@ -212,3 +233,4 @@
 @endisset
 
 </html>
+

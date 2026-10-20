@@ -205,7 +205,11 @@ if (!function_exists('safeDateParseDisplay')) {
             <div class="header-logo">
                 <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" />
             </div>
-            <div class="header-title">
+            <div class="header-title" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                @if (file_exists(public_path('images/Iconos_Vistas/Prioridades.png')))
+                    <img src="{{ asset('images/Iconos_Vistas/Prioridades.png') }}" alt="Prioridades"
+                        style="height: 38px; width: auto; object-fit: contain;">
+                @endif
                 <h1>PRIORIDADES</h1>
             </div>
             <div class="header-week">

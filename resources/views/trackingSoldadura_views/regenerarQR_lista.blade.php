@@ -10,12 +10,14 @@
 
 @section('content')
     <div class="wrapper-lista">
-        <div class="header-lista">
-            <div class="header-info">
-                <h2>Regenerar QRs de Soldadura</h2>
-                <p class="subtitulo">Selecciona un lote para descargar sus QRs</p>
+        <div class="report-header">
+            <div class="title-row">
+                <img src="{{ asset('images/Iconos_Vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
+                <h1>Regenerar QRs de Soldadura</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
             </div>
-            <a href="{{ route('soldadura.regenerarQR.cerrar') }}" class="btn btn-danger btn-cerrar">
+            <p class="subtitle">Selecciona un lote para descargar sus códigos QR de soldadura</p>
+            <a href="{{ route('soldadura.regenerarQR.cerrar') }}" class="btn btn-danger btn-cerrar-header">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
                     <path

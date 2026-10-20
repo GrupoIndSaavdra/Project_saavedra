@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -55,12 +55,13 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
-    z-index: 9999;
+    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    z-index: 100001;
     align-items: center;
     justify-content: center;
+    padding: 20px;
 }
 
 .pta-modal-content {

@@ -73,74 +73,207 @@ h1 {
 .scrollable-table {
     position: relative;
     opacity: 0;
-    margin: 5em auto;
-    border-radius: 10px;
-    width: 90vw;
-    height: 20vh;
+    margin: 1.8rem auto 1.5rem auto;
+    border-radius: 16px;
+    width: -webkit-fit-content;
+    width: -moz-fit-content;
+    width: fit-content;
+    max-width: 95vw;
+    height: auto;
+    max-height: 60vh;
     overflow-x: auto;
-    display: flex;
-    align-items: center;
-    transform: translateY(-20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
+    overflow-y: hidden;
+    padding: 10px;
+    box-sizing: border-box;
+    display: block;
+    transform: translateY(-15px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
 }
-.scrollable-table.visible, .btn-submit.visible{
+
+/* Scrollbar cross-browser estándar con @supports según styles_skill.md */
+.scrollable-table::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+.scrollable-table::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+.scrollable-table::-webkit-scrollbar-thumb {
+    background: var(--gis-blue);
+    border-radius: 4px;
+}
+@supports (scrollbar-width: thin) {
+    .scrollable-table {
+        scrollbar-width: thin;
+        scrollbar-color: var(--gis-blue) rgba(0, 0, 0, 0.05);
+    }
+}
+
+.scrollable-table.visible,
+.btn-submit.visible {
     opacity: 1;
     transform: translateY(0);
     pointer-events: auto;
 }
+
 .table {
-    position: absolute;
-    border-collapse: collapse;
-    border: 2px solid #032c00cc;
-    background: #fff;   
-    margin: 10px;
-    width: 200%;
-    box-shadow: 0 0 10px rgba(0, 0, 0);
+    position: relative;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff;
+    margin: 0 auto;
+    width: -webkit-max-content;
+    width: -moz-max-content;
+    width: max-content;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(3, 57, 102, 0.25);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
 }
 
 .table-title {
-    border: 3px solid #000;
     background-color: var(--gis-blue);
+    color: #ffffff;
     text-align: center;
-    color: #fff;
-    padding: 10px;
+    padding: 10px 12px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: none;
+    border-bottom: 2px solid var(--gis-blue);
+    border-right: 1px solid rgba(255, 255, 255, 0.18);
+    width: calc((95vw - 170px) / 10);
+    min-width: 160px;
+    max-width: 185px;
+    line-height: 1.25;
+    white-space: normal;
 }
-.table input {
-    color: #000000;
-    text-align: center;
-    padding: 0.5em 0;
-    font-size: 1.2em;
-    background: var(--gis-blue)10;
-    
+
+.table-title:last-child {
+    border-right: none;
 }
-.table td{
-    text-align: center;
+
+/* Primera columna fija (C.nominal / Tolerancias) */
+.table th:first-child,
+.table td:first-child {
+    width: 130px !important;
+    min-width: 125px !important;
+    max-width: 140px !important;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+}
+
+.table th:first-child {
+    background-color: #022543 !important;
+    z-index: 3;
+    border-right: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.table td:first-child {
+    background-color: #f1f5f9;
+    color: var(--gis-blue);
     font-weight: 700;
-    border: 3px solid var(--gis-blue);
+    font-size: 0.82rem;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-right: 2px solid var(--gis-blue);
+    border-bottom: 1px solid rgba(3, 57, 102, 0.18);
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+    white-space: nowrap;
 }
+
+.table td {
+    text-align: center;
+    font-weight: 600;
+    padding: 0;
+    height: 46px;
+    width: calc((95vw - 170px) / 10);
+    min-width: 160px;
+    max-width: 185px;
+    border: none;
+    border-bottom: 1px solid rgba(3, 57, 102, 0.18);
+    border-right: 1px solid rgba(3, 57, 102, 0.18);
+    background: #ffffff;
+    vertical-align: middle;
+}
+
+.table td:last-child {
+    border-right: none;
+}
+
+.table tr:last-child td {
+    border-bottom: none;
+}
+
+.table input {
+    color: #0f172a;
+    text-align: center;
+    padding: 4px 6px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    border: none;
+    outline: none;
+    height: 40px;
+    background: transparent;
+    box-sizing: border-box;
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.table input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.table input:focus {
+    background-color: rgba(3, 57, 102, 0.07);
+    box-shadow: inset 0 0 0 2px var(--gis-blue);
+}
+
 .input-medio {
     width: 50%;
+    float: left;
+    box-sizing: border-box;
+    height: 40px;
 }
+
+.input-medio:first-child {
+    border-right: 1px solid rgba(3, 57, 102, 0.18) !important;
+}
+
 .input {
     width: 100%;
+    display: block;
+    box-sizing: border-box;
+    height: 40px;
 }
+
 .btn-submit {
-    display: flex;
-    margin: auto;
+    display: block;
+    margin: 1.2rem auto 2.5rem auto;
     opacity: 0;
     background: var(--gis-blue);
     color: #ffffff;
-    width: 8em;
+    min-width: 9em;
     box-sizing: border-box;
-    padding: 0.8em 1.5em;
+    padding: 0.85em 2.2em;
     border: none;
-    border-radius: 5px;
-    font-size: 1em;
+    border-radius: 8px;
+    font-size: 1.05rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: 0.3s all ease;
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.3);
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    text-align: center;
 }
-.btn-submit:hover {
-    transform: scale(1.1);
+
+.btn-submit:hover:not(:disabled) {
+    background-color: var(--gis-green);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 14px rgba(10, 133, 4, 0.4);
 }
 
 /* Estilos de alertas */
@@ -186,6 +319,7 @@ h1 {
 .remove-div {
     animation: fadeOut 0.3s ease-in forwards;
 }
+
 @media (max-width: 576px) {
     .lg-saavedra {
         width: 56%;
@@ -193,7 +327,7 @@ h1 {
     }
     h1 {
         font-size: 1.3em;
-        margin: 0em;
+        margin: 0;
     }
     .form-control {
         width: 90%;
@@ -206,15 +340,15 @@ h1 {
     .scrollable-table {
         position: relative;
         opacity: 0;
-        margin: 4em auto;
-        border-radius: 8px;
-        width: 90vw;
-        height: 16vh;
+        margin: 1.2em auto;
+        border-radius: 10px;
+        width: 95vw;
+        max-height: 55vh;
         overflow-x: auto;
-        display: flex;
-        align-items: center;
-        transform: translateY(-15px);
-        transition: opacity 0.5s ease, transform 0.5s ease;
+        display: block;
+        padding: 6px;
+        transform: translateY(-10px);
+        transition: opacity 0.4s ease, transform 0.4s ease;
     }
     .scrollable-table.visible {
         opacity: 1;
@@ -222,55 +356,61 @@ h1 {
         pointer-events: auto;
     }
     .table {
-        position: absolute;
-        border-collapse: collapse;
-        border: 2px solid #032c00cc;
+        position: relative;
+        border-collapse: separate;
+        border-spacing: 0;
         background: #fff;
+        width: -webkit-max-content;
+        width: -moz-max-content;
         width: max-content;
-        margin: 5px;
-        width: 150%;
-        box-shadow: 0 0 5px rgba(0, 0, 0);
+        min-width: 100%;
+        margin: 0 auto;
+        box-shadow: 0 0 6px rgba(0, 0, 0, 0.08);
     }
 
     .table-title {
-        border: 2px solid #000;
-        background-color: var(--gis-blue);
-        padding: 5px 0;
-        min-width: 150px;
-        text-align: center;
-        color: #fff;
-        font-size: 0.7em;
+        padding: 5px 6px;
+        min-width: 90px;
+        max-width: 140px;
+        font-size: 0.72rem;
     }
 
-    .table input {
-        color: #000000;
-        text-align: center;
-
-        padding: 0.3em 0;
-        font-size: 0.9em;
-        background: var(--gis-blue)10;
+    .table th:first-child,
+    .table td:first-child {
+        width: 105px !important;
+        min-width: 95px !important;
+        max-width: 115px !important;
+        font-size: 0.72rem;
+        padding: 4px 6px;
     }
 
     .table td {
-        text-align: center;
-        font-size: 1em;
-        font-weight: 600;
-        border: 2px solid var(--gis-blue);
+        font-size: 0.8rem;
+        height: 32px;
     }
+
+    .table input {
+        padding: 3px 4px;
+        font-size: 0.82rem;
+        height: 30px;
+    }
+
+    .input-medio,
+    .input {
+        height: 30px;
+    }
+
     .btn-submit {
-    opacity: 0;
-    left: 36vw;
-    bottom: 1vh;
-    background: var(--gis-blue);
-    color: #ffffff;
-    width: 8w;
-    font-size: 1em;
+        opacity: 0;
+        margin: 1rem auto 2rem auto;
+        width: auto;
+        min-width: 7em;
+        font-size: 0.95rem;
+    }
 
-}
-.btn-submit:hover {
-    background: var(--gis-green);
-    transform: scale(1.05);
-    transition: 0.3s ease;
-}
-
+    .btn-submit:hover {
+        background: var(--gis-green);
+        transform: scale(1.05);
+        transition: 0.3s ease;
+    }
 }

@@ -884,10 +884,11 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-    background: rgba(18, 18, 18, 0.85) !important;
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-    z-index: 1000 !important;
+    background: rgba(0, 10, 25, 0.85) !important; /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    z-index: 100001 !important;
+    padding: 20px;
 }
 
 .modal {

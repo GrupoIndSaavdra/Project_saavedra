@@ -11,8 +11,14 @@
 @section('content')
 <form action="{{ route('storeCNominals') }}" method="post" class="form-search">
     <div class="wrapper">
-        <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-        <h1>Cotas Nominales y Tolerancias</h1>
+        <div class="report-header">
+            <div class="title-row">
+                <img src="{{ asset('images/Iconos_Vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
+                <h1>Cotas Nominales y Tolerancias</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
+            </div>
+            <p class="subtitle">Definición de cotas críticas y márgenes de tolerancia por proceso</p>
+        </div>
         <div class="row-principal"></div>
         <div class="row"></div>
         @include('layouts.partials.messages')

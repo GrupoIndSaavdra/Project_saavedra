@@ -86,31 +86,39 @@
    VISTA DE LISTA DE LOTES
 ======================================== */
 .wrapper-lista {
-    max-width: 1300px;
-    margin: 1rem auto;
-    padding: 1.5rem;
-}
-
-.header-lista {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--glass-bg-white) !important;
+    max-width: 1400px;
+    width: 96%;
+    margin: 1.5rem auto 3rem auto;
+    padding: 1.8rem 2.2rem 2.5rem 2.2rem;
+    box-sizing: border-box;
+    background: var(--glass-bg-white);
     -webkit-backdrop-filter: blur(15px);
     backdrop-filter: blur(15px);
-    border: 5px solid var(--glass-border-white) !important;
-    padding: 1rem 1.5rem;
-    border-radius: 1rem;
-    width: 50%;
-    left: 100%;
-    right: 50%;
-    transform: translateX(50%);
-    margin-bottom: 1.5rem;
-    box-shadow: var(--glass-shadow) !important;
+    border: 5px solid var(--glass-border-white);
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
 }
 
-.lg-saavedra-small {
-    width: 100px;
+.report-header .btn-cerrar-header {
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .report-header .btn-cerrar-header {
+        position: static;
+        transform: none;
+        margin-top: 0.75rem;
+    }
 }
 
 .header-info {

@@ -579,15 +579,17 @@ label {
 
 /*Estilos para los componentes al eliminar una OT o una clase*/
 .div-opacity {
-    position: absolute;
+    position: fixed;
     top: 0;
+    left: 0;
     width: 100vw;
     height: 100vh;
     box-sizing: border-box;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: #0000003a;
+    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    z-index: 9999;
 }
 
 .div-delete {

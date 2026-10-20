@@ -12,21 +12,13 @@
 <div class="recover-viewport">
     <div class="recover-card">
         
-        {{-- Cabecera con Logo e Icono de Candado --}}
-        <div class="recover-header">
-            <a href="{{ route('home') }}" class="logo-link" title="Volver al inicio">
-                <img src="{{ asset('images/lg_saavedra.png') }}" class="recover-logo" alt="Grupo Industrial Saavedra" />
-            </a>
-
-            <div class="security-badge-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                    <circle cx="12" cy="16" r="1"></circle>
-                </svg>
+        {{-- Cabecera con iconos simétricos --}}
+        <div class="report-header">
+            <div class="title-row">
+                <img src="{{ asset('images/Iconos_Vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
+                <h1 class="recover-heading">Restablecer Contraseña</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
             </div>
-
-            <h1 class="recover-heading">Restablecer Contraseña</h1>
             <p class="recover-subheading">Ingresa tu matrícula institucional y define tu nueva clave de acceso.</p>
         </div>
 

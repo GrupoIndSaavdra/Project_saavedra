@@ -15,10 +15,13 @@
 @endphp
 
 <div class="wrapper-master">
-    <div class="header-master">
-        <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="Grupo Industrial Saavedra" />
-        <h2>Crear o Modificar Orden de Trabajo (Master)</h2>
-        <p>Seleccione una opción para dar de alta una nueva Orden de Trabajo o modificar los datos y cantidades de una existente.</p>
+    <div class="report-header">
+        <div class="title-row">
+            <img src="{{ asset('images/Iconos_Vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
+            <h2>Crear o Modificar Orden de Trabajo (Master)</h2>
+            <img src="{{ asset('images/Iconos_Vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
+        </div>
+        <p class="subtitle">Seleccione una opción para dar de alta una nueva Orden de Trabajo o modificar los datos y cantidades de una existente.</p>
     </div>
 
     @include('layouts.partials.messages')
@@ -192,3 +195,4 @@
     window.workOrdersData = @json($workOrdersAll);
 </script>
 @endsection
+

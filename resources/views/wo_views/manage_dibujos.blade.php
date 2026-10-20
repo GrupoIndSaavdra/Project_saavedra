@@ -17,8 +17,9 @@
         {{-- Encabezado --}}
         <div class="dibujos-header">
             <div class="dibujos-header-left">
-                <img src="{{ asset('images/DrawsProduction.png') }}" alt="Planos y Dibujos Técnicos" class="dibujos-header-icon">
+                <img src="{{ asset('images/Iconos_Vistas/Dibujos_Maquinados.png') }}" alt="Planos y Dibujos Técnicos" class="dibujos-header-icon">
                 <h1>{{ $pageTitle ?? 'Gestión de Documentación' }}</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Dibujos_Maquinados.png') }}" alt="Planos y Dibujos Técnicos" class="dibujos-header-icon">
             </div>
             <span>Directorio: {{ $directoryName ?? 'GIS' }} &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
@@ -374,3 +375,4 @@
         @endif
     </script>
 @endsection
+

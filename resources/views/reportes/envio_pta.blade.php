@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     @vite(['resources/css/reportes/envio_pta.css'])
@@ -12,9 +12,13 @@
 <div class="envio-pta-container">
 
     {{-- ── Header ──────────────────────────────────────────────── --}}
-    <div class="envio-pta-header">
-        <h1>Envío de Reportes PTA</h1>
-        <p>Selecciona la OT y clase con registros de Soldadura PTA, y envía el reporte PDF por correo.</p>
+    <div class="envio-pta-header report-header">
+        <div class="title-row">
+            <img src="{{ asset('images/Iconos_Vistas/Envio_Reportes_PTA.png') }}" class="header-view-icon" alt="Envío de Reportes PTA" />
+            <h1>Envío de Reportes PTA</h1>
+            <img src="{{ asset('images/Iconos_Vistas/Envio_Reportes_PTA.png') }}" class="header-view-icon" alt="Envío de Reportes PTA" />
+        </div>
+        <p class="subtitle">Selecciona la OT y clase con registros de Soldadura PTA, y envía el reporte PDF por correo.</p>
     </div>
 
     {{-- ── Alertas de sesión ───────────────────────────────────── --}}
@@ -360,3 +364,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

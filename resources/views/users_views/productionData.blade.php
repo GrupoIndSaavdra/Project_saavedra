@@ -10,8 +10,12 @@
 
 @section('content')
 <div class="container">
-    <div class="header-section">
-        <h1>Datos de Productividad</h1>
+    <div class="report-header">
+        <div class="title-row">
+            <img src="{{ asset('images/Iconos_Vistas/Datos_Productividad.png') }}" class="header-view-icon" alt="Datos de Productividad" />
+            <h1>Datos de Productividad</h1>
+            <img src="{{ asset('images/Iconos_Vistas/Datos_Productividad.png') }}" class="header-view-icon" alt="Datos de Productividad" />
+        </div>
         <p class="subtitle">Consulte el rendimiento y la eficiencia de los procesos en tiempo real</p>
     </div>
 

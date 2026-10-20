@@ -13,10 +13,12 @@ function initAppMenu() {
     let closeTimer = null;
 
     if (btn_open && nav) {
+        let headerEl = btn_open.closest("header");
         btn_open.addEventListener("click", function () {
             if (nav.classList.contains("is-open")) {
                 nav.classList.remove("is-open");
                 btn_open.classList.remove("is-open");
+                if (headerEl) headerEl.classList.remove("menu-is-open");
                 btn_open.setAttribute("aria-expanded", "false");
                 nav.style.opacity = "0";
                 if (closeTimer) clearTimeout(closeTimer);
@@ -29,6 +31,7 @@ function initAppMenu() {
                 if (closeTimer) clearTimeout(closeTimer);
                 nav.classList.add("is-open");
                 btn_open.classList.add("is-open");
+                if (headerEl) headerEl.classList.add("menu-is-open");
                 btn_open.setAttribute("aria-expanded", "true");
                 nav.style.visibility = "visible";
                 nav.style.opacity = "1";
@@ -39,6 +42,7 @@ function initAppMenu() {
             if (e.target === nav) {
                 nav.classList.remove("is-open");
                 btn_open.classList.remove("is-open");
+                if (headerEl) headerEl.classList.remove("menu-is-open");
                 btn_open.setAttribute("aria-expanded", "false");
                 nav.style.opacity = "0";
                 if (closeTimer) clearTimeout(closeTimer);
@@ -460,7 +464,7 @@ function getRoutes(profile) {
         {
             title: "Herramientas",
             routes: [
-                ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                ["herramientas.tecamac.index", "Herramientas Planta Tecámac"],
             ],
         },
     ];
@@ -495,7 +499,7 @@ function getRoutes(profile) {
                         {
                             title: "Herramientas",
                             routes: [
-                                ["herramientas.tecamac.index", "Herramientas Tecamac", "sec=almacen"],
+                                ["herramientas.tecamac.index", "Herramientas Planta Tecámac", "sec=almacen"],
                             ],
                         },
                     ],
@@ -515,7 +519,7 @@ function getRoutes(profile) {
                 {
                     title: "Herramientas",
                     routes: [
-                        ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                        ["herramientas.tecamac.index", "Herramientas Planta Tecámac"],
                     ],
                 },
             ];
@@ -596,7 +600,7 @@ function getRoutes(profile) {
                         {
                             title: "Herramientas",
                             routes: [
-                                ["herramientas.tecamac.index", "Herramientas Tecamac", "sec=almacen"],
+                                ["herramientas.tecamac.index", "Herramientas Planta Tecámac", "sec=almacen"],
                             ],
                         },
                     ],
@@ -710,7 +714,7 @@ function getRoutes(profile) {
                 {
                     title: "Herramientas",
                     routes: [
-                        ["herramientas.tecamac.index", "Herramientas Tecamac"],
+                        ["herramientas.tecamac.index", "Herramientas Planta Tecámac"],
                     ],
                 },
             ];

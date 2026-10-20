@@ -11,8 +11,14 @@
 @section('content')
 <!--Formulario para seleccionar o crear una orden de trabajo-->
 <div class="wrapper">
-    <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-    <h2>Agregar o seleccionar orden de trabajo</h2>
+    <div class="report-header">
+        <div class="title-row">
+            <img src="{{ asset('images/Iconos_Vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
+            <h2>Agregar o seleccionar orden de trabajo</h2>
+            <img src="{{ asset('images/Iconos_Vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
+        </div>
+        <p class="subtitle">Seleccione una OT existente para captura de procesos o registre una nueva orden</p>
+    </div>
     <form action="{{ route('storeWO', request('almacen_only') == 1 ? ['almacen_only' => 1] : []) }}" method="POST" class="form pt-3">
         @csrf
         @include('layouts.partials.messages') <!--Mensajes de error o exito en la creacion o seleccion de una orden de trabajo-->

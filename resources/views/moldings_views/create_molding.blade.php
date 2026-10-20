@@ -9,8 +9,14 @@
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")') <!--Body background Image-->
 @section('content')
 <div class="wrapper">
-    <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-    <h2>Registrar nuevas molduras</h2>
+    <div class="report-header">
+        <div class="title-row">
+            <img src="{{ asset('images/Iconos_Vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
+            <h2>Registrar nuevas molduras</h2>
+            <img src="{{ asset('images/Iconos_Vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
+        </div>
+        <p class="subtitle">Alta y catalogación de nuevos modelos de moldura en el sistema</p>
+    </div>
     <form action="{{ route('storeMolding') }}" method="post">
         @csrf
         @include('layouts.partials.messages')

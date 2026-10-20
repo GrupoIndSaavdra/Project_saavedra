@@ -711,13 +711,13 @@ table td:last-child {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.6);
-    -webkit-backdrop-filter: blur(4px);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
     display: none;
     align-items: center;
     justify-content: center;
-    z-index: 9999;
+    z-index: 100001;
     padding: 20px;
     box-sizing: border-box;
 }

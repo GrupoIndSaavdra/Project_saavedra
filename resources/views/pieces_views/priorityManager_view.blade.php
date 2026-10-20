@@ -21,18 +21,18 @@
 <div class="pm-page">
 
     {{-- ── Encabezado ─────────────────────────────────────────── --}}
-    <div class="pm-header">
-        <div class="pm-header-left">
-            <div class="pm-header-icon-wrapper">
-                <img src="{{ asset('images/priorizar.png') }}" class="pm-title-icon" alt="">
-            </div>
-            <div class="pm-header-titles">
-                <h1 class="pm-title">Prioridad de Órdenes de Trabajo</h1>
-                <p class="pm-subtitle">
-                    Consulta del orden de prioridad en que aparecen las OTs en la vista de producción.
-                </p>
-            </div>
+    <div class="report-header">
+        <div class="title-row">
+            @php
+                $prioridadIcon = file_exists(public_path('images/Iconos_Vistas/Prioridades.png')) ? 'images/Iconos_Vistas/Prioridades.png' : 'images/Iconos_Vistas/Prioridades_OT.png';
+            @endphp
+            <img src="{{ asset($prioridadIcon) }}" class="header-view-icon" alt="Prioridad de Órdenes de Trabajo" />
+            <h1>Prioridad de Órdenes de Trabajo</h1>
+            <img src="{{ asset($prioridadIcon) }}" class="header-view-icon" alt="Prioridad de Órdenes de Trabajo" />
         </div>
+        <p class="subtitle">
+            Consulta del orden de prioridad en que aparecen las OTs en la vista de producción.
+        </p>
     </div>
 
     {{-- ── Banner informativo ────────────────────────────────── --}}
@@ -73,3 +73,4 @@
 {{-- Toast de resultado --}}
 <div class="pm-toast" id="pm-toast" role="alert" aria-live="polite"></div>
 @endsection
+

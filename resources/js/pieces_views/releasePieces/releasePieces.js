@@ -1,3 +1,4 @@
+import { createDateFilterTrigger } from '../../components/modalCmCalendar.js';
 var operacion = false;
 
 // Restaurar filtros si venimos de la vista de detalle de una pieza
@@ -349,17 +350,17 @@ function createFilters() {
     };
     Object.keys(window.selectedItems).forEach((item) => {
         let div = document.createElement("div");
-        div.className = "filter";
+        div.className = "filter filter-" + item;
 
         switch (item) {
             case "dateFrom":
             case "dateTo":
-                let input = document.createElement("input");
-                input.type = "date";
-                input.name = item;
-                input.className = "input-filter";
-                input.value = window.selectedItems[item];
-                div.appendChild(input);
+                createDateFilterTrigger(
+                    div,
+                    item,
+                    window.selectedItems[item] || "",
+                    titles[item] || "Fecha"
+                );
                 break;
             default:
                 if (item != "action" && item != "n_juego" && item != "status") {
@@ -533,6 +534,9 @@ function createFilters() {
         // ============================================
         // NUEVO BOTÓN: Limpiar Filtros
         // ============================================
+        let divClear = document.createElement("div");
+        divClear.className = "filter filter-btn-wrapper";
+
         let btnClear = document.createElement("button");
         btnClear.id = "btnClearFilters";
         btnClear.textContent = "Limpiar Filtros";
@@ -552,6 +556,18 @@ function createFilters() {
             document.querySelectorAll(".input-filter").forEach(input => {
                 input.value = "";
             });
+            document.querySelectorAll(".date-trigger-label").forEach(label => {
+                label.textContent = "dd/mm/aaaa";
+                label.style.color = "#64748b";
+                label.style.fontWeight = "500";
+                label.style.flex = "1 1 auto";
+                label.style.width = "100%";
+                label.style.maxWidth = "100%";
+                label.classList.add("is-empty");
+            });
+            document.querySelectorAll(".btn-clear-single-date").forEach(btn => {
+                btn.style.display = "none";
+            });
 
             let statusSel = document.getElementById("statusPieceFilter");
             if (statusSel) {
@@ -560,22 +576,25 @@ function createFilters() {
             }
 
             applyAllFilters();
+            if (window.updateClearButtonState) window.updateClearButtonState();
         });
 
-        document.querySelector(".filters").appendChild(btnClear);
+        divClear.appendChild(btnClear);
+        document.querySelector(".filters").appendChild(divClear);
 
         // Función para actualizar el estado del botón
         window.updateClearButtonState = () => {
             let hasFilters = false;
             document.querySelectorAll(".select-filter").forEach(s => {
-                if (s.value !== "Todos") hasFilters = true;
+                if (s.value && s.value !== "Todos" && s.value !== "") hasFilters = true;
             });
             document.querySelectorAll(".input-filter").forEach(i => {
-                if (i.value !== "") hasFilters = true;
+                if (i.value && i.value !== "" && i.value !== "Todos") hasFilters = true;
             });
 
             btnClear.disabled = !hasFilters;
         };
+        window.updateClearButtonState();
     }
 }
 createFilters();
@@ -866,6 +885,10 @@ function applyAllFilters() {
         if (name === "operator") {
             return el.options[el.selectedIndex].textContent.trim();
         }
+        if (name === "dateFrom" || name === "dateTo") {
+            let v = el.value.trim();
+            return (v === "Todos" || !v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) ? "" : v;
+        }
         return el.value.trim();
     };
 
@@ -956,15 +979,15 @@ function applyAllFilters() {
         // Si no tiene fecha de maquinado (caso borde), se muestra igualmente.
         if (ds.date && ds.date.trim() !== "" && ds.date !== "No liberado") {
             let dsDate = ds.date.replace(/\n/g, "").trim().split(" ")[0];
-            if (f.dateFrom && f.dateFrom !== "") {
+            if (f.dateFrom && f.dateFrom !== "" && f.dateFrom !== "Todos") {
                 if (dsDate < f.dateFrom) show = false;
             }
-            if (f.dateTo && f.dateTo !== "") {
+            if (f.dateTo && f.dateTo !== "" && f.dateTo !== "Todos") {
                 if (dsDate > f.dateTo) show = false;
             }
         }
 
-        row.classList.toggle("hidden", !(show ));
+        row.classList.toggle("hidden", !(show));
         if (show) visibleCount++;
     });
 

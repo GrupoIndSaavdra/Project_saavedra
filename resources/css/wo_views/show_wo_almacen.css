@@ -1228,11 +1228,14 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 10, 25, 0.75);
-    z-index: 9999;
+    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    z-index: 100001;
     display: flex;
     justify-content: center;
     align-items: center;
+    padding: 20px;
 }
 .modal-overlay[hidden] {
     display: none !important;

@@ -1,4 +1,4 @@
-﻿@extends('layouts.appMenu')
+@extends('layouts.appMenu')
 
 @section('head')
     <title>2da Pasada — Soldadura PTA</title>
@@ -12,9 +12,13 @@
     <div class="pta-analysis-wrapper">
 
         {{-- Header --}}
-        <div class="pta-header">
-            <h2>Edición 2da Pasada — Soldadura PTA</h2>
-            <p>Selecciona OT, Clase y Pieza para editar los datos de segunda pasada</p>
+        <div class="report-header">
+            <div class="title-row">
+                <img src="{{ asset('images/Iconos_Vistas/Segunda_Pasada_PTA.png') }}" class="header-view-icon" alt="2da Pasada PTA" />
+                <h1>Edición 2da Pasada — Soldadura PTA</h1>
+                <img src="{{ asset('images/Iconos_Vistas/Segunda_Pasada_PTA.png') }}" class="header-view-icon" alt="2da Pasada PTA" />
+            </div>
+            <p class="subtitle">Selecciona OT, Clase y Pieza para editar los datos de segunda pasada</p>
         </div>
         {{-- Alertas --}}
         @if (session('success'))
@@ -554,3 +558,4 @@
         };
     </script>
 @endsection
+

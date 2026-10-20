@@ -29,3 +29,7 @@ yarn-error.log
 # Archivos de volcado de datos locales
 /pieces_output.json
 /pieces_full.json
+
+# Archivos temporales de agentes/skills
+/skills/aprendizajes_temp.md
+

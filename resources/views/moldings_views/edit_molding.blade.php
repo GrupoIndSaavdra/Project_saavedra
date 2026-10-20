@@ -12,8 +12,14 @@
 @section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")') <!--Body background Image-->
 @section('content')
 <div class="wrapper">
-    <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
-    <h2>Editar molduras</h2>
+    <div class="report-header">
+        <div class="title-row">
+            <img src="{{ asset('images/Iconos_Vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Editar molduras" />
+            <h2>Editar molduras</h2>
+            <img src="{{ asset('images/Iconos_Vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Editar molduras" />
+        </div>
+        <p class="subtitle">Actualización y mantenimiento del catálogo de molduras existentes</p>
+    </div>
     <form action="{{ route('updateMolding') }}" method="post">
         @csrf
         @include('layouts.partials.messages')
