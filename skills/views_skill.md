@@ -266,3 +266,33 @@ Cuando utilices directivas `@include` o `@component`, asegúrate de que el archi
 ## 15. PDFs y DomPDF: Layout Dinámico y Orientación
 Cuando generes reportes en PDF con `Barryvdh\DomPDF` (como SCAR, LDM, RDM), prefiere diseños estrictos (Portrait vs Landscape declarado en `$pdf->setPaper()`) y evita CSS Grid nativo complejo si DomPDF no lo soporta completamente. Prefiere tablas clásicas de HTML o `display: inline-block` auto-calculados para garantizar que se imprima igual en todos los sistemas.
 
+---
+
+## 16. Estado Vacío Estándar en Consultas y Tablas (`.letrero`)
+
+Cuando una consulta devuelva 0 registros en Blade (`@else` de la tabla), estructurar el mensaje centrado con ícono ilustrativo en la parte superior:
+```blade
+<div class="letrero">
+    <img src="{{ asset('images/Revisando.png') }}" alt="Sin registros" class="letrero-icon">
+    <label class="advertence">No hay registros aún.</label>
+</div>
+```
+
+---
+
+## 17. Contraste de Iconos PNG Blancos en Blade
+
+Iconos con siluetas blancas sobre transparencia (ej. `Operador-Icon.png`) quedan ilegibles sobre fondos claros. Siempre deben renderizarse dentro de un contenedor circular con fondo corporativo azul sólido:
+```blade
+<div class="operator-icon-box">
+    <img src="{{ asset('images/Operador-Icon.png') }}" alt="Operador" class="operator-icon">
+</div>
+```
+
+---
+
+## 18. Nomenclatura y Títulos Oficiales en Navegación
+
+Escribir siempre los nombres y acentos oficiales en menús y títulos Blade. Para herramientas de maquinado, la denominación oficial es **"Herramientas Planta Tecámac"** (con acento en *Tecámac* y especificando *Planta*).
+
+

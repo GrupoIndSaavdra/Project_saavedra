@@ -599,3 +599,80 @@ Cuando una tabla o modal contenga un grupo variable de botones de acción que de
 }
 ```
 
+---
+
+## 22. Backdrop / Filtro Azul Corporativo en Modales y SweetAlert2
+
+El fondo oscuro para cualquier modal (sea SweetAlert2, modal flotante `.modal-overlay` o backdrop de Bootstrap) **NUNCA** debe ser negro genérico (`rgba(0, 0, 0, 0.4)` ni `black`). Debe ser el azul marino profundo Saavedra:
+```css
+background: rgba(0, 10, 25, 0.85) !important;
+-webkit-backdrop-filter: none !important;
+backdrop-filter: none !important;
+```
+- **Rendimiento:** Mantener `backdrop-filter: none` en backdrops globales de pantalla completa para garantizar 60 FPS y evitar caídas de cuadros o sensación de lentitud al desplegar ventanas de confirmación.
+
+---
+
+## 23. Manejo de Iconos PNG Blancos en Tablas e Interfaces
+
+Iconos que consisten en siluetas blancas sobre transparencia (ej. `Operador-Icon.png`) quedan completamente ilegibles sobre fondos claros o translúcidos. Deben colocarse dentro de un contenedor circular con fondo corporativo azul sólido:
+```css
+.operator-icon-box {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #033966 0%, #0284c7 100%);
+    border: 2.5px solid #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    box-shadow: 0 3px 8px rgba(3, 57, 102, 0.22);
+}
+```
+
+---
+
+## 24. Proporciones y Geometría en Contenedores de Filtros de Fecha
+
+- Los contenedores `.filter-dateFrom`, `.filter-dateTo`, `.filter-date` **NUNCA** deben tener flex-grow o basis mayor que los selectores vecinos:
+```css
+.filter-dateFrom,
+.filter-dateTo,
+.filter-date {
+    flex: 1 1 120px;
+    min-width: 100px;
+}
+```
+- **Botón Disparador (`.btn-date-trigger`):** Debe contar con `width: 100% !important; min-width: 0 !important; max-width: 100% !important; overflow: hidden !important;` para que su geometría nunca deforme el ancho de columna.
+- **Etiqueta de Fecha (`.date-trigger-label`):** Usa `flex: 1 1 auto; min-width: 0; text-overflow: ellipsis; white-space: nowrap;`.
+- **Botón Embebido de Limpieza Individual (`.btn-clear-single-date`):** Dimensiones compactas fijas (`26px × 24px`, flex `0 0 26px`) con ícono `✕` de 13px.
+
+---
+
+## 25. Cajón Lateral Desplegable de Códigos de Colores
+
+En las vistas con drawer de colores (`systemLogsReport`, `adminPieces`, `releasePieces`), el contenedor `.colors-content` debe tener fondo azul marino al 50% de transparencia con desenfoque:
+```css
+background: rgba(21, 44, 78, 0.5) !important;
+-webkit-backdrop-filter: blur(8px) !important;
+backdrop-filter: blur(8px) !important;
+```
+
+---
+
+## 26. Estado Vacío de Consultas con Ilustración Superior
+
+Cuando una consulta devuelva 0 registros (`@else` de la tabla), estructurar el mensaje centrado con ícono ilustrativo en la parte superior:
+- `.letrero`: Centrado con `display: flex; flex-direction: column; align-items: center; justify-content: center; margin: auto 0;`.
+- `.letrero-icon`: Tamaño responsive (`clamp(90px, 11vw, 130px)`), sombra suave `drop-shadow` y animación flotante sutil (`animation: floatEmptyIcon 3.5s ease-in-out infinite`).
+- `.advertence`: Color rojo vibrante (`#dc2626 !important;`), peso bold (`700`), mayúsculas y resplandor tenue para máxima legibilidad.
+
+---
+
+## 27. Menú Lateral: Tipografía y Prevención de Saltos de Línea
+
+- Asegurar un ancho suficiente (`width: 310px`) y padding proporcional para que las opciones del menú mantengan una sola línea limpia y elegante.
+- Escribir siempre el nombre oficial de la vista: **"Herramientas Planta Tecámac"** (con acento en *Tecámac* y especificando *Planta*).
+
+

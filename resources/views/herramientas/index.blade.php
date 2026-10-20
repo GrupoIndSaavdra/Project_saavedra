@@ -203,16 +203,18 @@
                 </svg>
                 <span>Herramientas dadas de baja.
                     @if ($esAlmacen)
-                        Usa <strong>Reactivar</strong> para devolverlas al catálogo.
+                        Usa <strong>Activar</strong> para devolverlas al catálogo.
                     @endif
                 </span>
             </div>
         @endif
 
-        {{-- ── TABLA ───────────────────────────────────────────────────────── --}}
-        <div class="ht-table-card">
-            <div class="ht-table-header">
-                <h2>
+    </div>{{-- /.ht-wrapper --}}
+
+    {{-- ── TABLA PRINCIPAL (ANCHO COMPLETO CON GLASSMORPHISM AL FONDO) ──────── --}}
+    <div class="ht-table-card">
+        <div class="ht-table-header">
+            <h2 class="ht-table-title">
                     @if ($modo === 'stock_bajo')
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #dc2626;">
@@ -292,65 +294,34 @@
                         <thead>
                             <tr class="ht-thead-group">
                                 <th colspan="5" class="th-group-herramientas">
-                                    <span class="th-group-content">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <path
-                                                d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-                                        </svg>
-                                        HERRAMIENTAS
-                                    </span>
+                                    <div class="th-group-content">
+                                        <img src="{{ asset('images/Herramientas-Icon.png') }}" class="th-group-icon" alt="Herramientas" />
+                                        <span>HERRAMIENTAS</span>
+                                    </div>
                                 </th>
                                 <th colspan="3" class="th-group-condiciones">
-                                    <span class="th-group-content">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <circle cx="12" cy="12" r="10" />
-                                            <polyline points="12 6 12 12 16 14" />
-                                        </svg>
-                                        CONDICIONES DE CORTE (PULG.)
-                                    </span>
+                                    <div class="th-group-content">
+                                        <img src="{{ asset('images/Cond_Corte-Icon.png') }}" class="th-group-icon" alt="Condiciones de Corte" />
+                                        <span>CONDICIONES DE CORTE (PULG.)</span>
+                                    </div>
                                 </th>
                                 <th colspan="1" class="th-group-tornilleria">
-                                    <span class="th-group-content">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <path d="m14 7 3 3" />
-                                            <path d="m17 4 3 3" />
-                                            <path d="m20 1 3 3" />
-                                            <path d="m6.5 12.5-4 4a2 2 0 0 0 0 2.83l2.17 2.17a2 2 0 0 0 2.83 0l4-4" />
-                                            <path d="m11 9 7 7" />
-                                        </svg>
-                                        TORNILLERÍA
-                                    </span>
+                                    <div class="th-group-content">
+                                        <img src="{{ asset('images/Tornilleria-Icon.png') }}" class="th-group-icon" alt="Tornillería" />
+                                        <span>TORNILLERÍA</span>
+                                    </div>
                                 </th>
                                 <th colspan="1" class="th-group-fisica">
-                                    <span class="th-group-content">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <rect x="3" y="3" width="18" height="18" rx="2"
-                                                ry="2" />
-                                            <circle cx="8.5" cy="8.5" r="1.5" />
-                                            <polyline points="21 15 16 10 5 21" />
-                                        </svg>
-                                        IMAGEN FÍSICA
-                                    </span>
+                                    <div class="th-group-content">
+                                        <img src="{{ asset('images/IMG-Icon.png') }}" class="th-group-icon" alt="Imagen Física" />
+                                        <span>IMAGEN FÍSICA</span>
+                                    </div>
                                 </th>
                                 <th colspan="2" class="th-group-stock">
-                                    <span class="th-group-content">
-                                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                            stroke-linejoin="round">
-                                            <line x1="18" y1="20" x2="18" y2="10" />
-                                            <line x1="12" y1="20" x2="12" y2="4" />
-                                            <line x1="6" y1="20" x2="6" y2="14" />
-                                        </svg>
-                                        STOCK
-                                    </span>
+                                    <div class="th-group-content">
+                                        <img src="{{ asset('images/Stock-Icon.png') }}" class="th-group-icon" alt="Stock" />
+                                        <span>STOCK</span>
+                                    </div>
                                 </th>
                                 @if ($esCrud || $esAdmin)
                                     <th rowspan="2" class="th-acciones">ACCIONES</th>
@@ -464,64 +435,39 @@
 
                                     {{-- ACCIONES según rol --}}
                                     @if ($esAlmacen)
-                                        <td class="d-center">
+                                        <td class="d-center td-acciones">
                                             <div class="ht-actions">
                                                 @if ($h->activo)
                                                     <button class="ht-btn-accion ht-btn-edit"
                                                         onclick="htAbrirEditar({{ $h->id }})"
                                                         title="Editar herramienta">
-                                                        <svg width="13" height="13" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2.5">
-                                                            <path
-                                                                d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                                            <path
-                                                                d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                                        </svg>
-                                                        Editar
+                                                        <img src="{{ asset('images/editar-informacion.png') }}" class="ht-btn-icon-img" alt="Editar" />
+                                                        <span>Editar</span>
                                                     </button>
                                                     <button class="ht-btn-accion ht-btn-delete"
                                                         onclick="htEliminar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')"
                                                         title="Dar de baja">
-                                                        <svg width="13" height="13" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2.5">
-                                                            <circle cx="12" cy="12" r="10" />
-                                                            <line x1="15" y1="9" x2="9"
-                                                                y2="15" />
-                                                            <line x1="9" y1="9" x2="15"
-                                                                y2="15" />
-                                                        </svg>
-                                                        Inactivar
+                                                        <img src="{{ asset('images/inactivar.png') }}" class="ht-btn-icon-img" alt="Inactivar" />
+                                                        <span>Inactivar</span>
                                                     </button>
                                                 @else
                                                     <button class="ht-btn-accion ht-btn-reactivar"
                                                         onclick="htReactivar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')"
-                                                        title="Reactivar">
-                                                        <svg width="13" height="13" viewBox="0 0 24 24"
-                                                            fill="none" stroke="currentColor" stroke-width="2.5">
-                                                            <polyline points="1 4 1 10 7 10" />
-                                                            <path d="M3.51 15a9 9 0 1 0 .49-3.38" />
-                                                        </svg>
-                                                        Reactivar
+                                                        title="Activar herramienta">
+                                                        <img src="{{ asset('images/activar.png') }}" class="ht-btn-icon-img" alt="Activar" />
+                                                        <span>Activar</span>
                                                     </button>
                                                 @endif
                                             </div>
                                         </td>
                                     @elseif($esAdmin)
-                                        <td class="d-center">
+                                        <td class="d-center td-acciones">
                                             <div class="ht-actions">
                                                 <button class="ht-btn-accion ht-btn-stock"
                                                     onclick="htAbrirStock({{ $h->id }})"
                                                     title="Editar mínimo y máximo de stock">
-                                                    <svg width="13" height="13" viewBox="0 0 24 24"
-                                                        fill="none" stroke="currentColor" stroke-width="2.5">
-                                                        <line x1="18" y1="20" x2="18"
-                                                            y2="10" />
-                                                        <line x1="12" y1="20" x2="12"
-                                                            y2="4" />
-                                                        <line x1="6" y1="20" x2="6"
-                                                            y2="14" />
-                                                    </svg>
-                                                    Stock
+                                                    <img src="{{ asset('images/Stock-Icon.png') }}" class="ht-btn-icon-img" alt="Stock" />
+                                                    <span>Stock</span>
                                                 </button>
                                             </div>
                                         </td>
@@ -542,8 +488,7 @@
                     </div>
                 </div>
             @endif
-        </div>
-    </div>{{-- /.ht-wrapper --}}
+        </div>{{-- /.ht-table-card --}}
 
     {{-- ════════════════════════════════════════════════
      MODAL CRUD COMPLETO — Solo Almacén

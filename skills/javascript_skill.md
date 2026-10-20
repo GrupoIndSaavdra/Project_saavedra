@@ -652,4 +652,53 @@ almacenToast('Mensaje', 'success');
 almacenToast('Mensaje', 'warning');
 ```
 
+---
+
+## 21. Patrón Oficial de Alertas SweetAlert2 Concisas
+
+- **Eliminación de HTML complejo innecesario en alertas:**
+  No inventar clases custom redundantes (`.swal2-gis-popup`, `.swal-details-card`, etc.) para confirmaciones de acción. Seguir el patrón conciso de `Swal.fire`:
+  - **Título:** Claro, con el sujeto y número en color rojo peligro (`¿Desocupar <span style="color: #b30404;">Máquina ${numero}</span>?`).
+  - **Cuerpo (`html` o `text`):** Mensaje directo especificando únicamente la acción a realizar (`¿Estás seguro de que deseas liberar la <strong style="color: #b30404;">Máquina ${numero}</strong>?`), sin redundancias de datos ya visibles en la tabla.
+  - **Colores Oficiales de Botones:**
+    - `confirmButtonColor: '#b30404'` (Rojo Peligro Saavedra).
+    - `cancelButtonColor: '#030041'` (Azul Marino Saavedra).
+    - `reverseButtons: true` (Cancelar a la izquierda, Confirmar a la derecha).
+  - **Backdrop Azul Corporativo:**
+    ```javascript
+    backdrop: 'rgba(0, 10, 25, 0.85)'
+    ```
+
+---
+
+## 22. Ordenamiento Interactivo en Tablas Dinámicas
+
+- **Manejo de Números en Cadenas Mixtas:**
+  Al ordenar columnas de máquinas o identificadores que pueden contener valores como `"10"` o `"1_2"`, extraer el valor numérico inicial con expresión regular (`/\d+/`) para ordenar numéricamente en lugar de alfabéticamente:
+  ```javascript
+  function extractFirstNumber(str) {
+      let match = (str || "").toString().match(/\d+/);
+      return match ? parseInt(match[0], 10) : 0;
+  }
+  ```
+- **Ciclo de Estados de Ordenamiento:**
+  - 0: Sin Orden (`Sin_Orden.png`) -> Restaura el `dataset.originalIndex`.
+  - 1: Ascendente (`Orden_Asc.png`).
+  - 2: Descendente (`Orden_Desc.png`).
+
+---
+
+## 23. Modal Corporativo de Selección de Fecha (`modalCmCalendar.js`)
+
+No usar el selector nativo del navegador `input[type="date"]`. Se utiliza `createDateFilterTrigger()` de `modalCmCalendar.js`, el cual levanta un modal con selección interactiva (Año, Mes, Día) adaptado al estilo GIS corporativo.
+
+---
+
+## 24. Comportamiento Dinámico del Botón "Limpiar Filtros"
+
+- **Con filtros activos:** Fondo verde (`linear-gradient(135deg, #0a5c20 0%, #0d7328 100%)`), hover brillante, cursor pointer y habilitado.
+- **Sin filtros activos:** `disabled = true`, fondo gris (`linear-gradient(135deg, #64748b 0%, #475569 100%)`, `opacity: 0.55`, `cursor: not-allowed`).
+- **Sincronización:** Invocar `updateClearButtonState()` cada vez que cambie cualquier `<select>`, input de texto o fecha.
+
+
 
