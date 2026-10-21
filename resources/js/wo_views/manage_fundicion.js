@@ -624,8 +624,15 @@ window.prepararReemplazo = function (nombreArchivo, param1, param2, btnElement) 
     setTimeout(() => hiddenInput.remove(), 5000);
 };
 
-window.eliminarPdf = function (nombreArchivo, param1, param2) {
-    if (!confirm(`¿Deseas eliminar el archivo "${nombreArchivo}"?\nEsta acción no se puede deshacer.`)) return;
+window.eliminarPdf = async function (nombreArchivo, param1, param2) {
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "¿Eliminar archivo?",
+        text: `¿Deseas eliminar el archivo "${nombreArchivo}"?\nEsta acción no se puede deshacer.`,
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar",
+        confirmButtonColor: "#b30404"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) return;
 
     let payload = { archivo: nombreArchivo };
     if (module === 'dibujos' || module === 'fundicion') { payload.ot = param1; payload.clase = param2; }
@@ -1336,8 +1343,15 @@ function initAyudasFundicionForm() {
     // Botón de Desvincular Manual
     const btnUnlink = section.querySelector('#btn-desvincular-ayudas');
     if (btnUnlink) {
-        btnUnlink.addEventListener('click', () => {
-            if (!confirm('¿Seguro que deseas desvincular todas las ayudas visuales de esta OT? Esto también las eliminará de la vista de Almacén.')) return;
+        btnUnlink.addEventListener('click', async () => {
+            const res = await (window.gisConfirm ? window.gisConfirm({
+                title: "¿Desvincular ayudas visuales?",
+                text: "¿Seguro que deseas desvincular todas las ayudas visuales de esta OT? Esto también las eliminará de la vista de Almacén.",
+                icon: "warning",
+                confirmButtonText: "Sí, desvincular",
+                confirmButtonColor: "#b30404"
+            }) : Promise.resolve({ isConfirmed: true }));
+            if (!res.isConfirmed) return;
 
             const originalText = btnUnlink.innerHTML;
             btnUnlink.disabled = true;

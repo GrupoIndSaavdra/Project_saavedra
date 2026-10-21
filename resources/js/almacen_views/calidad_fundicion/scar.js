@@ -107,6 +107,7 @@ window.abrirModalScar = function (ot, tipoModelo, motivoRechazo) {
     if (otDisplay) otDisplay.textContent = cleanOt;
     const molduraInput = document.getElementById("scar-nombre-moldura");
     if (molduraInput) molduraInput.value = molduraName;
+    const codigoInput = document.getElementById("scar-codigo-modelo");
     if (codigoInput) {
         const prefix = typeof window.getClassPrefixJS === "function"
             ? window.getClassPrefixJS(tipoModelo, tipoModelo)
@@ -293,13 +294,16 @@ window.cerrarModalScar = function () {
     document.body.classList.remove("modal-open");
 };
 
-window.eliminarArchivoServidorCategorizado = function (ot, fileNombre, tipo) {
+window.eliminarArchivoServidorCategorizado = async function (ot, fileNombre, tipo) {
     const filenameOnly = fileNombre.split("/").pop();
-    if (
-        !confirm(
-            `¿Estás seguro de eliminar el archivo "${filenameOnly}" del servidor?`,
-        )
-    ) {
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "¿Eliminar archivo?",
+        text: `¿Estás seguro de eliminar el archivo "${filenameOnly}" del servidor?`,
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar",
+        confirmButtonColor: "#b30404"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) {
         return;
     }
     const formData = new FormData();
@@ -357,12 +361,12 @@ window.eliminarArchivoServidorCategorizado = function (ot, fileNombre, tipo) {
                     setTimeout(() => window.location.reload(), 800);
                 }
             } else {
-                alert(data.error || data.message || "Error al eliminar el archivo.");
+                almacenToast(data.error || data.message || "Error al eliminar el archivo.", "error");
             }
         })
         .catch((err) => {
             console.error(err);
-            alert("Error de red al intentar eliminar el archivo.");
+            almacenToast("Error de red al intentar eliminar el archivo.", "error");
         });
 };
 

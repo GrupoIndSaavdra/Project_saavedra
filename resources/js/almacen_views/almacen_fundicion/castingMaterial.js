@@ -275,12 +275,15 @@ window.cargarInputsCasting = function (ot, files) {
     }
 };
 
-window.quitarArchivoAprobado = function (ot, archivo, buttonEl) {
-    if (
-        !confirm(
-            "¿Estás seguro de que deseas eliminar permanentemente este formato LDM? Esta acción no se puede deshacer.",
-        )
-    ) {
+window.quitarArchivoAprobado = async function (ot, archivo, buttonEl) {
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "¿Eliminar formato LDM?",
+        text: "¿Estás seguro de que deseas eliminar permanentemente este formato LDM? Esta acción no se puede deshacer.",
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar",
+        confirmButtonColor: "#b30404"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) {
         return;
     }
     if (buttonEl) buttonEl.disabled = true;

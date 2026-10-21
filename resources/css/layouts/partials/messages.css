@@ -298,3 +298,132 @@
     transform: scale(1.05) translateY(-2px);
     box-shadow: 0 10px 20px rgba(40, 167, 69, 0.4);
 }
+
+/* ════════════════════════════════════════════════════════════════ */
+/* MODAL GIS SWEETALERT2 POPUP - ESTILO SAAVEDRA PREMIUM */
+/* ════════════════════════════════════════════════════════════════ */
+
+.swal2-gis-popup {
+    border-radius: 20px !important;
+    padding: 2rem !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 10, 25, 0.45) !important;
+    border: 3.5px solid var(--gis-blue, #033966) !important;
+    font-family: 'Poppins', sans-serif !important;
+    background: #ffffff !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+    will-change: transform, opacity !important;
+}
+
+.swal2-gis-popup .swal2-title {
+    font-family: 'Poppins', sans-serif !important;
+    font-weight: 700 !important;
+    color: #031d38 !important;
+    font-size: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+.swal2-gis-popup .swal2-html-container {
+    font-family: 'Poppins', sans-serif !important;
+    color: #475569 !important;
+    font-size: 1.05rem !important;
+    line-height: 1.5 !important;
+}
+
+.swal2-gis-popup .swal2-actions {
+    gap: 12px !important;
+    margin-top: 1.5rem !important;
+}
+
+.swal2-gis-popup .swal2-styled {
+    border-radius: 10px !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    padding: 10px 24px !important;
+    letter-spacing: 0.3px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    transition: transform 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.swal2-gis-popup .swal2-styled:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2) !important;
+}
+
+.swal2-gis-popup .swal2-icon {
+    margin: 0.5rem auto 1rem auto !important;
+    border-width: 3px !important;
+    -webkit-animation: none !important;
+    animation: none !important;
+}
+
+.swal2-gis-popup .swal2-icon .swal2-icon-content {
+    -webkit-animation: none !important;
+    animation: none !important;
+}
+
+.swal2-gis-in,
+.swal2-popup.swal2-modal.swal2-gis-popup.swal2-show {
+    -webkit-animation: swalModalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+    animation: swalModalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+}
+
+.swal2-gis-out {
+    -webkit-animation: swalModalOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+    animation: swalModalOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+}
+
+@-webkit-keyframes swalModalIn {
+    from {
+        opacity: 0;
+        -webkit-transform: scale(0.92) translateZ(0);
+        transform: scale(0.92) translateZ(0);
+    }
+    to {
+        opacity: 1;
+        -webkit-transform: scale(1) translateZ(0);
+        transform: scale(1) translateZ(0);
+    }
+}
+
+@keyframes swalModalIn {
+    from {
+        opacity: 0;
+        -webkit-transform: scale(0.92) translateZ(0);
+        transform: scale(0.92) translateZ(0);
+    }
+    to {
+        opacity: 1;
+        -webkit-transform: scale(1) translateZ(0);
+        transform: scale(1) translateZ(0);
+    }
+}
+
+@-webkit-keyframes swalModalOut {
+    from {
+        opacity: 1;
+        -webkit-transform: scale(1) translateZ(0);
+        transform: scale(1) translateZ(0);
+    }
+    to {
+        opacity: 0;
+        -webkit-transform: scale(0.94) translateZ(0);
+        transform: scale(0.94) translateZ(0);
+    }
+}
+
+@keyframes swalModalOut {
+    from {
+        opacity: 1;
+        -webkit-transform: scale(1) translateZ(0);
+        transform: scale(1) translateZ(0);
+    }
+    to {
+        opacity: 0;
+        -webkit-transform: scale(0.94) translateZ(0);
+        transform: scale(0.94) translateZ(0);
+    }
+}
+

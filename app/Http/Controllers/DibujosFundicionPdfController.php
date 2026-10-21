@@ -1077,6 +1077,24 @@ class DibujosFundicionPdfController extends Controller
                         return false;
                     if (str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/'))
                         return false;
+                    if (str_contains($relLower, '/escaneados/') || str_starts_with($relLower, 'escaneados/'))
+                        return false;
+
+                    $baseLower = strtolower(basename($f));
+                    if (
+                        str_starts_with($baseLower, 'f_alm_') ||
+                        str_starts_with($baseLower, 'f-alm-') ||
+                        str_starts_with($baseLower, 'f_ccl_') ||
+                        str_starts_with($baseLower, 'f-ccl-') ||
+                        str_starts_with($baseLower, 'scar_') ||
+                        str_starts_with($baseLower, 'rdm_') ||
+                        str_starts_with($baseLower, 'ldm_') ||
+                        str_contains($baseLower, 'preorden') ||
+                        str_contains($baseLower, 'pre-orden') ||
+                        str_contains($baseLower, 'confirmacion')
+                    ) {
+                        return false;
+                    }
 
                     return in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
                 });
@@ -1271,6 +1289,24 @@ class DibujosFundicionPdfController extends Controller
                         return false;
                     if (str_contains($relLower, '/fdrdm/') || str_starts_with($relLower, 'fdrdm/'))
                         return false;
+                    if (str_contains($relLower, '/escaneados/') || str_starts_with($relLower, 'escaneados/'))
+                        return false;
+
+                    $baseLower = strtolower(basename($f));
+                    if (
+                        str_starts_with($baseLower, 'f_alm_') ||
+                        str_starts_with($baseLower, 'f-alm-') ||
+                        str_starts_with($baseLower, 'f_ccl_') ||
+                        str_starts_with($baseLower, 'f-ccl-') ||
+                        str_starts_with($baseLower, 'scar_') ||
+                        str_starts_with($baseLower, 'rdm_') ||
+                        str_starts_with($baseLower, 'ldm_') ||
+                        str_contains($baseLower, 'preorden') ||
+                        str_contains($baseLower, 'pre-orden') ||
+                        str_contains($baseLower, 'confirmacion')
+                    ) {
+                        return false;
+                    }
 
                     return in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), ['pdf', 'dwg']);
                 })

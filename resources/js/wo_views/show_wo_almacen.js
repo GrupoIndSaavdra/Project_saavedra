@@ -237,8 +237,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Confirmaciones de eliminación ──
     document.querySelectorAll('.form-eliminar-remision').forEach(form => {
-        form.addEventListener('submit', e => {
-            if (!confirm('¿Eliminar esta remisión?')) e.preventDefault();
+        form.addEventListener('submit', async e => {
+            e.preventDefault();
+            const res = await (window.gisConfirm ? window.gisConfirm({
+                title: "¿Eliminar remisión?",
+                text: "¿Deseas eliminar esta remisión?",
+                icon: "warning",
+                confirmButtonText: "Sí, eliminar",
+                confirmButtonColor: "#b30404"
+            }) : Promise.resolve({ isConfirmed: true }));
+            if (res.isConfirmed) form.submit();
         });
     });
 
@@ -271,9 +279,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     passwordInput.focus();
                 }
             } else {
-                if (confirm(msgConfirm)) {
-                    form.submit();
-                }
+                (window.gisConfirm ? window.gisConfirm({
+                    title: isTratamiento ? "¿Eliminar tratamiento?" : "¿Eliminar parcialidad?",
+                    text: msgConfirm,
+                    icon: "warning",
+                    confirmButtonText: "Sí, eliminar",
+                    confirmButtonColor: "#b30404"
+                }) : Promise.resolve({ isConfirmed: true })).then(res => {
+                    if (res.isConfirmed) {
+                        form.submit();
+                    }
+                });
             }
         });
     });

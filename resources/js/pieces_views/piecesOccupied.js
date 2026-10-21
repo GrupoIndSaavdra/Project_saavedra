@@ -80,8 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmButtonColor: '#ef4444',
                 customClass: { popup: 'swal2-gis-popup' }
             });
-        } else {
-            alert(`${title}: ${text}`);
+        } else if (window.toastpremium) {
+            window.toastpremium(`${title}: ${text}`, 'error');
         }
     };
 

@@ -17,7 +17,7 @@ function almacenToast(message, type = "success") {
     } else if (typeof window.showToastAlert === "function") {
         window.showToastAlert(message, type);
     } else {
-        alert(message);
+        console.warn(message);
     }
 }
 // Helper para truncar a 3 decimales sin redondear

@@ -249,7 +249,13 @@ function iniciarEscaneo() {
         { facingMode: "environment" },
         { fps: 10, qrbox: 250 },
         onScanSuccess
-    ).catch(err => alert("Error al iniciar la cámara: " + err));
+    ).catch(err => {
+        if (window.toastpremium) {
+            window.toastpremium("Error al iniciar la cámara: " + err, "error");
+        } else {
+            console.error("Error al iniciar la cámara:", err);
+        }
+    });
 }
 
 // ===============================

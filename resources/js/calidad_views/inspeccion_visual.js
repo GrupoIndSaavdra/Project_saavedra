@@ -1374,8 +1374,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmButtonText: 'Aceptar',
                 timer: icon === 'success' ? 2500 : undefined
             });
-        } else {
-            alert(text || title);
+        } else if (window.toastpremium) {
+            window.toastpremium(text || title, icon === 'error' ? 'error' : (icon === 'warning' ? 'warning' : 'info'));
         }
     }
 

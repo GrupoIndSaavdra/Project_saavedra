@@ -117,9 +117,16 @@ window.subirArchivoAprobadoEstatico = function (ot, tipoModelo, inputId) {
         });
 };
 
-window.eliminarArchivoAprobadoServer = function (ot, fileNombre, tipoModelo) {
+window.eliminarArchivoAprobadoServer = async function (ot, fileNombre, tipoModelo) {
     const filenameOnly = fileNombre.split("/").pop();
-    if (!confirm(`¿Estás seguro de eliminar el archivo "${filenameOnly}"?`)) {
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "¿Eliminar archivo?",
+        text: `¿Estás seguro de eliminar el archivo "${filenameOnly}"?`,
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar",
+        confirmButtonColor: "#b30404"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) {
         return;
     }
     

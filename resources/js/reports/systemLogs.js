@@ -105,7 +105,9 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             } catch (error) {
                 console.error('Error al cargar más logs:', error);
-                alert('No se pudieron cargar más registros. Intente de nuevo.');
+                if (window.toastpremium) {
+                    window.toastpremium('No se pudieron cargar más registros. Intente de nuevo.', 'error');
+                }
             } finally {
                 btnLoadMore.disabled = false;
                 btnLoadMore.textContent = 'Cargar más registros...';
@@ -182,16 +184,15 @@ document.addEventListener("DOMContentLoaded", () => {
             // Bloquear si ya hay una depuración en curso
             if (isPurging) return;
 
-            const confirmed = confirm(
-                '¿ESTÁ SEGURO DE DEPURAR LOS LOGS?\n\n' +
-                'Esta acción:\n' +
-                '  1. Generará respaldos en PDF organizados por semana.\n' +
-                '  2. ELIMINARÁ PERMANENTEMENTE los registros respaldados.\n\n' +
-                'El proceso puede tardar varios minutos si hay muchos logs.\n' +
-                '¿Desea continuar?'
-            );
+            const resConfirm = await (window.gisConfirm ? window.gisConfirm({
+                title: '¿DEPURAR LOGS?',
+                text: 'Esta acción generará respaldos en PDF organizados por semana y ELIMINARÁ PERMANENTEMENTE los registros respaldados. ¿Desea continuar?',
+                icon: 'warning',
+                confirmButtonText: 'Sí, depurar',
+                confirmButtonColor: '#b30404'
+            }) : Promise.resolve({ isConfirmed: true }));
 
-            if (!confirmed) return;
+            if (!resConfirm.isConfirmed) return;
 
             // ── Iniciar proceso ──────────────────────────────────────────────
             isPurging = true;
@@ -224,13 +225,31 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Pequeña pausa para que el usuario vea el 100%
                     await new Promise(r => setTimeout(r, 1200));
                     hideOverlay();
-                    alert('✅ ÉXITO:\n' + data.message);
+                    if (window.gisAlert) {
+                        await window.gisAlert({
+                            title: 'Éxito',
+                            text: data.message,
+                            icon: 'success',
+                            confirmButtonColor: '#0a8504'
+                        });
+                    } else if (window.toastpremium) {
+                        window.toastpremium(data.message, 'success');
+                    }
                     window.location.reload();
                 } else {
                     setProgress(100, '✗ El servidor reportó un error.');
                     await new Promise(r => setTimeout(r, 800));
                     hideOverlay();
-                    alert('❌ ERROR:\n' + data.message);
+                    if (window.gisAlert) {
+                        await window.gisAlert({
+                            title: 'Error',
+                            text: data.message,
+                            icon: 'error',
+                            confirmButtonColor: '#b30404'
+                        });
+                    } else if (window.toastpremium) {
+                        window.toastpremium(data.message, 'error');
+                    }
                 }
 
             } catch (error) {
@@ -239,7 +258,16 @@ document.addEventListener("DOMContentLoaded", () => {
                 setProgress(100, '✗ Error de conexión.');
                 await new Promise(r => setTimeout(r, 800));
                 hideOverlay();
-                alert('❌ Ocurrió un error técnico al intentar depurar los logs.\nRevisa la consola para más detalles.');
+                if (window.gisAlert) {
+                    await window.gisAlert({
+                        title: 'Error',
+                        text: 'Ocurrió un error técnico al intentar depurar los logs. Revisa la consola para más detalles.',
+                        icon: 'error',
+                        confirmButtonColor: '#b30404'
+                    });
+                } else if (window.toastpremium) {
+                    window.toastpremium('Ocurrió un error técnico al intentar depurar los logs.', 'error');
+                }
 
             } finally {
                 // ── Restaurar botón siempre, pase lo que pase ────────────────

@@ -17,7 +17,7 @@ version: 1.0.0
 
 ## ⚠️ DIRECTIVAS DE EJECUCIÓN OBLIGATORIA PARA EL AGENTE DE IA
 
-Cuando crees o modifiques JavaScript, DEBES cumplir estrictamente estas 6 reglas:
+Cuando crees o modifiques JavaScript, DEBES cumplir estrictamente estas 7 reglas:
 
 1. **PROHIBIDO Swal.fire en Almacén:** En cualquier vista o script del módulo de Almacén (`almacen_fundicion.js`, `preorder.js`, etc.), usa **SIEMPRE `almacenToast(mensaje, tipo)`** en lugar de `Swal.fire`.
 2. **Uso de async/await con try/catch/finally:** Toda función que realice Fetch o peticiones de red DEBE usar `async/await` dentro de `try/catch/finally`.
@@ -25,6 +25,7 @@ Cuando crees o modifiques JavaScript, DEBES cumplir estrictamente estas 6 reglas
 4. **Validación defensiva del DOM:** Usa encadenamiento opcional `?.` o comprobación de existencia `if (!element) return;` antes de leer o modificar propiedades del DOM para evitar `TypeError: Cannot read properties of null`.
 5. **No hardcodear URLs:** Usa `window.routes` inyectado desde Blade y reemplaza placeholders con `.replace(':id', id)`.
 6. **Aislamiento en IIFE + DOMContentLoaded:** Encapsula siempre los módulos de JS en una función autoejecutable IIFE con `document.addEventListener('DOMContentLoaded', ...)`.
+7. **PROHIBICIÓN TOTAL DE ALERT Y CONFIRM NATIVOS:** Queda estrictamente prohibido usar `alert()` y `confirm()` nativos del navegador. Usa `toastpremium(msg, tipo)` para notificaciones y `await window.gisConfirm({ title, text, icon, confirmButtonText, confirmButtonColor })` de `messages.js` para confirmaciones interactivas.
 
 ---
 

@@ -208,11 +208,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.toastpremium = toastpremium;
 window.gisToast = toastpremium;
+window.mostrarNotificacion = toastpremium;
+
+// Interceptar alert nativo para que NUNCA aparezca el popup feo del navegador
+window.alert = function (message) {
+    if (typeof toastpremium === 'function') {
+        toastpremium(String(message ?? ''), 'warning');
+    } else {
+        console.warn('[GIS Alert Interceptado]:', message);
+    }
+};
 
 /**
  * Alerta Modal Estándar GIS (Reemplazo moderno de alert-NoCotas / alert nativo)
+ * Soporta firma por objeto: gisAlert({ title, text, icon, confirmButtonText, confirmButtonColor })
+ * o firma por parámetros: gisAlert(message, title, icon)
  */
-window.gisAlert = function({ title, text = '', icon = 'info', confirmButtonText = 'Entendido', confirmButtonColor = '#033966' }) {
+window.gisAlert = function (arg1, arg2 = '', arg3 = 'info') {
+    let title = 'Aviso';
+    let text = '';
+    let icon = 'info';
+    let confirmButtonText = 'Entendido';
+    let confirmButtonColor = '#033966';
+
+    if (typeof arg1 === 'object' && arg1 !== null) {
+        title = arg1.title || 'Aviso';
+        text = arg1.text || '';
+        icon = arg1.icon || 'info';
+        confirmButtonText = arg1.confirmButtonText || 'Entendido';
+        confirmButtonColor = arg1.confirmButtonColor || (icon === 'error' ? '#9c0303' : '#033966');
+    } else {
+        text = String(arg1 ?? '');
+        title = arg2 || (arg3 === 'error' ? 'Error' : (arg3 === 'warning' ? 'Atención' : 'Aviso'));
+        icon = arg3 || 'info';
+        confirmButtonColor = icon === 'error' ? '#9c0303' : '#033966';
+    }
+
     if (typeof Swal !== 'undefined') {
         return Swal.fire({
             title,
@@ -220,17 +251,50 @@ window.gisAlert = function({ title, text = '', icon = 'info', confirmButtonText 
             icon,
             confirmButtonText,
             confirmButtonColor,
+            backdrop: 'rgba(0, 10, 25, 0.85)',
             customClass: { popup: 'swal2-gis-popup' }
         });
     }
-    alert(`${title}\n\n${text}`);
+
+    // Fallback con ToastPremium o DOM modal Saavedra si SweetAlert no estuviera listo
+    if (typeof toastpremium === 'function') {
+        toastpremium(`${title}: ${text}`, icon === 'error' ? 'error' : (icon === 'warning' ? 'warning' : 'info'));
+    }
     return Promise.resolve({ isConfirmed: true });
 };
 
 /**
- * Diálogo de Confirmación Estándar GIS
+ * Diálogo de Confirmación Estándar GIS (Reemplazo moderno de confirm() nativo)
+ * Soporta firma por objeto: gisConfirm({ title, text, icon, confirmButtonText, confirmButtonColor, cancelButtonText, cancelButtonColor, reverseButtons })
+ * o firma por texto: gisConfirm(message, title)
  */
-window.gisConfirm = async function({ title, text = '', icon = 'question', confirmButtonText = 'Aceptar', confirmButtonColor = '#10b981', preConfirm = null }) {
+window.gisConfirm = async function (arg1, arg2 = '¿Estás seguro?') {
+    let title = '¿Estás seguro?';
+    let text = '';
+    let icon = 'warning';
+    let confirmButtonText = 'Aceptar';
+    let cancelButtonText = 'Cancelar';
+    let confirmButtonColor = '#b30404'; // Rojo Peligro Saavedra por defecto
+    let cancelButtonColor = '#030041';  // Azul Marino Saavedra
+    let reverseButtons = true;          // Cancelar a la izquierda, Confirmar a la derecha
+    let preConfirm = null;
+
+    if (typeof arg1 === 'object' && arg1 !== null) {
+        title = arg1.title || '¿Estás seguro?';
+        text = arg1.text || '';
+        icon = arg1.icon || 'warning';
+        confirmButtonText = arg1.confirmButtonText || (icon === 'warning' || icon === 'error' ? 'Sí, continuar' : 'Aceptar');
+        cancelButtonText = arg1.cancelButtonText || 'Cancelar';
+        confirmButtonColor = arg1.confirmButtonColor || (icon === 'success' ? '#0a8504' : '#b30404');
+        cancelButtonColor = arg1.cancelButtonColor || '#030041';
+        reverseButtons = arg1.reverseButtons !== undefined ? arg1.reverseButtons : true;
+        preConfirm = arg1.preConfirm || null;
+    } else {
+        text = String(arg1 ?? '');
+        title = arg2 || '¿Estás seguro?';
+        confirmButtonText = 'Sí, continuar';
+    }
+
     if (typeof Swal !== 'undefined') {
         const options = {
             title,
@@ -238,9 +302,11 @@ window.gisConfirm = async function({ title, text = '', icon = 'question', confir
             icon,
             showCancelButton: true,
             confirmButtonColor,
-            cancelButtonColor: '#64748b',
+            cancelButtonColor,
             confirmButtonText,
-            cancelButtonText: 'Cancelar',
+            cancelButtonText,
+            reverseButtons,
+            backdrop: 'rgba(0, 10, 25, 0.85)',
             customClass: { popup: 'swal2-gis-popup' }
         };
         if (preConfirm) {
@@ -250,14 +316,62 @@ window.gisConfirm = async function({ title, text = '', icon = 'question', confir
         }
         return await Swal.fire(options);
     }
-    const ok = confirm(`${title}\n\n${text}`);
-    if (ok && preConfirm) {
-        try {
-            const res = await preConfirm();
-            return { isConfirmed: true, value: res };
-        } catch (e) {
-            return { isConfirmed: false };
-        }
-    }
-    return { isConfirmed: ok };
+
+    // Fallback DOM Saavedra si SweetAlert2 estuviera temporalmente inaccesible (NUNCA confirm nativo)
+    return new Promise((resolve) => {
+        let baseUrl = window.baseUrl || (window.location.origin + '/');
+        if (!baseUrl.endsWith('/')) baseUrl += '/';
+
+        const overlay = document.createElement('div');
+        overlay.className = 'productivity-lock-overlay';
+        overlay.style.zIndex = '100050';
+        overlay.innerHTML = `
+            <div class="alm-modal-content" style="background: #ffffff; width: 95vw; max-width: 520px; border-radius: 20px; border: 4px solid #033966; box-shadow: 0 25px 60px rgba(0, 10, 25, 0.45); display: flex; flex-direction: column; overflow: hidden;">
+                <div style="background: linear-gradient(135deg, #033966 0%, #0284c7 100%); padding: 1.5em; text-align: center;">
+                    <h3 style="margin: 0; color: #fff; font-size: 1.4em; font-weight: 700; font-family: 'Poppins', sans-serif;">
+                        ${title}
+                    </h3>
+                </div>
+                <div style="background: #f8fafc; padding: 2em; font-family: 'Poppins', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    <img src="${baseUrl}images/Aviso.png" alt="Aviso" style="width: 70px; height: 70px; filter: drop-shadow(0 4px 6px rgba(3, 57, 102, 0.2));">
+                    <p style="color: #475569; font-size: 1.1em; line-height: 1.5; margin: 0; font-weight: 500;">
+                        ${text}
+                    </p>
+                    <div style="margin-top: 15px; display: flex; gap: 12px; justify-content: center; width: 100%;">
+                        <button class="btn-gis-cancel" style="background: #030041; border-radius: 10px; font-weight: 700; font-size: 0.95rem; padding: 10px 24px; border: none; color: #fff; cursor: pointer;">
+                            ${cancelButtonText}
+                        </button>
+                        <button class="btn-gis-confirm" style="background: ${confirmButtonColor}; border-radius: 10px; font-weight: 700; font-size: 0.95rem; padding: 10px 24px; border: none; color: #fff; cursor: pointer;">
+                            ${confirmButtonText}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const btnCancel = overlay.querySelector('.btn-gis-cancel');
+        const btnConfirm = overlay.querySelector('.btn-gis-confirm');
+
+        btnCancel.onclick = () => {
+            overlay.remove();
+            resolve({ isConfirmed: false, isDismissed: true });
+        };
+        btnConfirm.onclick = async () => {
+            if (preConfirm) {
+                try {
+                    const res = await preConfirm();
+                    overlay.remove();
+                    resolve({ isConfirmed: true, value: res });
+                } catch (e) {
+                    // preConfirm failed
+                }
+            } else {
+                overlay.remove();
+                resolve({ isConfirmed: true });
+            }
+        };
+    });
 };
+
+window.confirmAsync = window.gisConfirm;

@@ -418,6 +418,12 @@ class CalidadFundicionController extends Controller
                             'origin' => 'aprobado',
                             'prefix' => $claseClean . '/ESCANEADOS/'
                         ];
+                        $classAlmacenBase = 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/' . $relFolder . '/' . $claseClean;
+                        $dirsToScan[] = [
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/ESCANEADOS'),
+                            'origin' => 'aprobado',
+                            'prefix' => $claseClean . '/ESCANEADOS/'
+                        ];
                         $dirsToScan[] = [
                             'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
                             'origin' => 'rechazado',

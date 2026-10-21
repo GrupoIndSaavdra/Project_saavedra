@@ -430,8 +430,15 @@ window.descargarPrograma = function (url) {
     window.open(url, '_blank');
 };
 
-window.eliminarPrograma = function (nombre, p1, p2, p3) {
-    if (!confirm(`¿Deseas eliminar el archivo "${nombre}"?\nEsta acción no se puede deshacer.`)) return;
+window.eliminarPrograma = async function (nombre, p1, p2, p3) {
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "¿Eliminar archivo?",
+        text: `¿Deseas eliminar el archivo "${nombre}"?\nEsta acción no se puede deshacer.`,
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar",
+        confirmButtonColor: "#b30404"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) return;
 
     fetch(window.routes['doc.delete'], {
         method: 'POST',

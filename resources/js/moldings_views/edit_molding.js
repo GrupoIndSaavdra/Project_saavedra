@@ -127,13 +127,17 @@ function createTable(moldings, form) {
             deleteButton.classList.add("btn", "btn-delete");
             deleteButton.textContent = "Eliminar";
 
-            deleteButton.onclick = (e) => {
+            deleteButton.onclick = async (e) => {
                 e.preventDefault();
-                if (
-                    confirm(
-                        "¿Estás seguro de que deseas eliminar esta moldura?"
-                    )
-                ) {
+                const res = await (window.gisConfirm ? window.gisConfirm({
+                    title: "¿Eliminar moldura?",
+                    text: "¿Estás seguro de que deseas eliminar esta moldura?",
+                    icon: "warning",
+                    confirmButtonText: "Sí, eliminar",
+                    confirmButtonColor: "#b30404"
+                }) : Promise.resolve({ isConfirmed: true }));
+
+                if (res.isConfirmed) {
                     let moldingId = molding.id;
                     window.location.href = window.baseUrl + `/deleteMolding/${moldingId}`;
                 }

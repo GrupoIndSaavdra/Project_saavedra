@@ -521,8 +521,18 @@ function createButtons(idClass) {
     btn_deleteClass.className = "btn-deleteClass action-btns";
     btn_deleteClass.innerHTML = "Eliminar Clase";
     btn_deleteClass.href = `../destroyClass/${idClass}`;
-    btn_deleteClass.addEventListener("click", function (e) {
-        if (!confirm("¿Estás seguro de que deseas eliminar esta clase?")) e.preventDefault();
+    btn_deleteClass.addEventListener("click", async function (e) {
+        e.preventDefault();
+        const res = await (window.gisConfirm ? window.gisConfirm({
+            title: "¿Eliminar clase?",
+            text: "¿Estás seguro de que deseas eliminar esta clase?",
+            icon: "warning",
+            confirmButtonText: "Sí, eliminar",
+            confirmButtonColor: "#b30404"
+        }) : Promise.resolve({ isConfirmed: true }));
+        if (res.isConfirmed) {
+            window.location.href = btn_deleteClass.href;
+        }
     });
 
     return [btn_editClass, btn_deleteClass];
@@ -1098,13 +1108,23 @@ window.handleQuickWoChange = function (selectElem, baseUrl) {
     if (currentWO && targetWO === currentWO) return;
 
     if (window.hasUnsavedChanges && window.hasUnsavedChanges()) {
-        let confirmLeave = confirm("Tiene cambios pendientes de guardar en esta vista. Si cambia de Orden de Trabajo, los cambios no guardados se perderán.\n\n¿Desea salir sin guardar los cambios?");
-        if (!confirmLeave) {
-            if (currentWO) {
-                selectElem.value = currentWO;
+        (window.gisConfirm ? window.gisConfirm({
+            title: "Cambios pendientes",
+            text: "Tiene cambios pendientes de guardar en esta vista. Si cambia de Orden de Trabajo, los cambios no guardados se perderán.\n\n¿Desea salir sin guardar los cambios?",
+            icon: "warning",
+            confirmButtonText: "Salir sin guardar",
+            confirmButtonColor: "#b30404",
+            cancelButtonText: "Permanecer aquí"
+        }) : Promise.resolve({ isConfirmed: true })).then(res => {
+            if (res.isConfirmed) {
+                window.location.href = baseUrl + '/' + targetWO;
+            } else {
+                if (currentWO) {
+                    selectElem.value = currentWO;
+                }
             }
-            return;
-        }
+        });
+        return;
     }
 
     window.location.href = baseUrl + '/' + targetWO;
@@ -1123,11 +1143,21 @@ document.addEventListener("click", function (e) {
     if (!href || href === "#" || href.startsWith("javascript:")) return;
 
     if (window.hasUnsavedChanges && window.hasUnsavedChanges()) {
-        let confirmLeave = confirm("Tiene cambios pendientes de guardar en esta vista. Si sale hacia otra vista del menú, los cambios no guardados se perderán.\n\n¿Desea salir sin guardar los cambios?");
-        if (!confirmLeave) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+        e.preventDefault();
+        e.stopPropagation();
+        (window.gisConfirm ? window.gisConfirm({
+            title: "Cambios pendientes",
+            text: "Tiene cambios pendientes de guardar en esta vista. Si sale hacia otra vista del menú, los cambios no guardados se perderán.\n\n¿Desea salir sin guardar los cambios?",
+            icon: "warning",
+            confirmButtonText: "Salir sin guardar",
+            confirmButtonColor: "#b30404",
+            cancelButtonText: "Permanecer aquí"
+        }) : Promise.resolve({ isConfirmed: true })).then(res => {
+            if (res.isConfirmed) {
+                isSubmittingForm = true;
+                window.location.href = href;
+            }
+        });
     }
 }, true);
 

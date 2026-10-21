@@ -170,12 +170,15 @@ window._libActualizarBotonesAccion = function (decision) {
     btnAccion.replaceWith(nuevoBtn);
 };
 
-window.almacenEliminarOtroArchivo = function (ot, archivo, tipo, buttonEl, origin) {
-    if (
-        !confirm(
-            "¿Estás seguro de que deseas eliminar permanentemente este archivo? Esta acción no se puede deshacer.",
-        )
-    ) {
+window.almacenEliminarOtroArchivo = async function (ot, archivo, tipo, buttonEl, origin) {
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "¿Eliminar archivo?",
+        text: "¿Estás seguro de que deseas eliminar permanentemente este archivo? Esta acción no se puede deshacer.",
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar",
+        confirmButtonColor: "#b30404"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) {
         return;
     }
     const card = buttonEl.closest(".dibujos-file-card");

@@ -36,14 +36,93 @@
     --shadow-blue: rgba(3, 57, 102, 0.35);
     --azul-borde: #033966d4;
 
-    /* Glassmorphism Ultra-Premium (Efecto Cristal Refractivo Líquido) */
-    --glass-bg-white: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.48) 100%);
-    --glass-bg-blue: linear-gradient(135deg, rgba(3, 57, 102, 0.82) 0%, rgba(1, 24, 48, 0.92) 100%);
-    --glass-bg-dark: linear-gradient(135deg, rgba(32, 34, 38, 0.84) 0%, rgba(18, 20, 24, 0.92) 100%);
+    /* Glassmorphism Ultra-Premium (Efecto Cristal Refractivo Líquido)
+       Gradientes en 135deg que inician en su tonalidad base/corporativa normal
+       y se difuminan oscureciéndose progresivamente hacia el vértice opuesto. */
+    --glass-bg-white: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.85) 0%,
+        rgba(232, 238, 245, 0.80) 45%,
+        rgba(195, 208, 222, 0.76) 100%
+    );
+    --glass-bg-blue: linear-gradient(
+        135deg,
+        rgba(3, 57, 102, 0.85) 0%,
+        rgba(1, 35, 68, 0.92) 50%,
+        rgba(0, 15, 35, 0.97) 100%
+    );
+    --glass-bg-dark: linear-gradient(
+        135deg,
+        rgba(36, 40, 46, 0.86) 0%,
+        rgba(20, 22, 26, 0.93) 50%,
+        rgba(8, 9, 12, 0.98) 100%
+    );
 
-    --glass-border-white: rgba(255, 255, 255, 0.80);
-    --glass-border-blue: rgba(255, 255, 255, 0.40);
-    --glass-border-dark: rgba(255, 255, 255, 0.32);
+    /* Variantes cromáticas en las mismas tonalidades industriales */
+    --glass-bg-yellow: linear-gradient(
+        135deg,
+        rgba(195, 105, 6, 0.85) 0%,
+        rgba(145, 65, 3, 0.92) 50%,
+        rgba(75, 30, 2, 0.97) 100%
+    );
+    --glass-bg-amber: var(--glass-bg-yellow);
+
+    --glass-bg-purple: linear-gradient(
+        135deg,
+        rgba(92, 30, 142, 0.85) 0%,
+        rgba(60, 16, 98, 0.92) 50%,
+        rgba(28, 6, 50, 0.97) 100%
+    );
+    --glass-bg-morado: var(--glass-bg-purple);
+
+    --glass-bg-green: linear-gradient(
+        135deg,
+        rgba(10, 133, 4, 0.85) 0%,
+        rgba(6, 85, 3, 0.92) 50%,
+        rgba(2, 38, 1, 0.97) 100%
+    );
+    --glass-bg-verde: var(--glass-bg-green);
+
+    --glass-bg-red: linear-gradient(
+        135deg,
+        rgba(156, 3, 3, 0.85) 0%,
+        rgba(105, 2, 2, 0.92) 50%,
+        rgba(48, 1, 1, 0.97) 100%
+    );
+    --glass-bg-rojo: var(--glass-bg-red);
+
+    --glass-bg-cyan: linear-gradient(
+        135deg,
+        rgba(3, 105, 161, 0.85) 0%,
+        rgba(2, 70, 115, 0.92) 50%,
+        rgba(1, 30, 55, 0.97) 100%
+    );
+    --glass-bg-teal: var(--glass-bg-cyan);
+
+    --glass-bg-orange: linear-gradient(
+        135deg,
+        rgba(194, 65, 12, 0.85) 0%,
+        rgba(135, 40, 6, 0.92) 50%,
+        rgba(65, 18, 2, 0.97) 100%
+    );
+    --glass-bg-naranja: var(--glass-bg-orange);
+
+    /* Bordes cristalinos a juego */
+    --glass-border-white: rgba(255, 255, 255, 0.8);
+    --glass-border-blue: rgba(147, 197, 253, 0.35);
+    --glass-border-dark: rgba(255, 255, 255, 0.22);
+    --glass-border-yellow: rgba(253, 230, 138, 0.4);
+    --glass-border-amber: var(--glass-border-yellow);
+    --glass-border-purple: rgba(216, 180, 254, 0.4);
+    --glass-border-morado: var(--glass-border-purple);
+    --glass-border-green: rgba(167, 243, 208, 0.38);
+    --glass-border-verde: var(--glass-border-green);
+    --glass-border-red: rgba(254, 202, 202, 0.38);
+    --glass-border-rojo: var(--glass-border-red);
+    --glass-border-cyan: rgba(186, 230, 253, 0.4);
+    --glass-border-teal: var(--glass-border-cyan);
+    --glass-border-orange: rgba(254, 215, 170, 0.4);
+    --glass-border-naranja: var(--glass-border-orange);
     --glass-border: var(--glass-border-white);
 
     --glass-shadow:
@@ -56,11 +135,21 @@
         0 30px 70px -15px rgba(0, 0, 0, 0.65),
         0 12px 30px -8px rgba(0, 0, 0, 0.35),
         inset 0 1px 1px 0 rgba(255, 255, 255, 0.85),
-        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.20);
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2);
 
     /* Gradientes Botón Champagne / Dorado Metálico (Inspirado en Referencia) */
-    --btn-champagne: linear-gradient(180deg, #fbf7ee 0%, #ecd9b9 50%, #c8aa7f 100%);
-    --btn-champagne-hover: linear-gradient(180deg, #ffffff 0%, #f3e3ca 50%, #d4b88f 100%);
+    --btn-champagne: linear-gradient(
+        180deg,
+        #fbf7ee 0%,
+        #ecd9b9 50%,
+        #c8aa7f 100%
+    );
+    --btn-champagne-hover: linear-gradient(
+        180deg,
+        #ffffff 0%,
+        #f3e3ca 50%,
+        #d4b88f 100%
+    );
 
     /* Espaciados */
     --sp-xs: 4px;
@@ -149,6 +238,72 @@
     padding: var(--sp-lg);
 }
 
+.glass-panel.glass-blue,
+.glass-panel-blue {
+    background: var(--glass-bg-blue);
+    border-color: var(--glass-border-blue);
+    box-shadow: var(--glass-shadow-dark);
+    color: #ffffff;
+}
+
+.glass-panel.glass-dark,
+.glass-panel-dark {
+    background: var(--glass-bg-dark);
+    border-color: var(--glass-border-dark);
+    box-shadow: var(--glass-shadow-dark);
+    color: #ffffff;
+}
+
+.glass-panel.glass-yellow,
+.glass-panel.glass-amber,
+.glass-panel-yellow {
+    background: var(--glass-bg-yellow);
+    border-color: var(--glass-border-yellow);
+    box-shadow: var(--glass-shadow-dark);
+    color: #ffffff;
+}
+
+.glass-panel.glass-purple,
+.glass-panel.glass-morado,
+.glass-panel-purple {
+    background: var(--glass-bg-purple);
+    border-color: var(--glass-border-purple);
+    box-shadow: var(--glass-shadow-dark);
+    color: #ffffff;
+}
+
+.glass-panel.glass-green,
+.glass-panel-green {
+    background: var(--glass-bg-green);
+    border-color: var(--glass-border-green);
+    box-shadow: var(--glass-shadow-dark);
+    color: #ffffff;
+}
+
+.glass-panel.glass-red,
+.glass-panel-red {
+    background: var(--glass-bg-red);
+    border-color: var(--glass-border-red);
+    box-shadow: var(--glass-shadow-dark);
+    color: #ffffff;
+}
+
+.glass-panel.glass-cyan,
+.glass-panel-cyan {
+    background: var(--glass-bg-cyan);
+    border-color: var(--glass-border-cyan);
+    box-shadow: var(--glass-shadow-dark);
+    color: #ffffff;
+}
+
+.glass-panel.glass-orange,
+.glass-panel-orange {
+    background: var(--glass-bg-orange);
+    border-color: var(--glass-border-orange);
+    box-shadow: var(--glass-shadow-dark);
+    color: #ffffff;
+}
+
 /* ── Loading spinner ─────────────────────────────────────────────────────────── */
 .loading-overlay {
     position: fixed;
@@ -183,7 +338,12 @@
 .swal2-container.swal2-backdrop-show,
 .gis-modal-backdrop,
 .modal-backdrop {
-    background: rgba(0, 10, 25, 0.85) !important; /* Filtro azulito sin blur para evitar que se trabe */
+    background: rgba(
+        0,
+        10,
+        25,
+        0.85
+    ) !important; /* Filtro azulito sin blur para evitar que se trabe */
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
 }
@@ -205,7 +365,6 @@
     z-index: 100001; /* Arriba de los toasts */
     padding: 20px;
 }
-
 
 /* ── Tabla de datos estándar ─────────────────────────────────────────────────── */
 .data-table {
@@ -863,4 +1022,3 @@
 .wrapper-verificacion > .report-header {
     margin-bottom: 1.5rem;
 }
-

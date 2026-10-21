@@ -412,8 +412,15 @@ window.prepararReemplazo = function(nombreArchivo, param1, param2, btnElement) {
     setTimeout(() => hiddenInput.remove(), 5000);
 };
 
-window.eliminarPdf = function(nombreArchivo, param1, param2) {
-    if (!confirm(`¿Deseas eliminar el archivo "${nombreArchivo}"?\nEsta acción no se puede deshacer.`)) return;
+window.eliminarPdf = async function(nombreArchivo, param1, param2) {
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "¿Eliminar archivo?",
+        text: `¿Deseas eliminar el archivo "${nombreArchivo}"?\nEsta acción no se puede deshacer.`,
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar",
+        confirmButtonColor: "#b30404"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) return;
 
     let payload = { archivo: nombreArchivo };
     payload.ot = param1; payload.clase = param2;

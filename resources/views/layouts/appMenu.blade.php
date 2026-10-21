@@ -7,6 +7,9 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
+    <!-- SweetAlert2 Global GIS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js', 'resources/js/layouts/productivity.js', 'resources/css/layouts/partials/messages.css', 'resources/js/layouts/partials/messages.js'])
 
     <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
@@ -50,10 +53,14 @@
 <body style="@yield('background-body'); min-height: 100vh; background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;">
     <header>
         @auth
-            <!--Menu-->
-            <button class="open-menu" aria-label="Menú principal" aria-expanded="false">
-                <img class="icon" src="{{ asset('images/icono.png') }}" alt="Icono Menú">
-            </button>
+            @hasSection('header-left')
+                @yield('header-left')
+            @else
+                <!--Menu-->
+                <button class="open-menu" aria-label="Menú principal" aria-expanded="false">
+                    <img class="icon" src="{{ asset('images/icono.png') }}" alt="Icono Menú">
+                </button>
+            @endif
             <div class="filter-opacity">
                 <nav class="nav" id="nav">
                     <!-- Cabecera del Menú Lateral -->

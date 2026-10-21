@@ -141,3 +141,13 @@ if (Storage::disk('local')->exists($otDir)) {
 }
 // 2. Memoizar estáticamente llamadas Storage::exists/directories/files en ViewModels durante el ciclo Blade.
 ```
+
+---
+
+## 7. Protección de Documentos Escaneados y Formatos de Proceso en `copyToAlmacen`
+
+Al sincronizar o purgar dibujos huérfanos entre Ingeniería y Almacén/Calidad mediante `copyToAlmacen()`:
+- **NUNCA** incluir la carpeta `ESCANEADOS` (`/escaneados/`) en la lista de candidatos a borrar.
+- Proteger explícitamente cualquier archivo de proceso con prefijos `f_alm_`, `f-alm-`, `f_ccl_`, `f-ccl-`, `scar_`, `rdm_`, `ldm_`, `preorden` o `confirmacion`.
+- De no protegerse, la tarea programada periódica (`calidad:sync-fundicion` cada 5 min) detectará los formatos escaneados como dibujos obsoletos y los eliminará de disco de forma irreversible.
+

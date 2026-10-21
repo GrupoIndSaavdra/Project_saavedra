@@ -359,7 +359,9 @@ document.addEventListener("DOMContentLoaded", function () {
             pdf.save("Organigrama_Grupo_Industrial_Saavedra.pdf");
         } catch (error) {
             console.error("Error al exportar PDF:", error);
-            alert("No se pudo generar el archivo directo. Abriendo diálogo de impresión...");
+            if (window.toastpremium) {
+                window.toastpremium("No se pudo generar el archivo directo. Abriendo diálogo de impresión...", "warning");
+            }
             window.print();
         } finally {
             // Restaurar zoom y posición del usuario

@@ -1,4 +1,7 @@
 import { Process } from "./Process.js";
+import { openModalCalendar, formatDisplayDate } from "../components/modalCmCalendar.js";
+import { openModalShiftTime, openModalTime, getAutoDetectedShift, formatDisplayTime, getShiftSummaryText, getShiftTriggerHtml } from "../components/modalCmTime.js";
+import { openModalMachine, formatDisplayMachine, getMachinePlaceholderHtml, getMachineTriggerHtml } from "../components/modalCmMachine.js";
 
 // Variable global para rastrear el inicio real de cada pieza/juego independiente de la meta
 window.currentPieceStartTime = null;
@@ -25,6 +28,30 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
+
+const formFieldIcons = {
+    "Orden de trabajo": "OT-Icon.png",
+    "workOrder": "OT-Icon.png",
+    "Clase": "Herramientas-Icon.png",
+    "class": "Herramientas-Icon.png",
+    "Proceso": "Proceso-Icon.png",
+    "process": "Proceso-Icon.png",
+    "Subproceso": "Revision-Icon.png",
+    "subprocess": "Revision-Icon.png",
+    "Turno": "Turno-Icon.png",
+    "startTime": "Turno-Icon.png",
+    "Fecha": "Fecha-Icon.png",
+    "date": "Fecha-Icon.png",
+    "Máquina": "Maquina-Icon.png",
+    "machine": "Maquina-Icon.png",
+    "consignmentPieces": "Revision-Icon.png",
+    "remainingPieces": "Revision-Icon.png"
+};
+
+function getFieldLabelHtml(iconFileName, text) {
+    if (!iconFileName) return `<span>${text}</span>`;
+    return `<img src="/images/${iconFileName}" class="form-label-icon" alt="${text}"><span>${text}</span><img src="/images/${iconFileName}" class="form-label-icon" alt="${text}">`;
+}
 
 function createSelects(labelText, className) {
     let form_grid = document.querySelector(".form-grid");
@@ -59,18 +86,19 @@ function createSelects(labelText, className) {
         }
     }
     let label = document.createElement("label");
-    label.textContent = labelText;
     label.className = "form-label";
     label.setAttribute("for", className);
+    let iconFile = formFieldIcons[labelText] || formFieldIcons[className];
+    label.innerHTML = getFieldLabelHtml(iconFile, labelText);
 
     select.addEventListener("change", function () {
         disabledSelects(className);
+        select.classList.add("cnom-select-white");
         if (select.value) {
             if (className === "subprocess") {
                 let submit = document.querySelector(".btn-submit");
                 submit.classList.remove("prod-submit-hidden"); submit.classList.add("prod-submit-visible");
             }
-            select.classList.remove("cnom-select-blue"); select.classList.add("cnom-select-white");
         } else {
             if (className === "subprocess") {
                 let submit = document.querySelector(".btn-submit");
@@ -78,7 +106,6 @@ function createSelects(labelText, className) {
                     submit.classList.remove("prod-submit-visible"); submit.classList.add("prod-submit-hidden");
                 }
             }
-            select.classList.remove("cnom-select-white"); select.classList.add("cnom-select-blue");
         }
     });
 
@@ -114,11 +141,17 @@ function validateProductionForm() {
         }
     });
 
-    // Cambiar estado del botón
+    let btnsContainer = submit.closest(".form-btns-container") || submit.parentElement;
+
+    // Cambiar estado del botón y ocultar el contenedor para hacer la tarjeta compacta
     if (allFilled) {
-        submit.classList.remove("prod-submit-hidden"); submit.classList.add("prod-submit-visible");
+        if (btnsContainer) btnsContainer.style.display = "flex";
+        submit.classList.remove("prod-submit-hidden");
+        submit.classList.add("prod-submit-visible");
     } else {
-        submit.classList.remove("prod-submit-visible"); submit.classList.add("prod-submit-hidden");
+        if (btnsContainer) btnsContainer.style.display = "none";
+        submit.classList.remove("prod-submit-visible");
+        submit.classList.add("prod-submit-hidden");
     }
 }
 
@@ -161,7 +194,7 @@ function disabledSelects(className) {
         let select = document.querySelector(`.${array[i]}`);
         if (select) {
             if (array[i] !== "subprocess") {
-                select.classList.remove("cnom-select-white"); select.classList.add("cnom-select-blue");
+                select.classList.add("cnom-select-white");
                 select.disabled = true;
                 select.innerHTML = ""; // Limpiar las opciones existentes
                 let optionEmpty = document.createElement("option");
@@ -171,7 +204,10 @@ function disabledSelects(className) {
 
                 let submit = document.querySelector(".btn-submit");
                 if (submit) {
-                    submit.classList.remove("prod-submit-visible"); submit.classList.add("prod-submit-hidden");
+                    submit.classList.remove("prod-submit-visible");
+                    submit.classList.add("prod-submit-hidden");
+                    let btnsContainer = submit.closest(".form-btns-container") || submit.parentElement;
+                    if (btnsContainer) btnsContainer.style.display = "none";
                 }
             } else {
                 let parent = select.parentElement;
@@ -189,84 +225,277 @@ function disabledSelects(className) {
     }
 }
 
+/**
+ * Crea un campo disparador interactivo para Fecha o Tiempo individual
+ * Integra modalCmCalendar y modalCmTime con visualización elegante y validación nativa.
+ */
+function createInteractivePickerField(fieldName, labelText, initialValue = "") {
+    const hiddenInput = document.createElement("input");
+    hiddenInput.type = "hidden";
+    hiddenInput.name = fieldName;
+    hiddenInput.id = fieldName;
+    hiddenInput.value = initialValue ? String(initialValue).trim() : "";
+
+    const triggerInput = document.createElement("input");
+    triggerInput.type = "text";
+    triggerInput.readOnly = true;
+    triggerInput.required = true;
+    triggerInput.className = "form-control normal-input custom-picker-trigger";
+    triggerInput.id = `display_${fieldName}`;
+
+    if (fieldName === "date") {
+        triggerInput.placeholder = "Elegir fecha";
+        triggerInput.tabIndex = 0;
+        triggerInput.setAttribute("role", "button");
+        triggerInput.title = "Haz clic para seleccionar la fecha";
+        if (initialValue) {
+            triggerInput.value = formatDisplayDate(initialValue);
+        } else {
+            triggerInput.value = "";
+            triggerInput.classList.add("is-empty");
+        }
+
+        const openCalendar = () => {
+            openModalCalendar(hiddenInput, triggerInput, null, "Seleccionar Fecha de Producción");
+        };
+
+        triggerInput.addEventListener("click", openCalendar);
+    } else {
+        triggerInput.placeholder = "--:-- hrs";
+        if (initialValue) {
+            triggerInput.value = formatDisplayTime(initialValue) || `${initialValue} hrs`;
+        } else {
+            triggerInput.classList.add("is-empty");
+        }
+
+        const title = fieldName === "startTime" ? "Seleccionar Hora de Inicio" : "Seleccionar Hora de Término";
+        const openTime = () => {
+            openModalTime(hiddenInput, triggerInput, title);
+        };
+
+        triggerInput.addEventListener("click", openTime);
+    }
+
+    // Al cambiar el hiddenInput, sincronizar el trigger si se disparó programáticamente
+    hiddenInput.addEventListener("input", () => {
+        if (fieldName === "date") {
+            triggerInput.value = formatDisplayDate(hiddenInput.value);
+        } else {
+            triggerInput.value = formatDisplayTime(hiddenInput.value) || `${hiddenInput.value} hrs`;
+        }
+        triggerInput.classList.remove("is-empty");
+        triggerInput.dispatchEvent(new Event("input", { bubbles: true }));
+        triggerInput.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+
+    return { hiddenInput, triggerInput };
+}
+
+function getShiftPlaceholderHtml() {
+    return `
+        <div style="display: flex; align-items: center; justify-content: center; width: 100%; color: #64748b;">
+            <span style="font-weight: 800; font-size: 0.92rem; color: #64748b;">Selecciona un turno</span>
+        </div>
+    `;
+}
+
+/**
+ * Crea un único campo/botón interactivo para "Turno y Horario"
+ * El usuario debe seleccionar el turno siempre explícitamente en el modal.
+ */
+function createInteractiveShiftTimeField(initialStart = "", initialEnd = "") {
+    const hiddenStart = document.createElement("input");
+    hiddenStart.type = "hidden";
+    hiddenStart.name = "startTime";
+    hiddenStart.id = "startTime";
+    hiddenStart.required = true;
+
+    const hiddenEnd = document.createElement("input");
+    hiddenEnd.type = "hidden";
+    hiddenEnd.name = "endTime";
+    hiddenEnd.id = "endTime";
+    hiddenEnd.required = true;
+
+    const triggerInput = document.createElement("div");
+    triggerInput.className = "form-control normal-input custom-picker-trigger is-shift-picker";
+    triggerInput.id = "display_shift_time";
+    triggerInput.tabIndex = 0;
+    triggerInput.setAttribute("role", "button");
+    triggerInput.title = "Haz clic para seleccionar el turno u horario";
+
+    // No autoseleccionar turno si viene vacío: el usuario debe elegirlo
+    let finalStart = initialStart ? String(initialStart).trim().substring(0, 5) : "";
+    let finalEnd = initialEnd ? String(initialEnd).trim().substring(0, 5) : "";
+
+    // Regla de seguridad para sábado: si es sábado nunca permitir turno noche
+    const today = new Date();
+    if (today.getDay() === 6 && finalStart === "22:00") {
+        finalStart = "";
+        finalEnd = "";
+    }
+
+    hiddenStart.value = finalStart;
+    hiddenEnd.value = finalEnd;
+
+    if (finalStart && finalEnd) {
+        triggerInput.innerHTML = getShiftTriggerHtml(finalStart, finalEnd);
+        triggerInput.classList.remove("is-empty");
+    } else {
+        triggerInput.innerHTML = getShiftPlaceholderHtml();
+        triggerInput.classList.add("is-empty");
+    }
+
+    // Al hacer clic o presionar Enter/Espacio, abrir modal unificado de Turno y Horario
+    const openShiftModal = () => {
+        openModalShiftTime(hiddenStart, hiddenEnd, triggerInput);
+    };
+    triggerInput.addEventListener("click", openShiftModal);
+    triggerInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openShiftModal();
+        }
+    });
+
+    // Sincronizar trigger si se modifican los valores de los hidden inputs
+    const syncTrigger = () => {
+        if (hiddenStart.value && hiddenEnd.value) {
+            triggerInput.innerHTML = getShiftTriggerHtml(hiddenStart.value, hiddenEnd.value);
+            triggerInput.classList.remove("is-empty");
+        } else {
+            triggerInput.innerHTML = getShiftPlaceholderHtml();
+            triggerInput.classList.add("is-empty");
+        }
+        triggerInput.dispatchEvent(new Event("input", { bubbles: true }));
+        triggerInput.dispatchEvent(new Event("change", { bubbles: true }));
+        validateProductionForm();
+    };
+
+    hiddenStart.addEventListener("input", syncTrigger);
+    hiddenEnd.addEventListener("input", syncTrigger);
+
+    return { hiddenStart, hiddenEnd, triggerInput };
+}
+
 function createInputs() {
     let form_grid = document.querySelector(".form-grid");
 
-    let arrayTimes = ["Hora de inicio", "Hora de termino", "Fecha", "Maquina"];
-    let arrayNames = ["startTime", "endTime", "date", "machine"];
-    arrayTimes.forEach((element) => {
-        let form_group = document.createElement("div");
-        form_group.className = "form-group";
+    // 1. Campo unificado de Turno y Horario (engloba startTime y endTime en un solo botón/campo)
+    let shiftGroup = document.createElement("div");
+    shiftGroup.className = "form-group full-width";
 
-        let input;
-        if (element === "Maquina") {
-            input = document.createElement("select");
-            input.className = "form-control normal-input";
-            input.id = arrayNames[arrayTimes.indexOf(element)];
+    let labelShift = document.createElement("label");
+    labelShift.innerHTML = getFieldLabelHtml("Turno-Icon.png", "Turno");
+    labelShift.className = "form-label";
+    labelShift.setAttribute("for", "display_shift_time");
 
-            let optionEmpty = document.createElement("option");
-            optionEmpty.value = "";
-            optionEmpty.textContent = "Selecciona una opción";
-            input.appendChild(optionEmpty);
-            // Generar 45 máquinas
-            // Máquinas agrupadas: 1_2, 5_6, 25_26, 27_28 (primero la versión agrupada, luego las individuales)
-            const pairedMachines = [1, 5, 25, 27];
-            for (let i = 1; i <= 45; i++) {
-                let option = document.createElement("option");
-                if (pairedMachines.includes(i)) {
-                    // Opción agrupada (1_2, 5_6, 25_26, 27_28)
-                    option.value = `${i}_${i + 1}`;
-                    option.textContent = `Maquina ${i} y ${i + 1}`;
-                    input.appendChild(option);
-                    // Opción individual A
-                    let optA = document.createElement("option");
-                    optA.value = `${i}`;
-                    optA.textContent = `Maquina ${i}`;
-                    input.appendChild(optA);
-                    // Opción individual B
-                    let optB = document.createElement("option");
-                    optB.value = `${i + 1}`;
-                    optB.textContent = `Maquina ${i + 1}`;
-                    input.appendChild(optB);
-                    i++; // Saltar el siguiente ya que ya fue agregado
-                } else {
-                    option.value = `${i}`;
-                    option.textContent = `Maquina ${i}`;
-                    input.appendChild(option);
-                }
-            }
-        } else {
-            input = document.createElement("input");
-            input.type = {
-                "Hora de inicio": "time",
-                "Hora de termino": "time",
-                Fecha: "date",
-            }[element];
-            input.className = "form-control normal-input";
-            input.id = arrayNames[arrayTimes.indexOf(element)];
+    const { hiddenStart, hiddenEnd, triggerInput: triggerShift } = createInteractiveShiftTimeField();
+    shiftGroup.appendChild(hiddenStart);
+    shiftGroup.appendChild(hiddenEnd);
+    shiftGroup.appendChild(triggerShift);
+    shiftGroup.appendChild(labelShift);
+    form_grid.appendChild(shiftGroup);
+
+    // 2. Campo interactivo de Máquina (Columna izquierda)
+    let machineGroup = document.createElement("div");
+    machineGroup.className = "form-group";
+
+    let labelMachine = document.createElement("label");
+    labelMachine.innerHTML = getFieldLabelHtml("Maquina-Icon.png", "Máquina");
+    labelMachine.className = "form-label";
+    labelMachine.setAttribute("for", "display_machine");
+
+    const hiddenMachine = document.createElement("input");
+    hiddenMachine.type = "hidden";
+    hiddenMachine.name = "machine";
+    hiddenMachine.id = "machine";
+    hiddenMachine.required = true;
+
+    const triggerMachine = document.createElement("div");
+    triggerMachine.className = "form-control normal-input custom-picker-trigger is-machine-picker is-empty";
+    triggerMachine.id = "display_machine";
+    triggerMachine.tabIndex = 0;
+    triggerMachine.setAttribute("role", "button");
+    triggerMachine.title = "Haz clic para seleccionar la máquina";
+    triggerMachine.innerHTML = getMachinePlaceholderHtml();
+
+    const openMachine = () => {
+        openModalMachine(hiddenMachine, triggerMachine);
+    };
+
+    triggerMachine.addEventListener("click", openMachine);
+    triggerMachine.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openMachine();
         }
-        input.required = true;
-        input.name = arrayNames[arrayTimes.indexOf(element)];
-
-        let label = document.createElement("label");
-        label.textContent = element;
-        label.className = "form-label";
-        label.setAttribute("for", arrayNames[arrayTimes.indexOf(element)]);
-
-        form_group.appendChild(input);
-        form_group.appendChild(label);
-        form_grid.appendChild(form_group);
     });
+
+    const syncMachineValidation = () => {
+        validateProductionForm();
+    };
+    hiddenMachine.addEventListener("input", syncMachineValidation);
+    hiddenMachine.addEventListener("change", syncMachineValidation);
+
+    machineGroup.appendChild(hiddenMachine);
+    machineGroup.appendChild(triggerMachine);
+    machineGroup.appendChild(labelMachine);
+    form_grid.appendChild(machineGroup);
+
+    // 3. Campo de Fecha (Columna derecha)
+    let dateGroup = document.createElement("div");
+    dateGroup.className = "form-group";
+
+    let labelDate = document.createElement("label");
+    labelDate.innerHTML = getFieldLabelHtml("Fecha-Icon.png", "Fecha");
+    labelDate.className = "form-label";
+    labelDate.setAttribute("for", "date");
+
+    const { hiddenInput: hiddenDate, triggerInput: triggerDate } = createInteractivePickerField("date", "Fecha", "");
+
+    // Si el usuario cambia la fecha a sábado o entre semana, verificar bloqueos y revalidar formulario
+    hiddenDate.addEventListener("change", () => {
+        validateProductionForm();
+        if (hiddenDate.value) {
+            const parts = hiddenDate.value.split("-").map(Number);
+            if (parts.length === 3) {
+                const chosenDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0);
+                const isSat = chosenDate.getDay() === 6;
+                if (isSat) {
+                    if (hiddenStart.value === "22:00") {
+                        // Sábado no tiene turno noche -> cambiar a Mañana
+                        hiddenStart.value = "06:00";
+                        hiddenEnd.value = "14:00";
+                    } else if (hiddenStart.value === "13:45" && hiddenEnd.value === "21:45") {
+                        // Sábado mixto termina a las 18:45
+                        hiddenEnd.value = "18:45";
+                    }
+                } else {
+                    if (hiddenStart.value === "13:45" && hiddenEnd.value === "18:45") {
+                        // Entre semana mixto termina a las 21:45
+                        hiddenEnd.value = "21:45";
+                    }
+                }
+                triggerShift.innerHTML = getShiftTriggerHtml(hiddenStart.value, hiddenEnd.value);
+            }
+        }
+    });
+
+    dateGroup.appendChild(hiddenDate);
+    dateGroup.appendChild(triggerDate);
+    dateGroup.appendChild(labelDate);
+    form_grid.appendChild(dateGroup);
 
     let form_principal_data = document.querySelector(".form-principal-data");
 
     let container = document.createElement("div");
     container.className = "form-btns-container";
+    container.style.display = "none"; // Inicia oculto para que el contenedor principal sea compacto
 
     let submit = document.createElement("button");
     submit.type = "submit";
-    submit.className = "btn-submit";
-    submit.textContent = "Registrar";
+    submit.className = "btn-submit prod-submit-hidden";
+    submit.innerHTML = `<img src="/images/Resultado-Icon.png" class="btn-submit-icon" alt="Icono"><span>Registrar</span><img src="/images/Resultado-Icon.png" class="btn-submit-icon" alt="Icono">`;
 
     container.appendChild(submit);
     form_principal_data.appendChild(container);
@@ -279,7 +508,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
         process: "Proceso",
         subprocess: "Subproceso",
         machine: "Máquina",
-        startTime: "Hora de inicio",
+        startTime: "Turno",
         endTime: "Hora de término",
         date: "Fecha",
         consignmentPieces: "Pedido con consignación",
@@ -287,8 +516,13 @@ function createInputsWithValue(values, valuesEnabled = []) {
     };
     let form_grid = document.querySelector(".form-grid");
     for (const [key, value] of Object.entries(values)) {
+        if (key === "endTime") {
+            // Ya está englobado dentro de startTime ("Turno y Horario")
+            continue;
+        }
+
         let form_group = document.createElement("div");
-        form_group.className = key == "workOrder" || key == "subprocess" ? "form-group full-width" : "form-group";
+        form_group.className = (key === "workOrder" || key === "subprocess" || key === "startTime") ? "form-group full-width" : "form-group";
 
         if (
             key != "operator" &&
@@ -301,23 +535,43 @@ function createInputsWithValue(values, valuesEnabled = []) {
             key != "history" &&
             key != "ptaTableHtml" &&
             key != "tipo_soldadura" &&
+            key != "consignmentPieces" &&
+            key != "remainingPieces" &&
             value != null &&
             value !== ""
         ) {
-            let input = document.createElement("input");
-            input.name = key;
-            input.id = key;
+            let label = document.createElement("label");
+            let labelText = arrayKeyNames[key] || key;
+            let iconFile = formFieldIcons[key] || formFieldIcons[labelText];
+            label.innerHTML = getFieldLabelHtml(iconFile, labelText);
+            label.className = "form-label";
+            label.setAttribute("for", key === "startTime" ? "display_shift_time" : key);
+
             if (valuesEnabled.includes(key)) {
-                input.type = {
-                    startTime: "time",
-                    endTime: "time",
-                    date: "date",
-                }[key];
-                input.className = "form-control normal-input";
-                input.required = true;
-                input.name = key;
-                input.classList.add("cnom-select-blue");
+                if (key === "startTime") {
+                    const { hiddenStart, hiddenEnd, triggerInput } = createInteractiveShiftTimeField(values.startTime, values.endTime);
+                    form_group.appendChild(hiddenStart);
+                    form_group.appendChild(hiddenEnd);
+                    form_group.appendChild(triggerInput);
+                } else if (key === "date") {
+                    const { hiddenInput, triggerInput } = createInteractivePickerField(key, arrayKeyNames[key], value);
+                    form_group.appendChild(hiddenInput);
+                    form_group.appendChild(triggerInput);
+                } else {
+                    let input = document.createElement("input");
+                    input.name = key;
+                    input.id = key;
+                    input.type = "text";
+                    input.className = "form-control normal-input";
+                    input.required = true;
+                    input.value = value;
+                    input.classList.add("cnom-select-white");
+                    form_group.appendChild(input);
+                }
             } else {
+                let input = document.createElement("input");
+                input.name = key;
+                input.id = key;
                 if (key == "machine") {
                     let input_hidden = document.createElement("input");
                     input_hidden.type = "hidden";
@@ -325,38 +579,56 @@ function createInputsWithValue(values, valuesEnabled = []) {
                     input_hidden.value = value;
                     form_group.appendChild(input_hidden);
                     input.value = value.replace("_", " y ");
+                } else if (key == "date") {
+                    input.value = formatDisplayDate(value) || value;
+                } else if (key == "startTime") {
+                    let shiftDiv = document.createElement("div");
+                    shiftDiv.className = "form-control normal-input custom-picker-trigger is-shift-picker";
+                    shiftDiv.id = "display_shift_time";
+                    shiftDiv.style.pointerEvents = "none";
+                    shiftDiv.innerHTML = getShiftTriggerHtml(values.startTime, values.endTime);
+                    form_group.appendChild(shiftDiv);
+
+                    let hiddenStart = document.createElement("input");
+                    hiddenStart.type = "hidden";
+                    hiddenStart.name = "startTime";
+                    hiddenStart.id = "startTime";
+                    hiddenStart.value = values.startTime;
+                    form_group.appendChild(hiddenStart);
+
+                    form_group.appendChild(label);
+                    form_grid.appendChild(form_group);
+                    continue;
                 } else {
-                    input.name = key;
                     input.value = key == "remainingPieces" ? value : value;
                 }
                 input.type = "text";
                 input.className = "form-control normal-input";
                 input.readOnly = true;
+                form_group.appendChild(input);
             }
 
-            let label = document.createElement("label");
-            label.textContent = arrayKeyNames[key];
-            label.className = "form-label";
-            label.setAttribute("for", key);
-
-            form_group.appendChild(input);
             form_group.appendChild(label);
             form_grid.appendChild(form_group);
         }
     }
+    // Actualizar campos de consignación y piezas restantes en la tabla superior
+    let consInput = document.getElementById("meta_consignment_pieces");
+    if (consInput && values.consignmentPieces !== undefined) {
+        consInput.value = values.consignmentPieces + " piezas";
+    }
+    let remInput = document.getElementById("meta_remaining_pieces");
+    if (remInput && values.remainingPieces !== undefined) {
+        remInput.value = values.remainingPieces + " piezas";
+    }
+
     // Crear el boton de submit si hay campos habilitados
     if (valuesEnabled.length > 0) {
         let container = document.createElement("div");
         container.className = "form-btns-container";
 
-        // Agregar submit
+        // Agregar submit Confirmar
         container.appendChild(createBtnSubmit_editMeta());
-
-        // Mover cancelar si ya existe (inyectado por changeFormRoute)
-        let existingCancel = document.querySelector(".btn-cancel");
-        if (existingCancel) {
-            container.appendChild(existingCancel);
-        }
 
         document.querySelector(".form-principal-data").appendChild(container);
     }
@@ -365,14 +637,22 @@ function createBtnSubmit_editMeta() {
     let submit = document.createElement("button");
     submit.type = "submit";
     submit.className = "btn-submit";
-    submit.classList.remove("prod-submit-hidden"); submit.classList.add("prod-submit-visible");
-    submit.textContent = "Editar";
+    submit.classList.remove("prod-submit-hidden");
+    submit.classList.add("prod-submit-visible");
+
+    const resultadoIconSrc = window.imgResultado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Resultado-Icon.png` : "/images/Resultado-Icon.png");
+
+    submit.innerHTML = `
+        <img src="${resultadoIconSrc}" class="btn-submit-icon" alt="Confirmar">
+        <span>Confirmar</span>
+        <img src="${resultadoIconSrc}" class="btn-submit-icon" alt="Confirmar">
+    `;
     return submit;
 }
 
 /**
- * Muestra un cuadro informativo de tipo de soldadura en el form-grid.
- * Solo se muestra en los procesos que aplican y solo si hay arrayData.
+ * Muestra el campo de tipo de soldadura en el formulario del operador (form-grid).
+ * Solo se muestra en los procesos que aplican y cuando hay arrayData.
  */
 function insertWeldingTypeBox() {
     const procesosAplicables = [
@@ -394,35 +674,34 @@ function insertWeldingTypeBox() {
     };
     const tipoSoldadura = tipoSoldaduraRaw
         ? (tipoSoldaduraLabels[String(tipoSoldaduraRaw)] ?? ("Tipo " + tipoSoldaduraRaw))
-        : null;
+        : "-";
 
     const formGrid = document.querySelector(".form-grid");
     if (!formGrid) return;
 
     // Evitar duplicados
-    if (document.getElementById("weld-type-box")) return;
+    if (document.getElementById("weld-type-group")) return;
 
-    let box = document.createElement("div");
-    box.id = "weld-type-box";
-    box.className = "form-group";
-    box.classList.add("prod-weld-box");
+    let formGroup = document.createElement("div");
+    formGroup.id = "weld-type-group";
+    formGroup.className = "form-group full-width";
 
-    let labelTitle = document.createElement("span");
-    labelTitle.textContent = "tipo de soldadura";
-    labelTitle.classList.add("prod-stat-title");
+    let input = document.createElement("input");
+    input.name = "tipo_soldadura";
+    input.id = "tipo_soldadura";
+    input.type = "text";
+    input.className = "form-control normal-input";
+    input.readOnly = true;
+    input.value = tipoSoldadura;
 
-    let valueSpan = document.createElement("span");
-    if (tipoSoldadura) {
-        valueSpan.textContent = tipoSoldadura;
-        valueSpan.classList.add("prod-stat-val-white");
-    } else {
-        valueSpan.textContent = "-";
-        valueSpan.classList.add("prod-stat-val-muted");
-    }
+    let label = document.createElement("label");
+    label.className = "form-label";
+    label.setAttribute("for", "tipo_soldadura");
+    label.innerHTML = getFieldLabelHtml("Proceso-Icon.png", "Tipo de Soldadura");
 
-    box.appendChild(labelTitle);
-    box.appendChild(valueSpan);
-    formGrid.appendChild(box);
+    formGroup.appendChild(input);
+    formGroup.appendChild(label);
+    formGrid.appendChild(formGroup);
 }
 function insertSelects() {
     let form_grid = document.querySelector(".form-grid");
@@ -439,6 +718,7 @@ function insertSelects() {
                 let classes = window.workOrders[selectedValue];
                 modifySelects(classes, document.querySelector(".class"), "Clase");
             }
+            validateProductionForm();
         });
         //prettier-ignore
         selectClasses.addEventListener("change", function () {
@@ -450,6 +730,7 @@ function insertSelects() {
                     modifySelects(processes, document.querySelector(".process"), "Proceso");
                 }
             }
+            validateProductionForm();
         });
         //prettier-ignore
         selectProcesses.addEventListener("change", function () {
@@ -481,7 +762,7 @@ function insertSelects() {
     }
 }
 
-function createInputPassword(name = "passwordAdmin", placeholderText = "Password of the Admin") {
+function createInputPassword(name = "passwordAdmin", placeholderText = "Contraseña de Administrador") {
     // Creación de contenedor
     let form_group = document.createElement("div");
     form_group.className = "form-group-password";
@@ -620,17 +901,28 @@ function createTable() {
             //Mostrar DIV de alerta para Cotas No disponibles
             let div = document.createElement("div");
             div.className = "label-noCotas";
-            div.innerHTML =
-                "No hay Cotas Nominales disponibles. Notificar inmediatamente al area de software o calidad.";
+            const noCotasIconSrc = window.imgNoCotas || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/icono_sin_cotas.png` : "/images/icono_sin_cotas.png");
+            div.innerHTML = `
+                <img src="${noCotasIconSrc}" class="no-cotas-icon" alt="Sin Cotas Nominales">
+                <span>No hay Cotas Nominales disponibles. Notificar inmediatamente al área de software o calidad.</span>
+            `;
             form.appendChild(div);
 
-            let bodyNode = document.querySelector("body");
-            bodyNode.appendChild(
-                showDivAlert(
-                    "Las Cotas Nominales y tolerancias aun no se han cargado. Por favor notifica al area de Calidad o Software",
-                    true
-                )
-            );
+            const noCotasMsg = "Las Cotas Nominales y tolerancias aún no se han cargado. Por favor notifica al área de Calidad o Software.";
+            setTimeout(() => {
+                if (typeof window.gisAlert === "function") {
+                    window.gisAlert({
+                        title: "¡Sin Cotas Nominales!",
+                        text: noCotasMsg,
+                        icon: "warning"
+                    });
+                } else if (typeof window.toastpremium === "function") {
+                    window.toastpremium(noCotasMsg, "warning");
+                } else if (typeof showDivAlert === "function") {
+                    let bodyNode = document.querySelector("body");
+                    bodyNode.appendChild(showDivAlert(noCotasMsg, true));
+                }
+            }, 300);
         }
     }
     body.appendChild(form);
@@ -883,8 +1175,12 @@ function insertAvaliablePiecesSelect(form) {
     select.addEventListener("change", function () {
         if (this.value) {
             // Actualizar la hora de inicio al momento exacto de selección de la pieza
-            window.refreshPieceStartTime();
-            // "Selección de Pieza" eliminado: es telemetría de bajo valor
+            if (typeof window.refreshPieceStartTime === "function") {
+                window.refreshPieceStartTime();
+            }
+            if (typeof window.toastpremium === "function") {
+                window.toastpremium(`${this.value} seleccionado correctamente`, "success");
+            }
         }
     });
 
@@ -902,12 +1198,6 @@ function insertAvaliablePiecesSelect(form) {
         option.value = assembly;
         option.textContent = assembly;
         select.appendChild(option);
-    });
-
-    select.addEventListener("change", function (e) {
-        if (e.target.value) {
-            toastpremium(`${e.target.value} seleccionado correctamente`, "success");
-        }
     });
 
     // Insertar el select directamente en el formulario (fuera de la tabla)
@@ -1086,49 +1376,25 @@ function createBtnMetaEdit() {
     return wrapper;
 }
 
-/**
- * Crea el botón de acceso rápido a Documentación (Manuales/Ayudas)
- * Espejo estetico de createBtnMetaEdit pero para el lado derecho
- */
 function createBtnTechDocs() {
     let wrapper = document.createElement("div");
     wrapper.className = "tech-docs-wrapper";
-    wrapper.hidden = false;
-    wrapper.classList.add("prod-col-center");
-
-    // Contenedor relativo para posicionar el pez sin afectar el centrado del logo
-    let imgContainer = document.createElement("div");
-    imgContainer.classList.add("pos-relative");
-    imgContainer.hidden = false;
-    imgContainer.classList.add("justify-center");
 
     let btn_docs = document.createElement("img");
     btn_docs.className = "img-edit";
     btn_docs.src = window.imgTechDocs;
-    btn_docs.alt = "Documentación";
+    btn_docs.alt = "Documentos";
     btn_docs.title = "Ver Manuales y Ayudas Visuales";
-
-    // El pececito adjuntado (Oculto a petición)
-    let fish_gif = document.createElement("img");
-    fish_gif.src = window.baseUrl + "/images/fish.gif";
-    fish_gif.alt = "Pez";
-    fish_gif.classList.add("prod-fish-gif");
-    fish_gif.hidden = true; // Ocultado
 
     let label = document.createElement("div");
     label.className = "action-label";
     label.textContent = "Documentos";
-    label.classList.add("prod-label-center");
 
-    // Asignar el clic a todo el contenedor para mayor facilidad de uso
     wrapper.addEventListener("click", function () {
         openTechDocsModal();
     });
 
-    imgContainer.appendChild(btn_docs);
-    imgContainer.appendChild(fish_gif);
-
-    wrapper.appendChild(imgContainer);
+    wrapper.appendChild(btn_docs);
     wrapper.appendChild(label);
     return wrapper;
 }
@@ -1183,7 +1449,7 @@ function showInlinePasswordForm(type, imgElement = null) {
     // 4. Crear el grupo de contraseña según el tipo
     let form_group_password;
     if (type === "Calidad") {
-        form_group_password = createInputPassword("passwordQuality", "Password of the Quality");
+        form_group_password = createInputPassword("passwordQuality", "Contraseña de Calidad");
         form.onsubmit = function (e) {
             e.preventDefault();
             window.logUserAction("Intento de Liberación", "Se abrió el formulario de liberación de calidad", { h_inicio: window.qualityStartTime });
@@ -1191,14 +1457,15 @@ function showInlinePasswordForm(type, imgElement = null) {
         };
     } else if (type === "EditMeta") {
         window.logUserAction("Solicitud Edición de Reporte", "Se requiere contraseña de administrador para editar metadatos");
-        form_group_password = createInputPassword("passwordAdmin", "Password of the Admin");
+        form_group_password = createInputPassword("passwordAdmin", "Contraseña de Administrador");
     } else {
         window.logUserAction("Solicitud Edición de Piezas", "Se requiere contraseña de administrador para editar piezas");
-        form_group_password = createInputPassword("passwordAdmin", "Password of the Admin");
+        form_group_password = createInputPassword("passwordAdmin", "Contraseña de Administrador");
     }
 
     // 5. Ubicar el formulario al lado del botón
     targetContainer.classList.add("is-verifying");
+    document.body.classList.add("is-verifying-active");
     form.appendChild(form_group_password);
     targetContainer.appendChild(form);
 
@@ -1222,8 +1489,19 @@ function addEventToFinishReport() {
 
     // Mostrar botón y manejar clic
     btn_finishReport.classList.remove("opacity-0");
-    btn_finishReport.addEventListener("click", function () {
-        if (confirm("¿Estás seguro de que deseas terminar el reporte?")) {
+    btn_finishReport.addEventListener("click", async function () {
+        const confirmResult = await (window.gisConfirm ? window.gisConfirm({
+            title: "¿Terminar reporte?",
+            text: "¿Estás seguro de que deseas terminar el reporte?",
+            icon: "warning",
+            confirmButtonText: "Sí, terminar",
+            cancelButtonText: "Cancelar",
+            confirmButtonColor: "#b30404",
+            cancelButtonColor: "#030041",
+            reverseButtons: true
+        }) : Promise.resolve({ isConfirmed: true }));
+
+        if (confirmResult.isConfirmed) {
             window.logUserAction("Terminar Reporte", "El usuario finalizó su turno");
             reporteTerminado = true; // ✅ permitir salir sin advertencia
             if (window.arrayData) {
@@ -1246,20 +1524,43 @@ function changeFormRoute(div, form, route) {
     input_hidden.value = window.arrayData["meta"].id;
     form.appendChild(input_hidden);
 
-    // Crear el boton de cancelar edición solo si no es edición de piezas (el cual va abajo)
+    // Crear o vincular el botón de cancelar edición en la barra superior (Header Izquierdo)
     if (window.arrayData["edit"] == 1) {
-        div.appendChild(createBtnCancelEdit("btn-cancel-report"));
+        let existingHeaderCancel = document.querySelector("header .btn-cancel-report");
+        if (existingHeaderCancel) {
+            attachCancelEditEvent(existingHeaderCancel);
+        } else {
+            let btnFinish = document.querySelector(".btn-finishReport");
+            let btnCancel = createBtnCancelEdit("btn-cancel-report");
+            if (btnFinish && btnFinish.parentNode) {
+                btnFinish.parentNode.insertBefore(btnCancel, btnFinish);
+            } else {
+                let header = document.querySelector("header");
+                if (header) {
+                    header.prepend(btnCancel);
+                } else if (div) {
+                    div.appendChild(btnCancel);
+                }
+            }
+        }
     }
 }
 
-function createBtnCancelEdit(customClass = "btn-cancel") {
-    let btn_cancel = document.createElement("a");
-    btn_cancel.href = "#";
-    btn_cancel.className = customClass;
-    btn_cancel.textContent = "Cancelar";
-    btn_cancel.onclick = function (e) {
+function attachCancelEditEvent(btn_cancel) {
+    btn_cancel.onclick = async function (e) {
         e.preventDefault();
-        if (confirm("¿Estás seguro de que deseas cancelar?")) {
+        const confirmResult = await (window.gisConfirm ? window.gisConfirm({
+            title: "¿Cancelar?",
+            text: "¿Estás seguro de que deseas cancelar?",
+            icon: "warning",
+            confirmButtonText: "Sí, cancelar",
+            cancelButtonText: "Regresar",
+            confirmButtonColor: "#b30404",
+            cancelButtonColor: "#030041",
+            reverseButtons: true
+        }) : Promise.resolve({ isConfirmed: true }));
+
+        if (confirmResult.isConfirmed) {
             window.location.href =
                 window.baseUrl +
                 "/processProduction/format/" +
@@ -1269,6 +1570,32 @@ function createBtnCancelEdit(customClass = "btn-cancel") {
                 "/0";
         }
     };
+}
+
+function createBtnCancelEdit(customClass = "btn-cancel") {
+    let btn_cancel = document.createElement("a");
+    btn_cancel.href = "#";
+    btn_cancel.className = customClass;
+
+    const cancelIconSrc = window.imgCancelar || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Cancelar-Icon.png` : "/images/Cancelar-Icon.png");
+
+    let iconLeft = document.createElement("img");
+    iconLeft.src = cancelIconSrc;
+    iconLeft.className = "cancel-report-icon";
+    iconLeft.alt = "Cancelar";
+
+    let span = document.createElement("span");
+    span.textContent = "Cancelar";
+
+    let iconRight = document.createElement("img");
+    iconRight.src = cancelIconSrc;
+    iconRight.className = "cancel-report-icon";
+    iconRight.alt = "Cancelar";
+
+    btn_cancel.appendChild(iconLeft);
+    btn_cancel.appendChild(span);
+    btn_cancel.appendChild(iconRight);
+    attachCancelEditEvent(btn_cancel);
     return btn_cancel;
 }
 
@@ -1278,25 +1605,127 @@ function insertProductionActions() {
     let warningLabel = document.querySelector(".warning-pieces");
     if (!warningLabel) return;
 
-    // Crear contenedor principal
-    let actionsContainer = document.createElement("div");
-    actionsContainer.className = "production-actions";
+    // Remover tarjeta previa si existe
+    let existingCard = document.querySelector(".production-actions-card");
+    if (existingCard) {
+        existingCard.remove();
+    }
+
+    // Crear tarjeta/contenedor envolvente para las acciones
+    let actionsCard = document.createElement("div");
+    actionsCard.className = "production-actions-card";
 
     // MODO EDICIÓN DE PIEZAS (Estandarizado con la estética del reporte pero con clase propia)
-    if (window.arrayData["edit"] == 2) {
+    if (window.arrayData && window.arrayData["edit"] == 2) {
+        let actionsContainer = document.createElement("div");
+        actionsContainer.className = "production-actions";
         actionsContainer.appendChild(createBtnCancelEdit("btn-cancel-pieces"));
-        warningLabel.insertAdjacentElement('afterend', actionsContainer);
+        actionsCard.appendChild(actionsContainer);
+        warningLabel.insertAdjacentElement('afterend', actionsCard);
         return;
     }
 
+    // Grid central con 3 secciones simétricas
+    let hubGrid = document.createElement("div");
+    hubGrid.className = "production-hub-grid";
+
     // Detectar si hay piezas liberadas (liberacion == 1)
-    let hasPieces = window.arrayData["machinedPiecesInMeta"] &&
+    let hasPieces = window.arrayData && window.arrayData["machinedPiecesInMeta"] &&
         window.arrayData["machinedPiecesInMeta"].length > 0;
 
-    let hasReleasedPieces = window.arrayData["machinedPiecesInMeta"] &&
-        window.arrayData["machinedPiecesInMeta"].some(p => p.piece.liberacion === 1);
+    // ==========================================
+    // 1. COLUMNA IZQUIERDA: ACCIONES ADMIN
+    // ==========================================
+    let adminCol = document.createElement("div");
+    adminCol.className = "hub-column hub-admin";
 
-    // 1. Botón de Programas CNC (Se habilita dinámicamente si hay archivos)
+    let adminHeader = document.createElement("div");
+    adminHeader.className = "hub-section-header";
+    adminHeader.textContent = "Admin";
+    adminCol.appendChild(adminHeader);
+
+    let adminBtnsRow = document.createElement("div");
+    adminBtnsRow.className = "hub-buttons-row";
+
+    // 1.1 Botón Editar Reporte (Meta)
+    let btnEditMeta = createActionButton(
+        window.edit,
+        "Reporte",
+        "Editar Datos Generales del Reporte",
+        false,
+        (e) => handleEditMetaClick(e)
+    );
+    btnEditMeta.setAttribute("data-action", "edit-meta");
+    let imgEditMeta = btnEditMeta.querySelector("img");
+    if (imgEditMeta) {
+        imgEditMeta.setAttribute("data-action", "edit-meta");
+        imgEditMeta.classList.add("img-edit-meta");
+    }
+    adminBtnsRow.appendChild(btnEditMeta);
+
+    // 1.2 Botón Editar Piezas (Bloqueado si no hay piezas registradas)
+    let editDisabled = !hasPieces;
+    let btnEditPieces = createActionButton(
+        window.imgEditPieces,
+        "Editar",
+        "Editar piezas registradas",
+        editDisabled,
+        (e) => handleEditPiecesClick(e)
+    );
+    btnEditPieces.setAttribute("data-action", "edit-pieces");
+    let imgEditPieces = btnEditPieces.querySelector("img");
+    if (imgEditPieces) {
+        imgEditPieces.setAttribute("data-action", "edit-pieces");
+    }
+    adminBtnsRow.appendChild(btnEditPieces);
+
+    // 1.3 Botón Calidad (Bloqueado si no hay piezas registradas)
+    let qualityDisabled = !hasPieces;
+    let btnQuality = createActionButton(
+        window.imgQualityCheck,
+        "Calidad",
+        "Liberación de Calidad",
+        qualityDisabled,
+        (e) => handleQualityClick(e)
+    );
+    btnQuality.setAttribute("data-action", "calidad");
+    let imgQuality = btnQuality.querySelector("img");
+    if (imgQuality) {
+        imgQuality.setAttribute("data-action", "calidad");
+    }
+    adminBtnsRow.appendChild(btnQuality);
+
+    adminCol.appendChild(adminBtnsRow);
+    hubGrid.appendChild(adminCol);
+
+    // ==========================================
+    // 2. COLUMNA CENTRAL: PROGRESO DE PIEZAS (Card idéntica a OT en Progreso)
+    // ==========================================
+    let progressCol = document.createElement("div");
+    progressCol.className = "hub-column hub-progress";
+    progressCol.id = "hub-progress-column";
+
+    let progressContent = document.createElement("div");
+    progressContent.className = "hub-progress-content";
+    progressCol.appendChild(progressContent);
+
+    hubGrid.appendChild(progressCol);
+
+    // ==========================================
+    // 3. COLUMNA DERECHA: DOCUMENTACIÓN / OPERADOR
+    // ==========================================
+    let operatorCol = document.createElement("div");
+    operatorCol.className = "hub-column hub-operator hub-docs";
+
+    let operatorHeader = document.createElement("div");
+    operatorHeader.className = "hub-section-header";
+    operatorHeader.textContent = "Documentación";
+    operatorCol.appendChild(operatorHeader);
+
+    let operatorBtnsRow = document.createElement("div");
+    operatorBtnsRow.className = "hub-buttons-row";
+
+    // 3.1 Botón Programas CNC (Se habilita dinámicamente si hay archivos)
     let btnProgramas = createActionButton(
         window.imgProgramsCNC || window.baseUrl + '/images/ProgramsCNC.png',
         "Programas",
@@ -1312,7 +1741,7 @@ function insertProductionActions() {
     );
     btnProgramas.classList.add("btn-programas");
     let imgBtnProgramas = btnProgramas.querySelector('img');
-    actionsContainer.appendChild(btnProgramas);
+    operatorBtnsRow.appendChild(btnProgramas);
 
     // Fetch silencioso para verificar si existen archivos .NC/.CNC en la carpeta específica
     const actOT = window.arrayData && window.arrayData.workOrder ? window.arrayData.workOrder : '';
@@ -1335,7 +1764,7 @@ function insertProductionActions() {
             });
     }
 
-    // 1.5 Botón de Dibujos (Siempre habilitado)
+    // 3.2 Botón Dibujos (Siempre habilitado)
     let btnDrawings = createActionButton(
         window.imgDraws,
         "Dibujos",
@@ -1349,29 +1778,48 @@ function insertProductionActions() {
         }
     );
     btnDrawings.classList.add("btn-drawings");
-    actionsContainer.appendChild(btnDrawings);
-    // 2. Botón de Calidad (Bloqueado si no hay piezas registradas)
-    let qualityDisabled = !hasPieces;
-    actionsContainer.appendChild(createActionButton(
-        window.imgQualityCheck,
-        "Calidad",
-        "Liberación de Calidad",
-        qualityDisabled,
-        (e) => handleQualityClick(e, actionsContainer)
-    ));
+    operatorBtnsRow.appendChild(btnDrawings);
 
-    // 3. Botón de Editar Piezas (Bloqueado similar a calidad)
-    let editDisabled = !hasPieces;
-    actionsContainer.appendChild(createActionButton(
-        window.imgEditPieces,
-        "Editar",
-        "Editar piezas registradas",
-        editDisabled,
-        (e) => handleEditPiecesClick(e, actionsContainer)
-    ));
+    // 3.3 Botón Documentos (Manuales y Ayudas Visuales)
+    let btnTechDocs = createActionButton(
+        window.imgTechDocs,
+        "Documentos",
+        "Ver Manuales y Ayudas Visuales",
+        false,
+        () => {
+            window.logUserAction("Consulta Documentación", "El operador consultó los manuales y ayudas visuales");
+            openTechDocsModal();
+        }
+    );
+    btnTechDocs.classList.add("btn-tech-docs");
+    operatorBtnsRow.appendChild(btnTechDocs);
 
-    // Insertar después de la advertencia
-    warningLabel.insertAdjacentElement('afterend', actionsContainer);
+    operatorCol.appendChild(operatorBtnsRow);
+    hubGrid.appendChild(operatorCol);
+
+    // Ensamblar tarjeta e insertar después de la advertencia
+    actionsCard.appendChild(hubGrid);
+    warningLabel.insertAdjacentElement('afterend', actionsCard);
+
+    // Renderizar progreso de piezas en la columna central del hub
+    if (window.arrayData && window.arrayData["history"]) {
+        createHistoricalTable(window.arrayData["history"]);
+    } else {
+        renderPlaceholderProgress(progressCol);
+    }
+}
+
+function handleEditMetaClick(event) {
+    let img = event.currentTarget;
+    if (!img || img.classList.contains("btn-disabled")) return;
+
+    if (img.src.includes(window.edit.split('/').pop())) {
+        showInlinePasswordForm("EditMeta", img);
+    } else {
+        window.logUserAction("Abandono Edición Reporte", "El usuario canceló la autenticación para editar reporte.");
+        removePasswordForms();
+        img.src = window.edit;
+    }
 }
 
 function createActionButton(src, label, title, disabled, callback) {
@@ -1450,12 +1898,13 @@ function removePasswordForms() {
     }
 
     // 4. Restaurar contenedores y estados
+    document.body.classList.remove("is-verifying-active");
     document.querySelectorAll(".is-verifying").forEach(el => el.classList.remove("is-verifying"));
 
     // 5. Restaurar iconos de acciones de producción e iconos de edición
     let imgQuality = document.querySelector('img[alt="Calidad"]');
-    let imgEditPieces = document.querySelector('img[alt="Editar"]');
-    let imgEditMeta = document.querySelector('.img-edit');
+    let imgEditPieces = document.querySelector('img[alt="Editar"]') || document.querySelector('img[data-action="edit-pieces"]');
+    let imgEditMeta = document.querySelector('img[alt="Reporte"]') || document.querySelector('img[data-action="edit-meta"]') || document.querySelector('.img-edit-meta') || document.querySelector('.img-edit');
 
     if (imgQuality) {
         imgQuality.src = window.imgQualityCheck;
@@ -1502,7 +1951,7 @@ function verifyQualityPasswordAjax(form, imgElement) {
         })
         .catch(error => {
             console.error("Error:", error);
-            alert("Error al verificar la contraseña. Intente de nuevo.");
+            toastpremium("Error al verificar la contraseña. Intente de nuevo.", "error");
         });
 }
 
@@ -1835,6 +2284,7 @@ if (window.arrayData) {
             if (window.arrayData["numberPieces"] > 0) {
                 // Si ya se han registrado piezas, solo habilitar los inputs de tiempo y fecha
                 createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
+                insertWeldingTypeBox();
             } else {
                 // Si no se han registrado piezas, habilitar todos los inputs
                 insertSelects();
@@ -1856,14 +2306,10 @@ if (window.arrayData) {
     } else {
         createInputsWithValue(window.arrayData); // Crear inputs con los valores de la meta
         insertWeldingTypeBox(); // Cuadro informativo de tipo de soldadura
-        document.querySelector(".div-table-meta").prepend(createBtnMetaEdit()); // Insertar botón de editar meta arriba
-
-        let containerCode = document.querySelector(".div-table-code");
-        if (containerCode) containerCode.prepend(createBtnTechDocs()); // Insertar botón de documentos arriba a la derecha
 
         addEventToFinishReport(); // Agregar evento al botón de terminar reporte
+        insertProductionActions(); // Insertar controles unificados de producción (Hub central 3 columnas)
         enableTable(); // Habilitar la tabla de piezas
-        insertProductionActions(); // Insertar controles unificados de producción
     }
 } else {
     if (window.workOrders != null) {
@@ -1877,31 +2323,21 @@ if (window.arrayData) {
 }
 
 function createHistoricalTable(history) {
-    // Evitar duplicados si ya existe
-    let existingIndicator = document.querySelector(".historical-indicator-container");
-    if (existingIndicator) {
-        existingIndicator.remove();
+    let targetContainer = document.querySelector(".hub-progress-content") || document.getElementById("hub-progress-column") || document.querySelector(".hub-progress");
+    if (!targetContainer) return;
+
+    if (!history || Object.keys(history).length === 0) {
+        renderPlaceholderProgress(targetContainer);
+        return;
     }
 
-    if (!history || Object.keys(history).length === 0) return;
+    let consignmentPieces = window.arrayData ? (window.arrayData.consignmentPieces || 0) : 0;
 
-    let container = document.createElement("div");
-    container.className = "historical-indicator-container";
-
-    let title = document.createElement("div");
-    title.className = "historical-title";
-    title.innerText = "Progreso de Piezas";
-    container.appendChild(title);
-
-    let consignmentPieces = window.arrayData.consignmentPieces || 0;
-
-    // Determine current process name to filter history
-    let currentProcessName = window.arrayData.process;
-    if (window.arrayData.subprocess) {
+    let currentProcessName = window.arrayData ? window.arrayData.process : 'Sin Proceso';
+    if (window.arrayData && window.arrayData.subprocess) {
         currentProcessName += "_" + window.arrayData.subprocess;
     }
 
-    // Normalize process name to match history keys (e.g., Soldadura y Soldadura PTA)
     if (currentProcessName === "Soldadura" || currentProcessName === "Soldadura PTA") {
         currentProcessName = "Soldadura y Soldadura PTA";
     }
@@ -1909,133 +2345,227 @@ function createHistoricalTable(history) {
     let lookupName = currentProcessName;
     let processData = history[lookupName];
 
-    // Obtener el número de proceso buscando en las llaves del historial
     let processIndex = Object.keys(history).indexOf(lookupName) + 1;
     let processNumber = processIndex > 0 ? String(processIndex).padStart(2, '0') : '--';
 
-    // ── Construir la card con el diseño estándar del Dashboard ────────────────
     let processSection = document.createElement("div");
     processSection.className = "process-section";
     processSection.style.position = "relative";
-    processSection.style.cursor = "default";
 
-    // Click para Soldadura PTA (manteniendo la lógica de acceso original)
+    // Click para Soldadura PTA
     if (currentProcessName === "Soldadura y Soldadura PTA" && window.arrayData.process === "Soldadura PTA") {
         processSection.style.cursor = "pointer";
         processSection.addEventListener("click", function () {
             let otId = window.arrayData.meta ? window.arrayData.meta.id_ot : null;
             if (otId) {
                 createPtaPasswordModal(otId);
-            } else {
-                console.error("No se pudo obtener el OT ID de window.arrayData.meta");
             }
         });
     }
 
-    // 1. Badge numérico del proceso
+    // 1. Badge con número de proceso en la esquina superior izquierda
     let numberBadge = document.createElement("span");
     numberBadge.className = "process-number-badge";
-    numberBadge.textContent = processNumber;
+    numberBadge.textContent = String(processNumber).padStart(2, '0');
     processSection.appendChild(numberBadge);
 
-    // 2. Título del proceso
+    // 2. Icono de Cotas / Aprobado en la esquina superior derecha
+    let cotasBadge = document.createElement("img");
+    cotasBadge.className = "cotas-badge";
+    const baseUrl = window.baseUrl || (window.location.origin + '/');
+    const slash = baseUrl.endsWith('/') ? '' : '/';
+
+    const processesNoCotas = ["Soldadura", "Soldadura PTA", "Asentado", "Rectificado"];
+    const isNoCotasProcess = processesNoCotas.includes(window.arrayData ? window.arrayData.process : null);
+
+    let hasCotas = false;
+    if (window.arrayData && window.arrayData.process === "Copiado") {
+        hasCotas = !!(
+            window.arrayData?.cNominals?.Cilindrado?.[0]?.diametro1_cilindrado &&
+            window.arrayData?.cNominals?.Cavidades?.[0]?.diametro1_cavidades
+        );
+    } else {
+        hasCotas = !!(window.arrayData && window.arrayData.cNominals);
+    }
+
+    if (isNoCotasProcess) {
+        cotasBadge.src = `${baseUrl}${slash}images/Aprobado.png`;
+        cotasBadge.title = "No requiere cotas";
+        cotasBadge.classList.add("cotas-badge-glow");
+    } else if (hasCotas) {
+        cotasBadge.src = `${baseUrl}${slash}images/icono_cotas.png`;
+        cotasBadge.title = "Cotas registradas correctamente";
+        cotasBadge.classList.add("cotas-badge-glow");
+    } else {
+        cotasBadge.src = `${baseUrl}${slash}images/icono_sin_cotas.png`;
+        cotasBadge.title = "Falta registrar cotas (Clic para detalles)";
+        cotasBadge.style.opacity = "0.7";
+        cotasBadge.style.cursor = "pointer";
+        cotasBadge.addEventListener("click", (e) => {
+            e.stopPropagation();
+            if (typeof window.gisAlert === "function") {
+                window.gisAlert({
+                    title: "¡Sin Cotas Nominales!",
+                    text: "Este proceso requiere cotas nominales pero aún no han sido registradas. Notifica a Calidad o Software.",
+                    icon: "warning"
+                });
+            } else if (typeof window.toastpremium === "function") {
+                window.toastpremium("Este proceso no cuenta con cotas nominales cargadas.", "warning");
+            }
+        });
+    }
+    processSection.appendChild(cotasBadge);
+
+    // 3. Título del proceso centrado
     let processTitle = document.createElement("h3");
     processTitle.className = "process-title";
     processTitle.innerHTML = currentProcessName;
     processSection.appendChild(processTitle);
 
-    // 3. Label de límite (Total disponible)
+    // 4. Total disponible
     let limitLabel = document.createElement("label");
     limitLabel.className = "limit-label";
-    limitLabel.style.fontSize = "12px";
-    limitLabel.style.color = "#fff";
-    limitLabel.innerHTML = `Total de OT: ${consignmentPieces}`;
+    limitLabel.innerHTML = `Total disponible: ${consignmentPieces}`;
     processSection.appendChild(limitLabel);
 
     const goodCount = processData ? (processData.pieces.good || 0) : 0;
     const badCount = processData ? (processData.pieces.bad || 0) : 0;
 
-    // Si no hay piezas procesadas, oscurecer
     if (goodCount === 0 && badCount === 0) {
         processSection.classList.add("inactive-process");
     }
 
-    // Calcular porcentaje de piezas buenas
     let goodPercentage = consignmentPieces == 0 ? (goodCount > 0 ? 100 : 0) : (goodCount * 100) / consignmentPieces;
     goodPercentage = Math.min(100, goodPercentage);
 
-    // Aplicar Glow Hue dinámico
     let hue = 30 + (goodPercentage * 0.9);
     processSection.style.setProperty('--glow-hue', hue);
 
-    // Tooltip dinámico
-    if (goodPercentage === 0) {
-        processSection.title = "Proceso aún no iniciado. Esperando primeras piezas.";
-    } else if (goodPercentage < 50) {
-        processSection.title = `Progreso bajo (${goodPercentage.toFixed(1)}%). Se requiere atención.`;
-    } else if (goodPercentage < 100) {
-        processSection.title = `Progreso estable (${goodPercentage.toFixed(1)}%). Buen ritmo de trabajo.`;
-    } else {
-        processSection.title = "¡Proceso completado exitosamente al 100%!";
-    }
-
-    // Estilos dinámicos para el contorno de la sección y el badge numérico
-    if (goodPercentage >= 100) {
-        processSection.style.borderColor = '#4ade80';
-        processSection.style.boxShadow = 'none';
+    // Borde dinámico según progreso y estado de cotas en el contenedor .hub-progress
+    let parentCol = targetContainer.closest(".hub-progress") || targetContainer;
+    if (!hasCotas && !isNoCotasProcess) {
+        if (parentCol) {
+            parentCol.style.borderColor = '#f59e0b';
+            parentCol.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4)';
+        }
+        numberBadge.style.color = '#f59e0b';
+        numberBadge.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+        numberBadge.style.background = 'rgba(245, 158, 11, 0.12)';
+    } else if (goodPercentage >= 100) {
+        if (parentCol) {
+            parentCol.style.borderColor = '#4ade80';
+            parentCol.style.boxShadow = '0 0 14px rgba(74, 222, 128, 0.45), 0 8px 24px rgba(0, 0, 0, 0.4)';
+        }
         numberBadge.style.color = '#4ade80';
-        numberBadge.style.borderColor = 'rgba(74, 222, 128, 0.3)';
-        numberBadge.style.background = 'rgba(74, 222, 128, 0.1)';
+        numberBadge.style.borderColor = 'rgba(74, 222, 128, 0.5)';
+        numberBadge.style.background = 'rgba(74, 222, 128, 0.12)';
     } else if (goodPercentage > 0) {
-        processSection.style.borderColor = `hsl(${hue}, 100%, 50%)`;
-        processSection.style.boxShadow = 'none';
+        if (parentCol) {
+            parentCol.style.borderColor = `hsl(${hue}, 100%, 50%)`;
+            parentCol.style.boxShadow = `0 0 14px hsla(${hue}, 100%, 50%, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4)`;
+        }
         numberBadge.style.color = `hsl(${hue}, 100%, 50%)`;
-        numberBadge.style.borderColor = `hsla(${hue}, 100%, 50%, 0.3)`;
-        numberBadge.style.background = `hsla(${hue}, 100%, 50%, 0.1)`;
+        numberBadge.style.borderColor = `hsla(${hue}, 100%, 50%, 0.5)`;
+        numberBadge.style.background = `hsla(${hue}, 100%, 50%, 0.12)`;
     } else {
-        processSection.style.borderColor = '';
-        processSection.style.boxShadow = '';
-        numberBadge.style.color = '';
-        numberBadge.style.borderColor = '';
-        numberBadge.style.background = '';
+        if (parentCol) {
+            parentCol.style.borderColor = '#22c55e';
+            parentCol.style.boxShadow = '0 0 10px rgba(34, 197, 94, 0.25), 0 8px 24px rgba(0, 0, 0, 0.4)';
+        }
+        numberBadge.style.color = '#22c55e';
+        numberBadge.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+        numberBadge.style.background = 'rgba(34, 197, 94, 0.12)';
     }
 
-    // 4. Barras de progreso
+    // Barras de progreso
     let pieces = [goodCount, badCount];
     for (let i = 0; i < pieces.length; i++) {
         let progressBar = document.createElement("div");
         progressBar.className = "progress-bar";
-        // Colores base estilo dashboard: Verde translúcido para buenas, Rojo translúcido para malas
-        progressBar.style.backgroundColor = i == 0 ? "rgba(12, 130, 1, 0.15)" : "rgba(157, 4, 2, 0.15)";
+        progressBar.style.backgroundColor = i == 0 ? "rgba(12, 130, 1, 0.18)" : "rgba(157, 4, 2, 0.18)";
 
         let progress = document.createElement("div");
         progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
 
         let percentage = consignmentPieces > 0 ? (pieces[i] * 100) / consignmentPieces : 0;
-        progress.style.width = `${Math.min(percentage, 100)}%`;
+        let displayPercentage = percentage;
+        percentage = Math.min(100, percentage);
 
-        // Color de fill específico pedido por el usuario (solo para buenas, malas usa CSS global)
-        if (i === 0) {
-            progress.style.backgroundColor = "rgb(52, 163, 0)";
+        progress.style.width = `${percentage}%`;
+
+        if (i === 0 && percentage > 0) {
+            let barHue = 30 + (percentage * 0.9);
+            progress.style.backgroundColor = `hsl(${barHue}, 100%, 32%)`;
         }
 
-        let formattedPercentage = percentage != 0 ? percentage.toFixed(1) : 0;
+        displayPercentage = displayPercentage != 0 ? displayPercentage.toFixed(1) : 0;
         let percentageLabel = document.createElement("div");
         percentageLabel.className = "progress-percentage";
-        percentageLabel.innerText = pieces[i] == 1 ? `${formattedPercentage}% ${pieces[i]} pieza` : `${formattedPercentage}% ${pieces[i]} piezas`;
+        percentageLabel.innerText = pieces[i] == 1 ? `${displayPercentage}% ${pieces[i]} pieza` : `${displayPercentage}% ${pieces[i]} piezas`;
 
         progressBar.appendChild(progress);
         progressBar.appendChild(percentageLabel);
         processSection.appendChild(progressBar);
     }
 
-    container.appendChild(processSection);
+    targetContainer.innerHTML = "";
+    targetContainer.appendChild(processSection);
+}
 
-    // Insertar después de la tabla de metadatos
-    let targetContainer = document.querySelector(".div-table-code");
-    if (targetContainer) {
-        targetContainer.appendChild(container);
+function renderPlaceholderProgress(container) {
+    let target = container && container.classList.contains("hub-progress-content") 
+        ? container 
+        : (document.querySelector(".hub-progress-content") || container);
+    if (!target) return;
+    target.innerHTML = "";
+
+    let currentProcessName = window.arrayData ? (window.arrayData.process || 'Sin Proceso') : 'Sin Proceso';
+    let consignmentPieces = window.arrayData ? (window.arrayData.consignmentPieces || 0) : 0;
+
+    let processSection = document.createElement("div");
+    processSection.className = "process-section inactive-process";
+    processSection.style.position = "relative";
+
+    let numberBadge = document.createElement("span");
+    numberBadge.className = "process-number-badge";
+    numberBadge.textContent = "--";
+    processSection.appendChild(numberBadge);
+
+    let cotasBadge = document.createElement("img");
+    cotasBadge.className = "cotas-badge";
+    const baseUrl = window.baseUrl || (window.location.origin + '/');
+    const slash = baseUrl.endsWith('/') ? '' : '/';
+    cotasBadge.src = `${baseUrl}${slash}images/icono_sin_cotas.png`;
+    cotasBadge.title = "Sin cotas registradas";
+    cotasBadge.style.opacity = "0.4";
+    processSection.appendChild(cotasBadge);
+
+    let processTitle = document.createElement("h3");
+    processTitle.className = "process-title";
+    processTitle.innerHTML = currentProcessName;
+    processSection.appendChild(processTitle);
+
+    let limitLabel = document.createElement("label");
+    limitLabel.className = "limit-label";
+    limitLabel.innerHTML = `Total disponible: ${consignmentPieces}`;
+    processSection.appendChild(limitLabel);
+
+    for (let i = 0; i < 2; i++) {
+        let progressBar = document.createElement("div");
+        progressBar.className = "progress-bar";
+        progressBar.style.backgroundColor = i == 0 ? "rgba(12, 130, 1, 0.15)" : "rgba(157, 4, 2, 0.15)";
+        let progress = document.createElement("div");
+        progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
+        progress.style.width = "0%";
+        let percentageLabel = document.createElement("div");
+        percentageLabel.className = "progress-percentage";
+        percentageLabel.innerText = "0% 0 piezas";
+        progressBar.appendChild(progress);
+        progressBar.appendChild(percentageLabel);
+        processSection.appendChild(progressBar);
     }
+
+    target.appendChild(processSection);
 }
 
 
@@ -3178,7 +3708,7 @@ window.openTechDocsModal = function () {
                 }
                 _triggerSearch();
             } catch (err) {
-                alert("Error al cambiar pestaña: " + err.message);
+                toastpremium("Error al cambiar pestaña: " + err.message, "error");
                 console.error(err);
             }
         };

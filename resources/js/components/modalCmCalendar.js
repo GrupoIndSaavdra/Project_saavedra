@@ -194,12 +194,19 @@ function renderCalendarDays() {
             if (activeTargetInput) {
                 activeTargetInput.value = this.dataset.date;
                 if (activeDisplayLabel) {
-                    activeDisplayLabel.textContent = formatDisplayDate(this.dataset.date);
+                    const formatted = formatDisplayDate(this.dataset.date);
+                    if (activeDisplayLabel.tagName === "INPUT") {
+                        activeDisplayLabel.value = formatted;
+                    } else {
+                        activeDisplayLabel.textContent = formatted;
+                    }
                     activeDisplayLabel.style.color = "#0f172a";
                     activeDisplayLabel.style.fontWeight = "600";
-                    activeDisplayLabel.style.flex = "0 0 68%";
-                    activeDisplayLabel.style.width = "68%";
-                    activeDisplayLabel.style.maxWidth = "68%";
+                    if (activeClearBtn) {
+                        activeDisplayLabel.style.flex = "0 0 68%";
+                        activeDisplayLabel.style.width = "68%";
+                        activeDisplayLabel.style.maxWidth = "68%";
+                    }
                     activeDisplayLabel.classList.remove("is-empty");
                 }
                 if (activeClearBtn) {

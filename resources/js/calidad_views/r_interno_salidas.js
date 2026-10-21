@@ -642,7 +642,9 @@
 
     function mostrarAlerta(titulo, texto, icono) {
         if (typeof Swal === 'undefined') {
-            alert(`${titulo}: ${texto}`);
+            if (window.toastpremium) {
+                window.toastpremium(`${titulo}: ${texto}`, icono === 'error' ? 'error' : (icono === 'warning' ? 'warning' : 'info'));
+            }
             return;
         }
         Swal.fire({

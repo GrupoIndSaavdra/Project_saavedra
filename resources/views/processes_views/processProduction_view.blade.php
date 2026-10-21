@@ -7,10 +7,31 @@
     @vite(['resources/css/processes_views/processProduction.css', 'resources/js/processes_views/processProduction.js'])
 @endsection
 
-@section('background-body', 'background-color: #f2f2f2; background-image: repeating-linear-gradient(45deg, transparent, transparent 78px, rgba(64,64,64,0.35) 78px, rgba(64,64,64,0.35) 80px, rgba(255,255,255,1) 80px, rgba(255,255,255,1) 82px), repeating-linear-gradient(-45deg, transparent, transparent 78px, rgba(64,64,64,0.35) 78px, rgba(64,64,64,0.35) 80px, rgba(255,255,255,1) 80px, rgba(255,255,255,1) 82px), radial-gradient(circle at 50% -20%, #ffffff 0%, transparent 80%); background-attachment: fixed; background-size: cover;')
+@section('background-body', 'background-color: #dbe4ee; background-image: repeating-linear-gradient(45deg, transparent, transparent 78px, rgba(3, 57, 102, 0.07) 78px, rgba(3, 57, 102, 0.07) 80px, rgba(255, 255, 255, 0.75) 80px, rgba(255, 255, 255, 0.75) 82px), repeating-linear-gradient(-45deg, transparent, transparent 78px, rgba(3, 57, 102, 0.07) 78px, rgba(3, 57, 102, 0.07) 80px, rgba(255, 255, 255, 0.75) 80px, rgba(255, 255, 255, 0.75) 82px), radial-gradient(circle at 50% 20%, #edf3f9 0%, #cbd7e4 100%); background-attachment: fixed; background-size: cover;')
+@section('header-left')
+    @if (!empty($arrayData['edit']) && $arrayData['edit'] == 1)
+        <a href="#" class="btn-cancel-report">
+            <img src="{{ asset('images/Cancelar-Icon.png') }}" class="cancel-report-icon" alt="Cancelar">
+            <span>Cancelar</span>
+            <img src="{{ asset('images/Cancelar-Icon.png') }}" class="cancel-report-icon" alt="Cancelar">
+        </a>
+    @else
+        <button class="btn-finishReport">
+            <img src="{{ asset('images/Terminar-Repo-Icon.png') }}" class="finish-report-icon" alt="Terminar reporte">
+            <span>Terminar reporte</span>
+            <img src="{{ asset('images/Terminar-Repo-Icon.png') }}" class="finish-report-icon" alt="Terminar reporte">
+        </button>
+    @endif
+@endsection
+
 @section('content')
     <div class="container-meta">
         <div class="principal-data">
+            <div class="panel-section-header">
+                <img src="{{ asset('images/Tornilleria-Icon.png') }}" class="panel-header-icon" alt="Tornillería">
+                <span>Reporte de Operador</span>
+                <img src="{{ asset('images/Tornilleria-Icon.png') }}" class="panel-header-icon" alt="Tornillería">
+            </div>
             <form action="{{ route('headerdata') }}" method="post" class="form-principal-data">
                 @csrf
                 @include('layouts.partials.messages')
@@ -25,9 +46,41 @@
                 <table class="table-meta">
                     <thead>
                         <tr>
-                            <th>Tiempo estandar</th>
-                            <th>Meta piezas/juegos</th>
-                            <th>Resultado</th>
+                            <th>
+                                <div class="table-meta-th-content">
+                                    <img src="{{ asset('images/Turno-Icon.png') }}" class="table-meta-icon" alt="Tiempo">
+                                    <span>Tiempo estándar</span>
+                                    <img src="{{ asset('images/Turno-Icon.png') }}" class="table-meta-icon" alt="Tiempo">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="table-meta-th-content">
+                                    <img src="{{ asset('images/Meta-Icon.png') }}" class="table-meta-icon" alt="Meta">
+                                    <span>Meta piezas/juegos</span>
+                                    <img src="{{ asset('images/Meta-Icon.png') }}" class="table-meta-icon" alt="Meta">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="table-meta-th-content">
+                                    <img src="{{ asset('images/Resultado-Icon.png') }}" class="table-meta-icon" alt="Resultado">
+                                    <span>Resultado</span>
+                                    <img src="{{ asset('images/Resultado-Icon.png') }}" class="table-meta-icon" alt="Resultado">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="table-meta-th-content">
+                                    <img src="{{ asset('images/OT-Icon.png') }}" class="table-meta-icon" alt="Pedido">
+                                    <span>Pedido Consignación</span>
+                                    <img src="{{ asset('images/OT-Icon.png') }}" class="table-meta-icon" alt="Pedido">
+                                </div>
+                            </th>
+                            <th>
+                                <div class="table-meta-th-content">
+                                    <img src="{{ asset('images/Tornilleria-Icon.png') }}" class="table-meta-icon" alt="Restantes">
+                                    <span>Piezas Restantes</span>
+                                    <img src="{{ asset('images/Tornilleria-Icon.png') }}" class="table-meta-icon" alt="Restantes">
+                                </div>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,47 +96,102 @@
                             <td>
                                 <input type="text" value="{{ $arrayData['meta']->resultado ?? 0 }} piezas" readonly>
                             </td>
+                            <td>
+                                <input type="text" id="meta_consignment_pieces" value="{{ $arrayData['consignmentPieces'] ?? 0 }} piezas" readonly>
+                            </td>
+                            <td>
+                                <input type="text" id="meta_remaining_pieces" value="{{ $arrayData['remainingPieces'] ?? 0 }} piezas" readonly>
+                            </td>
                         </tr>
                     </tbody>
                 </table>
             </form>
-            <button class="btn-finishReport">Terminar reporte</button>
-            <div class="warning-pieces">
-                <svg class="warning-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                    <line x1="12" y1="9" x2="12" y2="13"/>
-                    <line x1="12" y1=".17" x2="12.01" y2="17"/>
-                </svg>
+            <div class="warning-pieces yellow-glass-container">
+                <div class="warning-icon-wrapper">
+                    <img src="{{ asset('images/Notificacion-Icon.png') }}" class="warning-icon-img" alt="Notificación">
+                </div>
                 <div class="warning-text">
-                    LAS COTAS SON <span class="highlight-orange">ÚNICAMENTE DE REFERENCIA</span>; VERIFIQUE SIEMPRE LAS MEDIDAS CON EL DIBUJO VIGENTE.
-                    SI DETECTA CUALQUIER ANOMALÍA O DIFERENCIA EN LAS MEDIDAS, NOTIFÍQUELO DE INMEDIATO AL ENCARGADO DE PRODUCCIÓN O AL DEPARTAMENTO DE CALIDAD.
-                    <span class="highlight-red">ES OBLIGATORIO LIBERAR LA PRIMERA PIEZA Y, POSTERIORMENTE, CADA 5 PIEZAS</span> ANTES DE CONTINUAR CON EL PROCESO,
-                    LOS PLANOS SE ENCUENTRAN EXCLUSIVAMENTE EN EL ÍCONO DE DIBUJOS DEL SOFTWARE</span>.
+                    <div class="warning-title-pill">
+                        <img src="{{ asset('images/Alerta-Icon.png') }}" class="warning-pill-icon" alt="Alerta">
+                        <span>Aviso Importante de Producción</span>
+                        <img src="{{ asset('images/Alerta-Icon.png') }}" class="warning-pill-icon" alt="Alerta">
+                    </div>
+                    <div class="warning-body">
+                        LAS COTAS SON <span class="highlight-important-orange">ÚNICAMENTE DE REFERENCIA</span>; VERIFIQUE SIEMPRE LAS MEDIDAS CON EL DIBUJO VIGENTE.
+                        SI DETECTA CUALQUIER ANOMALÍA O DIFERENCIA EN LAS MEDIDAS, <span class="highlight-important-orange">NOTIFÍQUELO DE INMEDIATO</span> AL ENCARGADO DE PRODUCCIÓN O AL DEPARTAMENTO DE CALIDAD.
+                        <span class="highlight-important-orange">ES OBLIGATORIO LIBERAR LA PRIMERA PIEZA Y, POSTERIORMENTE, CADA 5 PIEZAS</span> ANTES DE CONTINUAR CON EL PROCESO,
+                        LOS PLANOS SE ENCUENTRAN EXCLUSIVAMENTE EN EL ÍCONO DE DIBUJOS DEL SOFTWARE.
+                    </div>
+                </div>
+                <div class="warning-icon-wrapper">
+                    <img src="{{ asset('images/Notificacion-Icon.png') }}" class="warning-icon-img" alt="Notificación">
                 </div>
             </div>
         </div>
         <div class="div-table-code">
-            <div class="operator-name form-group">
-                <input class="normal-input" type="text"
-                    value="{{ auth()->user()->matricula . ' - ' . auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre }}"
-                    disabled>
-                <label>Operador</label>
+            <div class="panel-section-header">
+                <img src="{{ asset('images/Operador-Icon.png') }}" class="panel-header-icon" alt="Operador">
+                <span>Datos del Operador</span>
+                <img src="{{ asset('images/Operador-Icon.png') }}" class="panel-header-icon" alt="Operador">
+            </div>
+
+            <div class="operator-profile-card">
+                <div class="operator-avatar-wrapper">
+                    <img src="{{ asset('images/Operador-Profile-Icon.png') }}" alt="Operador" class="operator-avatar-img">
+                </div>
+                <div class="operator-info-content">
+                    <div class="operator-meta-badges">
+                        <span class="operator-id-badge">
+                            <img src="{{ asset('images/Operador-Icon.png') }}" alt="Matrícula">
+                            <span>Matrícula: {{ auth()->user()->matricula }}</span>
+                        </span>
+                        <span class="operator-status-badge">
+                            <span class="status-pulse-dot"></span>
+                            <span>Activo</span>
+                        </span>
+                    </div>
+                    <div class="operator-fullname-box">
+                        <span class="operator-name-text">{{ auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre }}</span>
+                    </div>
+                </div>
+                {{-- Input oculto para compatibilidad con telemetría de processProduction.js --}}
+                <div class="operator-name" style="display: none;">
+                    <input type="hidden" value="{{ auth()->user()->matricula . ' - ' . auth()->user()->a_paterno . ' ' . auth()->user()->a_materno . ' ' . auth()->user()->nombre }}">
+                </div>
             </div>
 
             {{-- El botón de documentación técnica se inyecta vía JS en insertProductionActions --}}
 
             <table class="table-code">
                 <tr>
-                    <th>Código</th>
-                    <th> F- PRO - CPT</th>
+                    <th>
+                        <div class="table-code-th-content">
+                            <img src="{{ asset('images/Codigo-Icon.png') }}" class="table-code-icon" alt="Código">
+                            <span>Código</span>
+                            <img src="{{ asset('images/Codigo-Icon.png') }}" class="table-code-icon" alt="Código">
+                        </div>
+                    </th>
+                    <th>F- PRO - CPT</th>
                 </tr>
                 <tr>
-                    <th>Versión</th>
-                    <th> 05 </th>
+                    <th>
+                        <div class="table-code-th-content">
+                            <img src="{{ asset('images/Version-Icon.png') }}" class="table-code-icon" alt="Versión">
+                            <span>Versión</span>
+                            <img src="{{ asset('images/Version-Icon.png') }}" class="table-code-icon" alt="Versión">
+                        </div>
+                    </th>
+                    <th>05</th>
                 </tr>
                 <tr>
-                    <th>Fecha de revisión: </th>
-                    <th> 23 - Agosto - 23</th>
+                    <th>
+                        <div class="table-code-th-content">
+                            <img src="{{ asset('images/Revision-Icon.png') }}" class="table-code-icon" alt="Revisión">
+                            <span>Revisión</span>
+                            <img src="{{ asset('images/Revision-Icon.png') }}" class="table-code-icon" alt="Revisión">
+                        </div>
+                    </th>
+                    <th>23 - Agosto - 23</th>
                 </tr>
             </table>
         </div>
@@ -104,6 +212,10 @@
         window.imgProgramsCNC = "{{ asset('images/ProgramsCNC.png') }}";
         window.imgProgramsShadow = "{{ asset('images/ProgramsCNC-Shadow.png') }}";
         window.imgTechDocs = "{{ asset('images/manual.png') }}";
+        window.imgNoCotas = "{{ asset('images/icono_sin_cotas.png') }}";
+        window.imgCancelar = "{{ asset('images/Cancelar-Icon.png') }}";
+        window.imgResultado = "{{ asset('images/Resultado-Icon.png') }}";
+        window.occupiedMachines = @json((new \App\Http\Controllers\MachinesController)->machinesOccupied());
     </script>
     @isset($arrayData)
         <script>
@@ -116,4 +228,10 @@
             @endif
         </script>
     @endisset
+
+    {{-- Modales interactivos para Fecha, Turno y Máquina --}}
+    @include('components.modal_cm_calendar')
+    @include('components.modal_cm_time')
+    @include('components.modal_cm_machine')
 @endsection
+

@@ -312,12 +312,19 @@ window.agregarPocPagina = function() {
     window.switchPocPage(newPageNum);
 };
 
-window.removerPocPagina = function(pageNum) {
+window.removerPocPagina = async function(pageNum) {
     if (Object.keys(window.pocState.pages).length <= 1) {
         almacenToast("Debe haber al menos un proveedor.", "warning");
         return;
     }
-    if (!confirm(`¿Estás seguro de eliminar el Proveedor ${pageNum}? Se perderán los datos ingresados en esta pestaña.`)) return;
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "¿Eliminar proveedor?",
+        text: `¿Estás seguro de eliminar el Proveedor ${pageNum}? Se perderán los datos ingresados en esta pestaña.`,
+        icon: "warning",
+        confirmButtonText: "Sí, eliminar",
+        confirmButtonColor: "#b30404"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) return;
     
     delete window.pocState.pages[pageNum];
     window.renderPocTabsAndPages();

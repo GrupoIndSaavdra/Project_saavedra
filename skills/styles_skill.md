@@ -180,25 +180,51 @@ Los colores son la identidad corporativa del Grupo Industrial Saavedra (GIS):
 
 ## 3. Arquitectura del "Glassmorphism" (Paneles Premium)
 
-Cuando crees menús superpuestos, modales o paneles de detalles, usa esta arquitectura de cristal esmerilado.
+Cuando crees menús superpuestos, modales o paneles de detalles, usa la arquitectura de cristal esmerilado con gradientes direccionales en `135deg` (inician en su tonalidad base/corporativa normal y se difuminan oscureciéndose progresivamente hacia el vértice opuesto).
+
+Todas las variables y clases utilitarias residen en `resources/css/global.css`:
 
 ```css
-.glass-container {
- /* Fondo translúcido (25% opacidad del azul marino) */
- background: rgba(3, 57, 102, 0.25);
+/* Variables de fondo glassmorphism direccional (135deg: tono normal -> oscureciéndose) */
+--glass-bg-white:  /* Blanco cristal que oscurece sutilmente hacia humo/perla */
+--glass-bg-blue:   /* Azul marino GIS normal (#033966) oscureciéndose hacia medianoche */
+--glass-bg-dark:   /* Grafito oscuro normal oscureciéndose hacia obsidiana */
+--glass-bg-yellow: /* Ámbar/dorado cálido normal oscureciéndose hacia caramelo oscuro (alias: --glass-bg-amber) */
+--glass-bg-purple: /* Púrpura/violeta imperial normal oscureciéndose hacia berenjena oscuro (alias: --glass-bg-morado) */
+--glass-bg-green:  /* Verde GIS normal (#0a8504) oscureciéndose hacia bosque profundo (alias: --glass-bg-verde) */
+--glass-bg-red:    /* Rojo GIS normal (#9c0303) oscureciéndose hacia borgoña/vino (alias: --glass-bg-rojo) */
+--glass-bg-cyan:   /* Cyan/azul océano normal oscureciéndose hacia azul abisal (alias: --glass-bg-teal) */
+--glass-bg-orange: /* Naranja industrial normal oscureciéndose hacia ámbar oscuro (alias: --glass-bg-naranja) */
 
- /* El filtro que hace la magia — Siempre webkit ANTES */
- -webkit-backdrop-filter: blur(12px);
- backdrop-filter: blur(12px);
+/* Bordes cristalinos a juego */
+--glass-border-white, --glass-border-blue, --glass-border-dark,
+--glass-border-yellow, --glass-border-purple, --glass-border-green,
+--glass-border-red, --glass-border-cyan, --glass-border-orange
+```
 
- /* Borde fino para delimitar el "cristal" */
- border: 1px solid rgba(255, 255, 255, 0.3);
+**Uso con clase utilitaria `.glass-panel`:**
+```html
+<!-- Blanco estándar -->
+<div class="glass-panel">...</div>
 
- /* Sombra para despegue del fondo */
- box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+<!-- Con variante de color corporativa o temática -->
+<div class="glass-panel glass-blue">...</div>
+<div class="glass-panel glass-yellow">...</div>
+<div class="glass-panel glass-purple">...</div>
+<div class="glass-panel glass-green">...</div>
+<div class="glass-panel glass-red">...</div>
+```
 
- border-radius: 12px;
- padding: var(--sp-lg);
+**Ejemplo personalizado (CSS):**
+```css
+.mi-contenedor-glass {
+    background: var(--glass-bg-blue);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1.5px solid var(--glass-border-blue);
+    box-shadow: var(--glass-shadow-dark);
+    border-radius: 16px;
+    padding: var(--sp-lg);
 }
 ```
 

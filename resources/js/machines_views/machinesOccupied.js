@@ -231,11 +231,19 @@ function createTable(machines, form) {
                         }
                     });
                 } else {
-                    if (confirm(plainConfirmText)) {
-                        executeFreeUp();
-                    } else {
-                        tr.classList.remove("machine-row-targeting");
-                    }
+                    (window.gisConfirm ? window.gisConfirm({
+                        title: `¿Desocupar Máquina ${machineLabel}?`,
+                        text: plainConfirmText,
+                        icon: "warning",
+                        confirmButtonText: "Sí, desocupar",
+                        confirmButtonColor: "#b30404"
+                    }) : Promise.resolve({ isConfirmed: true })).then((res) => {
+                        if (res.isConfirmed) {
+                            executeFreeUp();
+                        } else {
+                            tr.classList.remove("machine-row-targeting");
+                        }
+                    });
                 }
             };
             tdActions.appendChild(desoccupiedButton);

@@ -185,6 +185,7 @@ Route::controller(DatosProduccionController::class)->group(function () {
 //Rutas para el controlador de MachinesController
 Route::controller(MachinesController::class)->group(function () {
     Route::get('/machinesOccupied', 'show')->name('machinesOccupied'); //Vista de máquinas ocupadas
+    Route::get('/machinesOccupied/api', 'getOccupiedApi')->name('machinesOccupiedApi'); //API JSON de máquinas ocupadas
     Route::post('/machinesOccupied/freeUp', 'freeUp')->name('freeUp'); //Vista de máquinas ocupadas
 });
 

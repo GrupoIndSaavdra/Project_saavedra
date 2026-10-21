@@ -231,7 +231,7 @@
                                 action="{{ route('eliminar_usuario', $user->id) }}"
                                 method="POST"
                                 class="use-display-inline"
-                                onsubmit="return confirm('¿Seguro que deseas eliminar al usuario {{ addslashes($user->name) }}? Esta acción no se puede deshacer.');"
+                                onsubmit="event.preventDefault(); window.gisConfirm({ title: '¿Eliminar usuario?', text: '¿Seguro que deseas eliminar al usuario {{ addslashes($user->name) }}? Esta acción no se puede deshacer.', icon: 'warning', confirmButtonText: 'Sí, eliminar', confirmButtonColor: '#b30404' }).then(r => { if (r.isConfirmed) this.submit(); });"
                             >
                                 @csrf
                                 @method('DELETE')

@@ -324,8 +324,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     confirmButtonText: 'Continuar',
                     confirmButtonColor: '#0a8504'
                 });
-            } else {
-                alert(successMsg);
+            } else if (window.toastpremium) {
+                window.toastpremium(successMsg, 'success');
             }
         }, 500); // Dar tiempo a que cargue la librería si es asíncrona
         sessionStorage.removeItem("success_cnominals");
@@ -447,8 +447,8 @@ document.querySelector(".form-search").addEventListener("submit", async function
                 icon: 'error',
                 confirmButtonColor: '#9c0303'
             });
-        } else {
-            alert(error.message);
+        } else if (window.toastpremium) {
+            window.toastpremium(error.message, 'error');
         }
     } finally {
         if (typeof setVisualLoading === "function") {

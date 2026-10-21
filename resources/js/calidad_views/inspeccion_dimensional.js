@@ -1600,8 +1600,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 color: '#fff',
                 confirmButtonColor: '#059669'
             });
-        } else {
-            alert(text);
+        } else if (window.toastpremium) {
+            window.toastpremium(text || title, icon === 'error' ? 'error' : (icon === 'warning' ? 'warning' : 'info'));
         }
     }
 });

@@ -5,14 +5,14 @@ header {
     box-sizing: border-box;
     width: 100%;
     height: auto;
-    min-height: 52px;
+    min-height: 64px;
     z-index: 995;
     position: sticky;
     top: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 2px 20px;
+    padding: 8px 24px;
     background: var(--glass-bg-white) !important;
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);

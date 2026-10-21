@@ -25,8 +25,21 @@ document.addEventListener("DOMContentLoaded", function () {
     if (btnCreate && btnModify) {
         btnCreate.addEventListener("click", function () {
             if (formUpdate && formUpdate.style.display !== "none" && hasUnsavedChanges()) {
-                const confirmLeave = confirm("Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas salir sin guardar? Los cambios no guardados se perderán.");
-                if (!confirmLeave) return;
+                (window.gisConfirm ? window.gisConfirm({
+                    title: "Cambios sin guardar",
+                    text: "Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas salir sin guardar? Los cambios no guardados se perderán.",
+                    icon: "warning",
+                    confirmButtonText: "Salir sin guardar",
+                    confirmButtonColor: "#b30404"
+                }) : Promise.resolve({ isConfirmed: true })).then(res => {
+                    if (res.isConfirmed) {
+                        btnCreate.classList.add("active");
+                        btnModify.classList.remove("active");
+                        formCreate.style.display = "block";
+                        formUpdate.style.display = "none";
+                    }
+                });
+                return;
             }
             btnCreate.classList.add("active");
             btnModify.classList.remove("active");
@@ -353,8 +366,15 @@ document.addEventListener("DOMContentLoaded", function () {
                             
                             const btnRemoveExisting = tr.querySelector(".btn-remove-existing-class");
                             if (btnRemoveExisting) {
-                                btnRemoveExisting.addEventListener("click", function() {
-                                    if (confirm("¿Estás seguro de que deseas eliminar esta clase de la Orden de Trabajo?")) {
+                                btnRemoveExisting.addEventListener("click", async function() {
+                                    const res = await (window.gisConfirm ? window.gisConfirm({
+                                        title: "¿Eliminar clase?",
+                                        text: "¿Estás seguro de que deseas eliminar esta clase de la Orden de Trabajo?",
+                                        icon: "warning",
+                                        confirmButtonText: "Sí, eliminar",
+                                        confirmButtonColor: "#b30404"
+                                    }) : Promise.resolve({ isConfirmed: true }));
+                                    if (res.isConfirmed) {
                                         isSubmittingForm = true;
                                         const hiddenDelete = document.createElement("input");
                                         hiddenDelete.type = "hidden";
@@ -532,7 +552,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         }
                         
                         if (duplicate) {
-                            alert("La clase '" + selectedVal + "' ya se encuentra registrada o seleccionada en esta Orden de Trabajo.");
+                            if (window.toastpremium) {
+                                window.toastpremium("La clase '" + selectedVal + "' ya se encuentra registrada o seleccionada en esta Orden de Trabajo.", "warning");
+                            } else {
+                                alert("La clase '" + selectedVal + "' ya se encuentra registrada o seleccionada en esta Orden de Trabajo.");
+                            }
                             this.value = "";
                             checkChanges();
                         }
@@ -544,10 +568,17 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
-        woSelect.addEventListener("change", function () {
+        woSelect.addEventListener("change", async function () {
             if (hasUnsavedChanges()) {
-                const confirmSwitch = confirm("Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas cambiar de OT sin guardar? Los cambios no guardados se perderán.");
-                if (!confirmSwitch) {
+                const res = await (window.gisConfirm ? window.gisConfirm({
+                    title: "Cambios sin guardar",
+                    text: "Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas cambiar de OT sin guardar? Los cambios no guardados se perderán.",
+                    icon: "warning",
+                    confirmButtonText: "Cambiar de OT",
+                    confirmButtonColor: "#b30404",
+                    cancelButtonText: "Permanecer aquí"
+                }) : Promise.resolve({ isConfirmed: true }));
+                if (!res.isConfirmed) {
                     woSelect.value = previousWoSelectValue;
                     return;
                 }
@@ -575,11 +606,21 @@ document.addEventListener("DOMContentLoaded", function () {
         if (link.id === "btn-pdf-modify" || link.target === "_blank") return;
 
         if (hasUnsavedChanges()) {
-            const confirmLeave = confirm("Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas salir sin guardar? Los cambios no guardados se perderán.");
-            if (!confirmLeave) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
+            e.preventDefault();
+            e.stopPropagation();
+            (window.gisConfirm ? window.gisConfirm({
+                title: "Cambios sin guardar",
+                text: "Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas salir sin guardar? Los cambios no guardados se perderán.",
+                icon: "warning",
+                confirmButtonText: "Salir sin guardar",
+                confirmButtonColor: "#b30404",
+                cancelButtonText: "Permanecer aquí"
+            }) : Promise.resolve({ isConfirmed: true })).then(res => {
+                if (res.isConfirmed) {
+                    isSubmittingForm = true;
+                    window.location.href = href;
+                }
+            });
         }
     }, true);
 

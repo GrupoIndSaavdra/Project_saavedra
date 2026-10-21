@@ -21,13 +21,15 @@ function renderCmConfirmarBadges() {
 
 window.renderCmConfirmarBadges = renderCmConfirmarBadges;
 
-window.confirmarModelo = function (ot, id_hash) {
-    if (
-        !confirm(
-            `¿Confirmas que actualmente cuentas con el modelo físico para la OT ${ot}?`,
-        )
-    )
-        return;
+window.confirmarModelo = async function (ot, id_hash) {
+    const res = await (window.gisConfirm ? window.gisConfirm({
+        title: "Confirmar Modelo",
+        text: `¿Confirmas que actualmente cuentas con el modelo físico para la OT ${ot}?`,
+        icon: "question",
+        confirmButtonText: "Sí, confirmar",
+        confirmButtonColor: "#0a8504"
+    }) : Promise.resolve({ isConfirmed: true }));
+    if (!res.isConfirmed) return;
     fetch(window.almacenRoutes.confirmarModelo, {
         method: "POST",
         headers: {

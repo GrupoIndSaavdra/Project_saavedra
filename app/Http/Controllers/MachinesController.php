@@ -58,13 +58,20 @@ class MachinesController extends Controller
             $occupiedMachines[$key] = array(
                 'id' => $machine->id,
                 'process' => $machine->proceso,
-                'machine' => $machine->maquina,
+                'machine' => (string) $machine->maquina,
+                'proceso' => $machine->proceso,
+                'maquina' => (string) $machine->maquina,
                 'operator' => $operatorName,
                 'operator_matricula' => $operatorMatricula,
                 'id_meta' => $machine->id_meta,
             );
         }
         return $occupiedMachines;
+    }
+
+    public function getOccupiedApi()
+    {
+        return response()->json(array_values($this->machinesOccupied()));
     }
         /**
      * @param Request $request

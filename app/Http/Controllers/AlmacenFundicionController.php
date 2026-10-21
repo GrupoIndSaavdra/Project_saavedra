@@ -1605,31 +1605,48 @@ class AlmacenFundicionController extends Controller
             $clasesTag = count($clasesInvolucradas) > 0 ? implode('-', $clasesInvolucradas) : 'Modelo';
             $clasesParaGuardar = empty($clasesInvolucradas) ? ['GENERAL'] : $clasesInvolucradas;
 
+            $filesUploaded = $request->file('archivos');
+            $multiFile = count($filesUploaded) > 1;
+
             foreach ($clasesParaGuardar as $claseParaGuardar) {
                 $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($claseParaGuardar))));
                 if (empty($claseClean)) {
                     $claseClean = 'GENERAL';
                 }
 
-                $claseClean = FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::ALMACEN_DIR);
-                $destDir = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseClean . '/ESCANEADOS';
+                $claseCleanAlm = FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::ALMACEN_DIR);
+                $destDirAlm = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseCleanAlm . '/ESCANEADOS';
 
-                if (!Storage::disk('local')->exists($destDir)) {
-                    Storage::disk('local')->makeDirectory($destDir);
+                $claseCleanCal = FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::CALIDAD_DIR);
+                $destDirCal = self::CALIDAD_DIR . '/' . $folderName . '/' . $claseCleanCal . '/ESCANEADOS';
+
+                if (!Storage::disk('local')->exists($destDirAlm)) {
+                    Storage::disk('local')->makeDirectory($destDirAlm);
+                }
+                if (!Storage::disk('local')->exists($destDirCal)) {
+                    Storage::disk('local')->makeDirectory($destDirCal);
                 }
 
-                foreach ($request->file('archivos') as $file) {
+                foreach ($filesUploaded as $idx => $file) {
                     $ext = $file->getClientOriginalExtension();
-                    $fileName = "F_ALM_CFM_{$clasesTag}.{$ext}";
-                    Storage::disk('local')->put($destDir . '/' . $fileName, file_get_contents($file->getRealPath()));
+                    $fileSuffix = $multiFile ? "_" . ($idx + 1) : "";
+                    $fileName = "F_ALM_CFM_{$clasesTag}{$fileSuffix}.{$ext}";
+                    $fileContent = file_get_contents($file->getRealPath());
 
-                    $attachments[] = [
-                        'path' => storage_path('app/' . $destDir . '/' . $fileName),
-                        'name' => $fileName,
-                        'mime' => strtolower($ext) === 'dwg' ? 'application/acad' : (strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/' . strtolower($ext))
-                    ];
+                    Storage::disk('local')->put($destDirAlm . '/' . $fileName, $fileContent);
+                    Storage::disk('local')->put($destDirCal . '/' . $fileName, $fileContent);
+
+                    $attachmentKey = $fileName;
+                    if (!isset($attachments[$attachmentKey])) {
+                        $attachments[$attachmentKey] = [
+                            'path' => storage_path('app/' . $destDirAlm . '/' . $fileName),
+                            'name' => $fileName,
+                            'mime' => strtolower($ext) === 'dwg' ? 'application/acad' : (strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/' . strtolower($ext))
+                        ];
+                    }
                 }
             }
+            $attachments = array_values($attachments);
         }
 
         // Crear o actualizar el registro de liberacion indicando el origen
@@ -4007,8 +4024,11 @@ class AlmacenFundicionController extends Controller
         $clasesNormToSync = [];
         foreach ($clasesToSync as $c) {
             $cLow = trim(preg_replace('/^modelo\s+/i', '', strtolower($c)));
-            $clasesNormToSync[] = FundicionPaths::normalizeClass($cLow);
+            $clasesNormToSync[] = strtolower(FundicionPaths::normalizeClass($cLow));
+            $clasesNormToSync[] = strtolower(trim(preg_replace('/^\d+\s*[-_.]?\s*/', '', $cLow)));
+            $clasesNormToSync[] = $cLow;
         }
+        $clasesNormToSync = array_values(array_unique(array_filter($clasesNormToSync)));
 
         foreach ($allAlmacenFiles as $srcFile) {
             $srcNorm = str_replace('\\', '/', $srcFile);
@@ -4019,19 +4039,25 @@ class AlmacenFundicionController extends Controller
                 $pathParts = explode('/', str_replace('\\', '/', $relPath));
                 $rootFolder = strtolower($pathParts[0] ?? '');
 
-                // Si la carpeta raíz parece ser una carpeta de clase (ej: empieza con número y guión o está normalizada)
-                if (preg_match('/^\d+\s*-\s*/', $rootFolder) || preg_match('/^modelo\s*/', $rootFolder)) {
-                    // Verificar si está en la lista de clases a sincronizar
-                    $matchesClass = false;
-                    foreach ($clasesNormToSync as $cNorm) {
-                        if ($rootFolder === $cNorm || str_contains($rootFolder, $cNorm)) {
-                            $matchesClass = true;
-                            break;
-                        }
+                // Verificar si coincide con alguna de las clases a sincronizar
+                $matchesClass = false;
+                foreach ($clasesNormToSync as $cNorm) {
+                    if (
+                        $rootFolder === $cNorm ||
+                        str_contains($rootFolder, $cNorm) ||
+                        FundicionPaths::isSameClass($rootFolder, $cNorm)
+                    ) {
+                        $matchesClass = true;
+                        break;
                     }
-                    if (!$matchesClass) {
-                        continue; // No copiar esta clase porque no fue enviada
-                    }
+                }
+
+                $isClassFolder = (bool) (preg_match('/^\d+\s*-\s*/', $rootFolder) ||
+                    preg_match('/^modelo\s*/i', $rootFolder) ||
+                    in_array($rootFolder, array_map('strtolower', array_keys(FundicionPaths::getStandardMap()))));
+
+                if (!$matchesClass && $isClassFolder) {
+                    continue; // No copiar esta clase porque no fue enviada
                 }
             }
 
