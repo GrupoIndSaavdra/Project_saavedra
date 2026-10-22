@@ -432,3 +432,20 @@ foreach ($logs as $log) {
 }
 ```
 
+---
+
+## 14. Regla Obligatoria: Mensajes de Commit Git Siempre en Inglés
+
+Cuando el usuario solicite un mensaje de commit o se finalice una tarea, **el texto del commit debe generarse SIEMPRE en INGLÉS**, con una descripción simple, profesional y concisa de lo que se realizó:
+
+1. **Idioma Estricto:** **Inglés** (English) sin excepciones. Prohibido entregar mensajes de commit en español.
+2. **Formato con Prefijo Corporativo:**
+   - `FEAT/JAER: <short summary in English>` para nuevas funcionalidades.
+   - `FIX/JAER: <short summary in English>` para correcciones de bugs o glitches.
+   - `STYLE/JAER: <short summary in English>` para cambios puramente de CSS, diseño, colores, fuentes o animaciones.
+   - `REFACTOR/JAER: <short summary in English>` para modularización o mejoras estructurales de código sin cambiar comportamiento.
+3. **Estructura Simple:**
+   - **Línea de Asunto:** Máximo 72 caracteres, verbo en imperativo (`add`, `fix`, `refactor`, `update`, `optimize`).
+   - **Cuerpo Opcional:** Viñetas simples y directas explicando los cambios clave en los componentes modificados.
+
+

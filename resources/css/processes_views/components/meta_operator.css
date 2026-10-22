@@ -429,10 +429,11 @@ p {
 .table-meta {
     width: 100%;
     max-width: 100%;
+    table-layout: fixed;
     border-collapse: separate;
     border-spacing: 0;
-    border: 3.5px solid #033966d4;
-    font-size: 0.95rem;
+    border: 3px solid #033966d4;
+    font-size: clamp(0.74rem, 0.8vw, 0.95rem);
     border-radius: 12px;
     overflow: hidden;
     margin-top: 0.1rem;
@@ -443,9 +444,9 @@ p {
 .table-meta th {
     background: linear-gradient(135deg, #033966 0%, #0d5ca8 100%);
     color: #ffffff;
-    padding: 0.55em 0.35em;
+    padding: clamp(3px, 0.5vh, 6px) clamp(2px, 0.3vw, 5px);
     text-align: center;
-    font-size: 0.82rem;
+    font-size: clamp(0.72rem, 0.75vw, 0.82rem);
     font-weight: 700;
     letter-spacing: 0.02em;
     border-bottom: 2px solid var(--gis-blue);
@@ -502,33 +503,41 @@ p {
     user-select: none;
 }
 
-/* Glassmorphism Amarillo / Ámbar Oficial para el Contenedor de Alerta (Visible y Proporcionada) */
+/* Contenedor de Alerta de Producción - Estilo Corporativo Ámbar Saavedra (Sin bordes en contenedor, legible y armónico) */
 .warning-pieces {
     width: 100%;
     max-width: 100%;
     min-height: 0;
     font-size: 0.95rem;
     font-weight: 600;
-    padding: 0.75rem 1.4rem;
+    padding: clamp(0.4rem, 0.8vh, 0.75rem) clamp(0.6rem, 1vw, 1.2rem);
     margin: 0 auto;
     border-radius: 16px;
-    background: var(--glass-bg-yellow) !important;
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    backdrop-filter: blur(24px) saturate(180%);
-    border: 2px solid rgba(255, 204, 0, 0.853);
+    background: linear-gradient(
+        135deg,
+        rgba(217, 119, 6, 0.92) 0%,
+        rgba(180, 83, 9, 0.95) 50%,
+        rgba(146, 64, 14, 0.98) 100%
+    ) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: none !important;
     color: #ffffff !important;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 20px;
+    gap: clamp(8px, 1.2vw, 16px);
     text-align: center;
     box-shadow:
-        0 8px 24px -4px rgba(255, 145, 0, 0.45),
-        0 4px 10px -2px rgba(0, 0, 0, 0.25),
-        inset 0 1px 2px 0 rgba(255, 255, 255, 0.85),
-        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2);
-    line-height: 1.45;
-    animation: alert-pulse-yellow 2.4s ease-in-out infinite;
+        inset 0 0 8px rgba(255, 255, 255, 0.6),
+        inset 0 0 18px rgba(251, 191, 36, 0.45),
+        0 0 10px rgba(255, 215, 0, 0.8),
+        0 0 24px rgba(245, 158, 11, 0.65),
+        0 0 38px rgba(234, 88, 12, 0.45),
+        0 4px 14px rgba(0, 0, 0, 0.25);
+    line-height: 1.35;
+    -webkit-animation: alertPulseAmberNeon 2.4s ease-in-out infinite;
+    animation: alertPulseAmberNeon 2.4s ease-in-out infinite;
     transition: all 0.3s ease-in-out;
     box-sizing: border-box;
 }
@@ -546,11 +555,10 @@ p {
 }
 
 .warning-icon-img {
-    width: 72px;
-    height: 72px;
+    width: clamp(34px, 3.2vw, 54px);
+    height: clamp(34px, 3.2vw, 54px);
     object-fit: contain;
-    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.42));
-    animation: alert-icon-pulse 2.4s ease-in-out infinite;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
 }
 
 .warning-text {
@@ -562,11 +570,12 @@ p {
     text-align: center;
 }
 
+/* Pastilla de título en Rojo Saavedra con texto amarillo y borde blanco */
 .warning-title-pill {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
     background: linear-gradient(
         135deg,
         #dc2626 0%,
@@ -574,17 +583,17 @@ p {
         #991b1b 100%
     ) !important;
     border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
-    border-radius: 9px;
-    padding: 6px 22px;
-    font-size: 1.08rem;
+    border-radius: 20px;
+    padding: 3px clamp(12px, 1.2vw, 20px);
+    font-size: clamp(0.78rem, 0.85vw, 0.98rem);
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     color: #ffe100 !important;
-    margin: 0 auto 10px auto;
+    margin: 0 auto 6px auto;
     text-transform: uppercase;
     box-shadow:
         0 3px 10px rgba(185, 28, 28, 0.45),
-        0 0 8px rgba(239, 68, 68, 0.3) !important;
+        0 0 6px rgba(239, 68, 68, 0.3) !important;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
 }
 
@@ -593,17 +602,17 @@ p {
 }
 
 .warning-pill-icon {
-    width: 26px;
-    height: 26px;
+    width: clamp(16px, 1.4vw, 22px);
+    height: clamp(16px, 1.4vw, 22px);
     object-fit: contain;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
 }
 
 .warning-body {
     color: #ffffff;
-    font-size: 1.05rem;
+    font-size: clamp(0.72rem, 0.78vw, 0.92rem);
     font-weight: 600;
-    line-height: 1.6;
+    line-height: 1.45;
     text-align: center;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
 }
@@ -611,93 +620,107 @@ p {
 .warning-pieces .highlight-yellow {
     color: #fef08a;
     font-weight: 800;
-    font-size: 1.05rem;
+    font-size: 1.02rem;
     text-decoration: underline;
-    text-shadow: 0 0 6px rgba(254, 240, 138, 0.4);
+    text-shadow: 0 0 6px rgba(254, 240, 138, 0.5);
 }
 
 .warning-pieces .highlight-alert {
     color: #ffffff;
     background: rgba(0, 0, 0, 0.38);
-    padding: 3px 9px;
+    padding: 2px 8px;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    border: 1px solid rgba(255, 255, 255, 0.5);
     font-weight: 800;
-    font-size: 1.02rem;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+    font-size: 0.98rem;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
+/* Pastillas de advertencia destacadas con degradado naranja y borde blanco limpio */
 .warning-pieces .highlight-important-orange,
 .warning-pieces .highlight-important-red {
     display: inline-block;
-    color: #ffffff;
-    background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%);
-    border: 1.5px solid #ffffff;
-    padding: 3px 10px;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 50%, #c2410c 100%) !important;
+    border: 1.5px solid #ffffff !important;
+    padding: 2px clamp(6px, 0.6vw, 10px);
     border-radius: 6px;
-    font-size: 1.02rem;
+    font-size: clamp(0.74rem, 0.8vw, 0.96rem);
     font-weight: 900;
     letter-spacing: 0.02em;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.75) !important;
     box-shadow:
         0 2px 6px rgba(194, 65, 12, 0.4),
-        0 0 6px rgba(249, 115, 22, 0.4);
-    margin: 2px 4px;
+        0 0 6px rgba(249, 115, 22, 0.35) !important;
+    margin: 2px 3px;
+    vertical-align: baseline;
 }
 
-@keyframes alert-pulse-yellow {
+@-webkit-keyframes alertPulseAmberNeon {
     0%,
     100% {
         box-shadow:
-            0 8px 24px -4px rgba(180, 105, 8, 0.4),
-            0 0 0 0 rgba(245, 158, 11, 0.5),
-            0 0 8px rgba(245, 158, 11, 0.2),
-            inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
-            inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2);
-        border-color: rgba(253, 230, 138, 0.5);
+            inset 0 0 6px rgba(255, 255, 255, 0.45),
+            inset 0 0 14px rgba(251, 191, 36, 0.35),
+            0 0 8px rgba(255, 215, 0, 0.7),
+            0 0 20px rgba(245, 158, 11, 0.55),
+            0 0 32px rgba(234, 88, 12, 0.35),
+            0 4px 14px rgba(0, 0, 0, 0.25);
     }
     50% {
         box-shadow:
-            0 12px 30px -4px rgba(217, 119, 6, 0.55),
-            0 0 24px 3px rgba(251, 191, 36, 0.6),
-            0 0 0 8px rgba(245, 158, 11, 0),
-            inset 0 1px 2px 0 #ffffff,
-            inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2);
-        border-color: rgba(255, 255, 255, 0.95);
+            inset 0 0 10px rgba(255, 255, 255, 0.85),
+            inset 0 0 22px rgba(254, 240, 138, 0.65),
+            0 0 14px rgba(255, 235, 59, 0.95),
+            0 0 32px rgba(245, 158, 11, 0.9),
+            0 0 52px rgba(234, 88, 12, 0.7),
+            0 0 70px rgba(217, 119, 6, 0.4),
+            0 6px 20px rgba(0, 0, 0, 0.35);
     }
 }
 
-@keyframes alert-icon-pulse {
+@keyframes alertPulseAmberNeon {
     0%,
     100% {
-        filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.38))
-            drop-shadow(0 0 4px rgba(239, 68, 68, 0.35));
+        box-shadow:
+            inset 0 0 6px rgba(255, 255, 255, 0.45),
+            inset 0 0 14px rgba(251, 191, 36, 0.35),
+            0 0 8px rgba(255, 215, 0, 0.7),
+            0 0 20px rgba(245, 158, 11, 0.55),
+            0 0 32px rgba(234, 88, 12, 0.35),
+            0 4px 14px rgba(0, 0, 0, 0.25);
     }
     50% {
-        filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45))
-            drop-shadow(0 0 16px rgba(239, 68, 68, 0.95));
+        box-shadow:
+            inset 0 0 10px rgba(255, 255, 255, 0.85),
+            inset 0 0 22px rgba(254, 240, 138, 0.65),
+            0 0 14px rgba(255, 235, 59, 0.95),
+            0 0 32px rgba(245, 158, 11, 0.9),
+            0 0 52px rgba(234, 88, 12, 0.7),
+            0 0 70px rgba(217, 119, 6, 0.4),
+            0 6px 20px rgba(0, 0, 0, 0.35);
     }
 }
 
 /* Tarjeta Glassmorphism Azul Profundo simétrica para Operador y Control (Alineado con Barra y global.css) */
 .div-table-code {
     position: relative;
-    flex: 0 0 480px;
-    width: 480px;
-    min-width: 380px;
-    max-width: 500px;
+    flex: 0 0 clamp(230px, 18vw, 300px);
+    width: clamp(230px, 18vw, 300px);
+    min-width: 210px;
+    max-width: 320px;
     background: var(--glass-bg-blue) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     backdrop-filter: blur(24px) saturate(180%);
     border: 1.5px solid var(--glass-border-blue) !important;
     border-radius: 18px;
     box-shadow: var(--glass-shadow-dark) !important;
-    padding: 1.25rem 1.15rem;
+    padding: clamp(0.6rem, 1vh, 1.15rem) clamp(0.6rem, 0.8vw, 1rem);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    gap: 0.85rem;
+    gap: clamp(0.45rem, 0.8vh, 0.85rem);
     align-self: stretch;
     transition: all 0.3s ease;
 }
@@ -714,13 +737,13 @@ p {
     align-items: center;
     justify-content: center;
     flex: 1.2 1 0;
-    gap: 14px;
+    gap: clamp(6px, 1vh, 12px);
     background: rgba(255, 255, 255, 0.9) !important;
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     backdrop-filter: blur(16px) saturate(180%);
     border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
     border-radius: 16px;
-    padding: 18px 16px;
+    padding: clamp(8px, 1.2vh, 16px) clamp(8px, 1vw, 14px);
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.22),
         inset 0 1px 2px #ffffff !important;
@@ -739,11 +762,11 @@ p {
 
 .operator-avatar-wrapper {
     position: relative;
-    width: 108px;
-    height: 108px;
+    width: clamp(48px, 5.5vw, 88px);
+    height: clamp(48px, 5.5vw, 88px);
     border-radius: 50%;
     background: var(--gis-blue, #033966);
-    border: 3.5px solid var(--gis-blue, #033966);
+    border: 3px solid var(--gis-blue, #033966);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -754,8 +777,8 @@ p {
 }
 
 .operator-avatar-img {
-    width: 86px;
-    height: 86px;
+    width: clamp(38px, 4.2vw, 68px);
+    height: clamp(38px, 4.2vw, 68px);
     object-fit: contain;
     transition: transform 0.25s ease;
 }
@@ -988,9 +1011,19 @@ p {
 
 @media (max-width: 1400px) {
     .div-table-code {
-        flex: 0 0 380px !important;
-        width: 380px !important;
-        min-width: 320px !important;
+        flex: 0 0 250px !important;
+        width: 250px !important;
+        min-width: 210px !important;
+        padding: 0.65rem 0.75rem !important;
+    }
+}
+
+@media (max-width: 1200px) {
+    .div-table-code {
+        flex: 0 0 220px !important;
+        width: 220px !important;
+        min-width: 190px !important;
+        padding: 0.5rem 0.6rem !important;
     }
 }
 
@@ -1000,51 +1033,51 @@ p {
     }
     .table-meta th,
     .table-meta td {
-        padding: 3px 6px;
-        font-size: 0.76rem;
+        padding: 3px 4px;
+        font-size: 0.75rem;
     }
     .table-meta-icon {
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
     }
     .table-meta-th-content {
-        gap: 4px;
-        font-size: 0.74rem;
+        gap: 3px;
+        font-size: 0.72rem;
     }
     .meta-readonly-input {
         font-size: 0.78rem;
         padding: 2px 4px;
     }
     .warning-pieces {
-        padding: 0.45rem 0.85rem !important;
-        gap: 14px !important;
+        padding: 0.4rem 0.75rem !important;
+        gap: 10px !important;
     }
     .warning-icon-img {
-        width: 38px !important;
-        height: 38px !important;
+        width: 32px !important;
+        height: 32px !important;
     }
     .warning-title-pill {
-        padding: 3px 12px !important;
-        font-size: 0.78rem !important;
-        margin: 0 auto 4px auto !important;
+        padding: 2px 10px !important;
+        font-size: 0.76rem !important;
+        margin: 0 auto 3px auto !important;
     }
     .warning-pill-icon {
-        width: 16px !important;
-        height: 16px !important;
+        width: 14px !important;
+        height: 14px !important;
     }
     .warning-body {
-        font-size: 0.74rem !important;
-        line-height: 1.25 !important;
+        font-size: 0.72rem !important;
+        line-height: 1.2 !important;
     }
     .div-table-code {
-        flex: 0 0 340px !important;
-        width: 340px !important;
-        min-width: 280px !important;
-        padding: 0.55rem 0.75rem !important;
-        gap: 0.45rem !important;
+        flex: 0 0 240px !important;
+        width: 240px !important;
+        min-width: 200px !important;
+        padding: 0.5rem 0.65rem !important;
+        gap: 0.4rem !important;
     }
     .operator-profile-card {
-        padding: 8px 10px !important;
+        padding: 6px 8px !important;
         gap: 6px !important;
     }
     .operator-avatar-wrapper {
@@ -1057,46 +1090,46 @@ p {
         height: 34px !important;
     }
     .operator-name-text {
-        font-size: 0.82rem !important;
+        font-size: 0.8rem !important;
     }
     .operator-meta-badges {
-        gap: 6px !important;
+        gap: 4px !important;
     }
     .operator-id-badge,
     .operator-status-badge {
-        padding: 2px 8px !important;
-        font-size: 0.72rem !important;
+        padding: 2px 6px !important;
+        font-size: 0.7rem !important;
     }
     .table-code th,
     .table-code td {
-        padding: 3px 6px !important;
-        font-size: 0.75rem !important;
+        padding: 3px 5px !important;
+        font-size: 0.74rem !important;
     }
     .table-code-icon {
-        width: 18px !important;
-        height: 18px !important;
+        width: 16px !important;
+        height: 16px !important;
     }
 }
 
 @media (max-height: 740px) {
     .warning-pieces {
-        padding: 0.35rem 0.65rem !important;
+        padding: 0.3rem 0.55rem !important;
     }
     .warning-icon-wrapper {
         display: none !important;
     }
     .warning-body {
         font-size: 0.68rem !important;
-        line-height: 1.2 !important;
+        line-height: 1.15 !important;
     }
     .div-table-code {
-        flex: 0 0 310px !important;
-        width: 310px !important;
-        min-width: 260px !important;
-        padding: 0.45rem 0.6rem !important;
+        flex: 0 0 220px !important;
+        width: 220px !important;
+        min-width: 190px !important;
+        padding: 0.4rem 0.5rem !important;
     }
     .operator-profile-card {
-        padding: 6px 8px !important;
+        padding: 5px 6px !important;
     }
     .operator-avatar-wrapper {
         width: 36px !important;
@@ -1109,7 +1142,7 @@ p {
     .table-code th,
     .table-code td {
         padding: 2px 4px !important;
-        font-size: 0.72rem !important;
+        font-size: 0.7rem !important;
     }
 }
 

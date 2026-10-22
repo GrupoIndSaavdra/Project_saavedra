@@ -920,3 +920,20 @@ En vistas de producción con paneles de metadatos superiores y tabla interactiva
    - La tabla `.scrollable-table` pasa a ocupar hasta `calc(100vh - 165px)`, otorgándole el 80% de la pantalla para ver múltiples piezas a la vez con el botón GUARDAR siempre visible.
    - La preferencia se persiste en `localStorage.getItem('gis_production_table_focus')` y se alterna con un botón en cabecera (`.btn-toggle-focus`) y disparadores en el área de trabajo (`.btn-quick-focus-fold` y `.btn-expand-meta`).
 
+---
+
+## 37. Presupuesto Horizontal Fluido y Efectos Neón Sin Bordes para Banners de Alerta
+
+En paneles de producción de alta densidad (`processProduction`):
+
+1. **Presupuesto Horizontal Fluido (Evitar desbordes en monitores de 1366×768 / 1280×1024):**
+   - **NUNCA usar anchos fijos masivos:** Evitar `flex: 0 0 480px` en tarjetas laterales (`.principal-data`, `.div-table-code`). En su lugar usar `clamp()` dinámico (ej. `clamp(230px, 18vw, 300px)`) y media queries (`@media (max-width: 1400px)` y `@media (max-width: 1200px)`).
+   - **Tablas de datos centrales:** Usar siempre `table-layout: fixed; width: 100%;` en `.table-meta` para que las columnas métricas se repartan proporcionalmente (20% c/u) y no colapsen los paneles adyacentes.
+
+2. **Efecto Neón Perimetral Sin Bordes (`.warning-pieces`):**
+   - Cuando un banner requiera máxima visibilidad y efecto de advertencia urgente pero el diseño exija **cero bordes** (`border: none !important`), lograr el efecto neón mediante capas compuestas de `box-shadow`:
+     - **Resplandor interior en las orillas (`inset`):** Iluminar el perímetro interno con `inset 0 0 8px rgba(255, 255, 255, 0.6)` e `inset 0 0 18px rgba(251, 191, 36, 0.45)`.
+     - **Corona de neón exterior:** Núcleo láser (`0 0 10px rgba(255, 215, 0, 0.8)`), dispersión media (`0 0 24px rgba(245, 158, 11, 0.65)`) y aura ambiental (`0 0 38px rgba(234, 88, 12, 0.45)`).
+     - **Animación de respiración neón:** Animar la expansión y contracción lumínica (`alertPulseAmberNeon`) de forma periódica (2.4s) para alertar visualmente sin alterar la geometría de la interfaz.
+
+

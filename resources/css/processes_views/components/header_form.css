@@ -109,28 +109,29 @@ body {
 .container-meta {
     position: relative;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     justify-content: stretch;
     align-items: stretch;
-    padding: 0.65rem 1rem 0.35rem 1rem;
-    gap: 1rem;
+    padding: clamp(0.35rem, 0.8vh, 0.65rem) clamp(0.5rem, 1vw, 1rem);
+    gap: clamp(0.5rem, 0.8vw, 1rem);
     width: 100%;
+    box-sizing: border-box;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Tarjeta Glassmorphism Azul Profundo para Datos de la Orden/Proceso (Alineado con Barra Superior y global.css) */
 .principal-data {
-    flex: 0 0 480px;
-    width: 480px;
-    min-width: 380px;
-    max-width: 500px;
+    flex: 0 0 clamp(280px, 22vw, 360px);
+    width: clamp(280px, 22vw, 360px);
+    min-width: 260px;
+    max-width: 400px;
     background: var(--glass-bg-blue) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     backdrop-filter: blur(24px) saturate(180%);
     border: 1.5px solid var(--glass-border-blue) !important;
     border-radius: 18px;
     box-shadow: var(--glass-shadow-dark) !important;
-    padding: 1.05rem 1.2rem 1.05rem 1.2rem;
+    padding: clamp(0.6rem, 1vh, 1.05rem) clamp(0.7rem, 1vw, 1.2rem);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -1538,9 +1539,18 @@ body.table-focus-mode .meta-summary-strip {
 
 @media (max-width: 1400px) {
     .principal-data {
-        flex: 0 0 380px !important;
-        width: 380px !important;
-        min-width: 320px !important;
+        flex: 0 0 310px !important;
+        width: 310px !important;
+        min-width: 260px !important;
+    }
+}
+
+@media (max-width: 1200px) {
+    .principal-data {
+        flex: 0 0 280px !important;
+        width: 280px !important;
+        min-width: 240px !important;
+        padding: 0.55rem 0.65rem !important;
     }
 }
 
@@ -1562,9 +1572,9 @@ body.table-focus-mode .meta-summary-strip {
         gap: 0.5rem;
     }
     .principal-data {
-        flex: 0 0 340px !important;
-        width: 340px !important;
-        min-width: 280px !important;
+        flex: 0 0 300px !important;
+        width: 300px !important;
+        min-width: 250px !important;
         padding: 0.55rem 0.75rem !important;
     }
     .panel-section-header {
@@ -1605,9 +1615,9 @@ body.table-focus-mode .meta-summary-strip {
         padding: 2px 14px !important;
     }
     .principal-data {
-        flex: 0 0 310px !important;
-        width: 310px !important;
-        min-width: 260px !important;
+        flex: 0 0 280px !important;
+        width: 280px !important;
+        min-width: 240px !important;
         padding: 0.45rem 0.6rem !important;
     }
     .form-control,

@@ -176,7 +176,7 @@
     border: 1.5px solid var(--glass-border-blue) !important;
     border-radius: 18px;
     box-shadow: var(--glass-shadow-dark) !important;
-    padding: 0.85rem 0.95rem 0.95rem 0.95rem;
+    padding: clamp(0.4rem, 0.8vh, 0.75rem) clamp(0.5rem, 0.8vw, 0.95rem);
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -187,8 +187,8 @@
 /* Grid central dividida en 3 columnas: Admin (Izquierda), Progreso (Centro), Documentación (Derecha) */
 .production-hub-grid {
     display: grid;
-    grid-template-columns: 1fr 1.35fr 1fr;
-    gap: 0.9rem;
+    grid-template-columns: 1fr 1.25fr 1fr;
+    gap: clamp(0.35rem, 0.7vw, 0.85rem);
     width: 100%;
     align-items: stretch;
 }
@@ -199,10 +199,12 @@
     align-items: center;
     justify-content: space-between;
     border-radius: 14px;
-    padding: 0.65rem 0.65rem 0.75rem 0.65rem;
+    padding: clamp(0.35rem, 0.7vh, 0.65rem) clamp(0.35rem, 0.6vw, 0.65rem);
     position: relative;
     box-sizing: border-box;
-    min-height: 125px;
+    min-height: clamp(75px, 11vh, 120px);
+    min-width: 0;
+    overflow: hidden;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -367,7 +369,7 @@
     justify-content: space-evenly;
     align-items: center;
     width: 100%;
-    gap: 0.45rem;
+    gap: clamp(2px, 0.4vw, 6px);
     margin: auto 0;
 }
 
@@ -396,6 +398,8 @@
     flex-direction: column;
     align-items: center;
     cursor: pointer;
+    min-width: 0;
+    flex: 1 1 0;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -404,8 +408,8 @@
 }
 
 .img-action-btn {
-    width: 4.2em;
-    height: 4.2em;
+    width: clamp(32px, 3.2vw, 54px);
+    height: clamp(32px, 3.2vw, 54px);
     object-fit: contain;
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.14));
@@ -422,15 +426,18 @@
 }
 
 .action-label {
-    margin-top: 0.35em;
-    font-size: 0.74rem;
+    margin-top: 0.25em;
+    font-size: clamp(0.62rem, 0.7vw, 0.74rem);
     font-weight: 800;
     color: var(--gis-blue);
     text-transform: uppercase;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
     text-align: center;
     transition: all 0.2s ease;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
 }
 
 /* Modo Verificación: Modales de contraseña inline que emergen desde el botón presionado */
@@ -1378,6 +1385,54 @@ body.is-verifying-active .hub-buttons-row > *:not(.is-verifying) {
    RESPONSIVIDAD POR ALTURA PARA HUB DE ACCIONES
    ========================================================================== */
 
+@media (max-width: 1400px) {
+    .production-actions-card {
+        padding: 0.45rem 0.6rem !important;
+    }
+    .production-hub-grid {
+        grid-template-columns: 1fr 1.2fr 1fr !important;
+        gap: 0.45rem !important;
+    }
+    .hub-column {
+        min-height: 85px !important;
+        padding: 0.35rem 0.4rem !important;
+    }
+    .img-action-btn,
+    .img-edit {
+        width: 34px !important;
+        height: 34px !important;
+    }
+    .action-label {
+        font-size: 0.66rem !important;
+    }
+    .hub-section-header {
+        font-size: 0.74rem !important;
+        margin-bottom: 2px !important;
+    }
+}
+
+@media (max-width: 1200px) {
+    .production-actions-card {
+        padding: 0.35rem 0.45rem !important;
+    }
+    .production-hub-grid {
+        grid-template-columns: 1fr 1.15fr 1fr !important;
+        gap: 0.35rem !important;
+    }
+    .hub-column {
+        min-height: 75px !important;
+        padding: 0.3rem 0.35rem !important;
+    }
+    .img-action-btn,
+    .img-edit {
+        width: 30px !important;
+        height: 30px !important;
+    }
+    .action-label {
+        font-size: 0.62rem !important;
+    }
+}
+
 @media (max-height: 860px) {
     .production-actions-card {
         padding: 0.4rem 0.6rem !important;
@@ -1393,7 +1448,8 @@ body.is-verifying-active .hub-buttons-row > *:not(.is-verifying) {
         font-size: 0.75rem !important;
         margin-bottom: 2px !important;
     }
-    .action-btn-img {
+    .img-action-btn,
+    .img-edit {
         width: 30px !important;
         height: 30px !important;
     }
