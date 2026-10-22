@@ -215,9 +215,9 @@ header .btn-cancel-pieces:active,
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1.5em;
+    gap: 1rem;
     width: 100%;
-    margin: 1.25rem auto 0.25rem auto;
+    margin: 0.65rem auto 0.2rem auto;
     padding: 0;
     transition: all 0.25s ease;
 }
@@ -230,7 +230,7 @@ header .btn-cancel-pieces:active,
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 3.2em;
+    height: 2.7em;
 }
 
 /* .btn-finishReport ya hereda de .btn-cancel o tiene sus propios estilos similares */
@@ -255,10 +255,10 @@ p {
     text-align: center;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: stretch;
-    gap: 0.85rem;
-    align-self: flex-start;
+    gap: clamp(0.5rem, 1vh, 0.85rem);
+    align-self: stretch;
 }
 
 .form-verified-password {
@@ -507,11 +507,10 @@ p {
 .warning-pieces {
     width: 100%;
     max-width: 100%;
-    min-height: 0;
     font-size: 0.95rem;
     font-weight: 600;
-    padding: clamp(0.4rem, 0.8vh, 0.75rem) clamp(0.6rem, 1vw, 1.2rem);
-    margin: 0 auto;
+    padding: clamp(0.6rem, 1.2vh, 1.1rem) clamp(0.8rem, 1.3vw, 1.5rem);
+    margin: 0;
     border-radius: 16px;
     background: linear-gradient(
         135deg,
@@ -526,7 +525,7 @@ p {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: clamp(8px, 1.2vw, 16px);
+    gap: clamp(10px, 1.4vw, 20px);
     text-align: center;
     box-shadow:
         inset 0 0 8px rgba(255, 255, 255, 0.6),
@@ -535,11 +534,29 @@ p {
         0 0 24px rgba(245, 158, 11, 0.65),
         0 0 38px rgba(234, 88, 12, 0.45),
         0 4px 14px rgba(0, 0, 0, 0.25);
-    line-height: 1.35;
+    line-height: 1.45;
     -webkit-animation: alertPulseAmberNeon 2.4s ease-in-out infinite;
     animation: alertPulseAmberNeon 2.4s ease-in-out infinite;
     transition: all 0.3s ease-in-out;
     box-sizing: border-box;
+}
+
+/* Modo Normal (con tarjeta de acciones): ambos contenedores comparten el 50% / 50% de la altura exacta */
+.div-table-meta:has(.production-actions-card) .warning-pieces {
+    flex: 1 1 0;
+    min-height: 0;
+}
+
+/* Modo Edición de Reporte (sin tarjeta de acciones): el banner no se deforma ni se infla */
+.div-table-meta:not(:has(.production-actions-card)) .warning-pieces {
+    flex: 0 0 auto;
+    max-height: 175px;
+    margin: 0 auto;
+}
+
+.div-table-meta:not(:has(.production-actions-card)) {
+    justify-content: flex-start !important;
+    gap: 1.25rem !important;
 }
 
 .warning-icon-wrapper {
@@ -555,8 +572,8 @@ p {
 }
 
 .warning-icon-img {
-    width: clamp(34px, 3.2vw, 54px);
-    height: clamp(34px, 3.2vw, 54px);
+    width: clamp(44px, 4vw, 62px);
+    height: clamp(44px, 4vw, 62px);
     object-fit: contain;
     filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
 }
@@ -584,12 +601,12 @@ p {
     ) !important;
     border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
     border-radius: 20px;
-    padding: 3px clamp(12px, 1.2vw, 20px);
-    font-size: clamp(0.78rem, 0.85vw, 0.98rem);
+    padding: 4px clamp(14px, 1.4vw, 24px);
+    font-size: clamp(0.86rem, 0.94vw, 1.05rem);
     font-weight: 800;
     letter-spacing: 0.06em;
     color: #ffe100 !important;
-    margin: 0 auto 6px auto;
+    margin: 0 auto 8px auto;
     text-transform: uppercase;
     box-shadow:
         0 3px 10px rgba(185, 28, 28, 0.45),
@@ -602,17 +619,17 @@ p {
 }
 
 .warning-pill-icon {
-    width: clamp(16px, 1.4vw, 22px);
-    height: clamp(16px, 1.4vw, 22px);
+    width: clamp(18px, 1.6vw, 24px);
+    height: clamp(18px, 1.6vw, 24px);
     object-fit: contain;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
 }
 
 .warning-body {
     color: #ffffff;
-    font-size: clamp(0.72rem, 0.78vw, 0.92rem);
+    font-size: clamp(0.78rem, 0.86vw, 0.98rem);
     font-weight: 600;
-    line-height: 1.45;
+    line-height: 1.55;
     text-align: center;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
 }
@@ -705,22 +722,23 @@ p {
 /* Tarjeta Glassmorphism Azul Profundo simétrica para Operador y Control (Alineado con Barra y global.css) */
 .div-table-code {
     position: relative;
-    flex: 0 0 clamp(230px, 18vw, 300px);
-    width: clamp(230px, 18vw, 300px);
-    min-width: 210px;
-    max-width: 320px;
+    flex: 0 0 clamp(280px, 21vw, 400px);
+    width: clamp(280px, 21vw, 400px);
+    min-width: 260px;
+    max-width: 410px;
+    container-type: inline-size;
     background: var(--glass-bg-blue) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     backdrop-filter: blur(24px) saturate(180%);
     border: 1.5px solid var(--glass-border-blue) !important;
     border-radius: 18px;
     box-shadow: var(--glass-shadow-dark) !important;
-    padding: clamp(0.6rem, 1vh, 1.15rem) clamp(0.6rem, 0.8vw, 1rem);
+    padding: clamp(0.6rem, 1vh, 1rem) clamp(0.6rem, 0.8vw, 0.95rem);
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    gap: clamp(0.45rem, 0.8vh, 0.85rem);
+    gap: clamp(0.5rem, 0.9vh, 0.85rem);
     align-self: stretch;
     transition: all 0.3s ease;
 }
@@ -735,15 +753,15 @@ p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    flex: 1.2 1 0;
-    gap: clamp(6px, 1vh, 12px);
+    justify-content: space-evenly;
+    flex: 1.3 1 0;
+    gap: clamp(8px, 1.3vh, 16px);
     background: rgba(255, 255, 255, 0.9) !important;
     -webkit-backdrop-filter: blur(16px) saturate(180%);
     backdrop-filter: blur(16px) saturate(180%);
     border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
     border-radius: 16px;
-    padding: clamp(8px, 1.2vh, 16px) clamp(8px, 1vw, 14px);
+    padding: clamp(10px, 1.6vh, 20px) clamp(10px, 1.2vw, 18px);
     box-shadow:
         0 8px 24px rgba(0, 0, 0, 0.22),
         inset 0 1px 2px #ffffff !important;
@@ -762,23 +780,23 @@ p {
 
 .operator-avatar-wrapper {
     position: relative;
-    width: clamp(48px, 5.5vw, 88px);
-    height: clamp(48px, 5.5vw, 88px);
+    width: clamp(64px, 7.5vw, 105px);
+    height: clamp(64px, 7.5vw, 105px);
     border-radius: 50%;
     background: var(--gis-blue, #033966);
-    border: 3px solid var(--gis-blue, #033966);
+    border: 3.5px solid var(--gis-blue, #033966);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow:
-        0 6px 20px rgba(3, 57, 102, 0.35),
+        0 8px 24px rgba(3, 57, 102, 0.38),
         inset 0 1px 3px rgba(255, 255, 255, 0.35);
     flex-shrink: 0;
 }
 
 .operator-avatar-img {
-    width: clamp(38px, 4.2vw, 68px);
-    height: clamp(38px, 4.2vw, 68px);
+    width: clamp(48px, 5.8vw, 82px);
+    height: clamp(48px, 5.8vw, 82px);
     object-fit: contain;
     transition: transform 0.25s ease;
 }
@@ -791,36 +809,40 @@ p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: clamp(8px, 1.1vh, 14px);
     width: 100%;
+    flex: 1;
 }
 
 .operator-meta-badges {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: clamp(6px, 0.8vw, 12px);
     flex-wrap: wrap;
+    width: 100%;
 }
 
 .operator-id-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 7px;
     background: linear-gradient(135deg, #033966 0%, #0d5ca8 100%);
     color: #ffffff;
     border: 1px solid rgba(3, 57, 102, 0.4);
-    border-radius: 8px;
-    padding: 4px 12px;
-    font-size: 0.82rem;
+    border-radius: 9px;
+    padding: clamp(5px, 0.7vh, 8px) clamp(10px, 1vw, 16px);
+    font-size: clamp(0.82rem, 0.9vw, 0.96rem);
     font-weight: 800;
     letter-spacing: 0.04em;
-    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.25);
+    box-shadow: 0 3px 8px rgba(3, 57, 102, 0.28);
 }
 
 .operator-id-badge img {
-    width: 20px;
-    height: 20px;
+    width: clamp(18px, 1.5vw, 24px);
+    height: clamp(18px, 1.5vw, 24px);
     object-fit: contain;
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
 }
@@ -828,22 +850,23 @@ p {
 .operator-status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    justify-content: center;
+    gap: 7px;
     background: rgba(10, 133, 4, 0.12);
     color: #0a8504;
     border: 1.5px solid rgba(10, 133, 4, 0.35);
-    border-radius: 8px;
-    padding: 4px 11px;
-    font-size: 0.78rem;
+    border-radius: 9px;
+    padding: clamp(5px, 0.7vh, 8px) clamp(10px, 1vw, 15px);
+    font-size: clamp(0.78rem, 0.85vw, 0.9rem);
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    box-shadow: 0 2px 5px rgba(10, 133, 4, 0.15);
+    box-shadow: 0 2px 6px rgba(10, 133, 4, 0.15);
 }
 
 .status-pulse-dot {
-    width: 8px;
-    height: 8px;
+    width: clamp(8px, 0.7vw, 10px);
+    height: clamp(8px, 0.7vw, 10px);
     border-radius: 50%;
     background-color: #0a8504;
     box-shadow: 0 0 8px #0a8504;
@@ -868,24 +891,24 @@ p {
 /* Caja de Nombre Invertida: fondo Azul Marino GIS con texto Blanco */
 .operator-fullname-box {
     background: linear-gradient(135deg, #033966 0%, #07477a 100%) !important;
-    border-radius: 10px;
-    padding: 9px 14px;
+    border-radius: 12px;
+    padding: clamp(8px, 1.2vh, 13px) clamp(10px, 1.2vw, 16px);
     width: 100%;
     box-sizing: border-box;
     text-align: center;
-    box-shadow: 0 3px 10px rgba(3, 57, 102, 0.35);
-    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.38);
+    border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
 }
 
 .operator-name-text {
-    font-size: 0.94rem;
+    font-size: clamp(0.92rem, 1vw, 1.08rem);
     font-weight: 800;
     color: #ffffff !important;
     letter-spacing: 0.03em;
     text-transform: uppercase;
-    line-height: 1.25;
+    line-height: 1.28;
     display: block;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
 .table-code-th-content {
@@ -893,12 +916,12 @@ p {
     align-items: center;
     justify-content: center;
     width: 100%;
-    gap: 8px;
+    gap: clamp(6px, 0.8vw, 10px);
 }
 
 .table-code-icon {
-    width: 26px;
-    height: 26px;
+    width: clamp(22px, 2vw, 30px);
+    height: clamp(22px, 2vw, 30px);
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
 }
@@ -957,7 +980,7 @@ p {
     border-collapse: separate;
     border-spacing: 0;
     border: 1.5px solid rgba(255, 255, 255, 0.35);
-    font-size: 0.88rem;
+    font-size: clamp(0.85rem, 0.95vw, 1.02rem);
     border-radius: 12px;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.08);
@@ -971,7 +994,7 @@ p {
 }
 
 .table-code th {
-    padding: 0.65em 0.85em;
+    padding: clamp(0.5em, 1vh, 0.9em) clamp(0.6em, 0.9vw, 1em);
     border-bottom: 1px solid rgba(255, 255, 255, 0.22);
     border-right: 1px solid rgba(255, 255, 255, 0.22);
     font-weight: 700;
@@ -984,9 +1007,9 @@ p {
     color: #ffffff;
     width: 48%;
     text-align: center;
-    padding: 0.65em 0.85em;
+    padding: clamp(0.5em, 1vh, 0.9em) clamp(0.6em, 0.9vw, 1em);
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
-    font-size: 0.88rem;
+    font-size: clamp(0.84rem, 0.95vw, 1rem);
     vertical-align: middle;
 }
 
@@ -996,7 +1019,7 @@ p {
     border-right: none;
     text-align: center;
     font-weight: 800;
-    font-size: 0.92rem;
+    font-size: clamp(0.88rem, 1vw, 1.05rem);
     letter-spacing: 0.03em;
     vertical-align: middle;
 }
@@ -1011,19 +1034,19 @@ p {
 
 @media (max-width: 1400px) {
     .div-table-code {
-        flex: 0 0 250px !important;
-        width: 250px !important;
-        min-width: 210px !important;
-        padding: 0.65rem 0.75rem !important;
+        flex: 0 0 280px !important;
+        width: 280px !important;
+        min-width: 260px !important;
+        padding: 0.55rem 0.65rem !important;
     }
 }
 
 @media (max-width: 1200px) {
     .div-table-code {
-        flex: 0 0 220px !important;
-        width: 220px !important;
-        min-width: 190px !important;
-        padding: 0.5rem 0.6rem !important;
+        flex: 0 0 255px !important;
+        width: 255px !important;
+        min-width: 235px !important;
+        padding: 0.45rem 0.55rem !important;
     }
 }
 
@@ -1070,9 +1093,6 @@ p {
         line-height: 1.2 !important;
     }
     .div-table-code {
-        flex: 0 0 240px !important;
-        width: 240px !important;
-        min-width: 200px !important;
         padding: 0.5rem 0.65rem !important;
         gap: 0.4rem !important;
     }
@@ -1081,33 +1101,14 @@ p {
         gap: 6px !important;
     }
     .operator-avatar-wrapper {
-        width: 44px !important;
-        height: 44px !important;
         border-width: 2px !important;
-    }
-    .operator-avatar-img {
-        width: 34px !important;
-        height: 34px !important;
-    }
-    .operator-name-text {
-        font-size: 0.8rem !important;
     }
     .operator-meta-badges {
         gap: 4px !important;
     }
-    .operator-id-badge,
-    .operator-status-badge {
-        padding: 2px 6px !important;
-        font-size: 0.7rem !important;
-    }
     .table-code th,
     .table-code td {
         padding: 3px 5px !important;
-        font-size: 0.74rem !important;
-    }
-    .table-code-icon {
-        width: 16px !important;
-        height: 16px !important;
     }
 }
 
@@ -1123,27 +1124,64 @@ p {
         line-height: 1.15 !important;
     }
     .div-table-code {
-        flex: 0 0 220px !important;
-        width: 220px !important;
-        min-width: 190px !important;
         padding: 0.4rem 0.5rem !important;
     }
     .operator-profile-card {
         padding: 5px 6px !important;
     }
-    .operator-avatar-wrapper {
-        width: 36px !important;
-        height: 36px !important;
-    }
-    .operator-avatar-img {
-        width: 28px !important;
-        height: 28px !important;
-    }
     .table-code th,
     .table-code td {
         padding: 2px 4px !important;
-        font-size: 0.7rem !important;
     }
+}
+
+/* ==========================================================================
+   ESCALADO FLUIDO DEL PANEL "DATOS DEL OPERADOR" (Container Queries)
+   Avatar, badges, nombre y tabla de código crecen con el ANCHO del panel (cqi).
+   ========================================================================== */
+.div-table-code .panel-section-header {
+    font-size: clamp(0.85rem, 4.6cqi, 1.2rem) !important;
+}
+
+.div-table-code .panel-header-icon {
+    width: clamp(22px, 9cqi, 38px) !important;
+    height: clamp(22px, 9cqi, 38px) !important;
+}
+
+.div-table-code .operator-avatar-wrapper {
+    width: clamp(56px, 26cqi, 104px) !important;
+    height: clamp(56px, 26cqi, 104px) !important;
+}
+
+.div-table-code .operator-avatar-img {
+    width: clamp(42px, 20cqi, 80px) !important;
+    height: clamp(42px, 20cqi, 80px) !important;
+}
+
+.div-table-code .operator-id-badge,
+.div-table-code .operator-status-badge {
+    font-size: clamp(0.74rem, 4cqi, 1.05rem) !important;
+    padding: clamp(3px, 1.4cqi, 7px) clamp(8px, 3.6cqi, 16px) !important;
+}
+
+.div-table-code .operator-id-badge img {
+    width: clamp(16px, 6.5cqi, 26px);
+    height: clamp(16px, 6.5cqi, 26px);
+}
+
+.div-table-code .operator-name-text {
+    font-size: clamp(0.84rem, 4.6cqi, 1.2rem) !important;
+}
+
+.div-table-code .table-code th,
+.div-table-code .table-code th:first-child,
+.div-table-code .table-code th:last-child {
+    font-size: clamp(0.78rem, 4.2cqi, 1.1rem) !important;
+}
+
+.div-table-code .table-code-icon {
+    width: clamp(18px, 8cqi, 32px) !important;
+    height: clamp(18px, 8cqi, 32px) !important;
 }
 
 

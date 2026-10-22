@@ -112,8 +112,9 @@ body {
     flex-wrap: nowrap;
     justify-content: stretch;
     align-items: stretch;
-    padding: clamp(0.35rem, 0.8vh, 0.65rem) clamp(0.5rem, 1vw, 1rem);
-    gap: clamp(0.5rem, 0.8vw, 1rem);
+    padding: 0.5rem clamp(0.6rem, 1vw, 1.2rem);
+    margin-bottom: 0.65rem;
+    gap: clamp(0.75rem, 1.2vw, 1.25rem);
     width: 100%;
     box-sizing: border-box;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -121,17 +122,18 @@ body {
 
 /* Tarjeta Glassmorphism Azul Profundo para Datos de la Orden/Proceso (Alineado con Barra Superior y global.css) */
 .principal-data {
-    flex: 0 0 clamp(280px, 22vw, 360px);
-    width: clamp(280px, 22vw, 360px);
-    min-width: 260px;
-    max-width: 400px;
+    flex: 0 0 clamp(320px, 25vw, 470px);
+    width: clamp(320px, 25vw, 470px);
+    min-width: 300px;
+    max-width: 480px;
+    container-type: inline-size;
     background: var(--glass-bg-blue) !important;
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     backdrop-filter: blur(24px) saturate(180%);
     border: 1.5px solid var(--glass-border-blue) !important;
     border-radius: 18px;
     box-shadow: var(--glass-shadow-dark) !important;
-    padding: clamp(0.6rem, 1vh, 1.05rem) clamp(0.7rem, 1vw, 1.2rem);
+    padding: 0.75rem 0.95rem;
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -146,7 +148,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.1em;
     text-align: center;
-    margin-bottom: 0.95rem;
+    margin-bottom: 0.75rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -156,8 +158,8 @@ body {
 }
 
 .panel-header-icon {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
 }
@@ -185,7 +187,7 @@ body {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     /* 2 columnas iguales y fluidas sin desbordamiento */
-    gap: 0.85em 0.9em;
+    gap: 0.55rem 0.65rem;
     width: 100%;
     align-items: stretch;
 }
@@ -278,23 +280,24 @@ td {
 }
 
 .form-label {
-    font-size: 0.84rem;
+    font-size: 0.76rem;
     font-weight: 800;
     color: #ffffff;
-    margin-top: 5px;
-    letter-spacing: 0.05em;
+    margin-top: 3px;
+    letter-spacing: 0.04em;
     text-transform: uppercase;
     text-align: center;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    flex-wrap: wrap;
+    gap: 4px;
     text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 
 .form-label-icon {
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
     filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
 }
@@ -669,17 +672,17 @@ td {
 .locked-field-badge {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    margin-left: 8px;
-    padding: 2px 8px;
-    font-size: 0.70rem;
+    gap: 3px;
+    margin-left: 4px;
+    padding: 1px 5px;
+    font-size: 0.62rem;
     font-weight: 800;
     color: #f8fafc !important;
     background: rgba(255, 255, 255, 0.18) !important;
-    border: 1px solid rgba(255, 255, 255, 0.4) !important;
-    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 4px;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.4px;
     vertical-align: middle;
     pointer-events: none;
     -webkit-user-select: none;
@@ -687,11 +690,12 @@ td {
     -webkit-backdrop-filter: blur(6px);
     backdrop-filter: blur(6px);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
 }
 
 .locked-field-icon {
-    width: 13px;
-    height: 13px;
+    width: 10px;
+    height: 10px;
     object-fit: contain;
     filter: brightness(0) invert(1) opacity(0.95);
 }
@@ -701,17 +705,17 @@ td {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 8px;
     width: 100%;
-    margin-bottom: 16px;
-    padding: 10px 18px;
+    margin-bottom: 0.55rem;
+    padding: 6px 12px;
     background: rgba(245, 158, 11, 0.16) !important;
     border: 1.5px solid rgba(251, 191, 36, 0.7) !important;
-    border-radius: 12px;
+    border-radius: 10px;
     color: #fffbeb !important;
-    font-size: 0.88rem;
+    font-size: 0.76rem;
     font-weight: 700;
-    line-height: 1.35;
+    line-height: 1.25;
     text-align: center;
     box-sizing: border-box;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.25);
@@ -730,9 +734,9 @@ td {
 }
 
 .edit-meta-notice-icon {
-    width: 22px;
-    height: 22px;
-    min-width: 22px;
+    width: 17px;
+    height: 17px;
+    min-width: 17px;
     object-fit: contain;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
@@ -1539,18 +1543,18 @@ body.table-focus-mode .meta-summary-strip {
 
 @media (max-width: 1400px) {
     .principal-data {
-        flex: 0 0 310px !important;
-        width: 310px !important;
-        min-width: 260px !important;
+        flex: 0 0 320px !important;
+        width: 320px !important;
+        min-width: 290px !important;
     }
 }
 
 @media (max-width: 1200px) {
     .principal-data {
-        flex: 0 0 280px !important;
-        width: 280px !important;
-        min-width: 240px !important;
-        padding: 0.55rem 0.65rem !important;
+        flex: 0 0 295px !important;
+        width: 295px !important;
+        min-width: 270px !important;
+        padding: 0.7rem 0.85rem !important;
     }
 }
 
@@ -1568,14 +1572,12 @@ body.table-focus-mode .meta-summary-strip {
         font-size: 0.78rem !important;
     }
     .container-meta {
-        padding: 0.3rem 0.65rem 0.15rem 0.65rem;
-        gap: 0.5rem;
+        padding: 0.4rem 0.75rem 0.4rem 0.75rem;
+        margin-bottom: 0.5rem;
+        gap: 0.75rem;
     }
     .principal-data {
-        flex: 0 0 300px !important;
-        width: 300px !important;
-        min-width: 250px !important;
-        padding: 0.55rem 0.75rem !important;
+        padding: 0.7rem 0.9rem !important;
     }
     .panel-section-header {
         font-size: 0.8rem !important;
@@ -1615,9 +1617,6 @@ body.table-focus-mode .meta-summary-strip {
         padding: 2px 14px !important;
     }
     .principal-data {
-        flex: 0 0 280px !important;
-        width: 280px !important;
-        min-width: 240px !important;
         padding: 0.45rem 0.6rem !important;
     }
     .form-control,
@@ -1642,6 +1641,53 @@ body.table-focus-mode .meta-summary-strip {
         flex: 1 1 calc(50% - 6px);
         max-width: none;
     }
+}
+
+/* ==========================================================================
+   ESCALADO FLUIDO DEL PANEL "REPORTE DE OPERADOR" (Container Queries)
+   Tipografía, iconos y controles crecen con el ANCHO del panel (cqi),
+   con topes mín/máx para no desbordarse en pantallas pequeñas.
+   Especificidad alta + !important para prevalecer sobre los ajustes por altura.
+   ========================================================================== */
+.principal-data .panel-section-header {
+    font-size: clamp(0.85rem, 3.9cqi, 1.2rem) !important;
+}
+
+.principal-data .panel-header-icon {
+    width: clamp(22px, 8cqi, 38px) !important;
+    height: clamp(22px, 8cqi, 38px) !important;
+}
+
+.principal-data .form-grid {
+    gap: clamp(0.4rem, 2.2cqi, 0.85rem) clamp(0.45rem, 2.6cqi, 0.95rem) !important;
+}
+
+.principal-data .form-control,
+.principal-data .normal-input,
+.principal-data select.form-control {
+    height: clamp(32px, 11cqi, 50px) !important;
+    min-height: clamp(32px, 11cqi, 50px) !important;
+    font-size: clamp(0.8rem, 3.9cqi, 1.15rem) !important;
+}
+
+.principal-data .form-label {
+    font-size: clamp(0.7rem, 3cqi, 0.95rem) !important;
+    gap: clamp(3px, 1.2cqi, 6px);
+}
+
+.principal-data .form-label-icon {
+    width: clamp(18px, 6.5cqi, 28px) !important;
+    height: clamp(18px, 6.5cqi, 28px) !important;
+}
+
+.principal-data .btn-submit {
+    max-width: 88cqi;
+    font-size: clamp(0.9rem, 4.2cqi, 1.2rem);
+}
+
+.principal-data .btn-submit .btn-submit-icon {
+    width: clamp(22px, 7.5cqi, 34px);
+    height: clamp(22px, 7.5cqi, 34px);
 }
 
 

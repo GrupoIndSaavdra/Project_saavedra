@@ -264,8 +264,19 @@ if (window.arrayData) {
                 "/processProduction/editMeta"
             );
 
-            createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
-            insertWeldingTypeBox();
+            const hasPieces = (window.arrayData["numberPieces"] && window.arrayData["numberPieces"] > 0) ||
+                (window.arrayData["machinedPiecesInMeta"] && window.arrayData["machinedPiecesInMeta"].length > 0);
+
+            if (hasPieces) {
+                createInputsWithValue(window.arrayData, ["startTime", "endTime", "date"]);
+                insertWeldingTypeBox();
+            } else {
+                insertSelects();
+                const submitBtn = document.querySelector(".btn-submit span");
+                if (submitBtn) {
+                    submitBtn.textContent = "Confirmar";
+                }
+            }
         } else {
             document.documentElement.classList.add("is-edit-pieces-mode");
             document.body.classList.add("is-edit-pieces-mode");

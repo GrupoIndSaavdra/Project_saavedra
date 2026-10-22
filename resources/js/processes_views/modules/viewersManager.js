@@ -183,7 +183,15 @@ export function openDibujosViewer(otId = null, claseNombre = null) {
             let otNum = otNumMatch ? otNumMatch[0] : activeOT;
 
             if (activeOT && !Object.keys(estructura).some(k => window.eq(k, activeOT))) {
-                const foundKey = Object.keys(estructura).find(key => key.includes("OT " + otNum) || window.eq(key, activeOT));
+                const foundKey = Object.keys(estructura).find(key => {
+                    if (window.eq(key, activeOT)) return true;
+                    if (otNum) {
+                        const keyOtMatch = key.match(/\d+/);
+                        if (keyOtMatch && keyOtMatch[0] === otNum) return true;
+                        if (new RegExp(`\\b${otNum}\\b`).test(key)) return true;
+                    }
+                    return false;
+                });
                 if (foundKey) exactActiveOT = foundKey;
             } else {
                 exactActiveOT = Object.keys(estructura).find(k => window.eq(k, activeOT)) || activeOT;
@@ -201,35 +209,49 @@ export function openDibujosViewer(otId = null, claseNombre = null) {
                 if (window.eq(ot, exactActiveOT)) opt.selected = true;
                 selOT.appendChild(opt);
             });
+            selOT.disabled = false;
 
-            selOT.addEventListener('change', () => {
+            const isMatchClase = (c1, c2) => {
+                if (!c1 || !c2) return false;
+                if (window.eq(c1, c2)) return true;
+                const c1Clean = String(c1).replace(/^\d+\s*-\s*/, '').toLowerCase().trim();
+                const c2Clean = String(c2).replace(/^\d+\s*-\s*/, '').toLowerCase().trim();
+                if (c1Clean === c2Clean) return true;
+                if (c1Clean.replace(/s$/, '') === c2Clean.replace(/s$/, '')) return true;
+                return c1Clean.includes(c2Clean) || c2Clean.includes(c1Clean);
+            };
+
+            const updateClases = () => {
                 const selOTVal = selOT.value;
                 selClase.innerHTML = '<option value="">— Seleccionar Clase —</option>';
                 if (selOTVal && estructura[selOTVal]) {
                     estructura[selOTVal].forEach(clase => {
                         const opt = document.createElement('option');
                         opt.value = clase;
-                        opt.textContent = clase;
+                        opt.textContent = (clase === '--') ? 'Planos Generales (Raíz)' : clase;
                         selClase.appendChild(opt);
                     });
-                    selClase.disabled = false;
+                }
+                selClase.disabled = false;
+            };
+
+            selOT.addEventListener('change', () => {
+                updateClases();
+                if (selOT.value && selClase.value) {
+                    const otText = selOT.options[selOT.selectedIndex].text;
+                    _dibujosCargarArchivos(selOT.value, selClase.value, contentDiv, otText);
+                } else if (selOT.value) {
                     _renderEmptyState(contentDiv, {
                         title: 'Selecciona una Clase',
                         message: `Selecciona la clase correspondiente para cargar los planos de ${selOT.options[selOT.selectedIndex].text}.`,
                         type: 'info'
                     });
                 } else {
-                    selClase.disabled = true;
                     _renderEmptyState(contentDiv, {
                         title: 'Selecciona una Orden de Trabajo y Clase',
                         message: 'Usa los selectores superiores para explorar los planos técnicos y dibujos de ingeniería disponibles.',
                         type: 'info'
                     });
-                }
-                // Búsqueda automática al cambiar OT (si hay clase)
-                if (selOTVal && selClase.value) {
-                    const otText = selOT.options[selOT.selectedIndex].text;
-                    _dibujosCargarArchivos(selOTVal, selClase.value, contentDiv, otText);
                 }
             });
 
@@ -248,23 +270,38 @@ export function openDibujosViewer(otId = null, claseNombre = null) {
                 }
             });
 
-            // Regla: la OT queda bloqueada a la orden activa, pero la Clase queda LIBRE
-            // para que el operador pueda consultar los planos de otras clases de la misma OT.
-            // (Solo el visor de Programas NC/CNC se bloquea por completo al proceso activo.)
+            // Si hay OT activa identificable (por ejemplo, al abrir desde el proceso de producción),
+            // preseleccionarla y cargar sus clases y planos automáticamente, pero manteniendo
+            // ambos selects completamente desbloqueados para navegación libre:
             if (exactActiveOT && Object.keys(estructura).some(k => window.eq(k, exactActiveOT))) {
                 selOT.value = exactActiveOT;
-                selOT.dispatchEvent(new Event('change')); // síncrono: llena las clases
-                const opt = Array.from(selClase.options).find(o => window.eq(o.value, activeClase) || window.eq(o.value.replace(/^\d+\s*-\s*/, ''), activeClase));
-                if (opt) {
+                updateClases();
+
+                // Buscar clase correspondiente al proceso actual
+                let opt = Array.from(selClase.options).find(o => isMatchClase(o.value, activeClase));
+
+                // Si no coincide por nombre pero hay clases disponibles, preseleccionar la primera opción válida
+                if (!opt && selClase.options.length === 2) {
+                    opt = selClase.options[1];
+                } else if (!opt && Array.from(selClase.options).some(o => o.value === '--')) {
+                    opt = Array.from(selClase.options).find(o => o.value === '--');
+                } else if (!opt && selClase.options.length > 1) {
+                    opt = selClase.options[1];
+                }
+
+                if (opt && opt.value) {
                     opt.selected = true;
                     const otText = selOT.options[selOT.selectedIndex].text;
                     _dibujosCargarArchivos(exactActiveOT, opt.value, contentDiv, otText);
+                } else {
+                    _renderEmptyState(contentDiv, {
+                        title: 'Selecciona una Clase',
+                        message: `Selecciona la clase de ${selOT.options[selOT.selectedIndex]?.text || exactActiveOT} para visualizar los planos técnicos.`,
+                        type: 'info'
+                    });
                 }
-                selOT.disabled = true;
-                selClase.disabled = false;
             } else {
-                // Sin OT activa identificable: se permite elegir OT para no dejar el visor inutilizable
-                selOT.disabled = false;
+                updateClases();
             }
         })
         .catch((err) => {
@@ -293,7 +330,6 @@ function _dibujosSelectGroup(labelText, selectId) {
     select.className = 'form-control';
     select.classList.add("prod-filter-select");
     select.innerHTML = `<option value="">— ${labelText} —</option>`;
-    if (selectId === 'd-viewer-clase') select.disabled = true;
 
     wrap.appendChild(label);
     wrap.appendChild(select);
