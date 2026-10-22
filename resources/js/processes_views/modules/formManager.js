@@ -725,7 +725,7 @@ function createInputPassword(name = "passwordAdmin", placeholderText = "Contrase
     submit.className = "btn-submit-password" + (name === "passwordQuality" ? " btn-quality" : "");
     const resultIconUrl = window.baseUrl ? (window.baseUrl + "/images/Resultado-Icon.png") : "/images/Resultado-Icon.png";
     submit.innerHTML = `
-        <img src="${resultIconUrl}" class="btn-verify-icon" alt="Verificar" onerror="this.src='/images/Resultado-Icon.png'">
+        <img src="${resultIconUrl}" class="btn-verify-icon" alt="Verificar">
         <span>Verificar</span>
     `;
 
