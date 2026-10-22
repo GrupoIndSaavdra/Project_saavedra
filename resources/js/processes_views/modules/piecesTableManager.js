@@ -511,6 +511,11 @@ function enableTable() {
         disabledInputsTable(table);
     }
     redirectToEndTable();
+    if (typeof window.applySavedFocusState === "function") {
+        window.applySavedFocusState();
+    } else if (typeof window.checkTableActive === "function") {
+        window.checkTableActive();
+    }
 }
 function disabledInputsTable(table) {
     if (table) {

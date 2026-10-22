@@ -60,10 +60,31 @@ header {
 
 html,
 body {
+    min-height: 100vh;
     height: 100vh;
-    max-height: 100vh;
-    overflow-y: hidden;
+    overflow-y: auto;
     overflow-x: hidden;
+}
+
+body::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+body::-webkit-scrollbar-track {
+    background: rgba(3, 57, 102, 0.08);
+}
+
+body::-webkit-scrollbar-thumb {
+    background: var(--gis-blue);
+    border-radius: 4px;
+}
+
+@supports (scrollbar-width: thin) {
+    body {
+        scrollbar-width: thin;
+        scrollbar-color: var(--gis-blue) rgba(3, 57, 102, 0.08);
+    }
 }
 
 /* En modo edición de piezas, el scroll pasa de la tabla a la vista completa */
@@ -88,11 +109,13 @@ body {
 .container-meta {
     position: relative;
     display: flex;
+    flex-wrap: wrap;
     justify-content: stretch;
     align-items: stretch;
     padding: 0.65rem 1rem 0.35rem 1rem;
     gap: 1rem;
     width: 100%;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Tarjeta Glassmorphism Azul Profundo para Datos de la Orden/Proceso (Alineado con Barra Superior y global.css) */
@@ -1153,4 +1176,462 @@ td {
 .cm-card-shake {
     animation: cmShake 0.35s ease-in-out !important;
 }
+
+/* ==========================================================================
+   MODO FOCO EN TABLA Y RESPONSIVIDAD DINÁMICA (Grupo Industrial Saavedra)
+   ========================================================================== */
+
+@-webkit-keyframes buttonShineSweep {
+    0% {
+        -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+        transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    }
+    45%, 100% {
+        -webkit-transform: translateX(280%) skewX(-25deg) translateZ(0);
+        transform: translateX(280%) skewX(-25deg) translateZ(0);
+    }
+}
+
+@keyframes buttonShineSweep {
+    0% {
+        -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+        transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    }
+    45%, 100% {
+        -webkit-transform: translateX(280%) skewX(-25deg) translateZ(0);
+        transform: translateX(280%) skewX(-25deg) translateZ(0);
+    }
+}
+
+@-webkit-keyframes pulseGlowBlue {
+    0% {
+        box-shadow:
+            0 4px 14px rgba(3, 57, 102, 0.45),
+            0 0 0 0 rgba(13, 92, 168, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 6px 24px rgba(13, 92, 168, 0.8),
+            0 0 18px 5px rgba(56, 189, 248, 0.6),
+            inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+    100% {
+        box-shadow:
+            0 4px 14px rgba(3, 57, 102, 0.45),
+            0 0 0 0 rgba(13, 92, 168, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+}
+
+@keyframes pulseGlowBlue {
+    0% {
+        box-shadow:
+            0 4px 14px rgba(3, 57, 102, 0.45),
+            0 0 0 0 rgba(13, 92, 168, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 6px 24px rgba(13, 92, 168, 0.8),
+            0 0 18px 5px rgba(56, 189, 248, 0.6),
+            inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+    100% {
+        box-shadow:
+            0 4px 14px rgba(3, 57, 102, 0.45),
+            0 0 0 0 rgba(13, 92, 168, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+}
+
+/* Grupo de botones en cabecera izquierda */
+.header-actions-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 10;
+}
+
+.btn-toggle-focus {
+    position: relative;
+    overflow: hidden;
+    height: 44px;
+    padding: 0 20px;
+    font-size: 0.92rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: 11px;
+    border: 1.5px solid rgba(255, 255, 255, 0.75) !important;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #033966 0%, #0d5ca8 55%, #1d72b8 100%) !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.35);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    contain: paint;
+    isolation: isolate;
+    text-decoration: none;
+    box-sizing: border-box;
+    z-index: 2;
+}
+
+.btn-toggle-focus:hover {
+    background: linear-gradient(135deg, #004b8d 0%, #0d6ed1 55%, #1e88e5 100%) !important;
+    border-color: #ffffff !important;
+    -webkit-transform: translateY(-2px) scale(1.03) translateZ(0);
+    transform: translateY(-2px) scale(1.03) translateZ(0);
+    -webkit-animation: pulseGlowBlue 2.2s infinite ease-in-out;
+    animation: pulseGlowBlue 2.2s infinite ease-in-out;
+}
+
+.btn-toggle-focus:active {
+    -webkit-transform: translateY(1px) scale(0.98) translateZ(0);
+    transform: translateY(1px) scale(0.98) translateZ(0);
+}
+
+.btn-toggle-focus img.btn-zoom-icon {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+}
+
+/* Rayo / destello blanco de luz (Idéntico a .btn-savePiece::after) */
+.btn-toggle-focus::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.85) 50%,
+        rgba(255, 255, 255, 0.05) 80%,
+        transparent 100%
+    );
+    -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.btn-toggle-focus:hover::after {
+    opacity: 1;
+    -webkit-animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Barra de Resumen en Modo Foco (Heads-Up Display 2 Niveles Equilibrados GIS) */
+.meta-summary-strip {
+    display: none;
+    width: 100%;
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border: 2px solid var(--glass-border-blue) !important;
+    box-shadow:
+        var(--glass-shadow-dark),
+        inset 0 1px 2px rgba(255, 255, 255, 0.25) !important;
+    border-radius: 14px;
+    padding: 0.4rem 0.85rem;
+    box-sizing: border-box;
+    animation: fadeInAnimation 0.3s ease-out forwards;
+    flex-direction: column;
+    gap: 7px;
+}
+
+body.table-focus-mode .meta-summary-strip {
+    display: flex !important;
+}
+
+.summary-strip-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
+}
+
+/* Fila 1: Distribución proporcional de contexto */
+.summary-strip-row-info .summary-chip {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.summary-strip-row-info .summary-chip-ot {
+    flex: 1.3 1 0;
+}
+
+.summary-strip-row-info .summary-chip-process {
+    flex: 1.2 1 0;
+}
+
+.summary-strip-row-info .summary-chip-machine {
+    flex: 0.65 1 0;
+    max-width: 150px;
+}
+
+.summary-strip-row-info .summary-chip-operator {
+    flex: 1.2 1 0;
+}
+
+/* Fila 2: Distribución proporcional de métricas */
+.summary-strip-row-metrics .summary-chip {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+.summary-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 38px;
+    padding: 0 12px;
+    border-radius: 9px;
+    border: 1.5px solid rgba(255, 255, 255, 0.85) !important;
+    font-size: 0.86rem;
+    font-weight: 800;
+    color: #ffffff !important;
+    white-space: nowrap;
+    box-sizing: border-box;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    overflow: hidden;
+}
+
+.summary-chip:hover {
+    -webkit-transform: translateY(-2px) scale(1.02);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.summary-chip-icon {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.65));
+}
+
+.summary-chip-label {
+    color: rgba(255, 255, 255, 0.92) !important;
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+    flex-shrink: 0;
+}
+
+.summary-chip-value {
+    color: #ffffff !important;
+    font-size: 0.92rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.75);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 1. OT: Sólido Azul Marino / Cyan GIS */
+.summary-chip-ot {
+    background: linear-gradient(135deg, #024b87 0%, #0369a1 50%, #0284c7 100%) !important;
+    box-shadow: 0 4px 14px rgba(2, 75, 135, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.55) !important;
+}
+
+/* 2. PROCESO: Sólido Azul GIS con realce */
+.summary-chip-process {
+    background: linear-gradient(135deg, #033966 0%, #0c4a6e 50%, #075985 100%) !important;
+    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.55) !important;
+}
+
+/* 3. MÁQUINA: Sólido Cobalto Zafiro */
+.summary-chip-machine {
+    background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%) !important;
+    box-shadow: 0 4px 14px rgba(30, 58, 138, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.55) !important;
+}
+
+/* 4. META: Sólido Ámbar / Dorado Intenso */
+.summary-chip-meta {
+    background: linear-gradient(135deg, #b45309 0%, #d97706 50%, #f59e0b 100%) !important;
+    box-shadow: 0 4px 16px rgba(217, 119, 6, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 5. REALIZADAS: Sólido Verde Esmeralda GIS */
+.summary-chip-result {
+    background: linear-gradient(135deg, #047857 0%, #0a8504 50%, #16a34a 100%) !important;
+    box-shadow: 0 4px 16px rgba(10, 133, 4, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 6. RESTANTES: Sólido Carmesí Rojo GIS */
+.summary-chip-remaining {
+    background: linear-gradient(135deg, #991b1b 0%, #b91c1c 50%, #dc2626 100%) !important;
+    box-shadow: 0 4px 16px rgba(185, 28, 28, 0.55), inset 0 1px 2px rgba(255, 255, 255, 0.6) !important;
+}
+
+/* 7. OPERADOR: Sólido Azul Medianoche Profundo */
+.summary-chip-operator {
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #033966 100%) !important;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.5) !important;
+}
+
+.summary-chip-operator .summary-chip-value {
+    color: #ffffff !important;
+}
+
+/* Comportamiento al activarse .table-focus-mode */
+html.table-focus-mode,
+body.table-focus-mode {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    min-height: 100vh !important;
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+}
+
+html.table-focus-mode .container-meta,
+body.table-focus-mode .container-meta {
+    padding: 0.35rem 1rem 0.2rem 1rem;
+    gap: 0;
+}
+
+html.table-focus-mode .principal-data,
+html.table-focus-mode .div-table-meta,
+html.table-focus-mode .div-table-code,
+body.table-focus-mode .principal-data,
+body.table-focus-mode .div-table-meta,
+body.table-focus-mode .div-table-code {
+    display: none !important;
+}
+
+html.table-focus-mode .meta-summary-strip,
+body.table-focus-mode .meta-summary-strip {
+    display: flex !important;
+}
+
+/* ==========================================================================
+   MEDIA QUERIES DE ALTURA Y RESOLUCIÓN PARA PANTALLAS DE PLANTA
+   ========================================================================== */
+
+@media (max-width: 1400px) {
+    .principal-data {
+        flex: 0 0 380px !important;
+        width: 380px !important;
+        min-width: 320px !important;
+    }
+}
+
+@media (max-height: 860px) {
+    header {
+        min-height: 48px !important;
+        padding: 4px 20px !important;
+    }
+    header .btn-finishReport,
+    header .btn-cancel-report,
+    header .btn-cancel-pieces,
+    .btn-toggle-focus {
+        height: 36px !important;
+        padding: 0 14px !important;
+        font-size: 0.78rem !important;
+    }
+    .container-meta {
+        padding: 0.3rem 0.65rem 0.15rem 0.65rem;
+        gap: 0.5rem;
+    }
+    .principal-data {
+        flex: 0 0 340px !important;
+        width: 340px !important;
+        min-width: 280px !important;
+        padding: 0.55rem 0.75rem !important;
+    }
+    .panel-section-header {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.4rem !important;
+    }
+    .panel-header-icon {
+        width: 20px !important;
+        height: 20px !important;
+    }
+    .form-grid {
+        gap: 0.35rem 0.45rem !important;
+    }
+    .form-control,
+    .normal-input {
+        height: 30px !important;
+        min-height: 30px !important;
+        font-size: 0.8rem !important;
+        padding: 0.2em 0.35em !important;
+    }
+    .form-label {
+        font-size: 0.72rem !important;
+        margin-bottom: 1px !important;
+    }
+    .form-label-icon {
+        width: 18px !important;
+        height: 18px !important;
+    }
+    .btn-quick-focus-fold {
+        padding: 4px 12px !important;
+        font-size: 0.72rem !important;
+    }
+}
+
+@media (max-height: 740px) {
+    header {
+        min-height: 42px !important;
+        padding: 2px 14px !important;
+    }
+    .principal-data {
+        flex: 0 0 310px !important;
+        width: 310px !important;
+        min-width: 260px !important;
+        padding: 0.45rem 0.6rem !important;
+    }
+    .form-control,
+    .normal-input {
+        height: 27px !important;
+        min-height: 27px !important;
+        font-size: 0.75rem !important;
+    }
+    .panel-section-header {
+        font-size: 0.75rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+}
+
+@media (max-width: 1080px) {
+    .summary-strip-row {
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+    .summary-strip-row-info .summary-chip,
+    .summary-strip-row-metrics .summary-chip {
+        flex: 1 1 calc(50% - 6px);
+        max-width: none;
+    }
+}
+
 

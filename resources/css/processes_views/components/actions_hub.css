@@ -1374,3 +1374,42 @@ body.is-verifying-active .hub-buttons-row > *:not(.is-verifying) {
     transform: translateY(1px);
 }
 
+/* ==========================================================================
+   RESPONSIVIDAD POR ALTURA PARA HUB DE ACCIONES
+   ========================================================================== */
+
+@media (max-height: 860px) {
+    .production-actions-card {
+        padding: 0.4rem 0.6rem !important;
+    }
+    .production-hub-grid {
+        gap: 0.5rem !important;
+    }
+    .hub-column {
+        min-height: 72px !important;
+        padding: 0.35rem 0.45rem !important;
+    }
+    .hub-section-header {
+        font-size: 0.75rem !important;
+        margin-bottom: 2px !important;
+    }
+    .action-btn-img {
+        width: 30px !important;
+        height: 30px !important;
+    }
+    .action-label {
+        font-size: 0.68rem !important;
+    }
+    .process-section {
+        padding: 0.35rem 0.55rem !important;
+    }
+    .process-title {
+        font-size: 0.78rem !important;
+    }
+    .limit-label {
+        font-size: 0.65rem !important;
+        margin-bottom: 0.15rem !important;
+    }
+}
+
+

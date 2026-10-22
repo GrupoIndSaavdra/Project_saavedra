@@ -124,26 +124,22 @@
     <table>
         <thead>
             <tr>
-                <th width="2%" rowspan="2">Nº</th>
-                <th width="5%" rowspan="2">ORDEN DE<br>TRABAJO</th>
-                <th width="8%" rowspan="2">FECHA Y ORDEN<br>DE COMPRA</th>
-                <th width="7%" rowspan="2">CLIENTE</th>
-                <th width="14%" rowspan="2">NOMBRE DEL PRODUCTO</th>
-                <th width="5.5%" rowspan="2">CANTIDADES</th>
-                <th width="8%" rowspan="2">PIEZAS</th>
-                <th width="4.5%" rowspan="2">FORMA<br>GRABADOS<br>1,2,3,4</th>
-                <th width="6%" rowspan="2">PROVEEDOR<br>DE MATERIAL</th>
-                <th width="5.5%" rowspan="2">MATERIAL</th>
-                <th width="6%" rowspan="2">FECHA<br>FUNDICION</th>
-                <th width="6%" rowspan="2">FECHA<br>TECAMAC</th>
-                <th width="4%" rowspan="2">Nº DE<br>SEMANA</th>
-                <th width="6%" rowspan="2">FECHA<br>MEXICO</th>
-                <th width="6%" rowspan="2" style="background-color: #ffeb3b; color: #000;">FECHA<br>PROMETIDA</th>
-                <th width="6.5%" colspan="2">OBSERVACIONES</th>
-            </tr>
-            <tr>
-                <th width="3.25%">PZAS</th>
-                <th width="3.25%">CAV</th>
+                <th width="2%">Nº</th>
+                <th width="5%">ORDEN DE<br>TRABAJO</th>
+                <th width="8%">FECHA Y ORDEN<br>DE COMPRA</th>
+                <th width="7%">CLIENTE</th>
+                <th width="14%">NOMBRE DEL PRODUCTO</th>
+                <th width="5.5%">CANTIDADES</th>
+                <th width="8%">PIEZAS</th>
+                <th width="4.5%">FORMA<br>GRABADOS<br>1,2,3,4</th>
+                <th width="6%">PROVEEDOR<br>DE MATERIAL</th>
+                <th width="5.5%">MATERIAL</th>
+                <th width="6%">FECHA<br>FUNDICION</th>
+                <th width="6%">FECHA<br>TECAMAC</th>
+                <th width="4%">Nº DE<br>SEMANA</th>
+                <th width="6%">FECHA<br>MEXICO</th>
+                <th width="6%" style="background-color: #ffeb3b; color: #000;">FECHA<br>PROMETIDA</th>
+                <th width="6.5%">OBSERVACIONES</th>
             </tr>
         </thead>
         <tbody>
@@ -156,7 +152,7 @@
             @endphp
             @if($totalWosCount === 0)
                 <tr>
-                    <td colspan="17" style="padding: 30px 15px; background-color: #ffffff; text-align: center;">
+                    <td colspan="16" style="padding: 30px 15px; background-color: #ffffff; text-align: center;">
                         <img src="{{ public_path('images/calendario.png') }}" width="45" height="auto" style="margin-bottom: 6px;"><br>
                         <strong style="color: #dc2626; font-size: 11px;">Esta semana o consulta no tiene ninguna Orden de Trabajo asignada actualmente.</strong>
                     </td>
@@ -282,7 +278,7 @@
                             <td>{{ safeDateParseDisplay($singleMexDate) }}</td>
                         @endif
                         <td><strong>{{ safeDateParseDisplay($wo->fecha_entrega_cliente) }}</strong></td>
-                        <td colspan="2">{{ $wo->observaciones_prioridad }}</td>
+                        <td>{{ $wo->observaciones_prioridad }}</td>
                     </tr>
                 @endforeach
             @endforeach

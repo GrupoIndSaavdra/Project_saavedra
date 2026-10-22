@@ -506,10 +506,10 @@ p {
 .warning-pieces {
     width: 100%;
     max-width: 100%;
-    min-height: 210px;
-    font-size: 1.05rem;
+    min-height: 0;
+    font-size: 0.95rem;
     font-weight: 600;
-    padding: 1.35rem 2rem;
+    padding: 0.75rem 1.4rem;
     margin: 0 auto;
     border-radius: 16px;
     background: var(--glass-bg-yellow) !important;
@@ -520,14 +520,14 @@ p {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 26px;
+    gap: 20px;
     text-align: center;
     box-shadow:
         0 8px 24px -4px rgba(255, 145, 0, 0.45),
         0 4px 10px -2px rgba(0, 0, 0, 0.25),
         inset 0 1px 2px 0 rgba(255, 255, 255, 0.85),
         inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2);
-    line-height: 1.55;
+    line-height: 1.45;
     animation: alert-pulse-yellow 2.4s ease-in-out infinite;
     transition: all 0.3s ease-in-out;
     box-sizing: border-box;
@@ -981,4 +981,136 @@ p {
 .table-code tr:last-child th {
     border-bottom: none;
 }
+
+/* ==========================================================================
+   RESPONSIVIDAD POR ALTURA Y RESOLUCIÓN PARA META Y OPERADOR
+   ========================================================================== */
+
+@media (max-width: 1400px) {
+    .div-table-code {
+        flex: 0 0 380px !important;
+        width: 380px !important;
+        min-width: 320px !important;
+    }
+}
+
+@media (max-height: 860px) {
+    .div-table-meta {
+        gap: 0.45rem;
+    }
+    .table-meta th,
+    .table-meta td {
+        padding: 3px 6px;
+        font-size: 0.76rem;
+    }
+    .table-meta-icon {
+        width: 18px;
+        height: 18px;
+    }
+    .table-meta-th-content {
+        gap: 4px;
+        font-size: 0.74rem;
+    }
+    .meta-readonly-input {
+        font-size: 0.78rem;
+        padding: 2px 4px;
+    }
+    .warning-pieces {
+        padding: 0.45rem 0.85rem !important;
+        gap: 14px !important;
+    }
+    .warning-icon-img {
+        width: 38px !important;
+        height: 38px !important;
+    }
+    .warning-title-pill {
+        padding: 3px 12px !important;
+        font-size: 0.78rem !important;
+        margin: 0 auto 4px auto !important;
+    }
+    .warning-pill-icon {
+        width: 16px !important;
+        height: 16px !important;
+    }
+    .warning-body {
+        font-size: 0.74rem !important;
+        line-height: 1.25 !important;
+    }
+    .div-table-code {
+        flex: 0 0 340px !important;
+        width: 340px !important;
+        min-width: 280px !important;
+        padding: 0.55rem 0.75rem !important;
+        gap: 0.45rem !important;
+    }
+    .operator-profile-card {
+        padding: 8px 10px !important;
+        gap: 6px !important;
+    }
+    .operator-avatar-wrapper {
+        width: 44px !important;
+        height: 44px !important;
+        border-width: 2px !important;
+    }
+    .operator-avatar-img {
+        width: 34px !important;
+        height: 34px !important;
+    }
+    .operator-name-text {
+        font-size: 0.82rem !important;
+    }
+    .operator-meta-badges {
+        gap: 6px !important;
+    }
+    .operator-id-badge,
+    .operator-status-badge {
+        padding: 2px 8px !important;
+        font-size: 0.72rem !important;
+    }
+    .table-code th,
+    .table-code td {
+        padding: 3px 6px !important;
+        font-size: 0.75rem !important;
+    }
+    .table-code-icon {
+        width: 18px !important;
+        height: 18px !important;
+    }
+}
+
+@media (max-height: 740px) {
+    .warning-pieces {
+        padding: 0.35rem 0.65rem !important;
+    }
+    .warning-icon-wrapper {
+        display: none !important;
+    }
+    .warning-body {
+        font-size: 0.68rem !important;
+        line-height: 1.2 !important;
+    }
+    .div-table-code {
+        flex: 0 0 310px !important;
+        width: 310px !important;
+        min-width: 260px !important;
+        padding: 0.45rem 0.6rem !important;
+    }
+    .operator-profile-card {
+        padding: 6px 8px !important;
+    }
+    .operator-avatar-wrapper {
+        width: 36px !important;
+        height: 36px !important;
+    }
+    .operator-avatar-img {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    .table-code th,
+    .table-code td {
+        padding: 2px 4px !important;
+        font-size: 0.72rem !important;
+    }
+}
+
 

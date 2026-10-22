@@ -860,3 +860,51 @@ td select {
     background-color: #022847;
 }
 
+/* ==========================================================================
+   MODO FOCO EN TABLA Y RESPONSIVIDAD DINÁMICA DE LA TABLA DE PIEZAS
+   ========================================================================== */
+
+body.table-focus-mode .scrollable-table {
+    min-height: 280px !important;
+    max-height: calc(100vh - 225px) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    overflow-y: auto !important;
+}
+
+@media (max-height: 860px) {
+    .scrollable-table {
+        min-height: 220px;
+        max-height: calc(100vh - 380px);
+    }
+    body.table-focus-mode .scrollable-table {
+        min-height: 240px !important;
+        max-height: calc(100vh - 195px) !important;
+    }
+    .table th,
+    .table td {
+        padding: 4px 6px;
+        font-size: 0.82rem;
+    }
+    .table input {
+        height: 28px;
+        font-size: 0.82rem;
+    }
+    .btn-savePiece {
+        height: 40px !important;
+        padding: 0 24px !important;
+        font-size: 0.95rem !important;
+    }
+}
+
+@media (max-height: 740px) {
+    .scrollable-table {
+        min-height: 180px;
+        max-height: calc(100vh - 330px);
+    }
+    body.table-focus-mode .scrollable-table {
+        min-height: 200px !important;
+        max-height: calc(100vh - 175px) !important;
+    }
+}
+
+

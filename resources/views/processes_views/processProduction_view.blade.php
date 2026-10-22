@@ -15,6 +15,11 @@
 
 @section('content')
     <div class="container-meta">
+        {{-- Barra de Resumen en Modo Foco (Visible cuando se pliegan los datos para ampliar la tabla) --}}
+        @if (!empty($arrayData['meta']))
+            @include('processes_views.partials.meta_summary_strip')
+        @endif
+
         {{-- 1. Panel de selección y formulario del operador --}}
         <div class="principal-data">
             <div class="panel-section-header">

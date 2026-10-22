@@ -902,3 +902,21 @@ Al crear menús de acciones o estatus en controles `<select>`:
 1. **Fondo en el contenedor de cada opción:** Aplicar `background-color` con `!important` y `color: #ffffff !important` directamente sobre cada `option` según su valor (`option[value="1"]`, etc.), en lugar de teñir solo el texto sobre fondo blanco.
 2. **Prohibido agregar viñetas manuales (`●`, `•`):** No inyectar caracteres de viñeta en el string del texto (`text: "Liberar"`, nunca `"● Liberar"`), para evitar renderizados inconsistentes o ruidosos entre plataformas.
 3. **Select Activo:** Al seleccionar una opción, el `<select>` hereda el fondo vibrante y sustituye el icono chevron SVG por uno de trazo blanco puro.
+
+---
+
+## 36. Arquitectura Híbrida de Prioridad de Captura y Foco en Tabla para Pantallas de Planta
+
+En vistas de producción con paneles de metadatos superiores y tabla interactiva inferior (`processProduction`):
+
+1. **Prevención de Recorte por `overflow-y: hidden`:**
+   - `html, body` debe conservar `min-height: 100vh; overflow-y: auto; overflow-x: hidden;` con scrollbars delgados para garantizar que en pantallas pequeñas (1366×768 o laptops con escala Windows 125%/150%) el botón de confirmación/guardado nunca quede inaccesible fuera de pantalla.
+
+2. **Ajuste Fluido por Media Queries de Altura (`@media (max-height: 860px)` y `@media (max-height: 740px)`):**
+   - Reducir paddings de `.container-meta`, fuentes de inputs (a 30px) y comprimir banners de advertencia (eliminando iconos decorativos gigantes o reduciéndolos a 38px) para que la mitad superior baje de ~440px a ~220px, dejando espacio suficiente a la tabla sin necesidad de hacer zoom al 33%.
+
+3. **Modo Foco en Tabla (`body.table-focus-mode`):**
+   - Al capturar piezas, la mitad superior se pliega en una **Barra de Resumen Ultra-Compacta** (`.meta-summary-strip` de ~44px de alto) mostrando: `OT | Proceso | Máquina | Turno | Meta | Realizadas | Restantes | Operador` y un botón para desplegar detalles.
+   - La tabla `.scrollable-table` pasa a ocupar hasta `calc(100vh - 165px)`, otorgándole el 80% de la pantalla para ver múltiples piezas a la vez con el botón GUARDAR siempre visible.
+   - La preferencia se persiste en `localStorage.getItem('gis_production_table_focus')` y se alterna con un botón en cabecera (`.btn-toggle-focus`) y disparadores en el área de trabajo (`.btn-quick-focus-fold` y `.btn-expand-meta`).
+
