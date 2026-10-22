@@ -21,7 +21,7 @@
                     <img src="{{ asset('images/priorizar.png') }}" class="home-priorities-icon" alt="">
                     <h2 class="home-priorities-title">Secuencia de Prioridades de Fabricación</h2>
                 </div>
-                
+
                 <div class="home-priorities-list-container">
                     @if (empty($otPriorities))
                         <div class="home-priorities-empty">
@@ -33,14 +33,21 @@
                                 @php
                                     $priorityNum = $index + 1;
                                     $isGold = $priorityNum <= 5;
-                                    
-                                    if ($priorityNum === 1) $priorityImgPath = asset('images/uno.png');
-                                    elseif ($priorityNum === 2) $priorityImgPath = asset('images/dos.png');
-                                    elseif ($priorityNum === 3) $priorityImgPath = asset('images/tres.png');
-                                    elseif ($priorityNum === 4) $priorityImgPath = asset('images/cuatro.png');
-                                    elseif ($priorityNum === 5) $priorityImgPath = asset('images/cinco.png');
-                                    else $priorityImgPath = asset('images/plata.png');
-                                    
+
+                                    if ($priorityNum === 1) {
+                                        $priorityImgPath = asset('images/uno.png');
+                                    } elseif ($priorityNum === 2) {
+                                        $priorityImgPath = asset('images/dos.png');
+                                    } elseif ($priorityNum === 3) {
+                                        $priorityImgPath = asset('images/tres.png');
+                                    } elseif ($priorityNum === 4) {
+                                        $priorityImgPath = asset('images/cuatro.png');
+                                    } elseif ($priorityNum === 5) {
+                                        $priorityImgPath = asset('images/cinco.png');
+                                    } else {
+                                        $priorityImgPath = asset('images/plata.png');
+                                    }
+
                                     $glowClass = $isGold ? 'glow-gold' : 'glow-silver';
                                 @endphp
                                 <li class="home-priority-card {{ $glowClass }}">
@@ -51,7 +58,8 @@
                                     <div class="home-priority-body">
                                         <div class="home-priority-meta">
                                             <span class="home-priority-ot">OT {{ $ot['ot_id'] }}</span>
-                                            <span class="home-priority-molding" title="{{ $ot['moldura'] }}">{{ $ot['moldura'] }}</span>
+                                            <span class="home-priority-molding"
+                                                title="{{ $ot['moldura'] }}">{{ $ot['moldura'] }}</span>
                                         </div>
                                         <div class="home-priority-classes">
                                             @foreach ($ot['clases'] as $clase)
@@ -71,11 +79,15 @@
                 <div class="intro-text-operator">
                     @auth
                         <h2 class="welcome-title">{{ $welcomeT }}</h2>
-                        <h1 class="operator-name">{{ auth()->user()->nombre }} {{ auth()->user()->a_paterno }} {{ auth()->user()->a_materno }}</h1>
+                        <h1 class="operator-name">{{ auth()->user()->nombre }} {{ auth()->user()->a_paterno }}
+                            {{ auth()->user()->a_materno }}</h1>
                         <p class="welcome-text">{{ $objectiveT }}</p>
                     @endauth
                 </div>
-                <a class="btn-close-session-operator" href="{{ route('logout') }}">Cerrar sesión</a>
+                <a class="btn-close-session-operator" href="{{ route('logout') }}">
+                    <img src="{{ asset('images/Terminar-Repo-Icon.png') }}" class="btn-close-session-icon" alt="">
+                    <span>Cerrar sesión</span>
+                </a>
             </div>
         </div>
     @else
@@ -94,8 +106,26 @@
     @endif
 
     @if (auth()->user()->perfil == 2)
-        <div class="div-new-report">
-            >
+        <div class="div-new-report" id="divNewReport">
+            <div class="new-report-tab">
+                <span class="new-report-chevron">&#x203A;</span>
+                <span class="new-report-tab-label">REPORTE</span>
+                <span class="new-report-chevron">&#x203A;</span>
+            </div>
+            <div class="new-report-content">
+                <div class="new-report-card">
+                    <div class="new-report-icon-box">
+                        <img src="{{ asset('images/Terminar-Repo-Icon.png') }}" class="new-report-hero-icon"
+                            alt="Reporte">
+                    </div>
+                    <h1 class="new-report-title">Nuevo Reporte</h1>
+                    <p class="new-report-subtitle">Comenzar registro y captura de piezas de producción</p>
+                    <button type="button" class="btn-start-report">
+                        <img src="{{ asset('images/Resultado-Icon.png') }}" class="btn-start-report-icon" alt="">
+                        <span>Iniciar Reporte</span>
+                    </button>
+                </div>
+            </div>
         </div>
     @endif
 

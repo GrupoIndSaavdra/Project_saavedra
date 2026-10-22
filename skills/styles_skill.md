@@ -870,8 +870,14 @@ Para evitar que los efectos de barrido luminoso (`buttonShineSweep`) o resplando
      ```
 
 4. **Diferenciación de interacción:**
-   - **Botones rojos / críticos (`.btn-finishReport`, `.btn-cancel-report`, `.btn-cancel-pieces`):** Barrido continuo permanente para advertir al usuario.
-   - **Botones constructivos / guardar (`.btn-savePiece`, `.btn-submit`, `.btn-accept-release`, `.btn-submit-password`):** El barrido y el `pulseGlow` se activan exclusivamente en `:hover` para no saturar la vista durante la captura de datos.
+   - **Botones rojos / críticos (`.btn-finishReport`, `.btn-cancel-report`, `.btn-cancel-pieces`, `.btn-close-session-operator`):** Barrido continuo permanente para advertir al usuario.
+   - **Botones constructivos / guardar (`.btn-savePiece`, `.btn-submit`, `.btn-accept-release`, `.btn-submit-password`, `.btn-start-report`):** El barrido y el `pulseGlow` se activan exclusivamente en `:hover` para no saturar la vista durante la captura de datos.
+
+5. **Paneles y Drawers Desplegables de Alto Rendimiento (ej. `.div-new-report`):**
+   - **Prohibido animar `width`:** Modificar el ancho durante una transición fuerza reflow y layout recalculation en cada fotograma, colapsando los FPS en pantallas con `backdrop-filter`.
+   - **Desplazamiento por GPU:** Definir un ancho fijo (`width: min(50vw, 760px);`) y desplazarlo con `transform: translateX(calc(100% - 64px)) translateZ(0)` al estar colapsado y `translateX(0)` al estar abierto/hover.
+   - **Aislamiento absoluto:** Aplicar `contain: paint; isolation: isolate; will-change: transform;`.
+   - **DOM interior estático:** No destruir ni reescribir con `innerHTML` en eventos de mouse; estructurar el HTML una sola vez y alternar visibilidad mediante `opacity` y `transform: translateX(...)`.
 
 ---
 
