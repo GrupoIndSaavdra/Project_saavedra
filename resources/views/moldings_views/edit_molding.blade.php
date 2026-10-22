@@ -6,6 +6,9 @@
 @vite(['resources/css/moldings_views/edit_molding.css', 'resources/js/moldings_views/edit_molding.js'])
 <script>
     window.baseUrl = "{{ url('/') }}";
+    window.imgEdit = "{{ asset('images/DrawsProduction.png') }}";
+    window.imgDelete = "{{ asset('images/delete.png') }}";
+    window.imgCancel = "{{ asset('images/Cancelar-Icon.png') }}";
 </script>
 @endsection
 

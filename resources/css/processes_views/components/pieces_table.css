@@ -1,0 +1,862 @@
+/* Tabla de piezas*/
+.form-tablePieces {
+    position: relative;
+    width: 100%;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 0;
+}
+
+.label-table {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    color: var(--gis-blue);
+    letter-spacing: 0.05em;
+    margin-bottom: 0.35rem;
+}
+
+.scrollable-table {
+    position: relative;
+    margin-top: 0.25rem;
+    margin-bottom: 0.25rem;
+    border-radius: 12px;
+    width: 100%;
+    min-height: 290px;
+    max-height: 335px;
+    height: auto;
+    overflow-x: auto;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 2px;
+    transition: all 0.3s ease;
+}
+
+.scrollable-table.pta-scrollable-container {
+    min-height: 290px;
+    max-height: calc(100vh - 415px);
+}
+
+/* Modo Edición de Piezas: la tabla se extiende para mostrar hasta ~12 piezas y el scroll pasa a la vista completa */
+.is-edit-pieces-mode .scrollable-table,
+.scrollable-table.is-edit-pieces-mode,
+.is-edit-pieces-mode .scrollable-table.pta-scrollable-container {
+    max-height: 760px !important; /* Capacidad para visualizar hasta ~12 piezas cómodamente */
+    height: auto !important;
+    overflow-y: auto !important;
+    margin-top: 0.5rem;
+    margin-bottom: 1.25rem;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+.is-edit-pieces-mode .form-tablePieces {
+    padding-bottom: 3.5rem !important;
+}
+
+.is-edit-pieces-mode .table-actions-container {
+    margin-top: 0.85rem !important;
+    margin-bottom: 1.5rem !important;
+}
+
+.scrollable-table::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.scrollable-table::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 4px;
+}
+
+.scrollable-table::-webkit-scrollbar-thumb {
+    background: var(--gis-blue);
+    border-radius: 4px;
+}
+
+@supports (scrollbar-width: thin) {
+    .scrollable-table {
+        scrollbar-width: thin;
+        scrollbar-color: var(--gis-blue) rgba(0, 0, 0, 0.05);
+    }
+}
+
+.max-height-table {
+    max-height: 55vh;
+    height: auto;
+}
+
+.table-row-piece {
+    transition: background-color 0.2s ease;
+}
+
+.table {
+    border-collapse: collapse;
+    border: 2px solid #032c00cc;
+    background: #fff;
+    width: 250%;
+    margin: 0px;
+    box-shadow: 0 0 10px rgba(0, 0, 0);
+}
+
+.table-title {
+    background-color: var(--gis-blue);
+    color: #fff;
+    padding: 6px 4px;
+    height: 56px;
+    min-height: 56px;
+    max-height: 56px;
+    text-align: center;
+    font-size: 1.05em;
+    position: sticky;
+    top: 0;
+    z-index: 5; /* Aumentado para estar sobre otras celdas */
+    box-sizing: border-box;
+    vertical-align: middle;
+}
+
+/* Filas estáticas de C.Nominal y Tolerancias (Guías de Medidas) */
+.table tr.table-row-cNominals td {
+    background-color: #d6e8f8 !important;
+}
+
+.table tr.table-row-cNominals:nth-child(2) td {
+    position: sticky;
+    top: 56px; /* Debajo del encabezado de 56px */
+    z-index: 4;
+    background-color: #d6e8f8 !important;
+    height: 50px;
+    min-height: 50px;
+    max-height: 50px;
+    box-sizing: border-box;
+}
+.table tr.table-row-cNominals:nth-child(3) td {
+    position: sticky;
+    top: 106px; /* Debajo de C.Nominal (56px + 50px de altura) */
+    z-index: 4;
+    background-color: #d6e8f8 !important;
+    height: 50px;
+    min-height: 50px;
+    max-height: 50px;
+    box-sizing: border-box;
+}
+
+/* Celdas de la primera columna para filas estáticas (intersección sticky) */
+.table tr.table-row-cNominals:nth-child(2) td:first-child {
+    top: 56px;
+    left: 0;
+    z-index: 6;
+    background-color: #eaf2fa !important;
+    color: var(--gis-blue) !important;
+    font-weight: 800 !important;
+}
+.table tr.table-row-cNominals:nth-child(3) td:first-child {
+    top: 106px;
+    left: 0;
+    z-index: 6;
+    background-color: #eaf2fa !important;
+    color: var(--gis-blue) !important;
+    font-weight: 800 !important;
+}
+
+/* Inputs de las medidas guía no editables (C.Nominal y Tolerancias) */
+.table tr.table-row-cNominals input {
+    background-color: transparent !important;
+    color: #033966 !important;
+    font-weight: 700 !important;
+    border: none !important;
+    outline: none !important;
+    cursor: default !important;
+}
+
+.table tr.table-row-cNominals input:disabled {
+    background-color: transparent !important;
+    color: #033966 !important;
+    -webkit-text-fill-color: #033966 !important;
+    opacity: 1 !important;
+    cursor: default !important;
+}
+
+.table tr.table-row-cNominals input::placeholder {
+    color: #1e5a8a !important;
+    opacity: 0.8;
+}
+
+/* Divisor sutil entre valores +/- en la fila de Tolerancias */
+.table tr.table-row-cNominals .input-medio:first-child {
+    border-right: 1.5px solid rgba(3, 57, 102, 0.22) !important;
+}
+
+.table tr td:first-child,
+.table tr th:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    background-color: #f8f9fa;
+    border-right: 4px solid var(--gis-blue);
+}
+
+.table tr th:first-child {
+    z-index: 7;
+    top: 0;
+    background-color: var(--gis-blue);
+    color: #fff;
+}
+
+.table input {
+    height: 100%;
+    color: #000000;
+    text-align: center;
+    padding: 0.5em 0;
+    font-size: 1.1em;
+    border: none;
+    outline: none;
+    background: transparent;
+    box-sizing: border-box;
+}
+
+.table td {
+    width: 200px;
+    height: 50px;
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: 700;
+    border: 3px solid var(--gis-blue);
+    background-color: #fff;
+}
+
+/* Tabla compacta para procesos con pocas columnas (Soldadura, Asentado, etc.) */
+.table.table-compact {
+    width: auto;
+}
+
+.table.table-compact th.table-title {
+    width: 80px;
+    max-width: 80px;
+    padding: 8px 4px;
+}
+
+.table.table-compact td {
+    height: 35px;
+}
+
+.table.table-compact td select {
+    width: 100%;
+}
+
+.input-medio {
+    width: 50%;
+}
+
+.input {
+    width: 100%;
+}
+
+td textarea {
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    resize: none;
+    box-sizing: border-box;
+    font-size: 1.1em;
+}
+
+td select {
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    font-size: 1.1em;
+}
+
+.div-btn {
+    display: flex;
+    justify-content: end;
+}
+
+/* Botón Ver Dibujos (operador) */
+
+/* Botón Ver Dibujos (operador) */
+.btn-dibujos-viewer {
+    background: var(--gis-blue);
+    color: #ffffff;
+    padding: 0.5em 1em;
+    margin: 0.3em -1em 0 -1em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: 0.3s ease;
+    display: block;
+    width: auto;
+    align-self: center;
+}
+
+.btn-dibujos-viewer:hover {
+    background: #022847;
+    transform: scale(1.1);
+    transition: all 0.3s ease;
+}
+
+.btn-savePiece {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #033966 0%, #0d5ca8 55%, #1d72b8 100%) !important;
+    color: #ffffff;
+    padding: 0.85em 3.2em;
+    border: 1.5px solid rgba(255, 255, 255, 0.75) !important;
+    border-radius: 11px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.35);
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    contain: paint;
+    isolation: isolate;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    margin: 0.5rem auto 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 2;
+    text-decoration: none;
+}
+
+.btn-savePiece:hover {
+    background: linear-gradient(135deg, #004b8d 0%, #0d6ed1 55%, #1e88e5 100%) !important;
+    border-color: #ffffff !important;
+    -webkit-transform: translateY(-2px) scale(1.03) translateZ(0);
+    transform: translateY(-2px) scale(1.03) translateZ(0);
+    -webkit-animation: pulseGlowBlue 2.2s infinite ease-in-out;
+    animation: pulseGlowBlue 2.2s infinite ease-in-out;
+}
+
+.btn-savePiece:active {
+    -webkit-transform: translateY(1px) scale(0.98) translateZ(0);
+    transform: translateY(1px) scale(0.98) translateZ(0);
+}
+
+.btn-savePiece .save-piece-icon,
+.btn-cancel-pieces .cancel-report-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
+}
+
+.btn-savePiece img:nth-of-type(n+2),
+.btn-cancel-pieces img:nth-of-type(n+2) {
+    display: none !important;
+}
+
+/* Contenedor de acciones debajo de la tabla de piezas (Guardar / Cancelar edición) */
+.table-actions-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    width: 100%;
+    margin-top: 0.2rem;
+    margin-bottom: 0.35rem;
+    padding: 0;
+    box-sizing: border-box;
+    transition: all 0.25s ease;
+}
+
+.table-actions-container .btn-savePiece,
+.table-actions-container .btn-cancel-pieces,
+.btn-cancel-pieces {
+    position: relative;
+    overflow: hidden;
+    min-height: 48px;
+    height: 48px;
+    margin: 0 !important;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.02rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-radius: 11px;
+    box-sizing: border-box;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1;
+    z-index: 2;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.table-actions-container .btn-savePiece {
+    min-width: 210px;
+    padding: 0 3.2rem;
+    background: linear-gradient(135deg, #033966 0%, #0d5ca8 55%, #1d72b8 100%) !important;
+    color: #ffffff;
+    border: 1.5px solid rgba(255, 255, 255, 0.75) !important;
+    box-shadow: 0 4px 16px rgba(3, 57, 102, 0.38);
+}
+
+.table-actions-container .btn-savePiece:hover {
+    background: linear-gradient(135deg, #004b8d 0%, #0d6ed1 55%, #1e88e5 100%) !important;
+    border-color: #ffffff !important;
+    -webkit-transform: translateY(-2px) scale(1.02);
+    transform: translateY(-2px) scale(1.02);
+    -webkit-animation: pulseGlowBlue 2.2s infinite ease-in-out;
+    animation: pulseGlowBlue 2.2s infinite ease-in-out;
+}
+
+.table-actions-container .btn-cancel-pieces,
+.btn-cancel-pieces {
+    min-width: 210px;
+    max-width: 280px;
+    padding: 0 2.4rem;
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 55%, #ef4444 100%) !important;
+    color: #ffffff;
+    border: 1.5px solid rgba(255, 255, 255, 0.85) !important;
+    -webkit-animation: pulseGlowRed 2.2s infinite ease-in-out;
+    animation: pulseGlowRed 2.2s infinite ease-in-out;
+}
+
+.table-actions-container .btn-cancel-pieces:hover,
+.btn-cancel-pieces:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important;
+    border-color: #ffffff !important;
+    -webkit-transform: translateY(-2px) scale(1.02);
+    transform: translateY(-2px) scale(1.02);
+    box-shadow:
+        0 8px 25px rgba(239, 68, 68, 0.85),
+        0 0 20px 6px rgba(248, 113, 113, 0.75),
+        inset 0 1px 2px #ffffff !important;
+}
+
+.table-actions-container .btn-cancel-pieces:active,
+.table-actions-container .btn-savePiece:active,
+.btn-cancel-pieces:active {
+    -webkit-transform: translateY(1px) scale(0.98);
+    transform: translateY(1px) scale(0.98);
+}
+
+/* Rayo / destello continuo para botones ROJOS (Acelerado por GPU) */
+.btn-cancel-pieces::after,
+.table-actions-container .btn-cancel-pieces::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.85) 50%,
+        rgba(255, 255, 255, 0.05) 80%,
+        transparent 100%
+    );
+    -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 5;
+}
+
+/* Rayo / destello para botones AZULES: Solo se activa en :hover (Acelerado por GPU) */
+.btn-savePiece::after,
+.table-actions-container .btn-savePiece::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.85) 50%,
+        rgba(255, 255, 255, 0.05) 80%,
+        transparent 100%
+    );
+    -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.btn-savePiece:hover::after,
+.table-actions-container .btn-savePiece:hover::after {
+    opacity: 1;
+    -webkit-animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@-webkit-keyframes buttonShineSweep {
+    0% {
+        -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+        transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    }
+    45%, 100% {
+        -webkit-transform: translateX(280%) skewX(-25deg) translateZ(0);
+        transform: translateX(280%) skewX(-25deg) translateZ(0);
+    }
+}
+
+@keyframes buttonShineSweep {
+    0% {
+        -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+        transform: translateX(-160%) skewX(-25deg) translateZ(0);
+    }
+    45%, 100% {
+        -webkit-transform: translateX(280%) skewX(-25deg) translateZ(0);
+        transform: translateX(280%) skewX(-25deg) translateZ(0);
+    }
+}
+
+@-webkit-keyframes pulseGlowBlue {
+    0% {
+        box-shadow:
+            0 4px 14px rgba(3, 57, 102, 0.45),
+            0 0 0 0 rgba(13, 92, 168, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 6px 24px rgba(13, 92, 168, 0.8),
+            0 0 18px 5px rgba(56, 189, 248, 0.6),
+            inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+    100% {
+        box-shadow:
+            0 4px 14px rgba(3, 57, 102, 0.45),
+            0 0 0 0 rgba(13, 92, 168, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+}
+
+@keyframes pulseGlowBlue {
+    0% {
+        box-shadow:
+            0 4px 14px rgba(3, 57, 102, 0.45),
+            0 0 0 0 rgba(13, 92, 168, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 6px 24px rgba(13, 92, 168, 0.8),
+            0 0 18px 5px rgba(56, 189, 248, 0.6),
+            inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+    100% {
+        box-shadow:
+            0 4px 14px rgba(3, 57, 102, 0.45),
+            0 0 0 0 rgba(13, 92, 168, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+}
+
+@-webkit-keyframes pulseGlowRed {
+    0% {
+        box-shadow:
+            0 4px 14px rgba(220, 38, 38, 0.45),
+            0 0 0 0 rgba(239, 68, 68, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 6px 24px rgba(239, 68, 68, 0.8),
+            0 0 18px 5px rgba(248, 113, 113, 0.6),
+            inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+    100% {
+        box-shadow:
+            0 4px 14px rgba(220, 38, 38, 0.45),
+            0 0 0 0 rgba(239, 68, 68, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+}
+
+@keyframes pulseGlowRed {
+    0% {
+        box-shadow:
+            0 4px 14px rgba(220, 38, 38, 0.45),
+            0 0 0 0 rgba(239, 68, 68, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 6px 24px rgba(239, 68, 68, 0.8),
+            0 0 18px 5px rgba(248, 113, 113, 0.6),
+            inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+    100% {
+        box-shadow:
+            0 4px 14px rgba(220, 38, 38, 0.45),
+            0 0 0 0 rgba(239, 68, 68, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+}
+
+.select-pieces {
+    text-align: center;
+    background: #404040;
+    border: 3px solid #fff;
+    color: #ffffff;
+    width: auto;
+    padding: 0.5em 1.5em;
+    font-size: 1em;
+    border-radius: 5px;
+    margin-top: 1.2em;
+    align-self: flex-start;
+    margin-left: 1em;
+    cursor: pointer;
+}
+
+.div-opacity {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: rgba(
+        0,
+        10,
+        25,
+        0.85
+    ); /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    z-index: 10000;
+}
+
+.alert-NoCotas {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    background-color: white;
+    max-width: 800px;
+    width: 50%;
+    transition: 0.2s;
+    padding: 2em;
+    border-radius: 10px;
+    font-weight: 800;
+}
+
+.div-cerrar {
+    width: 3em;
+    margin-left: 95%;
+}
+
+.btn-cerrar {
+    border: none;
+    background: transparent;
+    transition: 0.2s;
+}
+
+.btn-cerrar:hover {
+    transform: scale(1.3);
+    transition: 0.2s;
+}
+
+.img-cerrar {
+    width: 100%;
+}
+
+.img-error {
+    width: 15em;
+    padding: 10px;
+}
+
+.label-alert {
+    font-size: 1.1em;
+    font-weight: 700;
+    margin-bottom: 1em;
+}
+
+.btn-acept {
+    background: var(--gis-red);
+    color: #ffffff;
+    padding: 0.5em 1em;
+    margin: 1em;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.label-noCotas {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 16px;
+    margin: 2rem auto;
+    width: -webkit-fit-content;
+    width: -moz-fit-content;
+    width: fit-content;
+    max-width: 90%;
+    padding: 1.6rem 2.5rem;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 3.5px solid #d97706;
+    border-radius: 14px;
+    box-shadow:
+        0 6px 20px rgba(217, 119, 6, 0.22),
+        0 2px 6px rgba(0, 0, 0, 0.08);
+    color: #92400e;
+    font-size: 1.12rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    line-height: 1.45;
+}
+
+.no-cotas-icon {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 3px 6px rgba(217, 119, 6, 0.4));
+    animation: alert-icon-pulse 2.4s ease-in-out infinite;
+}
+
+
+/* ── Soldadura PTA: Modal de Acceso y Verificación ── */
+.pta-modal-container {
+    background-color: #ffffff;
+    padding: 2.5em 2em;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    min-width: 320px;
+    max-width: 400px;
+    font-family: "Inter", "Roboto", sans-serif;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pta-modal-icon {
+    font-size: 40px;
+    margin-bottom: 10px;
+}
+
+.pta-modal-title {
+    margin-bottom: 0.5em;
+    color: var(--gis-blue);
+    font-weight: 700;
+    font-size: 1.4em;
+}
+
+.pta-modal-desc {
+    margin-bottom: 1.5em;
+    color: #111;
+    font-size: 0.95em;
+    line-height: 1.4;
+}
+
+.pta-modal-input {
+    width: 280px;
+    padding: 0.75em;
+    border: 1.5px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 1em;
+    outline: none;
+    transition: border-color 0.2s;
+    text-align: center;
+    margin: 0 auto 1rem auto;
+    display: block;
+}
+
+.pta-modal-input:focus {
+    border-color: var(--gis-blue);
+}
+
+.pta-modal-error {
+    color: #dc2626;
+    font-size: 0.85em;
+    font-weight: 600;
+    margin-bottom: 1em;
+    display: none;
+}
+
+.pta-modal-btn-container {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 1.5em;
+}
+
+.pta-modal-btn {
+    padding: 0.6em 1.5em;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition:
+        transform 0.1s,
+        background-color 0.2s;
+}
+
+.pta-modal-btn:active {
+    transform: scale(0.96);
+}
+
+.pta-modal-btn-cancel {
+    background-color: #f3f4f6;
+    color: #374151;
+}
+
+.pta-modal-btn-cancel:hover {
+    background-color: #e5e7eb;
+}
+
+.pta-modal-btn-submit {
+    background-color: var(--gis-blue);
+    color: #ffffff;
+}
+
+.pta-modal-btn-submit:hover {
+    background-color: #022847;
+}
+

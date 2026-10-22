@@ -701,4 +701,198 @@ Cuando una consulta devuelva 0 registros (`@else` de la tabla), estructurar el m
 - Asegurar un ancho suficiente (`width: 310px`) y padding proporcional para que las opciones del menú mantengan una sola línea limpia y elegante.
 - Escribir siempre el nombre oficial de la vista: **"Herramientas Planta Tecámac"** (con acento en *Tecámac* y especificando *Planta*).
 
+---
 
+## 28. Estandarización de Controles y Acciones en Reportes de Producción
+
+1. **Ubicación del Botón Cancelar en Cabecera (`header-left`)**:
+   - En vistas con barra superior (`appMenu`), el botón Cancelar (`.btn-cancel-report`) debe residir exclusivamente en la cabecera izquierda sustituyendo a "Terminar Reporte", en lugar de flotar desfasado debajo de tarjetas o tablas centrales.
+   - Debe compartir exactamente la misma geometría (`height: 40px`, `padding: 0 20px`, `border-radius: 10px`) y estilos que `header .btn-finishReport`.
+
+2. **Botón Confirmar y Registrar en Formularios de Operador (`.btn-submit`)**:
+   - En formularios de edición de datos generales del operador, la acción confirmatoria debe llamarse **"Confirmar"** (o **"Registrar"**) y llevar un único icono a la izquierda de `Resultado-Icon.png` (`.btn-submit-icon` a 26px) antes del texto.
+
+3. **Banner de Alerta por Falta de Cotas (`.label-noCotas`)**:
+   - Layout en columna centrada (`flex-direction: column; align-items: center; justify-content: center; gap: 16px;`).
+   - Icono institucional superior centrado de 72px (`.no-cotas-icon` con `icono_sin_cotas.png` y animación `alert-icon-pulse`) ubicado directamente encima del texto explicativo.
+
+4. **Tarjeta de Perfil de Operador (`.operator-profile-card`)**:
+   - Contenedor de avatar `.operator-avatar-wrapper` con dimensiones de 108px × 108px y borde corporativo azul GIS.
+   - Icono interior `.operator-avatar-img` a 86px × 86px con micro-interacción suave `scale(1.06)` en hover sobre la tarjeta.
+
+---
+
+## 29. Rendimiento de Modales y Overlays (Anti-Lag)
+
+Los modales se sentían "trabados" porque el **fondo** seguía repintando paneles con `backdrop-filter: blur(24px) saturate(180%)` y animaciones infinitas (`alert-pulse-yellow`, `pulseGlowCotas`) aunque el overlay los tapara.
+
+1. **Congelar el fondo mientras hay overlay** (ya en `processes_views/components/viewers_modal.css`):
+   ```css
+   body:has(> .prod-viewer-portal) *:not(.prod-viewer-portal, .prod-viewer-portal *),
+   body.is-verifying-active *:not(.is-verifying, .is-verifying *) {
+       -webkit-backdrop-filter: none !important;
+       backdrop-filter: none !important;
+       animation-play-state: paused !important;
+   }
+   ```
+   - Nuevos overlays de producción deben usar `.prod-viewer-portal` como hijo directo de `body` para heredar esto.
+2. **PROHIBIDO `body:has(.clase)` sin `>`**: obliga a recalcular estilos de toda la página en cada mutación del DOM. Usa una clase en `body` (ej. `is-verifying-active`) o `body:has(> .x)`.
+3. **Animaciones de modal/tarjetas**: solo `opacity` + `translateY`, ≤ 0.22s, `ease-out`. Nada de `scale` con rebote (`cubic-bezier(...1.275)`).
+4. **Nunca `transition: all`** en modales: lista solo las propiedades (`transform`, `border-color`, `background-color`).
+5. **Nunca `will-change` en elementos repetidos** (tarjetas de grid): crea una capa GPU por elemento.
+6. **Sombras**: máximo 1 `box-shadow` en el contenedor del modal; no animar `box-shadow` en hover.
+7. Agregar `contain: layout paint;` al contenedor del modal para aislar su repintado.
+8. **Modales de verificación inline (contraseñas):** El contenedor (pastilla blanca `.form-inline-verification` / `.form-group-password`) y las columnas deben ser 100% estáticos en hover (`transform: translateY(-50%) !important`). Solo el botón para regresar (`.img-action-btn:hover` / `.img-edit:hover`) y el botón para verificar (`.btn-submit-password:hover`) deben reaccionar al cursor.
+
+---
+
+## 30. Estandarización de Iconos en Etiquetas (Labels) y Botones de Acción
+
+1. **Un solo icono a la izquierda**: En todas las etiquetas de formulario y tablas (`.form-label`, `.table-meta-th-content`, `.table-code-th-content`, `.warning-title-pill`), debe existir únicamente un icono a la izquierda del texto; el icono simétrico derecho queda eliminado.
+2. **Botones de acción unificados**: Los botones primarios (`.btn-submit`, `.btn-savePiece`, `.btn-finishReport`, `.btn-cancel-report`, `.btn-cancel-pieces`) llevan únicamente un icono a la izquierda a 26px × 26px (`Resultado-Icon.png`, `Terminar-Repo-Icon.png`, `Cancelar-Icon.png`).
+3. **Excepción de encabezados**: Los encabezados principales de tarjeta `Reporte de Operador` y `Datos del Operador` (`.panel-section-header`) conservan sus iconos en ambos extremos.
+4. **Dimensión uniforme de 26px**: Todos los iconos de etiquetas y botones (`.form-label-icon`, `.table-meta-icon`, `.warning-pill-icon`, `.table-code-icon`, `.btn-submit-icon`, `.finish-report-icon`, `.cancel-report-icon`, `.save-piece-icon`) deben medir exactamente `26px × 26px` con `object-fit: contain`.
+
+---
+
+## 31. Estilización de Campos Bloqueados en Formularios de Reporte
+
+Al editar datos generales de un reporte (`edit == 1`):
+1. **Inputs bloqueados (`.input-locked`)**: Fondo grisáceo sutil (`linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%)`), borde `#cbd5e1`, texto atenuado `#475569`, sombra interior tenue, `cursor: not-allowed !important`, y `-webkit-user-select: none; user-select: none;`.
+2. **Badge indicador (`.locked-field-badge`)**: Pastilla redondeada junto al label con icono grayscale de candado (`bloqueado.png`) y texto en mayúsculas `BLOQUEADO`.
+3. **Banner informativo (`.edit-meta-notice-banner`)**: Borde punteado azul corporativo con fondo translúcido que aclara al operador qué campos están protegidos.
+4. **Extensión de tabla en edición de piezas (`edit == 2`)**: `.is-edit-pieces-mode` en `html` y `body` activa `overflow-y: auto !important` en la vista completa, y `.scrollable-table` pasa a `max-height: 760px !important`, permitiendo ver hasta ~12 piezas a la vez sin scroll interno si son pocas, o scroll contenido si son muchas (evitando una página kilométrica).
+
+---
+
+## 32. Presupuesto Visual de Altura en Tablas con Cabeceras Sticky y Aceleración GPU
+
+1. **Rango Óptimo de Altura para Tablas Interactivas (`.scrollable-table`)**:
+   - Las cabeceras fijas (`.table-title`: 56px, `C.nominal`: 50px, `Tolerancias`: 50px) consumen ~156px de altura superior.
+   - Para que el operador visualice al mismo tiempo la pieza anterior maquinada (50px) y los inputs de la pieza activa en captura (50px) con su scroll horizontal sin empujar el botón de Guardar (`.btn-savePiece` / `.table-actions-container`) fuera del límite visible de pantalla (viewport fold), el rango ideal es:
+     ```css
+     min-height: 290px;
+     max-height: 335px;
+     margin-top: 0.25rem;
+     margin-bottom: 0.25rem;
+     ```
+   - *Regla*: Si `max-height` supera 350px, el botón inferior se corta en pantallas de planta y laptops estándar. Si es menor a 275px, las filas de piezas no caben simultáneamente.
+
+2. **Diferenciación de Cotas Nominales y Tolerancias (Campos Guía No Editables)**:
+   - Para que las filas no editables de referencia se distingan claramente de las piezas capturadas sin parecer inputs "rotos", usar fondo azul tenue y texto nítido:
+     ```css
+     .table tr.table-row-cNominals td {
+         background-color: #d6e8f8 !important;
+     }
+     .table tr.table-row-cNominals td:first-child {
+         background-color: #eaf2fa !important;
+         color: var(--gis-blue) !important;
+         font-weight: 800 !important;
+     }
+     .table tr.table-row-cNominals input:disabled {
+         background-color: transparent !important;
+         color: #033966 !important;
+         -webkit-text-fill-color: #033966 !important;
+         opacity: 1 !important;
+     }
+     ```
+
+3. **Aceleración GPU sin Repintados en Botones con Destellos (`buttonShineSweep`, `pulseGlowBlue`)**:
+   - En botones con animaciones de barrido o sombras continuas, es obligatorio promoverlos a su propia capa de composición GPU para evitar temblores (*jitter*) o invalidaciones de layout:
+     ```css
+     -webkit-transform: translateZ(0);
+     transform: translateZ(0);
+     -webkit-backface-visibility: hidden;
+     backface-visibility: hidden;
+     contain: paint;
+     isolation: isolate;
+     ```
+   - Dentro de los `@keyframes`, mantener `translateZ(0)` en cada etapa de `transform: translateX(...) skewX(...) translateZ(0)`.
+
+---
+
+## 33. Arquitectura de Botones Corporativos Ultra-Fluidos (60 FPS GPU Compositing)
+
+Para evitar que los efectos de barrido luminoso (`buttonShineSweep`) o resplandor (`pulseGlow`) se sientan "trabados", lentos o con tirones en vistas con `backdrop-filter: blur(...)` o tablas grandes:
+
+1. **Aislamiento absoluto en capa de GPU (Composite Layer):**
+   ```css
+   /* ✅ OBLIGATORIO en botones con destello (.btn-finishReport, .btn-savePiece, .btn-submit, .btn-accept-release, .btn-submit-password) */
+   -webkit-transform: translateZ(0);
+   transform: translateZ(0);
+   -webkit-backface-visibility: hidden;
+   backface-visibility: hidden;
+   contain: paint;
+   isolation: isolate;
+   overflow: hidden;
+   ```
+   Esto aísla el repintado del botón; el navegador nunca recompondrá los filtros difuminados del fondo ni las tablas al animar el destello.
+
+2. **Rayo oblicuo sobre `::after` con `translateZ(0)` y `will-change: transform`:**
+   ```css
+   .btn-action::after {
+       content: '';
+       position: absolute;
+       top: 0; left: 0; width: 60%; height: 100%;
+       background: linear-gradient(
+           90deg,
+           transparent 0%,
+           rgba(255, 255, 255, 0.05) 20%,
+           rgba(255, 255, 255, 0.85) 50%,
+           rgba(255, 255, 255, 0.05) 80%,
+           transparent 100%
+       );
+       -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+       transform: translateX(-160%) skewX(-25deg) translateZ(0);
+       will-change: transform;
+       -webkit-backface-visibility: hidden;
+       backface-visibility: hidden;
+       pointer-events: none;
+       border-radius: inherit;
+       z-index: 5;
+   }
+   ```
+
+3. **Velocidad y Curva Estándar a 1.6s:**
+   - La duración fija óptima es **`1.6s`** (nunca 2.0s ni más lenta en botones compactos).
+   - El keyframe corre rápido del `0%` al `45%` y **descansa fuera de pantalla del `45%` al `100%`**, logrando un barrido orgánico y natural:
+     ```css
+     @-webkit-keyframes buttonShineSweep {
+         0% {
+             -webkit-transform: translateX(-160%) skewX(-25deg) translateZ(0);
+             transform: translateX(-160%) skewX(-25deg) translateZ(0);
+         }
+         45%, 100% {
+             -webkit-transform: translateX(280%) skewX(-25deg) translateZ(0);
+             transform: translateX(280%) skewX(-25deg) translateZ(0);
+         }
+     }
+     ```
+
+4. **Diferenciación de interacción:**
+   - **Botones rojos / críticos (`.btn-finishReport`, `.btn-cancel-report`, `.btn-cancel-pieces`):** Barrido continuo permanente para advertir al usuario.
+   - **Botones constructivos / guardar (`.btn-savePiece`, `.btn-submit`, `.btn-accept-release`, `.btn-submit-password`):** El barrido y el `pulseGlow` se activan exclusivamente en `:hover` para no saturar la vista durante la captura de datos.
+
+---
+
+## 34. Minicontenedores y Badges de Estado Vivos (No Tenues)
+
+En modales y tablas de producción, los badges de estado no deben usar tonos pasteles apagados:
+
+1. **Acabado de Alto Contraste:** Gradiente sólido saturado, tipografía blanca nítida (`#ffffff !important`), borde blanco translúcido (`border: 2px solid rgba(255, 255, 255, 0.85)`), brillo interior (`box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.55)`), y resplandor perimetral acorde al estado.
+2. **Micro-interacción Hover:** `-webkit-transform: translateY(-2px) scale(1.06); transform: translateY(-2px) scale(1.06);` con expansión de sombra para una respuesta táctil inmediata.
+3. **Mapeo de Colores:**
+   - **Liberado:** Gradiente `#0284c7 -> #0369a1` con resplandor azul.
+   - **Rechazado / Error:** Gradiente `#dc2626 -> #b91c1c` con resplandor carmesí.
+   - **Incompleto:** Gradiente `#d97706 -> #b45309` con resplandor ámbar.
+   - **Pieza OK (Sin liberar):** Gradiente `#059669 -> #047857` con resplandor esmeralda.
+   - **Pendiente:** Gradiente `#9333ea -> #7e22ce` con resplandor púrpura.
+
+---
+
+## 35. Estilizado Directo de Contenedores `<option>` en Selects
+
+Al crear menús de acciones o estatus en controles `<select>`:
+1. **Fondo en el contenedor de cada opción:** Aplicar `background-color` con `!important` y `color: #ffffff !important` directamente sobre cada `option` según su valor (`option[value="1"]`, etc.), en lugar de teñir solo el texto sobre fondo blanco.
+2. **Prohibido agregar viñetas manuales (`●`, `•`):** No inyectar caracteres de viñeta en el string del texto (`text: "Liberar"`, nunca `"● Liberar"`), para evitar renderizados inconsistentes o ruidosos entre plataformas.
+3. **Select Activo:** Al seleccionar una opción, el `<select>` hereda el fondo vibrante y sustituye el icono chevron SVG por uno de trazo blanco puro.

@@ -1,0 +1,858 @@
+/* ── Modal de Liberación de Piezas por Calidad (Estilo Corporativo GIS) ── */
+@import "../../global.css";
+
+/* Contenedor principal con estilo glassmorphism corporativo (amplio a lo ancho) */
+.quality-release-modal {
+    position: relative;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%) !important;
+    border-radius: 24px;
+    border: 2px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 24px 60px -12px rgba(0, 10, 30, 0.65) !important;
+    max-width: 1720px !important;
+    width: 98% !important;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-animation: prodModalEntrance 0.2s ease-out both;
+    animation: prodModalEntrance 0.2s ease-out both;
+    box-sizing: border-box;
+    contain: layout paint;
+}
+
+/* ── HEADER CORPORATIVO AZUL PROFUNDO ────────────────────────────────────────── */
+.quality-modal-header {
+    padding: 1.6rem 2.6rem 1.4rem;
+    background: linear-gradient(135deg, #033966 0%, #07477a 50%, #022b4d 100%) !important;
+    border-bottom: 2.5px solid rgba(255, 255, 255, 0.22);
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 6px 16px -4px rgba(0, 15, 35, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    box-sizing: border-box;
+}
+
+/* Botón de cierre circular integrado en la esquina superior derecha */
+.quality-modal-header .div-cerrar {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    z-index: 20;
+}
+
+.quality-modal-header .btn-cerrar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: transparent !important;
+    border: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.18s ease-out;
+    box-shadow: none !important;
+    padding: 0;
+    outline: none;
+}
+
+.quality-modal-header .btn-cerrar:hover {
+    -webkit-transform: scale(1.15) rotate(90deg);
+    transform: scale(1.15) rotate(90deg);
+}
+
+.quality-modal-header .btn-cerrar .img-cerrar {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45)) !important;
+}
+
+.quality-modal-header .btn-cerrar .svg-cerrar-fallback {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: #dc2626;
+    border: 2.5px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.4);
+}
+
+.quality-modal-header .btn-cerrar .svg-cerrar-fallback svg {
+    width: 22px;
+    height: 22px;
+    stroke: #ffffff;
+}
+
+/* Fila de título con icono de calidad a ambos lados */
+.quality-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+}
+
+.quality-header-icon {
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.45));
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+}
+
+.quality-title-row:hover .quality-header-icon-left {
+    -webkit-transform: rotate(-8deg) scale(1.08);
+    transform: rotate(-8deg) scale(1.08);
+}
+
+.quality-title-row:hover .quality-header-icon-right {
+    -webkit-transform: rotate(8deg) scale(1.08);
+    transform: rotate(8deg) scale(1.08);
+}
+
+.quality-header-title {
+    color: #ffffff !important;
+    font-size: 1.7rem;
+    font-weight: 850;
+    margin: 0;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
+}
+
+/* Sub-barra de inspector de calidad estilo cápsula de cristal */
+.quality-inspector-bar {
+    background: rgba(255, 255, 255, 0.18) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border: 2px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 50px;
+    padding: 0.45rem 1.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25), 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+}
+
+.inspector-role-label {
+    color: #e2e8f0;
+    font-size: 0.88rem;
+    font-weight: 750;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.inspector-name-val {
+    color: #38bdf8;
+    font-size: 1.02rem;
+    font-weight: 850;
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+/* ── CUERPO DEL MODAL (AMPLIO Y SCROLLABLE) ─────────────────────────── */
+.quality-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.6rem 2.4rem 1.8rem;
+    background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+    box-sizing: border-box;
+}
+
+/* Formulario */
+.form-release-pieces {
+    width: 100%;
+}
+
+/* ── LEYENDA DE COLORES MODERNA TIPO PÍLDORA (VIBRANTE Y ROBUSTA) ───── */
+.quality-legend-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 1.8rem;
+    background: #ffffff;
+    border: 2px solid #cbd5e1;
+    border-radius: 50px;
+    padding: 0.7rem 2.2rem;
+    margin: 0 auto 1.4rem auto;
+    box-shadow: 0 3px 12px rgba(3, 57, 102, 0.08);
+    width: -webkit-fit-content;
+    width: fit-content;
+    max-width: 96%;
+    box-sizing: border-box;
+}
+
+.legend-pill-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #1e293b;
+}
+
+.color-dot-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: 2.5px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+}
+
+.legend-label-text {
+    letter-spacing: 0.02em;
+}
+
+/* ── TABLA DE LIBERACIÓN Y SCROLLBAR (COLUMNAS BIEN PROPORCIONADAS) ── */
+.release-table-container {
+    max-height: 52vh;
+    overflow-y: auto;
+    margin-bottom: 1.4rem;
+    border: 2.5px solid #cbd5e1;
+    border-radius: 16px;
+    background: #ffffff;
+    box-shadow: 0 6px 18px rgba(0, 15, 35, 0.07);
+    box-sizing: border-box;
+}
+
+.release-table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.release-table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+.release-table-container::-webkit-scrollbar-thumb {
+    background: var(--gis-blue);
+    border-radius: 4px;
+}
+
+@supports (scrollbar-width: thin) {
+    .release-table-container {
+        scrollbar-width: thin;
+        scrollbar-color: var(--gis-blue) #f1f5f9;
+    }
+}
+
+.release-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.98rem;
+    table-layout: auto;
+}
+
+.release-table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.release-table th {
+    background: linear-gradient(135deg, #033966 0%, #07477a 100%);
+    color: #ffffff;
+    padding: 1.1rem 0.95rem;
+    text-align: center;
+    font-size: 0.95rem;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    border-bottom: 3px solid #022a4d;
+    border-right: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.release-table th:last-child {
+    border-right: none;
+}
+
+.release-table td {
+    padding: 1rem 0.9rem;
+    text-align: center;
+    border-bottom: 1.5px solid #e2e8f0;
+    border-right: 1px solid rgba(0, 0, 0, 0.06);
+    vertical-align: middle;
+    font-size: 1.02rem;
+}
+
+.release-table td:last-child {
+    border-right: none;
+}
+
+/* Anchos dedicados por columna para evitar truncamiento */
+.release-table th:nth-child(1),
+.release-table td:nth-child(1) {
+    width: 140px;
+    min-width: 130px;
+}
+
+.release-table th:nth-child(2),
+.release-table td:nth-child(2) {
+    width: 160px;
+    min-width: 150px;
+}
+
+.release-table th:nth-child(3),
+.release-table td:nth-child(3) {
+    width: 230px;
+    min-width: 210px;
+}
+
+.release-table th:nth-child(4),
+.release-table td:nth-child(4) {
+    width: 220px;
+    min-width: 200px;
+}
+
+.release-table th:nth-child(5),
+.release-table td:nth-child(5) {
+    width: 270px;
+    min-width: 250px;
+}
+
+.release-table th:nth-child(6),
+.release-table td:nth-child(6) {
+    min-width: 280px;
+}
+
+.piece-row {
+    transition: filter 0.15s ease-out, background-color 0.15s ease-out;
+}
+
+.piece-row:hover {
+    filter: brightness(0.96);
+}
+
+/* ── ESTADOS DE FILA CON COLORES FUERTES Y VIBRANTES (NO TENUES) ─────── */
+.piece-row.row-status-liberado {
+    background-color: #dbeafe !important;
+    border-left: 7px solid #0284c7;
+}
+
+.piece-row.row-status-rechazado {
+    background-color: #fee2e2 !important;
+    border-left: 7px solid #dc2626;
+}
+
+.piece-row.row-status-incompleto {
+    background-color: #fef3c7 !important;
+    border-left: 7px solid #d97706;
+}
+
+.piece-row.row-status-pendiente {
+    background-color: #f3e8ff !important;
+    border-left: 7px solid #9333ea;
+}
+
+.piece-row.row-status-buena {
+    background-color: #dcfce7 !important;
+    border-left: 7px solid #059669;
+}
+
+/* ── MINICONTENEDORES CON EFECTOS CORPORATIVOS GIS (PIEZA, ERROR, ESTADO) ── */
+
+/* 1. Número de Pieza / Juego */
+.quality-piece-badge {
+    display: inline-block;
+    padding: 0.5rem 1.25rem;
+    background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+    border: 2px solid #033966;
+    border-radius: 10px;
+    font-weight: 850;
+    font-size: 1.1rem;
+    color: #033966;
+    box-shadow: inset 0 1px 1px #ffffff, 0 3px 10px rgba(3, 57, 102, 0.18);
+    letter-spacing: 0.04em;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: default;
+}
+
+.quality-piece-badge:hover {
+    -webkit-transform: translateY(-2px) scale(1.06);
+    transform: translateY(-2px) scale(1.06);
+    border-color: #0284c7;
+    box-shadow: inset 0 1px 2px #ffffff, 0 6px 18px rgba(2, 132, 199, 0.35);
+}
+
+.quality-process-name {
+    font-weight: 800;
+    font-size: 1.02rem;
+    color: #0f172a;
+}
+
+/* 2. Minicontenedor de Error */
+.quality-error-badge {
+    display: inline-block;
+    padding: 0.45rem 1.15rem;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 850;
+    letter-spacing: 0.02em;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: default;
+}
+
+.quality-error-badge.is-none {
+    background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+    color: #475569;
+    border: 1.5px solid #cbd5e1;
+    box-shadow: inset 0 1px 1px #ffffff, 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.quality-error-badge.is-none:hover {
+    -webkit-transform: translateY(-1px) scale(1.03);
+    transform: translateY(-1px) scale(1.03);
+    border-color: #94a3b8;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.quality-error-badge.has-error {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: #ffffff !important;
+    border: 2px solid rgba(255, 255, 255, 0.85) !important;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.55), 0 4px 14px rgba(220, 38, 38, 0.5);
+}
+
+.quality-error-badge.has-error:hover {
+    -webkit-transform: translateY(-2px) scale(1.06);
+    transform: translateY(-2px) scale(1.06);
+    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.85), 0 8px 24px rgba(220, 38, 38, 0.7);
+}
+
+/* 3. Minicontenedores de Estado Actual */
+.quality-status-badge {
+    display: inline-block;
+    padding: 0.45rem 1.35rem;
+    border-radius: 50px;
+    font-size: 0.92rem;
+    font-weight: 850;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    border: 2px solid rgba(255, 255, 255, 0.85) !important;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.55);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    cursor: default;
+}
+
+.quality-status-badge.is-liberado {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.55), 0 4px 14px rgba(2, 132, 199, 0.5);
+}
+
+.quality-status-badge.is-liberado:hover {
+    -webkit-transform: translateY(-2px) scale(1.06);
+    transform: translateY(-2px) scale(1.06);
+    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.85), 0 8px 22px rgba(2, 132, 199, 0.7);
+}
+
+.quality-status-badge.is-rechazado {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.55), 0 4px 14px rgba(220, 38, 38, 0.5);
+}
+
+.quality-status-badge.is-rechazado:hover {
+    -webkit-transform: translateY(-2px) scale(1.06);
+    transform: translateY(-2px) scale(1.06);
+    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.85), 0 8px 22px rgba(220, 38, 38, 0.7);
+}
+
+.quality-status-badge.is-incompleto {
+    background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.55), 0 4px 14px rgba(217, 119, 6, 0.5);
+}
+
+.quality-status-badge.is-incompleto:hover {
+    -webkit-transform: translateY(-2px) scale(1.06);
+    transform: translateY(-2px) scale(1.06);
+    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.85), 0 8px 22px rgba(217, 119, 6, 0.7);
+}
+
+.quality-status-badge.is-sin-liberar {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.55), 0 4px 14px rgba(5, 150, 105, 0.5);
+}
+
+.quality-status-badge.is-sin-liberar:hover {
+    -webkit-transform: translateY(-2px) scale(1.06);
+    transform: translateY(-2px) scale(1.06);
+    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.85), 0 8px 22px rgba(5, 150, 105, 0.7);
+}
+
+.quality-status-badge.is-pendiente {
+    background: linear-gradient(135deg, #9333ea 0%, #7e22ce 100%) !important;
+    color: #ffffff !important;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.55), 0 4px 14px rgba(147, 51, 234, 0.5);
+}
+
+.quality-status-badge.is-pendiente:hover {
+    -webkit-transform: translateY(-2px) scale(1.06);
+    transform: translateY(-2px) scale(1.06);
+    box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.85), 0 8px 22px rgba(147, 51, 234, 0.7);
+}
+
+/* ── INPUTS DE ACCIÓN: CONTENEDORES CON COLOR PROPIO EN LAS OPCIONES ── */
+.action-select {
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0.65rem 2.6rem 0.65rem 1.2rem;
+    border-radius: 10px;
+    border: 2.5px solid #cbd5e1;
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #1e293b;
+    background-color: #ffffff;
+    cursor: pointer;
+    min-width: 230px;
+    width: 100%;
+    max-width: 250px;
+    box-sizing: border-box;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23033966' stroke-width='2.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.9rem center;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+.action-select:hover {
+    border-color: #0284c7;
+    box-shadow: 0 3px 8px rgba(2, 132, 199, 0.22);
+}
+
+.action-select:focus {
+    outline: none;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.28);
+}
+
+/* Opciones: el CONTENEDOR tiene el color de fondo, texto blanco limpio */
+.action-select option {
+    font-family: inherit;
+    font-size: 0.98rem;
+    font-weight: 800;
+    padding: 10px 14px;
+}
+
+.action-select option.opt-action-default,
+.action-select option[value=""] {
+    background-color: #ffffff !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+}
+
+.action-select option.opt-action-liberar,
+.action-select option[value="1"] {
+    background-color: #0284c7 !important;
+    color: #ffffff !important;
+    font-weight: 850 !important;
+}
+
+.action-select option.opt-action-rechazar,
+.action-select option[value="2"] {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+    font-weight: 850 !important;
+}
+
+.action-select option.opt-action-incompleto,
+.action-select option[value="5"] {
+    background-color: #d97706 !important;
+    color: #ffffff !important;
+    font-weight: 850 !important;
+}
+
+/* Estados cuando una opción específica está seleccionada (vibrante) */
+.action-select.action-selected-1 {
+    background-color: #0284c7 !important;
+    border-color: #0369a1 !important;
+    color: #ffffff !important;
+    font-weight: 850;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    box-shadow: 0 3px 10px rgba(2, 132, 199, 0.45);
+}
+
+.action-select.action-selected-2 {
+    background-color: #dc2626 !important;
+    border-color: #b91c1c !important;
+    color: #ffffff !important;
+    font-weight: 850;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    box-shadow: 0 3px 10px rgba(220, 38, 38, 0.45);
+}
+
+.action-select.action-selected-5 {
+    background-color: #d97706 !important;
+    border-color: #b45309 !important;
+    color: #ffffff !important;
+    font-weight: 850;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    box-shadow: 0 3px 10px rgba(217, 119, 6, 0.45);
+}
+
+/* Área de comentarios ampliada */
+.comments-input {
+    width: 100%;
+    min-width: 220px;
+    padding: 0.65rem 0.9rem;
+    border: 2px solid #cbd5e1;
+    border-radius: 10px;
+    font-size: 0.96rem;
+    font-family: inherit;
+    color: #1e293b;
+    background-color: #ffffff;
+    resize: vertical;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+}
+
+.comments-input:hover {
+    border-color: #94a3b8;
+}
+
+.comments-input:focus {
+    outline: none;
+    border-color: #0284c7;
+    box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.22);
+}
+
+/* ── ESTADO VACÍO EN TABLA ─────────────────────────────────────────── */
+.quality-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3.5rem 1.5rem;
+    text-align: center;
+    gap: 10px;
+}
+
+.quality-empty-state .empty-icon {
+    margin-bottom: 6px;
+    width: 44px;
+    height: 44px;
+}
+
+.quality-empty-state .empty-title {
+    font-size: 1.25rem;
+    font-weight: 850;
+    color: #0f172a;
+}
+
+.quality-empty-state .empty-sub {
+    font-size: 0.98rem;
+    color: #64748b;
+    max-width: 480px;
+}
+
+/* ── BOTÓN GUARDAR LIBERACIONES (CON EFECTO DE BRILLO / PULSO / DESTELLO) ── */
+.quality-button-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1.6rem;
+    margin-bottom: 0.5rem;
+}
+
+.btn-accept-release {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0a8504 0%, #16a34a 100%) !important;
+    color: #ffffff !important;
+    border: 2px solid rgba(255, 255, 255, 0.85) !important;
+    border-radius: 14px;
+    height: 54px;
+    min-width: 340px;
+    padding: 0 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 850;
+    text-transform: uppercase;
+    letter-spacing: 1.8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(10, 133, 4, 0.45);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 2;
+    text-decoration: none;
+}
+
+/* Rayo / destello en barrido continuo que se activa al hacer hover (Acelerado por GPU) */
+.btn-accept-release::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.85) 50%,
+        rgba(255, 255, 255, 0.05) 80%,
+        transparent 100%
+    );
+    -webkit-transform: translateX(-160%) skewX(-25deg);
+    transform: translateX(-160%) skewX(-25deg);
+    will-change: transform;
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.btn-accept-release:hover {
+    background: linear-gradient(135deg, #0d9b07 0%, #22c55e 100%) !important;
+    border-color: #ffffff !important;
+    -webkit-transform: translateY(-2px) scale(1.03);
+    transform: translateY(-2px) scale(1.03);
+    -webkit-animation: pulseGlowGreen 2.2s infinite ease-in-out;
+    animation: pulseGlowGreen 2.2s infinite ease-in-out;
+}
+
+.btn-accept-release:hover::after {
+    opacity: 1;
+    -webkit-animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-accept-release:hover .btn-release-icon {
+    -webkit-transform: scale(1.14);
+    transform: scale(1.14);
+}
+
+.btn-accept-release:active {
+    -webkit-transform: translateY(1px) scale(0.98);
+    transform: translateY(1px) scale(0.98);
+}
+
+.btn-release-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    transition: transform 0.25s ease;
+}
+
+/* ── ANIMACIONES CORPORATIVAS GIS (GPU-ACCELERATED) ─────────────────── */
+@-webkit-keyframes buttonShineSweep {
+    0% {
+        -webkit-transform: translateX(-160%) skewX(-25deg);
+        transform: translateX(-160%) skewX(-25deg);
+    }
+    45%, 100% {
+        -webkit-transform: translateX(280%) skewX(-25deg);
+        transform: translateX(280%) skewX(-25deg);
+    }
+}
+
+@keyframes buttonShineSweep {
+    0% {
+        -webkit-transform: translateX(-160%) skewX(-25deg);
+        transform: translateX(-160%) skewX(-25deg);
+    }
+    45%, 100% {
+        -webkit-transform: translateX(280%) skewX(-25deg);
+        transform: translateX(280%) skewX(-25deg);
+    }
+}
+
+@-webkit-keyframes pulseGlowGreen {
+    0% {
+        box-shadow:
+            0 4px 14px rgba(10, 133, 4, 0.45),
+            0 0 0 0 rgba(22, 163, 74, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 6px 24px rgba(22, 163, 74, 0.8),
+            0 0 18px 5px rgba(74, 222, 128, 0.6),
+            inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+    100% {
+        box-shadow:
+            0 4px 14px rgba(10, 133, 4, 0.45),
+            0 0 0 0 rgba(22, 163, 74, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+}
+
+@keyframes pulseGlowGreen {
+    0% {
+        box-shadow:
+            0 4px 14px rgba(10, 133, 4, 0.45),
+            0 0 0 0 rgba(22, 163, 74, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+    50% {
+        box-shadow:
+            0 6px 24px rgba(22, 163, 74, 0.8),
+            0 0 18px 5px rgba(74, 222, 128, 0.6),
+            inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    }
+    100% {
+        box-shadow:
+            0 4px 14px rgba(10, 133, 4, 0.45),
+            0 0 0 0 rgba(22, 163, 74, 0.7),
+            inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    }
+}
+
+/* ── RESPONSIVE PARA MODAL ─────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .quality-release-modal {
+        width: 98% !important;
+    }
+
+    .quality-modal-header {
+        padding: 1.2rem 1.2rem 1rem;
+    }
+
+    .quality-header-title {
+        font-size: 1.3rem;
+    }
+
+    .quality-header-icon {
+        width: 36px;
+        height: 36px;
+    }
+
+    .quality-modal-body {
+        padding: 1rem;
+    }
+
+    .quality-legend-bar {
+        gap: 0.9rem;
+        padding: 0.6rem 1.2rem;
+    }
+
+    .release-table-container {
+        max-height: 42vh;
+    }
+
+    .btn-accept-release {
+        width: 100%;
+        min-width: 0;
+        font-size: 1rem;
+        height: 50px;
+    }
+}

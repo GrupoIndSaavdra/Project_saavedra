@@ -26,27 +26,6 @@
         window.rechazar = "{{ asset('images/Rechazar.png') }}"
         window.ojito = "{{ asset('images/ojito.png') }}"
         window.baseUrl = "{{ url('/') }}";
-
-        function adjustIconZoom() {
-            const btn = document.querySelector('.open-menu');
-            const icon = document.querySelector('.open-menu .icon');
-            if (btn && icon) {
-                const ratio = window.devicePixelRatio || 1;
-                // Botón espacioso (48px) con el ícono original intacto (32px)
-                const btnSize = 48 / ratio;
-                const iconSize = 32 / ratio;
-                
-                btn.style.width = btnSize + 'px';
-                btn.style.height = btnSize + 'px';
-                icon.style.width = iconSize + 'px';
-                icon.style.height = iconSize + 'px';
-            }
-        }
-        window.addEventListener('resize', adjustIconZoom);
-        window.addEventListener('zoom', adjustIconZoom);
-        document.addEventListener('DOMContentLoaded', adjustIconZoom);
-        // Ejecutar periódicamente por si cambia el zoom
-        setInterval(adjustIconZoom, 1000);
     </script>
 </head>
 

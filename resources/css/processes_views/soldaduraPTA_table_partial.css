@@ -1,4 +1,4 @@
-﻿/* global.css: reset, Poppins, variables GIS */
+/* global.css: reset, Poppins, variables GIS */
 @import "../global.css";
 
 /* ──────────────────────────────────────────────────────────────
@@ -218,24 +218,72 @@ textarea.pta-input {
 
 /* Botón guardar PTA — igual que .btn-savePiece del sistema */
 .btn-guardar-pta {
-    background: var(--gis-blue);
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #033966 0%, #0d5ca8 55%, #1d72b8 100%) !important;
     color: #ffffff;
-    padding: 0.8em 2em;
-    border: none;
-    border-radius: 5px;
-    font-size: 1.1em;
-    /* font-family heredado de global.css */
+    padding: 0.85em 3.2em;
+    border: 1.5px solid rgba(255, 255, 255, 0.75) !important;
+    border-radius: 11px;
+    font-size: 1.05rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
     cursor: pointer;
-    transition: 0.3s ease;
-    margin: 2em 0;
-    display: block;
-    margin-left: auto;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.35);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    margin: 2em 0 2em auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    z-index: 2;
+    text-decoration: none;
+}
+
+.btn-guardar-pta::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.05) 20%,
+        rgba(255, 255, 255, 0.85) 50%,
+        rgba(255, 255, 255, 0.05) 80%,
+        transparent 100%
+    );
+    -webkit-transform: translateX(-160%) skewX(-25deg);
+    transform: translateX(-160%) skewX(-25deg);
+    will-change: transform;
+    pointer-events: none;
+    border-radius: inherit;
+    z-index: 5;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.btn-guardar-pta:hover::after {
+    opacity: 1;
+    -webkit-animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
+    animation: buttonShineSweep 1.6s infinite cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .btn-guardar-pta:hover {
-    background-color: #0960a7;
-    transform: scale(1.05);
-    transition: 0.3s ease;
+    background: linear-gradient(135deg, #004b8d 0%, #0d6ed1 55%, #1e88e5 100%) !important;
+    border-color: #ffffff !important;
+    -webkit-transform: translateY(-2px) scale(1.03);
+    transform: translateY(-2px) scale(1.03);
+    -webkit-animation: pulseGlowBlue 2.2s infinite ease-in-out;
+    animation: pulseGlowBlue 2.2s infinite ease-in-out;
+}
+
+.btn-guardar-pta:active {
+    -webkit-transform: translateY(1px) scale(0.98);
+    transform: translateY(1px) scale(0.98);
 }
 
 /* Widget de material de soldadura con opción "Otro" */

@@ -701,5 +701,114 @@ No usar el selector nativo del navegador `input[type="date"]`. Se utiliza `creat
 - **Sin filtros activos:** `disabled = true`, fondo gris (`linear-gradient(135deg, #64748b 0%, #475569 100%)`, `opacity: 0.55`, `cursor: not-allowed`).
 - **Sincronización:** Invocar `updateClearButtonState()` cada vez que cambie cualquier `<select>`, input de texto o fecha.
 
+---
 
+## 25. Centralización de Acciones Header e Inserción Dinámica en Modo Edición
+
+1. **Evitar botones flotantes en formularios dinámicos**: Si un flujo pasa a modo edición (`edit == 1`), no inyectes botones de cancelación en medio del contenido o debajo de tarjetas de advertencia. Localiza el botón principal del header (`.btn-finishReport` o similar) e inserta el botón Cancelar (`.btn-cancel-report`) como hermano o reemplazo directo en `header`.
+2. **Unificación de Listeners de Eventos**: Nunca agregues múltiples `addEventListener('change', ...)` sobre el mismo elemento HTML en diferentes líneas del código. Combina la lógica en un solo manejador y verifica defensivamente la disponibilidad de utilidades globales (`typeof window.toastpremium === 'function'`).
+
+---
+
+## 26. Bloqueo Visual y Estilizado de Campos No Modificables en Modo Edición de Reporte
+
+Al entrar en modo edición de datos generales del reporte (`edit == 1`):
+1. **Campos Estructurales Bloqueados**: OTs, Clases, Procesos, Subprocesos y Máquinas son datos estructurales inmutables. Deben generarse con `readOnly = true`, `tabindex="-1"`, clase `.input-locked`, contenedor `.form-group-locked` y un badge visual `.locked-field-badge` junto a la etiqueta del campo.
+2. **Campos Editables**: Únicamente los parámetros operacionales autorizados (Turno/Horario y Fecha) deben permanecer interactivos con sus respectivos pickers corporativos.
+3. **Banner Informativo**: Insertar `.edit-meta-notice-banner` en `.form-principal-data` indicando que los campos en gris están protegidos por seguridad de proceso.
+
+---
+
+## 27. Modo Edición de Piezas: Tabla Extendida y Scroll en Vista Completa
+
+Al entrar al modo de edición de piezas en producción (`edit == 2`):
+1. **Transferencia de Scroll a la Vista Completa**: Inyectar `.is-edit-pieces-mode` en `html` y `body` para anular `overflow-y: hidden` y `height: 100vh`, permitiendo que el scroll ocurra naturalmente en la página (`window`).
+2. **Extensión de Tabla para ~12 Piezas**: La tabla `.scrollable-table` amplía su `max-height` a 760px. Si hay 12 piezas o menos, se muestra completa sin scroll vertical interno. Si hay lotes grandes (ej. 80 piezas), el tope de 760px contiene la tabla con scroll interno para evitar una página inmanejable.
+3. **Auto-Scroll Suave**: Iniciar con `scrollTop = 0` y ejecutar `scrollIntoView({ behavior: 'smooth', block: 'start' })` hacia `.form-tablePieces` para posicionar la vista directamente sobre la tabla editable.
+
+---
+
+## 28. Persistencia y Sincronización Reactiva de Estados en Modales de Calidad
+
+Al construir modales interactivos para validación o liberación de piezas/registros (`qualityReleaseModal.js`):
+
+1. **Mapeo Riguroso de Códigos de Liberación**:
+   - `1` = Liberar (`"Liberado"`, clase `.row-liberado`, badge `.is-liberado`).
+   - `2` = Rechazar (`"Rechazado"`, clase `.row-rechazado`, badge `.is-rechazado`).
+   - `5` = Incompleto (`"Incompleto"`, clase `.row-incompleto`, badge `.is-incompleto`).
+   - Cualquier función de evaluación de estatus (`getStatusKeyForSet`, `getMostRestrictiveStatus`, `getStatusKeyByPiece`, `getStatusText`, `getStatusSlug`) debe contemplar explícitamente el código `5`. Si se deja como `default: 'sin_liberar'`, las piezas incompletas previamente guardadas volverán a mostrarse erróneamente como "Sin liberar".
+
+2. **Pre-población de Acciones y Comentarios Previos**:
+   - Al iterar las piezas (`renderSets()`), inspeccionar el estado actual (`piece.liberacion`). Si la pieza ya fue dictaminada con anterioridad (`1`, `2` o `5`), asignar dicho valor al select y aplicar su clase de fondo corporativo:
+     ```javascript
+     if (currentAction) {
+         selectAction.value = currentAction;
+         selectAction.classList.add(`action-selected-${currentAction}`);
+     }
+     ```
+   - Pre-llenar el `textarea` de observaciones (`.comments-input`) con el comentario existente (`piece.comments` o `piece.observacion_liberacion`) garantizando que el controlador backend incluya dicho campo en el JSON de respuesta.
+
+3. **Sincronización Reactiva en Tiempo Real (Live Change Listener)**:
+   - Al dispararse el evento `change` en el `<select class="select-release">`:
+     - Remover clases previas del select (`action-selected-1`, `action-selected-2`, `action-selected-5`) y agregar la del nuevo valor.
+     - Actualizar la clase de la fila (`tr.row-liberado`, `tr.row-rechazado`, `tr.row-incompleto`).
+     - Actualizar inmediatamente el chip visual de la columna Estado Actual (`.status-chip`):
+       ```javascript
+       selectAction.addEventListener('change', () => {
+           const val = selectAction.value;
+           // Limpiar y aplicar clases en select y tr
+           // Actualizar badge visual en vivo:
+           if (statusChip) {
+               statusChip.className = 'status-chip ' + getStatusChipClass(val);
+               statusChip.textContent = getStatusDisplayText(val);
+           }
+       });
+       ```
+   - Esto evita discrepancias visuales entre lo que el usuario elige en el combo y lo que la fila / badge muestra antes de oprimir el botón de guardar.
+
+---
+
+## 29. Auto-Scroll Inteligente en Tablas con Cabeceras Sticky (`redirectToEndTable`)
+
+En tablas con encabezados y filas guía fijas (`position: sticky`), un auto-scroll ciego al fondo (`scrollable.scrollTop = scrollable.scrollHeight`) desplaza el contenedor hasta el último pixel, empujando las piezas anteriores hacia arriba y ocultándolas detrás de las tolerancias fijas.
+
+1. **Detección Dinámica de Filas Activa y Previa**:
+   - Localizar la fila de captura activa (`.table-row-pieceUsed`) y su hermana previa (`.table-row-piece`).
+   - Calcular dinámicamente el offset de cabeceras fijas (`const stickyHeadersOffset = hasCotas ? 156 : 56`) según si el proceso maneja cotas nominales y tolerancias o solo título.
+
+2. **Cálculo de Encuadre Seguro**:
+   ```javascript
+   function redirectToEndTable() {
+       const isEditPiecesMode = window.arrayData && window.arrayData["edit"] == 2;
+       const scrollFn = () => {
+           const scrollable = document.querySelector(".scrollable-table");
+           if (scrollable && !isEditPiecesMode) {
+               const pieceUsedRow = scrollable.querySelector(".table-row-pieceUsed");
+               if (pieceUsedRow) {
+                   const prevPieceRow = pieceUsedRow.previousElementSibling;
+                   const hasCotas = !!scrollable.querySelector(".table-row-cNominals");
+                   const stickyHeadersOffset = hasCotas ? 156 : 56;
+
+                   // Encuadrar desde la pieza anterior para que ambas queden visibles
+                   if (prevPieceRow && prevPieceRow.classList.contains("table-row-piece")) {
+                       const targetScroll = Math.max(0, prevPieceRow.offsetTop - stickyHeadersOffset);
+                       scrollable.scrollTop = targetScroll;
+                   } else {
+                       const targetScroll = Math.max(0, pieceUsedRow.offsetTop - stickyHeadersOffset);
+                       scrollable.scrollTop = targetScroll;
+                   }
+               } else {
+                   scrollable.scrollTop = scrollable.scrollHeight;
+               }
+           }
+       };
+       if (document.readyState === "complete") {
+           setTimeout(scrollFn, 60);
+       } else {
+           window.addEventListener("load", scrollFn);
+       }
+   }
+   ```
+
+3. **Beneficio**: Tanto la pieza previa (referencia de trabajo) como la pieza activa quedan inmediatamente encuadradas bajo las tolerancias al cargar la vista, sin que ninguna fila se quede escondida "hasta arriba" ni se corte el botón de guardar inferior.
 

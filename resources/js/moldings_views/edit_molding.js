@@ -1,3 +1,18 @@
+function setEditButtonState(button, state) {
+    const editIcon = window.imgEdit || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/DrawsProduction.png` : "/images/DrawsProduction.png");
+    const cancelIcon = window.imgCancel || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Cancelar-Icon.png` : "/images/Cancelar-Icon.png");
+
+    if (state === "cancel") {
+        button.dataset.state = "cancel";
+        button.style.background = "#9C0303";
+        button.innerHTML = `<img src="${cancelIcon}" class="btn-action-icon" alt="Cancelar"><span>Cancelar</span>`;
+    } else {
+        button.dataset.state = "edit";
+        button.style.background = "";
+        button.innerHTML = `<img src="${editIcon}" class="btn-action-icon" alt="Editar"><span>Editar</span>`;
+    }
+}
+
 function createTable(moldings, form) {
     const table = document.createElement("table");
     table.classList.add("molding-table");
@@ -16,7 +31,7 @@ function createTable(moldings, form) {
         let th = document.createElement("th");
         th.textContent = header;
         if (index == 1) {
-            th.style.width = "250px";
+            th.style.width = "280px";
         }
         tr.appendChild(th);
     });
@@ -45,18 +60,19 @@ function createTable(moldings, form) {
             let tdActions = document.createElement("td");
             let editButton = document.createElement("button");
             editButton.classList.add("btn", "btn-edit");
-            editButton.textContent = "Editar";
+            setEditButtonState(editButton, "edit");
+
             editButton.onclick = (e) => {
                 e.preventDefault();
 
-                if (editButton.textContent === "Cancelar") {
-                    editButton.style.background = "#033966";
+                if (editButton.dataset.state === "cancel") {
+                    setEditButtonState(editButton, "edit");
                     input.value = molding.nombre;
                     input.disabled = true;
-                    form.removeChild(
-                        document.querySelector("button[type='submit']")
-                    );
-                    editButton.textContent = "Editar";
+                    let submitBtn = document.querySelector("button[type='submit']");
+                    if (submitBtn) {
+                        form.removeChild(submitBtn);
+                    }
 
                     let nextElementSibling = editButton.nextElementSibling;
                     if (
@@ -100,8 +116,7 @@ function createTable(moldings, form) {
                         submit.type = "submit";
                         form.appendChild(submit);
 
-                        editButton.style.background = "#9C0303";
-                        editButton.textContent = "Cancelar";
+                        setEditButtonState(editButton, "cancel");
 
                         let nextElementSibling = editButton.nextElementSibling;
                         if (
@@ -125,7 +140,8 @@ function createTable(moldings, form) {
 
             let deleteButton = document.createElement("button");
             deleteButton.classList.add("btn", "btn-delete");
-            deleteButton.textContent = "Eliminar";
+            const deleteIcon = window.imgDelete || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/delete.png` : "/images/delete.png");
+            deleteButton.innerHTML = `<img src="${deleteIcon}" class="btn-action-icon" alt="Eliminar"><span>Eliminar</span>`;
 
             deleteButton.onclick = async (e) => {
                 e.preventDefault();

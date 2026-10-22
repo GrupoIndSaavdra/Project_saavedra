@@ -1,0 +1,665 @@
+/* ── Visor de Planos: Animaciones y Estilos Refinados (Sin Lag) ── */
+/* ── VISOR DE PLANOS: Ecosistema Modular Independiente (prod-viewer-*) ── */
+
+/* Rendimiento: solo opacity + translate (compositor GPU), sin scale ni rebote */
+@keyframes prodModalEntrance {
+    0% {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes prodCardPopIn {
+    0% {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ── CONGELAR EL FONDO MIENTRAS HAY UN VISOR / CONTRASEÑA ABIERTOS ──
+   El fondo tiene paneles con backdrop-filter: blur(24px) saturate(180%) y animaciones
+   infinitas (alert-pulse-yellow, pulseGlowCotas). Aunque el overlay los tape, el navegador
+   los re-pinta cada frame y eso hace que el modal se sienta trabado.
+   `body:has(> .x)` solo evalúa hijos directos del body → costo mínimo. */
+body:has(> .prod-viewer-portal) *:not(.prod-viewer-portal, .prod-viewer-portal *),
+body.is-verifying-active *:not(.is-verifying, .is-verifying *) {
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    animation-play-state: paused !important;
+}
+
+/* Contenedor Opacidad (Portal) — Sin blur para fluidez máxima (Estándar de global.css) */
+.prod-viewer-portal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 10, 25, 0.85) !important; /* Filtro azulito sin blur para evitar que se trabe */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1.5rem;
+    z-index: 9999999;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* Modal Independiente Premium Estilo Glassmorphism Corporativo */
+.prod-viewer-modal,
+.tech-docs-modal {
+    max-width: 1100px;
+    width: 95%;
+    max-height: 90vh;
+    background: linear-gradient(180deg, #f8fafc 0%, #eef3f8 100%) !important;
+    border-radius: 22px;
+    border: 2px solid rgba(255, 255, 255, 0.85) !important;
+    box-shadow: 0 20px 50px -12px rgba(0, 10, 30, 0.6) !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: prodModalEntrance 0.2s ease-out both;
+    position: relative;
+    box-sizing: border-box;
+    contain: layout paint; /* Aísla el repintado del modal del resto de la página */
+}
+
+/* Header Fijo con degradado azul profundo y acentos cristalinos */
+.prod-viewer-header {
+    padding: 1.75em 2.2em 1.4em;
+    background: linear-gradient(135deg, #033966 0%, #07477a 50%, #022b4d 100%) !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.18);
+    z-index: 10;
+    position: relative;
+    box-shadow: 0 4px 12px -4px rgba(0, 15, 35, 0.35);
+    box-sizing: border-box;
+}
+
+.prod-viewer-header h3 {
+    color: #ffffff !important;
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin: 0 0 1.1em 0;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+/* Botón Cerrar circular moderno integrado */
+.prod-viewer-header .div-cerrar,
+.div-cerrar {
+    position: absolute;
+    top: 18px;
+    right: 20px;
+    z-index: 20;
+}
+
+.prod-viewer-header .btn-cerrar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: transparent !important;
+    border: none !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.15s ease-out;
+    box-shadow: none !important;
+    padding: 0;
+    outline: none;
+}
+
+.prod-viewer-header .btn-cerrar:hover {
+    transform: scale(1.12) rotate(90deg);
+}
+
+.prod-viewer-header .btn-cerrar .img-cerrar {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4)) !important;
+}
+
+.prod-viewer-header .btn-cerrar .svg-cerrar-fallback {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #dc2626;
+    border: 2px solid #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.35);
+}
+
+.prod-viewer-header .btn-cerrar .svg-cerrar-fallback svg {
+    width: 18px;
+    height: 18px;
+    stroke: #ffffff;
+}
+
+/* Sub-panel de controles y filtros (Sin blur para rendimiento inmediato) */
+.prod-viewer-header .prod-nav-div,
+.prod-viewer-header .prod-top-bar {
+    background: rgba(255, 255, 255, 0.16) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.28) !important;
+    border-radius: 14px;
+    padding: 0.9em 1.2em;
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.2);
+    margin-bottom: 0 !important;
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-end;
+    box-sizing: border-box;
+}
+
+.prod-viewer-header .prod-filter-wrap {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 200px;
+    gap: 4px;
+}
+
+.prod-viewer-header .prod-filter-label {
+    color: #f1f5f9 !important;
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.08em !important;
+    text-transform: uppercase !important;
+    margin-bottom: 2px !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.prod-viewer-header .prod-filter-select {
+    width: 100%;
+    height: 44px !important;
+    padding: 0 1.1em !important;
+    font-size: 0.94rem !important;
+    font-weight: 800 !important;
+    color: #033966 !important;
+    background: #ffffff !important;
+    border: 2px solid #0284c7 !important;
+    border-radius: 10px !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.12) !important;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+}
+
+.prod-viewer-header .prod-filter-select:hover:not(:disabled) {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25) !important;
+}
+
+.prod-viewer-header .prod-filter-select:focus {
+    outline: none !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.3) !important;
+}
+
+.prod-viewer-header .prod-filter-select:disabled {
+    background: rgba(255, 255, 255, 0.65) !important;
+    color: #64748b !important;
+    cursor: not-allowed;
+    border-color: rgba(255, 255, 255, 0.4) !important;
+    opacity: 0.8;
+}
+
+/* Breadcrumb Estilo Path */
+.prod-viewer-breadcrumb {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8em;
+    font-size: 1em;
+    color: var(--gis-blue);
+    background: #f0f7ff;
+    border: 2px solid var(--gis-blue);
+    border-radius: 50px;
+    padding: 0.8em 2em;
+    margin-bottom: 1.5em;
+    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.08);
+}
+
+.prod-viewer-breadcrumb .path-label {
+    opacity: 0.6;
+    font-size: 0.8em;
+    text-transform: uppercase;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.prod-viewer-breadcrumb .path-ot {
+    font-weight: 800;
+    border-left: 2px solid var(--gis-blue);
+    padding-left: 1em;
+}
+
+.prod-viewer-breadcrumb .path-clase {
+    font-weight: 700;
+    background: var(--gis-blue);
+    color: #fff;
+    padding: 0.15em 0.8em;
+    border-radius: 6px;
+}
+
+.prod-viewer-breadcrumb .path-count {
+    margin-left: auto;
+    font-size: 0.85em;
+    font-weight: 800;
+    opacity: 0.8;
+    color: #03819a;
+}
+
+/* Cuerpo con Scroll */
+.prod-viewer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 2em 1.8em;
+    background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+    box-sizing: border-box;
+}
+
+/* Grid de 2 Columnas */
+.prod-viewer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.8em;
+    width: 100%;
+}
+
+/* Tarjeta Premium */
+.prod-viewer-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2em 1.5em;
+    border: 3px solid var(--gis-blue);
+    border-radius: 16px;
+    background: #ffffff;
+    cursor: pointer;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 54, 102, 0.05);
+    /* Rendimiento: solo propiedades del compositor; sin will-change (creaba 1 capa GPU por tarjeta) */
+    transition:
+        transform 0.18s ease-out,
+        border-color 0.18s ease-out,
+        background-color 0.18s ease-out;
+    animation: prodCardPopIn 0.22s ease-out both;
+    position: relative;
+    overflow: hidden;
+}
+
+.prod-viewer-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 5px;
+    background: var(--gis-blue);
+    opacity: 0.1;
+    transition: opacity 0.18s ease;
+}
+
+.prod-viewer-card:hover {
+    transform: translateY(-4px);
+    border-color: #03819a;
+    background: #f8fbff;
+}
+
+.prod-viewer-card:hover::before {
+    opacity: 1;
+    background: #03819a;
+}
+
+.prod-viewer-card .file-icon-wrapper {
+    position: relative;
+    width: 70px;
+    height: 70px;
+    margin-bottom: 1em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.prod-viewer-card .prod-viewer-icon {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition:
+        opacity 0.18s ease-out,
+        transform 0.18s ease-out;
+}
+
+.prod-viewer-card .icon-hover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0;
+}
+
+.prod-viewer-card:hover .icon-default {
+    opacity: 0;
+    transform: scale(0.92);
+}
+
+.prod-viewer-card:hover .icon-hover {
+    opacity: 1;
+    transform: scale(1.08);
+}
+
+/* Botón "Ver Archivos" — Estilos heredados de .btn-submit-password */
+
+.prod-viewer-filename {
+    font-size: 0.95em;
+    font-weight: 800;
+    color: var(--gis-blue);
+    word-break: break-all;
+    line-height: 1.3;
+}
+
+.prod-viewer-action {
+    font-size: 0.85em;
+    margin-top: 1em;
+    color: #03819a;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    transition: color 0.18s ease;
+}
+
+.prod-viewer-card:hover .prod-viewer-action {
+    color: var(--gis-blue);
+}
+
+/* =========================================================================
+   MODAL DE DOCUMENTACIÓN TÉCNICA (TABULADO)
+   ========================================================================= */
+
+/* Contenedor de pestañas integrado */
+.tech-docs-tabs,
+.prod-viewer-header .tech-docs-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 0.8em;
+    background: rgba(0, 15, 35, 0.35) !important;
+    padding: 5px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-sizing: border-box;
+}
+
+.tech-tab-btn {
+    flex: 1;
+    padding: 0.7em 1.4em !important;
+    border: none;
+    border-radius: 9px !important;
+    background: transparent !important;
+    color: #cbd5e1 !important;
+    font-weight: 800 !important;
+    font-size: 0.88rem !important;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tech-tab-btn:hover:not(.active) {
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+}
+
+.tech-tab-btn.active {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(2, 132, 199, 0.4) !important;
+}
+
+.tech-docs-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 380px;
+    padding: 1.8em 2em;
+    background: linear-gradient(180deg, #f8fafc 0%, #edf2f7 100%);
+    box-sizing: border-box;
+}
+
+/* Alerta vacía estilizada sin blur para fluidez */
+.prod-viewer-modal .prod-alert-div,
+.tech-docs-modal .prod-alert-div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 2.2em 2em !important;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%) !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border: 1.5px solid rgba(245, 158, 11, 0.6) !important;
+    border-radius: 16px !important;
+    text-align: center !important;
+    box-shadow:
+        0 8px 24px -4px rgba(217, 119, 6, 0.2),
+        inset 0 1px 2px #ffffff !important;
+    margin: 2.5em auto !important;
+    max-width: 600px !important;
+}
+
+.prod-viewer-modal .label-alert,
+.tech-docs-modal .label-alert {
+    color: #92400e !important;
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+    letter-spacing: 0.02em !important;
+    line-height: 1.5 !important;
+    text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8) !important;
+}
+
+/* ── Componente de Estado Vacío Moderno para Visores (.prod-empty-state) ── */
+.prod-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3.5rem 2rem;
+    margin: 2.5rem auto;
+    max-width: 620px;
+    background: #ffffff;
+    border-radius: 20px;
+    border: 2px dashed #cbd5e1;
+    box-shadow: 0 6px 16px -6px rgba(0, 30, 60, 0.06);
+    animation: prodCardPopIn 0.2s ease-out both;
+    box-sizing: border-box;
+}
+
+.prod-empty-state.is-warning {
+    border-color: #f59e0b;
+    background: linear-gradient(180deg, #ffffff 0%, #fffdfa 100%);
+}
+
+.prod-empty-state.is-info {
+    border-color: #38bdf8;
+    background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+}
+
+.prod-empty-state .empty-icon-wrap {
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1.25rem;
+}
+
+.prod-empty-state.is-warning .empty-icon-wrap {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.prod-empty-state.is-info .empty-icon-wrap {
+    background: #e0f2fe;
+    color: #0284c7;
+}
+
+.prod-empty-state .empty-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 0.5rem 0;
+    letter-spacing: -0.01em;
+}
+
+.prod-empty-state.is-warning .empty-title {
+    color: #92400e;
+}
+
+.prod-empty-state.is-info .empty-title {
+    color: #034475;
+}
+
+.prod-empty-state .empty-desc {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: #64748b;
+    max-width: 480px;
+    margin: 0 0 1.25rem 0;
+}
+
+.prod-empty-state .empty-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.4rem 1rem;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+.prod-empty-state.is-warning .empty-badge {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.tech-empty-state {
+    text-align: center;
+    padding: 3.5em 2em;
+    color: #475569;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 16px;
+    border: 2px dashed rgba(3, 57, 102, 0.25);
+    font-weight: 600;
+    max-width: 600px;
+    margin: 2em auto;
+}
+
+/* Nuevo Card de PDF Documentos con Efecto Hover Similar al Action Button */
+.tech-doc-card {
+    padding: 1.5em;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    background: #fdfdfd;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+}
+
+.tech-doc-card:hover {
+    background: #fff;
+    border-color: var(--gis-blue);
+    box-shadow: 0 8px 20px rgba(3, 57, 102, 0.15);
+}
+
+.tech-doc-icon-container {
+    position: relative;
+    width: 6em;
+    height: 6em;
+    margin-bottom: 0.5em;
+}
+
+.tech-doc-icon-container .img-action-btn {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.tech-doc-icon-container .doc-icon-hover {
+    opacity: 0;
+    transform: scale(0.9);
+}
+
+.tech-doc-card:hover .doc-icon-default {
+    opacity: 0;
+    transform: scale(0.92);
+}
+
+.tech-doc-card:hover .doc-icon-hover {
+    opacity: 1;
+    transform: scale(1.08) translateY(-2px);
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
+}
+
+/* Asegurar que el botón activo en verificación y su popup salgan por encima del overlay global */
+body:has(.is-verifying) .container-meta,
+body.is-verifying-active .container-meta {
+    z-index: 10000000 !important;
+}
+
+/* Dim/opacar todos los elementos laterales (.principal-data y .div-table-code) bajo el filtro azul */
+/* =========================================================================
+   MODAL DE PROGRAMAS CNC (Estilos Verdes)
+   ========================================================================= */
+
+.card-programas:hover {
+    border-color: var(--cnc-green, #0a7c42);
+    background: #f2fcf7;
+    box-shadow: 0 20px 40px rgba(10, 124, 66, 0.15);
+}
+
+.card-programas:hover::before {
+    background: var(--cnc-green, #0a7c42);
+}
+
+.card-programas .prod-viewer-filename {
+    color: var(--cnc-green, #0a7c42) !important;
+}
+
+.card-programas .prod-viewer-action {
+    color: var(--cnc-green, #0a7c42);
+}
+
+.card-programas:hover .prod-viewer-action {
+    color: #065c30;
+}

@@ -666,8 +666,10 @@ export class Process {
                 case 3://Crear inputs de las piezas e input de la pieza a utilizar si es que existe
                     if (this.piecesData.length > 0) { // Crear inputs inhabilitados de las piezas maquinadas en la meta
                         let divisions = (this.nameProcess == "Operacion Equipo" || this.nameProcess == "Candado Obturador") ? [2, 3, 4] : divisionsCNomi;
+
                         this.piecesData.forEach((piece, index) => { // Recorrer cada una de las piezas
                             let tr = document.createElement("tr");
+                            tr.className = "table-row-piece";
                             for (let i = 0; i < fields.length; i++) { // Recorrer las medidas de la pieza
                                 const td = document.createElement("td");
                                 if (fields[i] != "id") {
@@ -759,6 +761,7 @@ export class Process {
     createPieceToBeUsed(tr, fields, divisionsCNomi, positionSelects, table) {
         let divisions = (this.nameProcess == "Operacion Equipo" || this.nameProcess == "Candado Obturador") ? [2, 3, 4] : divisionsCNomi;
         tr = document.createElement("tr");
+        tr.className = "table-row-piece table-row-pieceUsed";
         for (let x = 0; x < fields.length; x++) {
             const td = document.createElement("td");
             if (x != 0) {

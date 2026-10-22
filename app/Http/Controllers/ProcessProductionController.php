@@ -1145,6 +1145,8 @@ class ProcessProductionController extends Controller
     public function storeHeaderdata(StoreHeaderProcessRequest $request)
     {
         $validatedData = $request->validated(); //Validación de los datos ingresados.
+        $date = Carbon::createFromFormat('Y-m-d', $request->input('date'))->format('Y-m-d');
+
         // Verificar que la clase ingresada exista
         $targetClassInput = $request->input('class');
         $class = Clase::query()->where('id_ot', $request->input('workOrder'))
@@ -1163,9 +1165,27 @@ class ProcessProductionController extends Controller
                 $startTime = $startTime->format('H:i:s');
                 $endTime = DateTime::createFromFormat('H:i', $request->input('endTime'));
                 $endTime = $endTime->format('H:i:s');
-                $date = Carbon::createFromFormat('Y-m-d', $request->input('date'))->format('Y-m-d');
+                $processString = $request->input('subprocess') ? $request->input('process') . '_' . $request->input('subprocess') : $request->input('process');
 
-                echo $processString = $request->input('subprocess') ? $request->input('process') . '_' . $request->input('subprocess') : $request->input('process');
+                // Liberar cualquier meta previa vacía (resultado == 0) que el operador haya dejado abierta con máquina ocupada
+                $previousEmptyMetas = Metas::query()
+                    ->where('id_usuario', auth()->user()->matricula)
+                    ->where('resultado', 0)
+                    ->whereIn('id', Maquinas::query()->pluck('id_meta')->filter()->toArray())
+                    ->get();
+
+                foreach ($previousEmptyMetas as $prevEmptyMeta) {
+                    Maquinas::query()->where('id_meta', $prevEmptyMeta->id)->delete();
+                    $prevProcess = str_contains($prevEmptyMeta->proceso, "Operacion Equipo") ? $this->getSub_Process($prevEmptyMeta->proceso, 0) : $prevEmptyMeta->proceso;
+                    $prevClass = Clase::query()->find($prevEmptyMeta->id_clase);
+                    if ($prevClass) {
+                        $prevModelPieces = $this->get_ModelProcessPieces($prevProcess, $prevClass);
+                        if (class_exists($prevModelPieces)) {
+                            $prevModelPieces::query()->where('id_meta', $prevEmptyMeta->id)->where('estado', 1)->delete();
+                        }
+                    }
+                }
+
                 $foundedMeta = Metas::query()->where('id_ot', $request->input('workOrder'))
                     ->where('id_clase', $class->id)
                     ->where('fecha', $date)
@@ -1329,8 +1349,8 @@ class ProcessProductionController extends Controller
     public function get_ArrayPieces($process, $class, $meta)
     {
         $arrayData = array();
-        // Obtener pedido con piezas de consignacion
-        $consignmentPieces = Clase::query()->find($class->id)->piezas;
+        // Obtener pedido con piezas de consignacion (o pedido base si piezas es 0 o nulo)
+        $consignmentPieces = ($class->piezas > 0) ? $class->piezas : ($class->pedido ?: 1);
 
         //Obtener las piezas maquinadas en la meta
         $machinedPiecesInMeta = $this->get_machinedPiecesInMeta($meta);
@@ -2109,7 +2129,7 @@ class ProcessProductionController extends Controller
         // Normalize sub-process names for assembly-type checks
         // "Operacion Equipo_1 operacion" / "Operacion Equipo_2 operacion" → "Operacion Equipo"
         $processForCheck = str_contains($process, "Operacion Equipo") ? "Operacion Equipo" : $process;
-        $preProcessString = str_contains($previousProcess, "Operacion Equipo") ? "Operacion Equipo" : $previousProcess;
+        $preProcessString = ($previousProcess !== null && str_contains($previousProcess, "Operacion Equipo")) ? "Operacion Equipo" : $previousProcess;
         $remainingPieces = 0;
         $totalGood = 0;
         $availableAssemblies = array();
@@ -2208,7 +2228,8 @@ class ProcessProductionController extends Controller
                 }
             }
         } else {
-            $consignamentPieces = $class->piezas; //Obtener las piezas con consignación
+            // Obtener las piezas con consignación (o pedido base si piezas es 0 o nulo)
+            $consignamentPieces = ($class->piezas > 0) ? $class->piezas : ($class->pedido ?: 1);
             [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($process, $class); //Obtener las piezas maquinadas
 
             //Calcular las piezas restantes
@@ -2279,12 +2300,26 @@ class ProcessProductionController extends Controller
                 array_push($machinedPieces, $piece->n_juego);
             }
         }
+        // Pre-cargar IDs de metas con máquina activa actualmente para filtrar piezas huérfanas
+        $activeMachineMetaIds = Maquinas::query()->pluck('id_meta')->filter()->toArray();
+
         //Obtener las piezas ocupadas en el proceso correspondiente
         $occupiedPieces = $modelPiecesProcess::query()->where('id_proceso', '=', $processDB->id, 'and')->whereIn('estado', [1, 2], 'and', false)->get();
 
         //Insertar los juegos ocupados en un array
         $occupiedAssemblies = [];
         foreach ($occupiedPieces as $piece) {
+            // Si la pieza está en estado 1 (ocupada/reservada), pero su meta ya no tiene máquina activa (es huérfana)
+            if ($piece->estado == 1 && $piece->id_meta && !in_array($piece->id_meta, $activeMachineMetaIds)) {
+                // En procesos iniciales (ej. Cepillado) sin mediciones capturadas, eliminar el registro fantasma para liberar el juego
+                if ($processString === 'Cepillado' && empty($piece->radiof_mordaza) && empty($piece->radiof_mayor)) {
+                    $piece->delete();
+                    continue;
+                }
+                // Si la máquina ya fue liberada, no bloquear el juego a nuevos operadores
+                continue;
+            }
+
             if (!in_array($piece->n_juego, $occupiedAssemblies)) {
                 $occupiedAssemblies[] = $piece->n_juego;
             }
@@ -2644,6 +2679,7 @@ class ProcessProductionController extends Controller
                     'proceso' => $meta->proceso,
                     'error' => $error,
                     'liberacion' => $releasedPiece ? $releasedPiece->liberacion : 0,
+                    'comments' => $releasedPiece ? ($releasedPiece->observacion_liberacion ?? '') : '',
                     'operator' => $meta->id_usuario,
                     'operator_id' => $meta->id_usuario,
                     'created_at' => $processPiece->created_at,

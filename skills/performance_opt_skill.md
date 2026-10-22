@@ -74,3 +74,30 @@ foreach ($query as $registro) {
     // Procesamiento...
 }
 ```
+
+---
+
+## 4. Memoización Estática en ViewModels para I/O de Disco (Ciclo Blade)
+
+Cuando un ViewModel evalúa rutas o existencia de archivos en disco por cada fila dentro de un ciclo Blade (ej. Almacén y Calidad Fundición), las llamadas repetitivas a `Storage::disk('local')->exists()` o `directories()` provocan bloqueos de I/O en sistemas de archivos locales bajo Windows.
+
+```php
+// ✅ PATRÓN CORRECTO: Caches estáticos en memoria para evitar I/O redundante en ciclo Blade
+class AlmacenTableRowViewModel
+{
+    protected static array $dirExistsCache = [];
+    protected static array $dirDirectoriesCache = [];
+    protected static array $globalAyudasFilesCache = [];
+
+    protected static function safeStorageExists(string $path): bool
+    {
+        return self::$dirExistsCache[$path] ??= \Illuminate\Support\Facades\Storage::disk('local')->exists($path);
+    }
+
+    protected static function safeStorageDirectories(string $path): array
+    {
+        return self::$dirDirectoriesCache[$path] ??= \Illuminate\Support\Facades\Storage::disk('local')->directories($path);
+    }
+}
+```
+

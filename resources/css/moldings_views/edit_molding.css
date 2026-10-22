@@ -23,7 +23,7 @@
     border-radius: 16px;
     box-shadow: var(--glass-shadow);
     
-    padding: 3.5rem 3rem;
+    padding: 2.2rem 2.5rem;
     width: 95%;
     max-width: 1200px;
     display: flex;
@@ -60,7 +60,7 @@ form {
 /* Tabla MUY formal y corporativa */
 .table-container {
     width: 100%;
-    height: 45vh;
+    height: 52vh;
     overflow-y: auto;
     border-radius: 10px;
     border: 3px solid var(--glass-border-white);
@@ -165,7 +165,7 @@ input[type="text"]:focus {
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
 }
 
-/* Botones dentro de tabla (edit/delete) */
+/* Botones dentro de tabla (edit/delete) con icono encima del texto */
 .btn {
     display: inline-block;
     color: #fff;
@@ -182,25 +182,67 @@ input[type="text"]:focus {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.btn:active {
+.molding-table .btn {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 94px;
+    padding: 9px 18px;
+    margin: 0.25em 0.45em;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
+    vertical-align: middle;
+    line-height: 1.1;
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.molding-table .btn .btn-action-icon {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+    filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
+    transition: filter 0.25s ease, transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.molding-table .btn:hover .btn-action-icon {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.35));
+    transform: scale(1.15);
+}
+
+.molding-table .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.24);
+}
+
+.molding-table .btn:active {
     transform: translateY(1px);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 .btn.btn-edit {
-    background: var(--gis-blue);
+    background: linear-gradient(135deg, #033966 0%, #065494 100%);
     border: 1px solid #022a4b;
+    color: #ffffff;
 }
+
 .btn.btn-edit:hover {
-    background: #065494;
+    background: linear-gradient(135deg, #044b85 0%, #086bba 100%);
 }
 
 .btn.btn-delete {
-    background: #dc2626;
-    border: 1px solid #b91c1c;
+    background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+    border: 1px solid #991b1b;
+    color: #ffffff;
 }
+
 .btn.btn-delete:hover {
-    background: #ef4444;
+    background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
 }
 
 /* Botón block principal */

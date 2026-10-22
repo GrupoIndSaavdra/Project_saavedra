@@ -175,12 +175,43 @@ class PiecesOccupiedController extends Controller
      */
     public function show()
     {
+        // Obtener OTs con piezas ocupadas en cualquier proceso para asegurar su presencia en el filtro
+        $occupiedOtIds = [];
+        $activeMetas = Metas::query()->select(['id', 'id_ot'])->get()->keyBy('id');
+
+        foreach (self::$processConfig as $cfg) {
+            $pieceModel = $cfg['piece_model'];
+            $parentModel = $cfg['parent_model'];
+            if (class_exists($pieceModel)) {
+                $occupiedPieces = $pieceModel::query()->where('estado', '=', 1, 'and')->get(['id_meta', 'id_proceso']);
+                foreach ($occupiedPieces as $op) {
+                    if ($op->id_meta && isset($activeMetas[$op->id_meta])) {
+                        $occupiedOtIds[] = $activeMetas[$op->id_meta]->id_ot;
+                    } elseif ($parentModel && $op->id_proceso) {
+                        $parent = $parentModel::query()->find($op->id_proceso);
+                        if ($parent && isset($parent->id_ot)) {
+                            $occupiedOtIds[] = $parent->id_ot;
+                        } elseif ($parent && isset($parent->id_proceso)) {
+                            $parts = explode('_', $parent->id_proceso);
+                            $otCandidate = end($parts);
+                            if (is_numeric($otCandidate)) {
+                                $occupiedOtIds[] = (int) $otCandidate;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        $occupiedOtIds = array_unique(array_filter($occupiedOtIds));
+        $recentOtIds = Orden_trabajo::query()->orderBy('id', 'desc')->limit(100)->pluck('id')->toArray();
+        $targetOtIds = array_unique(array_merge($occupiedOtIds, $recentOtIds));
+
         // Cargar OTs para el selector inicial (con moldura)
         $workOrders = Orden_trabajo::query()
             ->select(['id', 'id_moldura', 'created_at'])
             ->with(['moldura:id,nombre'])
+            ->whereIn('id', $targetOtIds, 'and', false)
             ->orderBy('id', 'desc')
-            ->limit(100)
             ->get();
 
         $processesList = array_map(function ($key, $cfg) {
