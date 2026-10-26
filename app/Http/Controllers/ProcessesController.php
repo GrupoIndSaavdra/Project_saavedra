@@ -215,7 +215,7 @@ class ProcessesController extends Controller
 
 
         $userProfile = (int)(auth()->user()->perfil ?? 0);
-        if ($userProfile === 4 || ($userProfile === 3 && request('sec') === 'calidad')) {
+        if ($userProfile === 4) {
             [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         } else {
             $pieces_Released = [];

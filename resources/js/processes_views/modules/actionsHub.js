@@ -16,16 +16,15 @@ function showInlinePasswordForm(type, imgElement = null) {
 
     // 2. Insertar el div-opacity estándar
     let divOpacity = createDivOpacity();
+    divOpacity.addEventListener("click", () => {
+        removePasswordForms();
+    });
     document.querySelector("body").appendChild(divOpacity);
 
-    // 3. Determinar contenedor y comportamiento
-    let form;
-    let targetContainer = imgElement ? imgElement.parentElement : null;
+    if (!imgElement) return;
 
-    if (!targetContainer) return;
-
-    // Crear formulario dinámico (Nuevo enfoque unificado)
-    form = document.createElement("form");
+    // 3. Crear formulario dinámico (Nuevo enfoque unificado)
+    let form = document.createElement("form");
     form.method = "POST";
     form.className = "form-inline-verification";
     form.action = window.baseUrl + "/processProduction/verified";
@@ -121,25 +120,46 @@ function showInlinePasswordForm(type, imgElement = null) {
     badgePill.appendChild(badgeIcon);
     badgePill.appendChild(badgeText);
     form.appendChild(badgePill);
-
-    // 5. Ubicar el formulario al lado del botón
-    targetContainer.classList.add("is-verifying");
-    document.body.classList.add("is-verifying-active");
     form.appendChild(form_group_password);
-    targetContainer.appendChild(form);
+
+    // 5. Crear barra flotante situada específicamente arriba del botón presionado
+    document.body.classList.add("is-verifying-active");
+
+    let floatingBar = document.createElement("div");
+    floatingBar.className = "gis-verification-floating-bar";
+
+    // Botón de regresar ligeramente más grande
+    let btnBack = document.createElement("img");
+    btnBack.src = window.back;
+    btnBack.className = "img-action-btn img-back-floating";
+    btnBack.title = "Regresar / Cancelar verificación";
+    btnBack.alt = "Regresar";
+    btnBack.onclick = (e) => {
+        e.stopPropagation();
+        removePasswordForms();
+    };
+
+    floatingBar.appendChild(btnBack);
+    floatingBar.appendChild(form);
+
+    // Coordenadas exactas del botón de acción presionado (ligeramente más grande: 68px)
+    const rect = imgElement.getBoundingClientRect();
+    const btnSize = 68;
+    const centerY = rect.top + (rect.height / 2);
+    const centerX = rect.left + (rect.width / 2);
+
+    floatingBar.style.position = "fixed";
+    floatingBar.style.top = `${centerY - (btnSize / 2)}px`;
+    floatingBar.style.left = `${centerX - (btnSize / 2)}px`;
+    floatingBar.style.zIndex = "10000030";
+
+    document.body.appendChild(floatingBar);
 
     // Auto-focus en el input de contraseña para agilidad del usuario
     setTimeout(() => {
         let passInput = form.querySelector(".input-password");
         if (passInput) passInput.focus();
     }, 60);
-
-    // 6. Cambiar icono a "Back" (La capa superior la hereda del contenedor wrapper)
-    if (imgElement) {
-        imgElement.src = window.back;
-        imgElement.title = "Regresar / Cancelar verificación";
-        imgElement.classList.remove("z-11000");
-    }
 }
 
 function toggleFinishReportButton(show) {
@@ -590,11 +610,15 @@ function handleEditPiecesClick(event) {
 }
 
 function removePasswordForms() {
-    // 1. Eliminar el div de opacidad
-    let div_opacity = document.getElementById("div-opacity");
+    // 1. Eliminar barra flotante si existe
+    let floatingBar = document.querySelector(".gis-verification-floating-bar");
+    if (floatingBar) floatingBar.remove();
+
+    // 2. Eliminar el div de opacidad
+    let div_opacity = document.getElementById("div-opacity") || document.querySelector(".div-opacity");
     if (div_opacity) div_opacity.remove();
 
-    // 2. Eliminar el grupo de contraseña si existe (global o local)
+    // 3. Eliminar el grupo de contraseña si existe (global o local)
     let form_group_password = document.querySelector(".form-group-password");
     if (form_group_password) form_group_password.remove();
 

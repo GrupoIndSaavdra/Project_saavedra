@@ -26,6 +26,7 @@ use App\Models\TratamientoTermico;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Schema;
 use App\Http\Controllers\DibujosFundicionPdfController;
 use App\Services\FundicionPaths;
 
@@ -465,7 +466,13 @@ class WOController extends Controller
         $endWeek = $request->input('end_week');
         $otId = $request->input('ot_id');
 
-        $query = Orden_trabajo::with(['moldura', 'clases']);
+        $query = Orden_trabajo::with(['moldura', 'clases'])
+            ->whereDoesntHave('clases', function ($q) {
+                $q->where('finalizada', 2);
+            })
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 0);
+            });
 
         if (!empty($otId)) {
             $query->where('id', $otId);
@@ -520,11 +527,25 @@ class WOController extends Controller
             });
         }
 
-        // Obtener lista de OTs para el select con sus molduras
-        $allOts = Orden_trabajo::with('moldura')->orderBy('id', 'desc')->get();
+        // Obtener lista de OTs activas para el select con sus molduras
+        $allOts = Orden_trabajo::whereDoesntHave('clases', function ($q) {
+                $q->where('finalizada', 2);
+            })
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 0);
+            })
+            ->with('moldura')
+            ->orderBy('id', 'desc')
+            ->get();
 
-        // Obtener lista de semanas únicas para los selects
+        // Obtener lista de semanas únicas para los selects (solo de OTs activas)
         $allWeeksRaw = Orden_trabajo::select('semana_entrega_cliente')
+            ->whereDoesntHave('clases', function ($q) {
+                $q->where('finalizada', 2);
+            })
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 0);
+            })
             ->whereNotNull('semana_entrega_cliente')
             ->where('semana_entrega_cliente', '!=', '')
             ->distinct()
@@ -544,6 +565,379 @@ class WOController extends Controller
     }
 
     /**
+     * Desactivar OTs seleccionadas desde el Dashboard de Prioridades.
+     * Solo accesible para el perfil Master (perfil = 3).
+     * Pone finalizada = 2 a todas las clases de las OTs seleccionadas.
+     */
+    public function deactivatePriorities(Request $request)
+    {
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if ($userProfile !== '3') {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permisos de Master para desactivar Órdenes de Trabajo.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'ot_ids' => 'required|array|min:1',
+            'ot_ids.*' => 'required|string',
+        ]);
+
+        $otIds = $validated['ot_ids'];
+
+        DB::beginTransaction();
+        try {
+            // Actualizar todas las clases de las OTs a finalizada = 2
+            $affectedClasses = Clase::whereIn('id_ot', $otIds)->update(['finalizada' => 2]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => count($otIds) . ' Órden(es) de Trabajo desactivada(s) correctamente.',
+                'deactivated_ots' => $otIds,
+                'affected_classes' => $affectedClasses,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al desactivar OTs en prioridades: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'ot_ids' => $otIds,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al desactivar las OTs seleccionadas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Vista de Prioridades Desactivadas (Exclusivo Master)
+     */
+    public function prioritiesDisabledView(Request $request)
+    {
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if ($userProfile !== '3') {
+            abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para el usuario Master.');
+        }
+
+        $startWeek = $request->input('start_week');
+        $endWeek = $request->input('end_week');
+        $otId = $request->input('ot_id');
+
+        $query = Orden_trabajo::with(['moldura', 'clases'])
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 2);
+            });
+
+        if (!empty($otId)) {
+            $query->where('id', $otId);
+        }
+
+        $workOrders = $query
+            ->orderByRaw('CASE WHEN prioridad IS NULL OR prioridad = 0 THEN 999999 ELSE prioridad END ASC')
+            ->orderByRaw('CAST(semana_entrega_cliente AS UNSIGNED) ASC')
+            ->orderBy('id', 'ASC')
+            ->get();
+
+        $groupedWOs = [];
+        foreach ($workOrders as $wo) {
+            $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
+
+            if (empty($semanaRaw) && (!empty($startWeek) || !empty($endWeek))) {
+                continue;
+            }
+
+            if (!empty($startWeek) && !empty($semanaRaw)) {
+                if ((int) $semanaRaw < (int) $startWeek)
+                    continue;
+            }
+            if (!empty($endWeek) && !empty($semanaRaw)) {
+                if ((int) $semanaRaw > (int) $endWeek)
+                    continue;
+            }
+
+            $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
+            $groupedWOs[$semana][] = $wo;
+        }
+
+        uksort($groupedWOs, function ($a, $b) {
+            if ($a === 'Sin Semana')
+                return 1;
+            if ($b === 'Sin Semana')
+                return -1;
+            return (int) $a - (int) $b;
+        });
+
+        if (isset($groupedWOs['Sin Semana'])) {
+            usort($groupedWOs['Sin Semana'], function ($a, $b) {
+                $timeA = $a->created_at ? $a->created_at->timestamp : 0;
+                $timeB = $b->created_at ? $b->created_at->timestamp : 0;
+                if ($timeA === $timeB) {
+                    return (int) $b->id <=> (int) $a->id;
+                }
+                return $timeB <=> $timeA;
+            });
+        }
+
+        $allOts = Orden_trabajo::whereHas('clases', function ($q) {
+                $q->where('finalizada', 2);
+            })
+            ->with('moldura')
+            ->orderBy('id', 'desc')
+            ->get();
+
+        $allWeeksRaw = Orden_trabajo::select('semana_entrega_cliente')
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 2);
+            })
+            ->whereNotNull('semana_entrega_cliente')
+            ->where('semana_entrega_cliente', '!=', '')
+            ->distinct()
+            ->get()
+            ->map(function ($ot) {
+                return (int) preg_replace('/[^0-9]/', '', $ot->semana_entrega_cliente);
+            })
+            ->filter(function ($week) {
+                return $week > 0;
+            })
+            ->unique()
+            ->sort()
+            ->values()
+            ->toArray();
+
+        return view('wo_views.priorities_disabled', compact('groupedWOs', 'allOts', 'allWeeksRaw', 'startWeek', 'endWeek', 'otId'));
+    }
+
+    /**
+     * Descarga de Prioridades Desactivadas en PDF
+     */
+    public function downloadPrioritiesDisabledPdf(Request $request)
+    {
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if ($userProfile !== '3') {
+            abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para el usuario Master.');
+        }
+
+        $startWeek = $request->input('start_week');
+        $endWeek = $request->input('end_week');
+        $otId = $request->input('ot_id');
+
+        $query = Orden_trabajo::with(['moldura', 'clases'])
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 2);
+            });
+
+        if (!empty($otId)) {
+            $query->where('id', $otId);
+        }
+
+        $workOrders = $query
+            ->orderByRaw('CASE WHEN prioridad IS NULL OR prioridad = 0 THEN 999999 ELSE prioridad END ASC')
+            ->orderByRaw('CAST(semana_entrega_cliente AS UNSIGNED) ASC')
+            ->orderBy('id', 'ASC')
+            ->get();
+
+        $groupedWOs = [];
+        foreach ($workOrders as $wo) {
+            $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
+
+            if (empty($semanaRaw) && (!empty($startWeek) || !empty($endWeek))) {
+                continue;
+            }
+
+            if (!empty($startWeek) && !empty($semanaRaw)) {
+                if ((int) $semanaRaw < (int) $startWeek)
+                    continue;
+            }
+            if (!empty($endWeek) && !empty($semanaRaw)) {
+                if ((int) $semanaRaw > (int) $endWeek)
+                    continue;
+            }
+
+            $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
+            $groupedWOs[$semana][] = $wo;
+        }
+
+        uksort($groupedWOs, function ($a, $b) {
+            if ($a === 'Sin Semana')
+                return 1;
+            if ($b === 'Sin Semana')
+                return -1;
+            return (int) $a - (int) $b;
+        });
+
+        if (isset($groupedWOs['Sin Semana'])) {
+            usort($groupedWOs['Sin Semana'], function ($a, $b) {
+                $timeA = $a->created_at ? $a->created_at->timestamp : 0;
+                $timeB = $b->created_at ? $b->created_at->timestamp : 0;
+                if ($timeA === $timeB) {
+                    return (int) $b->id <=> (int) $a->id;
+                }
+                return $timeB <=> $timeA;
+            });
+        }
+
+        $pdfTitle = 'PRIORIDADES DESACTIVADAS';
+        $pdf = FacadePdf::loadView('wo_views.priorities_pdf_export', compact('groupedWOs', 'startWeek', 'endWeek', 'pdfTitle'));
+
+        $pdf->setOption(['isPhpEnabled' => true]);
+        $pdf->setPaper('letter', 'landscape');
+
+        return $pdf->download('Prioridades_Desactivadas_GIS.pdf');
+    }
+
+    /**
+     * Reactivar OTs seleccionadas desde Prioridades Desactivadas.
+     * Solo accesible para el perfil Master (perfil = 3).
+     * Devuelve las clases con finalizada = 2 a finalizada = 0 para que reaparezcan en todas las vistas.
+     */
+    public function reactivatePriorities(Request $request)
+    {
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if ($userProfile !== '3') {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permisos de Master para reactivar Órdenes de Trabajo.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'ot_ids' => 'required|array|min:1',
+            'ot_ids.*' => 'required|string',
+        ]);
+
+        $otIds = $validated['ot_ids'];
+
+        DB::beginTransaction();
+        try {
+            // Actualizar las clases que estaban en finalizada = 2 de regreso a 0 (activas)
+            $affectedClasses = Clase::whereIn('id_ot', $otIds)
+                ->where('finalizada', 2)
+                ->update(['finalizada' => 0]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => count($otIds) . ' Órden(es) de Trabajo reactivada(s) con éxito. Ya están disponibles en todas las vistas.',
+                'reactivated_ots' => $otIds,
+                'affected_classes' => $affectedClasses,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al reactivar OTs: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'ot_ids' => $otIds,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al reactivar las OTs seleccionadas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Eliminar OTs permanentemente desde Prioridades Desactivadas.
+     * Solo accesible para el perfil Master (perfil = 3).
+     * Elimina definitivamente la OT y todas sus clases, piezas, procesos y dependencias.
+     */
+    public function deletePrioritiesPermanently(Request $request)
+    {
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if ($userProfile !== '3') {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permisos de Master para eliminar Órdenes de Trabajo.'
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'ot_ids' => 'required|array|min:1',
+            'ot_ids.*' => 'required|string',
+        ]);
+
+        $otIds = $validated['ot_ids'];
+
+        DB::beginTransaction();
+        try {
+            // Obtener IDs de clases asociadas a estas OTs
+            $classIds = Clase::whereIn('id_ot', $otIds)->pluck('id')->toArray();
+
+            // 1. Eliminar fechas de procesos y procesos de las clases
+            if (!empty($classIds)) {
+                Fecha_proceso::whereIn('clase', $classIds)->delete();
+                Procesos::whereIn('id_clase', $classIds)->delete();
+            }
+
+            // 2. Eliminar piezas y metas de estas OTs
+            Pieza::whereIn('id_ot', $otIds)->delete();
+            Metas::whereIn('id_ot', $otIds)->delete();
+
+            // 3. Tablas de procesos y operaciones vinculadas por id_ot o ot_id
+            $processTables = [
+                'cepillado', 'desbaste_exterior', 'rev_laterales', 'copiado', 'cavidades',
+                'asentado', 'acabado_molde', 'acabado_bombillo', 'soldadura', 'soldadura_p_t_a',
+                '1ope_soldadura', '2ope_soldadura', '1y2_ope_soldadura', 'barreno_maniobra',
+                'barreno_profundidad', 'palomas', 'off_set', 'rebajes', 'embudo_c_m',
+                'rev_calificado', 'candado_obturador', 'primera_operacion_cabeza_soplo',
+                'segunda_operacion_cabeza_soplo', 'parcialidades_ot', 'remisiones_ot',
+                'pta_resultados'
+            ];
+
+            foreach ($processTables as $table) {
+                if (Schema::hasTable($table)) {
+                    if (Schema::hasColumn($table, 'id_ot')) {
+                        DB::table($table)->whereIn('id_ot', $otIds)->delete();
+                    } elseif (Schema::hasColumn($table, 'ot_id')) {
+                        DB::table($table)->whereIn('ot_id', $otIds)->delete();
+                    }
+                }
+            }
+
+            // 4. Limpiar / inactivar registros en FundicionHistory
+            foreach ($otIds as $idWOrder) {
+                FundicionHistory::query()
+                    ->where('ot', 'LIKE', "OT {$idWOrder}%")
+                    ->delete();
+            }
+
+            // 5. Eliminar las clases
+            Clase::whereIn('id_ot', $otIds)->delete();
+
+            // 6. Eliminar las OTs definitivamente
+            $deletedCount = Orden_trabajo::whereIn('id', $otIds)->delete();
+
+            DB::commit();
+
+            Log::info("Master [user " . auth()->id() . "] eliminó permanentemente " . count($otIds) . " OTs.", [
+                'ot_ids' => $otIds,
+                'deleted_count' => $deletedCount,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => count($otIds) . ' Órden(es) de Trabajo eliminada(s) permanentemente del sistema con éxito.',
+                'deleted_ots' => $otIds,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Error al eliminar OTs permanentemente: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+                'ot_ids' => $otIds,
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al eliminar permanentemente las OTs seleccionadas: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Descarga de Prioridades en PDF (Dashboard Master)
      */
     public function downloadPrioritiesPdf(Request $request)
@@ -552,7 +946,13 @@ class WOController extends Controller
         $endWeek = $request->input('end_week');
         $otId = $request->input('ot_id');
 
-        $query = Orden_trabajo::with(['moldura', 'clases']);
+        $query = Orden_trabajo::with(['moldura', 'clases'])
+            ->whereDoesntHave('clases', function ($q) {
+                $q->where('finalizada', 2);
+            })
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 0);
+            });
 
         if (!empty($otId)) {
             $query->where('id', $otId);
@@ -1539,7 +1939,7 @@ class WOController extends Controller
         }
 
         $userProfile = (int) (auth()->user()->perfil ?? 0);
-        if ($userProfile === 4 || ($userProfile === 3 && request('sec') === 'calidad')) {
+        if ($userProfile === 4) {
             [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
         } else {
             $pieces_Released = [];

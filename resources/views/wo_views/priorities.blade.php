@@ -190,11 +190,86 @@ if (!function_exists('safeDateParseDisplay')) {
                     </span>
                 </div>
             @endif
-            <button type="button" class="btn-export-excel"
-                onclick="exportTableToExcel('prioritiesTable', 'Prioridades_GIS')">Descargar Excel</button>
-            <a href="{{ route('master.priorities.pdf', request()->all()) }}" class="btn-export-pdf"
-                style="text-decoration:none; display:inline-block;">Descargar PDF</a>
-            <button type="button" class="btn-print" onclick="window.print()">Imprimir</button>
+
+            @if ($canEditPriorities)
+                <a href="{{ route('master.priorities.disabled') }}" class="btn-switch-view" title="Ver OTs desactivadas">
+                    <img src="{{ asset('images/iconos/inactivar.png') }}" class="btn-switch-icon" alt="">
+                    <span>Prioridades Desactivadas</span>
+                </a>
+            @endif
+
+            {{-- Menú de Acciones Normal --}}
+            <div class="actions-dropdown-container" id="actionsDropdownContainer">
+                <button type="button" class="btn-actions-trigger" id="btnActionsTrigger" aria-expanded="false">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Acciones</span>
+                    <svg class="dropdown-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </button>
+
+                <div class="actions-dropdown-menu" id="actionsDropdownMenu">
+                    <div class="actions-menu-header">
+                        <span>Acciones Disponibles</span>
+                    </div>
+                    <button type="button" class="actions-menu-item item-excel" onclick="exportTableToExcel('prioritiesTable', 'Prioridades_GIS')">
+                        <div class="action-icon-wrapper">
+                            <img src="{{ asset('images/iconos/Descargar_Excel-Icon.png') }}" class="action-icon-main" alt="Descargar Excel">
+                        </div>
+                        <div class="action-text">
+                            <strong>Descargar Excel</strong>
+                            <small>Exportar archivo tabular .xls</small>
+                        </div>
+                    </button>
+                    <a href="{{ route('master.priorities.pdf', request()->all()) }}" class="actions-menu-item item-pdf" style="text-decoration:none;">
+                        <div class="action-icon-wrapper">
+                            <img src="{{ asset('images/iconos/Descargar_PDF-Icon.png') }}" class="action-icon-main" alt="Descargar PDF">
+                        </div>
+                        <div class="action-text">
+                            <strong>Descargar PDF</strong>
+                            <small>Descargar reporte en formato PDF</small>
+                        </div>
+                    </a>
+                    <button type="button" class="actions-menu-item item-print" onclick="window.print()">
+                        <div class="action-icon-wrapper">
+                            <img src="{{ asset('images/iconos/Imprimir-Icon.png') }}" class="action-icon-main" alt="Imprimir">
+                        </div>
+                        <div class="action-text">
+                            <strong>Imprimir</strong>
+                            <small>Impresión directa de pantalla</small>
+                        </div>
+                    </button>
+                    @if ($canEditPriorities)
+                        <div class="actions-menu-divider"></div>
+                        <button type="button" class="actions-menu-item item-danger" id="btnStartDeactivateMode">
+                            <div class="action-icon-wrapper">
+                                <img src="{{ asset('images/iconos/inactivar.png') }}" class="action-icon-main" alt="Desactivar OTs">
+                            </div>
+                            <div class="action-text">
+                                <strong>Desactivar OTs</strong>
+                                <small>Selección múltiple para desactivar</small>
+                            </div>
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            {{-- Controles durante el Modo Selección Múltiple --}}
+            <div class="selection-mode-controls" id="selectionModeControls" style="display: none;">
+                <div class="selection-counter-badge" id="selectionBadge">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span id="selectedCountText">0 seleccionadas</span>
+                </div>
+                <button type="button" class="btn-cancel-selection" id="btnCancelSelection">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    Cancelar
+                </button>
+                <button type="button" class="btn-confirm-selection" id="btnConfirmDeactivate" disabled>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Confirmar
+                </button>
+            </div>
         </div>
     </div>
 
@@ -230,6 +305,11 @@ if (!function_exists('safeDateParseDisplay')) {
         <table class="excel-table" id="prioritiesTable">
             <thead>
                 <tr>
+                    @if ($canEditPriorities)
+                        <th rowspan="2" class="col-select no-print">
+                            <input type="checkbox" id="selectAllCheckbox" title="Seleccionar todas las OTs">
+                        </th>
+                    @endif
                     @if (!$isReadOnly)
                         <th rowspan="2" class="col-drag no-print">MOVER</th>
                     @endif
@@ -345,6 +425,11 @@ if (!function_exists('safeDateParseDisplay')) {
                             <tr class="pm-table-row {{ $isInactive ? 'is-inactive-ot' : '' }}"
                                 data-ot-id="{{ $wo->id }}" data-is-inactive="{{ $isInactive ? '1' : '0' }}"
                                 style="background-color: {{ $rowColor }};">
+                                @if ($canEditPriorities)
+                                    <td class="col-select no-print text-center">
+                                        <input type="checkbox" class="ot-select-checkbox" data-ot-id="{{ $wo->id }}" data-ot-label="OT {{ $wo->id }} - {{ $wo->cliente ?? 'Sin Cliente' }} ({{ $wo->moldura->nombre ?? $wo->nombre_producto ?? 'Sin Moldura' }})">
+                                    </td>
+                                @endif
                                 @if (!$isReadOnly)
                                     <td class="text-center no-print cell-drag">
                                         <div class="table-drag-handle"
@@ -1434,6 +1519,243 @@ if (!function_exists('safeDateParseDisplay')) {
                 console.error("Error al guardar:", error);
             });
     }
+
+    // ══════════════════════════════════════════════════════════════
+    // CONTROL DEL MENÚ DE ACCIONES Y MODO SELECCIÓN MÚLTIPLE (DESACTIVAR)
+    // ══════════════════════════════════════════════════════════════
+    document.addEventListener('DOMContentLoaded', function() {
+        var actionsContainer = document.getElementById('actionsDropdownContainer');
+        var btnActionsTrigger = document.getElementById('btnActionsTrigger');
+        var btnStartDeactivateMode = document.getElementById('btnStartDeactivateMode');
+        var selectionControls = document.getElementById('selectionModeControls');
+        var btnCancelSelection = document.getElementById('btnCancelSelection');
+        var btnConfirmDeactivate = document.getElementById('btnConfirmDeactivate');
+        var selectedCountText = document.getElementById('selectedCountText');
+        var selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        var prioritiesTable = document.getElementById('prioritiesTable');
+
+        // Toggle dropdown
+        if (btnActionsTrigger && actionsContainer) {
+            btnActionsTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                var isOpen = actionsContainer.classList.contains('is-open');
+                if (isOpen) {
+                    actionsContainer.classList.remove('is-open');
+                    btnActionsTrigger.setAttribute('aria-expanded', 'false');
+                } else {
+                    actionsContainer.classList.add('is-open');
+                    btnActionsTrigger.setAttribute('aria-expanded', 'true');
+                }
+            });
+
+            // Cerrar menú al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!actionsContainer.contains(e.target)) {
+                    actionsContainer.classList.remove('is-open');
+                    btnActionsTrigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+        }
+
+        // Modo Selección Múltiple
+        function updateSelectionState() {
+            var checkedBoxes = document.querySelectorAll('.ot-select-checkbox:checked');
+            var totalBoxes = document.querySelectorAll('.ot-select-checkbox');
+            var count = checkedBoxes.length;
+
+            if (selectedCountText) {
+                selectedCountText.textContent = count === 1 ? '1 OT seleccionada' : count + ' OTs seleccionadas';
+            }
+
+            if (btnConfirmDeactivate) {
+                btnConfirmDeactivate.disabled = (count === 0);
+            }
+
+            if (selectAllCheckbox && totalBoxes.length > 0) {
+                selectAllCheckbox.checked = (count === totalBoxes.length);
+                selectAllCheckbox.indeterminate = (count > 0 && count < totalBoxes.length);
+            }
+        }
+
+        // Iniciar modo desactivar
+        if (btnStartDeactivateMode) {
+            btnStartDeactivateMode.addEventListener('click', function() {
+                if (actionsContainer) actionsContainer.classList.remove('is-open');
+                if (actionsContainer) actionsContainer.style.display = 'none';
+                if (selectionControls) selectionControls.style.display = 'flex';
+                if (prioritiesTable) prioritiesTable.classList.add('is-selection-mode');
+                updateSelectionState();
+            });
+        }
+
+        // Cancelar modo selección
+        if (btnCancelSelection) {
+            btnCancelSelection.addEventListener('click', function() {
+                if (selectionControls) selectionControls.style.display = 'none';
+                if (actionsContainer) actionsContainer.style.display = 'inline-block';
+                if (prioritiesTable) prioritiesTable.classList.remove('is-selection-mode');
+
+                // Desmarcar todos los checkboxes y clases
+                document.querySelectorAll('.ot-select-checkbox').forEach(function(cb) {
+                    cb.checked = false;
+                    var tr = cb.closest('tr');
+                    if (tr) tr.classList.remove('row-selected-deactivate');
+                });
+                if (selectAllCheckbox) {
+                    selectAllCheckbox.checked = false;
+                    selectAllCheckbox.indeterminate = false;
+                }
+                updateSelectionState();
+            });
+        }
+
+        // Toggle individual checkbox y clic en la fila
+        if (prioritiesTable) {
+            prioritiesTable.addEventListener('change', function(e) {
+                if (e.target && e.target.classList.contains('ot-select-checkbox')) {
+                    var tr = e.target.closest('tr');
+                    if (tr) {
+                        if (e.target.checked) {
+                            tr.classList.add('row-selected-deactivate');
+                        } else {
+                            tr.classList.remove('row-selected-deactivate');
+                        }
+                    }
+                    updateSelectionState();
+                }
+            });
+
+            // Permitir seleccionar haciendo clic en la celda del checkbox
+            prioritiesTable.addEventListener('click', function(e) {
+                if (!prioritiesTable.classList.contains('is-selection-mode')) return;
+                var td = e.target.closest('td.col-select');
+                if (td && e.target.tagName !== 'INPUT') {
+                    var cb = td.querySelector('.ot-select-checkbox');
+                    if (cb) {
+                        cb.checked = !cb.checked;
+                        cb.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }
+            });
+        }
+
+        // Seleccionar / Deseleccionar todas
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                var isChecked = this.checked;
+                document.querySelectorAll('.ot-select-checkbox').forEach(function(cb) {
+                    cb.checked = isChecked;
+                    var tr = cb.closest('tr');
+                    if (tr) {
+                        if (isChecked) {
+                            tr.classList.add('row-selected-deactivate');
+                        } else {
+                            tr.classList.remove('row-selected-deactivate');
+                        }
+                    }
+                });
+                updateSelectionState();
+            });
+        }
+
+        // Confirmar desactivación
+        if (btnConfirmDeactivate) {
+            btnConfirmDeactivate.addEventListener('click', function() {
+                var checkedBoxes = Array.from(document.querySelectorAll('.ot-select-checkbox:checked'));
+                if (checkedBoxes.length === 0) return;
+
+                var selectedOts = checkedBoxes.map(function(cb) {
+                    return {
+                        id: cb.dataset.otId,
+                        label: cb.dataset.otLabel || ('OT ' + cb.dataset.otId)
+                    };
+                });
+
+                var listHtml = '<ul style="text-align: left; max-height: 150px; overflow-y: auto; padding-left: 20px; margin: 10px 0; font-size: 0.9rem; color: #1e293b;">';
+                selectedOts.forEach(function(ot) {
+                    listHtml += '<li style="margin-bottom: 4px;"><strong>' + ot.label + '</strong></li>';
+                });
+                listHtml += '</ul>';
+
+                Swal.fire({
+                    title: '¿Desactivar ' + (selectedOts.length === 1 ? 'esta Orden de Trabajo?' : selectedOts.length + ' Órdenes de Trabajo?'),
+                    html: `
+                        <div style="text-align: left; font-size: 0.92rem; line-height: 1.5; color: #334155;">
+                            <p style="margin-bottom: 8px; color: #b91c1c; font-weight: 700;">
+                                ⚠️ ATENCIÓN: Esta acción desactivará las siguientes OTs y TODOS sus procesos asociados en todo el sistema:
+                            </p>
+                            ${listHtml}
+                            <p style="margin-top: 10px; font-size: 0.86rem; color: #64748b; margin-bottom: 0;">
+                                Las OTs desactivadas dejarán de aparecer en Prioridades, Progreso, Maquinado y todas las demás vistas operativas. 
+                                Solo podrán ser consultadas y reactivadas por el Master desde la nueva vista <strong>Prioridades Desactivadas</strong>.
+                            </p>
+                        </div>
+                    `,
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonText: 'Sí, Desactivar OTs',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonColor: '#dc2626',
+                    cancelButtonColor: '#64748b',
+                    reverseButtons: true,
+                    focusCancel: true
+                }).then(function(result) {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Desactivando OTs...',
+                            html: 'Actualizando el estado en la base de datos...',
+                            allowOutsideClick: false,
+                            didOpen: function() {
+                                Swal.showLoading();
+                            }
+                        });
+
+                        var csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+                        var otIds = selectedOts.map(function(item) { return item.id; });
+
+                        fetch("{{ route('master.priorities.deactivate') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: JSON.stringify({ ot_ids: otIds })
+                        })
+                        .then(function(res) { return res.json(); })
+                        .then(function(data) {
+                            if (data && data.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡OTs Desactivadas!',
+                                    text: data.message,
+                                    timer: 1800,
+                                    showConfirmButton: false
+                                }).then(function() {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'Error',
+                                    text: data.message || 'No fue posible desactivar las OTs seleccionadas.'
+                                });
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error("Error al desactivar:", err);
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error de Red',
+                                text: 'Ocurrió un error al procesar la solicitud con el servidor.'
+                            });
+                        });
+                    }
+                });
+            });
+        }
+    });
 
     // ══════════════════════════════════════════════════════════════
     // DRAG AND DROP EN LA TABLA DE PRIORIDADES CON SELECCIÓN DE SEMANA

@@ -30,7 +30,7 @@
    los re-pinta cada frame y eso hace que el modal se sienta trabado.
    `body:has(> .x)` solo evalúa hijos directos del body → costo mínimo. */
 body:has(> .prod-viewer-portal) *:not(.prod-viewer-portal, .prod-viewer-portal *),
-body.is-verifying-active *:not(.is-verifying, .is-verifying *) {
+body.is-verifying-active *:not(.is-verifying, .is-verifying *, .div-opacity, #div-opacity, .div-opacity *, .production-actions-card, .production-actions-card *) {
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     animation-play-state: paused !important;
@@ -631,10 +631,10 @@ body.is-verifying-active *:not(.is-verifying, .is-verifying *) {
     filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.15));
 }
 
-/* Asegurar que el botón activo en verificación y su popup salgan por encima del overlay global */
+/* Mantener container-meta con z-index auto para permitir que .production-actions-card se eleve sobre el overlay */
 body:has(.is-verifying) .container-meta,
 body.is-verifying-active .container-meta {
-    z-index: 10000000 !important;
+    z-index: auto !important;
 }
 
 /* Dim/opacar todos los elementos laterales (.principal-data y .div-table-code) bajo el filtro azul */

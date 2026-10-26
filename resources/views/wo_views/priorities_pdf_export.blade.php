@@ -99,7 +99,7 @@
                 <img src="{{ public_path('images/logos/lg_saavedra.png') }}" width="90" height="auto">
             </td>
             <td style="width: 45%; border: 2px solid #000000; background-color: #033966; color: #ffffff; text-align: center; vertical-align: middle; padding: 4px;">
-                <h1 style="font-family: 'Algerian', serif; font-size: 20px; letter-spacing: 4px; margin: 0;">PRIORIDADES</h1>
+                <h1 style="font-family: 'Algerian', serif; font-size: 20px; letter-spacing: 4px; margin: 0;">{{ $pdfTitle ?? 'PRIORIDADES' }}</h1>
             </td>
             <td style="width: 20%; border: 2px solid #000000; background-color: #0A8504; color: #ffffff; text-align: center; vertical-align: middle; padding: 4px;">
                 <h2 style="font-size: 13px; margin: 0; font-family: Arial, sans-serif;">

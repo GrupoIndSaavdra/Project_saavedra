@@ -442,7 +442,10 @@
 
 /* Modo Verificación: Modales de contraseña inline que emergen desde el botón presionado */
 .action-btn-wrapper.is-verifying {
+    -webkit-transform: none !important;
     transform: none !important;
+    -webkit-transition: none !important;
+    transition: none !important;
     z-index: 10000030 !important;
     position: relative !important;
     display: inline-flex !important;
@@ -454,7 +457,10 @@
 }
 
 .action-btn-wrapper.is-verifying:hover {
+    -webkit-transform: none !important;
     transform: none !important;
+    -webkit-transition: none !important;
+    transition: none !important;
 }
 
 /* Hover específico exclusivo para el botón de regresar */
@@ -466,14 +472,24 @@
     height: clamp(50px, 4.6vw, 64px) !important;
     flex-shrink: 0 !important;
     cursor: pointer !important;
-    transition: transform 0.18s ease-out, filter 0.18s ease-out;
+    -webkit-transition: -webkit-transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), -webkit-filter 0.18s ease-out;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.18s ease-out;
+    -webkit-filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
     filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.35));
 }
 
 .action-btn-wrapper.is-verifying .img-action-btn:hover,
 .edit-meta-wrapper.is-verifying .img-edit:hover {
-    transform: scale(1.14) rotate(-8deg);
-    filter: drop-shadow(0 4px 14px rgba(2, 132, 199, 0.6));
+    -webkit-transform: scale(1.15) rotate(-6deg) !important;
+    transform: scale(1.15) rotate(-6deg) !important;
+    -webkit-filter: drop-shadow(0 4px 14px rgba(2, 132, 199, 0.65)) !important;
+    filter: drop-shadow(0 4px 14px rgba(2, 132, 199, 0.65)) !important;
+}
+
+.action-btn-wrapper.is-verifying .img-action-btn:active,
+.edit-meta-wrapper.is-verifying .img-edit:active {
+    -webkit-transform: scale(0.96) !important;
+    transform: scale(0.96) !important;
 }
 
 .action-btn-wrapper.is-verifying .action-label {
@@ -481,79 +497,91 @@
 }
 
 .action-btn-wrapper.is-verifying .form-inline-verification,
+.form-inline-verification,
+.action-btn-wrapper.is-verifying .form-inline-verification,
 .edit-meta-wrapper.is-verifying .form-inline-verification {
-    position: absolute;
-    left: calc(100% + 14px);
-    top: 50%;
-    transform: translateY(-50%);
-    width: -webkit-max-content;
-    width: max-content;
-    white-space: nowrap;
+    position: relative;
+    width: -webkit-max-content !important;
+    width: max-content !important;
+    white-space: nowrap !important;
     z-index: 10000040 !important;
-    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+    background: rgba(255, 255, 255, 0.94) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(190%) !important;
+    backdrop-filter: blur(24px) saturate(190%) !important;
     opacity: 1 !important;
     visibility: visible !important;
-    padding: 0.55rem 0.95rem;
-    border-radius: 16px;
-    border: 2px solid rgba(255, 255, 255, 0.9);
+    padding: 0.65rem 1.15rem !important;
+    border-radius: 22px !important;
+    border: 2px solid rgba(255, 255, 255, 0.95) !important;
     box-shadow:
-        0 16px 40px -8px rgba(0, 15, 35, 0.5),
-        0 4px 14px rgba(3, 57, 102, 0.15),
-        0 0 0 1.5px rgba(3, 57, 102, 0.18);
-    display: flex !important;
-    align-items: center;
-    gap: 0.8rem;
+        0 20px 48px -10px rgba(0, 15, 35, 0.5),
+        0 6px 20px rgba(3, 57, 102, 0.18),
+        0 0 0 1px rgba(3, 57, 102, 0.08) !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 1rem !important;
     animation: popInVerification 0.15s ease-out;
     cursor: default !important;
-    pointer-events: auto;
-    box-sizing: border-box;
+    pointer-events: auto !important;
+    box-sizing: border-box !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    -webkit-transition: none !important;
+    transition: none !important;
 }
 
 /* El elemento contenedor (pastilla de contraseña) es estático y no tiene efecto hover */
+.form-inline-verification:hover,
 .action-btn-wrapper.is-verifying .form-inline-verification:hover,
 .edit-meta-wrapper.is-verifying .form-inline-verification:hover {
-    transform: translateY(-50%) !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    -webkit-transition: none !important;
+    transition: none !important;
 }
 
 /* Acentos según el tipo de verificación (Calidad, Reporte, Piezas) */
 .form-inline-verification.is-quality-verify {
-    border-color: rgba(16, 185, 129, 0.4) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
     box-shadow:
-        0 16px 40px -8px rgba(0, 25, 15, 0.5),
-        0 4px 14px rgba(10, 133, 4, 0.18),
+        0 20px 48px -10px rgba(0, 25, 15, 0.5),
+        0 6px 20px rgba(10, 133, 4, 0.22),
         0 0 0 1.5px rgba(10, 133, 4, 0.3) !important;
 }
 
 .form-inline-verification.is-admin-verify {
-    border-color: rgba(3, 57, 102, 0.35) !important;
+    border-color: rgba(3, 57, 102, 0.45) !important;
     box-shadow:
-        0 16px 40px -8px rgba(0, 15, 35, 0.5),
-        0 4px 14px rgba(3, 57, 102, 0.2),
+        0 20px 48px -10px rgba(0, 15, 35, 0.5),
+        0 6px 20px rgba(3, 57, 102, 0.22),
         0 0 0 1.5px rgba(3, 57, 102, 0.3) !important;
 }
 
 .form-inline-verification.is-pieces-verify {
-    border-color: rgba(2, 132, 199, 0.35) !important;
+    border-color: rgba(2, 132, 199, 0.45) !important;
     box-shadow:
-        0 16px 40px -8px rgba(0, 20, 40, 0.5),
-        0 4px 14px rgba(2, 132, 199, 0.2),
+        0 20px 48px -10px rgba(0, 20, 40, 0.5),
+        0 6px 20px rgba(2, 132, 199, 0.22),
         0 0 0 1.5px rgba(2, 132, 199, 0.3) !important;
 }
 
-/* Badge identificador de contexto dentro del popup */
+/* Badge identificador de contexto dentro del popup - Tamaño Amplio y Cómodo */
 .verify-context-badge {
     display: inline-flex;
     align-items: center;
-    gap: 7px;
-    padding: 0.35rem 0.8rem;
-    border-radius: 10px;
-    font-size: 0.78rem;
-    font-weight: 800;
+    gap: 9px;
+    padding: 0.55rem 1.1rem;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    font-weight: 850;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
     box-sizing: border-box;
+    white-space: nowrap;
 }
 
 .verify-context-badge.badge-quality {
@@ -575,45 +603,54 @@
 }
 
 .verify-badge-icon {
-    width: 20px;
-    height: 20px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.18));
 }
 
 .verify-badge-text {
     line-height: 1;
+    white-space: nowrap;
 }
 
 @keyframes popInVerification {
     0% {
-        transform: translateY(-50%) scale(0.95);
+        opacity: 0;
+        transform: scale(0.96);
     }
     100% {
-        transform: translateY(-50%) scale(1);
+        opacity: 1;
+        transform: scale(1);
     }
 }
 
+.form-inline-verification .form-group-password,
 .action-btn-wrapper.is-verifying .form-group-password,
 .edit-meta-wrapper.is-verifying .form-group-password {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    padding: 0;
-    margin: 0;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    flex-wrap: nowrap !important;
+    gap: 1rem !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    white-space: nowrap !important;
 }
 
+.form-inline-verification .password-input-wrapper,
 .action-btn-wrapper.is-verifying .password-input-wrapper,
 .edit-meta-wrapper.is-verifying .password-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
+    position: relative !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    white-space: nowrap !important;
 }
 
 /* Icono de candado interior */
 .password-lock-icon {
     position: absolute;
-    left: 0.85rem;
+    left: 1.15rem;
     top: 50%;
     transform: translateY(-50%);
     color: #64748b;
@@ -629,88 +666,93 @@
     color: #0284c7;
 }
 
+/* Campo de contraseña amplio, ergonómico y con legibilidad total */
+.form-inline-verification .input-password,
 .action-btn-wrapper.is-verifying .input-password,
 .edit-meta-wrapper.is-verifying .input-password {
-    font-size: 0.94rem;
-    font-weight: 700;
-    padding: 0.6em 2.6em 0.6em 2.4em;
-    width: 285px;
-    border: 1.8px solid #cbd5e1;
-    border-radius: 10px;
-    background: #ffffff;
-    color: #0f172a;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05);
-    box-sizing: border-box;
+    height: 52px !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    padding: 0 3.8rem 0 3.4rem !important;
+    width: 330px !important;
+    border: 2px solid #cbd5e1 !important;
+    border-radius: 14px !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05) !important;
+    box-sizing: border-box !important;
 }
 
+.form-inline-verification .input-password::placeholder,
 .action-btn-wrapper.is-verifying .input-password::placeholder,
 .edit-meta-wrapper.is-verifying .input-password::placeholder {
-    color: #94a3b8;
-    font-size: 0.88rem;
-    font-weight: 600;
+    color: #94a3b8 !important;
+    font-size: 0.96rem !important;
+    font-weight: 600 !important;
 }
 
+.form-inline-verification .input-password:focus,
 .action-btn-wrapper.is-verifying .input-password:focus,
 .edit-meta-wrapper.is-verifying .input-password:focus {
-    outline: none;
-    border-color: #0284c7;
-    box-shadow: 0 0 0 3.5px rgba(2, 132, 199, 0.2);
+    outline: none !important;
+    border-color: #0284c7 !important;
+    box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.22) !important;
 }
 
+/* Botón Ojo de Mostrar/Ocultar con Área Táctil Amplia */
+.form-inline-verification .eye-toggle,
 .action-btn-wrapper.is-verifying .eye-toggle,
 .edit-meta-wrapper.is-verifying .eye-toggle {
-    position: absolute;
-    right: 0.85rem;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #64748b;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: color 0.15s ease, transform 0.15s ease;
-    z-index: 2;
+    position: absolute !important;
+    right: 0.85rem !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 10px !important;
+    color: #64748b !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    transition: color 0.15s ease, background 0.15s ease, transform 0.15s ease !important;
+    z-index: 2 !important;
 }
 
+.form-inline-verification .eye-toggle:hover,
 .action-btn-wrapper.is-verifying .eye-toggle:hover,
 .edit-meta-wrapper.is-verifying .eye-toggle:hover {
-    color: #0284c7;
-    transform: translateY(-50%) scale(1.15);
+    color: #0284c7 !important;
+    background: rgba(2, 132, 199, 0.12) !important;
+    transform: translateY(-50%) scale(1.1) !important;
 }
 
-/* Botón Verificar Moderno con Icono Corporativo y Efectos Visuales */
+/* Botón Verificar Moderno y Proporcional */
 .btn-submit-password,
+.form-inline-verification .btn-submit-password,
 .action-btn-wrapper.is-verifying .btn-submit-password,
 .edit-meta-wrapper.is-verifying .btn-submit-password {
-    position: relative;
-    overflow: hidden;
-    height: 44px;
-    padding: 0 1.4rem;
-    font-size: 0.9rem;
+    position: relative !important;
+    overflow: hidden !important;
+    height: 52px !important;
+    padding: 0 1.8rem !important;
+    font-size: 1rem !important;
     font-weight: 850;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    border-radius: 12px;
+    border-radius: 14px !important;
     background: linear-gradient(135deg, #033966 0%, #0d5ca8 55%, #1d72b8 100%) !important;
     color: #ffffff !important;
-    border: 2px solid rgba(255, 255, 255, 0.85) !important;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.35);
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    contain: paint;
-    isolation: isolate;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    flex-shrink: 0;
-    z-index: 2;
-    text-decoration: none;
+    border: 2px solid rgba(255, 255, 255, 0.9) !important;
+    box-shadow: 0 6px 18px rgba(3, 57, 102, 0.35) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 0.65rem !important;
+    cursor: pointer !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
 }
 
 /* Rayo / destello en barrido continuo que se activa al hacer hover (Acelerado por GPU) */
@@ -1030,97 +1072,105 @@
     animation: pulseGlowCotas 1.8s infinite alternate ease-in-out;
 }
 
-/* Rendimiento: solo se usa body.is-verifying-active (lo agrega/quita actionsHub.js).
-   Se eliminaron los selectores body:has(.is-verifying) porque forzaban recálculo
-   de estilos de toda la página en cada mutación del DOM (lag al escribir la contraseña). */
-body.is-verifying-active .container-meta > div:not(:has(.is-verifying)) {
-    opacity: 0.15 !important;
-    pointer-events: none !important;
-    transition: opacity 0.15s ease;
+/* ── Overlay Filtro Azul Corporativo en Modo Verificación ── */
+body.is-verifying-active #div-opacity,
+body.is-verifying-active .div-opacity {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    box-sizing: border-box !important;
+    background: rgba(0, 10, 25, 0.85) !important; /* Filtro azulito corporativo GIS sin blur */
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    z-index: 10000000 !important;
+    opacity: 1 !important;
+    animation: none !important;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
 }
 
-/* Dim/opacar elementos hermanos superiores dentro de .div-table-meta (tabla de metas y aviso de producción) */
+/* Evitar interacción con elementos hermanos mientras la verificación está activa */
+body.is-verifying-active .container-meta > div:not(:has(.is-verifying)) {
+    pointer-events: none !important;
+}
+
 body.is-verifying-active
     .div-table-meta
     > *:not(.is-verifying):not(:has(.is-verifying)) {
-    opacity: 0.15 !important;
     pointer-events: none !important;
-    transition: opacity 0.15s ease;
 }
 
-/* Mantener tarjeta de acciones y columna visible durante verificación con su diseño intacto */
-body.is-verifying-active .production-actions-card,
-.production-actions-card:has(.is-verifying) {
-    z-index: 10000010 !important;
+/* Mantener la tarjeta de acciones visible en su posición original, con z-index inferior al filtro oscuro */
+body.is-verifying-active .production-actions-card {
     position: relative !important;
-    overflow: visible !important;
-}
-
-/* Dim/opacar columnas y elementos que no están en verificación (Progreso de piezas, Documentación, cabeceras) */
-body.is-verifying-active .hub-column:not(:has(.is-verifying)),
-.production-actions-card:has(.is-verifying) .hub-column:not(:has(.is-verifying)),
-body.is-verifying-active .process-section {
-    opacity: 0.2 !important;
-    pointer-events: none !important;
-    z-index: 0 !important;
-    transition: opacity 0.15s ease;
-}
-
-/* Anular absolutamente el hover, transform y elevación durante el modo verificación */
-body.is-verifying-active .hub-column:hover,
-body.is-verifying-active .hub-column.hub-admin:hover,
-body.is-verifying-active .hub-progress:hover,
-body.is-verifying-active .process-section:hover,
-body.is-verifying-active .production-actions-card:hover {
-    transform: none !important;
-}
-
-body.is-verifying-active .hub-column:not(:has(.is-verifying)):hover,
-body.is-verifying-active .hub-progress:hover,
-body.is-verifying-active .process-section:hover {
-    transform: none !important;
-    z-index: 0 !important;
-    box-shadow: none !important;
-    border-color: inherit !important;
+    z-index: 10 !important;
     pointer-events: none !important;
 }
 
-body.is-verifying-active .hub-column:has(.is-verifying),
-.production-actions-card .hub-column:has(.is-verifying) {
-    z-index: 10000020 !important;
-    position: relative !important;
-    overflow: visible !important;
-}
-
-body.is-verifying-active .hub-column:has(.is-verifying):hover {
-    transform: none !important;
-}
-
-body.is-verifying-active .hub-section-header {
-    opacity: 0.15 !important;
-    transition: opacity 0.15s ease;
-}
-
-body.is-verifying-active .production-actions > *:not(.is-verifying),
-body.is-verifying-active .hub-buttons-row > *:not(.is-verifying) {
-    opacity: 0.15 !important;
-    pointer-events: none !important;
-    transition: opacity 0.15s ease;
-}
-
-.is-verifying {
+/* Barra flotante de verificación (Flecha posicionada exactamente sobre el botón + formulario) */
+.gis-verification-floating-bar {
+    position: fixed !important;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 16px !important;
     z-index: 10000030 !important;
+    pointer-events: auto !important;
+    width: -webkit-max-content !important;
+    width: max-content !important;
 }
 
-.action-btn-wrapper.is-verifying {
-    transform: none !important;
-    z-index: 10000030 !important;
+/* Botón de regresar flotante: ligeramente más grande y con escala exclusiva en hover */
+.gis-verification-floating-bar .img-back-floating {
+    width: 68px !important;
+    height: 68px !important;
+    flex-shrink: 0 !important;
+    cursor: pointer !important;
+    filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.45));
+    -webkit-transition: -webkit-transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), -webkit-filter 0.18s ease-out;
+    transition: transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), filter 0.18s ease-out;
+}
+
+.gis-verification-floating-bar .img-back-floating:hover {
+    -webkit-transform: scale(1.15) rotate(-6deg) !important;
+    transform: scale(1.15) rotate(-6deg) !important;
+    -webkit-filter: drop-shadow(0 4px 14px rgba(2, 132, 199, 0.75)) !important;
+    filter: drop-shadow(0 4px 14px rgba(2, 132, 199, 0.75)) !important;
+}
+
+.gis-verification-floating-bar .img-back-floating:active {
+    -webkit-transform: scale(0.96) !important;
+    transform: scale(0.96) !important;
+}
+
+/* Pastilla de contraseña estática, sin saltos ni hover scale */
+.gis-verification-floating-bar .form-inline-verification {
     position: relative !important;
-}
-
-.action-btn-wrapper.is-verifying .form-inline-verification,
-.form-group-password {
+    margin: 0 !important;
+    top: auto !important;
+    left: auto !important;
+    -webkit-transform: none !important;
+    transform: none !important;
+    -webkit-transition: none !important;
+    transition: none !important;
     z-index: 10000040 !important;
+    cursor: default !important;
+    box-shadow:
+        0 16px 40px -8px rgba(0, 15, 35, 0.5),
+        0 4px 14px rgba(3, 57, 102, 0.15),
+        0 0 0 1.5px rgba(3, 57, 102, 0.18);
+}
+
+.gis-verification-floating-bar .form-inline-verification:hover {
+    -webkit-transform: none !important;
+    transform: none !important;
+    -webkit-transition: none !important;
+    transition: none !important;
 }
 
 /* ==========================================================================

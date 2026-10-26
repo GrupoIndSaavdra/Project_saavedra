@@ -38,6 +38,7 @@
         window.liberar = window.getIcon('liberar');
         window.rechazar = window.getIcon('rechazar');
         window.ojito = window.getIcon('ojito');
+        window.iconoLiberacion = window.getIcon('vista_liberacion');
     </script>
 </head>
 
@@ -121,6 +122,7 @@
         manageWO: @json(route('manageWO')),
         createMasterWO: @json(route('createMasterWO')),
         masterPriorities: @json(route('master.priorities')),
+        masterPrioritiesDisabled: @json(route('master.priorities.disabled')),
         show_panelWO: @json(route('show_panelWO')),
         users: @json(route('users')), // PENDING
         usersOrganigrama: @json(route('users.organigrama')),
@@ -243,10 +245,8 @@
 
 @isset($pieces_Released)
     <script>
-        window.pieces_Released = ({{ auth()->user()->perfil }} == 4 || ({{ auth()->user()->perfil }} == 3 &&
-            "{{ request('sec') }}" === "calidad")) ? @json($pieces_Released) : [];
-        window.info_Pieces = ({{ auth()->user()->perfil }} == 4 || ({{ auth()->user()->perfil }} == 3 &&
-            "{{ request('sec') }}" === "calidad")) ? @json($info_Pieces) : [];
+        window.pieces_Released = ({{ auth()->user()->perfil ?? 0 }} == 4) ? @json($pieces_Released) : [];
+        window.info_Pieces = ({{ auth()->user()->perfil ?? 0 }} == 4) ? @json($info_Pieces) : [];
     </script>
 @endisset
 

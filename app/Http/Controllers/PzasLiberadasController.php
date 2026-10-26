@@ -97,7 +97,13 @@ class PzasLiberadasController extends Controller
         $filtersData = $array[5];
         $profile = "quality";
 
-        [$pieces_Released, $info_Pieces] = $this->piecesToBeReleased();
+        $userProfile = (int) (auth()->user()->perfil ?? 0);
+        if ($userProfile === 4) {
+            [$pieces_Released, $info_Pieces] = $this->piecesToBeReleased();
+        } else {
+            $pieces_Released = [];
+            $info_Pieces = [];
+        }
 
         if ($toView) {
             return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'pieces_Released', 'info_Pieces'));
@@ -124,9 +130,16 @@ class PzasLiberadasController extends Controller
         } else {
             $this->rechazarPieza($this->getPiezasLiberar($request->pieza, $request->proceso, $request->buena), $request->proceso, $request->observationPiece);
         }
-        // Datos de las piezas
-        if (isset($request->requestLiberation)) {
-            // El resto de la función se encargará de procesar los filtros y devolver la vista actualizada
+
+        if ($request->expectsJson() || $request->ajax()) {
+            $actionVerb = ($request->liberar == 'true') ? 'liberada' : 'rechazada';
+            return response()->json([
+                'success' => true,
+                'message' => "Pieza {$actionVerb} correctamente.",
+                'action'  => ($request->liberar == 'true') ? 'liberar' : 'rechazar',
+                'pieza'   => $request->pieza,
+                'proceso' => $request->proceso,
+            ]);
         }
         $extraRequest = explode("|", $request->extraRequest);
 

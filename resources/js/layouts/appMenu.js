@@ -535,6 +535,7 @@ function getRoutes(profile) {
                     title: "Prioridades",
                     routes: [
                         ["masterPriorities", "Prioridades GIS"],
+                        ["masterPrioritiesDisabled", "Prioridades Desactivadas"],
                     ],
                 },
                 {
@@ -744,7 +745,7 @@ function getRoutes(profile) {
 }
 
 
-//Si window.pieces_released es de tipo Object convertirlo a Array
+// Si window.pieces_Released es de tipo Object convertirlo a Array
 if (window.pieces_Released) {
     window.pieces_Released = !Array.isArray(window.pieces_Released)
         ? Object.values(window.pieces_Released)
@@ -754,11 +755,39 @@ if (window.pieces_Released) {
         const divOpacity = document.createElement("div");
         divOpacity.classList.add("filter-opacity-home");
 
-        // Crear elementos
+        // Crear contenedor principal del modal
         const divTable = document.createElement("div");
         divTable.className = "div-table-pieces-released";
+
+        const iconLiberacion = window.iconoLiberacion || (window.getIcon ? window.getIcon('vista_liberacion') : '') || `${window.baseUrl}/images/vistas/Liberacion_Pzas.png`;
+
+        // Encabezado corporativo del modal con contador dinámico
+        const headerModal = document.createElement("div");
+        headerModal.className = "header-pieces-released-modal";
+        headerModal.innerHTML = `
+            <div class="header-brand-wrap">
+                <img src="${iconLiberacion}" alt="Liberación de piezas" class="modal-header-icon" />
+                <div class="header-title-box">
+                    <span class="header-badge-warning">Atención Obligatoria</span>
+                    <h2 class="header-modal-title">Liberación de Piezas — Control de Calidad</h2>
+                    <p class="header-modal-desc">
+                        Existen piezas maquinadas pendientes de inspección o con reporte. Debe liberar o rechazar cada pieza para continuar.
+                    </p>
+                </div>
+            </div>
+            <div class="header-counter-box">
+                <span class="counter-number" id="pending-pieces-count">${window.pieces_Released.length}</span>
+                <span class="counter-label">Piezas pendientes</span>
+            </div>
+        `;
+        divTable.appendChild(headerModal);
+
+        // Contenedor scrollable para la tabla
+        const tableWrapper = document.createElement("div");
+        tableWrapper.className = "table-wrapper-released";
+
         const table = document.createElement("table");
-        table.id = "table";
+        table.id = "table-pieces-released-home";
         table.classList.add("table-pieces-released");
 
         const thead = document.createElement("thead");
@@ -767,8 +796,7 @@ if (window.pieces_Released) {
         // Agregar encabezados base
         const headers = ["Clase", "Orden de trabajo", "Juego", "Nombre del operador", "Máquina", "Proceso"];
 
-        // Agregar columnas base
-        headers.forEach((header, i) => {
+        headers.forEach((header) => {
             const th = document.createElement("th");
             th.textContent = header;
             if (header === "Nombre del operador") th.classList.add("cell-long-text");
@@ -793,46 +821,46 @@ if (window.pieces_Released) {
             tr.appendChild(th);
         });
 
-        // Estructurar tabla
         thead.appendChild(tr);
         table.appendChild(thead);
-        divTable.appendChild(table);
+        tableWrapper.appendChild(table);
+        divTable.appendChild(tableWrapper);
 
-        // Finalmente, agregar a tu documento
-        divOpacity.appendChild(divTable); // O donde tú necesites insertarlo
+        divOpacity.appendChild(divTable);
         document.body.appendChild(divOpacity);
-        crearTabla(window.pieces_Released, window.info_Pieces);
+        crearTabla(window.pieces_Released, window.info_Pieces, divOpacity);
     }
 }
-function crearTabla(piezas, infoPiezas) {
-    //Crea la tabla de piezas trabajadas en la O.T
-    console.log(piezas);
-    const table = document.getElementById("table");
+
+function crearTabla(piezas, infoPiezas, divOpacity) {
+    const table = document.getElementById("table-pieces-released-home");
+    if (!table) return;
+
     const tbody = document.createElement("tbody");
-    //Convertir el objeto a un array
-    piezas.forEach((pieza, counter) => {
+
+    piezas.forEach((piezaRaw, counter) => {
         const tr = document.createElement("tr");
-        pieza = orderedArray(pieza);
-        //Insertar valores
+        const pieza = orderedArray(piezaRaw);
+
         Object.keys(pieza).forEach((key) => {
-            if (key != "colorPiece") {
+            if (key !== "colorPiece") {
                 const td = document.createElement("td");
                 switch (key) {
                     case "btn_release":
                         if (!pieza[key][1].includes("Incompleto") && pieza[key][0] != 1) {
-                            td.appendChild(crearBotonLiberar(infoPiezas, counter, piezas));
+                            td.appendChild(crearBotonLiberar(infoPiezas, counter, piezas, tr, divOpacity));
                         }
                         break;
                     case "btn_decline":
                         if (pieza[key] != 2) {
-                            td.appendChild(crearBotonRechazar(infoPiezas, counter));
+                            td.appendChild(crearBotonRechazar(infoPiezas, counter, tr, divOpacity));
                         }
                         break;
                     case "btn_seePiece":
                         td.appendChild(crearBotonVer(infoPiezas, counter, pieza[key]));
                         break;
                     default:
-                        td.textContent = pieza[key];
+                        td.textContent = pieza[key] ?? "";
                         if (key === "operator" || key === "errors" || key === "observations" || key === "observacion_liberacion") {
                             td.classList.add("cell-long-text");
                         }
@@ -847,6 +875,7 @@ function crearTabla(piezas, infoPiezas) {
     });
     table.appendChild(tbody);
 }
+
 function asignColorTr(status, error, process) {
     switch (status) {
         case 1:
@@ -856,9 +885,8 @@ function asignColorTr(status, error, process) {
         case 3:
             return "#90EE90"; // Buena sin liberación - Verde
         case 4:
-            // Para Soldadura PTA: solo Fundicion bloquea
             if (process === "Soldadura PTA" && !error.toLowerCase().includes("fundicion") && !error.toLowerCase().includes("fundición")) {
-                return "#90EE90"; // Verde — defecto no bloqueante para PTA
+                return "#90EE90";
             }
             return "#DDA0DD"; // Mala sin liberación - Morado
         case 5:
@@ -866,175 +894,262 @@ function asignColorTr(status, error, process) {
         case 0:
         default:
             if (error.includes("Incompleto")) {
-                return "#FFD700"; // Incompleto - Amarillo
-            } else if (error == "Ninguno") {
-                return "#90EE90"; // Buena sin liberación - Verde
+                return "#FFD700";
+            } else if (error === "Ninguno") {
+                return "#90EE90";
             } else {
-                // Para Soldadura PTA: solo Fundicion bloquea
                 if (process === "Soldadura PTA" && !error.toLowerCase().includes("fundicion") && !error.toLowerCase().includes("fundición")) {
-                    return "#90EE90"; // Verde — defecto no bloqueante para PTA
+                    return "#90EE90";
                 }
-                return "#DDA0DD"; // Mala sin liberación - Morado
+                return "#DDA0DD";
             }
     }
 }
+
 function orderedArray(array) {
     return {
-        class: array["className"],
-        workOrder: array[0],
-        noAssembly: array[1],
-        operator: array[2],
-        machine: array[3],
-        process: array[4],
-        errors: array[5],
-        observations: array.observations,
-        machinedDate: array[6],
-        btn_release: [array[9], array[5]],
+        class: array["className"] ?? "",
+        workOrder: array[0] ?? "",
+        noAssembly: array[1] ?? "",
+        operator: array[2] ?? "",
+        machine: array[3] ?? "",
+        process: array[4] ?? "",
+        errors: array[5] ?? "",
+        observations: array.observations ?? "",
+        machinedDate: array[6] ?? "",
+        btn_release: [array[9], array[5] ?? ""],
         btn_decline: array[9],
         btn_seePiece: array[2],
         colorPiece: asignColorTr(array[9], array[5] ?? "", array[4] ?? ""),
     };
 }
 
-function crearBotonLiberar(infoPiezas, i, piezas) {
+function crearBotonLiberar(infoPiezas, i, piezas, tr, divOpacity) {
     const a = document.createElement("a");
     a.className = "btn-liberar";
+    a.title = "Liberar pieza";
+    a.style.cursor = "pointer";
 
-    let bool;
-    if (infoPiezas[i][2] == "Ninguno" && piezas[i][9] != 2) {
-        bool = true;
-    } else {
-        bool = false;
-    }
+    let bool = (infoPiezas[i][2] === "Ninguno" && piezas[i][9] != 2);
 
-    //Agregar imagen al boton de liberar
     const image = document.createElement("img");
     image.src = window.liberar;
     image.alt = "Liberar";
     image.className = "ver";
     a.appendChild(image);
 
-    let keys = {
+    const keys = {
         pieza: infoPiezas[i][0],
         proceso: infoPiezas[i][1],
         liberar: true,
         buena: bool,
     };
-    // Agregar evento al boton
+
     a.addEventListener("click", (e) => {
         e.preventDefault();
-        create_ObservationsField(keys);
+        create_ObservationsField(keys, tr, divOpacity);
     });
     return a;
 }
-function crearBotonRechazar(infoPiezas, i) {
+
+function crearBotonRechazar(infoPiezas, i, tr, divOpacity) {
     const a = document.createElement("a");
     a.className = "btn-liberar";
+    a.title = "Rechazar pieza";
+    a.style.cursor = "pointer";
 
-    //Agregar imagen al boton de rechazar
     const image = document.createElement("img");
     image.src = window.rechazar;
     image.alt = "Rechazar";
     image.className = "ver";
     a.appendChild(image);
 
-    let keys = {
+    const keys = {
         pieza: infoPiezas[i][0],
         proceso: infoPiezas[i][1],
         liberar: false,
         buena: false,
     };
 
-    // Agregar evento al boton
     a.addEventListener("click", (e) => {
         e.preventDefault();
-        create_ObservationsField(keys);
+        create_ObservationsField(keys, tr, divOpacity);
     });
     return a;
 }
-function create_ObservationsField(keys) {
-    //Creacion del div con efcto blur
-    let div_opacity = document.createElement("div");
+
+function create_ObservationsField(keys, tr, divOpacity) {
+    const div_opacity = document.createElement("div");
     div_opacity.className = "div-opacity";
-    div_opacity.addEventListener("click", () => {
-        div_opacity.remove();
+
+    function closeObservationModal() {
+        div_opacity.style.willChange = "opacity";
+        div_opacity.style.transition = "opacity 0.16s ease";
+        div_opacity.style.opacity = "0";
+        setTimeout(() => {
+            if (div_opacity.parentNode) {
+                div_opacity.remove();
+            }
+        }, 170);
+    }
+
+    div_opacity.addEventListener("click", (e) => {
+        if (e.target === div_opacity) {
+            closeObservationModal();
+        }
     });
 
-    //Creacion del formulario
-    let form = document.createElement("form");
-    form.action = window.baseUrl + "/piezasLiberar";
-    form.method = "POST";
-    form.classList.add("form-liberation");
-    form.addEventListener("click", (e) => {
-        e.stopPropagation();
+    const isLiberate = keys.liberar;
+    const actionTitle = isLiberate ? "Liberar Pieza / Juego" : "Rechazar Pieza / Juego";
+    const badgeClass = isLiberate ? "badge-liberate" : "badge-reject";
+    const badgeText = isLiberate ? "Aprobación Calidad" : "Rechazo Calidad";
+    const btnClass = isLiberate ? "btn-liberate" : "btn-reject";
+    const btnText = isLiberate ? "Confirmar Liberación" : "Confirmar Rechazo";
+
+    let juegoLabel = "Pieza";
+    if (Array.isArray(keys.pieza) && keys.pieza.length > 0) {
+        juegoLabel = keys.pieza[0].toString().split(/[HMJ]/i)[0] + "J";
+    } else if (typeof keys.pieza === "string") {
+        juegoLabel = keys.pieza.split(/[HMJ]/i)[0] + "J";
+    }
+
+    const formBox = document.createElement("div");
+    formBox.className = "form-liberation";
+    formBox.innerHTML = `
+        <div class="form-liberation-header">
+            <h3 class="form-liberation-title">${actionTitle}</h3>
+            <span class="liberation-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="form-liberation-meta">
+            <div>Proceso: <span class="meta-chip">${keys.proceso}</span></div>
+            <div>Juego / Pieza: <span class="meta-chip">${juegoLabel}</span></div>
+        </div>
+        <textarea class="textArea-liberation" placeholder="${isLiberate ? 'Agregue una observación para la bitácora de calidad (Opcional)...' : 'Especifique el motivo de rechazo de la pieza (Requerido)...'}"></textarea>
+        <div class="form-liberation-actions">
+            <button type="button" class="btn-liberation-cancel">Cancelar</button>
+            <button type="button" class="btn-liberation ${btnClass}">${btnText}</button>
+        </div>
+    `;
+
+    const cancelBtn = formBox.querySelector(".btn-liberation-cancel");
+    const confirmBtn = formBox.querySelector(".btn-liberation:not(.btn-liberation-cancel)");
+    const textArea = formBox.querySelector(".textArea-liberation");
+
+    cancelBtn.addEventListener("click", closeObservationModal);
+
+    confirmBtn.addEventListener("click", async () => {
+        const obsValue = textArea.value.trim();
+
+        if (!isLiberate && !obsValue) {
+            if (window.toastpremium) {
+                window.toastpremium("Debe ingresar un motivo para rechazar la pieza.", "warning");
+            }
+            textArea.focus();
+            return;
+        }
+
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        confirmBtn.textContent = "Procesando...";
+
+        try {
+            const tokenMeta = document.querySelector('meta[name="csrf-token"]');
+            const token = tokenMeta ? tokenMeta.getAttribute("content") : "";
+
+            const payload = {
+                pieza: Array.isArray(keys.pieza) ? keys.pieza.join(",") : String(keys.pieza),
+                proceso: keys.proceso,
+                liberar: keys.liberar ? "true" : "false",
+                buena: keys.buena ? "true" : "false",
+                observationPiece: obsValue,
+                requestLiberation: "yes"
+            };
+
+            const response = await fetch(`${window.baseUrl}/piezasLiberar`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": token,
+                    "Accept": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`Error en el servidor (${response.status})`);
+            }
+
+            const data = await response.json();
+            closeObservationModal();
+
+            if (window.toastpremium) {
+                window.toastpremium(data.message || (isLiberate ? "Pieza liberada con éxito." : "Pieza rechazada."), "success");
+            }
+
+            // Animar y remover la fila correspondiente con fluidez GPU
+            if (tr) {
+                tr.style.willChange = "transform, opacity";
+                tr.style.transition = "transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease";
+                tr.style.transform = "translate3d(35px, 0, 0)";
+                tr.style.opacity = "0";
+
+                setTimeout(() => {
+                    tr.remove();
+
+                    // Recalcular piezas restantes
+                    const tableEl = document.getElementById("table-pieces-released-home");
+                    const remaining = tableEl ? tableEl.querySelectorAll("tbody tr").length : 0;
+                    const counterEl = document.getElementById("pending-pieces-count");
+                    if (counterEl) {
+                        counterEl.textContent = remaining;
+                    }
+
+                    // Si ya no quedan piezas pendientes, desbloquear y cerrar overlay
+                    if (remaining === 0) {
+                        if (window.toastpremium) {
+                            window.toastpremium("¡Todas las piezas pendientes han sido procesadas con éxito!", "success");
+                        }
+                        if (divOpacity) {
+                            divOpacity.style.willChange = "transform, opacity";
+                            divOpacity.style.transition = "opacity 0.26s cubic-bezier(0.16, 1, 0.3, 1), transform 0.26s cubic-bezier(0.16, 1, 0.3, 1)";
+                            divOpacity.style.opacity = "0";
+                            divOpacity.style.transform = "scale(0.985)";
+                            setTimeout(() => {
+                                if (divOpacity.parentNode) {
+                                    divOpacity.remove();
+                                }
+                            }, 270);
+                        }
+                    }
+                }, 230);
+            }
+        } catch (err) {
+            confirmBtn.disabled = false;
+            cancelBtn.disabled = false;
+            confirmBtn.textContent = btnText;
+            if (window.toastpremium) {
+                window.toastpremium("Error al procesar: " + err.message, "error");
+            }
+        }
     });
-    form.appendChild(generateToken());
-    createInputsHidden(keys, form);
 
-
-    //Creacion del textarea
-    let textArea = document.createElement("textarea");
-    textArea.setAttribute("cols", "50");
-    textArea.setAttribute("row", "5");
-    textArea.setAttribute(
-        "placeholder",
-        `Agrega una observación para el juego ${keys.pieza[0].toString().split(/[HMJ]/i)[0]}J de ${keys.proceso} (Opcional)`
-    );
-    textArea.classList.add("textArea-liberation");
-    textArea.setAttribute("name", "observationPiece");
-
-    //Creacion del submit
-    let submit = document.createElement("input");
-    submit.type = "submit";
-    submit.value = keys.liberar ? "Liberar" : "Rechazar";
-    submit.classList.add("btn-liberation");
-    submit.classList.add(keys.liberar ? "btn-liberate" : "btn-reject");
-
-    form.appendChild(textArea);
-    form.appendChild(submit);
-    div_opacity.appendChild(form);
+    div_opacity.appendChild(formBox);
     document.body.appendChild(div_opacity);
+    textArea.focus();
 }
-function generateToken() {
-    let token = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
-    let input_token = document.createElement("input");
-    input_token.type = "hidden";
-    input_token.name = "_token";
-    input_token.value = token;
-    return input_token;
-}
-function createInputsHidden(array, form) {
-    // Guardar claves del array
-    let keysArray = [];
-    Object.keys(array).forEach((item) => {
-        keysArray.push(item);
-    });
 
-    // Crear inputs hidden e insertarlos en el form
-    keysArray.forEach((key) => {
-        let input = document.createElement("input");
-        input.type = "hidden";
-        input.name = key;
-        input.value = array[key];
-        form.appendChild(input);
-    });
-
-    let input = document.createElement("input");
-    input.type = "hidden";
-    input.name = "requestLiberation";
-    input.value = "yes";
-    form.appendChild(input);
-}
 function crearBotonVer(infoPiezas, i, usuarios) {
     const a = document.createElement("a");
     a.className = "btn-pza";
+    a.title = "Inspeccionar medidas de la pieza";
 
     let nPiezas = [];
     for (let j = 0; j < infoPiezas[i][0].length; j++) {
         nPiezas.push(infoPiezas[i][0][j]);
     }
-    //INFORMACIÓN DE LAS PIEZAS O PIEZA
-    let url = `${window.baseUrl}/pieces/${nPiezas}/${infoPiezas[i][1]}/quality`;
+
+    const url = `${window.baseUrl}/pieces/${nPiezas.join(",")}/${infoPiezas[i][1]}/quality?from=home`;
     a.href = url;
 
     const image = document.createElement("img");
