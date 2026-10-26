@@ -2,20 +2,20 @@
 
 @section('head')
 <title>Registrar Orden de trabajo</title>
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @vite(['resources/css/wo_views/manage_wo.css', 'resources/js/wo_views/manage_wo.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 <!--Formulario para seleccionar o crear una orden de trabajo-->
 <div class="wrapper">
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/Iconos_Vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
+            <img src="{{ asset('images/vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
             <h2>Agregar o seleccionar orden de trabajo</h2>
-            <img src="{{ asset('images/Iconos_Vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
+            <img src="{{ asset('images/vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
         </div>
         <p class="subtitle">Seleccione una OT existente para captura de procesos o registre una nueva orden</p>
     </div>

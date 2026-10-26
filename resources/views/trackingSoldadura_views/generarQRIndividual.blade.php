@@ -2,19 +2,19 @@
 
 @section('head')
     <title>QRs Botes</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite(['resources/css/trackingSoldadura_views/generarQRIndividual.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Generar_QR_Individual.png') }}" class="header-view-icon" alt="QRs de Botes" />
+                <img src="{{ asset('images/vistas/Generar_QR_Individual.png') }}" class="header-view-icon" alt="QRs de Botes" />
                 <h1>Generar QRs de Botes</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Generar_QR_Individual.png') }}" class="header-view-icon" alt="QRs de Botes" />
+                <img src="{{ asset('images/vistas/Generar_QR_Individual.png') }}" class="header-view-icon" alt="QRs de Botes" />
             </div>
             <p class="subtitle">Emisión y asignación de códigos QR individuales por bote de soldadura</p>
         </div>

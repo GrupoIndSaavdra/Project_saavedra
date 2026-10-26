@@ -392,8 +392,8 @@ function _dibujosRenderArchivos(archivos, otDisplay, clase, contentDiv) {
 
             card.innerHTML = `
                 <div class="file-icon-wrapper">
-                    <img src="${window.baseUrl}/images/pdf-view-shadow.png" class="prod-viewer-icon icon-default">
-                    <img src="${window.baseUrl}/images/pdf-view.png" class="prod-viewer-icon icon-hover">
+                    <img src="${window.baseUrl}/images/iconos/pdf-view-shadow.png" class="prod-viewer-icon icon-default">
+                    <img src="${window.baseUrl}/images/iconos/pdf-view.png" class="prod-viewer-icon icon-hover">
                 </div>
                 <div class="prod-viewer-filename">${archivo.nombre}</div>
                 <div class="prod-viewer-action">Clic para abrir</div>`;
@@ -679,12 +679,12 @@ function _programasCargarArchivos(ot, clase, proceso, contentDiv, otText = '') {
                 const isNC     = extUpper === 'NC';
 
                 const iconDefault = isNC
-                    ? (window.imgProgramsNCShadow || (window.baseUrl + '/images/ProgramsNC-Shadow.png'))
-                    : (window.imgProgramsCNCShadow || (window.baseUrl + '/images/ProgramsCNC-Shadow.png'));
+                    ? (window.imgProgramsNCShadow || (window.baseUrl + '/images/iconos/ProgramsNC-Shadow.png'))
+                    : (window.imgProgramsCNCShadow || (window.baseUrl + '/images/iconos/ProgramsCNC-Shadow.png'));
 
                 const iconHover = isNC
-                    ? (window.imgProgramsNC || (window.baseUrl + '/images/ProgramsNC.png'))
-                    : (window.imgProgramsCNC || (window.baseUrl + '/images/ProgramsCNC.png'));
+                    ? (window.imgProgramsNC || (window.baseUrl + '/images/iconos/ProgramsNC.png'))
+                    : (window.imgProgramsCNC || (window.baseUrl + '/images/iconos/ProgramsCNC.png'));
 
                 const card = document.createElement('div');
                 card.className = 'prod-viewer-card card-programas';
@@ -1269,8 +1269,8 @@ export function openTechDocsModal() {
 
                 card.innerHTML = `
                     <div class="file-icon-wrapper">
-                        <img src="${window.baseUrl}/images/pdf-view-shadow.png" class="prod-viewer-icon icon-default">
-                        <img src="${window.baseUrl}/images/pdf-view.png" class="prod-viewer-icon icon-hover">
+                        <img src="${window.baseUrl}/images/iconos/pdf-view-shadow.png" class="prod-viewer-icon icon-default">
+                        <img src="${window.baseUrl}/images/iconos/pdf-view.png" class="prod-viewer-icon icon-hover">
                     </div>
                     <div class="prod-viewer-filename">${fileName}</div>
                     <div class="prod-viewer-action">Clic para abrir</div>`;

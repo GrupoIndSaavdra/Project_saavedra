@@ -11,7 +11,7 @@
             REGISTRO DE NÚMEROS DE TRAZABILIDAD POR MOLDURA
         </div>
         <div class="rd-doc-logo">
-            <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" class="rd-logo-img">
+            <img src="{{ asset('images/logos/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" class="rd-logo-img">
         </div>
     </div>
 

@@ -654,7 +654,7 @@ class InspeccionVisualController extends Controller
 
         $porcentajeActual = $totalPiezas > 0 ? round(($piezasCompletas / $totalPiezas) * 100, 1) : 0;
 
-        $logoPath = public_path('images/lg_saavedra.png');
+        $logoPath = public_path('images/logos/lg_saavedra.png');
         $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
 
         // Calcular versión incremental

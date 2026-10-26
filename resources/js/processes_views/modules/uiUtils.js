@@ -26,7 +26,7 @@ export function createInputPassword(name = "passwordAdmin", placeholderText = "C
     let submit = document.createElement("button");
     submit.type = "submit";
     submit.className = "btn-submit-password" + (name === "passwordQuality" ? " btn-quality" : "");
-    const resultIconUrl = window.baseUrl ? (window.baseUrl + "/images/Resultado-Icon.png") : "/images/Resultado-Icon.png";
+    const resultIconUrl = window.baseUrl ? (window.baseUrl + "/images/iconos/Resultado-Icon.png") : "/images/iconos/Resultado-Icon.png";
     submit.innerHTML = `
         <img src="${resultIconUrl}" class="btn-verify-icon" alt="Verificar">
         <span>Verificar</span>

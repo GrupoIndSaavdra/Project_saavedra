@@ -9,7 +9,7 @@
         <div class="alm-modal-header lib-modal-header lib-modal-header-rechazo" id="scar-modal-header">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalScar()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar"
+                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar"
                         style="width: 36px !important; height: 36px !important;">
                 </button>
             </div>
@@ -166,7 +166,7 @@
                                 style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
                             <div class="dropzone-content"
                                 style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
-                                <img src="{{ asset('images/anadir.png') }}"
+                                <img src="{{ asset('images/iconos/anadir.png') }}"
                                     style="width: 24px; height: 24px; margin-bottom: 4px;" alt="Añadir">
                                 <span id="scar-fotos-text"
                                     style="font-weight: 700; color: #d97706; font-size: 0.85em; text-align: center;">Adjuntar
@@ -194,7 +194,7 @@
                                 style="position: absolute; width:100%; height:100%; opacity:0; cursor:pointer;">
                             <div class="dropzone-content"
                                 style="display: flex; flex-direction: column; align-items: center; pointer-events: none;">
-                                <img src="{{ asset('images/anadir.png') }}"
+                                <img src="{{ asset('images/iconos/anadir.png') }}"
                                     style="width: 24px; height: 24px; margin-bottom: 4px;" alt="Añadir">
                                 <span id="scar-otro-text"
                                     style="font-weight: 700; color: #0369a1; font-size: 0.85em; text-align: center;">Adjuntar
@@ -282,7 +282,7 @@
                     <button type="button" class="btn-lib-rechazar-send" id="scar-btn-guardar"
                         onclick="scarSubmit('guardar')"
                         style="background: rgb(156, 3, 0); border: 2px solid rgb(122, 2, 0); box-shadow: rgba(156, 3, 0, 0.3) 0px 4px 15px; font-size:1.15em; padding:14px 28px; border-radius:10px; font-family:'Poppins',sans-serif; font-weight:700; height:auto; display:inline-flex; align-items:center; justify-content:center; gap:8px;">
-                        <img src="{{ asset('images/Descarga.png') }}" alt="" style="width:20px;height:20px;">
+                        <img src="{{ asset('images/iconos/Descarga.png') }}" alt="" style="width:20px;height:20px;">
                         Guardar y Generar Formato SCAR
                     </button>
                 </div>

@@ -230,13 +230,13 @@
         <table class="tbl-header">
             <tr>
                 <td class="logo-cell">
-                    <img src="{{ public_path('images/lg_saavedra2.png') }}" alt="Logo GIS">
+                    <img src="{{ public_path('images/logos/lg_saavedra2.png') }}" alt="Logo GIS">
                 </td>
                 <td class="title-cell">
                     PREORDEN DE FABRICACIÓN DE CASTING
                 </td>
                 <td class="logo-cell">
-                    <img src="{{ public_path('images/lg_saavedra.png') }}" alt="GIS">
+                    <img src="{{ public_path('images/logos/lg_saavedra.png') }}" alt="GIS">
                 </td>
             </tr>
         </table>

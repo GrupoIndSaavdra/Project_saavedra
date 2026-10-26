@@ -8,8 +8,8 @@
 @else
     <details class="ht-gallery-details">
         <summary class="ht-gallery-summary" title="Ver imágenes">
-            <img src="{{ asset('images/Camara-Shadow.png') }}" class="ht-gallery-cam-icon ht-cam-default" alt="Fotos" />
-            <img src="{{ asset('images/Camara-View.png') }}" class="ht-gallery-cam-icon ht-cam-active" alt="Fotos" />
+            <img src="{{ asset('images/iconos/Camara-Shadow.png') }}" class="ht-gallery-cam-icon ht-cam-default" alt="Fotos" />
+            <img src="{{ asset('images/iconos/Camara-View.png') }}" class="ht-gallery-cam-icon ht-cam-active" alt="Fotos" />
             <span class="ht-gallery-count-text">{{ $imgs->count() }} foto{{ $imgs->count() > 1 ? 's' : '' }}</span>
         </summary>
         <div class="ht-mini-gallery">

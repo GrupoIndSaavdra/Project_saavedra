@@ -15,21 +15,21 @@ class LoginController extends Controller
     public function show()
     {
         $tecamacImages = [];
-        $tecamacPath = public_path('images/IMG_Planta_Tecamac');
+        $tecamacPath = public_path('images/planta');
         if (is_dir($tecamacPath)) {
             $files = scandir($tecamacPath);
             foreach ($files as $file) {
                 if ($file !== '.' && $file !== '..') {
                     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
                     if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
-                        $tecamacImages[] = asset('images/IMG_Planta_Tecamac/' . $file);
+                        $tecamacImages[] = asset('images/planta/' . $file);
                     }
                 }
             }
         }
 
         if (empty($tecamacImages)) {
-            $tecamacImages[] = asset('images/img-login.png');
+            $tecamacImages[] = asset('images/fondos/img-login.png');
         }
 
         $randomInitialIndex = array_rand($tecamacImages);

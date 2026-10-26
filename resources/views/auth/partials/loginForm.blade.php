@@ -2,7 +2,7 @@
 <div class="col-lg-6 mb-5 mb-lg-0">
     <div class="card cascading-right">
         <div class="card-body p-5 shadow-5 text-center">
-            <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="GIS" />
+            <img src="{{ asset('images/logos/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="GIS" />
             <h2 class="fw-bold login-title">Bienvenido</h2>
             <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
             <form action="{{ route('loginUser') }}" method="POST">

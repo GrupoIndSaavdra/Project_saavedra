@@ -45,7 +45,7 @@ window.pintarCardsArchivosAprobados = function (archivos, ot, contenedorId, tipo
                 
                 card.innerHTML = `
                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF" onclick="window.almacenVerPdf('${ot}', '${file.nombre}', '${file.tipo}')">
-                        <img src="${window.baseUrl || "/"}images/${defaultIcon}" class="file-icon icon-default">
+                        <img src="${window.baseUrl || "/"}images/iconos/${defaultIcon}" class="file-icon icon-default">
                     </div>
                     <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="window.almacenVerPdf('${ot}', '${file.nombre}', '${file.tipo}')">
                         ${dispName}

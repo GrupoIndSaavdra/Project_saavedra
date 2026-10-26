@@ -134,8 +134,8 @@
         $otNum = $otStr;
     }
 
-    $logoPath = public_path('images/lg_saavedra2.png'); // Logo Maquinados y Fusiones (izq)
-    $logoG    = public_path('images/lg_saavedra.png');  // Logo Industrial Saavedra (der)
+    $logoPath = public_path('images/logos/lg_saavedra2.png'); // Logo Maquinados y Fusiones (izq)
+    $logoG    = public_path('images/logos/lg_saavedra.png');  // Logo Industrial Saavedra (der)
 
     $fechaEmision = '';
     $fechaCompromisoVal = '';

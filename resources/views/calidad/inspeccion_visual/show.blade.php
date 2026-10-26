@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
 
@@ -25,7 +25,7 @@
                 Regresar al Selector
             </a>
             <span class="rd-title-tag">
-                <img src="{{ asset('images/reporte Volumetrico.png') }}" width="18" height="18" alt="Reporte Volumétrico">
+                <img src="{{ asset('images/calidad/reporte Volumetrico.png') }}" width="18" height="18" alt="Reporte Volumétrico">
                 <span>Reporte Volumétrico</span>
             </span>
             <span class="rd-ot-pill">OT #{{ $otData->id }} — {{ $clase }}</span>
@@ -48,7 +48,7 @@
                     DESPLAZAMIENTO DE MOLDURAS (Reporte Volumétrico)
                 </div>
                 <div class="rd-doc-logo">
-                    <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" class="rd-logo-img">
+                    <img src="{{ asset('images/logos/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" class="rd-logo-img">
                 </div>
             </div>
 

@@ -2,19 +2,19 @@
 
 @section('head')
     <title>Regenerar QRs - Lista de Lotes</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite(['resources/css/trackingSoldadura_views/regenerarQR.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
     <div class="wrapper-lista">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
+                <img src="{{ asset('images/vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
                 <h1>Regenerar QRs de Soldadura</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
+                <img src="{{ asset('images/vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
             </div>
             <p class="subtitle">Selecciona un lote para descargar sus códigos QR de soldadura</p>
             <a href="{{ route('soldadura.regenerarQR.cerrar') }}" class="btn btn-danger btn-cerrar-header">

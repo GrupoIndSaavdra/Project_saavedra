@@ -2,11 +2,11 @@
 
 @section('head')
     <title>Resultados Sold. PTA — OT {{ $ot->id }}</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite(['resources/css/pta_views/results.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
     <div class="pta-wrapper">

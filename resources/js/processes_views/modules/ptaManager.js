@@ -53,7 +53,7 @@ function insertWeldingTypeBox() {
         input.setAttribute("tabindex", "-1");
         input.setAttribute("aria-readonly", "true");
         input.title = "Este campo está bloqueado y no se puede editar";
-        const blockedIconUrl = window.imgBloqueado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/bloqueado.png` : "/images/bloqueado.png");
+        const blockedIconUrl = window.imgBloqueado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/bloqueado.png` : "/images/iconos/bloqueado.png");
         badgeHtml = `<span class="locked-field-badge" title="Campo bloqueado - No modificable"><img src="${blockedIconUrl}" class="locked-field-icon" alt="Bloqueado"> Bloqueado</span>`;
     }
 

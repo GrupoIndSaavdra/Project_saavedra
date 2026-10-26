@@ -348,7 +348,7 @@ function renderArchivosGrid(data, param1, param2) {
     if (!data.existe || data.archivos.length === 0) {
         grid.innerHTML = `
             <div class="dibujos-empty-state" style="grid-column:1/-1; text-align:center;">
-                <img src="${window.baseUrl}/images/sin_archivos.png" alt="Sin archivos" style="width: 120px; opacity: 0.6; margin-bottom: 1em;">
+                <img src="${window.baseUrl}/images/iconos/sin_archivos.png" alt="Sin archivos" style="width: 120px; opacity: 0.6; margin-bottom: 1em;">
                 <p>No hay archivos PDF. Sube el primero usando el panel de arriba.</p>
             </div>`;
         return;
@@ -365,8 +365,8 @@ function renderArchivosGrid(data, param1, param2) {
 
         card.innerHTML = `
             <div class="file-icon-wrapper" onclick="abrirPdf('${archivo.url}')" style="cursor: pointer;" title="Abrir PDF">
-                <img src="${window.baseUrl}/images/pdf-view-shadow.png" class="file-icon icon-default">
-                <img src="${window.baseUrl}/images/pdf-view.png" class="file-icon icon-hover">
+                <img src="${window.baseUrl}/images/iconos/pdf-view-shadow.png" class="file-icon icon-default">
+                <img src="${window.baseUrl}/images/iconos/pdf-view.png" class="file-icon icon-hover">
             </div>
             <div class="file-name" style="cursor: pointer;" title="Abrir PDF">${escapeHTML(archivo.nombre)}</div>
             <div class="file-actions">
@@ -601,13 +601,13 @@ function actualizarBadge(param1, param2 = null) {
                     
                     if (count > 0) {
                         if (btnSpan) btnSpan.textContent = 'Vaciar Carpeta';
-                        if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Archivos.png';
+                        if (btnImg) btnImg.src = window.baseUrl + '/images/iconos/Eliminar-Archivos.png';
                     } else if (isRoot) {
                         if (btnSpan) btnSpan.textContent = 'Eliminar Directorio Raíz';
-                        if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Carpeta.png';
+                        if (btnImg) btnImg.src = window.baseUrl + '/images/iconos/Eliminar-Carpeta.png';
                     } else {
                         if (btnSpan) btnSpan.textContent = 'Eliminar Clase';
-                        if (btnImg) btnImg.src = window.baseUrl + '/images/Eliminar-Carpeta.png';
+                        if (btnImg) btnImg.src = window.baseUrl + '/images/iconos/Eliminar-Carpeta.png';
                     }
                 }
             }
@@ -767,7 +767,7 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
         msgContainer.innerHTML = finalHtml;
         
         if (modalIcon) {
-            modalIcon.src = window.baseUrl + (isVaciar ? '/images/Eliminar-Archivos.png' : '/images/Eliminar-Carpeta.png');
+            modalIcon.src = window.baseUrl + (isVaciar ? '/images/iconos/Eliminar-Archivos.png' : '/images/iconos/Eliminar-Carpeta.png');
         }
         
         btnConfirm.textContent = isVaciar ? 'Vaciar Carpeta' : 'Eliminar Permanentemente';
@@ -863,7 +863,7 @@ function renderEstructuraTable() {
                         <div class="td-actions">
                             <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar OT completa"
                                 onclick="confirmarEliminarCarpeta('${otName}', null, '${otLabel}')">
-                                <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
+                                <img src="${window.baseUrl}/images/iconos/Eliminar-Carpeta.png" alt="Eliminar">
                                 <span>Eliminar Directorio Raíz</span>
                             </button>
                         </div>
@@ -902,12 +902,12 @@ function renderEstructuraTable() {
                             <div class="td-actions">
                                 <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                     onclick="irACarpeta('${p1Param}', '${p2ParamVer}', ${isIdParam})">
-                                    <img src="${window.baseUrl}/images/documento.png" alt="Ver">
+                                    <img src="${window.baseUrl}/images/iconos/documento.png" alt="Ver">
                                     <span>Ver PDF's</span>
                                 </button>
                                 <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                     onclick="confirmarEliminarCarpeta('${otName}', '${p2ParamEliminar || ''}', '${labelParamEliminar}')">
-                                    <img src="${window.baseUrl}/images/Eliminar-Carpeta.png" alt="Eliminar">
+                                    <img src="${window.baseUrl}/images/iconos/Eliminar-Carpeta.png" alt="Eliminar">
                                     <span>Eliminar Clase</span>
                                 </button>
                             </div>
@@ -922,7 +922,7 @@ function renderEstructuraTable() {
         tr.innerHTML = `
             <td colspan="4" class="d-text-center d-text-subtle">
                 <div class="dibujos-empty-state">
-                    <img src="${window.baseUrl}/images/Sin_Carpetas.png" alt="Sin carpetas" class="empty-folder-icon">
+                    <img src="${window.baseUrl}/images/iconos/Sin_Carpetas.png" alt="Sin carpetas" class="empty-folder-icon">
                     <p>No hay carpetas creadas aun.</p>
                 </div>
             </td>

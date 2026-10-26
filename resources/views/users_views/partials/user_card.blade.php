@@ -10,12 +10,12 @@
         default => $user->perfil,
     };
     $rolIcon = match((string)$user->perfil) {
-        '1' => 'Administracion-Icon.png',
-        '2' => 'Operador-Icon.png',
-        '3' => 'Master-Icon.png',
-        '4' => 'Calidad-Icon.png',
-        '5' => 'Almacen-Icon.png',
-        '6' => 'Supervision-Icon.png',
+        '1' => 'images/usuarios/Administracion-Icon.png',
+        '2' => 'images/usuarios/Operador-Icon.png',
+        '3' => 'images/iconos/Master-Icon.png',
+        '4' => 'images/usuarios/Calidad-Icon.png',
+        '5' => 'images/iconos/Almacen-Icon.png',
+        '6' => 'images/usuarios/Supervision-Icon.png',
         default => null,
     };
     $fullName = trim($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno));
@@ -36,12 +36,12 @@
         <div>
             @if($isInactive)
                 <span class="alert-falta-badge" title="Personal inactivo o vacante" style="display:inline-flex; align-items:center; gap:5px;">
-                    <img src="{{ asset('images/inactivar.png') }}" alt="Inactivo" style="width:13px; height:13px; object-fit:contain;">
+                    <img src="{{ asset('images/iconos/inactivar.png') }}" alt="Inactivo" style="width:13px; height:13px; object-fit:contain;">
                     FALTA / INACTIVO
                 </span>
             @else
                 <span class="badge-status-act" style="display:inline-flex; align-items:center; gap:5px;">
-                    <img src="{{ asset('images/activar.png') }}" alt="Activo" style="width:13px; height:13px; object-fit:contain;">
+                    <img src="{{ asset('images/iconos/activar.png') }}" alt="Activo" style="width:13px; height:13px; object-fit:contain;">
                     ACTIVO
                 </span>
             @endif
@@ -85,7 +85,7 @@
 
         <span class="user-card-tag" style="background:#e2e8f0; color:#475569; display:inline-flex; align-items:center; gap:5px;">
             @if($rolIcon)
-                <img src="{{ asset('images/' . $rolIcon) }}" alt="{{ $rolLabel }}" style="width:14px; height:14px; object-fit:contain;">
+                <img src="{{ icon($rolIcon) }}" alt="{{ $rolLabel }}" style="width:14px; height:14px; object-fit:contain;">
             @else
                 👤
             @endif

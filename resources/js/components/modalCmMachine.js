@@ -456,10 +456,10 @@ function renderMachines() {
         }
 
         const baseUrl = (window.baseUrl || "").replace(/\/$/, "");
-        const cncIcon = baseUrl ? `${baseUrl}/images/ProgramsCNC.png` : "/images/ProgramsCNC.png";
+        const cncIcon = baseUrl ? `${baseUrl}/images/iconos/ProgramsCNC.png` : "/images/iconos/ProgramsCNC.png";
         const lockIcon = (isOcc) => baseUrl
-            ? `${baseUrl}/images/${isOcc ? "Bloq-Maqu-Icon.png" : "Desbloc-Maq-Icon.png"}`
-            : (isOcc ? "/images/Bloq-Maqu-Icon.png" : "/images/Desbloc-Maq-Icon.png");
+            ? `${baseUrl}/images/iconos/${isOcc ? "Bloq-Maqu-Icon.png" : "Desbloc-Maq-Icon.png"}`
+            : (isOcc ? "/images/iconos/Bloq-Maqu-Icon.png" : "/images/iconos/Desbloc-Maq-Icon.png");
 
         if (mach.isPaired) {
             card.innerHTML = `

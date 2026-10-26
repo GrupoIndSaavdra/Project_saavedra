@@ -155,7 +155,7 @@ window._libActualizarBotonesAccion = function (decision) {
         nuevoBtn.classList.add("btn-lib-send-custom");
         nuevoBtn.innerHTML =
             '<img src="' +
-            (window.almacenAppAssets?.descarga ?? "/images/Descarga.png") +
+            (window.almacenAppAssets?.descarga ?? "/images/iconos/Descarga.png") +
             '" alt="" style="width:20px;height:20px;"> Aprobar y Descargar PDF';
         nuevoBtn.addEventListener("click", () => _libSubmit("accion"));
     } else {
@@ -163,7 +163,7 @@ window._libActualizarBotonesAccion = function (decision) {
         nuevoBtn.classList.add("btn-lib-send-custom");
         nuevoBtn.innerHTML =
             '<img src="' +
-            (window.almacenAppAssets?.descarga ?? "/images/Descarga.png") +
+            (window.almacenAppAssets?.descarga ?? "/images/iconos/Descarga.png") +
             '" alt="" style="width:20px;height:20px;"> Descargar Documento y Generar SCAR';
         nuevoBtn.addEventListener("click", () => _libSubmit("accion"));
     }
@@ -240,7 +240,7 @@ window._crearFilaUpload = function (tipo, color, accentBg, esRechazo, baseUrl) {
             </label>
             <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;">
                 <label style="display:flex;align-items:center;gap:10px;background:#fff;border:1.8px dashed #fca5a5;border-radius:10px;padding:12px 16px;cursor:pointer;font-size:0.95em;color:#64748b;flex:1;font-family:'Poppins',sans-serif;" id="${idBase}-scar-label">
-                    <img src="${baseUrl}images/anadir.png" style="width:20px;height:20px;">
+                    <img src="${baseUrl}images/iconos/anadir.png" style="width:20px;height:20px;">
                     <span id="${idBase}-scar-text">Seleccionar archivo...</span>
                     <input type="file" name="${nombreScar}" accept=".pdf,image/*" style="display:none;" id="${idBase}-scar" required
                         onchange="window._alFileChanged('${idBase}-scar','${idBase}-scar-text','${idBase}-scar-label')">
@@ -259,7 +259,7 @@ window._crearFilaUpload = function (tipo, color, accentBg, esRechazo, baseUrl) {
                 </label>
                 <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;width:100%;">
                     <label style="display:flex;align-items:center;gap:10px;background:#fff;border:1.8px dashed ${color};border-radius:10px;padding:12px 16px;cursor:pointer;font-size:0.95em;color:#64748b;flex:1;font-family:'Poppins',sans-serif;" id="${idBase}-label">
-                        <img src="${baseUrl}images/anadir.png" style="width:20px;height:20px;">
+                        <img src="${baseUrl}images/iconos/anadir.png" style="width:20px;height:20px;">
                         <span id="${idBase}-text">Seleccionar archivo...</span>
                         <input type="file" name="${nombre}" accept=".pdf,image/*" style="display:none;" id="${idBase}" required
                             onchange="window._alFileChanged('${idBase}','${idBase}-text','${idBase}-label')">
@@ -299,7 +299,7 @@ window._alFileChanged = function (inputId, textId, labelId) {
     } else {
         iconHtml = `
             <div class="file-icon-wrapper" onclick="window.open('${url}', '_blank')" style="cursor:pointer; margin-top: 10px;" title="Ver">
-                <img src="${baseUrl}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;">
+                <img src="${baseUrl}images/iconos/pdf-view-shadow.png" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;">
             </div>
         `;
     }
@@ -353,7 +353,7 @@ window._renderServerFileCard = function (file, ot, baseUrl, tipo) {
     return `<div class="dibujos-file-card card-ayuda select-file-card checked-card" style="position:relative;width:100%;max-width:230px;display:inline-flex;flex-direction:column;align-items:center;text-align:center;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,0.08);box-sizing:border-box;font-size:0.95em;padding:12px;background:#fff;border:1.5px solid #e2e8f0;margin:4px;">
         <div style="position:absolute;top:10px;left:10px;z-index:10;"><input type="checkbox" name="${inputName}" value="${file.nombre}" checked style="width:18px;height:18px;cursor:pointer;" onchange="this.closest('.select-file-card').classList.toggle('checked-card',this.checked);"></div>
         <div class="file-icon-wrapper" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')" style="cursor:pointer;margin-top:12px;" title="Ver">
-            <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;">
+            <img src="${baseUrl}images/iconos/${defaultIcon}" class="file-icon icon-default" style="width:48px;height:48px;object-fit:contain;">
         </div>
         <div class="file-name" style="cursor:pointer;font-size:0.88em;margin:8px 0;max-height:42px;overflow:hidden;font-weight:600;color:#334155;line-height:1.3;font-family:'Poppins',sans-serif;" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')">${dispName}</div>
         <div class="file-actions" style="width:100%;margin-top:auto;"><button type="button" class="btn-dibujos btn-dibujos-sm btn-ver btn-ayuda-color" style="font-size:0.85em;padding:6px 14px;border-radius:6px;font-family:'Poppins',sans-serif;font-weight:600;width:100%;" onclick="almacenVerPdf('${ot}','${file.nombre}','${file.tipo}')">Ver</button></div>
@@ -791,7 +791,7 @@ window.abrirModalFinalizarCalidad = function (
         btnText = "Finalizar y Enviar Alerta de Aprobación";
         promptHtml = `
             <div style="background: #ecfdf5; border-left: 5px solid #059669; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(5, 150, 105, 0.03);">
-                <img src="${baseUrl}images/Aprobado.png" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" alt="Aprobado">
+                <img src="${baseUrl}images/iconos/Aprobado.png" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" alt="Aprobado">
                 <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #065f46; font-size: 1.1em; line-height: 1.5;">
                     Se enviará la alerta de liberación aprobada para los modelos: <strong>${arrAprobados.join(", ")}</strong>.
                 </div>
@@ -805,7 +805,7 @@ window.abrirModalFinalizarCalidad = function (
         btnText = "Finalizar y Enviar Alerta de Rechazo";
         promptHtml = `
             <div style="background: #fef2f2; border-left: 5px solid #dc2626; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(220, 38, 38, 0.03);">
-                <img src="${baseUrl}images/Rechazado.png" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" alt="Rechazado">
+                <img src="${baseUrl}images/iconos/Rechazado.png" style="width: 32px; height: 32px; object-fit: contain; flex-shrink: 0;" alt="Rechazado">
                 <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #991b1b; font-size: 1.1em; line-height: 1.5;">
                     Se enviará la alerta de rechazo para los modelos: <strong>${arrRechazados.join(", ")}</strong>.
                 </div>
@@ -819,7 +819,7 @@ window.abrirModalFinalizarCalidad = function (
         btnText = "Finalizar y Enviar Alertas (Mixto)";
         promptHtml = `
             <div style="background: #f0f9ff; border-left: 5px solid #0284c7; border-radius: 8px; padding: 15px 20px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(2, 132, 199, 0.03);">
-                <img src="${baseUrl}images/almacen.png" style="width: 28px; height: 28px; object-fit: contain; flex-shrink: 0;" alt="Mixto">
+                <img src="${baseUrl}images/iconos/almacen.png" style="width: 28px; height: 28px; object-fit: contain; flex-shrink: 0;" alt="Mixto">
                 <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #075985; font-size: 1.1em; line-height: 1.5;">
                     Esta OT tiene modelos aprobados (<strong>${arrAprobados.join(", ")}</strong>) y rechazados (<strong>${arrRechazados.join(", ")}</strong>). Se enviarán correos separados de liberación y rechazo.
                 </div>
@@ -1042,7 +1042,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         b.style.color = "#ffffff";
                         b.style.cursor = "not-allowed";
                         b.title = "El correo de alerta ha sido enviado exitosamente";
-                        b.innerHTML = `<img src="${baseUrlLocal}images/enviando.png" style="filter: none !important;" alt=""> <span>Correo Enviado</span>`;
+                        b.innerHTML = `<img src="${baseUrlLocal}images/iconos/enviando.png" style="filter: none !important;" alt=""> <span>Correo Enviado</span>`;
                     });
                     setTimeout(() => {
                         window.location.reload();

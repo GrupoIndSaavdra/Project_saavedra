@@ -53,7 +53,7 @@
                                 style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #16a34a; padding-bottom: 8px; margin-bottom: 8px;">
                                 <h4
                                     style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
-                                    <img src="{{ asset('images/Aprobado.png') }}"
+                                    <img src="{{ asset('images/iconos/Aprobado.png') }}"
                                         style="width: 28px; height: 28px; object-fit: contain;"> Formatos F-CCL-LDM
                                 </h4>
                                 <span
@@ -73,7 +73,7 @@
                                 style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 8px;">
                                 <h4
                                     style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
-                                    <img src="{{ asset('images/galeria.png') }}"
+                                    <img src="{{ asset('images/iconos/galeria.png') }}"
                                         style="width: 28px; height: 28px; object-fit: contain;"> Liberaciones de Calidad
                                 </h4>
                                 <span
@@ -124,7 +124,7 @@
                                 style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #dc2626; padding-bottom: 8px; margin-bottom: 8px;">
                                 <h4
                                     style="margin: 0; color: #b91c1c; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
-                                    <img src="{{ asset('images/Rechazado.png') }}"
+                                    <img src="{{ asset('images/iconos/Rechazado.png') }}"
                                         style="width: 28px; height: 28px; object-fit: contain;"> Rechazos y SCAR
                                 </h4>
                                 <span
@@ -144,7 +144,7 @@
                                 style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 8px; margin-bottom: 8px;">
                                 <h4
                                     style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; font-family: 'Poppins', sans-serif;">
-                                    <img src="{{ asset('images/galeria.png') }}"
+                                    <img src="{{ asset('images/iconos/galeria.png') }}"
                                         style="width: 28px; height: 28px; object-fit: contain;"> Liberaciones de
                                     Calidad
                                 </h4>

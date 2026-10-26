@@ -2,11 +2,11 @@
 
 @section('head')
 <title>Recuperar Contraseña | GIS</title>
-<link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @vite(['resources/css/users_views/recoverPassword.css', 'resources/js/layouts/partials/messages.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 <div class="recover-viewport">
@@ -15,9 +15,9 @@
         {{-- Cabecera con iconos simétricos --}}
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
+                <img src="{{ asset('images/vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
                 <h1 class="recover-heading">Restablecer Contraseña</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
+                <img src="{{ asset('images/vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
             </div>
             <p class="recover-subheading">Ingresa tu matrícula institucional y define tu nueva clave de acceso.</p>
         </div>

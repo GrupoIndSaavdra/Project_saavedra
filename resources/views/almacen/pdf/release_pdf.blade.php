@@ -268,7 +268,7 @@
     <table class="header-table">
         <tr>
             <td class="header-logo" rowspan="3" style="width: 12%; text-align: center;">
-                @php $logoBase64 = $toBase64('images/lg_saavedra.png'); @endphp
+                @php $logoBase64 = $toBase64('images/logos/lg_saavedra.png'); @endphp
                 @if($logoBase64)
                     <img src="{{ $logoBase64 }}" alt="Logo">
                 @endif
@@ -333,16 +333,16 @@
         <tr>
             {{-- COLUMNA IZQUIERDA: BARRA LATERAL DE IMAGENES --}}
             <td style="width: 28%; vertical-align: top; padding-right: 5px; text-align: center;">
-                @if($toBase64('images/Liberación Calidad/Figura 1.jpg'))
-                    <img src="{{ $toBase64('images/Liberación Calidad/Molde 1.jpg') }}"
+                @if($toBase64('images/calidad/Figura 1.jpg'))
+                    <img src="{{ $toBase64('images/calidad/Figura 1.jpg') }}"
                         style="width: 90%; margin-bottom: 12px;">
                 @endif
-                @if($toBase64('images/Liberación Calidad/Figura 2.jpg'))
-                    <img src="{{ $toBase64('images/Liberación Calidad/Figura 2.jpg') }}"
+                @if($toBase64('images/calidad/Figura 2.jpg'))
+                    <img src="{{ $toBase64('images/calidad/Figura 2.jpg') }}"
                         style="width: 90%; margin-bottom: 12px;">
                 @endif
-                @if($toBase64('images/Liberación Calidad/Figura 3.jpg'))
-                    <img src="{{ $toBase64('images/Liberación Calidad/Figura 3.jpg') }}"
+                @if($toBase64('images/calidad/Figura 3.jpg'))
+                    <img src="{{ $toBase64('images/calidad/Figura 3.jpg') }}"
                         style="width: 90%; margin-bottom: 12px;">
                 @endif
             </td>
@@ -531,14 +531,14 @@
                 <table style="width: 100%; text-align: center; border-collapse: collapse; margin-top: 3px;">
                     <tr>
                         <td style="width: 50%; vertical-align: middle; padding-right: 10px;">
-                            @if($toBase64('images/Liberación Calidad/Figura 4.jpg'))
-                                <img src="{{ $toBase64('images/Liberación Calidad/Figura 4.jpg') }}"
+                            @if($toBase64('images/calidad/Figura 4.jpg'))
+                                <img src="{{ $toBase64('images/calidad/Figura 4.jpg') }}"
                                     style="max-height: {{ $esRechazo ? '150px' : '300px' }}; max-width: 100%;">
                             @endif
                         </td>
                         <td style="width: 50%; vertical-align: middle; padding-left: 10px;">
-                            @if($toBase64('images/Liberación Calidad/Figura 5.jpg'))
-                                <img src="{{ $toBase64('images/Liberación Calidad/Figura 5.jpg') }}"
+                            @if($toBase64('images/calidad/Figura 5.jpg'))
+                                <img src="{{ $toBase64('images/calidad/Figura 5.jpg') }}"
                                     style="max-height: {{ $esRechazo ? '150px' : '250px' }}; max-width: 100%;">
                             @endif
                         </td>

@@ -852,3 +852,25 @@ Route::get('/test-user', function() {
     }
     return 'Not logged in';
 });
+
+/*
+|--------------------------------------------------------------------------
+| Fallback para imágenes legacy sin subdirectorio
+|--------------------------------------------------------------------------
+| Resuelve automáticamente solicitudes a /images/{filename} buscando en
+| subcarpetas (iconos, usuarios, vistas, logos, fondos, calidad, planta)
+| evitando errores 404 por rutas antiguas.
+*/
+Route::get('/images/{filename}', function (string $filename) {
+    if (str_contains($filename, '..') || str_contains($filename, '/')) {
+        abort(404);
+    }
+    foreach (['iconos', 'usuarios', 'vistas', 'logos', 'fondos', 'calidad', 'planta'] as $sub) {
+        $filePath = public_path("images/{$sub}/{$filename}");
+        if (file_exists($filePath)) {
+            return response()->file($filePath);
+        }
+    }
+    abort(404);
+})->where('filename', '[A-Za-z0-9_\-\.\s\(\)]+');
+

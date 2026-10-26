@@ -2,26 +2,26 @@
 <script>
     window.workOrders = @json($workOrders);
     window.baseUrl = "{{ url('/') }}";
-    window.edit = "{{ asset('images/img-edit.png') }}";
-    window.back = "{{ asset('images/img-back.png') }}";
-    window.imgError = "{{ asset('images/personError.png') }}";
-    window.imgNoPieces = "{{ asset('images/ready.png') }}";
-    window.imgNoPiecesPrevious = "{{ asset('images/noPieces.png') }}";
-    window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
-    window.imgCerrar = "{{ asset('images/cerrar.png') }}";
-    window.imgEditPieces = "{{ asset('images/editPieces-Icon.png') }}";
-    window.imgQualityCheck = "{{ asset('images/Quality.png') }}";
-    window.imgDraws = "{{ asset('images/DrawsProduction.png') }}";
-    window.imgProgramsCNC = "{{ asset('images/ProgramsCNC.png') }}";
-    window.imgProgramsShadow = "{{ asset('images/ProgramsCNC-Shadow.png') }}";
-    window.imgTechDocs = "{{ asset('images/manual.png') }}";
-    window.imgNoCotas = "{{ asset('images/icono_sin_cotas.png') }}";
-    window.imgCancelar = "{{ asset('images/Cancelar-Icon.png') }}";
-    window.imgResultado = "{{ asset('images/Resultado-Icon.png') }}";
-    window.imgBloqueado = "{{ asset('images/bloqueado.png') }}";
-    window.imgMasZoom = "{{ asset('images/mas_zoom.png') }}";
-    window.imgMenosZoom = "{{ asset('images/menos_zoom.png') }}";
-    window.imgOt = "{{ asset('images/OT-Icon.png') }}";
+    window.edit = "{{ asset('images/iconos/img-edit.png') }}";
+    window.back = "{{ asset('images/iconos/img-back.png') }}";
+    window.imgError = "{{ asset('images/usuarios/personError.png') }}";
+    window.imgNoPieces = "{{ asset('images/iconos/ready.png') }}";
+    window.imgNoPiecesPrevious = "{{ asset('images/iconos/noPieces.png') }}";
+    window.cerrarImgUrl = "{{ asset('images/iconos/cerrar.png') }}";
+    window.imgCerrar = "{{ asset('images/iconos/cerrar.png') }}";
+    window.imgEditPieces = "{{ asset('images/iconos/editPieces-Icon.png') }}";
+    window.imgQualityCheck = "{{ asset('images/iconos/Quality.png') }}";
+    window.imgDraws = "{{ asset('images/iconos/DrawsProduction.png') }}";
+    window.imgProgramsCNC = "{{ asset('images/iconos/ProgramsCNC.png') }}";
+    window.imgProgramsShadow = "{{ asset('images/iconos/ProgramsCNC-Shadow.png') }}";
+    window.imgTechDocs = "{{ asset('images/iconos/manual.png') }}";
+    window.imgNoCotas = "{{ asset('images/iconos/icono_sin_cotas.png') }}";
+    window.imgCancelar = "{{ asset('images/iconos/Cancelar-Icon.png') }}";
+    window.imgResultado = "{{ asset('images/iconos/Resultado-Icon.png') }}";
+    window.imgBloqueado = "{{ asset('images/iconos/bloqueado.png') }}";
+    window.imgMasZoom = "{{ asset('images/iconos/mas_zoom.png') }}";
+    window.imgMenosZoom = "{{ asset('images/iconos/menos_zoom.png') }}";
+    window.imgOt = "{{ asset('images/iconos/OT-Icon.png') }}";
     window.occupiedMachines = @json((new \App\Http\Controllers\MachinesController)->machinesOccupied());
 </script>
 @isset($arrayData)

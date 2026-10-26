@@ -3,10 +3,10 @@
 @section('head')
     @vite(['resources/css/reportes/envio_pta.css'])
     <title>Envío de Reportes PTA</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
 <div class="envio-pta-container">
@@ -14,9 +14,9 @@
     {{-- ── Header ──────────────────────────────────────────────── --}}
     <div class="envio-pta-header report-header">
         <div class="title-row">
-            <img src="{{ asset('images/Iconos_Vistas/Envio_Reportes_PTA.png') }}" class="header-view-icon" alt="Envío de Reportes PTA" />
+            <img src="{{ asset('images/vistas/Envio_Reportes_PTA.png') }}" class="header-view-icon" alt="Envío de Reportes PTA" />
             <h1>Envío de Reportes PTA</h1>
-            <img src="{{ asset('images/Iconos_Vistas/Envio_Reportes_PTA.png') }}" class="header-view-icon" alt="Envío de Reportes PTA" />
+            <img src="{{ asset('images/vistas/Envio_Reportes_PTA.png') }}" class="header-view-icon" alt="Envío de Reportes PTA" />
         </div>
         <p class="subtitle">Selecciona la OT y clase con registros de Soldadura PTA, y envía el reporte PDF por correo.</p>
     </div>

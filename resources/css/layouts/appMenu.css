@@ -393,15 +393,15 @@ body {
 .logo {
     margin-left: auto !important;
     z-index: 2 !important;
-    height: 48px;
+    height: 52px;
     width: auto;
-    max-width: 140px;
+    max-width: 190px;
     object-fit: contain;
     background: var(--glass-bg-white) !important;
     -webkit-backdrop-filter: blur(16px);
     backdrop-filter: blur(16px);
     border-radius: 10px !important;
-    padding: 4px 14px !important;
+    padding: 6px 14px !important;
     box-shadow:
         0 4px 14px rgba(0, 0, 0, 0.14),
         inset 0 1px 2px #ffffff !important;

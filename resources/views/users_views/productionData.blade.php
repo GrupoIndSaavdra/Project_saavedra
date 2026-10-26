@@ -2,19 +2,19 @@
 
 @section('head')
 <title>Datos de productividad</title>
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @vite(['resources/css/users_views/productionData.css', 'resources/js/users_views/productionData.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 <div class="container">
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/Iconos_Vistas/Datos_Productividad.png') }}" class="header-view-icon" alt="Datos de Productividad" />
+            <img src="{{ asset('images/vistas/Datos_Productividad.png') }}" class="header-view-icon" alt="Datos de Productividad" />
             <h1>Datos de Productividad</h1>
-            <img src="{{ asset('images/Iconos_Vistas/Datos_Productividad.png') }}" class="header-view-icon" alt="Datos de Productividad" />
+            <img src="{{ asset('images/vistas/Datos_Productividad.png') }}" class="header-view-icon" alt="Datos de Productividad" />
         </div>
         <p class="subtitle">Consulte el rendimiento y la eficiencia de los procesos en tiempo real</p>
     </div>

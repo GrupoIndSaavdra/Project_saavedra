@@ -38,12 +38,12 @@
             style="background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%); border-bottom: 2px solid #7f1d1d; padding: 10px 28px;">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalReinicio()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar"
+                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar"
                         style="width: 32px !important; height: 32px !important;">
                 </button>
             </div>
             <div class="alm-display-flex alm-align-items-center" style="gap: 16px; margin-top: 5px;">
-                <img src="{{ asset('images/reiniciar.png') }}"
+                <img src="{{ asset('images/iconos/reiniciar.png') }}"
                     style="width: 55px !important; height: 55px !important; object-fit: contain; flex-shrink: 0;"
                     alt="">
                 <div>
@@ -69,7 +69,7 @@
                     <div style="text-align: center; margin-bottom: 18px;">
                         <div
                             style="width: 185px; height: 185px; margin: 0 auto; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(220,38,38,0.2);">
-                            <img src="{{ asset('images/reiniciar.png') }}"
+                            <img src="{{ asset('images/iconos/reiniciar.png') }}"
                                 style="width: 130px; height: 130px; object-fit: contain;">
                         </div>
                     </div>
@@ -154,12 +154,12 @@
             style="background: linear-gradient(135deg, #16a34a 0%, #15803d 100%); border-bottom: 2px solid #14532d; padding: 10px 28px;">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalReemplazo()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar"
+                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar"
                         style="width: 32px !important; height: 32px !important;">
                 </button>
             </div>
             <div class="alm-display-flex alm-align-items-center" style="gap: 16px; margin-top: 5px;">
-                <img src="{{ asset('images/reemplazar.png') }}"
+                <img src="{{ asset('images/iconos/reemplazar.png') }}"
                     style="width: 55px !important; height: 55px !important; object-fit: contain; flex-shrink: 0;"
                     alt="">
                 <div>
@@ -185,7 +185,7 @@
                     <div style="text-align: center; margin-bottom: 18px;">
                         <div
                             style="width: 185px; height: 185px; margin: 0 auto; background: #dcfce7; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(22,163,74,0.2);">
-                            <img src="{{ asset('images/reemplazar.png') }}"
+                            <img src="{{ asset('images/iconos/reemplazar.png') }}"
                                 style="width: 130px; height: 130px; object-fit: contain;">
                         </div>
                     </div>

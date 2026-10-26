@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
 
@@ -20,7 +20,7 @@
     <div class="alm-header">
         <div class="alm-header-left">
             <div class="alm-header-icon" style="width: 64px; height: 64px; min-width: 64px; min-height: 64px;">
-                <img src="{{ asset('images/RInternoSalida.png') }}" alt="Salida de Molduras" class="ri-header-icon-img" style="width: 48px; height: 48px; max-width: 48px; max-height: 48px; object-fit: contain;">
+                <img src="{{ asset('images/iconos/RInternoSalida.png') }}" alt="Salida de Molduras" class="ri-header-icon-img" style="width: 48px; height: 48px; max-width: 48px; max-height: 48px; object-fit: contain;">
             </div>
             <div class="alm-header-text">
                 <h1>Reporte Interno de Salidas — Calidad Fundición</h1>
@@ -93,37 +93,37 @@
                     <tr>
                         <th class="sortable" data-type="number" style="cursor: pointer; user-select: none;" title="Ordenar por OT">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                OT <img src="{{ asset('images/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                OT <img src="{{ asset('images/iconos/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Moldura">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Moldura <img src="{{ asset('images/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Moldura <img src="{{ asset('images/iconos/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Clase">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Clase <img src="{{ asset('images/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Clase <img src="{{ asset('images/iconos/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Formato">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Formato <img src="{{ asset('images/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Formato <img src="{{ asset('images/iconos/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Inspector">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Inspector <img src="{{ asset('images/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Inspector <img src="{{ asset('images/iconos/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Fecha Inicio">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Fecha Inicio <img src="{{ asset('images/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Fecha Inicio <img src="{{ asset('images/iconos/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable d-text-center" data-type="number" style="cursor: pointer; user-select: none;" title="Ordenar por Piezas">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Total Piezas <img src="{{ asset('images/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Total Piezas <img src="{{ asset('images/iconos/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="d-text-center">Acción</th>
@@ -206,9 +206,9 @@
 
         const headers = table.querySelectorAll('th.sortable');
         
-        const iconSin = '{{ asset("images/Sin_Orden.png") }}';
-        const iconAsc = '{{ asset("images/Orden_Asc.png") }}';
-        const iconDesc = '{{ asset("images/Orden_Desc.png") }}';
+        const iconSin = '{{ asset("images/iconos/Sin_Orden.png") }}';
+        const iconAsc = '{{ asset("images/iconos/Orden_Asc.png") }}';
+        const iconDesc = '{{ asset("images/iconos/Orden_Desc.png") }}';
 
         headers.forEach((th, colIndex) => {
             // Estado inicial: 0 = sin orden, 1 = asc, 2 = desc

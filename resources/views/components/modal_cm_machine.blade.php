@@ -9,7 +9,7 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 2.5px solid #e2e8f0; padding-bottom: 14px; flex-shrink: 0;">
             <h4
                 style="margin: 0; color: var(--gis-blue, #033966); font-size: 1.52rem; font-family: 'Poppins', sans-serif; font-weight: 800; display: flex; align-items: center; gap: 14px;">
-                <img src="{{ asset('images/ProgramsCNC.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Máquina">
+                <img src="{{ asset('images/iconos/ProgramsCNC.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Máquina">
                 <span id="cm-machine-modal-title">Seleccionar Máquina de Trabajo</span>
             </h4>
             <button type="button" id="cm-machine-close-btn"
@@ -17,14 +17,14 @@
                 onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0,0,0,0.06)'"
                 onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'"
                 title="Cerrar">
-                <img src="{{ asset('images/cerrar.png') }}" style="width: 38px; height: 38px; object-fit: contain;" alt="Cerrar">
+                <img src="{{ asset('images/iconos/cerrar.png') }}" style="width: 38px; height: 38px; object-fit: contain;" alt="Cerrar">
             </button>
         </div>
 
         <!-- Barra de Búsqueda Dinámica y Filtros Rápidos -->
         <div style="margin-bottom: 16px; flex-shrink: 0; display: flex; flex-direction: column; gap: 12px;">
             <div style="position: relative; display: flex; align-items: center;">
-                <img src="{{ asset('images/ProgramsCNC.png') }}"
+                <img src="{{ asset('images/iconos/ProgramsCNC.png') }}"
                     style="position: absolute; left: 16px; width: 24px; height: 24px; object-fit: contain; opacity: 0.8; pointer-events: none;" alt="Buscar">
                 <input type="text" id="cm-machine-search"
                     placeholder="Escribe el número de máquina o nombre (ej: 32, 5, doble, 1 y 2)..."
@@ -42,7 +42,7 @@
             <div id="cm-machine-tabs" style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button type="button" class="cm-mach-tab is-active" data-filter="all" style="font-size: 0.92rem; padding: 7px 16px; border-radius: 10px;">Todas (49)</button>
                 <button type="button" class="cm-mach-tab is-paired" data-filter="paired" style="font-size: 0.92rem; padding: 7px 16px; border-radius: 10px;">
-                    <img src="{{ asset('images/ProgramsCNC.png') }}" style="width: 20px; height: 20px; object-fit: contain; vertical-align: middle; margin-right: 6px;" alt="Dual">
+                    <img src="{{ asset('images/iconos/ProgramsCNC.png') }}" style="width: 20px; height: 20px; object-fit: contain; vertical-align: middle; margin-right: 6px;" alt="Dual">
                     Máquinas Duales (4)
                 </button>
                 <button type="button" class="cm-mach-tab" data-filter="range_1_15" style="font-size: 0.92rem; padding: 7px 16px; border-radius: 10px;">M-01 al M-15</button>
@@ -60,7 +60,7 @@
             </div>
             <div id="cm-machine-no-results"
                 style="display: none; text-align: center; padding: 45px 20px; color: #64748b;">
-                <img src="{{ asset('images/personError.png') }}" style="width: 52px; height: 52px; opacity: 0.5; margin-bottom: 10px;" alt="Sin resultados">
+                <img src="{{ asset('images/usuarios/personError.png') }}" style="width: 52px; height: 52px; opacity: 0.5; margin-bottom: 10px;" alt="Sin resultados">
                 <p style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #64748b; font-style: normal;">No se encontró ninguna máquina con ese criterio.</p>
                 <span style="font-size: 0.90rem; color: #94a3b8;">Prueba buscando por número (ej: 5, 25) o por "doble".</span>
             </div>
@@ -72,7 +72,7 @@
                 <span style="font-size: 0.90rem; font-weight: 800; color: #475569; text-transform: uppercase; letter-spacing: 0.04em;">Selección actual:</span>
                 <div id="cm-machine-preview-badge"
                     style="background: #e0f2fe; border: 1.5px solid #93c5fd; padding: 8px 20px; border-radius: 12px; font-weight: 800; font-size: 1.06rem; color: #033966; display: flex; align-items: center; gap: 10px;">
-                    <img src="{{ asset('images/ProgramsCNC.png') }}" style="width: 22px; height: 22px; object-fit: contain;" alt="Máquina">
+                    <img src="{{ asset('images/iconos/ProgramsCNC.png') }}" style="width: 22px; height: 22px; object-fit: contain;" alt="Máquina">
                     <span id="cm-machine-selected-text">Ninguna seleccionada</span>
                 </div>
             </div>

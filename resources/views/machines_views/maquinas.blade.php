@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Piezas en máquinas</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite('resources/css/maquinas2.css')
     <link rel="stylesheet" href="{{asset('bootstrap/css/bootstrap.min.css')}}">
-    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 </head>
 
-<body background="{{ asset('images/fondoLogin.jpg') }}">
+<body background="{{ asset('images/fondos/fondoLogin.jpg') }}">
     <script>
         function crearSelect(ot, arregloOT, div){
             if(ot.value != "null"){
@@ -76,7 +76,7 @@
         <form action="{{route('showMachinesProcess')}}" method="post" class="wrapper bg-white">
             @csrf
             <h1 class="title">Piezas en máquinas</h1>
-            <img src="{{ asset('images/lg_saavedra.png') }}" class="logo-saa">
+            <img src="{{ asset('images/logos/lg_saavedra.png') }}" class="logo-saa">
             <div class="selecttts">
                 @isset($arregloOT)
                     <div class="select-container">

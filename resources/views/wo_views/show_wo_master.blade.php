@@ -2,19 +2,19 @@
 
 @section('head')
 <title>Gestión de Clases - O.T. #{{ $workOrder->id }}</title>
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 <script>
     // Rutas e imágenes globales
-    window.deleteImgUrl     = "{{ asset('images/delete.png') }}";
-    window.cerrarImgUrl     = "{{ asset('images/cerrar.png') }}";
-    window.errorImgUrl      = "{{ asset('images/error.png') }}";
+    window.deleteImgUrl     = "{{ asset('images/iconos/delete.png') }}";
+    window.cerrarImgUrl     = "{{ asset('images/iconos/cerrar.png') }}";
+    window.errorImgUrl      = "{{ asset('images/iconos/error.png') }}";
     window.classesDataUrl   = "{{ url('/piecesInProgress/classesData') }}";
 </script>
 @vite(['resources/css/wo_views/show_wo.css', 'resources/js/wo_views/show_wo_master.js'])
 @endsection
 
 @section('content')
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 <form action="{{ route('saveClass') }}" method="POST" id="form" class="container-form pt-3">
     @csrf
@@ -29,7 +29,7 @@
     <div class="main-layout">
         <div class="wrapper">
             <div style="text-align: center; margin-bottom: 1.5rem;">
-                <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra"
+                <img src="{{ asset('images/logos/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra"
                      style="width: 180px; filter: drop-shadow(0px 8px 12px rgba(0,0,0,0.08));">
                 <h2 style="font-size: 1.4em; color: rgb(3, 57, 102); font-weight: 700; margin-top: 10px; margin-bottom: 0;">
                     Gestión de Clases — O.T.

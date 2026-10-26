@@ -3,19 +3,19 @@
 <!--Estilos y codigo JS-->
 @section('head')
 <title>C.Nominales y tolerancias</title>
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @vite(['resources/css/processes_views/cNominals_view.css', 'resources/js/processes_views/cNominals_view.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 @section('content')
 <form action="{{ route('storeCNominals') }}" method="post" class="form-search">
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
+                <img src="{{ asset('images/vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
                 <h1>Cotas Nominales y Tolerancias</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
+                <img src="{{ asset('images/vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
             </div>
             <p class="subtitle">Definición de cotas críticas y márgenes de tolerancia por proceso</p>
         </div>

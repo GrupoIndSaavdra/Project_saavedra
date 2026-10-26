@@ -144,7 +144,7 @@
         <div class="alm-modal-header" style="padding: 15px 28px; position: relative;">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalRevisarCambios()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 32px !important; height: 32px !important;">
+                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" style="width: 32px !important; height: 32px !important;">
                 </button>
             </div>
             <h3>Cambios Pendientes en Dibujos de Fundición</h3>
@@ -198,7 +198,7 @@
                 }
             </style>
             <button type="button" class="btn-cerrar-no-anim" onclick="cerrarModalConfirmarAccionCambios()" title="Cerrar">
-                <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" style="width: 28px; height: 28px;">
+                <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" style="width: 28px; height: 28px;">
             </button>
         </div>
         <div class="confirm-modal-body" style="padding: 1.8em; text-align: center; background: #fdfdfd;">

@@ -26,7 +26,7 @@ function exportTableToExcel(tableID, filename = '') {
     <table style="border: none; width: 100%;">
         <tr>
             <td colspan="3" style="text-align: left; vertical-align: middle;">
-                <img src="${window.location.origin}/images/lg_saavedra.png" width="110" height="auto">
+                <img src="${window.location.origin}/images/logos/lg_saavedra.png" width="110" height="auto">
             </td>
             <td colspan="7" style="font-family: 'Algerian', serif; font-size: 32px; letter-spacing: 8px; text-align: center; vertical-align: middle;">
                 P R I O R I D A D E S

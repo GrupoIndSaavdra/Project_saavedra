@@ -64,7 +64,7 @@
             style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fecaca; padding-bottom: 8px; margin-bottom: 15px;">
             <h4
                 style="margin: 0; color: #991b1b; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/Rechazado.png') }}"
+                <img src="{{ asset('images/iconos/Rechazado.png') }}"
                     style="width: 22px; height: 22px; object-fit: contain; vertical-align: middle;"> Formato de Rechazo
                 de
                 Modelo (F_CCL_RDM)y SCAR (F_CCL_RDM_SCAR){{ $rechazadosText }}
@@ -127,7 +127,7 @@
                     style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fca5a5; padding-bottom: 8px; margin-bottom: 15px;">
                     <h4
                         style="margin: 0; color: #b91c1c; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ asset('images/Quality.png') }}"
+                        <img src="{{ asset('images/iconos/Quality.png') }}"
                             style="width: 22px; height: 22px; object-fit: contain; filter: none;">
                         Proceso Activo — {{ strtoupper($claseRech) }}
                     </h4>

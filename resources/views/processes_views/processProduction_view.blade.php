@@ -3,7 +3,7 @@
 <!--Estilos y codigo JS-->
 @section('head')
     <title>Producción</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite(['resources/css/processes_views/processProduction.css', 'resources/js/processes_views/processProduction.js'])
 @endsection
 
@@ -23,9 +23,9 @@
         {{-- 1. Panel de selección y formulario del operador --}}
         <div class="principal-data">
             <div class="panel-section-header">
-                <img src="{{ asset('images/Tornilleria-Icon.png') }}" class="panel-header-icon" alt="Tornillería">
+                <img src="{{ asset('images/iconos/Tornilleria-Icon.png') }}" class="panel-header-icon" alt="Tornillería">
                 <span>Reporte de Operador</span>
-                <img src="{{ asset('images/Tornilleria-Icon.png') }}" class="panel-header-icon" alt="Tornillería">
+                <img src="{{ asset('images/iconos/Tornilleria-Icon.png') }}" class="panel-header-icon" alt="Tornillería">
             </div>
             <form action="{{ route('headerdata') }}" method="post" class="form-principal-data">
                 @csrf

@@ -44,7 +44,7 @@ window.bloquearBotonEstatico = function (otClean, tipoModeloNorm, cardType) {
         btn.style.opacity = "0.6";
         btn.style.cursor = "not-allowed";
         btn.title = "Formato ya subido. Elimina el archivo para subir otro.";
-        btn.innerHTML = `<img src="${window.baseUrl || '/'}images/anadir.png" style="width:20px;height:20px;filter:grayscale(1);"> Subir Formato`;
+        btn.innerHTML = `<img src="${window.baseUrl || '/'}images/iconos/anadir.png" style="width:20px;height:20px;filter:grayscale(1);"> Subir Formato`;
     });
 };
 
@@ -56,7 +56,7 @@ window.desbloquearBotonEstatico = function (otClean, tipoModeloNorm, cardType) {
         btn.style.opacity = "1";
         btn.style.cursor = "pointer";
         btn.title = "Subir archivo";
-        btn.innerHTML = `<img src="${window.baseUrl || '/'}images/anadir.png" style="width:20px;height:20px;"> Subir Formato`;
+        btn.innerHTML = `<img src="${window.baseUrl || '/'}images/iconos/anadir.png" style="width:20px;height:20px;"> Subir Formato`;
     });
 };
 

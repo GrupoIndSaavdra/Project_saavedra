@@ -323,7 +323,7 @@
     <table class="header-table">
         <tr>
             <td class="logo-cell">
-                <img src="{{ public_path('images/lg_saavedra.png') }}" class="logo-img" alt="Grupo Industrial Saavedra">
+                <img src="{{ public_path('images/logos/lg_saavedra.png') }}" class="logo-img" alt="Grupo Industrial Saavedra">
             </td>
             <td class="title-cell">
                 <h1>Registro de Números de Trazabilidad por Moldura</h1>

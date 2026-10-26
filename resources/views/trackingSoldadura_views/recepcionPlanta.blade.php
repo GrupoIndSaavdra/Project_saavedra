@@ -2,20 +2,20 @@
 
 @section('head')
     <title>Recepción de Soldadura en Planta</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/trackingSoldadura_views/recepcionPlanta.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Recepcion_Soldadura.png') }}" class="header-view-icon" alt="Recepción de Soldadura" />
+                <img src="{{ asset('images/vistas/Recepcion_Soldadura.png') }}" class="header-view-icon" alt="Recepción de Soldadura" />
                 <h1>Recepción de Soldadura en Planta</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Recepcion_Soldadura.png') }}" class="header-view-icon" alt="Recepción de Soldadura" />
+                <img src="{{ asset('images/vistas/Recepcion_Soldadura.png') }}" class="header-view-icon" alt="Recepción de Soldadura" />
             </div>
             <p class="subtitle">Registro y validación de entrada de botes de soldadura al almacén de planta</p>
         </div>

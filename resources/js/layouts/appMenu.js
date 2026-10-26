@@ -922,7 +922,7 @@ function crearBotonLiberar(infoPiezas, i, piezas) {
     };
     // Agregar evento al boton
     a.addEventListener("click", (e) => {
-        e.preventDefault;
+        e.preventDefault();
         create_ObservationsField(keys);
     });
     return a;
@@ -947,7 +947,7 @@ function crearBotonRechazar(infoPiezas, i) {
 
     // Agregar evento al boton
     a.addEventListener("click", (e) => {
-        e.preventDefault;
+        e.preventDefault();
         create_ObservationsField(keys);
     });
     return a;

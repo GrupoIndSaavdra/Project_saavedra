@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
 
@@ -25,7 +25,7 @@
                 Regresar al Selector
             </a>
             <span class="rd-title-tag">
-                <img src="{{ asset('images/reporte dimensional.png') }}" width="18" height="18" alt="Reporte Dimensional">
+                <img src="{{ asset('images/calidad/reporte dimensional.png') }}" width="18" height="18" alt="Reporte Dimensional">
                 <span>Reporte Dimensional</span>
             </span>
             <span class="rd-ot-pill">OT #{{ $otData->id }} — {{ $clase }}</span>
@@ -48,7 +48,7 @@
                     REPORTE DE INSPECCIÓN PARA {{ strtoupper($clase) }} (Reporte Dimensional)
                 </div>
                 <div class="rd-doc-logo">
-                    <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" class="rd-logo-img">
+                    <img src="{{ asset('images/logos/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" class="rd-logo-img">
                 </div>
             </div>
 
@@ -385,8 +385,8 @@
                 $claseUpper = strtoupper($clase);
                 $esMolde = str_contains($claseUpper, 'MOLDE');
                 $diagramaImg = $esMolde
-                    ? asset('images/MOLDE_ REPORTEDIMNSIONAL .jpg')
-                    : asset('images/BOMBILLO_REPORTEDIMENSIONAL.jpg');
+                    ? asset('images/calidad/molde_reporte_dimensional.jpg')
+                    : asset('images/calidad/BOMBILLO_REPORTEDIMENSIONAL.jpg');
                 $diagramaTitulo = $esMolde ? 'MOLDE' : 'BOMBILLO';
             @endphp
             <div class="rd-diagram-panel">

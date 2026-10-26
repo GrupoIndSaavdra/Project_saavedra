@@ -60,7 +60,7 @@
             style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
             <h4
                 style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/aprobado.png') }}"
+                <img src="{{ asset('images/iconos/Aprobado.png') }}"
                     style="width: 22px; height: 22px; object-fit: contain; vertical-align: middle;"> Formato de
                 Liberación
                 de

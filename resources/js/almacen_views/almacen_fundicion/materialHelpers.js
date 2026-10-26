@@ -28,7 +28,7 @@ window.updateCustomFileLabel = function (input) {
             previewContainer.innerHTML = `
                 <div class="dibujos-file-card card-otro" style="animation-delay: 0s; border-left-color: ${borderColor}; display: flex; align-items: center; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #fff; padding: 10px; border: 1.5px solid #e2e8f0; border-left: 5px solid ${borderColor}; width: 100%; box-sizing: border-box; margin-top: 8px;">
                     <div class="file-icon-wrapper" style="position:relative;width:38px;height:38px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                        <img src="${getBaseUrl()}images/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
+                        <img src="${getBaseUrl()}images/iconos/pdf-view-shadow.png" class="file-icon icon-default" style="width:38px;height:38px;object-fit:contain;">
                     </div>
                     <div class="file-name" style="font-size: 0.85em; margin: 0 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: #334155; flex: 1; text-align: left;">
                         ${cleanName} <span style="font-size:0.8em;color:#64748b;font-weight:400;margin-left:5px;">(${(file.size / 1024).toFixed(1)} KB)</span>
@@ -257,7 +257,7 @@ class FundicionChecklistCard {
                 imgName = "Recibido.png";
                 break;
         }
-        return `${baseUrl}${slash}images/${imgName}`;
+        return `${baseUrl}${slash}images/iconos/${imgName}`;
     }
     _getBorderColor(data) {
         const pasos = Object.values(data.pasos || {});

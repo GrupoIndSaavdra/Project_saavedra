@@ -7,7 +7,7 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
             <h4
                 style="margin: 0; color: #0a8504; font-size: 1.15em; font-family: 'Poppins', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/Fecha-Icon.png') }}" style="width: 26px; height: 26px; object-fit: contain;" alt="Fecha">
+                <img src="{{ asset('images/iconos/Fecha-Icon.png') }}" style="width: 26px; height: 26px; object-fit: contain;" alt="Fecha">
                 <span id="cm-modal-title">Seleccionar Fecha</span>
             </h4>
             <button type="button" onclick="document.getElementById('modalCmCalendar').style.display='none'"
@@ -15,7 +15,7 @@
                 onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0,0,0,0.06)'"
                 onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'"
                 title="Cerrar">
-                <img src="{{ asset('images/cerrar.png') }}" style="width: 38px; height: 38px; object-fit: contain;" alt="Cerrar">
+                <img src="{{ asset('images/iconos/cerrar.png') }}" style="width: 38px; height: 38px; object-fit: contain;" alt="Cerrar">
             </button>
         </div>
         <div id="cm-inline-calendar" style="user-select: none;">

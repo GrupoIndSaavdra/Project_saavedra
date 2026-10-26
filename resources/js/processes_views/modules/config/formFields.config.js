@@ -28,6 +28,6 @@ export const formFieldIcons = {
 export function getFieldLabelHtml(iconFileName, text) {
     if (!iconFileName) return `<span>${text}</span>`;
     const baseUrl = (window.baseUrl || "").replace(/\/$/, "");
-    const iconSrc = baseUrl ? `${baseUrl}/images/${iconFileName}` : `/images/${iconFileName}`;
+    const iconSrc = baseUrl ? `${baseUrl}/images/iconos/${iconFileName}` : `/images/iconos/${iconFileName}`;
     return `<img src="${iconSrc}" class="form-label-icon" alt="${text}"><span>${text}</span>`;
 }

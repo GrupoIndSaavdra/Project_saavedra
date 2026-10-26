@@ -1,13 +1,13 @@
 {{-- Banner de Notificación y Alerta de Producción --}}
 <div class="warning-pieces yellow-glass-container">
     <div class="warning-icon-wrapper">
-        <img src="{{ asset('images/Notificacion-Icon.png') }}" class="warning-icon-img" alt="Notificación">
+        <img src="{{ asset('images/iconos/Notificacion-Icon.png') }}" class="warning-icon-img" alt="Notificación">
     </div>
     <div class="warning-text">
         <div class="warning-title-pill">
-            <img src="{{ asset('images/Alerta-Icon.png') }}" class="warning-pill-icon" alt="Alerta">
+            <img src="{{ asset('images/iconos/Alerta-Icon.png') }}" class="warning-pill-icon" alt="Alerta">
             <span>Aviso Importante de Producción</span>
-            <img src="{{ asset('images/Alerta-Icon.png') }}" class="warning-pill-icon" alt="Alerta">
+            <img src="{{ asset('images/iconos/Alerta-Icon.png') }}" class="warning-pill-icon" alt="Alerta">
         </div>
         <div class="warning-body">
             LAS COTAS SON <span class="highlight-important-orange">ÚNICAMENTE DE REFERENCIA</span>; VERIFIQUE SIEMPRE LAS MEDIDAS CON EL DIBUJO VIGENTE.
@@ -17,6 +17,6 @@
         </div>
     </div>
     <div class="warning-icon-wrapper">
-        <img src="{{ asset('images/Notificacion-Icon.png') }}" class="warning-icon-img" alt="Notificación">
+        <img src="{{ asset('images/iconos/Notificacion-Icon.png') }}" class="warning-icon-img" alt="Notificación">
     </div>
 </div>

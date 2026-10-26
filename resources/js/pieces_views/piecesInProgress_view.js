@@ -420,7 +420,7 @@ class FundicionChecklistCard {
                 imgName = 'Recibido.png';
                 break;
         }
-        return `${baseUrl}${slash}images/${imgName}`;
+        return `${baseUrl}${slash}images/iconos/${imgName}`;
     }
 
     // ── Color del borde izquierdo según estado global ─────
@@ -785,7 +785,7 @@ class PlaneacionChecklistCard {
                 }
             }
         }
-        return `${baseUrl}${slash}images/${imgName}`;
+        return `${baseUrl}${slash}images/iconos/${imgName}`;
     }
 
     _getBorderColor(pasos) {
@@ -1045,7 +1045,7 @@ class TermicoChecklistCard {
 
         const baseUrl = window.baseUrl || (window.location.origin + '/');
         const slash = baseUrl.endsWith('/') ? '' : '/';
-        const iconUrl = isTermicoComplete ? `${baseUrl}${slash}images/Aprobado.png` : `${baseUrl}${slash}images/tratamiento_termico.png`;
+        const iconUrl = isTermicoComplete ? `${baseUrl}${slash}images/iconos/Aprobado.png` : `${baseUrl}${slash}images/iconos/tratamiento_termico.png`;
         const badgeClass = isTermicoComplete ? 'badge--completado' : 'badge--pendiente';
         const badgeText = isTermicoComplete ? 'COMPLETADO' : 'PENDIENTE';
         const iconStateClass = isTermicoComplete ? 'checklist-item--completado' : 'checklist-item--pendiente';
@@ -1407,13 +1407,13 @@ class Dashboard {
 
                     let priorityImgPath = "";
                     let isPlataPriority = false;
-                    if (otPriority === 1) priorityImgPath = `${window.baseUrl}/images/uno.png`;
-                    else if (otPriority === 2) priorityImgPath = `${window.baseUrl}/images/dos.png`;
-                    else if (otPriority === 3) priorityImgPath = `${window.baseUrl}/images/tres.png`;
-                    else if (otPriority === 4) priorityImgPath = `${window.baseUrl}/images/cuatro.png`;
-                    else if (otPriority === 5) priorityImgPath = `${window.baseUrl}/images/cinco.png`;
+                    if (otPriority === 1) priorityImgPath = `${window.baseUrl}/images/iconos/uno.png`;
+                    else if (otPriority === 2) priorityImgPath = `${window.baseUrl}/images/iconos/dos.png`;
+                    else if (otPriority === 3) priorityImgPath = `${window.baseUrl}/images/iconos/tres.png`;
+                    else if (otPriority === 4) priorityImgPath = `${window.baseUrl}/images/iconos/cuatro.png`;
+                    else if (otPriority === 5) priorityImgPath = `${window.baseUrl}/images/iconos/cinco.png`;
                     else {
-                        priorityImgPath = `${window.baseUrl}/images/plata.png`;
+                        priorityImgPath = `${window.baseUrl}/images/iconos/plata.png`;
                         isPlataPriority = true;
                     }
 
@@ -1538,15 +1538,15 @@ class Dashboard {
         cotasBadge.style.zIndex = "5";
         
         if (processesArray["requiresCotas"] === false) {
-            cotasBadge.src = `${baseUrl}${slash}images/Aprobado.png`;
+            cotasBadge.src = `${baseUrl}${slash}images/iconos/Aprobado.png`;
             cotasBadge.title = "No requiere cotas";
             cotasBadge.classList.add("cotas-badge-glow");
         } else if (processesArray["hasCotas"]) {
-            cotasBadge.src = `${baseUrl}${slash}images/icono_cotas.png`;
+            cotasBadge.src = `${baseUrl}${slash}images/iconos/icono_cotas.png`;
             cotasBadge.title = "Cotas registradas correctamente";
             cotasBadge.classList.add("cotas-badge-glow");
         } else {
-            cotasBadge.src = `${baseUrl}${slash}images/icono_sin_cotas.png`;
+            cotasBadge.src = `${baseUrl}${slash}images/iconos/icono_sin_cotas.png`;
             cotasBadge.title = "Falta registrar cotas";
             cotasBadge.style.opacity = "0.7";
         }
@@ -1875,7 +1875,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Forzar el fondo a la imagen requerida y eliminar colores de fondo
     const bUrl = window.baseUrl || (window.location.origin + '/');
     const bSlash = bUrl.endsWith('/') ? '' : '/';
-    document.body.style.setProperty('background', `url('${bUrl}${bSlash}images/fondoLogin.jpg') no-repeat center center fixed`, 'important');
+    document.body.style.setProperty('background', `url('${bUrl}${bSlash}images/fondos/fondoLogin.jpg') no-repeat center center fixed`, 'important');
     document.body.style.setProperty('background-size', 'cover', 'important');
     document.body.style.setProperty('background-color', 'transparent', 'important');
 
@@ -1987,7 +1987,7 @@ window.mostrarModalFinalizarPedido = function (tipo, mensaje, recargar = false) 
 
     let btnCerrar = document.createElement("button");
     btnCerrar.className = "btn-cerrar";
-    btnCerrar.innerHTML = `<img class="img-cerrar" src="${window.cerrarImgUrl || window.baseUrl + '/images/cerrar.png'}">`;
+    btnCerrar.innerHTML = `<img class="img-cerrar" src="${window.cerrarImgUrl || window.baseUrl + '/images/iconos/cerrar.png'}">`;
 
     btnCerrar.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -1998,7 +1998,7 @@ window.mostrarModalFinalizarPedido = function (tipo, mensaje, recargar = false) 
     divCerrar.appendChild(btnCerrar);
     alertDiv.appendChild(divCerrar);
 
-    let imgRoute = (tipo === "error") ? "/images/error.png" : "/images/ready.png";
+    let imgRoute = (tipo === "error") ? "/images/iconos/error.png" : "/images/iconos/ready.png";
     let img = document.createElement("img");
     img.className = "img-error";
     img.src = (window.baseUrl || "") + imgRoute;

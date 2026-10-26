@@ -2,11 +2,11 @@
 
 @section('head')
     <title>2da Pasada — Soldadura PTA</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite(['resources/css/pta_views/analysis.css', 'resources/css/processes_views/soldaduraPTA_table_partial.css', 'resources/css/pta_views/segunda_pasada.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
     <div class="pta-analysis-wrapper">
@@ -14,9 +14,9 @@
         {{-- Header --}}
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Segunda_Pasada_PTA.png') }}" class="header-view-icon" alt="2da Pasada PTA" />
+                <img src="{{ asset('images/vistas/Segunda_Pasada_PTA.png') }}" class="header-view-icon" alt="2da Pasada PTA" />
                 <h1>Edición 2da Pasada — Soldadura PTA</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Segunda_Pasada_PTA.png') }}" class="header-view-icon" alt="2da Pasada PTA" />
+                <img src="{{ asset('images/vistas/Segunda_Pasada_PTA.png') }}" class="header-view-icon" alt="2da Pasada PTA" />
             </div>
             <p class="subtitle">Selecciona OT, Clase y Pieza para editar los datos de segunda pasada</p>
         </div>

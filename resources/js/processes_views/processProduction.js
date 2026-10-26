@@ -117,8 +117,8 @@ if (typeof window.toastpremium === 'function') {
 function initTableFocusMode() {
     const btnToggle = document.getElementById("btnToggleFocus");
 
-    const getMasZoomUrl = () => window.imgMasZoom || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/mas_zoom.png` : "/images/mas_zoom.png");
-    const getMenosZoomUrl = () => window.imgMenosZoom || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/menos_zoom.png` : "/images/menos_zoom.png");
+    const getMasZoomUrl = () => window.imgMasZoom || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/mas_zoom.png` : "/images/iconos/mas_zoom.png");
+    const getMenosZoomUrl = () => window.imgMenosZoom || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/menos_zoom.png` : "/images/iconos/menos_zoom.png");
 
     const checkTableActive = () => {
         const isEditMeta = window.arrayData && window.arrayData["edit"] == 1;

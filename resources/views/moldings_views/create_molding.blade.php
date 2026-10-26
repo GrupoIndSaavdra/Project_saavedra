@@ -3,17 +3,17 @@
 @section('head')
 <title>Registrar molduras</title>
 @vite(['resources/css/moldings_views/create_molding.css'])
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")') <!--Body background Image-->
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")') <!--Body background Image-->
 @section('content')
 <div class="wrapper">
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/Iconos_Vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
+            <img src="{{ asset('images/vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
             <h2>Registrar nuevas molduras</h2>
-            <img src="{{ asset('images/Iconos_Vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
+            <img src="{{ asset('images/vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
         </div>
         <p class="subtitle">Alta y catalogación de nuevos modelos de moldura en el sistema</p>
     </div>

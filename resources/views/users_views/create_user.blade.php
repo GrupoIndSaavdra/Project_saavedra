@@ -1,11 +1,11 @@
 @extends('layouts.appMenu')
 @section('head')
 <title>Registrar usuario | Grupo Industrial Saavedra</title>
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @vite(['resources/css/users_views/createUser.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 <div class="create-user-container">
@@ -13,14 +13,14 @@
     {{-- Encabezado Principal --}}
     <div class="page-header">
         <div class="header-left">
-            <img src="{{ asset('images/anadir.png') }}" alt="Registrar Usuario" class="create-header-icon">
+            <img src="{{ asset('images/iconos/anadir.png') }}" alt="Registrar Usuario" class="create-header-icon">
             <div class="header-title-group">
                 <h1>REGISTRO DE USUARIO</h1>
                 <span class="subtitle-text">Alta de personal y asignación operativa en planta</span>
             </div>
         </div>
         <a href="{{ route('users') }}" class="btn-volver">
-            <img src="{{ asset('images/usuario.png') }}" alt="Gestión de Usuarios" style="width:18px; height:18px; object-fit:contain; vertical-align:middle; margin-right:6px;">
+            <img src="{{ asset('images/usuarios/usuario.png') }}" alt="Gestión de Usuarios" style="width:18px; height:18px; object-fit:contain; vertical-align:middle; margin-right:6px;">
             Gestión de Usuarios
         </a>
     </div>
@@ -163,7 +163,7 @@
                     Cancelar
                 </a>
                 <button type="submit" class="btn-registrar">
-                    <img src="{{ asset('images/anadir.png') }}" alt="Guardar" class="btn-reg-icon">
+                    <img src="{{ asset('images/iconos/anadir.png') }}" alt="Guardar" class="btn-reg-icon">
                     <span>Guardar Usuario</span>
                 </button>
             </div>

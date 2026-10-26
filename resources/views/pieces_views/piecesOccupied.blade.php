@@ -2,22 +2,22 @@
 
 @section('head')
 <title>Piezas Ocupadas - Project Saavedra</title>
-<link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 <meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @vite(['resources/css/pieces_views/piecesOccupied.css', 'resources/js/pieces_views/piecesOccupied.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 <div class="pieces-occupied-wrapper">
     <!-- Encabezado centrado con icono de la vista al inicio y al final (sin lg_saavedra) -->
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/Iconos_Vistas/Piezas_Ocupadas.png') }}" class="header-view-icon" alt="Piezas Ocupadas" />
+            <img src="{{ asset('images/vistas/Piezas_Ocupadas.png') }}" class="header-view-icon" alt="Piezas Ocupadas" />
             <h1>Control de Piezas Ocupadas</h1>
-            <img src="{{ asset('images/Iconos_Vistas/Piezas_Ocupadas.png') }}" class="header-view-icon" alt="Piezas Ocupadas" />
+            <img src="{{ asset('images/vistas/Piezas_Ocupadas.png') }}" class="header-view-icon" alt="Piezas Ocupadas" />
         </div>
         <p class="subtitle">Monitoreo, liberación y reasignación de piezas retenidas o huérfanas en procesos de producción</p>
     </div>
@@ -27,19 +27,19 @@
     <!-- Cinta de KPIs compacta (estilo cinta de estado) -->
     <div class="kpi-ribbon">
         <div class="kpi-chip kpi-chip-occupied">
-            <img src="{{ asset('images/perspectiva-icon.png') }}" class="kpi-icon" alt="" />
+            <img src="{{ asset('images/iconos/perspectiva-icon.png') }}" class="kpi-icon" alt="" />
             <span class="kpi-val" id="stat-total-occupied">0</span>
             <span class="kpi-txt">Piezas Ocupadas</span>
         </div>
 
         <div class="kpi-chip kpi-chip-orphan">
-            <img src="{{ asset('images/Aviso.png') }}" class="kpi-icon" alt="" />
+            <img src="{{ asset('images/iconos/Aviso.png') }}" class="kpi-icon" alt="" />
             <span class="kpi-val" id="stat-total-orphans">0</span>
             <span class="kpi-txt">Huérfanas (Sin máquina)</span>
         </div>
 
         <div class="kpi-chip kpi-chip-ots">
-            <img src="{{ asset('images/documento.png') }}" class="kpi-icon" alt="" />
+            <img src="{{ asset('images/iconos/documento.png') }}" class="kpi-icon" alt="" />
             <span class="kpi-val" id="stat-affected-ots">0</span>
             <span class="kpi-txt">OTs Involucradas</span>
         </div>
@@ -54,14 +54,14 @@
                     <option value="{{ $wo->id }}">OT {{ $wo->id }} {{ $wo->moldura ? '— ' . $wo->moldura->nombre : '' }}</option>
                 @endforeach
             </select>
-            <label for="select-ot"><img src="{{ asset('images/folio-icon.png') }}" class="icon-label" alt="" /> ORDEN DE TRABAJO (OT)</label>
+            <label for="select-ot"><img src="{{ asset('images/iconos/folio-icon.png') }}" class="icon-label" alt="" /> ORDEN DE TRABAJO (OT)</label>
         </div>
 
         <div class="filter">
             <select id="select-clase">
                 <option value="">Todas las Clases</option>
             </select>
-            <label for="select-clase"><img src="{{ asset('images/icono_cotas.png') }}" class="icon-label" alt="" /> CLASE</label>
+            <label for="select-clase"><img src="{{ asset('images/iconos/icono_cotas.png') }}" class="icon-label" alt="" /> CLASE</label>
         </div>
 
         <div class="filter">
@@ -71,12 +71,12 @@
                     <option value="{{ $proc['key'] }}">{{ $proc['label'] }}</option>
                 @endforeach
             </select>
-            <label for="select-proceso"><img src="{{ asset('images/ProgramsProduction.png') }}" class="icon-label" alt="" /> PROCESO</label>
+            <label for="select-proceso"><img src="{{ asset('images/iconos/ProgramsProduction.png') }}" class="icon-label" alt="" /> PROCESO</label>
         </div>
 
         <div class="filter-actions-inline">
             <button type="button" id="btn-refresh" class="btn-refresh-gis" title="Recargar listado">
-                <img src="{{ asset('images/actualizar.png') }}" class="icon-refresh" alt="" /> Actualizar
+                <img src="{{ asset('images/iconos/actualizar.png') }}" class="icon-refresh" alt="" /> Actualizar
             </button>
         </div>
     </div>
@@ -84,12 +84,12 @@
     <!-- Barra de Pestañas: Piezas Ocupadas vs Historial de Acciones Administrativas -->
     <div class="view-tabs-bar">
         <button type="button" class="view-tab-btn active" id="tab-btn-pieces">
-            <img src="{{ asset('images/perspectiva-icon.png') }}" class="tab-btn-icon" alt="" />
+            <img src="{{ asset('images/iconos/perspectiva-icon.png') }}" class="tab-btn-icon" alt="" />
             <span>Piezas Ocupadas</span>
             <span class="tab-badge" id="tab-badge-pieces">0</span>
         </button>
         <button type="button" class="view-tab-btn" id="tab-btn-logs">
-            <img src="{{ asset('images/documento.png') }}" class="tab-btn-icon" alt="" />
+            <img src="{{ asset('images/iconos/documento.png') }}" class="tab-btn-icon" alt="" />
             <span>Historial de Acciones Administrativas</span>
             <span class="tab-badge" id="tab-badge-logs">0</span>
         </button>
@@ -114,7 +114,7 @@
             <tbody id="pieces-table-body">
                 <tr>
                     <td colspan="9" class="empty-state">
-                        <img src="{{ asset('images/loading.gif') }}" class="loading-gif" alt="Cargando..." />
+                        <img src="{{ asset('images/iconos/loading.gif') }}" class="loading-gif" alt="Cargando..." />
                         <p>Cargando piezas ocupadas...</p>
                     </td>
                 </tr>
@@ -140,7 +140,7 @@
             <tbody id="logs-table-body">
                 <tr>
                     <td colspan="8" class="empty-state">
-                        <img src="{{ asset('images/loading.gif') }}" class="loading-gif" alt="Cargando..." />
+                        <img src="{{ asset('images/iconos/loading.gif') }}" class="loading-gif" alt="Cargando..." />
                         <p>Cargando historial de auditoría...</p>
                     </td>
                 </tr>
@@ -161,7 +161,7 @@
         <div class="modal-header">
             <h3>
                 <span class="modal-header-icon-box">
-                    <img src="{{ asset('images/edit.png') }}" alt="" />
+                    <img src="{{ asset('images/iconos/edit.png') }}" alt="" />
                 </span>
                 Modificar Pieza Ocupada
             </h3>
@@ -174,17 +174,17 @@
             <div class="modal-body">
                 <div class="info-badge-row">
                     <div class="info-pill pill-ot">
-                        <img src="{{ asset('images/folio-icon.png') }}" class="pill-icon" alt="" />
+                        <img src="{{ asset('images/iconos/folio-icon.png') }}" class="pill-icon" alt="" />
                         <span class="pill-label">OT:</span>
                         <strong class="pill-val" id="badge-modal-ot">-</strong>
                     </div>
                     <div class="info-pill pill-clase">
-                        <img src="{{ asset('images/icono_cotas.png') }}" class="pill-icon" alt="" />
+                        <img src="{{ asset('images/iconos/icono_cotas.png') }}" class="pill-icon" alt="" />
                         <span class="pill-label">Clase:</span>
                         <strong class="pill-val" id="badge-modal-clase">-</strong>
                     </div>
                     <div class="info-pill pill-proceso">
-                        <img src="{{ asset('images/ProgramsProduction.png') }}" class="pill-icon" alt="" />
+                        <img src="{{ asset('images/iconos/ProgramsProduction.png') }}" class="pill-icon" alt="" />
                         <span class="pill-label">Proceso:</span>
                         <strong class="pill-val" id="badge-modal-proceso">-</strong>
                     </div>
@@ -193,7 +193,7 @@
                 <div class="form-row">
                     <div class="form-col">
                         <label for="edit-n-pieza">
-                            <img src="{{ asset('images/perspectiva-icon.png') }}" class="input-icon-label" alt="" />
+                            <img src="{{ asset('images/iconos/perspectiva-icon.png') }}" class="input-icon-label" alt="" />
                             Número de Pieza
                         </label>
                         <div class="input-wrapper">
@@ -202,7 +202,7 @@
                     </div>
                     <div class="form-col">
                         <label for="edit-n-juego">
-                            <img src="{{ asset('images/icono_cotas.png') }}" class="input-icon-label" alt="" />
+                            <img src="{{ asset('images/iconos/icono_cotas.png') }}" class="input-icon-label" alt="" />
                             Número de Juego
                         </label>
                         <div class="input-wrapper">
@@ -214,7 +214,7 @@
                 <div class="form-row">
                     <div class="form-col">
                         <label for="edit-estado">
-                            <img src="{{ asset('images/Aviso.png') }}" class="input-icon-label" alt="" />
+                            <img src="{{ asset('images/iconos/Aviso.png') }}" class="input-icon-label" alt="" />
                             Estado de la Pieza
                         </label>
                         <div class="input-wrapper">
@@ -230,7 +230,7 @@
                     </div>
                     <div class="form-col">
                         <label for="edit-id-meta">
-                            <img src="{{ asset('images/documento.png') }}" class="input-icon-label" alt="" />
+                            <img src="{{ asset('images/iconos/documento.png') }}" class="input-icon-label" alt="" />
                             ID de Meta Asignada
                         </label>
                         <div class="input-wrapper">
@@ -262,7 +262,7 @@
         <div class="modal-header">
             <h3>
                 <span class="modal-header-icon-box" id="confirm-modal-icon-box">
-                    <img src="{{ asset('images/Liberar.png') }}" id="confirm-modal-icon" alt="" />
+                    <img src="{{ asset('images/iconos/Liberar.png') }}" id="confirm-modal-icon" alt="" />
                 </span>
                 <span id="confirm-modal-title">¿Liberar pieza?</span>
             </h3>
@@ -271,17 +271,17 @@
         <div class="modal-body modal-body-confirm">
             <div class="info-badge-row confirm-badge-row">
                 <div class="info-pill pill-ot">
-                    <img src="{{ asset('images/folio-icon.png') }}" class="pill-icon" alt="" />
+                    <img src="{{ asset('images/iconos/folio-icon.png') }}" class="pill-icon" alt="" />
                     <span class="pill-label">OT:</span>
                     <strong class="pill-val" id="confirm-pill-ot">-</strong>
                 </div>
                 <div class="info-pill pill-clase">
-                    <img src="{{ asset('images/icono_cotas.png') }}" class="pill-icon" alt="" />
+                    <img src="{{ asset('images/iconos/icono_cotas.png') }}" class="pill-icon" alt="" />
                     <span class="pill-label">Clase:</span>
                     <strong class="pill-val" id="confirm-pill-clase">-</strong>
                 </div>
                 <div class="info-pill pill-proceso">
-                    <img src="{{ asset('images/ProgramsProduction.png') }}" class="pill-icon" alt="" />
+                    <img src="{{ asset('images/iconos/ProgramsProduction.png') }}" class="pill-icon" alt="" />
                     <span class="pill-label">Proceso:</span>
                     <strong class="pill-val" id="confirm-pill-proceso">-</strong>
                 </div>
@@ -314,12 +314,12 @@
     window.routes.getLogs = "{{ route('piecesOccupied.logs') }}";
 
     window.images = {
-        liberar: "{{ asset('images/Liberar.png') }}",
-        editar: "{{ asset('images/edit.png') }}",
-        delete: "{{ asset('images/delete.png') }}",
-        aviso: "{{ asset('images/Aviso.png') }}",
-        ready: "{{ asset('images/ready.png') }}",
-        loading: "{{ asset('images/loading.gif') }}"
+        liberar: "{{ asset('images/iconos/Liberar.png') }}",
+        editar: "{{ asset('images/iconos/edit.png') }}",
+        delete: "{{ asset('images/iconos/delete.png') }}",
+        aviso: "{{ asset('images/iconos/Aviso.png') }}",
+        ready: "{{ asset('images/iconos/ready.png') }}",
+        loading: "{{ asset('images/iconos/loading.gif') }}"
     };
 </script>
 @endsection

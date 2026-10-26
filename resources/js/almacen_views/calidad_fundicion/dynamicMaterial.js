@@ -117,7 +117,7 @@ class FundicionChecklistCard {
                 imgName = "Recibido.png";
                 break;
         }
-        return `${baseUrl}${slash}images/${imgName}`;
+        return `${baseUrl}${slash}images/iconos/${imgName}`;
     }
     _getBorderColor(data) {
         const pasos = Object.values(data.pasos || {});

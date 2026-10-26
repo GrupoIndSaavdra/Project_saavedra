@@ -219,7 +219,7 @@
             id="lib-modal-header" style="padding: 10px 28px;">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalLiberacion()">
-                    <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar"
+                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar"
                         style="width: 32px !important; height: 32px !important;">
                 </button>
             </div>
@@ -288,7 +288,7 @@
                     <p class="lib-section-hint">Haz clic en cualquier imagen para verla en tamano completo en una nueva
                         pestana.</p>
                     <div class="lib-img-strip">
-                        @foreach ([['url' => asset('images/Liberación Calidad/Figura 1.jpg'), 'label' => 'Vista General (A, A1, B, C, D)'], ['url' => asset('images/Liberación Calidad/Figura 2.jpg'), 'label' => 'Vista Lateral (E1, E2)'], ['url' => asset('images/Liberación Calidad/Figura 3.jpg'), 'label' => 'Vista Superior (D2, G1, G2)'], ['url' => asset('images/Liberación Calidad/Figura 4.jpg'), 'label' => 'Plantilla y Templadera'], ['url' => asset('images/Liberación Calidad/Figura 5.jpg'), 'label' => 'Referencia 3D']] as $img)
+                        @foreach ([['url' => asset('images/calidad/Figura 1.jpg'), 'label' => 'Vista General (A, A1, B, C, D)'], ['url' => asset('images/calidad/Figura 2.jpg'), 'label' => 'Vista Lateral (E1, E2)'], ['url' => asset('images/calidad/Figura 3.jpg'), 'label' => 'Vista Superior (D2, G1, G2)'], ['url' => asset('images/calidad/Figura 4.jpg'), 'label' => 'Plantilla y Templadera'], ['url' => asset('images/calidad/Figura 5.jpg'), 'label' => 'Referencia 3D']] as $img)
                             <div class="lib-img-card">
                                 <div class="lib-img-zoom-wrapper" data-src="{{ $img['url'] }}"
                                     onclick="window.open(this.dataset.src,'_blank')" role="button" tabindex="0"
@@ -599,7 +599,7 @@
                         <div class="lib-decision-card lib-decision-aprobar active" id="lib-dec-aprobar"
                             onclick="libSeleccionarDecision('aprobar')">
                             <div class="active-badge"></div>
-                            <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobar">
+                            <img src="{{ asset('images/iconos/Aprobado.png') }}" alt="Aprobar">
                             <div class="card-title">Aprobar Modelo</div>
                             <div class="card-desc">El modelo cumple con todas las especificaciones de calidad requeridas.</div>
                         </div>
@@ -607,7 +607,7 @@
                         <div class="lib-decision-card lib-decision-rechazar" id="lib-dec-rechazar"
                             onclick="libSeleccionarDecision('rechazar')">
                             <div class="active-badge"></div>
-                            <img src="{{ asset('images/Rechazado.png') }}" alt="Rechazar">
+                            <img src="{{ asset('images/iconos/Rechazado.png') }}" alt="Rechazar">
                             <div class="card-title">Rechazar Modelo</div>
                             <div class="card-desc">El modelo presenta defectos dimensionales o físicos. Generar SCAR.</div>
                         </div>

@@ -10,11 +10,11 @@
 
 @section('head')
 <title>Orden de Trabajo – Almacén</title>
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @vite(['resources/css/wo_views/show_wo_almacen.css', 'resources/js/wo_views/show_wo_almacen.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 
@@ -386,10 +386,10 @@
                                             @if($p->remision)
                                                 @php
                                                     $isPdf = Str::endsWith(strtolower($p->remision->filename), '.pdf');
-                                                    $iconName = $isPdf ? 'pdf.png' : 'image-icon.png'; 
+                                                    $iconName = $isPdf ? 'images/iconos/pdf.png' : 'images/iconos/IMG-Icon.png'; 
                                                 @endphp
                                                 <a href="{{ route('wo.remision.serve', $p->remision->id) }}" target="_blank" class="link-action-modal doc-pill-link" title="{{ $p->remision->filename }}">
-                                                    <img src="{{ asset('images/' . $iconName) }}" alt="{{ $isPdf ? 'PDF' : 'IMG' }}" class="icon-16" onerror="this.src='{{ asset('images/pdf.png') }}'">
+                                                    <img src="{{ icon($iconName) }}" alt="{{ $isPdf ? 'PDF' : 'IMG' }}" class="icon-16" onerror="this.src='{{ icon('images/iconos/pdf.png') }}'">
                                                     <span class="text-truncate" style="max-width: 170px;">{{ $p->remision->filename }}</span>
                                                 </a>
                                             @else
@@ -566,7 +566,7 @@
                                     <td>
                                         <div class="view-remision">
                                             <a href="{{ route('wo.tratamiento.download', $tratamiento->id) }}" target="_blank" class="link-action-modal doc-pill-link doc-pill-amber">
-                                                <img src="{{ asset('images/pdf.png') }}" alt="PDF" class="icon-16">
+                                                <img src="{{ asset('images/iconos/pdf.png') }}" alt="PDF" class="icon-16">
                                                 <span>Ver PDF</span>
                                             </a>
                                         </div>

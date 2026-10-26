@@ -2,11 +2,11 @@
 
 @section('head')
     <title>{{ $pageTitle ?? 'Gestión de Documentación' }}</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite(['resources/css/wo_views/manage_fundicion.css', 'resources/js/wo_views/manage_fundicion.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
     <div class="dibujos-wrapper" data-module="{{ $moduleType }}">
@@ -14,9 +14,9 @@
         {{-- Encabezado --}}
         <div class="dibujos-header">
             <div class="dibujos-header-left">
-                <img src="{{ asset('images/Iconos_Vistas/Dibujos_Fundicion.png') }}" alt="Dibujos de Fundición" class="dibujos-header-icon">
+                <img src="{{ asset('images/vistas/Dibujos_Fundicion.png') }}" alt="Dibujos de Fundición" class="dibujos-header-icon">
                 <h1>{{ $pageTitle ?? 'Gestión de Documentación' }}</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Dibujos_Fundicion.png') }}" alt="Dibujos de Fundición" class="dibujos-header-icon">
+                <img src="{{ asset('images/vistas/Dibujos_Fundicion.png') }}" alt="Dibujos de Fundición" class="dibujos-header-icon">
             </div>
             <span>Directorio: {{ $directoryName ?? 'GIS' }} &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
@@ -232,7 +232,7 @@
 
                         @if (count($estructura) === 0)
                             <div class="dibujos-empty-state">
-                                <img src="{{ asset('images/Sin_Carpetas.png') }}" alt="Sin carpetas"
+                                <img src="{{ asset('images/iconos/Sin_Carpetas.png') }}" alt="Sin carpetas"
                                     class="empty-folder-icon">
                                 <p>No hay carpetas creadas aun.</p>
                             </div>
@@ -388,7 +388,7 @@
                                                             <button class="btn-action-icon btn-ver-archivos"
                                                                 title="Ver archivos"
                                                                 onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($claseIdBD) }}, {{ $otIdBD ? 'true' : 'false' }})">
-                                                                <img src="{{ asset('images/documento.png') }}"
+                                                                <img src="{{ asset('images/iconos/documento.png') }}"
                                                                     alt="Ver">
                                                                 <span>Ver PDF's</span>
                                                             </button>
@@ -396,7 +396,7 @@
                                                             <button class="btn-action-icon btn-eliminar-carpeta"
                                                                 title="Eliminar carpeta"
                                                                 onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $claseName }}', '{{ $otLabel }} / {{ $claseLabel }}')">
-                                                                <img src="{{ asset('images/Eliminar-Carpeta.png') }}"
+                                                                <img src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}"
                                                                     alt="Eliminar">
                                                                 <span>{{ $esRaiz ? 'Vaciar Raíz' : 'Eliminar Clase' }}</span>
                                                             </button>
@@ -565,7 +565,7 @@
                                                     @else
                                                         onclick="enviarAlertaFundicion(null, '{{ $otName }}', this)"
                                                         @endif>
-                                                        <img src="{{ asset('images/enviando.png') }}" alt="Alerta"
+                                                        <img src="{{ asset('images/iconos/enviando.png') }}" alt="Alerta"
                                                             style="@if ($allEmpty) filter: grayscale(100%) !important; @else filter: none !important; @endif">
                                                         <span>{{ $btnText }}</span>
                                                     </button>
@@ -620,7 +620,7 @@
             </div>
             <div class="confirm-modal-body">
                 <div class="confirm-icon-wrapper">
-                    <img id="confirm-modal-icon" src="{{ asset('images/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                    <img id="confirm-modal-icon" src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Eliminar">
                 </div>
                 <p id="confirm-message-container" class="fs-1-1 lh-1-6 text-center">
                 </p>
@@ -647,7 +647,7 @@
 
     <script>
         window.baseUrl = "{{ url('/') }}";
-        window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
+        window.cerrarImgUrl = "{{ asset('images/iconos/cerrar.png') }}";
         window.moduleType = "{{ $moduleType }}";
         window.routesPrefix = "{{ $modulePrefix }}";
         window.csrfToken = "{{ csrf_token() }}";

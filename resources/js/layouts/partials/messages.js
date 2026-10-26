@@ -82,9 +82,9 @@ function toastpremium(message, type = "success") {
     const alertTypeClass = swalIcon === 'error' ? 'alert-danger' : (swalIcon === 'warning' ? 'alert-warning' : 'alert-success');
     toast.className = `alert ${alertTypeClass} custom-alert-saavedra ${swalIcon}`;
 
-    let iconSrc = baseUrl + 'images/ready.png';
-    if (swalIcon === 'error') iconSrc = baseUrl + 'images/error.png';
-    if (swalIcon === 'warning') iconSrc = baseUrl + 'images/Aviso.png';
+    let iconSrc = baseUrl + 'images/iconos/ready.png';
+    if (swalIcon === 'error') iconSrc = baseUrl + 'images/iconos/error.png';
+    if (swalIcon === 'warning') iconSrc = baseUrl + 'images/iconos/Aviso.png';
 
     toast.innerHTML = `
         <img src="${iconSrc}" class="alert-icon-small" alt="${swalIcon}">
@@ -151,7 +151,7 @@ window.showSystemModal = function(title, message, options = {}) {
             </div>
             <div class="alm-modal-body" style="background: #f8fafc; padding: 2.5em; font-family: 'Poppins', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 20px;">
                 <div class="lock-icon-container" style="margin: 0;">
-                    <img src="${baseUrl}images/${iconName}" class="lock-icon" alt="Aviso" style="width: 100px; height: 100px; filter: drop-shadow(0 4px 6px rgba(3, 57, 102, 0.2));">
+                    <img src="${baseUrl}images/iconos/${iconName}" class="lock-icon" alt="Aviso" style="width: 100px; height: 100px; filter: drop-shadow(0 4px 6px rgba(3, 57, 102, 0.2));">
                 </div>
                 <p class="lock-message" style="color: #475569; font-size: 1.25em; line-height: 1.6; margin: 0; font-weight: 500; padding: 0 1rem; text-align: center;">
                     ${message}
@@ -333,7 +333,7 @@ window.gisConfirm = async function (arg1, arg2 = '¿Estás seguro?') {
                     </h3>
                 </div>
                 <div style="background: #f8fafc; padding: 2em; font-family: 'Poppins', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-                    <img src="${baseUrl}images/Aviso.png" alt="Aviso" style="width: 70px; height: 70px; filter: drop-shadow(0 4px 6px rgba(3, 57, 102, 0.2));">
+                    <img src="${baseUrl}images/iconos/Aviso.png" alt="Aviso" style="width: 70px; height: 70px; filter: drop-shadow(0 4px 6px rgba(3, 57, 102, 0.2));">
                     <p style="color: #475569; font-size: 1.1em; line-height: 1.5; margin: 0; font-weight: 500;">
                         ${text}
                     </p>

@@ -412,7 +412,7 @@ $ldmCastingProcesados = array_values(
             style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #16a34a; padding-bottom: 10px; margin-bottom: 15px;">
             <h3
                 style="margin: 0; color: #16a34a; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                <img src="{{ asset('images/Aprobado.png') }}" style="width: 30px; height: 30px; object-fit: contain;">
+                <img src="{{ asset('images/iconos/Aprobado.png') }}" style="width: 30px; height: 30px; object-fit: contain;">
                 {{ $tituloCasting }}
             </h3>
             <span
@@ -435,7 +435,7 @@ $ldmCastingProcesados = array_values(
                     style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bae6fd; padding-bottom: 8px; margin-bottom: 15px;">
                     <h4
                         style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ asset('images/galeria.png') }}"
+                        <img src="{{ asset('images/iconos/galeria.png') }}"
                             style="width: 22px; height: 22px; object-fit: contain;">
                         Preordenes Liberadas o Archivos Liberados
                     </h4>
@@ -488,8 +488,8 @@ $ldmCastingProcesados = array_values(
                             <div class="dibujos-file-card card-otro"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                 <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                    <img src="{{ asset('images/iconos/pdf-view-shadow.png') }}" class="file-icon icon-default">
+                                    <img src="{{ asset('images/iconos/pdf-view.png') }}" class="file-icon icon-hover">
                                 </div>
                                 <div class="file-name alm-cursor-pointer" title="Abrir PDF"
                                     onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', '{{ $archivoInfo['tipo'] ?? 'otro' }}')">
@@ -524,7 +524,7 @@ $ldmCastingProcesados = array_values(
                     style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
                     <h4
                         style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ asset('images/almacen.png') }}"
+                        <img src="{{ asset('images/iconos/almacen.png') }}"
                             style="width: 22px; height: 22px; object-fit: contain;">
                         Procesos Activos
                         ({{ implode(', ', array_map($formatClase, $aprobadosPendientesCasting)) }})
@@ -673,7 +673,7 @@ $ldmCastingProcesados = array_values(
                     style="margin-top: 20px;">
                     <div
                         class="lib-calidad-card-header alm-background-linear-gradient-135deg-16a34a-15803d alm-border-bottom-2px-solid-rgba-22-163-74-0-5">
-                        <img src="{{ asset('images/almacen.png') }}" alt="Almacén" class="alm-icon-lg">
+                        <img src="{{ asset('images/iconos/almacen.png') }}" alt="Almacén" class="alm-icon-lg">
                         <div class="alm-overflow-hidden">
                             <span class="lib-calidad-card-title alm-color-ffffff">Control de Modelos &mdash;
                                 Almacén
@@ -744,7 +744,7 @@ $ldmCastingProcesados = array_values(
                                     title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Subir los formatos F-CCL-LDM firmados para iniciar el casting' }}"
                                     style="{{ $pendientesHasCastingPre || $pendientesHasLdmSubido ? 'display: none;' : '' }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                     @if($hasPendingChanges) disabled @endif>
-                                    <img src="{{ asset('images/Aprobado.png') }}" alt="Aprobado">
+                                    <img src="{{ asset('images/iconos/Aprobado.png') }}" alt="Aprobado">
                                     <span>Procesar Aceptados
                                         ({{ implode(', ', array_map('ucfirst', $aprobadosPendientesCasting ?: $aprobados)) }})</span>
                                 </button>
@@ -756,7 +756,7 @@ $ldmCastingProcesados = array_values(
                                     title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Generar la pre-orden de fabricación de Casting (PFC)' }}"
                                     style="{{ $pendientesHasCastingPre || !$pendientesHasLdmSubido ? 'display: none;' : '' }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                     @if($hasPendingChanges) disabled @endif>
-                                    <img src="{{ asset('images/pdf-view.png') }}" alt="Pre-Orden">
+                                    <img src="{{ asset('images/iconos/pdf-view.png') }}" alt="Pre-Orden">
                                     <span>Generar Pre-Orden PFC</span>
                                 </button>
 
@@ -766,7 +766,7 @@ $ldmCastingProcesados = array_values(
                                     title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Editar información de la preorden existente' }}"
                                     style="{{ !$pendientesHasCastingPre ? 'display: none;' : '' }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                     @if($hasPendingChanges) disabled @endif>
-                                    <img src="{{ asset('images/editar-informacion.png') }}" alt="Editar">
+                                    <img src="{{ asset('images/iconos/editar-informacion.png') }}" alt="Editar">
                                     <span>Editar PFC</span>
                                 </button>
 
@@ -776,7 +776,7 @@ $ldmCastingProcesados = array_values(
                                     title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Enviar pre-orden por correo electrónico' }}"
                                     style="{{ !$pendientesHasCastingPre ? 'display: none;' : '' }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                     @if($hasPendingChanges) disabled @endif>
-                                    <img src="{{ asset('images/enviando.png') }}" alt="Enviar">
+                                    <img src="{{ asset('images/iconos/enviando.png') }}" alt="Enviar">
                                     <span>Enviar Correo</span>
                                 </button>
                             </div>
@@ -796,7 +796,7 @@ $ldmCastingProcesados = array_values(
                     style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bbf7d0; padding-bottom: 8px; margin-bottom: 15px;">
                     <h4
                         style="margin: 0; color: #15803d; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ asset('images/Aprobado.png') }}"
+                        <img src="{{ asset('images/iconos/Aprobado.png') }}"
                             style="width: 22px; height: 22px; object-fit: contain;">
                         Clases Procesadas ({{ implode(', ', array_map('ucfirst', $clasesAprobadasCubiertas)) }})
                     </h4>
@@ -926,9 +926,9 @@ $ldmCastingProcesados = array_values(
                             <div class="dibujos-file-card"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #15803d;">
                                 <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF">
-                                    <img src="{{ asset('images/pdf-view-shadow.png') }}"
+                                    <img src="{{ asset('images/iconos/pdf-view-shadow.png') }}"
                                         class="file-icon icon-default">
-                                    <img src="{{ asset('images/pdf-view.png') }}" class="file-icon icon-hover">
+                                    <img src="{{ asset('images/iconos/pdf-view.png') }}" class="file-icon icon-hover">
                                 </div>
                                 <div class="file-name alm-cursor-pointer" title="Abrir PDF"
                                     onclick="almacenVerPdf('{{ $archivoInfo['ot'] }}', '{{ $archivoInfo['nombre'] }}', 'preorden')">
@@ -948,7 +948,7 @@ $ldmCastingProcesados = array_values(
                     style="margin-top: 20px; border: 2px solid #16a34a; border-radius: 12px; overflow: hidden;">
                     <div class="lib-calidad-card-header"
                         style="background: #16a34a; display: flex; align-items: center; gap: 15px; padding: 12px 20px;">
-                        <img src="{{ asset('images/Aprobado.png') }}" alt="Casting"
+                        <img src="{{ asset('images/iconos/Aprobado.png') }}" alt="Casting"
                             style="width: 38px; height: 38px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
                         <div class="alm-overflow-hidden alm-flex-1">
                             <span class="lib-calidad-card-title"
@@ -961,7 +961,7 @@ $ldmCastingProcesados = array_values(
                     </div>
                     <div class="lib-calidad-card-body" style="background: #f0fdf4; padding: 20px;">
                         <div class="lib-calidad-action-row" style="display: flex; align-items: center; gap: 20px;">
-                            <img src="{{ asset('images/enviando.png') }}" style="width: 54px; height: 54px;">
+                            <img src="{{ asset('images/iconos/enviando.png') }}" style="width: 54px; height: 54px;">
                             <div>
                                 <h4 class="lib-calidad-card-prompt"
                                     style="color: #15803d; margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.1rem;">

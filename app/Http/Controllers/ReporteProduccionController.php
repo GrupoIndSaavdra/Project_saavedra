@@ -36,7 +36,7 @@ class ReporteProduccionController extends Controller
      */
     public function showReenvio()
     {
-        $backgroundImage = 'images/fondoadmin.jpg';
+        $backgroundImage = 'images/fondos/fondoadmin.png';
         return view('reportes.reenvio', compact('backgroundImage'));
     }
 

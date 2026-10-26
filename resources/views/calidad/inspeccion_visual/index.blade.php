@@ -10,7 +10,7 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
 
@@ -20,7 +20,7 @@
     <div class="alm-header">
         <div class="alm-header-left">
             <div class="alm-header-icon">
-                <img src="{{ asset('images/reporte Volumetrico.png') }}" alt="Reporte Volumétrico" class="ri-header-icon-img">
+                <img src="{{ asset('images/calidad/reporte Volumetrico.png') }}" alt="Reporte Volumétrico" class="ri-header-icon-img">
             </div>
             <div class="alm-header-text">
                 <h1>Reporte de Calidad — Reporte Volumétrico</h1>
@@ -29,10 +29,10 @@
         </div>
         <div class="reportes-nav-tabs">
             <a href="{{ route('calidad.inspeccion_visual.index') }}" class="reporte-tab active" id="tab-visual">
-                <img src="{{ asset('images/reporte Volumetrico.png') }}" alt="" class="tab-icon"> Reporte Volumétrico
+                <img src="{{ asset('images/calidad/reporte Volumetrico.png') }}" alt="" class="tab-icon"> Reporte Volumétrico
             </a>
             <a href="{{ route('calidad.inspeccion_dimensional.index') }}" class="reporte-tab" id="tab-dimensional">
-                <img src="{{ asset('images/reporte dimensional.png') }}" alt="" class="tab-icon"> Reporte Dimensional
+                <img src="{{ asset('images/calidad/reporte dimensional.png') }}" alt="" class="tab-icon"> Reporte Dimensional
             </a>
         </div>
     </div>
@@ -78,10 +78,10 @@
 
                 <div class="ri-form-group-actions" id="grupo-btn-abrir" style="display:none;">
                     <button type="button" id="btn-abrir-reporte" class="btn-abrir">
-                        <img src="{{ asset('images/reporte Volumetrico.png') }}" alt="" class="btn-icon"> Abrir Reporte Volumétrico
+                        <img src="{{ asset('images/calidad/reporte Volumetrico.png') }}" alt="" class="btn-icon"> Abrir Reporte Volumétrico
                     </button>
                     <button type="button" id="btn-abrir-dimensional" class="btn-abrir btn-abrir-secondary">
-                        <img src="{{ asset('images/reporte dimensional.png') }}" alt="" class="btn-icon"> Abrir Reporte Dimensional
+                        <img src="{{ asset('images/calidad/reporte dimensional.png') }}" alt="" class="btn-icon"> Abrir Reporte Dimensional
                     </button>
                 </div>
 
@@ -171,7 +171,7 @@
                         <td>{{ $rep->fecha_elaboracion ? $rep->fecha_elaboracion->format('d/m/Y') : ($rep->created_at ? $rep->created_at->format('d/m/Y') : '—') }}</td>
                         <td>
                             <a href="{{ route('calidad.inspeccion_visual.show', ['ot' => $rep->ot_id, 'clase' => $rep->clase]) }}" class="btn-ver-reporte">
-                                <img src="{{ asset('images/reporte Volumetrico.png') }}" width="16" height="16" style="object-fit: contain;"> Ver Reporte Volumétrico
+                                <img src="{{ asset('images/calidad/reporte Volumetrico.png') }}" width="16" height="16" style="object-fit: contain;"> Ver Reporte Volumétrico
                             </a>
                         </td>
                     </tr>

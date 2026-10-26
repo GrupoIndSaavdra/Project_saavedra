@@ -7,8 +7,8 @@ function mostrarToast(mensaje, esError = false) {
     let baseUrl = window.baseUrl || window.location.origin + "/";
     if (!baseUrl.endsWith("/")) baseUrl += "/";
     const iconPath = esError
-        ? baseUrl + "images/delete.png"
-        : baseUrl + "images/ready.png";
+        ? baseUrl + "images/iconos/delete.png"
+        : baseUrl + "images/iconos/ready.png";
     const iconAlt = esError ? "error" : "success";
     toast.innerHTML = `
         <img src="${iconPath}" class="alert-icon-small" alt="${iconAlt}">

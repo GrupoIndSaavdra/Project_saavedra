@@ -3,10 +3,10 @@
 @section('head')
     @vite(['resources/css/reportes/reenvio.css'])
     <title>Enviar Reporte por Correo</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
     <div class="reenvio-container">
@@ -14,9 +14,9 @@
 
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Reenvio_Reporte_Produccion.png') }}" class="header-view-icon" alt="Enviar Reporte de Producción" />
+                <img src="{{ asset('images/vistas/Reenvio_Reporte_Produccion.png') }}" class="header-view-icon" alt="Enviar Reporte de Producción" />
                 <h1>Enviar Reporte de Producción</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Reenvio_Reporte_Produccion.png') }}" class="header-view-icon" alt="Enviar Reporte de Producción" />
+                <img src="{{ asset('images/vistas/Reenvio_Reporte_Produccion.png') }}" class="header-view-icon" alt="Enviar Reporte de Producción" />
             </div>
             <p class="subtitle">
                 Genera y envía el reporte de un día específico a los destinatarios que indiques.

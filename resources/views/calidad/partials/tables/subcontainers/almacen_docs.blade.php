@@ -5,7 +5,7 @@
             style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bae6fd; padding-bottom: 8px; margin-bottom: 15px;">
             <h4
                 style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/almacen.png') }}"
+                <img src="{{ asset('images/iconos/almacen.png') }}"
                     style="width: 22px; height: 22px; object-fit: contain; vertical-align: middle;"> Documentos, Dibujos y
                 Ayudas Visuales Aprobados por Almacén
             </h4>

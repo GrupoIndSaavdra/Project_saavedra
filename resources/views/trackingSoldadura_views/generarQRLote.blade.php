@@ -2,19 +2,19 @@
 
 @section('head')
     <title>QR por Lote</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite(['resources/css/trackingSoldadura_views/generarQRLote.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
+                <img src="{{ asset('images/vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
                 <h1>Generación de QR por Lote</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
+                <img src="{{ asset('images/vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
             </div>
             <p class="subtitle">Creación y registro de código QR para lotes de soldadura</p>
         </div>

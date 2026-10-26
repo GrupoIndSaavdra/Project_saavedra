@@ -100,7 +100,7 @@ function createTable() {
             //Mostrar DIV de alerta para Cotas No disponibles
             let div = document.createElement("div");
             div.className = "label-noCotas";
-            const noCotasIconSrc = window.imgNoCotas || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/icono_sin_cotas.png` : "/images/icono_sin_cotas.png");
+            const noCotasIconSrc = window.imgNoCotas || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/icono_sin_cotas.png` : "/images/iconos/icono_sin_cotas.png");
             div.innerHTML = `
                 <img src="${noCotasIconSrc}" class="no-cotas-icon" alt="Sin Cotas Nominales">
                 <span>No hay Cotas Nominales disponibles. Notificar inmediatamente al área de software o calidad.</span>
@@ -320,7 +320,7 @@ function insertButton_saveOrChoose(form, table) {
 
     const isEditMode = window.arrayData && window.arrayData["edit"] == 2;
 
-    const saveIconSrc = window.imgResultado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Resultado-Icon.png` : "/images/Resultado-Icon.png");
+    const saveIconSrc = window.imgResultado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/Resultado-Icon.png` : "/images/iconos/Resultado-Icon.png");
 
     if (window.pieceToBeUsed) {
         if (window.pieceToBeUsed != "NoPreviousPieces") {

@@ -13,7 +13,7 @@
     window.hasMorePages = {{ $hasMore ? 'true' : 'false' }};
     window.isAdminOnly = {{ request('admin_only') == 1 ? 'true' : 'false' }};
 </script>
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 @section('content')
 
     @if (!isset($logsRender) || count($logsRender) == 0)
@@ -48,18 +48,18 @@
                         : 'Historial de eventos, cambios y trazabilidad general del sistema';
             @endphp
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Logs_Produccion_Administradores.png') }}" class="header-view-icon"
+                <img src="{{ asset('images/vistas/Logs_Produccion_Administradores.png') }}" class="header-view-icon"
                     alt="{{ $logTitle }}" />
                 <h1>{{ $logTitle }}</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Logs_Produccion_Administradores.png') }}" class="header-view-icon"
+                <img src="{{ asset('images/vistas/Logs_Produccion_Administradores.png') }}" class="header-view-icon"
                     alt="{{ $logTitle }}" />
             </div>
             <p class="subtitle">{{ $logSubtitle }}</p>
             @if (count($logsRender) > 0)
                 <button type="submit" name="generate_pdf" value="true" class="btn-PDF" title="Generar PDF">
                     <div class="pdf-btn-wrapper">
-                        <img src="{{ asset('images/pdf-view-shadow.png') }}" class="pdf-icon icon-shadow" alt="PDF">
-                        <img src="{{ asset('images/pdf-view.png') }}" class="pdf-icon icon-view generar_pdf" id="pdf"
+                        <img src="{{ asset('images/iconos/pdf-view-shadow.png') }}" class="pdf-icon icon-shadow" alt="PDF">
+                        <img src="{{ asset('images/iconos/pdf-view.png') }}" class="pdf-icon icon-view generar_pdf" id="pdf"
                             alt="PDF">
                     </div>
                 </button>
@@ -123,7 +123,7 @@
             </div>
         @else
             <div class="letrero">
-                <img src="{{ asset('images/Revisando.png') }}" alt="Sin logs" class="letrero-icon">
+                <img src="{{ asset('images/iconos/Revisando.png') }}" alt="Sin logs" class="letrero-icon">
                 <label class="advertence">No hay logs registrados aún.</label>
             </div>
         @endif

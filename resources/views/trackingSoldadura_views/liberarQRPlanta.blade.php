@@ -2,20 +2,20 @@
 
 @section('head')
     <title>Entrega de Soldadura</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     @vite(['resources/css/trackingSoldadura_views/liberarQRPlanta.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
+                <img src="{{ asset('images/vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
                 <h1>Entrega de Soldadura a Planta</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
+                <img src="{{ asset('images/vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
             </div>
             <p class="subtitle">Entrega y asignación de botes de soldadura a operadores de producción</p>
         </div>

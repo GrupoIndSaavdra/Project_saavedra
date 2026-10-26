@@ -2,7 +2,7 @@
 
 @section('head')
     <title>Prioridad de Órdenes de Trabajo</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <script>
         window.baseUrl        = "{{ url('/') }}";
         window.savePrioritiesUrl = "{{ route('savePriorities') }}";
@@ -15,7 +15,7 @@
     ])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 <div class="pm-page">
@@ -24,7 +24,7 @@
     <div class="report-header">
         <div class="title-row">
             @php
-                $prioridadIcon = file_exists(public_path('images/Iconos_Vistas/Prioridades.png')) ? 'images/Iconos_Vistas/Prioridades.png' : 'images/Iconos_Vistas/Prioridades_OT.png';
+                $prioridadIcon = file_exists(public_path('images/vistas/Prioridades.png')) ? 'images/vistas/Prioridades.png' : 'images/vistas/Prioridades_OT.png';
             @endphp
             <img src="{{ asset($prioridadIcon) }}" class="header-view-icon" alt="Prioridad de Órdenes de Trabajo" />
             <h1>Prioridad de Órdenes de Trabajo</h1>
@@ -49,11 +49,11 @@
             </span>
             <div class="pm-stats-row">
                 <div class="pm-stat-item">
-                    <img src="{{ asset('images/uno.png') }}" alt="Oro" class="pm-info-icon-small">
+                    <img src="{{ asset('images/iconos/uno.png') }}" alt="Oro" class="pm-info-icon-small">
                     <span class="pm-info-text-small"><strong>1 al 5:</strong> Prioridad Máxima (Oro)</span>
                 </div>
                 <div class="pm-stat-item">
-                    <img src="{{ asset('images/plata.png') }}" alt="Plata" class="pm-info-icon-small">
+                    <img src="{{ asset('images/iconos/plata.png') }}" alt="Plata" class="pm-info-icon-small">
                     <span class="pm-info-text-small"><strong>6 en adelante:</strong> Prioridad Normal (Plata)</span>
                 </div>
             </div>

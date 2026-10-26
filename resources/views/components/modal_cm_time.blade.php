@@ -9,7 +9,7 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; border-bottom: 2.5px solid #e2e8f0; padding-bottom: 16px;">
             <h4
                 style="margin: 0; color: var(--gis-blue, #033966); font-size: 1.45rem; font-family: 'Poppins', sans-serif; font-weight: 800; display: flex; align-items: center; gap: 14px;">
-                <img src="{{ asset('images/Hora.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Hora">
+                <img src="{{ asset('images/iconos/Hora.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Hora">
                 <span id="cm-time-modal-title">Turno y Horario de Producción</span>
             </h4>
             <button type="button" id="cm-time-close-btn"
@@ -17,7 +17,7 @@
                 onmouseover="this.style.transform='scale(1.15)'; this.style.backgroundColor='rgba(0,0,0,0.06)'"
                 onmouseout="this.style.transform='scale(1)'; this.style.backgroundColor='transparent'"
                 title="Cerrar">
-                <img src="{{ asset('images/cerrar.png') }}" style="width: 38px; height: 38px; object-fit: contain;" alt="Cerrar">
+                <img src="{{ asset('images/iconos/cerrar.png') }}" style="width: 38px; height: 38px; object-fit: contain;" alt="Cerrar">
             </button>
         </div>
 
@@ -25,7 +25,7 @@
         <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border: 2px solid #bfdbfe; border-radius: 16px; padding: 12px 20px; margin-bottom: 20px; display: grid; grid-template-columns: 1.2fr 1fr 1fr; gap: 14px; align-items: center; font-size: 0.92rem;">
             <!-- Jornada de Planta -->
             <div style="display: flex; align-items: center; gap: 10px;">
-                <img src="{{ asset('images/Fecha-Icon.png') }}" style="width: 26px; height: 26px; object-fit: contain;" alt="Jornada">
+                <img src="{{ asset('images/iconos/Fecha-Icon.png') }}" style="width: 26px; height: 26px; object-fit: contain;" alt="Jornada">
                 <div>
                     <span style="font-size: 0.76rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; display: block; line-height: 1.1;">Jornada de Planta</span>
                     <span id="cm-auto-day-badge" style="font-weight: 800; color: #1e40af; font-size: 0.95rem;">Lunes a Viernes</span>
@@ -34,7 +34,7 @@
 
             <!-- Turno Detectado -->
             <div style="display: flex; align-items: center; gap: 10px; border-left: 1.5px solid #bfdbfe; padding-left: 14px;">
-                <img src="{{ asset('images/Hora.png') }}" style="width: 26px; height: 26px; object-fit: contain;" alt="Turno">
+                <img src="{{ asset('images/iconos/Hora.png') }}" style="width: 26px; height: 26px; object-fit: contain;" alt="Turno">
                 <div>
                     <span style="font-size: 0.76rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; display: block; line-height: 1.1;">Turno del Sistema</span>
                     <span id="cm-auto-shift-badge" style="font-weight: 800; color: #0a8504; font-size: 0.95rem;">Mañana</span>
@@ -43,7 +43,7 @@
 
             <!-- Semana del Año -->
             <div style="display: flex; align-items: center; gap: 10px; border-left: 1.5px solid #bfdbfe; padding-left: 14px;">
-                <img src="{{ asset('images/calendario.png') }}" style="width: 26px; height: 26px; object-fit: contain;" alt="Semana">
+                <img src="{{ asset('images/iconos/calendario.png') }}" style="width: 26px; height: 26px; object-fit: contain;" alt="Semana">
                 <div>
                     <span style="font-size: 0.76rem; font-weight: 700; color: #1e3a8a; text-transform: uppercase; display: block; line-height: 1.1;">Semana de Trabajo</span>
                     <span id="cm-auto-week-badge" style="font-weight: 800; color: #b45309; font-size: 0.95rem;">Semana --</span>
@@ -58,7 +58,7 @@
                 <!-- Turno Mañana -->
                 <div class="cm-time-shift-card is-selected" id="shift-card-manana" data-shift="manana" style="padding: 16px 20px; min-height: 95px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="{{ asset('images/Turno_Manana.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Mañana">
+                        <img src="{{ asset('images/iconos/Turno_Manana.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Mañana">
                         <span style="font-size: 1.18rem; font-weight: 800; color: #033966;">Mañana</span>
                     </div>
                     <span class="cm-shift-range" style="font-size: 0.95rem; font-weight: 700; color: #475569;">06:00 a 14:00</span>
@@ -68,7 +68,7 @@
                 <!-- Turno Mixto -->
                 <div class="cm-time-shift-card" id="shift-card-mixto" data-shift="mixto" style="padding: 16px 20px; min-height: 95px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="{{ asset('images/Turno_Mixto.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Mixto">
+                        <img src="{{ asset('images/iconos/Turno_Mixto.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Mixto">
                         <span style="font-size: 1.18rem; font-weight: 800; color: #033966;">Mixto</span>
                     </div>
                     <span class="cm-shift-range" id="cm-mixto-range-text" style="font-size: 0.95rem; font-weight: 700; color: #475569;">13:45 a 21:45</span>
@@ -78,12 +78,12 @@
                 <!-- Turno Noche -->
                 <div class="cm-time-shift-card" id="shift-card-noche" data-shift="noche" style="padding: 16px 20px; min-height: 95px;">
                     <div style="display: flex; align-items: center; gap: 12px;">
-                        <img src="{{ asset('images/Turno_Noche.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Noche">
+                        <img src="{{ asset('images/iconos/Turno_Noche.png') }}" style="width: 42px; height: 42px; object-fit: contain;" alt="Noche">
                         <span style="font-size: 1.18rem; font-weight: 800; color: #033966;">Noche</span>
                     </div>
                     <span class="cm-shift-range" id="cm-noche-range-text" style="font-size: 0.95rem; font-weight: 700; color: #475569;">22:00 a 06:00</span>
                     <span class="cm-shift-lock-label" style="display: none; font-size: 0.78rem; font-weight: 800; color: #dc2626;">
-                        <img src="{{ asset('images/bloqueado.png') }}" style="width: 17px; height: 17px; vertical-align: middle; margin-right: 4px;" alt="Bloqueado">Bloqueado
+                        <img src="{{ asset('images/iconos/bloqueado.png') }}" style="width: 17px; height: 17px; vertical-align: middle; margin-right: 4px;" alt="Bloqueado">Bloqueado
                     </span>
                 </div>
             </div>
@@ -96,7 +96,7 @@
                 <!-- Tab Hora de Inicio -->
                 <button type="button" id="cm-tab-start" class="cm-time-target-tab is-active" title="Clic para ajustar hora de inicio" style="padding: 14px 22px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ asset('images/Hora.png') }}" style="width: 22px; height: 22px; object-fit: contain;" alt="Inicio">
+                        <img src="{{ asset('images/iconos/Hora.png') }}" style="width: 22px; height: 22px; object-fit: contain;" alt="Inicio">
                         <span style="font-size: 0.88rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;">Hora de Inicio</span>
                     </div>
                     <span id="cm-tab-start-val" style="font-size: 1.6rem; font-weight: 800;">06:00</span>
@@ -104,7 +104,7 @@
                 <!-- Tab Hora de Término -->
                 <button type="button" id="cm-tab-end" class="cm-time-target-tab" title="Clic para ajustar hora de término" style="padding: 14px 22px;">
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ asset('images/Hora.png') }}" style="width: 22px; height: 22px; object-fit: contain;" alt="Término">
+                        <img src="{{ asset('images/iconos/Hora.png') }}" style="width: 22px; height: 22px; object-fit: contain;" alt="Término">
                         <span style="font-size: 0.88rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;">Hora de Término</span>
                     </div>
                     <span id="cm-tab-end-val" style="font-size: 1.6rem; font-weight: 800;">14:00</span>

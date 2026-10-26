@@ -7,7 +7,7 @@
     @vite(['resources/css/herramientas_views/herramientas_tecamac.css', 'resources/js/herramientas_views/herramientas_tecamac.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @php
     /** Paleta pastel por proceso (soft, legible) */
@@ -51,10 +51,10 @@
         {{-- ── HEADER ──────────────────────────────────────────────────────── --}}
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Herramientas_Tecamac.png') }}" class="header-view-icon"
+                <img src="{{ asset('images/vistas/Herramientas_Tecamac.png') }}" class="header-view-icon"
                     alt="Herramientas Planta Tecámac" />
                 <h1>Herramientas Planta Tecámac</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Herramientas_Tecamac.png') }}" class="header-view-icon"
+                <img src="{{ asset('images/vistas/Herramientas_Tecamac.png') }}" class="header-view-icon"
                     alt="Herramientas Planta Tecámac" />
             </div>
             <p class="subtitle">Catálogo de herramientas de corte y tornillería — Planta Tecámac.</p>
@@ -295,31 +295,31 @@
                             <tr class="ht-thead-group">
                                 <th colspan="5" class="th-group-herramientas">
                                     <div class="th-group-content">
-                                        <img src="{{ asset('images/Herramientas-Icon.png') }}" class="th-group-icon" alt="Herramientas" />
+                                        <img src="{{ asset('images/iconos/Herramientas-Icon.png') }}" class="th-group-icon" alt="Herramientas" />
                                         <span>HERRAMIENTAS</span>
                                     </div>
                                 </th>
                                 <th colspan="3" class="th-group-condiciones">
                                     <div class="th-group-content">
-                                        <img src="{{ asset('images/Cond_Corte-Icon.png') }}" class="th-group-icon" alt="Condiciones de Corte" />
+                                        <img src="{{ asset('images/iconos/Cond_Corte-Icon.png') }}" class="th-group-icon" alt="Condiciones de Corte" />
                                         <span>CONDICIONES DE CORTE (PULG.)</span>
                                     </div>
                                 </th>
                                 <th colspan="1" class="th-group-tornilleria">
                                     <div class="th-group-content">
-                                        <img src="{{ asset('images/Tornilleria-Icon.png') }}" class="th-group-icon" alt="Tornillería" />
+                                        <img src="{{ asset('images/iconos/Tornilleria-Icon.png') }}" class="th-group-icon" alt="Tornillería" />
                                         <span>TORNILLERÍA</span>
                                     </div>
                                 </th>
                                 <th colspan="1" class="th-group-fisica">
                                     <div class="th-group-content">
-                                        <img src="{{ asset('images/IMG-Icon.png') }}" class="th-group-icon" alt="Imagen Física" />
+                                        <img src="{{ asset('images/iconos/IMG-Icon.png') }}" class="th-group-icon" alt="Imagen Física" />
                                         <span>IMAGEN FÍSICA</span>
                                     </div>
                                 </th>
                                 <th colspan="2" class="th-group-stock">
                                     <div class="th-group-content">
-                                        <img src="{{ asset('images/Stock-Icon.png') }}" class="th-group-icon" alt="Stock" />
+                                        <img src="{{ asset('images/iconos/Stock-Icon.png') }}" class="th-group-icon" alt="Stock" />
                                         <span>STOCK</span>
                                     </div>
                                 </th>
@@ -441,20 +441,20 @@
                                                     <button class="ht-btn-accion ht-btn-edit"
                                                         onclick="htAbrirEditar({{ $h->id }})"
                                                         title="Editar herramienta">
-                                                        <img src="{{ asset('images/editar-informacion.png') }}" class="ht-btn-icon-img" alt="Editar" />
+                                                        <img src="{{ asset('images/iconos/editar-informacion.png') }}" class="ht-btn-icon-img" alt="Editar" />
                                                         <span>Editar</span>
                                                     </button>
                                                     <button class="ht-btn-accion ht-btn-delete"
                                                         onclick="htEliminar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')"
                                                         title="Dar de baja">
-                                                        <img src="{{ asset('images/inactivar.png') }}" class="ht-btn-icon-img" alt="Inactivar" />
+                                                        <img src="{{ asset('images/iconos/inactivar.png') }}" class="ht-btn-icon-img" alt="Inactivar" />
                                                         <span>Inactivar</span>
                                                     </button>
                                                 @else
                                                     <button class="ht-btn-accion ht-btn-reactivar"
                                                         onclick="htReactivar({{ $h->id }}, '{{ addslashes($h->descripcion_herramienta) }}')"
                                                         title="Activar herramienta">
-                                                        <img src="{{ asset('images/activar.png') }}" class="ht-btn-icon-img" alt="Activar" />
+                                                        <img src="{{ asset('images/iconos/activar.png') }}" class="ht-btn-icon-img" alt="Activar" />
                                                         <span>Activar</span>
                                                     </button>
                                                 @endif
@@ -466,7 +466,7 @@
                                                 <button class="ht-btn-accion ht-btn-stock"
                                                     onclick="htAbrirStock({{ $h->id }})"
                                                     title="Editar mínimo y máximo de stock">
-                                                    <img src="{{ asset('images/Stock-Icon.png') }}" class="ht-btn-icon-img" alt="Stock" />
+                                                    <img src="{{ asset('images/iconos/Stock-Icon.png') }}" class="ht-btn-icon-img" alt="Stock" />
                                                     <span>Stock</span>
                                                 </button>
                                             </div>

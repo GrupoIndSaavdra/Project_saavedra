@@ -82,7 +82,7 @@
                     style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #033966; padding-bottom: 10px; margin-bottom: 20px;">
                     <h3
                         style="margin: 0; color: #033966; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ asset('images/Quality.png') }}" style="width: 24px; height: 24px;">
+                        <img src="{{ asset('images/iconos/Quality.png') }}" style="width: 24px; height: 24px;">
                         Etapa: Control de Calidad y Registro de Modelo de Fundición
                     </h3>
                     <span

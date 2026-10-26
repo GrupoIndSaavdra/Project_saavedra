@@ -353,7 +353,7 @@ ${options}
 </td>
 <td style="text-align:center;">
 <button type="button" class="btn-img-action" onclick="${deleteHandler}" title="Quitar esta clase de la lista">
-<img src="${window.baseUrl || ""}${(window.baseUrl || "").endsWith("/") ? "" : "/"}images/quitar.png" alt="Quitar" style="width: 30px;">
+<img src="${window.baseUrl || ""}${(window.baseUrl || "").endsWith("/") ? "" : "/"}images/iconos/quitar.png" alt="Quitar" style="width: 30px;">
 </button>
 </td>
 `;

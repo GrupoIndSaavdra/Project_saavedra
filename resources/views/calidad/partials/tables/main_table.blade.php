@@ -46,7 +46,7 @@
         @if ($registrosEstado->isEmpty())
             <div class="alm-empty">
                 <div class="alm-empty-icon">
-                    <img src="{{ asset('images/noPieces.png') }}" alt="Sin resultados" class="cal-width-64px cal-opacity-0-5" />
+                    <img src="{{ asset('images/iconos/noPieces.png') }}" alt="Sin resultados" class="cal-width-64px cal-opacity-0-5" />
                 </div>
                 <p>
                     @if ($busquedaOt || $desde || $hasta)

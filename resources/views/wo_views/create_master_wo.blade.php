@@ -2,12 +2,12 @@
 
 @section('head')
 <title>Crear o Modificar Orden de Trabajo (Master)</title>
-<link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+<link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 @vite(['resources/css/wo_views/create_master_wo.css', 'resources/js/wo_views/create_master_wo.js'])
 @endsection
 
 @section('content')
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @php
     $mode = request('mode') === 'modify' ? 'modify' : 'create';
@@ -17,9 +17,9 @@
 <div class="wrapper-master">
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/Iconos_Vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
+            <img src="{{ asset('images/vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
             <h2>Crear o Modificar Orden de Trabajo (Master)</h2>
-            <img src="{{ asset('images/Iconos_Vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
+            <img src="{{ asset('images/vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
         </div>
         <p class="subtitle">Seleccione una opción para dar de alta una nueva Orden de Trabajo o modificar los datos y cantidades de una existente.</p>
     </div>

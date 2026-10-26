@@ -2,7 +2,7 @@
 
 @section('head')
     <title>Panel de OT's</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <meta http-equiv="refresh" content="10" />
     @vite(['resources/css/wo_views/progressPanel_wo.css', 'resources/js/wo_views/progressPanel_wo.js'])
 @endsection
@@ -85,7 +85,7 @@
 @endsection
 
 @section('background-body')
-    background-image: url('{{ asset('images/fondoLogin.jpg') }}');
+    background-image: url('{{ asset('images/fondos/fondoLogin.jpg') }}');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

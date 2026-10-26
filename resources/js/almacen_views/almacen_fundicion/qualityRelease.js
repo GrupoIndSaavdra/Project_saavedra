@@ -66,11 +66,11 @@ window.abrirModalLiberacion = function (ot, tipo) {
     }
     if (actionsEl) {
         const imgDescarga =
-            window.almacenAppAssets?.descarga ?? "/images/Descarga.png";
+            window.almacenAppAssets?.descarga ?? "/images/iconos/Descarga.png";
         const imgAprobado =
-            window.almacenAppAssets?.aprobado ?? "/images/aprobado.png";
+            window.almacenAppAssets?.aprobado ?? "/images/iconos/Aprobado.png";
         const imgRechazado =
-            window.almacenAppAssets?.rechazado ?? "/images/Rechazado.png";
+            window.almacenAppAssets?.rechazado ?? "/images/iconos/Rechazado.png";
         actionsEl.innerHTML = `
             <div style="display:flex; gap:12px; justify-content:center; align-items:center; flex-wrap:wrap; width:100%;">
                 <button type="button" class="btn-lib-aprobar-send" id="lib-btn-accion"
@@ -120,19 +120,19 @@ function _libActualizarBadgeEstado(ot, nuevoEstado) {
     const assets = window.almacenAppAssets ?? {};
     const imgMap = {
         pendiente: {
-            src: assets.guardado ?? "/images/Guardado.png",
+            src: assets.guardado ?? "/images/iconos/Guardado.png",
             alt: "Guardado (Borrador)",
             cls: "badge-modelo-guardado",
             title: "Datos capturados por Calidad (borrador)",
         },
         aprobado: {
-            src: assets.aprobado ?? "/images/aprobado.png",
+            src: assets.aprobado ?? "/images/iconos/Aprobado.png",
             alt: "Aprobado",
             cls: "badge-modelo-ok",
             title: "Modelo liberado y aprobado por Calidad",
         },
         rechazado: {
-            src: assets.rechazado ?? "/images/Rechazado.png",
+            src: assets.rechazado ?? "/images/iconos/Rechazado.png",
             alt: "Rechazado",
             cls: "badge-modelo-rechazado",
             title: "Modelo rechazado por Calidad",

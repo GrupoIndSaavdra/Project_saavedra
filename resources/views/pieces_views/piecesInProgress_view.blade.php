@@ -2,9 +2,9 @@
 
 @section('head')
     <title>Progreso de OT</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <script>
-        window.cerrarImgUrl = "{{ asset('images/cerrar.png') }}";
+        window.cerrarImgUrl = "{{ asset('images/iconos/cerrar.png') }}";
         window.baseUrl = "{{ url('/') }}";
         window.ptaCardsData = @json($ptaCardsData ?? []);
         window.ptaResultsBaseUrl = "{{ url('admin/pta/results') }}";
@@ -12,16 +12,16 @@
     @vite(['resources/css/pieces_views/piecesInProgress_view.css', 'resources/js/pieces_views/piecesInProgress_view.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
     @if (session('finishOrder'))
         <div class="div-opacity">
             <div class="alert-finishOrder">
                 <div class="div-cerrar">
-                    <button class="btn-cerrar"><img class="img-cerrar" src="{{ asset('images/cerrar.png') }}"></button>
+                    <button class="btn-cerrar"><img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}"></button>
                 </div>
-                <?php    $imgRoute = session('finishOrder')[0] == "error" ? "images/error.png" : "images/ready.png";?>
+                <?php    $imgRoute = session('finishOrder')[0] == "error" ? "images/iconos/error.png" : "images/iconos/ready.png";?>
                 <img class="img-error" src="{{ asset($imgRoute) }}" alt="alert image">
                 <label for="">{{ session('finishOrder')[1] }}</label>
             </div>

@@ -1,6 +1,6 @@
 function setEditButtonState(button, state) {
-    const editIcon = window.imgEdit || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/DrawsProduction.png` : "/images/DrawsProduction.png");
-    const cancelIcon = window.imgCancel || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Cancelar-Icon.png` : "/images/Cancelar-Icon.png");
+    const editIcon = window.imgEdit || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/DrawsProduction.png` : "/images/iconos/DrawsProduction.png");
+    const cancelIcon = window.imgCancel || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/Cancelar-Icon.png` : "/images/iconos/Cancelar-Icon.png");
 
     if (state === "cancel") {
         button.dataset.state = "cancel";
@@ -140,7 +140,7 @@ function createTable(moldings, form) {
 
             let deleteButton = document.createElement("button");
             deleteButton.classList.add("btn", "btn-delete");
-            const deleteIcon = window.imgDelete || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/delete.png` : "/images/delete.png");
+            const deleteIcon = window.imgDelete || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/delete.png` : "/images/iconos/delete.png");
             deleteButton.innerHTML = `<img src="${deleteIcon}" class="btn-action-icon" alt="Eliminar"><span>Eliminar</span>`;
 
             deleteButton.onclick = async (e) => {

@@ -121,8 +121,8 @@ window.crearFileCard = function (file, index, removeFnName, accentColor) {
     `;
     card.innerHTML = `
         <div class="file-icon-wrapper cal-cursor-pointer" style="cursor:pointer; margin-top:10px;" title="${titleAttr}">
-            <img src="${baseUrl}images/${iconDefault}" class="file-icon icon-default" style="width:48px;height:auto;">
-            <img src="${baseUrl}images/${iconHover}"   class="file-icon icon-hover"   style="width:48px;height:auto;">
+            <img src="${baseUrl}images/iconos/${iconDefault}" class="file-icon icon-default" style="width:48px;height:auto;">
+            <img src="${baseUrl}images/iconos/${iconHover}"   class="file-icon icon-hover"   style="width:48px;height:auto;">
         </div>
         <div class="file-name cal-cursor-pointer" style="cursor:pointer;font-size:0.82em;margin:8px 0;max-height:40px;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-weight:600;color:#334155;line-height:1.3;" title="${titleAttr}">
             ${shortName}
@@ -328,7 +328,7 @@ window.generarHtmlCategorizadoArchivos = function (archivos, ot, baseUrl, inputN
                     <div class="file-icon-wrapper cal-cursor-pointer"
                          onclick="${fnViewer}('${safeOt}','${safeName}','${safeTipo}')"
                          style="cursor:pointer;margin-top:10px;width:48px;height:48px;position:relative;" title="${titleAttr}">
-                        <img src="${baseUrl}images/${defaultIcon}" class="file-icon icon-default" style="width:100%;height:100%;object-fit:contain;">
+                        <img src="${baseUrl}images/iconos/${defaultIcon}" class="file-icon icon-default" style="width:100%;height:100%;object-fit:contain;">
                         <img src="${baseUrl}images/${hoverIcon}"   class="file-icon icon-hover"   style="width:100%;height:100%;object-fit:contain;position:absolute;top:0;left:0;">
                     </div>
                     <div class="file-name cal-cursor-pointer"

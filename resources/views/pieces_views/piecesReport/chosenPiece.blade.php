@@ -2,11 +2,11 @@
 
 @section('head')
     <title>Visualizacion de pieza</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite('resources/css/pieces_views/piecesReport/chosenPiece.css')
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 <!--Body background Image-->
 @section('content')
     <script>
@@ -894,7 +894,7 @@
         </style>
     @endif
 
-    <body background="{{ asset('images/fondoLogin.jpg') }}">
+    <body background="{{ asset('images/fondos/fondoLogin.jpg') }}">
 
         <div class="container" id="container">
 

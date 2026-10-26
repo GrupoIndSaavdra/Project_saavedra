@@ -194,10 +194,10 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
 
     let titleIconLeft = document.createElement("img");
     titleIconLeft.className = "quality-header-icon quality-header-icon-left";
-    titleIconLeft.src = window.imgQualityCheck || (window.baseUrl + "/images/Quality.png");
+    titleIconLeft.src = window.imgQualityCheck || (window.baseUrl + "/images/iconos/Quality.png");
     titleIconLeft.alt = "Calidad";
     titleIconLeft.onerror = function () {
-        this.src = window.baseUrl + "/images/Quality.png";
+        this.src = window.baseUrl + "/images/iconos/Quality.png";
     };
 
     let titleText = document.createElement("h3");
@@ -206,10 +206,10 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
 
     let titleIconRight = document.createElement("img");
     titleIconRight.className = "quality-header-icon quality-header-icon-right";
-    titleIconRight.src = window.imgQualityCheck || (window.baseUrl + "/images/Quality.png");
+    titleIconRight.src = window.imgQualityCheck || (window.baseUrl + "/images/iconos/Quality.png");
     titleIconRight.alt = "Calidad";
     titleIconRight.onerror = function () {
-        this.src = window.baseUrl + "/images/Quality.png";
+        this.src = window.baseUrl + "/images/iconos/Quality.png";
     };
 
     titleRow.appendChild(titleIconLeft);
@@ -503,7 +503,7 @@ function showQualityReleaseModal(piecesData, qualityUserName = "") {
     btnAccept.className = "btn-accept-release";
 
     let btnIcon = document.createElement("img");
-    btnIcon.src = window.baseUrl + "/images/Resultado-Icon.png";
+    btnIcon.src = window.baseUrl + "/images/iconos/Resultado-Icon.png";
     btnIcon.className = "btn-release-icon";
     btnIcon.alt = "Guardar";
 

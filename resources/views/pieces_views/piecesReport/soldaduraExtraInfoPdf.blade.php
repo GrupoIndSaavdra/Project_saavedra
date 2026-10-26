@@ -3,9 +3,9 @@
 
 <head>
     <title>Reporte de Soldadura - Información Extra</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <link rel="stylesheet" href="{{ public_path('css/pieces_views/piecesReport/soldaduraExtraInfoPdf.css') }}">
-    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 </head>
 
 <body>

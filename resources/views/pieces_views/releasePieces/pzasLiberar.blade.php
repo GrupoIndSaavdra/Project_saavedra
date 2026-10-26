@@ -2,19 +2,19 @@
 
 @section('head')
     <title>Liberación de piezas</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <script>
-        window.liberar = "{{ asset('images/Liberar.png') }}"
-        window.rechazar = "{{ asset('images/Rechazar.png') }}"
-        window.ojito = "{{ asset('images/ojito.png') }}"
-        window.loading = "{{ asset('images/loading.gif') }}"
-        window.back = "{{ asset('images/img-back.png') }}";
+        window.liberar = "{{ asset('images/iconos/Liberar.png') }}"
+        window.rechazar = "{{ asset('images/iconos/Rechazar.png') }}"
+        window.ojito = "{{ asset('images/iconos/ojito.png') }}"
+        window.loading = "{{ asset('images/iconos/loading.gif') }}"
+        window.back = "{{ asset('images/iconos/img-back.png') }}";
         window.baseUrl = "{{ url('/') }}";
     </script>
     @vite(['resources/js/pieces_views/releasePieces/releasePieces.js', 'resources/css/pieces_views/releasePieces/releasePieces_view.css'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset('images/fondoLogin.jpg') . '")')
+@section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 <!--Body background Image-->
 
 @section('content')
@@ -46,17 +46,17 @@
         <!-- FILTROS DE BÚSQUEDA Y RESULTADOS DE PIEZAS EN GENERAL. -->
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/Iconos_Vistas/Liberacion_Pzas.png') }}" class="header-view-icon"
+                <img src="{{ asset('images/vistas/Liberacion_Pzas.png') }}" class="header-view-icon"
                     alt="Liberación de piezas" />
                 <h1>Liberación de piezas</h1>
-                <img src="{{ asset('images/Iconos_Vistas/Liberacion_Pzas.png') }}" class="header-view-icon"
+                <img src="{{ asset('images/vistas/Liberacion_Pzas.png') }}" class="header-view-icon"
                     alt="Liberación de piezas" />
             </div>
             <!-- IMAGEN DE PDF -->
             <button type="submit" name="action" value="pdf" class="btn-PDF" title="Generar PDF">
                 <div class="pdf-btn-wrapper">
-                    <img src="{{ asset('images/pdf-view-shadow.png') }}" class="pdf-icon icon-shadow" alt="PDF">
-                    <img src="{{ asset('images/pdf-view.png') }}" class="pdf-icon icon-view generar_pdf" id="pdf"
+                    <img src="{{ asset('images/iconos/pdf-view-shadow.png') }}" class="pdf-icon icon-shadow" alt="PDF">
+                    <img src="{{ asset('images/iconos/pdf-view.png') }}" class="pdf-icon icon-view generar_pdf" id="pdf"
                         alt="PDF">
                 </div>
             </button>

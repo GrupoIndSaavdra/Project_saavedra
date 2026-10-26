@@ -5,7 +5,7 @@
             <div class="alm-modal-header lib-modal-header lib-modal-header-rechazo" id="env-scar-header">
                 <div class="div-cerrar">
                     <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarScar()">
-                        <img class="img-cerrar" src="{{ asset('images/cerrar.png') }}" alt="Cerrar" />
+                        <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar" />
                     </button>
                 </div>
                 <h3 class="cal-color-ffffff">Enviar Alerta SCAR al Proveedor</h3>
@@ -55,7 +55,7 @@
                                                 " />
                             <div
                                 class="dropzone-content cal-display-flex cal-flex-direction-column cal-align-items-center cal-pointer-events-none">
-                                <img src="{{ asset('images/pdf.png') }}"
+                                <img src="{{ asset('images/iconos/pdf.png') }}"
                                     class="cal-width-24px cal-height-24px cal-margin-bottom-4px" alt="PDF" />
                                 <span id="env-scar-pdf-text"
                                     class="cal-font-weight-700 cal-color-dc2626 cal-font-size-0-85em cal-text-align-center cal-font-family-quot">Seleccionar
@@ -94,7 +94,7 @@
                             <input type="file" id="env-scar-archivos-adicionales" name="archivos_adicionales[]"
                                 class="custom-file-input cal-position-absolute cal-width-100pct cal-height-100pct cal-opacity-0 cal-cursor-pointer" />
                             <div class="dropzone-content">
-                                <img src="{{ asset('images/anadir.png') }}"
+                                <img src="{{ asset('images/iconos/anadir.png') }}"
                                     class="dropzone-icon cal-width-24px cal-height-24px cal-margin-bottom-4px cal-object-fit-contain" />
                                 <span
                                     class="dropzone-text cal-font-weight-700 cal-color-9c0300 cal-font-size-0-85em cal-text-align-center cal-font-family-quot">Arrastra

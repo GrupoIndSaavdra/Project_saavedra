@@ -295,4 +295,18 @@ Iconos con siluetas blancas sobre transparencia (ej. `Operador-Icon.png`) quedan
 
 Escribir siempre los nombres y acentos oficiales en menús y títulos Blade. Para herramientas de maquinado, la denominación oficial es **"Herramientas Planta Tecámac"** (con acento en *Tecámac* y especificando *Planta*).
 
+---
+
+## 19. Catálogo Centralizado de Iconos (`config/icons.php`, `icon()`, `<x-icon>`, `window.getIcon()`)
+
+Para evitar rutas fijas dispersas (`images/iconos/...`) y permitir cambiar o unificar estilos visuales desde un solo lugar:
+1. **Configuración única:** Todos los alias están mapeados en `config/icons.php`.
+2. **Uso en Blade:**
+   - Helper URL: `{{ icon('aprobado') }}` o `{{ icon('dwg') }}`
+   - Componente directo: `<x-icon name="aprobado" class="header-view-icon" />`
+3. **Uso en JavaScript:**
+   - Inyectado globalmente en `appMenu.blade.php`: `window.getIcon('aprobado')`
+4. **Ventaja:** Modificar la ruta de un icono en `config/icons.php` actualiza automáticamente todas las vistas Blade y scripts JS en todo el sistema sin tocar plantillas.
+
+
 

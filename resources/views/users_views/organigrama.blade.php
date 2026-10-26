@@ -1,11 +1,11 @@
 @extends('layouts.appMenu')
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Organigrama — Grupo Industrial Saavedra</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -140,7 +140,7 @@
     <div class="org-top-header">
         <div class="org-brand">
             <div class="org-header-icon-circle">
-                <img src="{{ file_exists(public_path('images/Iconos_Vistas/Organigrama.png')) ? asset('images/Iconos_Vistas/Organigrama.png') : asset('images/organigrama.png') }}" alt="Organigrama" class="org-header-icon">
+                <img src="{{ file_exists(public_path('images/vistas/Organigrama.png')) ? asset('images/vistas/Organigrama.png') : asset('images/iconos/organigrama.png') }}" alt="Organigrama" class="org-header-icon">
             </div>
             <div class="org-brand-titles">
                 <h1>ORGANIGRAMA</h1>
@@ -150,15 +150,15 @@
 
         <div class="org-header-controls">
             <button type="button" id="btn-export-pdf" class="btn-header-action btn-action-pdf" title="Descargar organigrama en PDF">
-                <img src="{{ asset('images/pdf-transparent.png') }}" alt="PDF" class="org-btn-icon">
+                <img src="{{ asset('images/iconos/pdf-transparent.png') }}" alt="PDF" class="org-btn-icon">
                 <span>Descargar PDF</span>
             </button>
             <a href="{{ route('users') }}" class="btn-header-action btn-action-table" title="Ver tabla de usuarios">
-                <img src="{{ asset('images/usuario.png') }}" alt="Tabla" class="org-btn-icon">
+                <img src="{{ asset('images/usuarios/usuario.png') }}" alt="Tabla" class="org-btn-icon">
                 <span>Tabla de Usuarios</span>
             </a>
             <a href="{{ route('createUser') }}" class="btn-header-action btn-action-create" title="Registrar nuevo usuario">
-                <img src="{{ asset('images/anadir.png') }}" alt="Registrar" class="org-btn-icon">
+                <img src="{{ asset('images/iconos/anadir.png') }}" alt="Registrar" class="org-btn-icon">
                 <span>Registrar Personal</span>
             </a>
         </div>
@@ -169,7 +169,7 @@
         <div class="org-kpi-pill pill-total">
             <div class="kpi-header-content">
                 <div class="kpi-icon-circle kpi-circle-total">
-                    <img src="{{ asset('images/usuario.png') }}" alt="Personal Asignado" class="kpi-icon">
+                    <img src="{{ asset('images/usuarios/usuario.png') }}" alt="Personal Asignado" class="kpi-icon">
                 </div>
                 <span class="kpi-title">Personal Asignado</span>
             </div>
@@ -178,7 +178,7 @@
         <div class="org-kpi-pill pill-active">
             <div class="kpi-header-content">
                 <div class="kpi-icon-circle kpi-circle-active">
-                    <img src="{{ asset('images/activar.png') }}" alt="Activos" class="kpi-icon">
+                    <img src="{{ asset('images/iconos/activar.png') }}" alt="Activos" class="kpi-icon">
                 </div>
                 <span class="kpi-title">Activos</span>
             </div>
@@ -187,7 +187,7 @@
         <div class="org-kpi-pill pill-inactive">
             <div class="kpi-header-content">
                 <div class="kpi-icon-circle kpi-circle-inactive">
-                    <img src="{{ asset('images/inactivar.png') }}" alt="Inactivos" class="kpi-icon">
+                    <img src="{{ asset('images/iconos/inactivar.png') }}" alt="Inactivos" class="kpi-icon">
                 </div>
                 <span class="kpi-title">Inactivos / Faltantes</span>
             </div>
@@ -280,7 +280,7 @@
                                 <div class="org-node org-node-director">
                                     <div class="org-avatar-wrapper">
                                         <div class="org-avatar-circle">
-                                            <img src="{{ asset('images/gerente.png') }}" alt="Gerente" class="org-avatar-img">
+                                            <img src="{{ asset('images/usuarios/gerente.png') }}" alt="Gerente" class="org-avatar-img">
                                         </div>
                                     </div>
                                     <div class="org-name">DIRECCIÓN GENERAL</div>

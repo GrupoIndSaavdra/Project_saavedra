@@ -10,9 +10,9 @@ function createTable(machines, form) {
 
     let tr = document.createElement("tr");
 
-    const iconSin = window.imgSinOrden || (window.baseUrl + "/images/Sin_Orden.png");
-    const iconAsc = window.imgOrdenAsc || (window.baseUrl + "/images/Orden_Asc.png");
-    const iconDesc = window.imgOrdenDesc || (window.baseUrl + "/images/Orden_Desc.png");
+    const iconSin = window.imgSinOrden || (window.baseUrl + "/images/iconos/Sin_Orden.png");
+    const iconAsc = window.imgOrdenAsc || (window.baseUrl + "/images/iconos/Orden_Asc.png");
+    const iconDesc = window.imgOrdenDesc || (window.baseUrl + "/images/iconos/Orden_Desc.png");
 
     // Nuevo orden de columnas con soporte de ordenamiento
     let arrayHeader = [
@@ -64,10 +64,10 @@ function createTable(machines, form) {
     // Crear las filas de las máquinas
     let rows = [];
     if (machines && machines.length > 0) {
-        const cncIconSrc = window.imgProgramsCNC || (window.baseUrl + "/images/ProgramsCNC.png");
-        const operatorIconSrc = window.imgOperator || (window.baseUrl + "/images/Operador-Icon.png");
-        const lockedIconSrc = window.imgLocked || (window.baseUrl + "/images/bloqueado.png");
-        const unlockedIconSrc = window.imgUnlocked || (window.baseUrl + "/images/desbloqueado.png");
+        const cncIconSrc = window.imgProgramsCNC || (window.baseUrl + "/images/iconos/ProgramsCNC.png");
+        const operatorIconSrc = window.imgOperator || (window.baseUrl + "/images/usuarios/Operador-Icon.png");
+        const lockedIconSrc = window.imgLocked || (window.baseUrl + "/images/iconos/bloqueado.png");
+        const unlockedIconSrc = window.imgUnlocked || (window.baseUrl + "/images/iconos/desbloqueado.png");
 
         machines.forEach((machine, rowIndex) => {
             let tr = document.createElement("tr");

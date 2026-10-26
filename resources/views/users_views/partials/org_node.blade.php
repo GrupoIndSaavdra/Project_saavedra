@@ -45,36 +45,36 @@
     $avatarAlt = '';
 
     if ($isDirector || str_contains($puestoUpper, 'GERENTE') || str_contains($puestoUpper, 'DIRECTOR') || str_contains($puestoUpper, 'JEFE DE PLANTA') || str_contains($puestoUpper, 'JEFE PLANTA') || str_contains($areaUpper, 'GERENCIA') || str_contains($areaUpper, 'JEFE PLANTA') || str_contains($areaUpper, 'DIRECCION')) {
-        $avatarImg = asset('images/gerente.png');
+        $avatarImg = asset('images/usuarios/gerente.png');
         $avatarAlt = 'Gerente / Jefe de Planta';
     } elseif (str_contains($puestoUpper, 'SUPERVISORA') || str_contains($puestoUpper, 'ENCARGADA') || str_contains($puestoUpper, 'JEFA')) {
-        $avatarImg = asset('images/supervisora.png');
+        $avatarImg = asset('images/usuarios/supervisora.png');
         $avatarAlt = 'Supervisora';
     } elseif ($isSupervisor || str_contains($puestoUpper, 'SUPERVISOR') || str_contains($puestoUpper, 'JEFE') || str_contains($puestoUpper, 'ENCARGAD') || str_contains($puestoUpper, 'LIDER') || str_contains($puestoUpper, 'LÍDER') || $areaUpper === 'SUPERVISOR') {
         if ($isFemale) {
-            $avatarImg = asset('images/supervisora.png');
+            $avatarImg = asset('images/usuarios/supervisora.png');
             $avatarAlt = 'Supervisora';
         } else {
-            $avatarImg = asset('images/supervisor.png');
+            $avatarImg = asset('images/usuarios/supervisor.png');
             $avatarAlt = 'Supervisor';
         }
     } elseif (str_contains($puestoUpper, 'BECARI') || str_contains($puestoUpper, 'PRACTICANTE') || str_contains($puestoUpper, 'RESIDENTE') || str_contains($puestoUpper, 'SERVICIO SOCIAL') || str_contains($areaUpper, 'BECARI')) {
-        $avatarImg = asset('images/becario.png');
+        $avatarImg = asset('images/usuarios/becario.png');
         $avatarAlt = 'Becario';
     } elseif (str_contains($puestoUpper, 'AYUDANTE') || str_contains($puestoUpper, 'AUXILIAR') || str_contains($areaUpper, 'AYUDANTE')) {
-        $avatarImg = asset('images/ayudante general.png');
+        $avatarImg = asset('images/usuarios/ayudante general.png');
         $avatarAlt = 'Ayudante General';
     } elseif (str_contains($puestoUpper, 'SOLDAD') || str_contains($areaUpper, 'SOLDAD')) {
-        $avatarImg = asset('images/soldador.png');
+        $avatarImg = asset('images/usuarios/soldador.png');
         $avatarAlt = 'Soldador';
     } elseif (str_contains($puestoUpper, 'INSPECC') || str_contains($puestoUpper, 'CALIDAD') || str_contains($puestoUpper, 'METROLOG') || str_contains($areaUpper, 'CALIDAD')) {
-        $avatarImg = asset('images/inspeccion.png');
+        $avatarImg = asset('images/iconos/inspeccion.png');
         $avatarAlt = 'Inspección de Calidad';
     } elseif (str_contains($puestoUpper, 'CENTRO') || str_contains($puestoUpper, 'MAQUINAD')) {
-        $avatarImg = asset('images/operador centro de maquinado .png');
+        $avatarImg = asset('images/usuarios/operador_centro_maquinado.png');
         $avatarAlt = 'Operador Centro de Maquinados';
     } elseif (str_contains($puestoUpper, 'TORNO') || str_contains($puestoUpper, 'CNC') || str_contains($puestoUpper, 'OPERADOR') || str_contains($puestoUpper, 'HERRAMENTISTA')) {
-        $avatarImg = asset('images/operador_cnc.png');
+        $avatarImg = asset('images/usuarios/operador_cnc.png');
         $avatarAlt = 'Operador CNC';
     }
 @endphp

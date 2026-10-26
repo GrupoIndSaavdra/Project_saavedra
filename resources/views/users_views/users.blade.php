@@ -1,11 +1,11 @@
 @extends('layouts.appMenu')
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
 <head>
     <meta charset="UTF-8">
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Usuarios</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
     {{-- ── Encabezado ─────────────────────────────────────────── --}}
     <div class="page-header">
         <div class="header-left-group">
-            <img src="{{ asset('images/usuario.png') }}" alt="Gestión de Usuarios" class="header-module-icon">
+            <img src="{{ asset('images/usuarios/usuario.png') }}" alt="Gestión de Usuarios" class="header-module-icon">
             <div class="header-title-content">
                 <div class="header-title-row">
                     <h1>Gestión de Usuarios</h1>
@@ -29,11 +29,11 @@
         </div>
         <div class="header-actions">
             <a href="{{ route('users.organigrama') }}" class="btn-header-nav btn-nav-organigrama" title="Ver organigrama jerárquico">
-                <img src="{{ asset('images/organigrama.png') }}" alt="Organigrama" class="btn-nav-icon">
+                <img src="{{ asset('images/iconos/organigrama.png') }}" alt="Organigrama" class="btn-nav-icon">
                 <span>Organigrama</span>
             </a>
             <a href="{{ route('createUser') }}" class="btn-header-nav btn-nav-registrar" title="Registrar nuevo usuario">
-                <img src="{{ asset('images/anadir.png') }}" alt="Registrar" class="btn-nav-icon">
+                <img src="{{ asset('images/iconos/anadir.png') }}" alt="Registrar" class="btn-nav-icon">
                 <span>Registrar Usuario</span>
             </a>
         </div>
@@ -127,12 +127,12 @@
                         default         => 'badge-default',
                     };
                     $rolIcon = match($rolLabel) {
-                        'Administrador' => 'Administracion-Icon.png',
-                        'Operador'      => 'Operador-Icon.png',
-                        'Master'        => 'Master-Icon.png',
-                        'Calidad'       => 'Calidad-Icon.png',
-                        'Almacén'       => 'Almacen-Icon.png',
-                        'Supervisor'    => 'Supervision-Icon.png',
+                        'Administrador' => 'images/usuarios/Administracion-Icon.png',
+                        'Operador'      => 'images/usuarios/Operador-Icon.png',
+                        'Master'        => 'images/iconos/Master-Icon.png',
+                        'Calidad'       => 'images/usuarios/Calidad-Icon.png',
+                        'Almacén'       => 'images/iconos/Almacen-Icon.png',
+                        'Supervisor'    => 'images/usuarios/Supervision-Icon.png',
                         default         => null,
                     };
                 @endphp
@@ -142,7 +142,7 @@
                         <div class="role-cell-container">
                             @if($rolIcon)
                                 <div class="role-icon-circle {{ $rolClass }}" title="{{ $rolLabel }}">
-                                    <img src="{{ asset('images/' . $rolIcon) }}" alt="{{ $rolLabel }}" class="role-img-icon">
+                                    <img src="{{ icon($rolIcon) }}" alt="{{ $rolLabel }}" class="role-img-icon">
                                 </div>
                             @endif
                             <span class="badge-rol {{ $rolClass }}">{{ $rolLabel }}</span>
@@ -187,7 +187,7 @@
                     {{-- Estatus (Icono superior + Texto debajo) --}}
                     <td>
                         <div class="status-cell-container">
-                            <img src="{{ asset($user->estatus ? 'images/activar.png' : 'images/inactivar.png') }}" alt="{{ $user->estatus ? 'Activo' : 'Inactivo' }}" class="status-img-icon">
+                            <img src="{{ asset($user->estatus ? 'images/iconos/activar.png' : 'images/iconos/inactivar.png') }}" alt="{{ $user->estatus ? 'Activo' : 'Inactivo' }}" class="status-img-icon">
                             <span class="badge-status {{ $user->estatus ? 'badge-activo' : 'badge-inactivo' }}">
                                 {{ $user->estatus ? 'Activo' : 'Inactivo' }}
                             </span>
@@ -215,14 +215,14 @@
                                 ]) }})"
                                 title="Editar usuario"
                             >
-                                <img src="{{ asset('images/editaruser.png') }}" alt="Editar" class="action-img-icon">
+                                <img src="{{ asset('images/usuarios/editaruser.png') }}" alt="Editar" class="action-img-icon">
                             </button>
 
                             {{-- Activar / Inactivar --}}
                             <form action="{{ route($user->estatus ? 'baja_usuario' : 'alta_usuario', $user->id) }}" method="POST" class="use-display-inline">
                                 @csrf
                                 <button type="submit" class="btn-action-icon {{ $user->estatus ? 'btn-action-inactivate' : 'btn-action-activate' }}" title="{{ $user->estatus ? 'Inactivar usuario' : 'Activar usuario' }}">
-                                    <img src="{{ asset($user->estatus ? 'images/inactivar.png' : 'images/activar.png') }}" alt="{{ $user->estatus ? 'Inactivar' : 'Activar' }}" class="action-img-icon">
+                                    <img src="{{ asset($user->estatus ? 'images/iconos/inactivar.png' : 'images/iconos/activar.png') }}" alt="{{ $user->estatus ? 'Inactivar' : 'Activar' }}" class="action-img-icon">
                                 </button>
                             </form>
 
@@ -236,7 +236,7 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-action-icon btn-action-delete" title="Eliminar usuario">
-                                    <img src="{{ asset('images/delete.png') }}" alt="Eliminar" class="action-img-icon">
+                                    <img src="{{ asset('images/iconos/delete.png') }}" alt="Eliminar" class="action-img-icon">
                                 </button>
                             </form>
                         </div>

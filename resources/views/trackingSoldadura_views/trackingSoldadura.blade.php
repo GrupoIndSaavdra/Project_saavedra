@@ -2,15 +2,15 @@
 
 @section('head')
     <title>Tracking de Soldadura</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     @vite(['resources/css/trackingSoldadura/trackingSoldadura.css', 'resources/js/TrackingSoldadura/registerSoldadura.js'])
 @endsection
 
-@section('background-body', 'background-image:url("' . asset("images/fondoLogin.jpg") . '")')
+@section('background-body', 'background-image:url("' . asset("images/fondos/fondoLogin.jpg") . '")')
 
 @section('content')
     <div class="wrapper">
-        <img src="{{ asset('images/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
+        <img src="{{ asset('images/logos/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="" />
         <h2>Selecciona tu proceso a seguir</h2>
 
         <form action="{{ route('trackingSoldadura.store') }}" method="POST">

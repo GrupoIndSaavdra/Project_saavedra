@@ -96,7 +96,7 @@
     <table class="header-table" style="width: 100%; border-collapse: collapse; margin-bottom: 0px;">
         <tr>
             <td style="width: 15%; border: 2px solid #000000; background-color: #ffffff; text-align: center; vertical-align: middle; padding: 4px;">
-                <img src="{{ public_path('images/lg_saavedra.png') }}" width="90" height="auto">
+                <img src="{{ public_path('images/logos/lg_saavedra.png') }}" width="90" height="auto">
             </td>
             <td style="width: 45%; border: 2px solid #000000; background-color: #033966; color: #ffffff; text-align: center; vertical-align: middle; padding: 4px;">
                 <h1 style="font-family: 'Algerian', serif; font-size: 20px; letter-spacing: 4px; margin: 0;">PRIORIDADES</h1>
@@ -153,7 +153,7 @@
             @if($totalWosCount === 0)
                 <tr>
                     <td colspan="16" style="padding: 30px 15px; background-color: #ffffff; text-align: center;">
-                        <img src="{{ public_path('images/calendario.png') }}" width="45" height="auto" style="margin-bottom: 6px;"><br>
+                        <img src="{{ public_path('images/iconos/calendario.png') }}" width="45" height="auto" style="margin-bottom: 6px;"><br>
                         <strong style="color: #dc2626; font-size: 11px;">Esta semana o consulta no tiene ninguna Orden de Trabajo asignada actualmente.</strong>
                     </td>
                 </tr>

@@ -6,8 +6,8 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
-    <link rel="icon" type="image/png" href="{{ asset('images/lg_saavedra.png') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 
     <!-- Bootstrap CSS v5.2.1 -->
     <link rel="stylesheet" href="{{ asset('bootstrap/css/bootstrap.min.css') }}">
@@ -22,7 +22,7 @@
     </script>
 </head>
 
-<body background="{{ asset('images/fondoLogin.jpg') }}">
+<body background="{{ asset('images/fondos/fondoLogin.jpg') }}">
     <!-- Section: Design Block -->
     <section class="text-center text-lg-start">
         <!-- Container Principal -->

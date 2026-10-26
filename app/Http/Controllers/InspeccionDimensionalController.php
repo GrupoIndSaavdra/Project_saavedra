@@ -788,14 +788,14 @@ class InspeccionDimensionalController extends Controller
 
         $porcentajeActual = $totalPiezas > 0 ? round(($piezasCompletas / $totalPiezas) * 100, 1) : 0;
 
-        $logoPath = public_path('images/lg_saavedra.png');
+        $logoPath = public_path('images/logos/lg_saavedra.png');
         $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
 
         $claseUpper = strtoupper($reporte->clase);
         $esMolde = str_contains($claseUpper, 'MOLDE');
         $diagramaPath = $esMolde
-            ? public_path('images/MOLDE_ REPORTEDIMNSIONAL .jpg')
-            : public_path('images/BOMBILLO_REPORTEDIMENSIONAL.jpg');
+            ? public_path('images/calidad/molde_reporte_dimensional.jpg')
+            : public_path('images/calidad/BOMBILLO_REPORTEDIMENSIONAL.jpg');
         $diagramaBase64 = file_exists($diagramaPath) ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($diagramaPath)) : '';
 
         // Calcular versión incremental

@@ -2,7 +2,7 @@
 
 @section('head')
     <title>Dashboard de Prioridades</title>
-    <link rel="icon" href="{{ url('images/lg_saavedra.png') }}?v=1">
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     @vite(['resources/css/wo_views/priorities.css', 'resources/js/wo_views/priorities_pdf.js'])
 @endsection
@@ -113,7 +113,7 @@ if (!function_exists('safeDateParseDisplay')) {
 
 @section('content')
 @section('background-body')
-    background-image: url('{{ asset('images/fondoLogin.jpg') }}');
+    background-image: url('{{ asset('images/fondos/fondoLogin.jpg') }}');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -203,11 +203,11 @@ if (!function_exists('safeDateParseDisplay')) {
         <!-- Encabezado Estilo Excel -->
         <div class="excel-header">
             <div class="header-logo">
-                <img src="{{ asset('images/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" />
+                <img src="{{ asset('images/logos/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" />
             </div>
             <div class="header-title" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                @if (file_exists(public_path('images/Iconos_Vistas/Prioridades.png')))
-                    <img src="{{ asset('images/Iconos_Vistas/Prioridades.png') }}" alt="Prioridades"
+                @if (file_exists(public_path('images/vistas/Prioridades.png')))
+                    <img src="{{ asset('images/vistas/Prioridades.png') }}" alt="Prioridades"
                         style="height: 38px; width: auto; object-fit: contain;">
                 @endif
                 <h1>PRIORIDADES</h1>
@@ -268,7 +268,7 @@ if (!function_exists('safeDateParseDisplay')) {
                             style="background-color: #ffffff; padding: 48px 20px !important;">
                             <div
                                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
-                                <img src="{{ asset('images/calendario.png') }}" alt="Calendario"
+                                <img src="{{ asset('images/iconos/calendario.png') }}" alt="Calendario"
                                     style="width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.25));">
                                 <span
                                     style="color: #dc2626; font-size: 1.15em; font-weight: 700; letter-spacing: 0.3px;">

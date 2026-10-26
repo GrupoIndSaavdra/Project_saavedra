@@ -403,12 +403,12 @@ function renderArchivosGrid(data, p1, p2, p3) {
         const isNC     = extUpper === 'NC';
 
         const iconDefault = isNC
-            ? (window.imgProgramsNCShadow || (window.baseUrl + '/images/ProgramsNC-Shadow.png'))
-            : (window.imgProgramsCNCShadow || (window.baseUrl + '/images/ProgramsCNC-Shadow.png'));
+            ? (window.imgProgramsNCShadow || (window.baseUrl + '/images/iconos/ProgramsNC-Shadow.png'))
+            : (window.imgProgramsCNCShadow || (window.baseUrl + '/images/iconos/ProgramsCNC-Shadow.png'));
 
         const iconHover = isNC
-            ? (window.imgProgramsNC || (window.baseUrl + '/images/ProgramsNC.png'))
-            : (window.imgProgramsCNC || (window.baseUrl + '/images/ProgramsCNC.png'));
+            ? (window.imgProgramsNC || (window.baseUrl + '/images/iconos/ProgramsNC.png'))
+            : (window.imgProgramsCNC || (window.baseUrl + '/images/iconos/ProgramsCNC.png'));
 
         card.innerHTML = `
             <div class="file-icon-wrapper" style="cursor:pointer;" title="Descargar programa">

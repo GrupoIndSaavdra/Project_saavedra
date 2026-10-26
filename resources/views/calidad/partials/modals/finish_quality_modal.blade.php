@@ -8,12 +8,12 @@
             style="padding: 0.9em 2.2em;">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalFinalizarCalidad()">
-                    <img src="{{ asset('images/cerrar.png') }}" alt="Cerrar" class="img-cerrar"
+                    <img src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar" class="img-cerrar"
                         style="width: 42px !important; height: 42px !important;" />
                 </button>
             </div>
             <div style="display: flex; align-items: center; gap: 28px;">
-                <img src="{{ asset('images/enviando.png') }}"
+                <img src="{{ asset('images/iconos/enviando.png') }}"
                     style="width: 52px !important; height: 52px !important; max-width: 52px !important; max-height: 52px !important; object-fit: contain; flex-shrink: 0;"
                     alt="">
                 <div>
@@ -53,7 +53,7 @@
                             style="background: #fff; padding: 10px 14px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; justify-content: flex-start; box-sizing: border-box; flex: none; flex-shrink: 0;">
                             <h4 id="fc-left-header"
                                 style="margin-top: 0; margin-bottom: 8px; color: #0284c7; font-size: 1.1em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px;">
-                                <img id="fc-left-icon" src="{{ asset('images/Quality.png') }}"
+                                <img id="fc-left-icon" src="{{ asset('images/iconos/Quality.png') }}"
                                     style="width: 38px; height: 38px; object-fit: contain;"> <span
                                     id="fc-left-title">Datos de Liberación</span>
                             </h4>
@@ -97,7 +97,7 @@
                             </div>
 
                             <div style="background: #fff8f1; border-left: 5px solid #f97316; border-radius: 8px; padding: 10px 14px; margin-top: 8px; display: flex; align-items: center; gap: 15px; box-shadow: inset 0 0 8px rgba(249, 115, 22, 0.03);">
-                                <img src="{{ asset('images/Fecha.png') }}" style="width: 40px; height: 40px; object-fit: contain; flex-shrink: 0;" alt="Fecha">
+                                <img src="{{ asset('images/iconos/Fecha.png') }}" style="width: 40px; height: 40px; object-fit: contain; flex-shrink: 0;" alt="Fecha">
                                 <div style="font-family:'Poppins', sans-serif; font-weight: 500; color: #9a3412; font-size: 1.05em; line-height: 1.4;">
                                     <strong>Solo necesitas colocar la Fecha de Finalización</strong>. Los correos de notificación hacia el personal correspondiente se adjuntarán y enviarán de forma automática.
                                 </div>
@@ -113,7 +113,7 @@
                         style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); display: flex; flex-direction: column; height: 100%; min-height: 0; box-sizing: border-box;">
                         <h4 id="fc-right-header"
                             style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.1em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                            <img id="fc-right-icon" src="{{ asset('images/galeria.png') }}"
+                            <img id="fc-right-icon" src="{{ asset('images/iconos/galeria.png') }}"
                                 style="width: 38px; height: 38px; object-fit: contain;"> <span
                                 id="fc-right-title">Archivos de Liberación Disponibles</span>
                         </h4>
