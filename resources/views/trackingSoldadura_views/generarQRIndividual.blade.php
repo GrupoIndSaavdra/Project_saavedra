@@ -12,9 +12,9 @@
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Generar_QR_Individual.png') }}" class="header-view-icon" alt="QRs de Botes" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Generar_QR_Individual.png') }}" class="header-view-icon" alt="QRs de Botes" />
                 <h1>Generar QRs de Botes</h1>
-                <img src="{{ asset('images/vistas/Generar_QR_Individual.png') }}" class="header-view-icon" alt="QRs de Botes" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Generar_QR_Individual.png') }}" class="header-view-icon" alt="QRs de Botes" />
             </div>
             <p class="subtitle">Emisión y asignación de códigos QR individuales por bote de soldadura</p>
         </div>

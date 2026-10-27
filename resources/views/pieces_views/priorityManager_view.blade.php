@@ -24,7 +24,7 @@
     <div class="report-header">
         <div class="title-row">
             @php
-                $prioridadIcon = file_exists(public_path('images/vistas/Prioridades.png')) ? 'images/vistas/Prioridades.png' : 'images/vistas/Prioridades_OT.png';
+                $prioridadIcon = file_exists(public_path('images/Color_Icons/Vistas/Prioridades.png')) ? 'images/Color_Icons/Vistas/Prioridades.png' : 'images/Color_Icons/Vistas/Prioridades_OT.png';
             @endphp
             <img src="{{ asset($prioridadIcon) }}" class="header-view-icon" alt="Prioridad de Órdenes de Trabajo" />
             <h1>Prioridad de Órdenes de Trabajo</h1>
@@ -49,11 +49,11 @@
             </span>
             <div class="pm-stats-row">
                 <div class="pm-stat-item">
-                    <img src="{{ asset('images/iconos/uno.png') }}" alt="Oro" class="pm-info-icon-small">
+                    <img src="{{ asset('images/Color_Icons/Generales/uno.png') }}" alt="Oro" class="pm-info-icon-small">
                     <span class="pm-info-text-small"><strong>1 al 5:</strong> Prioridad Máxima (Oro)</span>
                 </div>
                 <div class="pm-stat-item">
-                    <img src="{{ asset('images/iconos/plata.png') }}" alt="Plata" class="pm-info-icon-small">
+                    <img src="{{ asset('images/Color_Icons/Generales/plata.png') }}" alt="Plata" class="pm-info-icon-small">
                     <span class="pm-info-text-small"><strong>6 en adelante:</strong> Prioridad Normal (Plata)</span>
                 </div>
             </div>

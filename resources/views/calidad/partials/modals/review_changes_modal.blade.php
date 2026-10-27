@@ -3,7 +3,7 @@
         <div class="alm-modal-header">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalRevisarCambios()">
-                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}">
+                    <img class="img-cerrar" src="{{ asset('images/Color_Icons/Generales/cerrar.png') }}">
                 </button>
             </div>
             <h3>Cambios Pendientes en Dibujos de Fundición</h3>

@@ -1,16 +1,16 @@
     <script>
         window.iconosApp = {
-            operador: @json(asset('images/usuarios/Operador-Profile-Icon.png')),
-            operadorHerramienta: @json(asset('images/usuarios/Operador-Icon.png')),
-            pieza: @json(asset('images/iconos/Piezas-Icon.png')),
-            aprobado: @json(asset('images/iconos/Aprobado.png')),
-            alerta: @json(asset('images/iconos/Sospechosa.png')),
-            resultado: @json(asset('images/iconos/Resultado-Icon.png')),
-            grafico: @json(asset('images/iconos/grafico-icon.png')),
-            quality: @json(asset('images/iconos/Quality.png')),
-            critica: @json(asset('images/iconos/Critica.png')),
-            imprimir: @json(asset('images/iconos/Imprimir-Icon.png')),
-            regresar: @json(asset('images/iconos/img-back.png'))
+            operador: @json(asset('images/Light_Icons/Operador_Profile-Light.png')),
+            operadorHerramienta: @json(asset('images/Light_Icons/Operador-Light.png')),
+            pieza: @json(asset('images/Light_Icons/Piezas-Light.png')),
+            aprobado: @json(asset('images/Color_Icons/Generales/Aprobado.png')),
+            alerta: @json(asset('images/Color_Icons/Generales/Sospechosa.png')),
+            resultado: @json(asset('images/Light_Icons/Resultado-Light.png')),
+            grafico: @json(asset('images/Color_Icons/Generales/grafico-icon.png')),
+            quality: @json(asset('images/Color_Icons/Generales/Quality.png')),
+            critica: @json(asset('images/Color_Icons/Generales/Critica.png')),
+            imprimir: @json(asset('images/Color_Icons/Generales/Imprimir-Icon.png')),
+            regresar: @json(asset('images/Color_Icons/Generales/img-back.png'))
         };
 
         class Proceso {

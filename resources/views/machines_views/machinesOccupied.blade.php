@@ -13,9 +13,9 @@
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Maquinas_Ocupadas.png') }}" class="header-view-icon" alt="Máquinas Ocupadas" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Maquinas_Ocupadas.png') }}" class="header-view-icon" alt="Máquinas Ocupadas" />
                 <h2>Máquinas Ocupadas</h2>
-                <img src="{{ asset('images/vistas/Maquinas_Ocupadas.png') }}" class="header-view-icon" alt="Máquinas Ocupadas" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Maquinas_Ocupadas.png') }}" class="header-view-icon" alt="Máquinas Ocupadas" />
             </div>
             <p class="subtitle">Estado de asignación operativa y liberación de centros de maquinado</p>
         </div>
@@ -29,14 +29,14 @@
     <script>
         const machines = @json($machines);
         window.baseUrl = "{{ url('/') }}";
-        window.imgProgramsCNC = "{{ asset('images/iconos/ProgramsCNC.png') }}";
-        window.imgProgramsProduction = "{{ asset('images/iconos/ProgramsProduction.png') }}";
-        window.imgOperator = "{{ asset('images/usuarios/Operador-Icon.png') }}";
-        window.imgLocked = "{{ asset('images/iconos/bloqueado.png') }}";
-        window.imgUnlocked = "{{ asset('images/iconos/desbloqueado.png') }}";
-        window.imgSinOrden = "{{ asset('images/iconos/Sin_Orden.png') }}";
-        window.imgOrdenAsc = "{{ asset('images/iconos/Orden_Asc.png') }}";
-        window.imgOrdenDesc = "{{ asset('images/iconos/Orden_Desc.png') }}";
+        window.imgProgramsCNC = "{{ asset('images/Color_Icons/Generales/ProgramsCNC.png') }}";
+        window.imgProgramsProduction = "{{ asset('images/Color_Icons/Generales/ProgramsProduction.png') }}";
+        window.imgOperator = "{{ asset('images/Light_Icons/Operador-Light.png') }}";
+        window.imgLocked = "{{ asset('images/Light_Icons/Bloqueado-Light.png') }}";
+        window.imgUnlocked = "{{ asset('images/Color_Icons/Generales/desbloqueado.png') }}";
+        window.imgSinOrden = "{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}";
+        window.imgOrdenAsc = "{{ asset('images/Color_Icons/Generales/Orden_Asc.png') }}";
+        window.imgOrdenDesc = "{{ asset('images/Color_Icons/Generales/Orden_Desc.png') }}";
     </script>
 @endsection
 

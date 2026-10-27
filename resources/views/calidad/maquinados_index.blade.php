@@ -19,7 +19,7 @@
         {{-- ── HEADER ─────────────────────────────────────────────── --}}
         <div class="alm-header">
             <div class="alm-header-icon">
-                <img src="{{ asset('images/iconos/Quality.png') }}" alt="Calidad" class="cal-maq-width-90px">
+                <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}" alt="Calidad" class="cal-maq-width-90px">
             </div>
             <div class="alm-header-text">
                 <h1>Dibujos y Ayudas Visuales de Maquinados — Calidad</h1>
@@ -32,7 +32,7 @@
         <div class="alm-stats">
             <div class="alm-stat-card stat-dibujos">
                 <div class="alm-stat-icon">
-                    <img src="{{ asset('images/iconos/pdf-view.png') }}" alt="Dibujos" class="cal-maq-width-60px">
+                    <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="Dibujos" class="cal-maq-width-60px">
                 </div>
                 <div>
                     <div class="alm-stat-value">{{ $totalDibujos }}</div>
@@ -41,7 +41,7 @@
             </div>
             <div class="alm-stat-card stat-ayudas">
                 <div class="alm-stat-icon">
-                    <img src="{{ asset('images/iconos/pdf-view.png') }}" alt="Ayudas" class="cal-maq-width-60px">
+                    <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="Ayudas" class="cal-maq-width-60px">
                 </div>
                 <div>
                     <div class="alm-stat-value">{{ $totalAyudas }}</div>
@@ -50,7 +50,7 @@
             </div>
             <div class="alm-stat-card stat-inactivos">
                 <div class="alm-stat-icon">
-                    <img src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Inactivos" class="cal-maq-width-60px">
+                    <img src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Inactivos" class="cal-maq-width-60px">
                 </div>
                 <div>
                     <div class="alm-stat-value">{{ $totalInactivos }}</div>
@@ -154,7 +154,7 @@
             @if ($dibujos->isEmpty())
                 <div class="alm-empty" id="calmaq-empty-dibujos">
                     <div class="alm-empty-icon">
-                        <img src="{{ asset('images/iconos/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
+                        <img src="{{ asset('images/Color_Icons/Generales/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                     </div>
                     <p>
                         @if ($desde || $hasta)
@@ -209,8 +209,8 @@
                                                     @php $isDwg = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION)) === 'dwg'; @endphp
                                                     <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                         <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}" class="file-icon icon-default">
-                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}" class="file-icon icon-hover">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}" class="file-icon icon-hover">
                                                         </div>
                                                         <div class="file-name cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
@@ -229,7 +229,7 @@
                     </table>
                     <div class="alm-empty cal-maq-display-none">
                         <div class="alm-empty-icon">
-                            <img src="{{ asset('images/iconos/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
+                            <img src="{{ asset('images/Color_Icons/Generales/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                         </div>
                         <p>Ningun dibujo coincide con los filtros seleccionados.</p>
                     </div>
@@ -255,7 +255,7 @@
             @if ($ayudas->isEmpty())
                 <div class="alm-empty" id="calmaq-empty-ayudas">
                     <div class="alm-empty-icon">
-                        <img src="{{ asset('images/iconos/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
+                        <img src="{{ asset('images/Color_Icons/Generales/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                     </div>
                     <p>
                         @if ($desde || $hasta)
@@ -308,8 +308,8 @@
                                                     @php $isDwg = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION)) === 'dwg'; @endphp
                                                     <div class="dibujos-file-card card-ayuda" style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                         <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}" class="file-icon icon-default">
-                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}" class="file-icon icon-hover">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}" class="file-icon icon-hover">
                                                         </div>
                                                         <div class="file-name cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
@@ -328,7 +328,7 @@
                     </table>
                     <div class="alm-empty cal-maq-display-none">
                         <div class="alm-empty-icon">
-                            <img src="{{ asset('images/iconos/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
+                            <img src="{{ asset('images/Color_Icons/Generales/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                         </div>
                         <p>Ninguna ayuda coincide con los filtros seleccionados.</p>
                     </div>
@@ -354,7 +354,7 @@
             @if ($inactivos->isEmpty())
                 <div class="alm-empty">
                     <div class="alm-empty-icon">
-                        <img src="{{ asset('images/iconos/ready.png') }}" alt="Sin inactivos" class="cal-maq-width-64px cal-maq-opacity-0-5">
+                        <img src="{{ asset('images/Color_Icons/Generales/ready.png') }}" alt="Sin inactivos" class="cal-maq-width-64px cal-maq-opacity-0-5">
                     </div>
                     <p>No hay documentos inactivos. Todos los registros tienen su archivo de origen activo.</p>
                 </div>
@@ -424,8 +424,8 @@
                                                     @php $isDwg = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION)) === 'dwg'; @endphp
                                                     <div class="dibujos-file-card {{ $isAyuda ? 'card-ayuda' : '' }}" style="animation-delay: {{ $loop->index * 0.05 }}s;">
                                                         <div class="file-icon-wrapper" onclick="calmaqVerArchivo({{ $doc->id }})" class="cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}" class="file-icon icon-default">
-                                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}" class="file-icon icon-hover">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}" class="file-icon icon-default">
+                                                            <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}" class="file-icon icon-hover">
                                                         </div>
                                                         <div class="file-name cal-maq-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}" onclick="calmaqVerArchivo({{ $doc->id }})">
                                                             {{ $doc->nombre_archivo }}
@@ -448,7 +448,7 @@
                     </table>
                     <div class="alm-empty cal-maq-display-none">
                         <div class="alm-empty-icon">
-                            <img src="{{ asset('images/iconos/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
+                            <img src="{{ asset('images/Color_Icons/Generales/noPieces.png') }}" alt="Sin resultados" class="cal-maq-width-64px cal-maq-opacity-0-5">
                         </div>
                         <p>Ningun documento inactivo coincide con los filtros seleccionados.</p>
                     </div>

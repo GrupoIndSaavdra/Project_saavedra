@@ -68,7 +68,7 @@
 
                             : 'Almacén'));
 
-            $deptIcon = $perfil == 4 || $perfil == 3 ? 'Quality.png' : 'almacen.png';
+            $deptIcon = $perfil == 4 || $perfil == 3 ? 'Color_Icons/Generales/Quality.png' : 'Color_Icons/Generales/almacen.png';
 
         @endphp
 
@@ -122,7 +122,7 @@
 
                         <div class="alm-stat-icon">
 
-                            <img src="{{ asset('images/iconos/pdf-view.png') }}" alt="Total" class="cal-width-60px" />
+                            <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="Total" class="cal-width-60px" />
 
                         </div>
 
@@ -140,7 +140,7 @@
 
                         <div class="alm-stat-icon">
 
-                            <img src="{{ asset('images/iconos/ready.png') }}" alt="Activas" class="cal-width-60px" />
+                            <img src="{{ asset('images/Color_Icons/Generales/ready.png') }}" alt="Activas" class="cal-width-60px" />
 
                         </div>
 
@@ -158,7 +158,7 @@
 
                         <div class="alm-stat-icon">
 
-                            <img src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Archivadas" class="cal-width-60px" />
+                            <img src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Archivadas" class="cal-width-60px" />
 
                         </div>
 
@@ -338,21 +338,21 @@
 
         window.almacenAppAssets = {
 
-            liberar: "{{ asset('images/iconos/Liberar.png') }}",
+            liberar: "{{ asset('images/Color_Icons/Generales/Liberar.png') }}",
 
-            descarga: "{{ asset('images/iconos/Descarga.png') }}",
+            descarga: "{{ asset('images/Color_Icons/Generales/Descarga.png') }}",
 
-            aprobado: "{{ asset('images/iconos/Aprobado.png') }}",
+            aprobado: "{{ asset('images/Color_Icons/Generales/Aprobado.png') }}",
 
-            rechazado: "{{ asset('images/iconos/Rechazado.png') }}",
+            rechazado: "{{ asset('images/Color_Icons/Generales/Rechazado.png') }}",
 
-            recibido: "{{ asset('images/iconos/Recibido.png') }}",
+            recibido: "{{ asset('images/Color_Icons/Generales/Recibido.png') }}",
 
-            guardado: "{{ asset('images/iconos/Guardado.png') }}",
+            guardado: "{{ asset('images/Color_Icons/Generales/Guardado.png') }}",
 
-            revisando: "{{ asset('images/iconos/Revisando.png') }}",
+            revisando: "{{ asset('images/Color_Icons/Generales/Revisando.png') }}",
 
-            espera: "{{ asset('images/iconos/Espera.png') }}"
+            espera: "{{ asset('images/Color_Icons/Generales/Espera.png') }}"
 
         };
 

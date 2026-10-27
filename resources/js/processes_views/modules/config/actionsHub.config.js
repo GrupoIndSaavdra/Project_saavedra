@@ -40,7 +40,7 @@ export const ACTIONS_HUB_CONFIG = {
             actionKey: "programas",
             label: "Programas",
             title: "Ver Programas CNC",
-            icon: () => window.imgProgramsCNC || (window.baseUrl + '/images/iconos/ProgramsCNC.png'),
+            icon: () => window.imgProgramsCNC || (window.baseUrl + '/images/Color_Icons/Generales/ProgramsCNC.png'),
             customClass: "btn-programas",
             checkAsyncFiles: true,
             action: () => {
@@ -60,7 +60,7 @@ export const ACTIONS_HUB_CONFIG = {
             actionKey: "draws",
             label: "Dibujos",
             title: "Ver Planos Técnicos",
-            icon: () => window.imgDraws || (window.baseUrl + '/images/iconos/DrawsProduction.png'),
+            icon: () => window.imgDraws || (window.baseUrl + '/images/Color_Icons/Generales/DrawsProduction.png'),
             customClass: "btn-draws",
             checkAsyncFiles: true,
             action: () => {
@@ -79,7 +79,7 @@ export const ACTIONS_HUB_CONFIG = {
             actionKey: "tech-docs",
             label: "Manuales",
             title: "Documentación Técnica / Ayudas Visuales",
-            icon: () => window.imgTechDocs || (window.baseUrl + '/images/iconos/manual.png'),
+            icon: () => window.imgTechDocs || (window.baseUrl + '/images/Color_Icons/Generales/manual.png'),
             customClass: "btn-tech-docs",
             action: () => {
                 if (typeof window.openTechDocsModal === 'function') {

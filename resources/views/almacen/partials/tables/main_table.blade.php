@@ -46,7 +46,7 @@
         @if ($registrosEstado->isEmpty())
             <div class="alm-empty">
                 <div class="alm-empty-icon">
-                    <img src="{{ asset('images/iconos/noPieces.png') }}" alt="Sin resultados"
+                    <img src="{{ asset('images/Color_Icons/Generales/noPieces.png') }}" alt="Sin resultados"
                         class="alm-width-64px alm-opacity-0-5">
                 </div>
                 <p>

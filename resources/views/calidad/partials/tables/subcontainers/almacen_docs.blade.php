@@ -5,7 +5,7 @@
             style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bae6fd; padding-bottom: 8px; margin-bottom: 15px;">
             <h4
                 style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/iconos/almacen.png') }}"
+                <img src="{{ asset('images/Color_Icons/Generales/almacen.png') }}"
                     style="width: 22px; height: 22px; object-fit: contain; vertical-align: middle;"> Documentos, Dibujos y
                 Ayudas Visuales Aprobados por Almacén
             </h4>
@@ -25,9 +25,9 @@
                     @php $isDwg = strtolower(pathinfo($archivoInfo['nombre'], PATHINFO_EXTENSION)) === 'dwg'; @endphp
                     <div class="dibujos-file-card" style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                         <div class="file-icon-wrapper cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                            <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                 class="file-icon icon-default" />
-                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                            <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                 class="file-icon icon-hover" />
                         </div>
                         <div class="file-name cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
@@ -54,9 +54,9 @@
                     <div class="dibujos-file-card card-ayuda"
                         style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                         <div class="file-icon-wrapper cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                            <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                 class="file-icon icon-default" />
-                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                            <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                 class="file-icon icon-hover" />
                         </div>
                         <div class="file-name cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"
@@ -95,9 +95,9 @@
                     <div class="dibujos-file-card card-otro"
                         style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                         <div class="file-icon-wrapper cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                            <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                 class="file-icon icon-default" />
-                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                            <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                 class="file-icon icon-hover" />
                         </div>
                         <div class="file-name cal-cursor-pointer" title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}"

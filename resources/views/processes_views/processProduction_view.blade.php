@@ -23,9 +23,9 @@
         {{-- 1. Panel de selección y formulario del operador --}}
         <div class="principal-data">
             <div class="panel-section-header">
-                <img src="{{ asset('images/iconos/Tornilleria-Icon.png') }}" class="panel-header-icon" alt="Tornillería">
+                <img src="{{ asset('images/Light_Icons/Tornilleria-Light.png') }}" class="panel-header-icon" alt="Tornillería">
                 <span>Reporte de Operador</span>
-                <img src="{{ asset('images/iconos/Tornilleria-Icon.png') }}" class="panel-header-icon" alt="Tornillería">
+                <img src="{{ asset('images/Light_Icons/Tornilleria-Light.png') }}" class="panel-header-icon" alt="Tornillería">
             </div>
             <form action="{{ route('headerdata') }}" method="post" class="form-principal-data">
                 @csrf

@@ -13,9 +13,9 @@
 <div class="wrapper">
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
+            <img src="{{ asset('images/Color_Icons/Vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
             <h2>Agregar o seleccionar orden de trabajo</h2>
-            <img src="{{ asset('images/vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
+            <img src="{{ asset('images/Color_Icons/Vistas/Agregar_Seleccionar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo" />
         </div>
         <p class="subtitle">Seleccione una OT existente para captura de procesos o registre una nueva orden</p>
     </div>

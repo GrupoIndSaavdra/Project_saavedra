@@ -341,7 +341,7 @@ function createInputs() {
     shiftGroup.className = "form-group full-width";
 
     let labelShift = document.createElement("label");
-    labelShift.innerHTML = getFieldLabelHtml("Turno-Icon.png", "Turno");
+    labelShift.innerHTML = getFieldLabelHtml("Light_Icons/Turno-Light.png", "Turno");
     labelShift.className = "form-label";
     labelShift.setAttribute("for", "display_shift_time");
 
@@ -357,7 +357,7 @@ function createInputs() {
     machineGroup.className = "form-group";
 
     let labelMachine = document.createElement("label");
-    labelMachine.innerHTML = getFieldLabelHtml("Maquina-Icon.png", "Máquina");
+    labelMachine.innerHTML = getFieldLabelHtml("Light_Icons/Maquina-Light.png", "Máquina");
     labelMachine.className = "form-label";
     labelMachine.setAttribute("for", "display_machine");
 
@@ -403,7 +403,7 @@ function createInputs() {
     dateGroup.className = "form-group";
 
     let labelDate = document.createElement("label");
-    labelDate.innerHTML = getFieldLabelHtml("Fecha-Icon.png", "Fecha");
+    labelDate.innerHTML = getFieldLabelHtml("Light_Icons/Fecha-Light.png", "Fecha");
     labelDate.className = "form-label";
     labelDate.setAttribute("for", "date");
 
@@ -448,7 +448,7 @@ function createInputs() {
     container.className = "form-btns-container";
     container.style.display = "none"; // Inicia oculto para que el contenedor principal sea compacto
 
-    const resultadoIconSrc = window.imgResultado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/Resultado-Icon.png` : "/images/iconos/Resultado-Icon.png");
+    const resultadoIconSrc = window.imgResultado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Resultado-Light.png` : "/images/Light_Icons/Resultado-Light.png");
     let submit = document.createElement("button");
     submit.type = "submit";
     submit.className = "btn-submit prod-submit-hidden";
@@ -473,7 +473,7 @@ function createInputsWithValue(values, valuesEnabled = []) {
     };
     let form_grid = document.querySelector(".form-grid");
     const isEditMode = (valuesEnabled && valuesEnabled.length > 0) || (values && values.edit == 1);
-    const blockedIconUrl = window.imgBloqueado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/bloqueado.png` : "/images/iconos/bloqueado.png");
+    const blockedIconUrl = window.imgBloqueado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Bloqueado-Light.png` : "/images/Light_Icons/Bloqueado-Light.png");
 
     // Banner informativo superior en modo edición
     if (isEditMode) {
@@ -630,7 +630,7 @@ function createBtnSubmit_editMeta() {
     submit.classList.remove("prod-submit-hidden");
     submit.classList.add("prod-submit-visible");
 
-    const resultadoIconSrc = window.imgResultado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/Resultado-Icon.png` : "/images/iconos/Resultado-Icon.png");
+    const resultadoIconSrc = window.imgResultado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Resultado-Light.png` : "/images/Light_Icons/Resultado-Light.png");
 
     submit.innerHTML = `
         <img src="${resultadoIconSrc}" class="btn-submit-icon" alt="Confirmar">
@@ -723,7 +723,7 @@ function createInputPassword(name = "passwordAdmin", placeholderText = "Contrase
     let submit = document.createElement("button");
     submit.type = "submit";
     submit.className = "btn-submit-password" + (name === "passwordQuality" ? " btn-quality" : "");
-    const resultIconUrl = window.baseUrl ? (window.baseUrl + "/images/iconos/Resultado-Icon.png") : "/images/iconos/Resultado-Icon.png";
+    const resultIconUrl = window.baseUrl ? (window.baseUrl + "/images/Light_Icons/Resultado-Light.png") : "/images/Light_Icons/Resultado-Light.png";
     submit.innerHTML = `
         <img src="${resultIconUrl}" class="btn-verify-icon" alt="Verificar">
         <span>Verificar</span>

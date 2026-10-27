@@ -17,7 +17,7 @@
     @yield('head')
     <style>
         :root {
-            --triangulo-abajo: url('{{ asset('images/iconos/triangulo_abajo.png') }}');
+            --triangulo-abajo: url('{{ asset('images/Color_Icons/Generales/triangulo_abajo.png') }}');
         }
     </style>
     <script>
@@ -51,7 +51,7 @@
             @else
                 <!--Menu-->
                 <button class="open-menu" aria-label="Menú principal" aria-expanded="false">
-                    <img class="icon" src="{{ asset('images/iconos/icono.png') }}" alt="Icono Menú">
+                    <img class="icon" src="{{ asset('images/Color_Icons/Generales/icono.png') }}" alt="Icono Menú">
                 </button>
             @endif
             <div class="filter-opacity">

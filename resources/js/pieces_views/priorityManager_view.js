@@ -56,13 +56,13 @@ document.addEventListener('DOMContentLoaded', () => {
         badge.setAttribute('aria-label', `Prioridad ${prioridad}`);
 
         let imgPath = "";
-        if (prioridad === 1) imgPath = `${window.baseUrl}/images/iconos/uno.png`;
-        else if (prioridad === 2) imgPath = `${window.baseUrl}/images/iconos/dos.png`;
-        else if (prioridad === 3) imgPath = `${window.baseUrl}/images/iconos/tres.png`;
-        else if (prioridad === 4) imgPath = `${window.baseUrl}/images/iconos/cuatro.png`;
-        else if (prioridad === 5) imgPath = `${window.baseUrl}/images/iconos/cinco.png`;
+        if (prioridad === 1) imgPath = `${window.baseUrl}/images/Color_Icons/Generales/uno.png`;
+        else if (prioridad === 2) imgPath = `${window.baseUrl}/images/Color_Icons/Generales/dos.png`;
+        else if (prioridad === 3) imgPath = `${window.baseUrl}/images/Color_Icons/Generales/tres.png`;
+        else if (prioridad === 4) imgPath = `${window.baseUrl}/images/Color_Icons/Generales/cuatro.png`;
+        else if (prioridad === 5) imgPath = `${window.baseUrl}/images/Color_Icons/Generales/cinco.png`;
         else {
-            imgPath = `${window.baseUrl}/images/iconos/plata.png`;
+            imgPath = `${window.baseUrl}/images/Color_Icons/Generales/plata.png`;
         }
 
         badge.innerHTML = `

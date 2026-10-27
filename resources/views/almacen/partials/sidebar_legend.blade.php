@@ -3,7 +3,7 @@
         style="border: 5px solid #033966d4; border-radius: 12px;">
         <div
             class="alm-display-flex alm-align-items-center alm-gap-12px alm-margin-bottom-16px alm-border-bottom-2px-solid-e2e8f0 alm-padding-bottom-12px">
-            <img src="{{ asset('images/iconos/Quality.png') }}" alt="Leyenda"
+            <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}" alt="Leyenda"
                 class="alm-width-30px alm-height-30px alm-object-fit-contain">
             <h2 class="alm-margin-0 alm-font-size-1-3rem alm-color-0f172a alm-font-weight-700">Guía de Estados: Almacén
             </h2>
@@ -21,7 +21,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #f0f9ff; border: 2px solid #0ea5e9;">
-                    <img src="{{ asset('images/iconos/Recibido.png') }}" alt="Nuevo"
+                    <img src="{{ asset('images/Color_Icons/Generales/Recibido.png') }}" alt="Nuevo"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -32,7 +32,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #fafafa; border: 2px solid #a3a3a3;">
-                    <img src="{{ asset('images/iconos/Espera.png') }}" alt="En Espera"
+                    <img src="{{ asset('images/Color_Icons/Generales/Espera.png') }}" alt="En Espera"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -45,7 +45,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #fffbeb; border: 2px solid #f59e0b;">
-                    <img src="{{ asset('images/iconos/Revisando.png') }}" alt="En Revisión"
+                    <img src="{{ asset('images/Color_Icons/Generales/Revisando.png') }}" alt="En Revisión"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -66,7 +66,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #f0fdfa; border: 2px solid #14b8a6;">
-                    <img src="{{ asset('images/iconos/perspectiva-icon.png') }}" alt="Tengo Modelo"
+                    <img src="{{ asset('images/Color_Icons/Generales/perspectiva-icon.png') }}" alt="Tengo Modelo"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -79,7 +79,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #f5f3ff; border: 2px solid #8b5cf6;">
-                    <img src="{{ asset('images/iconos/PFM-icon.png') }}" alt="Pre-Orden de Fabricación de Modelo"
+                    <img src="{{ asset('images/Color_Icons/Generales/PFM-icon.png') }}" alt="Pre-Orden de Fabricación de Modelo"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -92,7 +92,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #f7fee7; border: 2px solid #84cc16;">
-                    <img src="{{ asset('images/iconos/PFC-icon.png') }}" alt="Pre-Orden de Fabricación de Casting"
+                    <img src="{{ asset('images/Color_Icons/Generales/PFC-icon.png') }}" alt="Pre-Orden de Fabricación de Casting"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -105,7 +105,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #ecfeff; border: 2px solid #06b6d4;">
-                    <img src="{{ asset('images/iconos/Escanear-icon.png') }}" alt="Por Escanear"
+                    <img src="{{ asset('images/Color_Icons/Generales/Escanear-icon.png') }}" alt="Por Escanear"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -118,7 +118,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #fff7ed; border: 2px solid #f97316;">
-                    <img src="{{ asset('images/iconos/proceso_parcial-icon.png') }}" alt="Proceso Parcial"
+                    <img src="{{ asset('images/Color_Icons/Generales/proceso_parcial-icon.png') }}" alt="Proceso Parcial"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -131,7 +131,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #eef2ff; border: 2px solid #6366f1;">
-                    <img src="{{ asset('images/iconos/Quality.png') }}" alt="En Calidad"
+                    <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}" alt="En Calidad"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -144,7 +144,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #faf5ff; border: 2px solid #9333ea;">
-                    <img src="{{ asset('images/iconos/Proveedor.png') }}" alt="Enviado a Proveedor"
+                    <img src="{{ asset('images/Color_Icons/Generales/Proveedor.png') }}" alt="Enviado a Proveedor"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -157,7 +157,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #fdf2f8; border: 2px solid #ec4899;">
-                    <img src="{{ asset('images/iconos/Reproceso.png') }}" alt="Reproceso"
+                    <img src="{{ asset('images/Color_Icons/Generales/Reproceso.png') }}" alt="Reproceso"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -177,7 +177,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #f0fdf4; border: 2px solid #22c55e;">
-                    <img src="{{ asset('images/iconos/Aprobado.png') }}" alt="Liberado"
+                    <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}" alt="Liberado"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -188,7 +188,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #fef2f2; border: 2px solid #ef4444;">
-                    <img src="{{ asset('images/iconos/Rechazado.png') }}" alt="Rechazado"
+                    <img src="{{ asset('images/Color_Icons/Generales/Rechazado.png') }}" alt="Rechazado"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span
@@ -199,7 +199,7 @@
                 <span
                     class="alm-display-flex alm-align-items-center alm-justify-content-center alm-border-radius-50pct alm-flex-shrink-0 alm-position-relative"
                     style="width: 68px; height: 68px; background-color: #fefce8; border: 2px solid #eab308;">
-                    <img src="{{ asset('images/iconos/Mixto.png') }}" alt="Mixto"
+                    <img src="{{ asset('images/Color_Icons/Generales/Mixto.png') }}" alt="Mixto"
                         style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span

@@ -43,7 +43,7 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
     
     const lblPending = document.getElementById("lbl-pending-preordenes");
     if (lblPending) {
-        lblPending.innerHTML = `<img src="${window.baseUrl || '/'}images/iconos/documento.png" style="width: 16px; height: 16px;"> Pre-órdenes de ${tipo === 'casting' ? 'Casting' : 'Modelo'} pendientes por enviar:`;
+        lblPending.innerHTML = `<img src="${window.baseUrl || '/'}images/Color_Icons/Generales/documento.png" style="width: 16px; height: 16px;"> Pre-órdenes de ${tipo === 'casting' ? 'Casting' : 'Modelo'} pendientes por enviar:`;
     }
     
     const inputDestinatario = document.getElementById("env-destinatario");

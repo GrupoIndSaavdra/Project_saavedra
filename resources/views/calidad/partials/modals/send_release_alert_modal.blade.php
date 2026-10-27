@@ -58,7 +58,7 @@
                             {{-- Header Aprobados --}}
                             <div
                                 class="cal-background-linear-gradient-135deg-059669-047857 cal-padding-20px-24px cal-display-flex cal-align-items-center cal-gap-14px">
-                                <img src="{{ asset('images/iconos/Aprobado.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}"
                                     class="cal-width-36px cal-height-36px cal-object-fit-contain" alt="" />
                                 <div>
                                     <div
@@ -113,7 +113,7 @@
                             {{-- Header Rechazados --}}
                             <div
                                 class="cal-background-linear-gradient-135deg-dc2626-b91c1c cal-padding-20px-24px cal-display-flex cal-align-items-center cal-gap-14px">
-                                <img src="{{ asset('images/iconos/Rechazado.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/Rechazado.png') }}"
                                     class="cal-width-36px cal-height-36px cal-object-fit-contain" alt="" />
                                 <div>
                                     <div

@@ -1,19 +1,19 @@
 {{-- Panel de Datos del Operador y Código del Formato --}}
 <div class="div-table-code">
     <div class="panel-section-header">
-        <img src="{{ asset('images/usuarios/Operador-Icon.png') }}" class="panel-header-icon" alt="Operador">
+        <img src="{{ asset('images/Light_Icons/Operador-Light.png') }}" class="panel-header-icon" alt="Operador">
         <span>Datos del Operador</span>
-        <img src="{{ asset('images/usuarios/Operador-Icon.png') }}" class="panel-header-icon" alt="Operador">
+        <img src="{{ asset('images/Light_Icons/Operador-Light.png') }}" class="panel-header-icon" alt="Operador">
     </div>
 
     <div class="operator-profile-card">
         <div class="operator-avatar-wrapper">
-            <img src="{{ asset('images/usuarios/Operador-Profile-Icon.png') }}" alt="Operador" class="operator-avatar-img">
+            <img src="{{ asset('images/Light_Icons/Operador_Profile-Light.png') }}" alt="Operador" class="operator-avatar-img">
         </div>
         <div class="operator-info-content">
             <div class="operator-meta-badges">
                 <span class="operator-id-badge">
-                    <img src="{{ asset('images/usuarios/Operador-Icon.png') }}" alt="Matrícula">
+                    <img src="{{ asset('images/Light_Icons/Operador-Light.png') }}" alt="Matrícula">
                     <span>Matrícula: {{ auth()->user()->matricula }}</span>
                 </span>
                 <span class="operator-status-badge">
@@ -37,7 +37,7 @@
         <tr>
             <th>
                 <div class="table-code-th-content">
-                    <img src="{{ asset('images/iconos/Codigo-Icon.png') }}" class="table-code-icon" alt="Código">
+                    <img src="{{ asset('images/Color_Icons/Generales/Codigo-Icon.png') }}" class="table-code-icon" alt="Código">
                     <span>Código</span>
                 </div>
             </th>
@@ -46,7 +46,7 @@
         <tr>
             <th>
                 <div class="table-code-th-content">
-                    <img src="{{ asset('images/iconos/Version-Icon.png') }}" class="table-code-icon" alt="Versión">
+                    <img src="{{ asset('images/Light_Icons/Version-Light.png') }}" class="table-code-icon" alt="Versión">
                     <span>Versión</span>
                 </div>
             </th>
@@ -55,7 +55,7 @@
         <tr>
             <th>
                 <div class="table-code-th-content">
-                    <img src="{{ asset('images/iconos/Revision-Icon.png') }}" class="table-code-icon" alt="Revisión">
+                    <img src="{{ asset('images/Light_Icons/Revision-Light.png') }}" class="table-code-icon" alt="Revisión">
                     <span>Revisión</span>
                 </div>
             </th>

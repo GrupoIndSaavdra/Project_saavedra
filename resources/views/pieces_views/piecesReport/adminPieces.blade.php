@@ -6,10 +6,10 @@
     @vite(['resources/css/pieces_views/piecesReport/adminPieces.css', 'resources/js/pieces_views/piecesReport/adminPieces.js'])
 @endsection
 <script>
-    window.liberar = "{{ asset('images/iconos/Liberar.png') }}"
-    window.rechazar = "{{ asset('images/iconos/Rechazar.png') }}"
-    window.ojito = "{{ asset('images/iconos/ojito.png') }}"
-    window.loading = "{{ asset('images/iconos/loading.gif') }}"
+    window.liberar = "{{ asset('images/Color_Icons/Generales/Liberar.png') }}"
+    window.rechazar = "{{ asset('images/Color_Icons/Generales/Rechazar.png') }}"
+    window.ojito = "{{ asset('images/Color_Icons/Generales/ojito.png') }}"
+    window.loading = "{{ asset('images/Color_Icons/Generales/loading.gif') }}"
     window.baseUrl = "{{ url('/') }}";
 </script>
 @section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
@@ -56,19 +56,20 @@
         <input type="hidden" name="profile" value="admin">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Reporte_Pzas.png') }}" class="header-view-icon"
+                <img src="{{ asset('images/Color_Icons/Vistas/Reporte_Pzas.png') }}" class="header-view-icon"
                     alt="Reporte de piezas" />
                 <h1>Reporte de piezas</h1>
-                <img src="{{ asset('images/vistas/Reporte_Pzas.png') }}" class="header-view-icon"
+                <img src="{{ asset('images/Color_Icons/Vistas/Reporte_Pzas.png') }}" class="header-view-icon"
                     alt="Reporte de piezas" />
             </div>
             <!-- IMAGEN DE PDF -->
-            <button type="submit" name="action" value="pdf" class="btn-PDF" title="Generar PDF">
+            <button type="submit" name="action" value="pdf" class="btn-PDF" title="Descargar PDF">
                 <div class="pdf-btn-wrapper">
-                    <img src="{{ asset('images/iconos/pdf-view-shadow.png') }}" class="pdf-icon icon-shadow" alt="PDF">
-                    <img src="{{ asset('images/iconos/pdf-view.png') }}" class="pdf-icon icon-view generar_pdf" id="pdf"
+                    <img src="{{ asset('images/Shadow_Icons/PDF_View-Shadow.png') }}" class="pdf-icon icon-shadow" alt="PDF">
+                    <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" class="pdf-icon icon-view generar_pdf" id="pdf"
                         alt="PDF">
                 </div>
+                <span class="pdf-btn-text">Descargar PDF</span>
             </button>
         </div>
         <div class="filters"></div>

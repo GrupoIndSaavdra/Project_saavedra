@@ -324,7 +324,7 @@ function renderArchivosGrid(data, param1, param2) {
     if (!data.existe || data.archivos.length === 0) {
         grid.innerHTML = `
             <div class="dibujos-empty-state" style="grid-column:1/-1; text-align:center;">
-                <img src="${window.baseUrl}/images/iconos/sin_archivos.png" alt="Sin archivos" style="width: 120px; opacity: 0.6; margin-bottom: 1em;">
+                <img src="${window.baseUrl}/images/Color_Icons/Generales/sin_archivos.png" alt="Sin archivos" style="width: 120px; opacity: 0.6; margin-bottom: 1em;">
                 <p>No hay archivos PDF. Sube el primero usando el panel de arriba.</p>
             </div>`;
         return;
@@ -341,8 +341,8 @@ function renderArchivosGrid(data, param1, param2) {
 
         card.innerHTML = `
             <div class="file-icon-wrapper" onclick="abrirPdf('${archivo.url}')" style="cursor: pointer;" title="Abrir PDF">
-                <img src="${window.baseUrl}/images/iconos/pdf-view-shadow.png" class="file-icon icon-default">
-                <img src="${window.baseUrl}/images/iconos/pdf-view.png" class="file-icon icon-hover">
+                <img src="${window.baseUrl}/images/Shadow_Icons/PDF_View-Shadow.png" class="file-icon icon-default">
+                <img src="${window.baseUrl}/images/Color_Icons/Generales/pdf-view.png" class="file-icon icon-hover">
             </div>
             <div class="file-name" style="cursor: pointer;" title="Abrir PDF">${escapeHTML(archivo.nombre)}</div>
             <div class="file-actions">
@@ -539,11 +539,11 @@ function actualizarBadge(param1, param2 = null) {
                     
                     if (count > 0) {
                         if (btnSpan) btnSpan.textContent = 'Vaciar Carpeta';
-                        if (btnImg) btnImg.src = window.baseUrl + '/images/iconos/Eliminar-Archivos.png';
+                        if (btnImg) btnImg.src = window.baseUrl + '/images/Color_Icons/Generales/Eliminar-Archivos.png';
                     } else {
                         // Etiquetas específicas para subcarpetas vacías
                         if (btnSpan) btnSpan.textContent = 'Eliminar Carpeta';
-                        if (btnImg) btnImg.src = window.baseUrl + '/images/iconos/Eliminar-Carpeta.png';
+                        if (btnImg) btnImg.src = window.baseUrl + '/images/Color_Icons/Generales/Eliminar-Carpeta.png';
                     }
                 }
             }
@@ -660,7 +660,7 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
         msgContainer.innerHTML = finalHtml;
         
         if (modalIcon) {
-            modalIcon.src = window.baseUrl + (isVaciar ? '/images/iconos/Eliminar-Archivos.png' : '/images/iconos/Eliminar-Carpeta.png');
+            modalIcon.src = window.baseUrl + (isVaciar ? '/images/Color_Icons/Generales/Eliminar-Archivos.png' : '/images/Color_Icons/Generales/Eliminar-Carpeta.png');
         }
         
         btnConfirm.textContent = isVaciar ? 'Vaciar Carpeta' : 'Eliminar Permanentemente';
@@ -742,12 +742,12 @@ function renderEstructuraTable() {
                     <div class="td-actions">
                         <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                             onclick="irACarpeta(null, '${claseIdBD || claseName}', ${claseIdBD ? 'true' : 'false'})">
-                            <img src="${window.baseUrl}/images/iconos/documento.png" alt="Ver">
+                            <img src="${window.baseUrl}/images/Color_Icons/Generales/documento.png" alt="Ver">
                             <span>Ver PDF's</span>
                         </button>
                         <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                             onclick="confirmarEliminarCarpeta(null, '${claseName}', '${claseName}')">
-                            <img src="${window.baseUrl}/images/iconos/Eliminar-Carpeta.png" alt="Eliminar">
+                            <img src="${window.baseUrl}/images/Color_Icons/Generales/Eliminar-Carpeta.png" alt="Eliminar">
                             <span>Eliminar Carpeta</span>
                         </button>
                     </div>
@@ -760,7 +760,7 @@ function renderEstructuraTable() {
         tr.innerHTML = `
             <td colspan="3" class="d-text-center d-text-subtle">
                 <div class="dibujos-empty-state">
-                    <img src="${window.baseUrl}/images/iconos/Sin_Carpetas.png" alt="Sin carpetas" class="empty-folder-icon">
+                    <img src="${window.baseUrl}/images/Color_Icons/Generales/Sin_Carpetas.png" alt="Sin carpetas" class="empty-folder-icon">
                     <p>No hay carpetas de clases registradas en el servidor.</p>
                 </div>
             </td>

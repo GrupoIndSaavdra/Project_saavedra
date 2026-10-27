@@ -10,12 +10,12 @@
         default => $user->perfil,
     };
     $rolIcon = match((string)$user->perfil) {
-        '1' => 'images/usuarios/Administracion-Icon.png',
-        '2' => 'images/usuarios/Operador-Icon.png',
-        '3' => 'images/iconos/Master-Icon.png',
-        '4' => 'images/usuarios/Calidad-Icon.png',
-        '5' => 'images/iconos/Almacen-Icon.png',
-        '6' => 'images/usuarios/Supervision-Icon.png',
+        '1' => 'images/Light_Icons/Administracion-Light.png',
+        '2' => 'images/Light_Icons/Operador-Light.png',
+        '3' => 'images/Light_Icons/Master-Light.png',
+        '4' => 'images/Light_Icons/Calidad-Light.png',
+        '5' => 'images/Light_Icons/Almacen-Light.png',
+        '6' => 'images/Light_Icons/Supervision-Light.png',
         default => null,
     };
     $fullName = trim($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno));
@@ -36,12 +36,12 @@
         <div>
             @if($isInactive)
                 <span class="alert-falta-badge" title="Personal inactivo o vacante" style="display:inline-flex; align-items:center; gap:5px;">
-                    <img src="{{ asset('images/iconos/inactivar.png') }}" alt="Inactivo" style="width:13px; height:13px; object-fit:contain;">
+                    <img src="{{ asset('images/Color_Icons/Generales/inactivar.png') }}" alt="Inactivo" style="width:13px; height:13px; object-fit:contain;">
                     FALTA / INACTIVO
                 </span>
             @else
                 <span class="badge-status-act" style="display:inline-flex; align-items:center; gap:5px;">
-                    <img src="{{ asset('images/iconos/activar.png') }}" alt="Activo" style="width:13px; height:13px; object-fit:contain;">
+                    <img src="{{ asset('images/Color_Icons/Generales/activar.png') }}" alt="Activo" style="width:13px; height:13px; object-fit:contain;">
                     ACTIVO
                 </span>
             @endif

@@ -12,9 +12,9 @@
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
                 <h1>Generación de QR por Lote</h1>
-                <img src="{{ asset('images/vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Generar_QR_Lote.png') }}" class="header-view-icon" alt="Generar QR por Lote" />
             </div>
             <p class="subtitle">Creación y registro de código QR para lotes de soldadura</p>
         </div>

@@ -5,12 +5,12 @@
             class="alm-modal-header alm-background-linear-gradient-135deg-033966-022340 alm-border-bottom-2px-solid-022340 alm-padding-0-9em-2-2em alm-position-relative">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalEnviarPreOrden()">
-                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}"
+                    <img class="img-cerrar" src="{{ asset('images/Color_Icons/Generales/cerrar.png') }}"
                         style="width: 42px !important; height: 42px !important;">
                 </button>
             </div>
             <div class="alm-display-flex alm-align-items-center" style="gap: 28px;">
-                <img src="{{ asset('images/iconos/enviando.png') }}"
+                <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}"
                     style="width: 52px !important; height: 52px !important; max-width: 52px !important; max-height: 52px !important; object-fit: contain; flex-shrink: 0;"
                     alt="">
                 <div>
@@ -45,7 +45,7 @@
                             style="background: #fff; padding: 14px 16px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
                             <h4
                                 style="margin-top: 0; margin-bottom: 8px; color: #033966; font-size: 1em; border-bottom: 2px solid #033966; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px;">
-                                <img src="{{ asset('images/iconos/enviando.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}"
                                     style="width: 30px; height: 30px; object-fit: contain;"> Información del Envío
                             </h4>
 
@@ -78,7 +78,7 @@
                                     style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff8f1; border: 2px dashed #f97316; padding: 12px 16px; border-radius: 12px; width: 100%; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(249, 115, 22, 0.05);"
                                     onmouseover="this.style.background='#ffedd5'; this.style.borderColor='#ea580c';"
                                     onmouseout="this.style.background='#fff8f1'; this.style.borderColor='#f97316';">
-                                    <img src="{{ asset('images/iconos/Fecha.png') }}"
+                                    <img src="{{ asset('images/Color_Icons/Generales/Fecha.png') }}"
                                         style="width: 26px; height: 26px; object-fit: contain;">
                                     <span id="env-fecha-seleccionada-btn"
                                         style="color: #c2410c; font-weight: 700; font-size: 1.05em; font-family: 'Poppins', sans-serif;">Seleccionar
@@ -89,7 +89,7 @@
                             <div class="form-group" style="margin-top: 6px; margin-bottom: 0;">
                                 <label id="lbl-pending-preordenes"
                                     style="font-weight: 700; color: #1e293b; display: block; margin-bottom: 6px; font-size: 0.9em; display: flex; align-items: center; gap: 6px;">
-                                    <img src="{{ asset('images/iconos/documento.png') }}" style="width: 16px; height: 16px;">
+                                    <img src="{{ asset('images/Color_Icons/Generales/documento.png') }}" style="width: 16px; height: 16px;">
                                     Pre-órdenes pendientes por enviar:</label>
                                 <div id="env-pending-preordenes-container"
                                     style="background: transparent; border: none; padding: 0; max-height: 300px; overflow-y: auto; overflow-x: hidden; display: flex; flex-direction: column; gap: 8px;">
@@ -102,7 +102,7 @@
                             style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08);">
                             <h4
                                 style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.96em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px;">
-                                <img src="{{ asset('images/iconos/anadir.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}"
                                     style="width: 32px; height: 32px; object-fit: contain;"> Subir Nuevos Archivos
                                 Escaneados
                             </h4>
@@ -119,7 +119,7 @@
                                     style="background-color: #dcfce7; padding: 6px 14px; border-bottom: 1px solid #bbf7d0;">
                                     <strong
                                         style="color: #166534; font-size: 0.9em; display: flex; align-items: center; gap: 6px;">
-                                        <img src="{{ asset('images/iconos/info-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/info-icon.png') }}"
                                             style="width: 30px; height: 30px; object-fit: contain;">
                                         Puntos a Revisar antes de Subir
                                     </strong>
@@ -128,7 +128,7 @@
                                     style="padding: 10px 12px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center;">
                                     <div
                                         style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
-                                        <img src="{{ asset('images/iconos/folio-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/folio-icon.png') }}"
                                             style="width: 40px; height: 40px; object-fit: contain;">
                                         <span
                                             style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Folio
@@ -136,7 +136,7 @@
                                     </div>
                                     <div
                                         style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
-                                        <img src="{{ asset('images/iconos/claridad-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/claridad-icon.png') }}"
                                             style="width: 40px; height: 40px; object-fit: contain;">
                                         <span
                                             style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Imagen
@@ -144,7 +144,7 @@
                                     </div>
                                     <div
                                         style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
-                                        <img src="{{ asset('images/iconos/firma-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/firma-icon.png') }}"
                                             style="width: 40px; height: 40px; object-fit: contain;">
                                         <span
                                             style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Firmas
@@ -161,7 +161,7 @@
                                     multiple>
                                 <div class="dropzone-content"
                                     style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <img src="{{ asset('images/iconos/anadir.png') }}"
+                                    <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}"
                                         style="width: 44px; height: 44px; object-fit: contain;">
                                     <span style="font-weight: 700; color: #15803d; font-size: 0.86em;">Arrastrar
                                         adicionales aquí (PDFs o imágenes)</span>
@@ -180,7 +180,7 @@
                             style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); flex: 1.45; display: flex; flex-direction: column; min-height: 0;">
                             <h4
                                 style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                <img src="{{ asset('images/iconos/galeria.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/galeria.png') }}"
                                     style="width: 30px; height: 30px; object-fit: contain;"> Archivos y Dibujos de la
                                 OT Disponibles
                             </h4>
@@ -198,7 +198,7 @@
                             style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); flex: 1; display: flex; flex-direction: column; min-height: 0;">
                             <h4
                                 style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.98em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                                <img src="{{ asset('images/iconos/anadir.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}"
                                     style="width: 30px; height: 30px; object-fit: contain;"> Nuevos Archivos Adjuntados
                             </h4>
 
@@ -233,7 +233,7 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
             <h4
                 style="margin: 0; color: #033966; font-size: 1.15em; font-family: 'Poppins', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/iconos/Fecha.png') }}" style="width: 26px; height: 26px; object-fit: contain;">
+                <img src="{{ asset('images/Color_Icons/Generales/Fecha.png') }}" style="width: 26px; height: 26px; object-fit: contain;">
                 Seleccionar Fecha
             </h4>
             <button type="button" onclick="document.getElementById('modalEnvCalendar').style.display='none'"

@@ -759,7 +759,7 @@ if (window.pieces_Released) {
         const divTable = document.createElement("div");
         divTable.className = "div-table-pieces-released";
 
-        const iconLiberacion = window.iconoLiberacion || (window.getIcon ? window.getIcon('vista_liberacion') : '') || `${window.baseUrl}/images/vistas/Liberacion_Pzas.png`;
+        const iconLiberacion = window.iconoLiberacion || (window.getIcon ? window.getIcon('vista_liberacion') : '') || `${window.baseUrl}/images/Color_Icons/Vistas/Liberacion_Pzas.png`;
 
         // Encabezado corporativo del modal con contador dinámico
         const headerModal = document.createElement("div");

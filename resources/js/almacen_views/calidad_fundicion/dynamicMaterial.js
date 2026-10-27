@@ -105,19 +105,19 @@ class FundicionChecklistCard {
         let imgName = "";
         switch (pasoEstado) {
             case "completado":
-                imgName = "Aprobado.png";
+                imgName = "Color_Icons/Generales/Aprobado.png";
                 break;
             case "pendiente":
-                imgName = "Espera.png";
+                imgName = "Color_Icons/Generales/Espera.png";
                 break;
             case "rechazado":
-                imgName = "Rechazado.png";
+                imgName = "Color_Icons/Generales/Rechazado.png";
                 break;
             default:
-                imgName = "Recibido.png";
+                imgName = "Color_Icons/Generales/Recibido.png";
                 break;
         }
-        return `${baseUrl}${slash}images/iconos/${imgName}`;
+        return `${baseUrl}${slash}images/${imgName}`;
     }
     _getBorderColor(data) {
         const pasos = Object.values(data.pasos || {});

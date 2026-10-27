@@ -420,8 +420,6 @@ tr:hover {
 /* BOTÓN E ICONO DE PDF COMPUESTO (SHADOW + VIEW) */
 .btn-PDF {
     position: absolute;
-    width: clamp(42px, 4vw, 56px);
-    height: clamp(42px, 4vw, 56px);
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
@@ -430,24 +428,29 @@ tr:hover {
     cursor: pointer;
     padding: 0;
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 3px;
     transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     z-index: 10;
+    text-decoration: none;
 }
 
 .pdf-btn-wrapper {
     position: relative;
-    width: 100%;
-    height: 100%;
+    width: clamp(36px, 3.2vw, 46px);
+    height: clamp(36px, 3.2vw, 46px);
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .pdf-icon {
-    width: 100%;
-    height: 100%;
+    width: 100% !important;
+    height: 100% !important;
+    float: none !important;
     object-fit: contain;
     transition:
         transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
@@ -471,8 +474,20 @@ tr:hover {
     transform: scale(0.96);
 }
 
-.btn-PDF:hover {
-    transform: translateY(-50%) scale(1.08);
+.pdf-btn-text {
+    font-size: clamp(0.68rem, 0.75vw, 0.75rem);
+    font-weight: 700;
+    color: var(--gis-blue);
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.1;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: color 0.25s ease;
+}
+
+.btn-PDF:hover .pdf-btn-wrapper {
+    transform: scale(1.08);
 }
 
 .btn-PDF:hover .icon-view {
@@ -484,6 +499,10 @@ tr:hover {
 .btn-PDF:hover .icon-shadow {
     opacity: 0.25;
     transform: scale(1.04);
+}
+
+.btn-PDF:hover .pdf-btn-text {
+    color: var(--gis-red);
 }
 
 .btn-PDF:active {
@@ -754,8 +773,8 @@ tr:hover {
         text-align: center;
     }
     .generar_pdf {
-        width: 44%;
-        float: right;
+        width: 100%;
+        float: none;
     }
     .filter-select {
         width: 28%;

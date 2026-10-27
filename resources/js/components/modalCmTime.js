@@ -88,7 +88,7 @@ export function getAutoDetectedShift(referenceDate = new Date()) {
                 start: "13:45",
                 end: "18:45",
                 isSaturday: true,
-                imageName: "Turno_Mixto.png"
+                imageName: "Color_Icons/Generales/Turno_Mixto.png"
             };
         }
         return {
@@ -98,7 +98,7 @@ export function getAutoDetectedShift(referenceDate = new Date()) {
             start: "06:00",
             end: "14:00",
             isSaturday: true,
-            imageName: "Turno_Manana.png"
+            imageName: "Color_Icons/Generales/Turno_Manana.png"
         };
     }
 
@@ -112,7 +112,7 @@ export function getAutoDetectedShift(referenceDate = new Date()) {
             start: "06:00",
             end: "14:00",
             isSaturday: false,
-            imageName: "Turno_Manana.png"
+            imageName: "Color_Icons/Generales/Turno_Manana.png"
         };
     } else if (currentTotalMinutes >= 825 && currentTotalMinutes < 1305) {
         // 13:45 a 21:44 -> Mixto
@@ -123,7 +123,7 @@ export function getAutoDetectedShift(referenceDate = new Date()) {
             start: "13:45",
             end: "21:45",
             isSaturday: false,
-            imageName: "Turno_Mixto.png"
+            imageName: "Color_Icons/Generales/Turno_Mixto.png"
         };
     } else {
         // 21:45 en adelante o antes de 06:00 -> Noche
@@ -134,7 +134,7 @@ export function getAutoDetectedShift(referenceDate = new Date()) {
             start: "22:00",
             end: "06:00",
             isSaturday: false,
-            imageName: "Turno_Noche.png"
+            imageName: "Color_Icons/Generales/Turno_Noche.png"
         };
     }
 }
@@ -166,33 +166,33 @@ export function getShiftTriggerHtml(startTime, endTime) {
     const end = String(endTime || "14:00").trim().substring(0, 5);
 
     let shiftName = "Turno";
-    let iconName = "Turno_Manana.png";
+    let iconName = "Color_Icons/Generales/Turno_Manana.png";
     let hoursColor = "#0a8504";
     let hoursBg = "#e8f5e9";
     let hoursBorder = "#a5d6a7";
 
     if (start === "06:00" && end === "14:00") {
         shiftName = "Turno Mañana";
-        iconName = "Turno_Manana.png";
+        iconName = "Color_Icons/Generales/Turno_Manana.png";
         hoursColor = "#0a8504";
         hoursBg = "#e8f5e9";
         hoursBorder = "#a5d6a7";
     } else if (start === "13:45" && (end === "21:45" || end === "18:45")) {
         const isSat = end === "18:45";
         shiftName = isSat ? "Turno Mixto (Sáb)" : "Turno Mixto";
-        iconName = "Turno_Mixto.png";
+        iconName = "Color_Icons/Generales/Turno_Mixto.png";
         hoursColor = "#b45309";
         hoursBg = "#fef3c7";
         hoursBorder = "#fde68a";
     } else if (start === "22:00" && end === "06:00") {
         shiftName = "Turno Noche";
-        iconName = "Turno_Noche.png";
+        iconName = "Color_Icons/Generales/Turno_Noche.png";
         hoursColor = "#4338ca";
         hoursBg = "#e0e7ff";
         hoursBorder = "#c7d2fe";
     } else {
         shiftName = "Turno Especial";
-        iconName = "Hora.png";
+        iconName = "Color_Icons/Generales/Hora.png";
         hoursColor = "#033966";
         hoursBg = "#e0f2fe";
         hoursBorder = "#bae6fd";
@@ -776,32 +776,32 @@ function initShiftTimeModalEvents() {
 
             if (activeDisplayLabel) {
                 let shiftName = "Turno";
-                let iconName = "Turno_Manana.png";
+                let iconName = "Color_Icons/Generales/Turno_Manana.png";
                 let hoursColor = "#0a8504";
                 let hoursBg = "#e8f5e9";
                 let hoursBorder = "#a5d6a7";
 
                 if (selectedShiftId === "manana" || (formattedStart24 === "06:00" && formattedEnd24 === "14:00")) {
                     shiftName = "Turno Mañana";
-                    iconName = "Turno_Manana.png";
+                    iconName = "Color_Icons/Generales/Turno_Manana.png";
                     hoursColor = "#0a8504";
                     hoursBg = "#e8f5e9";
                     hoursBorder = "#a5d6a7";
                 } else if (selectedShiftId === "mixto" || formattedStart24 === "13:45") {
                     shiftName = activeDayMode === "sab" ? "Turno Mixto (Sábado)" : "Turno Mixto";
-                    iconName = "Turno_Mixto.png";
+                    iconName = "Color_Icons/Generales/Turno_Mixto.png";
                     hoursColor = "#b45309";
                     hoursBg = "#fef3c7";
                     hoursBorder = "#fde68a";
                 } else if (selectedShiftId === "noche" || formattedStart24 === "22:00") {
                     shiftName = "Turno Noche";
-                    iconName = "Turno_Noche.png";
+                    iconName = "Color_Icons/Generales/Turno_Noche.png";
                     hoursColor = "#4338ca";
                     hoursBg = "#e0e7ff";
                     hoursBorder = "#c7d2fe";
                 } else {
                     shiftName = "Turno Especial";
-                    iconName = "Hora.png";
+                    iconName = "Color_Icons/Generales/Hora.png";
                     hoursColor = "#033966";
                     hoursBg = "#e0f2fe";
                     hoursBorder = "#bae6fd";

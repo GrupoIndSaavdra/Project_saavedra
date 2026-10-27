@@ -53,14 +53,14 @@ function insertWeldingTypeBox() {
         input.setAttribute("tabindex", "-1");
         input.setAttribute("aria-readonly", "true");
         input.title = "Este campo está bloqueado y no se puede editar";
-        const blockedIconUrl = window.imgBloqueado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/bloqueado.png` : "/images/iconos/bloqueado.png");
+        const blockedIconUrl = window.imgBloqueado || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Bloqueado-Light.png` : "/images/Light_Icons/Bloqueado-Light.png");
         badgeHtml = `<span class="locked-field-badge" title="Campo bloqueado - No modificable"><img src="${blockedIconUrl}" class="locked-field-icon" alt="Bloqueado"> Bloqueado</span>`;
     }
 
     let label = document.createElement("label");
     label.className = "form-label";
     label.setAttribute("for", "tipo_soldadura");
-    label.innerHTML = getFieldLabelHtml("Proceso-Icon.png", "Tipo de Soldadura") + badgeHtml;
+    label.innerHTML = getFieldLabelHtml("Light_Icons/Proceso-Light.png", "Tipo de Soldadura") + badgeHtml;
 
     formGroup.appendChild(input);
     formGroup.appendChild(label);

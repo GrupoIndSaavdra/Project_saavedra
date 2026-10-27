@@ -2,26 +2,26 @@
 <script>
     window.workOrders = @json($workOrders);
     window.baseUrl = "{{ url('/') }}";
-    window.edit = "{{ asset('images/iconos/img-edit.png') }}";
-    window.back = "{{ asset('images/iconos/img-back.png') }}";
-    window.imgError = "{{ asset('images/usuarios/personError.png') }}";
-    window.imgNoPieces = "{{ asset('images/iconos/ready.png') }}";
-    window.imgNoPiecesPrevious = "{{ asset('images/iconos/noPieces.png') }}";
-    window.cerrarImgUrl = "{{ asset('images/iconos/cerrar.png') }}";
-    window.imgCerrar = "{{ asset('images/iconos/cerrar.png') }}";
-    window.imgEditPieces = "{{ asset('images/iconos/editPieces-Icon.png') }}";
-    window.imgQualityCheck = "{{ asset('images/iconos/Quality.png') }}";
-    window.imgDraws = "{{ asset('images/iconos/DrawsProduction.png') }}";
-    window.imgProgramsCNC = "{{ asset('images/iconos/ProgramsCNC.png') }}";
-    window.imgProgramsShadow = "{{ asset('images/iconos/ProgramsCNC-Shadow.png') }}";
-    window.imgTechDocs = "{{ asset('images/iconos/manual.png') }}";
-    window.imgNoCotas = "{{ asset('images/iconos/icono_sin_cotas.png') }}";
-    window.imgCancelar = "{{ asset('images/iconos/Cancelar-Icon.png') }}";
-    window.imgResultado = "{{ asset('images/iconos/Resultado-Icon.png') }}";
-    window.imgBloqueado = "{{ asset('images/iconos/bloqueado.png') }}";
-    window.imgMasZoom = "{{ asset('images/iconos/mas_zoom.png') }}";
-    window.imgMenosZoom = "{{ asset('images/iconos/menos_zoom.png') }}";
-    window.imgOt = "{{ asset('images/iconos/OT-Icon.png') }}";
+    window.edit = "{{ asset('images/Color_Icons/Generales/img-edit.png') }}";
+    window.back = "{{ asset('images/Color_Icons/Generales/img-back.png') }}";
+    window.imgError = "{{ asset('images/Color_Icons/Usuarios/personError.png') }}";
+    window.imgNoPieces = "{{ asset('images/Color_Icons/Generales/ready.png') }}";
+    window.imgNoPiecesPrevious = "{{ asset('images/Color_Icons/Generales/noPieces.png') }}";
+    window.cerrarImgUrl = "{{ asset('images/Color_Icons/Generales/cerrar.png') }}";
+    window.imgCerrar = "{{ asset('images/Color_Icons/Generales/cerrar.png') }}";
+    window.imgEditPieces = "{{ asset('images/Color_Icons/Generales/editPieces-Icon.png') }}";
+    window.imgQualityCheck = "{{ asset('images/Color_Icons/Generales/Quality.png') }}";
+    window.imgDraws = "{{ asset('images/Color_Icons/Generales/DrawsProduction.png') }}";
+    window.imgProgramsCNC = "{{ asset('images/Color_Icons/Generales/ProgramsCNC.png') }}";
+    window.imgProgramsShadow = "{{ asset('images/Shadow_Icons/ProgramsCNC-Shadow.png') }}";
+    window.imgTechDocs = "{{ asset('images/Color_Icons/Generales/manual.png') }}";
+    window.imgNoCotas = "{{ asset('images/Color_Icons/Generales/icono_sin_cotas.png') }}";
+    window.imgCancelar = "{{ asset('images/Light_Icons/Cancelar-Light.png') }}";
+    window.imgResultado = "{{ asset('images/Light_Icons/Resultado-Light.png') }}";
+    window.imgBloqueado = "{{ asset('images/Light_Icons/Bloqueado-Light.png') }}";
+    window.imgMasZoom = "{{ asset('images/Light_Icons/Mas_Zoom-Light.png') }}";
+    window.imgMenosZoom = "{{ asset('images/Light_Icons/Menos_Zoom-Light.png') }}";
+    window.imgOt = "{{ asset('images/Light_Icons/OT-Light.png') }}";
     window.occupiedMachines = @json((new \App\Http\Controllers\MachinesController)->machinesOccupied());
 </script>
 @isset($arrayData)

@@ -17,9 +17,9 @@
         {{-- Encabezado --}}
         <div class="dibujos-header">
             <div class="dibujos-header-left">
-                <img src="{{ asset('images/vistas/Ayudas_Visuales_Maquinados.png') }}" alt="Ayudas Visuales de Maquinados" class="dibujos-header-icon">
+                <img src="{{ asset('images/Color_Icons/Vistas/Ayudas_Visuales_Maquinados.png') }}" alt="Ayudas Visuales de Maquinados" class="dibujos-header-icon">
                 <h1>{{ $pageTitle ?? 'Gestión de Documentación' }}</h1>
-                <img src="{{ asset('images/vistas/Ayudas_Visuales_Maquinados.png') }}" alt="Ayudas Visuales de Maquinados" class="dibujos-header-icon">
+                <img src="{{ asset('images/Color_Icons/Vistas/Ayudas_Visuales_Maquinados.png') }}" alt="Ayudas Visuales de Maquinados" class="dibujos-header-icon">
             </div>
             <span>Directorio: {{ $directoryName ?? 'GIS' }} &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
@@ -173,7 +173,7 @@
 
             @if(count($estructura) === 0)
                 <div class="dibujos-empty-state">
-                    <img src="{{ asset('images/iconos/Sin_Carpetas.png') }}" alt="Sin carpetas" class="empty-folder-icon">
+                    <img src="{{ asset('images/Color_Icons/Generales/Sin_Carpetas.png') }}" alt="Sin carpetas" class="empty-folder-icon">
                     <p>No hay carpetas creadas aun.</p>
                 </div>
             @else
@@ -200,12 +200,12 @@
                                             <div class="td-actions">
                                                 <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                                     onclick="irACarpeta({{ \Illuminate\Support\Js::from($procesoIdBD ?? $procesoName) }}, null, {{ $procesoIdBD ? 'true' : 'false' }})">
-                                                    <img src="{{ asset('images/iconos/documento.png') }}" alt="Ver">
+                                                    <img src="{{ asset('images/Color_Icons/Generales/documento.png') }}" alt="Ver">
                                                     <span>Ver PDF's</span>
                                                 </button>
                                                 <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta"
                                                     onclick="confirmarEliminarCarpeta('{{ $procesoName }}', null, '{{ $procesoName }}')">
-                                                    <img src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                    <img src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Eliminar">
                                                     <span>Eliminar Directorio Raíz</span>
                                                 </button>
                                             </div>
@@ -260,7 +260,7 @@
             </div>
             <div class="confirm-modal-body">
                 <div class="confirm-icon-wrapper">
-                    <img id="confirm-modal-icon" src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                    <img id="confirm-modal-icon" src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Eliminar">
                 </div>
                 <p id="confirm-message-container" class="fs-1-1 lh-1-6 text-center">
                 </p>
@@ -274,7 +274,7 @@
 
     <script>
         window.baseUrl = "{{ url('/') }}";
-        window.cerrarImgUrl = "{{ asset('images/iconos/cerrar.png') }}";
+        window.cerrarImgUrl = "{{ asset('images/Color_Icons/Generales/cerrar.png') }}";
         window.moduleType = "{{ $moduleType }}";
         window.routesPrefix = "{{ $modulePrefix }}";
 

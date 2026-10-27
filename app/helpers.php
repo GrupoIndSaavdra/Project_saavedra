@@ -26,13 +26,26 @@ if (!function_exists('icon_path')) {
         }
 
         // Búsqueda automática en subcarpetas si solo pasaron el nombre del archivo
-        foreach (['iconos', 'vistas', 'usuarios', 'logos', 'fondos', 'calidad', 'planta'] as $sub) {
+        foreach ([
+            'Shadow_Icons',
+            'Light_Icons',
+            'Color_Icons/Generales',
+            'Color_Icons/Usuarios',
+            'Color_Icons/Vistas',
+            'logos',
+            'fondos',
+            'calidad',
+            'planta',
+            'iconos',
+            'vistas',
+            'usuarios'
+        ] as $sub) {
             if (file_exists(public_path("images/{$sub}/{$key}"))) {
                 return "images/{$sub}/{$key}";
             }
         }
 
-        return $default ?? "images/iconos/{$key}";
+        return $default ?? "images/Color_Icons/Generales/{$key}";
     }
 }
 

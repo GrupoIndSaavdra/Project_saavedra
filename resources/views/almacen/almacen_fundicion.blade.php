@@ -19,7 +19,7 @@
         @php
             $perfil = Auth::user()->perfil;
             $deptName = in_array($perfil, [1, 2, 3, 6]) ? 'Administración' : ($perfil == 4 ? 'Calidad' : 'Almacén');
-            $deptIcon = $perfil == 4 ? 'Quality.png' : 'almacen.png';
+            $deptIcon = $perfil == 4 ? 'Color_Icons/Generales/Quality.png' : 'Color_Icons/Generales/almacen.png';
         @endphp
 
         <div class="alm-header">
@@ -51,7 +51,7 @@
                 <div class="alm-stats">
                     <div class="alm-stat-card stat-total">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/iconos/pdf-view.png') }}" alt="Total" class="alm-w-60">
+                            <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="Total" class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $total }}</div>
@@ -60,7 +60,7 @@
                     </div>
                     <div class="alm-stat-card stat-activas">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/iconos/ready.png') }}" alt="Activas" class="alm-w-60">
+                            <img src="{{ asset('images/Color_Icons/Generales/ready.png') }}" alt="Activas" class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $activas }}</div>
@@ -69,7 +69,7 @@
                     </div>
                     <div class="alm-stat-card stat-inactivas">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Archivadas" class="alm-w-60">
+                            <img src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Archivadas" class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $inactivas }}</div>
@@ -163,14 +163,14 @@
         };
 
         window.almacenAppAssets = {
-            liberar: "{{ asset('images/iconos/Liberar.png') }}",
-            descarga: "{{ asset('images/iconos/Descarga.png') }}",
-            recibido: "{{ asset('images/iconos/Recibido.png') }}",
-            aprobado: "{{ asset('images/iconos/Aprobado.png') }}",
-            rechazado: "{{ asset('images/iconos/Rechazado.png') }}",
-            guardado: "{{ asset('images/iconos/Guardado.png') }}",
-            revisando: "{{ asset('images/iconos/Revisando.png') }}",
-            espera: "{{ asset('images/iconos/Espera.png') }}",
+            liberar: "{{ asset('images/Color_Icons/Generales/Liberar.png') }}",
+            descarga: "{{ asset('images/Color_Icons/Generales/Descarga.png') }}",
+            recibido: "{{ asset('images/Color_Icons/Generales/Recibido.png') }}",
+            aprobado: "{{ asset('images/Color_Icons/Generales/Aprobado.png') }}",
+            rechazado: "{{ asset('images/Color_Icons/Generales/Rechazado.png') }}",
+            guardado: "{{ asset('images/Color_Icons/Generales/Guardado.png') }}",
+            revisando: "{{ asset('images/Color_Icons/Generales/Revisando.png') }}",
+            espera: "{{ asset('images/Color_Icons/Generales/Espera.png') }}",
         };
 
         // Contenedores organizados estáticamente por etapa

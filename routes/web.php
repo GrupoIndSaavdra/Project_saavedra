@@ -860,17 +860,31 @@ Route::get('/test-user', function() {
 
 /*
 |--------------------------------------------------------------------------
-| Fallback para imágenes legacy sin subdirectorio
+| Fallback para imágenes legacy sin subdirectorio o con rutas anteriores
 |--------------------------------------------------------------------------
-| Resuelve automáticamente solicitudes a /images/{filename} buscando en
-| subcarpetas (iconos, usuarios, vistas, logos, fondos, calidad, planta)
-| evitando errores 404 por rutas antiguas.
+| Resuelve automáticamente solicitudes a /images/{filename} o /images/{folder}/{filename}
+| buscando en las nuevas carpetas (Shadow_Icons, Light_Icons, Color_Icons, etc.)
+| evitando errores 404 por rutas en caché o enlaces anteriores.
 */
 Route::get('/images/{filename}', function (string $filename) {
     if (str_contains($filename, '..') || str_contains($filename, '/')) {
         abort(404);
     }
-    foreach (['iconos', 'usuarios', 'vistas', 'logos', 'fondos', 'calidad', 'planta'] as $sub) {
+    $rel = function_exists('icon_path') ? icon_path($filename, null) : null;
+    if ($rel && file_exists(public_path($rel))) {
+        return response()->file(public_path($rel));
+    }
+    foreach ([
+        'Shadow_Icons',
+        'Light_Icons',
+        'Color_Icons/Generales',
+        'Color_Icons/Usuarios',
+        'Color_Icons/Vistas',
+        'logos',
+        'fondos',
+        'calidad',
+        'planta'
+    ] as $sub) {
         $filePath = public_path("images/{$sub}/{$filename}");
         if (file_exists($filePath)) {
             return response()->file($filePath);
@@ -878,4 +892,19 @@ Route::get('/images/{filename}', function (string $filename) {
     }
     abort(404);
 })->where('filename', '[A-Za-z0-9_\-\.\s\(\)]+');
+
+Route::get('/images/{folder}/{filename}', function (string $folder, string $filename) {
+    if (str_contains($filename, '..') || str_contains($filename, '/')) {
+        abort(404);
+    }
+    $direct = public_path("images/{$folder}/{$filename}");
+    if (file_exists($direct)) {
+        return response()->file($direct);
+    }
+    $rel = function_exists('icon_path') ? icon_path($filename, null) : null;
+    if ($rel && file_exists(public_path($rel))) {
+        return response()->file(public_path($rel));
+    }
+    abort(404);
+})->where('folder', 'iconos|usuarios|vistas')->where('filename', '[A-Za-z0-9_\-\.\s\(\)]+');
 

@@ -64,7 +64,7 @@
             style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fecaca; padding-bottom: 8px; margin-bottom: 15px;">
             <h4
                 style="margin: 0; color: #991b1b; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/iconos/Rechazado.png') }}"
+                <img src="{{ asset('images/Color_Icons/Generales/Rechazado.png') }}"
                     style="width: 22px; height: 22px; object-fit: contain; vertical-align: middle;"> Formato de Rechazo
                 de
                 Modelo (F_CCL_RDM)y SCAR (F_CCL_RDM_SCAR){{ $rechazadosText }}
@@ -127,7 +127,7 @@
                     style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fca5a5; padding-bottom: 8px; margin-bottom: 15px;">
                     <h4
                         style="margin: 0; color: #b91c1c; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <img src="{{ asset('images/iconos/Quality.png') }}"
+                        <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}"
                             style="width: 22px; height: 22px; object-fit: contain; filter: none;">
                         Proceso Activo — {{ strtoupper($claseRech) }}
                     </h4>
@@ -155,9 +155,9 @@
                             <div class="dibujos-file-card card-otro"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
                                 <div class="file-icon-wrapper cal-cursor-pointer" title="Abrir Archivo">
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                    <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                         class="file-icon icon-default" />
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                    <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                         class="file-icon icon-hover" />
                                 </div>
                                 <div class="file-name cal-cursor-pointer"
@@ -190,9 +190,9 @@
                             <div class="dibujos-file-card card-otro"
                                 style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
                                 <div class="file-icon-wrapper cal-cursor-pointer">
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                    <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                         class="file-icon icon-default" />
-                                    <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                    <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                         class="file-icon icon-hover" />
                                 </div>
                                 <div class="file-name cal-cursor-pointer"
@@ -260,9 +260,9 @@
                                     <div class="dibujos-file-card card-otro"
                                         style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #9c0300;">
                                         <div class="file-icon-wrapper cal-cursor-pointer">
-                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                            <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                                 class="file-icon icon-default" />
-                                            <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                            <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                                 class="file-icon icon-hover" />
                                         </div>
                                         <div class="file-name cal-cursor-pointer"

@@ -72,7 +72,7 @@
                 style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid {{ $containerBorder }}; padding-bottom: 10px; margin-bottom: 15px;">
                 <h3
                     style="margin: 0; color: {{ $headerColor }}; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                    <img src="{{ asset('images/iconos/Rechazado.png') }}"
+                    <img src="{{ asset('images/Color_Icons/Generales/Rechazado.png') }}"
                         style="width: 30px; height: 30px; object-fit: contain;">
                     Etapa: Modelos Rechazados ({{ implode(', ', array_map('ucfirst', $clasesRechazadasLista)) }})
                 </h3>
@@ -197,7 +197,7 @@
                         style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #fca5a5; padding-bottom: 8px; margin-bottom: 15px;">
                         <h4
                             style="margin: 0; color: #b91c1c; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                            <img src="{{ asset('images/iconos/almacen.png') }}"
+                            <img src="{{ asset('images/Color_Icons/Generales/almacen.png') }}"
                                 style="width: 22px; height: 22px; object-fit: contain; filter: {{ $isClaseRechazoProcesada ? 'grayscale(100%)' : 'none' }};">
                             {{ $isClaseRechazoProcesada ? 'Archivos Históricos de Rechazo — ' . ucfirst($claseRech) : 'Proceso Activo — ' . ucfirst($claseRech) }}
                         </h4>
@@ -240,9 +240,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -273,9 +273,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -305,9 +305,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -337,9 +337,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #dc2626;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -369,9 +369,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #721c24;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -426,7 +426,7 @@
                         style="margin-top: 20px; border: 2px solid #dc2626; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 14px rgba(220, 38, 38, 0.05);">
                         <div class="lib-calidad-card-header"
                             style="background: #dc2626; display: flex; align-items: center; gap: 15px; padding: 12px 20px;">
-                            <img src="{{ asset('images/iconos/Reproceso.png') }}" alt="Rechazados"
+                            <img src="{{ asset('images/Color_Icons/Generales/Reproceso.png') }}" alt="Rechazados"
                                 style="width: 38px; height: 38px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
                             <div class="alm-overflow-hidden alm-flex-1">
                                 <span class="lib-calidad-card-title"
@@ -440,7 +440,7 @@
                             <div class="lib-calidad-action-row"
                                 style="display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;">
                                 <div style="display: flex; align-items: center; gap: 20px;">
-                                    <img src="{{ asset('images/iconos/Reproceso.png') }}"
+                                    <img src="{{ asset('images/Color_Icons/Generales/Reproceso.png') }}"
                                         style="width: 54px; height: 54px; object-fit: contain;">
                                     <div>
                                         <h4 class="lib-calidad-card-prompt"
@@ -465,7 +465,7 @@
                                         onclick="const row = document.querySelector(`tr[data-ot='{{ $reprocesoClaseObj->ot }}']`); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#86efac' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { (window.toastpremium || alert)('La OT de reproceso se encuentra en otra página o filtro.', 'warning'); }">
                                         Ir a <span
                                             style="color: #7dd3fc; font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">{{ preg_replace('/_\d{8}_\d{6}_.*/', '', $reprocesoClaseObj->ot) }}</span>
-                                        <img src="{{ asset('images/iconos/redireccionar.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/redireccionar.png') }}"
                                             style="width: 16px; height: 16px; filter: brightness(0) invert(1);">
                                     </button>
                                 @endif
@@ -478,7 +478,7 @@
                         style="margin-top: 20px;">
                         <div
                             class="lib-calidad-card-header alm-background-linear-gradient-135deg-dc2626-b91c1c alm-border-bottom-2px-solid-rgba-220-38-38-0-5">
-                            <img src="{{ asset('images/iconos/Reproceso.png') }}" alt="Reproceso" class="alm-icon-lg">
+                            <img src="{{ asset('images/Color_Icons/Generales/Reproceso.png') }}" alt="Reproceso" class="alm-icon-lg">
                             <div class="alm-overflow-hidden">
                                 <span class="lib-calidad-card-title alm-color-ffffff">Control de Modelos &mdash;
                                     Almacén (Rechazados)</span>
@@ -563,7 +563,7 @@
                                     <div style="display: flex; flex-direction: column; gap: 12px; width: 100%;">
                                         <h4 class="lib-calidad-card-prompt"
                                             style="color: #047857; background: #ecfdf5; border-left: 4px solid #10b981; padding: 10px; border-radius: 4px; margin: 0;">
-                                            <img src="{{ asset('images/iconos/Aprobado.png') }}"
+                                            <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}"
                                                 style="width: 18px; vertical-align: middle; margin-right: 6px;">
                                             Los formatos correspondientes de RDM y SCAR ya han sido subidos para
                                             <strong>{{ ucfirst($claseRech) }}</strong>.
@@ -583,7 +583,7 @@
                                                     style="display: flex; align-items: center; gap: 16px; position: relative; z-index: 1;">
                                                     <div
                                                         style="background: white; padding: 10px; border-radius: 50%; box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; align-items: center; justify-content: center; border: 1px solid #bbf7d0;">
-                                                        <img src="{{ asset('images/iconos/Reproceso.png') }}"
+                                                        <img src="{{ asset('images/Color_Icons/Generales/Reproceso.png') }}"
                                                             style="width: 28px; height: 28px; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.1));">
                                                     </div>
                                                     <div style="display: flex; flex-direction: column;">
@@ -604,7 +604,7 @@
                                                     onclick="const row = document.querySelector(`tr[data-ot='{{ $reprocesoDirecto->ot }}']`); if(row) { row.scrollIntoView({behavior: 'smooth', block: 'center'}); row.animate([{ backgroundColor: '#bbf7d0' }, { backgroundColor: 'transparent' }], { duration: 800, iterations: 3 }); } else { (window.toastpremium || alert)('La OT de reproceso se encuentra en otra página o filtro.', 'warning'); }">
                                                     <span style="text-shadow: 0 1px 2px rgba(0,0,0,0.2);">Ir a Nueva
                                                         OT</span>
-                                                    <img src="{{ asset('images/iconos/redireccionar.png') }}"
+                                                    <img src="{{ asset('images/Color_Icons/Generales/redireccionar.png') }}"
                                                         style="width: 16px; height: 16px; filter: brightness(0) invert(1) drop-shadow(0 1px 2px rgba(0,0,0,0.3));">
                                                 </button>
                                             </div>
@@ -634,7 +634,7 @@
                                         <button class="btn-modelo btn-modelo-no"
                                             onclick="abrirModalGestionVeredicto('{{ $reg->ot }}', [], [{{ json_encode($claseRech) }}])"
                                             class="alm-display-flex alm-background-color-b91c1c alm-color-white">
-                                            <img src="{{ asset('images/iconos/Rechazado.png') }}" alt="No">
+                                            <img src="{{ asset('images/Color_Icons/Generales/Rechazado.png') }}" alt="No">
                                             <span>Procesar Rechazado ({{ ucfirst($claseRech) }})</span>
                                         </button>
                                     </div>

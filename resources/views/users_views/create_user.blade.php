@@ -13,14 +13,14 @@
     {{-- Encabezado Principal --}}
     <div class="page-header">
         <div class="header-left">
-            <img src="{{ asset('images/iconos/anadir.png') }}" alt="Registrar Usuario" class="create-header-icon">
+            <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}" alt="Registrar Usuario" class="create-header-icon">
             <div class="header-title-group">
                 <h1>REGISTRO DE USUARIO</h1>
                 <span class="subtitle-text">Alta de personal y asignación operativa en planta</span>
             </div>
         </div>
         <a href="{{ route('users') }}" class="btn-volver">
-            <img src="{{ asset('images/usuarios/usuario.png') }}" alt="Gestión de Usuarios" style="width:18px; height:18px; object-fit:contain; vertical-align:middle; margin-right:6px;">
+            <img src="{{ asset('images/Color_Icons/Usuarios/usuario.png') }}" alt="Gestión de Usuarios" style="width:18px; height:18px; object-fit:contain; vertical-align:middle; margin-right:6px;">
             Gestión de Usuarios
         </a>
     </div>
@@ -163,7 +163,7 @@
                     Cancelar
                 </a>
                 <button type="submit" class="btn-registrar">
-                    <img src="{{ asset('images/iconos/anadir.png') }}" alt="Guardar" class="btn-reg-icon">
+                    <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}" alt="Guardar" class="btn-reg-icon">
                     <span>Guardar Usuario</span>
                 </button>
             </div>

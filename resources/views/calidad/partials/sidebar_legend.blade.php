@@ -4,7 +4,7 @@
 
         <div class="cal-display-flex cal-align-items-center cal-gap-12px cal-margin-bottom-16px cal-border-bottom-2px-solid-e2e8f0 cal-padding-bottom-12px">
 
-            <img src="{{ asset('images/iconos/Quality.png') }}" alt="Leyenda" class="cal-width-30px cal-height-30px cal-object-fit-contain">
+            <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}" alt="Leyenda" class="cal-width-30px cal-height-30px cal-object-fit-contain">
 
             <h2 class="cal-margin-0 cal-font-size-1-3rem cal-color-0f172a cal-font-weight-700">Guía de Estados: Calidad</h2>
 
@@ -24,7 +24,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #f1f5f9; border: 2px solid #64748b;">
 
-                    <img src="{{ asset('images/iconos/por_liberar_icon.png') }}" alt="Por Liberar" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/por_liberar_icon.png') }}" alt="Por Liberar" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -36,7 +36,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #fafafa; border: 2px solid #a3a3a3;">
 
-                    <img src="{{ asset('images/iconos/Espera.png') }}" alt="En Espera" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/Espera.png') }}" alt="En Espera" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -48,7 +48,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #fffbeb; border: 2px solid #f59e0b;">
 
-                    <img src="{{ asset('images/iconos/Revisando.png') }}" alt="En Revisión" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/Revisando.png') }}" alt="En Revisión" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -72,7 +72,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #ecfdf5; border: 2px solid #10b981;">
 
-                    <img src="{{ asset('images/iconos/LDM-icon.png') }}" alt="Formato LDM" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/LDM-icon.png') }}" alt="Formato LDM" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -84,7 +84,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #fff1f2; border: 2px solid #f43f5e;">
 
-                    <img src="{{ asset('images/iconos/RDM-SCAR-icon.png') }}" alt="Formato RDM y SCAR" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/RDM-SCAR-icon.png') }}" alt="Formato RDM y SCAR" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -94,7 +94,7 @@
 
             <div class="legend-compact-item cal-width-calc-33-33-6pxpct cal-display-flex cal-flex-direction-column cal-align-items-center cal-padding-8px-2px cal-justify-content-center" title="Formatos LDM y RDM/SCAR generados, pendiente de enviar la alerta" style="--hover-border-color: #ca8a04; margin-bottom: 12px;">
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #fef9c3; border: 2px solid #ca8a04;">
-                    <img src="{{ asset('images/iconos/Formatos_Mixtos_icon.png') }}" alt="Formatos Mixtos" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/Formatos_Mixtos_icon.png') }}" alt="Formatos Mixtos" style="width: 40px; height: 40px; object-fit: contain;" />
                 </span>
                 <span style="font-size: 0.78rem; font-weight: 700; margin-top: 8px; text-align: center; line-height: 1.1; color: #713f12; text-transform: uppercase;">Formatos Mixtos</span>
             </div>
@@ -102,7 +102,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #eff6ff; border: 2px solid #3b82f6;">
 
-                    <img src="{{ asset('images/iconos/almacen.png') }}" alt="En Almacén" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/almacen.png') }}" alt="En Almacén" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -114,7 +114,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #fff7ed; border: 2px solid #f97316;">
 
-                    <img src="{{ asset('images/iconos/proceso_parcial-icon.png') }}" alt="Proceso Parcial" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/proceso_parcial-icon.png') }}" alt="Proceso Parcial" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -138,7 +138,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #f0fdf4; border: 2px solid #22c55e;">
 
-                    <img src="{{ asset('images/iconos/Aprobado.png') }}" alt="Liberado" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}" alt="Liberado" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -150,7 +150,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #fef2f2; border: 2px solid #ef4444;">
 
-                    <img src="{{ asset('images/iconos/Rechazado.png') }}" alt="Rechazado" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/Rechazado.png') }}" alt="Rechazado" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 
@@ -162,7 +162,7 @@
 
                 <span class="cal-display-flex cal-align-items-center cal-justify-content-center cal-border-radius-50pct cal-flex-shrink-0 cal-position-relative" style="width: 68px; height: 68px; background-color: #fef3c7; border: 2px solid #d97706;">
 
-                    <img src="{{ asset('images/iconos/Mixto.png') }}" alt="Mixto" style="width: 40px; height: 40px; object-fit: contain;" />
+                    <img src="{{ asset('images/Color_Icons/Generales/Mixto.png') }}" alt="Mixto" style="width: 40px; height: 40px; object-fit: contain;" />
 
                 </span>
 

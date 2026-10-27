@@ -486,7 +486,7 @@
                 style="display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #0284c7; padding-bottom: 10px; margin-bottom: 15px;">
                 <h3
                     style="margin: 0; color: #0284c7; font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 10px;">
-                    <img src="{{ asset('images/iconos/almacen.png') }}" style="width: 30px; height: 30px; object-fit: contain;">
+                    <img src="{{ asset('images/Color_Icons/Generales/almacen.png') }}" style="width: 30px; height: 30px; object-fit: contain;">
                     @if ($hayRechazadosSinPreorden)
                         Documentos de Almacén
                         {{ count($rechazadosSinPreorden) > 0 ? '(' . implode(', ', array_map($formatClase, $rechazadosSinPreorden)) . ')' : '' }}
@@ -521,7 +521,7 @@
                         style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bae6fd; padding-bottom: 8px; margin-bottom: 15px;">
                         <h4
                             style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                            <img src="{{ asset('images/iconos/almacen.png') }}"
+                            <img src="{{ asset('images/Color_Icons/Generales/almacen.png') }}"
                                 style="width: 22px; height: 22px; object-fit: contain;">
                             Procesos Activos ({{ implode(', ', array_map($formatClase, $clasesActivasFaltantes)) }})
                         </h4>
@@ -540,9 +540,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -578,9 +578,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -611,9 +611,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -667,7 +667,7 @@
                         <div class="lib-calidad-card" id="control-modelo-{{ md5($reg->ot) }}"
                             style="margin-top: 20px; {{ trim($controlDisabled . ' ' . $hideControlCard) }} @if (!$hasAlertedClass) pointer-events: none; opacity: 0.6; @endif">
                             <div class="lib-calidad-card-header">
-                                <img src="{{ $esReproceso || $esReinicioParcial ? asset('images/iconos/Reproceso.png') : asset('images/iconos/almacen.png') }}"
+                                <img src="{{ $esReproceso || $esReinicioParcial ? asset('images/Color_Icons/Generales/Reproceso.png') : asset('images/Color_Icons/Generales/almacen.png') }}"
                                     alt="Almacén" class="alm-icon-lg">
                                 <div class="alm-overflow-hidden alm-flex-1">
                                     <span class="lib-calidad-card-title">Control de Modelos &mdash; Almacén</span>
@@ -755,7 +755,7 @@
                                                 title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Confirmar que se tiene el modelo físico en almacén' }}"
                                                 style="{{ $hideTengoModelo }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                                 @if($hasPendingChanges) disabled @endif>
-                                                <img src="{{ asset('images/iconos/Espera.png') }}" alt="Si">
+                                                <img src="{{ asset('images/Color_Icons/Generales/Espera.png') }}" alt="Si">
                                                 <span>Sí, tengo modelo</span>
                                             </button>
                                         @endif
@@ -765,7 +765,7 @@
                                             title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'No cuento con él, generar formato PDF' }}"
                                             style="{{ $hideGenerarFormato }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                             @if($hasPendingChanges) disabled @endif>
-                                            <img src="{{ asset('images/iconos/pdf-view.png') }}" alt="PDF">
+                                            <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="PDF">
                                             <span>No, generar formato</span>
                                         </button>
 
@@ -774,7 +774,7 @@
                                             title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Generar / editar la pre-orden de fabricación de modelo' }}"
                                             style="{{ $hideReprocesoPreOrden }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                             @if($hasPendingChanges) disabled @endif>
-                                            <img src="{{ asset('images/iconos/pdf-view.png') }}" alt="Pre-Orden">
+                                            <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="Pre-Orden">
                                             <span>Pre-Orden Modelo</span>
                                         </button>
 
@@ -783,7 +783,7 @@
                                             title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : 'Editar información de la preorden existente' }}"
                                             style="{{ $hideEditPreOrden }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                             @if($hasPendingChanges) disabled @endif>
-                                            <img src="{{ asset('images/iconos/editar-informacion.png') }}" alt="Editar">
+                                            <img src="{{ asset('images/Color_Icons/Generales/editar-informacion.png') }}" alt="Editar">
                                             <span>Editar Pre-orden</span>
                                         </button>
 
@@ -792,7 +792,7 @@
                                             title="{{ $hasPendingChanges ? 'La OT original tiene cambios pendientes.' : ($esReproceso ? 'Enviar alerta a Calidad para iniciar revisión de re-proceso' : 'Enviar pre-orden por correo electrónico') }}"
                                             style="{{ $hideSendEmail }} {{ $hasPendingChanges ? 'opacity: 0.5; cursor: not-allowed;' : '' }}"
                                             @if($hasPendingChanges) disabled @endif>
-                                            <img src="{{ asset('images/iconos/enviando.png') }}" alt="Enviar">
+                                            <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt="Enviar">
                                             <span>{{ $esReproceso ? 'Enviar Alerta' : 'Enviar Correo' }}</span>
                                         </button>
                                     </div>
@@ -813,7 +813,7 @@
                         style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1.5px solid #bae6fd; padding-bottom: 8px; margin-bottom: 15px;">
                         <h4
                             style="margin: 0; color: #0369a1; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                            <img src="{{ asset('images/iconos/Aprobado.png') }}"
+                            <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}"
                                 style="width: 22px; height: 22px; object-fit: contain;">
                             Clases Procesadas ({{ implode(', ', array_map($formatClase, $clasesActivasCubiertas)) }})
                         </h4>
@@ -836,9 +836,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -875,9 +875,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -908,9 +908,9 @@
                                     style="animation-delay: {{ $loop->index * 0.05 }}s; border-left-color: #0284c7;">
                                     <div class="file-icon-wrapper alm-cursor-pointer"
                                         title="{{ $isDwg ? 'Descargar DWG' : 'Abrir PDF' }}">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg-shadow.png' : 'pdf-view-shadow.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Shadow_Icons/DWG-Shadow.png' : 'Shadow_Icons/PDF_View-Shadow.png')) }}"
                                             class="file-icon icon-default">
-                                        <img src="{{ asset('images/' . ($isDwg ? 'dwg.png' : 'pdf-view.png')) }}"
+                                        <img src="{{ asset('images/' . ($isDwg ? 'Color_Icons/Generales/dwg.png' : 'Color_Icons/Generales/pdf-view.png')) }}"
                                             class="file-icon icon-hover">
                                     </div>
                                     <div class="file-name alm-cursor-pointer"
@@ -932,7 +932,7 @@
                         style="margin-top: 20px; border: 2px solid #0284c7; border-radius: 12px; overflow: hidden;">
                         <div class="lib-calidad-card-header"
                             style="background: #0284c7; display: flex; align-items: center; gap: 15px; padding: 12px 20px;">
-                            <img src="{{ asset('images/iconos/almacen.png') }}" alt="Almacén"
+                            <img src="{{ asset('images/Color_Icons/Generales/almacen.png') }}" alt="Almacén"
                                 style="width: 38px; height: 38px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
                             <div class="alm-overflow-hidden alm-flex-1">
                                 <span class="lib-calidad-card-title"
@@ -946,7 +946,7 @@
                         <div class="lib-calidad-card-body" style="background: #f0f9ff; padding: 20px;">
                             <div class="lib-calidad-action-row"
                                 style="display: flex; align-items: center; gap: 20px;">
-                                <img src="{{ asset('images/iconos/enviando.png') }}" style="width: 54px; height: 54px;">
+                                <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" style="width: 54px; height: 54px;">
                                 <div>
                                     <h4 class="lib-calidad-card-prompt"
                                         style="color: #0369a1; margin-top: 0; margin-bottom: 8px; font-weight: 700; font-size: 1.1rem;">

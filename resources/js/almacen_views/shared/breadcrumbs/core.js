@@ -83,7 +83,7 @@ window.SaavedraBreadcrumbs = {
         if (options.onClose) {
             const assetUrl = window.baseUrl || (window.location.origin + "/");
             const cleanUrl = assetUrl.endsWith('/') ? assetUrl : (assetUrl + '/');
-            const imgPath = cleanUrl + 'images/iconos/cerrar.png';
+            const imgPath = cleanUrl + 'images/Color_Icons/Generales/cerrar.png';
             actionsHtml += `
                 <button type="button" class="btn-cerrar btn-breadcrumb-action" onclick="${options.onClose.replace(/"/g, '&quot;')}" title="Cerrar"
                     style="background:none;border:none;padding:0;cursor:pointer;transition:transform 0.3s ease;display:inline-flex;align-items:center;justify-content:center;margin-left:6px;"

@@ -353,7 +353,7 @@ ${options}
 </td>
 <td style="text-align:center;">
 <button type="button" class="btn-img-action" onclick="${deleteHandler}" title="Quitar esta clase de la lista">
-<img src="${window.baseUrl || ""}${(window.baseUrl || "").endsWith("/") ? "" : "/"}images/iconos/quitar.png" alt="Quitar" style="width: 30px;">
+<img src="${window.baseUrl || ""}${(window.baseUrl || "").endsWith("/") ? "" : "/"}images/Color_Icons/Generales/quitar.png" alt="Quitar" style="width: 30px;">
 </button>
 </td>
 `;
@@ -582,7 +582,7 @@ document
 function updateModelStatusUI(ot, status) {
     const container = document.getElementById(`status-modelo-${ot}`);
     if (!container) return;
-    let icon = "Recibido.png";
+    let icon = "Color_Icons/Generales/Recibido.png";
     let label = "Recibido";
     let tooltip =
         "Alerta inicial recibida, pendiente de procesar modelo por Almacén";
@@ -590,7 +590,7 @@ function updateModelStatusUI(ot, status) {
     let bgColor = "#f1f5f9";
     let textColor = "#64748b";
     if (status === "pendiente") {
-        icon = "Espera.png";
+        icon = "Color_Icons/Generales/Espera.png";
         label = "Tengo Modelo";
         tooltip =
             "Modelo físico disponible en Almacén, en espera de revisión por Calidad";
@@ -598,7 +598,7 @@ function updateModelStatusUI(ot, status) {
         bgColor = "#f0f9ff";
         textColor = "#0369a1";
     } else if (status === "ok") {
-        icon = "Quality.png";
+        icon = "Color_Icons/Generales/Quality.png";
         label = "Aprobado";
         tooltip = "Modelo aprobado y liberado por Calidad";
         borderColor = "#10b981";

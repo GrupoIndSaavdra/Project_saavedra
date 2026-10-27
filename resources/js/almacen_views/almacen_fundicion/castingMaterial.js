@@ -99,15 +99,15 @@ window.generarHtmlCategorizadoCastingAprobados = function (
             const isImg = ["png", "jpg", "jpeg", "gif", "webp"].includes(ext);
             const isDwg = ext === "dwg";
             const iconDefault = isDwg
-                ? `${getBaseUrl()}images/iconos/dwg-shadow.png`
+                ? `${getBaseUrl()}images/Shadow_Icons/DWG-Shadow.png`
                 : (isImg
-                ? `${getBaseUrl()}images/iconos/galeria-shadow.png`
-                : `${getBaseUrl()}images/iconos/pdf-view-shadow.png`);
+                ? `${getBaseUrl()}images/Shadow_Icons/Galeria-Shadow.png`
+                : `${getBaseUrl()}images/Shadow_Icons/PDF_View-Shadow.png`);
             const iconHover = isDwg
-                ? `${getBaseUrl()}images/iconos/dwg.png`
+                ? `${getBaseUrl()}images/Color_Icons/Generales/dwg.png`
                 : (isImg
-                ? `${getBaseUrl()}images/iconos/galeria.png`
-                : `${getBaseUrl()}images/iconos/pdf-view.png`);
+                ? `${getBaseUrl()}images/Color_Icons/Generales/galeria.png`
+                : `${getBaseUrl()}images/Color_Icons/Generales/pdf-view.png`);
             const titleAttr = isDwg ? "Descargar DWG" : "Ver archivo";
             const btnText = isDwg ? "Descargar" : "Ver";
             const safeName = nombre.replace(/'/g, "\\'");
@@ -144,25 +144,25 @@ window.cargarInputsCasting = function (ot, files) {
             <div id="mgv-casting-banner-element" style="border-radius: 10px; overflow: hidden; border: 2px solid #16a34a; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); flex-shrink: 0; margin-bottom: 15px;">
                 <div style="background-color: #dcfce7; padding: 6px 14px; border-bottom: 1px solid #bbf7d0;">
                     <strong style="color: #166534; font-size: 0.88em; display: flex; align-items: center; gap: 6px;">
-                        <img src="${getBaseUrl()}images/iconos/info-icon.png" style="width: 22px; height: 22px; object-fit: contain;">
+                        <img src="${getBaseUrl()}images/Color_Icons/Generales/info-icon.png" style="width: 22px; height: 22px; object-fit: contain;">
                         Verifica estos puntos antes de subir
                     </strong>
                 </div>
                 <div style="padding: 10px 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; background: #fff;">
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; text-align: center;">
-                        <img src="${getBaseUrl()}images/iconos/firma-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <img src="${getBaseUrl()}images/Color_Icons/Generales/firma-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
                         <span style="color: #15803d; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>PDF Firmado</strong><br>Documento autorizado</span>
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; text-align: center;">
-                        <img src="${getBaseUrl()}images/iconos/Nombre_Correcto.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <img src="${getBaseUrl()}images/Color_Icons/Generales/Nombre_Correcto.png" style="width: 36px; height: 36px; object-fit: contain;">
                         <span style="color: #15803d; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>Nombre Correcto</strong><br>F_CCL_LDM_[clase].pdf</span>
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; text-align: center;">
-                        <img src="${getBaseUrl()}images/iconos/claridad-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <img src="${getBaseUrl()}images/Color_Icons/Generales/claridad-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
                         <span style="color: #15803d; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>100% Legible</strong><br>Sin tachaduras ni borrones</span>
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 8px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7; text-align: center;">
-                        <img src="${getBaseUrl()}images/iconos/Aprobado.png" style="width: 36px; height: 36px; object-fit: contain;">
+                        <img src="${getBaseUrl()}images/Color_Icons/Generales/Aprobado.png" style="width: 36px; height: 36px; object-fit: contain;">
                         <span style="color: #15803d; font-size: 0.82em; line-height: 1.3; font-weight: 500;"><strong>Un archivo</strong><br>por cada clase aprobada</span>
                     </div>
                 </div>
@@ -212,7 +212,7 @@ window.cargarInputsCasting = function (ot, files) {
             
             let groupHtml = `
                 <div style="background: #dcfce7; padding: 12px 18px; border-bottom: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
-                    <img src="${getBaseUrl()}images/iconos/perspectiva-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
+                    <img src="${getBaseUrl()}images/Color_Icons/Generales/perspectiva-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
                     <h4 style="margin: 0; color: #166534; font-weight: 700; font-family:'Poppins', sans-serif; font-size: 1.05em; text-transform: uppercase;">
                         CLASE: ${label}
                     </h4>
@@ -226,7 +226,7 @@ window.cargarInputsCasting = function (ot, files) {
                     <div class="custom-file-upload-btn-wrapper" style="margin-bottom: 8px; display:flex; justify-content:center;">
                         <div class="custom-file-dropzone btn-modelo btn-modelo-si" style="position:relative; ${isLocked ? 'pointer-events:none; opacity:0.6; filter:grayscale(0.3);' : ''}">
                             <input type="file" name="ldm_${c}" data-type="ldm" data-clase="${c}" accept=".pdf" ${isLocked ? 'disabled' : 'required'} style="position:absolute;top:0;left:0;width:100%;height:100%;opacity:0;cursor:${isLocked ? 'not-allowed' : 'pointer'};" onchange="window._onLdmFileSelected(this, '${ot}')">
-                            <img src="${getBaseUrl()}images/iconos/upload_icon.png" alt="Subir LDM">
+                            <img src="${getBaseUrl()}images/Color_Icons/Generales/upload_icon.png" alt="Subir LDM">
                             <span>${isLocked ? 'Formato Cargado' : 'Subir Formato'}</span>
                         </div>
                     </div>
@@ -234,8 +234,8 @@ window.cargarInputsCasting = function (ot, files) {
                         ${existingFile ? `
                             <div class="dibujos-file-card card-otro" style="display: flex; align-items: center; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.06); background: #fff; padding: 8px 10px; border: 1.5px solid #d1fae5; border-left: 4px solid #15803d; width: 100%; box-sizing: border-box; margin-top: 6px; gap: 8px;">
                                 <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('${ot}','${existingFile.nombre}','aprobado')" style="position:relative;width:32px;height:32px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;">
-                                    <img src="${getBaseUrl()}images/iconos/pdf-view-shadow.png" class="file-icon icon-default" style="width:32px;height:32px;object-fit:contain;">
-                                    <img src="${getBaseUrl()}images/iconos/pdf-view.png" class="file-icon icon-hover" style="width:32px;height:32px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
+                                    <img src="${getBaseUrl()}images/Shadow_Icons/PDF_View-Shadow.png" class="file-icon icon-default" style="width:32px;height:32px;object-fit:contain;">
+                                    <img src="${getBaseUrl()}images/Color_Icons/Generales/pdf-view.png" class="file-icon icon-hover" style="width:32px;height:32px;object-fit:contain;position:absolute;top:0;left:0;opacity:0;">
                                 </div>
                                 <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="almacenVerPdf('${ot}','${existingFile.nombre}','aprobado')" style="cursor: pointer; font-size: 0.8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; color: #334155; flex: 1; text-align: left;">
                                     ${cleanName}
@@ -471,8 +471,8 @@ window._onLdmFileSelected = function (input, ot) {
         previewContainer.innerHTML = `
             <div class="dibujos-file-card card-otro" style="border-left-color: #15803d; width: 100%; max-width: 280px; margin-top: 6px;">
                 <div class="file-icon-wrapper alm-cursor-pointer" onclick="window.open('${objectUrl}', '_blank')" title="Ver archivo">
-                    <img src="${base}images/iconos/pdf-view-shadow.png" class="file-icon icon-default">
-                    <img src="${base}images/iconos/pdf-view.png" class="file-icon icon-hover">
+                    <img src="${base}images/Shadow_Icons/PDF_View-Shadow.png" class="file-icon icon-default">
+                    <img src="${base}images/Color_Icons/Generales/pdf-view.png" class="file-icon icon-hover">
                 </div>
                 <div class="file-name alm-cursor-pointer" onclick="window.open('${objectUrl}', '_blank')" title="Ver archivo">
                     ${file.name}

@@ -178,7 +178,7 @@ window.abrirModalEnviarPreOrden = function (ot, tipo, clasesFaltantes = null) {
                                 <input type="checkbox" name="pre_orden_ids[]" value="${po.id}" checked data-clases="${po.clases_str || ""}" onchange="if(window.syncArchivosSeleccionadosPreOrden) window.syncArchivosSeleccionadosPreOrden()" style="width: 18px; height: 18px; accent-color: #0284c7; cursor: pointer; margin: 0;">
                                 <div style="display: flex; flex-direction: column; flex: 1; padding-left: 4px;">
                                     <strong style="color: #0f172a; font-size: 0.95em; display: flex; align-items: center; gap: 6px;">
-                                        <img src="${window.baseUrl || '/'}images/iconos/documento.png" style="width: 18px; height: 18px; object-fit: contain;">
+                                        <img src="${window.baseUrl || '/'}images/Color_Icons/Generales/documento.png" style="width: 18px; height: 18px; object-fit: contain;">
                                         ${po.clases_str || "Sin clases"}
                                     </strong>
                                     <div style="font-size: 0.78em; color: #64748b; margin-top: 4px; display: flex; align-items: center; gap: 8px;">

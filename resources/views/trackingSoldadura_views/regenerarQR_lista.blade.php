@@ -12,9 +12,9 @@
     <div class="wrapper-lista">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
                 <h1>Regenerar QRs de Soldadura</h1>
-                <img src="{{ asset('images/vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
             </div>
             <p class="subtitle">Selecciona un lote para descargar sus códigos QR de soldadura</p>
             <a href="{{ route('soldadura.regenerarQR.cerrar') }}" class="btn btn-danger btn-cerrar-header">

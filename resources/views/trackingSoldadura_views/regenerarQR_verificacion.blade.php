@@ -13,9 +13,9 @@
         <div class="verificacion-card">
             <div class="report-header">
                 <div class="title-row">
-                    <img src="{{ asset('images/vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
+                    <img src="{{ asset('images/Color_Icons/Vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
                     <h1>Acceso a Regenerar QRs</h1>
-                    <img src="{{ asset('images/vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
+                    <img src="{{ asset('images/Color_Icons/Vistas/Regenerar_QR.png') }}" class="header-view-icon" alt="Regenerar QRs" />
                 </div>
                 <p class="subtitle">Sección restringida para regeneración y descarga de códigos QR</p>
             </div>

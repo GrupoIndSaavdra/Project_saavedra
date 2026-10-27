@@ -6,31 +6,31 @@
             <tr>
                 <th>
                     <div class="table-meta-th-content">
-                        <img src="{{ asset('images/iconos/Turno-Icon.png') }}" class="table-meta-icon" alt="Tiempo">
+                        <img src="{{ asset('images/Light_Icons/Turno-Light.png') }}" class="table-meta-icon" alt="Tiempo">
                         <span>Tiempo estándar</span>
                     </div>
                 </th>
                 <th>
                     <div class="table-meta-th-content">
-                        <img src="{{ asset('images/iconos/Meta-Icon.png') }}" class="table-meta-icon" alt="Meta">
+                        <img src="{{ asset('images/Light_Icons/Meta-Light.png') }}" class="table-meta-icon" alt="Meta">
                         <span>Meta piezas/juegos</span>
                     </div>
                 </th>
                 <th>
                     <div class="table-meta-th-content">
-                        <img src="{{ asset('images/iconos/Resultado-Icon.png') }}" class="table-meta-icon" alt="Resultado">
+                        <img src="{{ asset('images/Light_Icons/Resultado-Light.png') }}" class="table-meta-icon" alt="Resultado">
                         <span>Resultado</span>
                     </div>
                 </th>
                 <th>
                     <div class="table-meta-th-content">
-                        <img src="{{ asset('images/iconos/OT-Icon.png') }}" class="table-meta-icon" alt="Pedido">
+                        <img src="{{ asset('images/Light_Icons/OT-Light.png') }}" class="table-meta-icon" alt="Pedido">
                         <span>Pedido Consignación</span>
                     </div>
                 </th>
                 <th>
                     <div class="table-meta-th-content">
-                        <img src="{{ asset('images/iconos/Tornilleria-Icon.png') }}" class="table-meta-icon" alt="Restantes">
+                        <img src="{{ asset('images/Light_Icons/Tornilleria-Light.png') }}" class="table-meta-icon" alt="Restantes">
                         <span>Piezas Restantes</span>
                     </div>
                 </th>

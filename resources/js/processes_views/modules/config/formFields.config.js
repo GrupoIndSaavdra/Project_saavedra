@@ -4,22 +4,22 @@
  */
 
 export const formFieldIcons = {
-    "Orden de trabajo": "OT-Icon.png",
-    "workOrder": "OT-Icon.png",
-    "Clase": "Herramientas-Icon.png",
-    "class": "Herramientas-Icon.png",
-    "Proceso": "Proceso-Icon.png",
-    "process": "Proceso-Icon.png",
-    "Subproceso": "Revision-Icon.png",
-    "subprocess": "Revision-Icon.png",
-    "Turno": "Turno-Icon.png",
-    "startTime": "Turno-Icon.png",
-    "Fecha": "Fecha-Icon.png",
-    "date": "Fecha-Icon.png",
-    "Máquina": "Maquina-Icon.png",
-    "machine": "Maquina-Icon.png",
-    "consignmentPieces": "Revision-Icon.png",
-    "remainingPieces": "Revision-Icon.png"
+    "Orden de trabajo": "Light_Icons/OT-Light.png",
+    "workOrder": "Light_Icons/OT-Light.png",
+    "Clase": "Light_Icons/Herramientas-Light.png",
+    "class": "Light_Icons/Herramientas-Light.png",
+    "Proceso": "Light_Icons/Proceso-Light.png",
+    "process": "Light_Icons/Proceso-Light.png",
+    "Subproceso": "Light_Icons/Revision-Light.png",
+    "subprocess": "Light_Icons/Revision-Light.png",
+    "Turno": "Light_Icons/Turno-Light.png",
+    "startTime": "Light_Icons/Turno-Light.png",
+    "Fecha": "Light_Icons/Fecha-Light.png",
+    "date": "Light_Icons/Fecha-Light.png",
+    "Máquina": "Light_Icons/Maquina-Light.png",
+    "machine": "Light_Icons/Maquina-Light.png",
+    "consignmentPieces": "Light_Icons/Revision-Light.png",
+    "remainingPieces": "Light_Icons/Revision-Light.png"
 };
 
 /**
@@ -28,6 +28,6 @@ export const formFieldIcons = {
 export function getFieldLabelHtml(iconFileName, text) {
     if (!iconFileName) return `<span>${text}</span>`;
     const baseUrl = (window.baseUrl || "").replace(/\/$/, "");
-    const iconSrc = baseUrl ? `${baseUrl}/images/iconos/${iconFileName}` : `/images/iconos/${iconFileName}`;
+    const iconSrc = baseUrl ? `${baseUrl}/images/${iconFileName}` : `/images/${iconFileName}`;
     return `<img src="${iconSrc}" class="form-label-icon" alt="${text}"><span>${text}</span>`;
 }

@@ -356,8 +356,8 @@ function renderizarModalRevisarCambios(comparisonData, tipoCambio, esTotal, affe
     window.currentPendingClasses = comparisonData.map(item => item.clase);
     const affectedClasses = window.currentPendingClasses.join(', ');
     const baseUrl = window.baseUrl || window.location.origin + "/";
-    const pdfViewShadow = baseUrl.endsWith('/') ? baseUrl + 'images/iconos/pdf-view-shadow.png' : baseUrl + '/images/iconos/pdf-view-shadow.png';
-    const pdfView = baseUrl.endsWith('/') ? baseUrl + 'images/iconos/pdf-view.png' : baseUrl + '/images/iconos/pdf-view.png';
+    const pdfViewShadow = baseUrl.endsWith('/') ? baseUrl + 'images/Shadow_Icons/PDF_View-Shadow.png' : baseUrl + '/images/Shadow_Icons/PDF_View-Shadow.png';
+    const pdfView = baseUrl.endsWith('/') ? baseUrl + 'images/Color_Icons/Generales/pdf-view.png' : baseUrl + '/images/Color_Icons/Generales/pdf-view.png';
 
     const isAdicion = tipoCambio === 'adicion';
 

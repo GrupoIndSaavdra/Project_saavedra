@@ -24,7 +24,7 @@
                 Regresar al Selector
             </a>
             <span class="rd-title-tag">
-                <img src="{{ asset('images/iconos/RInternoSalida.png') }}" width="20" height="20" alt="Reporte Interno de Salidas">
+                <img src="{{ asset('images/Color_Icons/Generales/RInternoSalida.png') }}" width="20" height="20" alt="Reporte Interno de Salidas">
                 <span>Reporte Interno de Salidas</span>
             </span>
             <span class="rd-ot-pill">OT #{{ $reporte->ot_id }} — {{ $reporte->nombre_moldura }} ({{ $reporte->clase }})</span>
@@ -186,7 +186,7 @@
                 @else
                     <span class="ri-btn-badge" id="pdf-badge-counter" style="display: none;">0</span>
                 @endif
-                <img src="{{ asset('images/iconos/pdf-view.png') }}" alt="Generar PDF">
+                <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="Generar PDF">
                 <span>Generar Formato en PDF</span>
             </button>
         </div>

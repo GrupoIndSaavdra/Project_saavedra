@@ -5,9 +5,9 @@
 <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 <script>
     // Rutas e imágenes globales
-    window.deleteImgUrl     = "{{ asset('images/iconos/delete.png') }}";
-    window.cerrarImgUrl     = "{{ asset('images/iconos/cerrar.png') }}";
-    window.errorImgUrl      = "{{ asset('images/iconos/error.png') }}";
+    window.deleteImgUrl     = "{{ asset('images/Color_Icons/Generales/delete.png') }}";
+    window.cerrarImgUrl     = "{{ asset('images/Color_Icons/Generales/cerrar.png') }}";
+    window.errorImgUrl      = "{{ asset('images/Color_Icons/Generales/error.png') }}";
     window.classesDataUrl   = "{{ url('/piecesInProgress/classesData') }}";
 </script>
 @vite(['resources/css/wo_views/show_wo.css', 'resources/js/wo_views/show_wo_master.js'])

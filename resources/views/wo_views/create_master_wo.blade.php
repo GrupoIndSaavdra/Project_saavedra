@@ -17,9 +17,9 @@
 <div class="wrapper-master">
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
+            <img src="{{ asset('images/Color_Icons/Vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
             <h2>Crear o Modificar Orden de Trabajo (Master)</h2>
-            <img src="{{ asset('images/vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
+            <img src="{{ asset('images/Color_Icons/Vistas/Crear_Modificar_OT.png') }}" class="header-view-icon" alt="Orden de Trabajo Master" />
         </div>
         <p class="subtitle">Seleccione una opción para dar de alta una nueva Orden de Trabajo o modificar los datos y cantidades de una existente.</p>
     </div>

@@ -18,7 +18,7 @@
     {{-- ── Encabezado ─────────────────────────────────────────── --}}
     <div class="page-header">
         <div class="header-left-group">
-            <img src="{{ asset('images/usuarios/usuario.png') }}" alt="Gestión de Usuarios" class="header-module-icon">
+            <img src="{{ asset('images/Color_Icons/Usuarios/usuario.png') }}" alt="Gestión de Usuarios" class="header-module-icon">
             <div class="header-title-content">
                 <div class="header-title-row">
                     <h1>Gestión de Usuarios</h1>
@@ -29,11 +29,11 @@
         </div>
         <div class="header-actions">
             <a href="{{ route('users.organigrama') }}" class="btn-header-nav btn-nav-organigrama" title="Ver organigrama jerárquico">
-                <img src="{{ asset('images/iconos/organigrama.png') }}" alt="Organigrama" class="btn-nav-icon">
+                <img src="{{ asset('images/Color_Icons/Generales/organigrama.png') }}" alt="Organigrama" class="btn-nav-icon">
                 <span>Organigrama</span>
             </a>
             <a href="{{ route('createUser') }}" class="btn-header-nav btn-nav-registrar" title="Registrar nuevo usuario">
-                <img src="{{ asset('images/iconos/anadir.png') }}" alt="Registrar" class="btn-nav-icon">
+                <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}" alt="Registrar" class="btn-nav-icon">
                 <span>Registrar Usuario</span>
             </a>
         </div>
@@ -127,12 +127,12 @@
                         default         => 'badge-default',
                     };
                     $rolIcon = match($rolLabel) {
-                        'Administrador' => 'images/usuarios/Administracion-Icon.png',
-                        'Operador'      => 'images/usuarios/Operador-Icon.png',
-                        'Master'        => 'images/iconos/Master-Icon.png',
-                        'Calidad'       => 'images/usuarios/Calidad-Icon.png',
-                        'Almacén'       => 'images/iconos/Almacen-Icon.png',
-                        'Supervisor'    => 'images/usuarios/Supervision-Icon.png',
+                        'Administrador' => 'images/Light_Icons/Administracion-Light.png',
+                        'Operador'      => 'images/Light_Icons/Operador-Light.png',
+                        'Master'        => 'images/Light_Icons/Master-Light.png',
+                        'Calidad'       => 'images/Light_Icons/Calidad-Light.png',
+                        'Almacén'       => 'images/Light_Icons/Almacen-Light.png',
+                        'Supervisor'    => 'images/Light_Icons/Supervision-Light.png',
                         default         => null,
                     };
                 @endphp
@@ -187,7 +187,7 @@
                     {{-- Estatus (Icono superior + Texto debajo) --}}
                     <td>
                         <div class="status-cell-container">
-                            <img src="{{ asset($user->estatus ? 'images/iconos/activar.png' : 'images/iconos/inactivar.png') }}" alt="{{ $user->estatus ? 'Activo' : 'Inactivo' }}" class="status-img-icon">
+                            <img src="{{ asset($user->estatus ? 'images/Color_Icons/Generales/activar.png' : 'images/Color_Icons/Generales/inactivar.png') }}" alt="{{ $user->estatus ? 'Activo' : 'Inactivo' }}" class="status-img-icon">
                             <span class="badge-status {{ $user->estatus ? 'badge-activo' : 'badge-inactivo' }}">
                                 {{ $user->estatus ? 'Activo' : 'Inactivo' }}
                             </span>
@@ -215,14 +215,14 @@
                                 ]) }})"
                                 title="Editar usuario"
                             >
-                                <img src="{{ asset('images/usuarios/editaruser.png') }}" alt="Editar" class="action-img-icon">
+                                <img src="{{ asset('images/Color_Icons/Usuarios/editaruser.png') }}" alt="Editar" class="action-img-icon">
                             </button>
 
                             {{-- Activar / Inactivar --}}
                             <form action="{{ route($user->estatus ? 'baja_usuario' : 'alta_usuario', $user->id) }}" method="POST" class="use-display-inline">
                                 @csrf
                                 <button type="submit" class="btn-action-icon {{ $user->estatus ? 'btn-action-inactivate' : 'btn-action-activate' }}" title="{{ $user->estatus ? 'Inactivar usuario' : 'Activar usuario' }}">
-                                    <img src="{{ asset($user->estatus ? 'images/iconos/inactivar.png' : 'images/iconos/activar.png') }}" alt="{{ $user->estatus ? 'Inactivar' : 'Activar' }}" class="action-img-icon">
+                                    <img src="{{ asset($user->estatus ? 'images/Color_Icons/Generales/inactivar.png' : 'images/Color_Icons/Generales/activar.png') }}" alt="{{ $user->estatus ? 'Inactivar' : 'Activar' }}" class="action-img-icon">
                                 </button>
                             </form>
 
@@ -236,7 +236,7 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn-action-icon btn-action-delete" title="Eliminar usuario">
-                                    <img src="{{ asset('images/iconos/delete.png') }}" alt="Eliminar" class="action-img-icon">
+                                    <img src="{{ asset('images/Color_Icons/Generales/delete.png') }}" alt="Eliminar" class="action-img-icon">
                                 </button>
                             </form>
                         </div>

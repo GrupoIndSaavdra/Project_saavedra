@@ -456,10 +456,10 @@ function renderMachines() {
         }
 
         const baseUrl = (window.baseUrl || "").replace(/\/$/, "");
-        const cncIcon = baseUrl ? `${baseUrl}/images/iconos/ProgramsCNC.png` : "/images/iconos/ProgramsCNC.png";
+        const cncIcon = baseUrl ? `${baseUrl}/images/Color_Icons/Generales/ProgramsCNC.png` : "/images/Color_Icons/Generales/ProgramsCNC.png";
         const lockIcon = (isOcc) => baseUrl
-            ? `${baseUrl}/images/iconos/${isOcc ? "Bloq-Maqu-Icon.png" : "Desbloc-Maq-Icon.png"}`
-            : (isOcc ? "/images/iconos/Bloq-Maqu-Icon.png" : "/images/iconos/Desbloc-Maq-Icon.png");
+            ? `${baseUrl}/images/${isOcc ? "Color_Icons/Generales/Bloq-Maqu-Icon.png" : "Color_Icons/Generales/Desbloc-Maq-Icon.png"}`
+            : (isOcc ? "/images/Color_Icons/Generales/Bloq-Maqu-Icon.png" : "/images/Color_Icons/Generales/Desbloc-Maq-Icon.png");
 
         if (mach.isPaired) {
             card.innerHTML = `

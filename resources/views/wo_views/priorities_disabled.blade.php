@@ -140,7 +140,7 @@
             @endif
 
             <a href="{{ route('master.priorities') }}" class="btn-switch-view" title="Regresar a Prioridades Activas">
-                <img src="{{ asset('images/iconos/activar.png') }}" class="btn-switch-icon" alt="">
+                <img src="{{ asset('images/Color_Icons/Generales/activar.png') }}" class="btn-switch-icon" alt="">
                 <span>Prioridades Activas</span>
             </a>
 
@@ -162,7 +162,7 @@
                     @if ($isMaster)
                         <button type="button" class="actions-menu-item item-success" id="btnStartReactivateMode">
                             <div class="action-icon-wrapper">
-                                <img src="{{ asset('images/iconos/activar.png') }}" class="action-icon-main" alt="Reactivar OTs">
+                                <img src="{{ asset('images/Color_Icons/Generales/activar.png') }}" class="action-icon-main" alt="Reactivar OTs">
                             </div>
                             <div class="action-text">
                                 <strong>Reactivar OTs</strong>
@@ -171,7 +171,7 @@
                         </button>
                         <button type="button" class="actions-menu-item item-delete-permanent" id="btnStartDeleteMode">
                             <div class="action-icon-wrapper">
-                                <img src="{{ asset('images/iconos/delete.png') }}" class="action-icon-main" alt="Eliminar por completo">
+                                <img src="{{ asset('images/Color_Icons/Generales/delete.png') }}" class="action-icon-main" alt="Eliminar por completo">
                             </div>
                             <div class="action-text">
                                 <strong style="color: #fca5a5;">Eliminar por Completo</strong>
@@ -213,8 +213,8 @@
                 <img src="{{ asset('images/logos/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" />
             </div>
             <div class="header-title" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                @if (file_exists(public_path('images/vistas/Prioridades.png')))
-                    <img src="{{ asset('images/vistas/Prioridades.png') }}" alt="Prioridades"
+                @if (file_exists(public_path('images/Color_Icons/Vistas/Prioridades.png')))
+                    <img src="{{ asset('images/Color_Icons/Vistas/Prioridades.png') }}" alt="Prioridades"
                         style="height: 38px; width: auto; object-fit: contain; filter: grayscale(100%);">
                 @endif
                 <h1 style="color: #dc2626;">PRIORIDADES DESACTIVADAS</h1>
@@ -273,7 +273,7 @@
                         <td colspan="{{ 16 + ($isMaster ? 1 : 0) }}" class="text-center p-4"
                             style="background-color: #ffffff; padding: 48px 20px !important;">
                             <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
-                                <img src="{{ asset('images/iconos/calendario.png') }}" alt="Sin OTs"
+                                <img src="{{ asset('images/Color_Icons/Generales/calendario.png') }}" alt="Sin OTs"
                                     style="width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.35));">
                                 <span style="color: #991b1b; font-size: 1.15em; font-weight: 700; letter-spacing: 0.3px;">
                                     No hay ninguna Orden de Trabajo desactivada en este momento.

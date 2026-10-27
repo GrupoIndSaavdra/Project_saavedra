@@ -5,12 +5,12 @@
             style="padding: 10px 28px;">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalConfirmarModelo()">
-                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar"
+                    <img class="img-cerrar" src="{{ asset('images/Color_Icons/Generales/cerrar.png') }}" alt="Cerrar"
                         style="width: 32px !important; height: 32px !important;">
                 </button>
             </div>
             <div class="alm-display-flex alm-align-items-center" style="gap: 12px;">
-                <img src="{{ asset('images/iconos/Aprobado.png') }}"
+                <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}"
                     style="width: 40px !important; height: 40px !important; max-width: 40px !important; max-height: 40px !important; object-fit: contain; flex-shrink: 0;"
                     alt="">
                 <div>
@@ -46,7 +46,7 @@
                             style="background: #fff; padding: 14px 16px; border-radius: 14px; border: 1px solid #e2e8f0; box-shadow: 0 4px 10px rgba(0,0,0,0.03); display: flex; flex-direction: column; flex: 1; flex-shrink: 0;">
                             <h4
                                 style="margin-top: 0; margin-bottom: 8px; color: #0a8504; font-size: 1em; border-bottom: 2px solid #0a8504; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px;">
-                                <img src="{{ asset('images/iconos/copia-de-datos.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/copia-de-datos.png') }}"
                                     style="width: 30px; height: 30px; object-fit: contain;"> Datos de Confirmación
                             </h4>
 
@@ -71,7 +71,7 @@
                                     style="display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff8f1; border: 2px dashed #f97316; padding: 12px 16px; border-radius: 12px; width: 100%; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 6px rgba(249, 115, 22, 0.05);"
                                     onmouseover="this.style.background='#ffedd5'; this.style.borderColor='#ea580c';"
                                     onmouseout="this.style.background='#fff8f1'; this.style.borderColor='#f97316';">
-                                    <img src="{{ asset('images/iconos/Fecha.png') }}"
+                                    <img src="{{ asset('images/Color_Icons/Generales/Fecha.png') }}"
                                         style="width: 26px; height: 26px; object-fit: contain;">
                                     <span id="cm-fecha-seleccionada-btn"
                                         style="color: #c2410c; font-weight: 700; font-size: 1.05em; font-family: 'Poppins', sans-serif;">Seleccionar
@@ -98,7 +98,7 @@
                             style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08);">
                             <h4
                                 style="margin-top: 0; margin-bottom: 12px; color: #15803d; font-size: 0.96em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px;">
-                                <img src="{{ asset('images/iconos/anadir.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}"
                                     style="width: 32px; height: 32px; object-fit: contain;"> Subir Archivos Escaneados
                                 para Confirmación de Modelo <span class="alm-text-dark-red">*</span>
                             </h4>
@@ -115,7 +115,7 @@
                                     style="background-color: #dcfce7; padding: 6px 14px; border-bottom: 1px solid #bbf7d0;">
                                     <strong
                                         style="color: #166534; font-size: 0.9em; display: flex; align-items: center; gap: 6px;">
-                                        <img src="{{ asset('images/iconos/info-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/info-icon.png') }}"
                                             style="width: 30px; height: 30px; object-fit: contain;">
                                         Puntos a Revisar antes de Subir
                                     </strong>
@@ -124,7 +124,7 @@
                                     style="padding: 10px 12px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; text-align: center;">
                                     <div
                                         style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
-                                        <img src="{{ asset('images/iconos/folio-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/folio-icon.png') }}"
                                             style="width: 40px; height: 40px; object-fit: contain;">
                                         <span
                                             style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Folio
@@ -132,7 +132,7 @@
                                     </div>
                                     <div
                                         style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
-                                        <img src="{{ asset('images/iconos/claridad-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/claridad-icon.png') }}"
                                             style="width: 40px; height: 40px; object-fit: contain;">
                                         <span
                                             style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Imagen
@@ -140,7 +140,7 @@
                                     </div>
                                     <div
                                         style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
-                                        <img src="{{ asset('images/iconos/firma-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/firma-icon.png') }}"
                                             style="width: 40px; height: 40px; object-fit: contain;">
                                         <span
                                             style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Firmas
@@ -148,7 +148,7 @@
                                     </div>
                                     <div
                                         style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
-                                        <img src="{{ asset('images/iconos/perspectiva-icon.png') }}"
+                                        <img src="{{ asset('images/Color_Icons/Generales/perspectiva-icon.png') }}"
                                             style="width: 40px; height: 40px; object-fit: contain;">
                                         <span
                                             style="color: #15803d; font-size: 0.85em; line-height: 1.3; font-weight: 500;"><strong>Fotos
@@ -164,7 +164,7 @@
                                     multiple>
                                 <div class="dropzone-content"
                                     style="display: flex; align-items: center; justify-content: center; gap: 8px;">
-                                    <img src="{{ asset('images/iconos/anadir.png') }}"
+                                    <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}"
                                         style="width: 44px; height: 44px; object-fit: contain;">
                                     <span style="font-weight: 700; color: #15803d; font-size: 0.86em;">Haz clic o
                                         arrastra PDFs e imágenes aquí</span>
@@ -183,7 +183,7 @@
                             style="background: #f0f7ff; border: 2px solid #0284c7; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08); flex: 1.45; display: flex; flex-direction: column; min-height: 0;">
                             <h4
                                 style="margin-top: 0; margin-bottom: 6px; color: #0369a1; font-size: 1.02em; border-bottom: 2px solid #0284c7; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
-                                <img src="{{ asset('images/iconos/galeria.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/galeria.png') }}"
                                     style="width: 30px; height: 30px; object-fit: contain;"> Archivos y Dibujos de la
                                 OT
                                 Disponibles
@@ -202,7 +202,7 @@
                             style="background: #f0fdf4; border: 2px solid #16a34a; padding: 14px 16px; border-radius: 14px; box-shadow: 0 4px 10px rgba(22, 163, 74, 0.08); flex: 1; display: flex; flex-direction: column; min-height: 0;">
                             <h4
                                 style="margin-top: 0; margin-bottom: 6px; color: #15803d; font-size: 0.98em; border-bottom: 1.5px solid #16a34a; padding-bottom: 4px; font-weight: 700; font-family: 'Poppins', sans-serif; display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-                                <img src="{{ asset('images/iconos/anadir.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/anadir.png') }}"
                                     style="width: 30px; height: 30px; object-fit: contain;"> Nuevos Archivos Adjuntados
                             </h4>
 
@@ -417,7 +417,7 @@
             style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px;">
             <h4
                 style="margin: 0; color: #0a8504; font-size: 1.15em; font-family: 'Poppins', sans-serif; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                <img src="{{ asset('images/iconos/Fecha.png') }}" style="width: 26px; height: 26px; object-fit: contain;">
+                <img src="{{ asset('images/Color_Icons/Generales/Fecha.png') }}" style="width: 26px; height: 26px; object-fit: contain;">
                 Seleccionar Fecha
             </h4>
             <button type="button" onclick="document.getElementById('modalCmCalendar').style.display='none'"

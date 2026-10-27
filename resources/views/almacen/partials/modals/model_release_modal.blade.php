@@ -219,7 +219,7 @@
             id="lib-modal-header" style="padding: 10px 28px;">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalLiberacion()">
-                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar"
+                    <img class="img-cerrar" src="{{ asset('images/Color_Icons/Generales/cerrar.png') }}" alt="Cerrar"
                         style="width: 32px !important; height: 32px !important;">
                 </button>
             </div>
@@ -599,7 +599,7 @@
                         <div class="lib-decision-card lib-decision-aprobar active" id="lib-dec-aprobar"
                             onclick="libSeleccionarDecision('aprobar')">
                             <div class="active-badge"></div>
-                            <img src="{{ asset('images/iconos/Aprobado.png') }}" alt="Aprobar">
+                            <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}" alt="Aprobar">
                             <div class="card-title">Aprobar Modelo</div>
                             <div class="card-desc">El modelo cumple con todas las especificaciones de calidad requeridas.</div>
                         </div>
@@ -607,7 +607,7 @@
                         <div class="lib-decision-card lib-decision-rechazar" id="lib-dec-rechazar"
                             onclick="libSeleccionarDecision('rechazar')">
                             <div class="active-badge"></div>
-                            <img src="{{ asset('images/iconos/Rechazado.png') }}" alt="Rechazar">
+                            <img src="{{ asset('images/Color_Icons/Generales/Rechazado.png') }}" alt="Rechazar">
                             <div class="card-title">Rechazar Modelo</div>
                             <div class="card-desc">El modelo presenta defectos dimensionales o físicos. Generar SCAR.</div>
                         </div>

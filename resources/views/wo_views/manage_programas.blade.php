@@ -17,9 +17,9 @@
         {{-- Encabezado --}}
         <div class="dibujos-header">
             <div class="dibujos-header-left">
-                <img src="{{ asset('images/vistas/Programas_CNC.png') }}" alt="Programas CNC" class="dibujos-header-icon">
+                <img src="{{ asset('images/Color_Icons/Vistas/Programas_CNC.png') }}" alt="Programas CNC" class="dibujos-header-icon">
                 <h1>Programas CNC — Gestión de Archivos</h1>
-                <img src="{{ asset('images/vistas/Programas_CNC.png') }}" class="header-view-icon dibujos-header-icon" alt="Programas CNC">
+                <img src="{{ asset('images/Color_Icons/Vistas/Programas_CNC.png') }}" class="header-view-icon dibujos-header-icon" alt="Programas CNC">
             </div>
             <span>Directorio: DOCUMENTACION_GIS / PROGRAMAS_MAQUINADOS &nbsp;|&nbsp; Sistema de Archivos</span>
         </div>
@@ -205,7 +205,7 @@
 
                         @if(count($estructura) === 0)
                             <div class="dibujos-empty-state">
-                                <img src="{{ asset('images/iconos/Sin_Carpetas.png') }}" alt="Sin carpetas" class="empty-folder-icon">
+                                <img src="{{ asset('images/Color_Icons/Generales/Sin_Carpetas.png') }}" alt="Sin carpetas" class="empty-folder-icon">
                                 <p>No hay carpetas creadas aún.</p>
                             </div>
                         @else
@@ -240,7 +240,7 @@
                                                             <div class="td-actions">
                                                                 <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta de clase"
                                                                     onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $claseName }}', null, '{{ $otLabel }} / {{ $claseName }}')">
-                                                                    <img src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                                    <img src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Eliminar">
                                                                     <span>Eliminar Clase</span>
                                                                 </button>
                                                             </div>
@@ -262,12 +262,12 @@
                                                                 <div class="td-actions">
                                                                     <button class="btn-action-icon btn-ver-archivos" title="Ver archivos"
                                                                         onclick="irACarpeta({{ \Illuminate\Support\Js::from($otIdBD ?? $otName) }}, {{ \Illuminate\Support\Js::from($claseIdBD ?? $claseName) }}, {{ \Illuminate\Support\Js::from($procesoName) }}, {{ $otIdBD ? 'true' : 'false' }})">
-                                                                        <img src="{{ asset('images/iconos/documento.png') }}" alt="Ver">
+                                                                        <img src="{{ asset('images/Color_Icons/Generales/documento.png') }}" alt="Ver">
                                                                         <span>Ver Programas</span>
                                                                     </button>
                                                                     <button class="btn-action-icon btn-eliminar-carpeta" title="Eliminar carpeta de proceso"
                                                                         onclick="confirmarEliminarCarpeta('{{ $otName }}', '{{ $claseName }}', '{{ $procesoName }}', '{{ $otLabel }} / {{ $claseName }} / {{ $procesoName }}')">
-                                                                        <img src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                                                                        <img src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Eliminar">
                                                                         <span>Eliminar Proceso</span>
                                                                     </button>
                                                                 </div>
@@ -322,7 +322,7 @@
             </div>
             <div class="confirm-modal-body">
                 <div class="confirm-icon-wrapper">
-                    <img id="confirm-modal-icon" src="{{ asset('images/iconos/Eliminar-Carpeta.png') }}" alt="Eliminar">
+                    <img id="confirm-modal-icon" src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Eliminar">
                 </div>
                 <p id="confirm-message-container" class="fs-1-1 lh-1-6 text-center"></p>
                 <div class="confirm-modal-actions">
@@ -335,11 +335,11 @@
 
     <script>
         window.baseUrl        = "{{ url('/') }}";
-        window.cerrarImgUrl   = "{{ asset('images/iconos/cerrar.png') }}";
-        window.imgProgramsCNC       = "{{ asset('images/iconos/ProgramsCNC.png') }}";
-        window.imgProgramsCNCShadow = "{{ asset('images/iconos/ProgramsCNC-Shadow.png') }}";
-        window.imgProgramsNC        = "{{ asset('images/iconos/ProgramsNC.png') }}";
-        window.imgProgramsNCShadow  = "{{ asset('images/iconos/ProgramsNC-Shadow.png') }}";
+        window.cerrarImgUrl   = "{{ asset('images/Color_Icons/Generales/cerrar.png') }}";
+        window.imgProgramsCNC       = "{{ asset('images/Color_Icons/Generales/ProgramsCNC.png') }}";
+        window.imgProgramsCNCShadow = "{{ asset('images/Shadow_Icons/ProgramsCNC-Shadow.png') }}";
+        window.imgProgramsNC        = "{{ asset('images/Color_Icons/Generales/ProgramsNC.png') }}";
+        window.imgProgramsNCShadow  = "{{ asset('images/Shadow_Icons/ProgramsNC-Shadow.png') }}";
         window.moduleType     = "programas";
         window.routesPrefix   = "programas";
 

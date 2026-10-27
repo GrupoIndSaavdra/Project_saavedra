@@ -14,9 +14,9 @@
         {{-- Header --}}
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Analisis_Soldadura_PTA.png') }}" class="header-view-icon" alt="Soldadura PTA" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Analisis_Soldadura_PTA.png') }}" class="header-view-icon" alt="Soldadura PTA" />
                 <h1>Análisis de Resultados Sold. PTA</h1>
-                <img src="{{ asset('images/vistas/Analisis_Soldadura_PTA.png') }}" class="header-view-icon" alt="Soldadura PTA" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Analisis_Soldadura_PTA.png') }}" class="header-view-icon" alt="Soldadura PTA" />
             </div>
             <p class="subtitle">Vista administrativa — Visualización de resultados por OT</p>
         </div>
@@ -68,7 +68,7 @@
                     <button type="button" class="btn-pta-pdf-icon"
                             onclick="window.location.href='{{ route('pta.analysis.pdf', ['ot_id' => $otSeleccionadaId, 'clase_id' => $claseSeleccionadaId]) }}'"
                             title="Descargar reporte en PDF">
-                        <img src="{{ asset('images/iconos/pdf.png') }}" alt="PDF">
+                        <img src="{{ asset('images/Color_Icons/Generales/pdf.png') }}" alt="PDF">
                     </button>
                 </div>
             @endif

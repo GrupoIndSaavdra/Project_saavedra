@@ -3,7 +3,7 @@
     <div class="cp-analytics-card" id="analyticsCard">
         <div class="analytics-header">
             <div class="analytics-title-group">
-                <img src="{{ asset('images/iconos/grafico-icon.png') }}" class="analytics-icon-img"
+                <img src="{{ asset('images/Color_Icons/Generales/grafico-icon.png') }}" class="analytics-icon-img"
                     alt="Gráfica Calidad" />
                 <span class="analytics-title">Diagnóstico de Desviaciones por Cota (Control de Calidad)</span>
             </div>
@@ -25,7 +25,7 @@
                         {{-- Tarjeta Aprobado: Ícono centrado y arriba del texto, tamaño ampliado --}}
                         <div class="kpi-mini-card kpi-ok" title="Cotas dentro de tolerancia de maquinado">
                             <div class="kpi-card-vertical">
-                                <img src="{{ asset('images/iconos/Aprobado.png') }}" class="kpi-mini-img kpi-ok-img"
+                                <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}" class="kpi-mini-img kpi-ok-img"
                                     alt="Aprobado" />
                                 <span class="kpi-mini-lbl">Cotas OK:</span>
                                 <span class="kpi-mini-num" id="kpiOkCount">0</span>
@@ -33,7 +33,7 @@
                         </div>
                         <div class="kpi-mini-card kpi-alert" title="Cotas que exceden la tolerancia aprobada">
                             <div class="kpi-card-left">
-                                <img src="{{ asset('images/iconos/Sospechosa.png') }}" class="kpi-mini-img"
+                                <img src="{{ asset('images/Color_Icons/Generales/Sospechosa.png') }}" class="kpi-mini-img"
                                     alt="Alerta" />
                                 <span class="kpi-mini-lbl">Desviadas:</span>
                             </div>
@@ -41,7 +41,7 @@
                         </div>
                         <div class="kpi-mini-card kpi-total" title="Total de dimensiones medidas">
                             <div class="kpi-card-left">
-                                <img src="{{ asset('images/iconos/Resultado-Icon.png') }}" class="kpi-mini-img"
+                                <img src="{{ asset('images/Light_Icons/Resultado-Light.png') }}" class="kpi-mini-img"
                                     alt="Evaluadas" />
                                 <span class="kpi-mini-lbl">Evaluadas:</span>
                             </div>
@@ -55,7 +55,7 @@
             <div class="analytics-chart-col">
                 <div class="chart-header">
                     <div class="chart-header-title">
-                        <img src="{{ asset('images/iconos/grafico-icon.png') }}" class="chart-header-img"
+                        <img src="{{ asset('images/Color_Icons/Generales/grafico-icon.png') }}" class="chart-header-img"
                             alt="Gráfica Puntos Críticos" />
                         <span class="chart-subtitle">Puntos Críticos Detectados en Maquinado</span>
                     </div>
@@ -63,7 +63,7 @@
                 </div>
                 <div class="chart-bars-list" id="chartBarsList">
                     <div class="chart-empty-state">
-                        <img src="{{ asset('images/iconos/grafico-icon.png') }}" class="empty-state-img"
+                        <img src="{{ asset('images/Color_Icons/Generales/grafico-icon.png') }}" class="empty-state-img"
                             alt="Analizando" />
                         <span>Analizando medidas registradas...</span>
                     </div>

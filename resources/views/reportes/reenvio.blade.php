@@ -14,9 +14,9 @@
 
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Reenvio_Reporte_Produccion.png') }}" class="header-view-icon" alt="Enviar Reporte de Producción" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Reenvio_Reporte_Produccion.png') }}" class="header-view-icon" alt="Enviar Reporte de Producción" />
                 <h1>Enviar Reporte de Producción</h1>
-                <img src="{{ asset('images/vistas/Reenvio_Reporte_Produccion.png') }}" class="header-view-icon" alt="Enviar Reporte de Producción" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Reenvio_Reporte_Produccion.png') }}" class="header-view-icon" alt="Enviar Reporte de Producción" />
             </div>
             <p class="subtitle">
                 Genera y envía el reporte de un día específico a los destinatarios que indiques.

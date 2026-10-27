@@ -193,19 +193,19 @@ function renderGlobalProductivityAlert(type, standardMinutes = 0) {
 
     const configs = {
         'inicio': {
-            icon: 'Aviso.png',
+            icon: 'Color_Icons/Generales/Aviso.png',
             title: 'Inactividad en Bienvenida',
             message: 'Inicie el nuevo reporte para continuar operando.',
             type: 'notice'
         },
         'formulario': {
-            icon: 'Sospechosa.png',
+            icon: 'Color_Icons/Generales/Sospechosa.png',
             title: 'Inactividad en Formulario',
             message: 'Complete el registro para continuar.',
             type: 'warning'
         },
         'produccion': {
-            icon: 'Critica.png',
+            icon: 'Color_Icons/Generales/Critica.png',
             title: 'Exceso de Tiempo de Maquinado',
             message: `El tiempo estándar para esta operación:<br> <strong style="color: #ff0000; font-size: 1.4em; display: block; margin: 0.3em 0;">(${displayTime(standardMinutes)})</strong> ha excedido el límite de seguridad permitido.`,
             type: 'error'

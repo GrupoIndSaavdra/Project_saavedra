@@ -4,7 +4,7 @@
     <title>Progreso de OT</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <script>
-        window.cerrarImgUrl = "{{ asset('images/iconos/cerrar.png') }}";
+        window.cerrarImgUrl = "{{ asset('images/Color_Icons/Generales/cerrar.png') }}";
         window.baseUrl = "{{ url('/') }}";
         window.ptaCardsData = @json($ptaCardsData ?? []);
         window.ptaResultsBaseUrl = "{{ url('admin/pta/results') }}";
@@ -19,9 +19,9 @@
         <div class="div-opacity">
             <div class="alert-finishOrder">
                 <div class="div-cerrar">
-                    <button class="btn-cerrar"><img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}"></button>
+                    <button class="btn-cerrar"><img class="img-cerrar" src="{{ asset('images/Color_Icons/Generales/cerrar.png') }}"></button>
                 </div>
-                <?php    $imgRoute = session('finishOrder')[0] == "error" ? "images/iconos/error.png" : "images/iconos/ready.png";?>
+                <?php    $imgRoute = session('finishOrder')[0] == "error" ? "images/Color_Icons/Generales/error.png" : "images/Color_Icons/Generales/ready.png";?>
                 <img class="img-error" src="{{ asset($imgRoute) }}" alt="alert image">
                 <label for="">{{ session('finishOrder')[1] }}</label>
             </div>

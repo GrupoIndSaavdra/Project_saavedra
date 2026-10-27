@@ -5,7 +5,7 @@
         <div class="lib-calidad-card" style="background:#f3e8ff; border:2px solid #9333ea;">
             <div class="lib-calidad-card-header"
                 style="background:linear-gradient(135deg,#9333ea,#7c3aed);border-bottom:2px solid rgba(147,51,234,0.4);">
-                <img src="{{ asset('images/iconos/Proveedor.png') }}" alt="Proveedor"
+                <img src="{{ asset('images/Color_Icons/Generales/Proveedor.png') }}" alt="Proveedor"
                     class="cal-width-38px cal-height-38px cal-object-fit-contain cal-flex-shrink-0 cal-filter-brightness-0-invert-1">
                 <div class="cal-overflow-hidden cal-flex-1">
                     <span class="lib-calidad-card-title cal-color-ffffff">Pre-Orden de Casting &mdash; Enviado al
@@ -15,7 +15,7 @@
                 </div>
             </div>
             <div class="lib-calidad-card-body" style="padding:18px 22px;text-align:center;background:#faf5ff;">
-                <img src="{{ asset('images/iconos/Proveedor.png') }}" alt="Proveedor"
+                <img src="{{ asset('images/Color_Icons/Generales/Proveedor.png') }}" alt="Proveedor"
                     style="width:52px;height:52px;margin-bottom:10px;">
                 <h4
                     style="color:#7c3aed;font-size:1.05rem;font-weight:700;margin:0 0 8px 0;font-family:'Poppins',sans-serif;">
@@ -28,7 +28,7 @@
     @else
         <div class="lib-calidad-card">
             <div class="lib-calidad-card-header">
-                <img src="{{ asset('images/iconos/Quality.png') }}" alt="Calidad"
+                <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}" alt="Calidad"
                     class="cal-width-38px cal-height-38px cal-object-fit-contain cal-flex-shrink-0" />
                 <div class="cal-overflow-hidden cal-flex-1">
                     <span class="lib-calidad-card-title">Acciones
@@ -125,7 +125,7 @@
                     <span
                         class="cal-font-size-0-65em cal-font-weight-700 cal-color-64748b cal-letter-spacing-0-5px cal-text-transform-uppercase">Clases</span>
                     @if ($hdCont == count($hdClasesActivas) && count($hdClasesActivas) > 0)
-                        <img src="{{ asset('images/iconos/ready.png') }}"
+                        <img src="{{ asset('images/Color_Icons/Generales/ready.png') }}"
                             class="cal-width-14px cal-height-14px cal-margin-top-2px" alt="Listo" />
                     @endif
                 </div>
@@ -134,7 +134,7 @@
                 @if (in_array($targetReg->calidad_revision_status, ['aprobado', 'calidad_aprobado']))
                     <div
                         class="lib-estado-badge lib-estado-aprobado cal-padding-12px-16px cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
-                        <img src="{{ asset('images/iconos/Aprobado.png') }}" alt=""
+                        <img src="{{ asset('images/Color_Icons/Generales/Aprobado.png') }}" alt=""
                             class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0" />
                         <span>Liberación aprobada. Puedes revisar las clases procesadas o
                             modificar su estado si es necesario.</span>
@@ -142,7 +142,7 @@
                 @elseif (in_array($targetReg->calidad_revision_status, ['mixto', 'calidad_mixto', 'calidad_parcial']))
                     <div
                         class="lib-estado-badge lib-estado-guardado cal-padding-12px-16px cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
-                        <img src="{{ asset('images/iconos/Guardado.png') }}" alt=""
+                        <img src="{{ asset('images/Color_Icons/Generales/Guardado.png') }}" alt=""
                             class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0" />
                         <span>Liberación parcial / mixta procesada. Puedes revisar las
                             clases pendientes o reiniciadas y generar un nuevo envío para la
@@ -151,7 +151,7 @@
                 @elseif (in_array($targetReg->calidad_revision_status, ['rechazado', 'calidad_rechazado']))
                     <div
                         class="lib-estado-badge lib-estado-rechazado cal-padding-12px-16px cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
-                        <img src="{{ asset('images/iconos/Rechazado.png') }}" alt=""
+                        <img src="{{ asset('images/Color_Icons/Generales/Rechazado.png') }}" alt=""
                             class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0" />
                         <span>Liberación rechazada anteriormente. Puedes revisar las clases
                             y volver a emitir un nuevo proceso de liberación.</span>
@@ -164,7 +164,7 @@
                 @elseif (in_array($targetReg->calidad_revision_status, ['pendiente', 'calidad_pendiente']))
                     <div
                         class="lib-estado-badge lib-estado-guardado cal-width-100pct cal-box-sizing-border-box cal-display-flex cal-align-items-center cal-gap-8px">
-                        <img src="{{ asset('images/iconos/Guardado.png') }}" alt=""
+                        <img src="{{ asset('images/Color_Icons/Generales/Guardado.png') }}" alt=""
                             class="cal-width-18px cal-height-18px cal-object-fit-contain cal-flex-shrink-0" />
                         Datos capturados como borrador.
                     </div>
@@ -345,7 +345,7 @@
                         <div class="lib-calidad-finalizado-banner"
                             style="background: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08);">
                             <div style="display: flex; align-items: center; gap: 20px;">
-                                <img src="{{ asset('images/iconos/enviando.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}"
                                     style="width: 54px; height: 54px; flex-shrink: 0;" alt="Enviado">
                                 <div>
                                     <h4 class="lib-calidad-card-prompt"
@@ -368,7 +368,7 @@
                                             disabled
                                             style="pointer-events: none; opacity: 0.85; cursor: not-allowed; background-color: #059669 !important; border: 2px solid #047857 !important;"
                                             title="El correo de alerta ya ha sido enviado para estas clases">
-                                            <img src="{{ asset('images/iconos/enviando.png') }}" alt=""
+                                            <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt=""
                                                 style="filter: none !important;" />
                                             <span>Correo Enviado</span>
                                         </button>
@@ -377,7 +377,7 @@
                                             <button class="btn-calidad-action btn-calidad-borrador"
                                                 onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
                                                 title="Generar el formato de acción correctiva SCAR">
-                                                <img src="{{ asset('images/iconos/SCAR_RDM_Incorrectos.png') }}"
+                                                <img src="{{ asset('images/Color_Icons/Generales/SCAR_RDM_Incorrectos.png') }}"
                                                     alt="" />
                                                 <span>Generar Formato SCAR</span>
                                             </button>
@@ -386,7 +386,7 @@
                                                 onclick="Swal.fire('Atención', 'Debes generar el formato SCAR antes de enviar la alerta.', 'warning')"
                                                 title="Debes generar el formato SCAR primero"
                                                 style="opacity: 0.6; cursor: not-allowed;">
-                                                <img src="{{ asset('images/iconos/enviando.png') }}" alt=""
+                                                <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt=""
                                                     style="filter: none !important;" />
                                                 <span>Enviar Alerta</span>
                                             </button>
@@ -395,7 +395,7 @@
                                                 class="btn-calidad-action btn-calidad-email cal-background-color-dc2626 cal-color-white"
                                                 onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                                 title="Enviar alerta de calidad y notificar por correo">
-                                                <img src="{{ asset('images/iconos/enviando.png') }}" alt=""
+                                                <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt=""
                                                     style="filter: none !important;" />
                                                 <span>Enviar Alerta</span>
                                             </button>
@@ -404,7 +404,7 @@
                                         <button class="btn-calidad-action btn-calidad-iniciar"
                                             onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                             title="Enviar alerta de calidad y notificar por correo">
-                                            <img src="{{ asset('images/iconos/enviando.png') }}" alt=""
+                                            <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt=""
                                                 style="filter: none !important;" />
                                             <span>Enviar Alerta</span>
                                         </button>
@@ -412,7 +412,7 @@
                                         <button class="btn-calidad-action btn-calidad-email" disabled
                                             style="background: #e2e8f0 !important; color: #64748b !important; border: 2px solid #cbd5e1 !important; pointer-events: none; opacity: 0.8; cursor: not-allowed;"
                                             title="No hay modelos listos para alertar. Inicia o continúa la liberación primero.">
-                                            <img src="{{ asset('images/iconos/enviando.png') }}"
+                                            <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}"
                                                 style="filter: grayscale(1) opacity(0.6);" alt="" />
                                             <span>Esperando Borrador</span>
                                         </button>
@@ -424,7 +424,7 @@
                         <div class="lib-calidad-finalizado-banner"
                             style="background: #f0f9ff; border: 2px solid #0284c7; border-radius: 12px; padding: 20px; display: flex; align-items: center; justify-content: space-between; gap: 20px; width: 100%; box-shadow: 0 4px 10px rgba(2, 132, 199, 0.08);">
                             <div style="display: flex; align-items: center; gap: 20px;">
-                                <img src="{{ asset('images/iconos/Espera.png') }}"
+                                <img src="{{ asset('images/Color_Icons/Generales/Espera.png') }}"
                                     style="width: 54px; height: 54px; flex-shrink: 0;" alt="Casting">
                                 <div>
                                     <h4 class="lib-calidad-card-prompt"
@@ -511,7 +511,7 @@
                                     <button class="btn-calidad-action btn-calidad-edit"
                                         onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($clasesBase) }})"
                                         title="Editar borrador del formato de liberación F-CCL-LDM">
-                                        <img src="{{ asset('images/iconos/editar-informacion.png') }}" alt="" />
+                                        <img src="{{ asset('images/Color_Icons/Generales/editar-informacion.png') }}" alt="" />
                                         <span>Editar Información</span>
                                     </button>
                                 @else
@@ -530,7 +530,7 @@
                                         title="{{ $btnTitle }}"
                                         @if ($btnDisabled) disabled style="pointer-events: none;" @else
                                             onclick="abrirModalLiberacionUnificado('{{ $targetReg->ot }}', {{ json_encode($clasesActivas) }}, {{ json_encode($clasesBase) }})" @endif>
-                                        <img src="{{ asset('images/iconos/Liberar.png') }}" alt="" />
+                                        <img src="{{ asset('images/Color_Icons/Generales/Liberar.png') }}" alt="" />
                                         <span>{{ $contClasesConDatos > 0 ? 'Continuar con el proceso de liberación' : 'Empezar con el proceso de liberación' }}</span>
                                     </button>
                                 @endif
@@ -541,7 +541,7 @@
                                             disabled
                                             style="pointer-events: none; opacity: 0.85; cursor: not-allowed; background-color: #059669 !important; border: 2px solid #047857 !important;"
                                             title="El correo de alerta ya ha sido enviado para estas clases">
-                                            <img src="{{ asset('images/iconos/enviando.png') }}" alt=""
+                                            <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt=""
                                                 style="filter: none !important;" />
                                             <span>Correo Enviado</span>
                                         </button>
@@ -550,7 +550,7 @@
                                             <button class="btn-calidad-action btn-calidad-borrador"
                                                 onclick="abrirModalScar('{{ $targetReg->ot }}', '{{ $borradorRechazado->tipo_modelo }}', '{{ $borradorRechazado->motivo_rechazo }}')"
                                                 title="Generar el formato de acción correctiva SCAR">
-                                                <img src="{{ asset('images/iconos/SCAR_RDM_Incorrectos.png') }}"
+                                                <img src="{{ asset('images/Color_Icons/Generales/SCAR_RDM_Incorrectos.png') }}"
                                                     alt="" />
                                                 <span>Generar Formato SCAR</span>
                                             </button>
@@ -559,7 +559,7 @@
                                                 onclick="Swal.fire('Atención', 'Debes generar el formato SCAR antes de enviar la alerta.', 'warning')"
                                                 title="Debes generar el formato SCAR primero"
                                                 style="opacity: 0.6; cursor: not-allowed;">
-                                                <img src="{{ asset('images/iconos/enviando.png') }}" alt="" />
+                                                <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt="" />
                                                 <span>Enviar Alerta</span>
                                             </button>
                                         @else
@@ -567,7 +567,7 @@
                                                 class="btn-calidad-action btn-calidad-email cal-background-color-dc2626 cal-color-white"
                                                 onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                                 title="Enviar alerta de calidad y notificar por correo">
-                                                <img src="{{ asset('images/iconos/enviando.png') }}" alt="" />
+                                                <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt="" />
                                                 <span>Enviar Alerta</span>
                                             </button>
                                         @endif
@@ -575,14 +575,14 @@
                                         <button class="btn-calidad-action btn-calidad-iniciar"
                                             onclick="abrirModalFinalizarCalidad('{{ $targetReg->ot }}', '{{ $decisionGlobal }}', {{ $tiposAprobadosJson }}, {{ $tiposRechazadosJson }})"
                                             title="Enviar alerta de calidad y notificar por correo">
-                                            <img src="{{ asset('images/iconos/enviando.png') }}" alt="" />
+                                            <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt="" />
                                             <span>Enviar Alerta</span>
                                         </button>
                                     @else
                                         <button class="btn-calidad-action btn-calidad-email" disabled
                                             style="background: #e2e8f0 !important; color: #64748b !important; border: 2px solid #cbd5e1 !important; pointer-events: none; opacity: 0.8; cursor: not-allowed;"
                                             title="No hay modelos listos para alertar. Inicia o continúa la liberación primero.">
-                                            <img src="{{ asset('images/iconos/enviando.png') }}"
+                                            <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}"
                                                 style="filter: grayscale(1) opacity(0.6);" alt="" />
                                             <span>Esperando Borrador</span>
                                         </button>
@@ -598,7 +598,7 @@
                     class="cal-margin-top-15px">
                     <div
                         class="lib-calidad-card-header cal-background-linear-gradient-135deg-059669-047857 cal-border-bottom-2px-solid-rgba-5-150-105-0-5">
-                        <img src="{{ asset('images/iconos/Quality.png') }}" alt="Calidad"
+                        <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}" alt="Calidad"
                             class="cal-width-38px cal-height-38px cal-object-fit-contain cal-flex-shrink-0 cal-filter-brightness-0-invert-1">
                         <div class="cal-overflow-hidden cal-flex-1">
                             <span class="lib-calidad-card-title cal-color-ffffff">Alertas
@@ -609,7 +609,7 @@
                     </div>
                     <div
                         class="lib-calidad-card-body cal-background-color-f0fdf4 cal-border-1px-solid-bbf7d0 cal-border-top-none cal-padding-15px cal-text-align-center">
-                        <img src="{{ asset('images/iconos/enviando.png') }}" alt="Enviado"
+                        <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" alt="Enviado"
                             class="cal-width-48px cal-height-48px cal-margin-bottom-10px">
                         <h4 class="cal-color-065f46 cal-font-size-1-1em cal-margin-0-0-5px-0 cal-font-weight-600">
                             Alertas de Liberación Completadas</h4>

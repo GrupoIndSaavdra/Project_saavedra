@@ -3,11 +3,11 @@
         <div class="alm-modal-header alm-background-linear-gradient-135deg-0a8504-064e03 alm-padding-2-2em-2-5em-1-5em alm-position-relative" style="background: linear-gradient(135deg, #0a8504 0%, #064e03 100%);">
             <div class="div-cerrar">
                 <button type="button" class="btn-cerrar" onclick="cerrarModalPreOrden()">
-                    <img class="img-cerrar" src="{{ asset('images/iconos/cerrar.png') }}" alt="Cerrar" style="width: 36px !important; height: 36px !important;">
+                    <img class="img-cerrar" src="{{ asset('images/Color_Icons/Generales/cerrar.png') }}" alt="Cerrar" style="width: 36px !important; height: 36px !important;">
                 </button>
             </div>
             <h3 class="alm-font-size-2em alm-margin-0 alm-font-family-Poppins-sans-serif alm-font-weight-700 alm-color-fff" style="display: flex; align-items: center; justify-content: center; gap: 10px; letter-spacing: 0.5px; text-shadow: 0 2px 4px rgba(0,0,0,0.15);">
-                <img src="{{ asset('images/iconos/perspectiva-icon.png') }}"
+                <img src="{{ asset('images/Color_Icons/Generales/perspectiva-icon.png') }}"
                     style="width: 38px; height: 38px; object-fit: contain;">
                 Pre-Orden de Fabricación de Modelo (PFM)
             </h3>

@@ -81,10 +81,10 @@ function showInlinePasswordForm(type, imgElement = null) {
     if (type === "Calidad") {
         form.classList.add("is-quality-verify");
         badgePill.classList.add("badge-quality");
-        badgeIcon.src = window.imgQualityCheck || (window.baseUrl + "/images/iconos/Quality.png");
+        badgeIcon.src = window.imgQualityCheck || (window.baseUrl + "/images/Color_Icons/Generales/Quality.png");
         badgeIcon.alt = "Calidad";
         badgeIcon.onerror = function () {
-            this.src = window.baseUrl + "/images/iconos/Quality.png";
+            this.src = window.baseUrl + "/images/Color_Icons/Generales/Quality.png";
         };
         badgeText.textContent = "Calidad";
 
@@ -97,7 +97,7 @@ function showInlinePasswordForm(type, imgElement = null) {
     } else if (type === "EditMeta") {
         form.classList.add("is-admin-verify");
         badgePill.classList.add("badge-admin");
-        badgeIcon.src = window.edit || (window.baseUrl + "/images/iconos/img-edit.png");
+        badgeIcon.src = window.edit || (window.baseUrl + "/images/Color_Icons/Generales/img-edit.png");
         badgeIcon.alt = "Reporte";
         badgeText.textContent = "Reporte";
 
@@ -106,10 +106,10 @@ function showInlinePasswordForm(type, imgElement = null) {
     } else {
         form.classList.add("is-pieces-verify");
         badgePill.classList.add("badge-pieces");
-        badgeIcon.src = window.imgEditPieces || (window.baseUrl + "/images/iconos/editPieces-Icon.png");
+        badgeIcon.src = window.imgEditPieces || (window.baseUrl + "/images/Color_Icons/Generales/editPieces-Icon.png");
         badgeIcon.alt = "Piezas";
         badgeIcon.onerror = function () {
-            this.src = window.baseUrl + "/images/iconos/editPieces-Icon.png";
+            this.src = window.baseUrl + "/images/Color_Icons/Generales/editPieces-Icon.png";
         };
         badgeText.textContent = "Piezas";
 
@@ -263,7 +263,7 @@ function createBtnCancelEdit(customClass = "btn-cancel") {
     btn_cancel.href = "#";
     btn_cancel.className = customClass;
 
-    const cancelIconSrc = window.imgCancelar || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/Cancelar-Icon.png` : "/images/iconos/Cancelar-Icon.png");
+    const cancelIconSrc = window.imgCancelar || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Cancelar-Light.png` : "/images/Light_Icons/Cancelar-Light.png");
 
     let iconLeft = document.createElement("img");
     iconLeft.src = cancelIconSrc;
@@ -287,7 +287,7 @@ function renderEditPiecesNotice(warningLabel) {
         existingNotice.remove();
     }
 
-    const editPiecesIcon = window.imgEditPieces || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/iconos/editPieces-Icon.png` : "/images/iconos/editPieces-Icon.png");
+    const editPiecesIcon = window.imgEditPieces || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Color_Icons/Generales/editPieces-Icon.png` : "/images/Color_Icons/Generales/editPieces-Icon.png");
 
     let card = document.createElement("div");
     card.className = "edit-pieces-notice-card";
@@ -462,7 +462,7 @@ function insertProductionActions() {
 
     // 3.1 Botón Programas CNC (Se habilita dinámicamente si hay archivos)
     let btnProgramas = createActionButton(
-        window.imgProgramsCNC || window.baseUrl + '/images/iconos/ProgramsCNC.png',
+        window.imgProgramsCNC || window.baseUrl + '/images/Color_Icons/Generales/ProgramsCNC.png',
         "Programas",
         "Ver Programas CNC",
         true, // Bloqueado por defecto
@@ -732,15 +732,15 @@ function createHistoricalTable(history) {
     }
 
     if (isNoCotasProcess) {
-        cotasBadge.src = `${baseUrl}${slash}images/iconos/Aprobado.png`;
+        cotasBadge.src = `${baseUrl}${slash}images/Color_Icons/Generales/Aprobado.png`;
         cotasBadge.title = "No requiere cotas";
         cotasBadge.classList.add("cotas-badge-glow");
     } else if (hasCotas) {
-        cotasBadge.src = `${baseUrl}${slash}images/iconos/icono_cotas.png`;
+        cotasBadge.src = `${baseUrl}${slash}images/Color_Icons/Generales/icono_cotas.png`;
         cotasBadge.title = "Cotas registradas correctamente";
         cotasBadge.classList.add("cotas-badge-glow");
     } else {
-        cotasBadge.src = `${baseUrl}${slash}images/iconos/icono_sin_cotas.png`;
+        cotasBadge.src = `${baseUrl}${slash}images/Color_Icons/Generales/icono_sin_cotas.png`;
         cotasBadge.title = "Falta registrar cotas (Clic para detalles)";
         cotasBadge.style.opacity = "0.7";
         cotasBadge.style.cursor = "pointer";
@@ -878,7 +878,7 @@ function renderPlaceholderProgress(container) {
     cotasBadge.className = "cotas-badge";
     const baseUrl = window.baseUrl || (window.location.origin + '/');
     const slash = baseUrl.endsWith('/') ? '' : '/';
-    cotasBadge.src = `${baseUrl}${slash}images/iconos/icono_sin_cotas.png`;
+    cotasBadge.src = `${baseUrl}${slash}images/Color_Icons/Generales/icono_sin_cotas.png`;
     cotasBadge.title = "Sin cotas registradas";
     cotasBadge.style.opacity = "0.4";
     processSection.appendChild(cotasBadge);

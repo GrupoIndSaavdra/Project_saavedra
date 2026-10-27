@@ -4,7 +4,7 @@
         <button onclick="document.getElementById('flowchartModal').style.display='none'" style="position: absolute; top: 16px; right: 16px; background: #f1f5f9; border: none; width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-weight: bold; color: #475569; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.background='#e2e8f0'; this.style.color='#0f172a'" onmouseout="this.style.background='#f1f5f9'; this.style.color='#475569'">✕</button>
 
         <div class="legend-header" style="margin-bottom: 24px; border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 12px;">
-            <img src="{{ asset('images/iconos/Quality.png') }}" alt="Leyenda" style="width: 36px; height: 36px; object-fit: contain;">
+            <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}" alt="Leyenda" style="width: 36px; height: 36px; object-fit: contain;">
             <h2 style="margin: 0; font-size: 1.4rem; color: #0f172a; font-weight: 800;">Diagrama de Flujo</h2>
         </div>
 
@@ -182,7 +182,7 @@
             <div class="fc-wrapper">
                 <div class="fc-node">
                     <div class="fc-icon-container" style="background: #eff6ff; border: 2px solid #3b82f6;">
-                        <img src="{{ asset('images/iconos/Recibido.png') }}" class="fc-icon" />
+                        <img src="{{ asset('images/Color_Icons/Generales/Recibido.png') }}" class="fc-icon" />
                     </div>
                     <div class="fc-text" style="color: #2563eb;">INICIO</div>
                 </div>
@@ -197,7 +197,7 @@
                         <div class="fc-branch-label">NO</div>
                         <div class="fc-node" style="border-color: #10b981;">
                             <div class="fc-icon-container" style="background: #ecfdf5;">
-                                <img src="{{ asset('images/iconos/Escanear-icon.png') }}" class="fc-icon" />
+                                <img src="{{ asset('images/Color_Icons/Generales/Escanear-icon.png') }}" class="fc-icon" />
                             </div>
                             <div class="fc-text" style="color: #059669;">Escaneo Modelo</div>
                         </div>
@@ -209,14 +209,14 @@
                         <div class="fc-branch-label">SÍ</div>
                         <div class="fc-node" style="border-color: #60a5fa;">
                             <div class="fc-icon-container" style="background: #eff6ff;">
-                                <img src="{{ asset('images/iconos/PFM-icon.png') }}" class="fc-icon" />
+                                <img src="{{ asset('images/Color_Icons/Generales/PFM-icon.png') }}" class="fc-icon" />
                             </div>
                             <div class="fc-text" style="color: #2563eb;">Genera PFM</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node" style="border-color: #10b981;">
                             <div class="fc-icon-container" style="background: #ecfdf5;">
-                                <img src="{{ asset('images/iconos/Escanear-icon.png') }}" class="fc-icon" />
+                                <img src="{{ asset('images/Color_Icons/Generales/Escanear-icon.png') }}" class="fc-icon" />
                             </div>
                             <div class="fc-text" style="color: #059669;">Escanea PFM</div>
                         </div>
@@ -232,7 +232,7 @@
                 
                 <div class="fc-node" style="border-color: #818cf8;">
                     <div class="fc-icon-container" style="background: #e0e7ff;">
-                        <img src="{{ asset('images/iconos/enviando.png') }}" class="fc-icon" />
+                        <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" class="fc-icon" />
                     </div>
                     <div class="fc-text" style="color: #4f46e5;">Envía correo<br>a Calidad</div>
                 </div>
@@ -241,7 +241,7 @@
                 
                 <div class="fc-node dashed" style="border-color: #ef4444;">
                     <div class="fc-icon-container" style="background: #fef2f2;">
-                        <img src="{{ asset('images/iconos/Espera.png') }}" class="fc-icon" />
+                        <img src="{{ asset('images/Color_Icons/Generales/Espera.png') }}" class="fc-icon" />
                     </div>
                     <div class="fc-text" style="color: #dc2626;">Espera respuesta<br>de Calidad</div>
                 </div>
@@ -250,7 +250,7 @@
                 
                 <div class="fc-node" style="border-color: #3b82f6;">
                     <div class="fc-icon-container" style="background: #eff6ff;">
-                        <img src="{{ asset('images/iconos/Recibido.png') }}" class="fc-icon" />
+                        <img src="{{ asset('images/Color_Icons/Generales/Recibido.png') }}" class="fc-icon" />
                     </div>
                     <div class="fc-text" style="color: #2563eb;">Recibe LDM, RDM<br>o SCAR</div>
                 </div>
@@ -264,27 +264,27 @@
                     <div class="fc-branch">
                         <div class="fc-branch-label" style="color: #10b981; border-color: #10b981; background: #ecfdf5;">APROBADO</div>
                         <div class="fc-node" style="border-color: #10b981;">
-                            <div class="fc-icon-container" style="background: #ecfdf5;"><img src="{{ asset('images/iconos/Escanear-icon.png') }}" class="fc-icon" /></div>
+                            <div class="fc-icon-container" style="background: #ecfdf5;"><img src="{{ asset('images/Color_Icons/Generales/Escanear-icon.png') }}" class="fc-icon" /></div>
                             <div class="fc-text" style="color: #059669;">Escanea LDM</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node" style="border-color: #059669;">
-                            <div class="fc-icon-container" style="background: #f0fdf4;"><img src="{{ asset('images/iconos/PFC-icon.png') }}" class="fc-icon" /></div>
+                            <div class="fc-icon-container" style="background: #f0fdf4;"><img src="{{ asset('images/Color_Icons/Generales/PFC-icon.png') }}" class="fc-icon" /></div>
                             <div class="fc-text" style="color: #15803d;">Genera PFC</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node" style="border-color: #10b981;">
-                            <div class="fc-icon-container" style="background: #ecfdf5;"><img src="{{ asset('images/iconos/Escanear-icon.png') }}" class="fc-icon" /></div>
+                            <div class="fc-icon-container" style="background: #ecfdf5;"><img src="{{ asset('images/Color_Icons/Generales/Escanear-icon.png') }}" class="fc-icon" /></div>
                             <div class="fc-text" style="color: #059669;">Escanea PFC</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node" style="border-color: #9333ea;">
-                            <div class="fc-icon-container" style="background: #f3e8ff;"><img src="{{ asset('images/iconos/Proveedor.png') }}" class="fc-icon" /></div>
+                            <div class="fc-icon-container" style="background: #f3e8ff;"><img src="{{ asset('images/Color_Icons/Generales/Proveedor.png') }}" class="fc-icon" /></div>
                             <div class="fc-text" style="color: #9333ea;">Notifica a<br>proveedor</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node" style="border-color: #3b82f6;">
-                            <div class="fc-icon-container" style="background: #eff6ff;"><img src="{{ asset('images/iconos/Recibido.png') }}" class="fc-icon" /></div>
+                            <div class="fc-icon-container" style="background: #eff6ff;"><img src="{{ asset('images/Color_Icons/Generales/Recibido.png') }}" class="fc-icon" /></div>
                             <div class="fc-text" style="color: #2563eb;">FIN</div>
                         </div>
                     </div>
@@ -293,12 +293,12 @@
                     <div class="fc-branch">
                         <div class="fc-branch-label" style="color: #ef4444; border-color: #ef4444; background: #fef2f2;">RECHAZADO</div>
                         <div class="fc-node" style="border-color: #ef4444;">
-                            <div class="fc-icon-container" style="background: #fef2f2;"><img src="{{ asset('images/iconos/Escanear-icon.png') }}" class="fc-icon" /></div>
+                            <div class="fc-icon-container" style="background: #fef2f2;"><img src="{{ asset('images/Color_Icons/Generales/Escanear-icon.png') }}" class="fc-icon" /></div>
                             <div class="fc-text" style="color: #b91c1c;">Escanea RDM<br>y SCAR</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node" style="border-color: #ec4899;">
-                            <div class="fc-icon-container" style="background: #fdf2f8;"><img src="{{ asset('images/iconos/Reproceso.png') }}" class="fc-icon" /></div>
+                            <div class="fc-icon-container" style="background: #fdf2f8;"><img src="{{ asset('images/Color_Icons/Generales/Reproceso.png') }}" class="fc-icon" /></div>
                             <div class="fc-text" style="color: #be185d;">Genera OT<br>Reproceso</div>
                         </div>
                         <div class="fc-line-vertical"></div>
@@ -314,7 +314,7 @@
             <div class="fc-wrapper">
                 <div class="fc-node dashed" style="border-color: #ef4444;">
                     <div class="fc-icon-container" style="background: #fef2f2;">
-                        <img src="{{ asset('images/iconos/Espera.png') }}" class="fc-icon" />
+                        <img src="{{ asset('images/Color_Icons/Generales/Espera.png') }}" class="fc-icon" />
                     </div>
                     <div class="fc-text" style="color: #dc2626;">Espera correo<br>de Almacén</div>
                 </div>
@@ -322,21 +322,21 @@
                 <div class="fc-line-vertical"></div>
                 
                 <div class="fc-node" style="border-color: #3b82f6;">
-                    <div class="fc-icon-container" style="background: #eff6ff;"><img src="{{ asset('images/iconos/Recibido.png') }}" class="fc-icon" /></div>
+                    <div class="fc-icon-container" style="background: #eff6ff;"><img src="{{ asset('images/Color_Icons/Generales/Recibido.png') }}" class="fc-icon" /></div>
                     <div class="fc-text" style="color: #2563eb;">Recibe correo</div>
                 </div>
                 
                 <div class="fc-line-vertical"></div>
                 
                 <div class="fc-node" style="border-color: #0ea5e9;">
-                    <div class="fc-icon-container" style="background: #f0f9ff;"><img src="{{ asset('images/iconos/perspectiva-icon.png') }}" class="fc-icon" /></div>
+                    <div class="fc-icon-container" style="background: #f0f9ff;"><img src="{{ asset('images/Color_Icons/Generales/perspectiva-icon.png') }}" class="fc-icon" /></div>
                     <div class="fc-text" style="color: #0369a1;">Visualiza dibujos</div>
                 </div>
                 
                 <div class="fc-line-vertical"></div>
                 
                 <div class="fc-node" style="border-color: #f59e0b;">
-                    <div class="fc-icon-container" style="background: #fffbeb;"><img src="{{ asset('images/iconos/Revisando.png') }}" class="fc-icon" /></div>
+                    <div class="fc-icon-container" style="background: #fffbeb;"><img src="{{ asset('images/Color_Icons/Generales/Revisando.png') }}" class="fc-icon" /></div>
                     <div class="fc-text" style="color: #b45309;">Registra medidas</div>
                 </div>
                 
@@ -349,7 +349,7 @@
                     <div class="fc-branch">
                         <div class="fc-branch-label" style="color: #10b981; border-color: #10b981; background: #ecfdf5;">SÍ</div>
                         <div class="fc-node dashed" style="border-color: #10b981;">
-                            <div class="fc-icon-container" style="background: #ecfdf5;"><img src="{{ asset('images/iconos/LDM-icon.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #059669;">Genera Auto<br>LDM</div>
+                            <div class="fc-icon-container" style="background: #ecfdf5;"><img src="{{ asset('images/Color_Icons/Generales/LDM-icon.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #059669;">Genera Auto<br>LDM</div>
                         </div>
                         <div class="fc-line-vertical" style="flex-grow: 1;"></div>
                     </div>
@@ -358,23 +358,23 @@
                     <div class="fc-branch">
                         <div class="fc-branch-label" style="color: #ef4444; border-color: #ef4444; background: #fef2f2;">NO</div>
                         <div class="fc-node" style="border-color: #ef4444;">
-                            <div class="fc-icon-container" style="background: #fef2f2;"><img src="{{ asset('images/iconos/manual.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #b91c1c;">Pregunta razón<br>rechazo</div>
+                            <div class="fc-icon-container" style="background: #fef2f2;"><img src="{{ asset('images/Color_Icons/Generales/manual.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #b91c1c;">Pregunta razón<br>rechazo</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node dashed" style="border-color: #ef4444;">
-                            <div class="fc-icon-container" style="background: #fef2f2;"><img src="{{ asset('images/iconos/RDM-SCAR-icon.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #b91c1c;">Genera Auto<br>RDM</div>
+                            <div class="fc-icon-container" style="background: #fef2f2;"><img src="{{ asset('images/Color_Icons/Generales/RDM-SCAR-icon.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #b91c1c;">Genera Auto<br>RDM</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node" style="border-color: #eab308;">
-                            <div class="fc-icon-container" style="background: #fef9c3;"><img src="{{ asset('images/iconos/RDM-SCAR-icon.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #854d0e;">Abre formato SCAR</div>
+                            <div class="fc-icon-container" style="background: #fef9c3;"><img src="{{ asset('images/Color_Icons/Generales/RDM-SCAR-icon.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #854d0e;">Abre formato SCAR</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node" style="border-color: #eab308;">
-                            <div class="fc-icon-container" style="background: #fef9c3;"><img src="{{ asset('images/iconos/manual.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #854d0e;">Llena formato SCAR</div>
+                            <div class="fc-icon-container" style="background: #fef9c3;"><img src="{{ asset('images/Color_Icons/Generales/manual.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #854d0e;">Llena formato SCAR</div>
                         </div>
                         <div class="fc-line-vertical"></div>
                         <div class="fc-node dashed" style="border-color: #eab308;">
-                            <div class="fc-icon-container" style="background: #fef9c3;"><img src="{{ asset('images/iconos/RDM-SCAR-icon.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #854d0e;">Genera Auto<br>SCAR</div>
+                            <div class="fc-icon-container" style="background: #fef9c3;"><img src="{{ asset('images/Color_Icons/Generales/RDM-SCAR-icon.png') }}" class="fc-icon" /></div><div class="fc-text" style="color: #854d0e;">Genera Auto<br>SCAR</div>
                         </div>
                         <div class="fc-line-vertical" style="flex-grow: 1;"></div>
                     </div>
@@ -385,7 +385,7 @@
                 
                 <div class="fc-node" style="border-color: #818cf8;">
                     <div class="fc-icon-container" style="background: #e0e7ff;">
-                        <img src="{{ asset('images/iconos/enviando.png') }}" class="fc-icon" />
+                        <img src="{{ asset('images/Color_Icons/Generales/enviando.png') }}" class="fc-icon" />
                     </div>
                     <div class="fc-text" style="color: #4f46e5;">Envía formatos<br>a Almacén</div>
                 </div>

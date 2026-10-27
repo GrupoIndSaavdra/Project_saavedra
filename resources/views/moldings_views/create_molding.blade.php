@@ -11,9 +11,9 @@
 <div class="wrapper">
     <div class="report-header">
         <div class="title-row">
-            <img src="{{ asset('images/vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
+            <img src="{{ asset('images/Color_Icons/Vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
             <h2>Registrar nuevas molduras</h2>
-            <img src="{{ asset('images/vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
+            <img src="{{ asset('images/Color_Icons/Vistas/Registro_Edicion_Molduras.png') }}" class="header-view-icon" alt="Registrar nuevas molduras" />
         </div>
         <p class="subtitle">Alta y catalogación de nuevos modelos de moldura en el sistema</p>
     </div>

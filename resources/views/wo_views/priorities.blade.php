@@ -193,7 +193,7 @@ if (!function_exists('safeDateParseDisplay')) {
 
             @if ($canEditPriorities)
                 <a href="{{ route('master.priorities.disabled') }}" class="btn-switch-view" title="Ver OTs desactivadas">
-                    <img src="{{ asset('images/iconos/inactivar.png') }}" class="btn-switch-icon" alt="">
+                    <img src="{{ asset('images/Color_Icons/Generales/inactivar.png') }}" class="btn-switch-icon" alt="">
                     <span>Prioridades Desactivadas</span>
                 </a>
             @endif
@@ -215,7 +215,7 @@ if (!function_exists('safeDateParseDisplay')) {
                     </div>
                     <button type="button" class="actions-menu-item item-excel" onclick="exportTableToExcel('prioritiesTable', 'Prioridades_GIS')">
                         <div class="action-icon-wrapper">
-                            <img src="{{ asset('images/iconos/Descargar_Excel-Icon.png') }}" class="action-icon-main" alt="Descargar Excel">
+                            <img src="{{ asset('images/Color_Icons/Generales/Descargar_Excel-Icon.png') }}" class="action-icon-main" alt="Descargar Excel">
                         </div>
                         <div class="action-text">
                             <strong>Descargar Excel</strong>
@@ -224,7 +224,7 @@ if (!function_exists('safeDateParseDisplay')) {
                     </button>
                     <a href="{{ route('master.priorities.pdf', request()->all()) }}" class="actions-menu-item item-pdf" style="text-decoration:none;">
                         <div class="action-icon-wrapper">
-                            <img src="{{ asset('images/iconos/Descargar_PDF-Icon.png') }}" class="action-icon-main" alt="Descargar PDF">
+                            <img src="{{ asset('images/Color_Icons/Generales/Descargar_PDF-Icon.png') }}" class="action-icon-main" alt="Descargar PDF">
                         </div>
                         <div class="action-text">
                             <strong>Descargar PDF</strong>
@@ -233,7 +233,7 @@ if (!function_exists('safeDateParseDisplay')) {
                     </a>
                     <button type="button" class="actions-menu-item item-print" onclick="window.print()">
                         <div class="action-icon-wrapper">
-                            <img src="{{ asset('images/iconos/Imprimir-Icon.png') }}" class="action-icon-main" alt="Imprimir">
+                            <img src="{{ asset('images/Color_Icons/Generales/Imprimir-Icon.png') }}" class="action-icon-main" alt="Imprimir">
                         </div>
                         <div class="action-text">
                             <strong>Imprimir</strong>
@@ -244,7 +244,7 @@ if (!function_exists('safeDateParseDisplay')) {
                         <div class="actions-menu-divider"></div>
                         <button type="button" class="actions-menu-item item-danger" id="btnStartDeactivateMode">
                             <div class="action-icon-wrapper">
-                                <img src="{{ asset('images/iconos/inactivar.png') }}" class="action-icon-main" alt="Desactivar OTs">
+                                <img src="{{ asset('images/Color_Icons/Generales/inactivar.png') }}" class="action-icon-main" alt="Desactivar OTs">
                             </div>
                             <div class="action-text">
                                 <strong>Desactivar OTs</strong>
@@ -281,8 +281,8 @@ if (!function_exists('safeDateParseDisplay')) {
                 <img src="{{ asset('images/logos/lg_saavedra.png') }}" alt="Grupo Industrial Saavedra" />
             </div>
             <div class="header-title" style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-                @if (file_exists(public_path('images/vistas/Prioridades.png')))
-                    <img src="{{ asset('images/vistas/Prioridades.png') }}" alt="Prioridades"
+                @if (file_exists(public_path('images/Color_Icons/Vistas/Prioridades.png')))
+                    <img src="{{ asset('images/Color_Icons/Vistas/Prioridades.png') }}" alt="Prioridades"
                         style="height: 38px; width: auto; object-fit: contain;">
                 @endif
                 <h1>PRIORIDADES</h1>
@@ -348,7 +348,7 @@ if (!function_exists('safeDateParseDisplay')) {
                             style="background-color: #ffffff; padding: 48px 20px !important;">
                             <div
                                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
-                                <img src="{{ asset('images/iconos/calendario.png') }}" alt="Calendario"
+                                <img src="{{ asset('images/Color_Icons/Generales/calendario.png') }}" alt="Calendario"
                                     style="width: 58px; height: 58px; object-fit: contain; filter: drop-shadow(0 4px 8px rgba(220, 38, 38, 0.25));">
                                 <span
                                     style="color: #dc2626; font-size: 1.15em; font-weight: 700; letter-spacing: 0.3px;">

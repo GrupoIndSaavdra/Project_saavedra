@@ -13,9 +13,9 @@
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Recepcion_Soldadura.png') }}" class="header-view-icon" alt="Recepción de Soldadura" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Recepcion_Soldadura.png') }}" class="header-view-icon" alt="Recepción de Soldadura" />
                 <h1>Recepción de Soldadura en Planta</h1>
-                <img src="{{ asset('images/vistas/Recepcion_Soldadura.png') }}" class="header-view-icon" alt="Recepción de Soldadura" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Recepcion_Soldadura.png') }}" class="header-view-icon" alt="Recepción de Soldadura" />
             </div>
             <p class="subtitle">Registro y validación de entrada de botes de soldadura al almacén de planta</p>
         </div>

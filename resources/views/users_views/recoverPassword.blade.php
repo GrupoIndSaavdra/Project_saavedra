@@ -15,9 +15,9 @@
         {{-- Cabecera con iconos simétricos --}}
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
                 <h1 class="recover-heading">Restablecer Contraseña</h1>
-                <img src="{{ asset('images/vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Restablecer_Contrasena.png') }}" class="header-view-icon" alt="Restablecer Contraseña" />
             </div>
             <p class="recover-subheading">Ingresa tu matrícula institucional y define tu nueva clave de acceso.</p>
         </div>

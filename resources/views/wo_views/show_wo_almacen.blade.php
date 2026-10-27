@@ -386,10 +386,10 @@
                                             @if($p->remision)
                                                 @php
                                                     $isPdf = Str::endsWith(strtolower($p->remision->filename), '.pdf');
-                                                    $iconName = $isPdf ? 'images/iconos/pdf.png' : 'images/iconos/IMG-Icon.png'; 
+                                                    $iconName = $isPdf ? 'images/Color_Icons/Generales/pdf.png' : 'images/Light_Icons/IMG-Light.png'; 
                                                 @endphp
                                                 <a href="{{ route('wo.remision.serve', $p->remision->id) }}" target="_blank" class="link-action-modal doc-pill-link" title="{{ $p->remision->filename }}">
-                                                    <img src="{{ icon($iconName) }}" alt="{{ $isPdf ? 'PDF' : 'IMG' }}" class="icon-16" onerror="this.src='{{ icon('images/iconos/pdf.png') }}'">
+                                                    <img src="{{ icon($iconName) }}" alt="{{ $isPdf ? 'PDF' : 'IMG' }}" class="icon-16" onerror="this.src='{{ icon('images/Color_Icons/Generales/pdf.png') }}'">
                                                     <span class="text-truncate" style="max-width: 170px;">{{ $p->remision->filename }}</span>
                                                 </a>
                                             @else
@@ -566,7 +566,7 @@
                                     <td>
                                         <div class="view-remision">
                                             <a href="{{ route('wo.tratamiento.download', $tratamiento->id) }}" target="_blank" class="link-action-modal doc-pill-link doc-pill-amber">
-                                                <img src="{{ asset('images/iconos/pdf.png') }}" alt="PDF" class="icon-16">
+                                                <img src="{{ asset('images/Color_Icons/Generales/pdf.png') }}" alt="PDF" class="icon-16">
                                                 <span>Ver PDF</span>
                                             </a>
                                         </div>

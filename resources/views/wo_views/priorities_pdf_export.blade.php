@@ -153,7 +153,7 @@
             @if($totalWosCount === 0)
                 <tr>
                     <td colspan="16" style="padding: 30px 15px; background-color: #ffffff; text-align: center;">
-                        <img src="{{ public_path('images/iconos/calendario.png') }}" width="45" height="auto" style="margin-bottom: 6px;"><br>
+                        <img src="{{ public_path('images/Color_Icons/Generales/calendario.png') }}" width="45" height="auto" style="margin-bottom: 6px;"><br>
                         <strong style="color: #dc2626; font-size: 11px;">Esta semana o consulta no tiene ninguna Orden de Trabajo asignada actualmente.</strong>
                     </td>
                 </tr>

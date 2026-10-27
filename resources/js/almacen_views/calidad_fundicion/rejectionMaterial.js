@@ -13,7 +13,7 @@ window.pintarCardsArchivosRechazados = function (archivos, ot, contenedorId, tip
         archivos.forEach((file) => {
             const fileNameLower = file.nombre.toLowerCase();
             const esImg = ["png", "jpg", "jpeg", "gif", "webp", "bmp"].includes(file.nombre.split(".").pop().toLowerCase());
-            const defaultIcon = esImg ? "galeria-shadow.png" : "pdf-view-shadow.png";
+            const defaultIcon = esImg ? "Shadow_Icons/Galeria-Shadow.png" : "Shadow_Icons/PDF_View-Shadow.png";
             
             let matchModelo = false;
             const knownClasses = typeof window.getSearchableClassesJS === "function" ? window.getSearchableClassesJS() : [];
@@ -44,7 +44,7 @@ window.pintarCardsArchivosRechazados = function (archivos, ot, contenedorId, tip
                 
                 card.innerHTML = `
                     <div class="file-icon-wrapper alm-cursor-pointer" title="Abrir PDF" onclick="window.almacenVerPdf('${ot}', '${file.nombre}', '${file.tipo}')">
-                        <img src="${window.baseUrl || "/"}images/iconos/${defaultIcon}" class="file-icon icon-default">
+                        <img src="${window.baseUrl || "/"}images/${defaultIcon}" class="file-icon icon-default">
                     </div>
                     <div class="file-name alm-cursor-pointer" title="Abrir PDF" onclick="window.almacenVerPdf('${ot}', '${file.nombre}', '${file.tipo}')">
                         ${dispName}

@@ -187,7 +187,7 @@ class FundicionStateService
         return match ($stateKey) {
             'ENVIADO_PROVEEDOR' => [
                 'fsmState' => FundicionStateConstants::FSM_ENVIADO_PROVEEDOR,
-                'icon' => 'Proveedor.png',
+                'icon' => 'Color_Icons/Generales/Proveedor.png',
                 'label' => 'Enviado a Proveedor',
                 'tooltip' => 'Pre-orden de casting enviada al proveedor, proceso finalizado',
                 'borderColor' => '#9333ea',
@@ -196,7 +196,7 @@ class FundicionStateService
             ],
             'POR_ESCANEAR_CASTING' => [
                 'fsmState' => FundicionStateConstants::FSM_POR_ESCANEAR,
-                'icon' => 'PFC-icon.png',
+                'icon' => 'Color_Icons/Generales/PFC-icon.png',
                 'label' => 'Pre-Orden de Fabricación de Casting',
                 'tooltip' => 'Pre-orden generada, pendiente de firmar y enviar',
                 'borderColor' => '#84cc16',
@@ -205,7 +205,7 @@ class FundicionStateService
             ],
             'LDM_GENERADO', 'RECHAZOS_PROCESADOS_APROBADO' => [
                 'fsmState' => FundicionStateConstants::FSM_LDM_GENERADO,
-                'icon' => 'LDM-icon.png',
+                'icon' => 'Color_Icons/Generales/LDM-icon.png',
                 'label' => 'Formato LDM',
                 'tooltip' => 'Modelo aprobado y liberado por Calidad (Formato LDM)',
                 'borderColor' => '#22c55e',
@@ -214,7 +214,7 @@ class FundicionStateService
             ],
             'RDM_GENERADO' => [
                 'fsmState' => FundicionStateConstants::FSM_RDM_GENERADO,
-                'icon' => 'RDM-SCAR-icon.png',
+                'icon' => 'Color_Icons/Generales/RDM-SCAR-icon.png',
                 'label' => 'Formato RDM y SCAR',
                 'tooltip' => 'Modelo rechazado por Calidad (Formato RDM/SCAR)',
                 'borderColor' => '#f43f5e',
@@ -223,7 +223,7 @@ class FundicionStateService
             ],
             'FORMATOS_MIXTOS' => [
                 'fsmState' => FundicionStateConstants::FSM_FORMATOS_MIXTOS,
-                'icon' => 'Formatos_Mixtos_icon.png',
+                'icon' => 'Color_Icons/Generales/Formatos_Mixtos_icon.png',
                 'label' => 'Formatos Mixtos',
                 'tooltip' => 'Formatos LDM y RDM/SCAR generados, pendiente de enviar la alerta',
                 'borderColor' => '#ca8a04',
@@ -232,7 +232,7 @@ class FundicionStateService
             ],
             'LIBERADO_ALMACEN' => [
                 'fsmState' => FundicionStateConstants::FSM_LIBERADO_ALMACEN,
-                'icon' => 'Aprobado.png',
+                'icon' => 'Color_Icons/Generales/Aprobado.png',
                 'label' => 'Liberado',
                 'tooltip' => 'OT aprobada y liberada por Calidad',
                 'borderColor' => '#22c55e',
@@ -241,7 +241,7 @@ class FundicionStateService
             ],
             'RECHAZADO_ALMACEN' => [
                 'fsmState' => FundicionStateConstants::FSM_RECHAZADO_ALMACEN,
-                'icon' => 'Rechazado.png',
+                'icon' => 'Color_Icons/Generales/Rechazado.png',
                 'label' => 'Rechazado',
                 'tooltip' => 'OT rechazada por Calidad',
                 'borderColor' => '#ef4444',
@@ -250,7 +250,7 @@ class FundicionStateService
             ],
             'MIXTO_ALMACEN' => [
                 'fsmState' => FundicionStateConstants::FSM_MIXTO_ALMACEN,
-                'icon' => 'Mixto.png',
+                'icon' => 'Color_Icons/Generales/Mixto.png',
                 'label' => 'Mixto',
                 'tooltip' => 'LiberaciÃ³n mixta por Calidad',
                 'borderColor' => '#eab308',
@@ -259,7 +259,7 @@ class FundicionStateService
             ],
             'EN_ALMACEN' => [
                 'fsmState' => FundicionStateConstants::FSM_EN_ALMACEN,
-                'icon' => 'almacen.png',
+                'icon' => 'Color_Icons/Generales/almacen.png',
                 'label' => 'En Almacén',
                 'tooltip' => 'Dictamen enviado a Almacén',
                 'borderColor' => '#3b82f6',
@@ -268,7 +268,7 @@ class FundicionStateService
             ],
             'CALIDAD_REVISANDO' => [
                 'fsmState' => FundicionStateConstants::FSM_REVISANDO,
-                'icon' => 'Revisando.png',
+                'icon' => 'Color_Icons/Generales/Revisando.png',
                 'label' => 'En Revisión',
                 'tooltip' => 'Calidad está realizando la revisión del modelo',
                 'borderColor' => '#f59e0b',
@@ -277,7 +277,7 @@ class FundicionStateService
             ],
             'POR_LIBERAR_CALIDAD' => [
                 'fsmState' => FundicionStateConstants::FSM_POR_LIBERAR,
-                'icon' => 'por_liberar_icon.png',
+                'icon' => 'Color_Icons/Generales/por_liberar_icon.png',
                 'label' => 'Por Liberar',
                 'tooltip' => 'Correo de notificación recibido, listo para revisión de Calidad',
                 'borderColor' => '#64748b',
@@ -286,7 +286,7 @@ class FundicionStateService
             ],
             'CORREO_ENVIADO' => [
                 'fsmState' => FundicionStateConstants::FSM_CORREO_ENVIADO,
-                'icon' => 'Quality.png',
+                'icon' => 'Color_Icons/Generales/Quality.png',
                 'label' => 'En Calidad',
                 'tooltip' => 'Correo enviado, en espera de revisión por Calidad',
                 'borderColor' => '#6366f1',
@@ -295,7 +295,7 @@ class FundicionStateService
             ],
             'PEND_CORREO_CALIDAD', 'PEND_ALMACEN_CALIDAD' => [
                 'fsmState' => FundicionStateConstants::FSM_ESPERA,
-                'icon' => 'Espera.png',
+                'icon' => 'Color_Icons/Generales/Espera.png',
                 'label' => 'En Espera',
                 'tooltip' => 'En espera de la otra área',
                 'borderColor' => '#a3a3a3',
@@ -304,7 +304,7 @@ class FundicionStateService
             ],
             'POR_ESCANEAR_PFM' => [
                 'fsmState' => FundicionStateConstants::FSM_POR_ESCANEAR,
-                'icon' => 'PFM-icon.png',
+                'icon' => 'Color_Icons/Generales/PFM-icon.png',
                 'label' => 'Pre-Orden de Fabricación de Modelo',
                 'tooltip' => 'Pre-orden generada, pendiente de firmar y enviar',
                 'borderColor' => '#8b5cf6',
@@ -313,7 +313,7 @@ class FundicionStateService
             ],
             'TIENE_MODELO' => [
                 'fsmState' => FundicionStateConstants::FSM_TIENE_MODELO,
-                'icon' => 'perspectiva-icon.png',
+                'icon' => 'Color_Icons/Generales/perspectiva-icon.png',
                 'label' => 'Tengo Modelo',
                 'tooltip' => 'Modelo físico disponible, pendiente de procesar',
                 'borderColor' => '#14b8a6',
@@ -322,7 +322,7 @@ class FundicionStateService
             ],
             'PROCESO_PARCIAL_CORREO', 'PROCESO_PARCIAL_PRE_ORDEN', 'PROCESO_PARCIAL_MODELO' => [
                 'fsmState' => FundicionStateConstants::FSM_PROCESO_PARCIAL,
-                'icon' => 'proceso_parcial-icon.png',
+                'icon' => 'Color_Icons/Generales/proceso_parcial-icon.png',
                 'label' => 'Proceso Parcial',
                 'tooltip' => 'Proceso parcial, esperando las demás clases',
                 'borderColor' => '#f97316',
@@ -331,7 +331,7 @@ class FundicionStateService
             ],
             'RECHAZOS_PROCESADOS_RECHAZADO', 'REPROCESO_RECHAZADO' => [
                 'fsmState' => FundicionStateConstants::FSM_REPROCESO,
-                'icon' => 'Reproceso.png',
+                'icon' => 'Color_Icons/Generales/Reproceso.png',
                 'label' => 'Reproceso',
                 'tooltip' => 'Retornado hacia un nuevo ciclo de modelo (Reproceso)',
                 'borderColor' => '#ec4899',
@@ -340,7 +340,7 @@ class FundicionStateService
             ],
             'NUEVO' => [
                 'fsmState' => FundicionStateConstants::FSM_RECIBIDO,
-                'icon' => 'Recibido.png',
+                'icon' => 'Color_Icons/Generales/Recibido.png',
                 'label' => 'Nuevo',
                 'tooltip' => 'Nueva OT recibida sin acciones registradas',
                 'borderColor' => '#0ea5e9',
@@ -349,7 +349,7 @@ class FundicionStateService
             ],
             default => [
                 'fsmState' => FundicionStateConstants::FSM_RECIBIDO,
-                'icon' => 'Recibido.png',
+                'icon' => 'Color_Icons/Generales/Recibido.png',
                 'label' => 'Desconocido',
                 'tooltip' => 'Estado no determinado',
                 'borderColor' => '#cbd5e1',

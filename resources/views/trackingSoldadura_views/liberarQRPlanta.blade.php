@@ -13,9 +13,9 @@
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
                 <h1>Entrega de Soldadura a Planta</h1>
-                <img src="{{ asset('images/vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Entrega_Soldadura.png') }}" class="header-view-icon" alt="Entrega de Soldadura" />
             </div>
             <p class="subtitle">Entrega y asignación de botes de soldadura a operadores de producción</p>
         </div>

@@ -18,7 +18,7 @@
             {{-- Panel izquierdo: Prioridades --}}
             <div class="home-priorities-panel">
                 <div class="home-priorities-header">
-                    <img src="{{ asset('images/iconos/priorizar.png') }}" class="home-priorities-icon" alt="">
+                    <img src="{{ asset('images/Color_Icons/Generales/priorizar.png') }}" class="home-priorities-icon" alt="">
                     <h2 class="home-priorities-title">Secuencia de Prioridades de Fabricación</h2>
                 </div>
 
@@ -35,17 +35,17 @@
                                     $isGold = $priorityNum <= 5;
 
                                     if ($priorityNum === 1) {
-                                        $priorityImgPath = asset('images/iconos/uno.png');
+                                        $priorityImgPath = asset('images/Color_Icons/Generales/uno.png');
                                     } elseif ($priorityNum === 2) {
-                                        $priorityImgPath = asset('images/iconos/dos.png');
+                                        $priorityImgPath = asset('images/Color_Icons/Generales/dos.png');
                                     } elseif ($priorityNum === 3) {
-                                        $priorityImgPath = asset('images/iconos/tres.png');
+                                        $priorityImgPath = asset('images/Color_Icons/Generales/tres.png');
                                     } elseif ($priorityNum === 4) {
-                                        $priorityImgPath = asset('images/iconos/cuatro.png');
+                                        $priorityImgPath = asset('images/Color_Icons/Generales/cuatro.png');
                                     } elseif ($priorityNum === 5) {
-                                        $priorityImgPath = asset('images/iconos/cinco.png');
+                                        $priorityImgPath = asset('images/Color_Icons/Generales/cinco.png');
                                     } else {
-                                        $priorityImgPath = asset('images/iconos/plata.png');
+                                        $priorityImgPath = asset('images/Color_Icons/Generales/plata.png');
                                     }
 
                                     $glowClass = $isGold ? 'glow-gold' : 'glow-silver';
@@ -85,7 +85,7 @@
                     @endauth
                 </div>
                 <a class="btn-close-session-operator" href="{{ route('logout') }}">
-                    <img src="{{ asset('images/iconos/Terminar-Repo-Icon.png') }}" class="btn-close-session-icon" alt="">
+                    <img src="{{ asset('images/Light_Icons/Terminar_Repo-Light.png') }}" class="btn-close-session-icon" alt="">
                     <span>Cerrar sesión</span>
                 </a>
             </div>
@@ -115,13 +115,13 @@
             <div class="new-report-content">
                 <div class="new-report-card">
                     <div class="new-report-icon-box">
-                        <img src="{{ asset('images/iconos/Terminar-Repo-Icon.png') }}" class="new-report-hero-icon"
+                        <img src="{{ asset('images/Light_Icons/Terminar_Repo-Light.png') }}" class="new-report-hero-icon"
                             alt="Reporte">
                     </div>
                     <h1 class="new-report-title">Nuevo Reporte</h1>
                     <p class="new-report-subtitle">Comenzar registro y captura de piezas de producción</p>
                     <button type="button" class="btn-start-report">
-                        <img src="{{ asset('images/iconos/Resultado-Icon.png') }}" class="btn-start-report-icon" alt="">
+                        <img src="{{ asset('images/Light_Icons/Resultado-Light.png') }}" class="btn-start-report-icon" alt="">
                         <span>Iniciar Reporte</span>
                     </button>
                 </div>

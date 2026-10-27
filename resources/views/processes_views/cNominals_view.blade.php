@@ -13,9 +13,9 @@
     <div class="wrapper">
         <div class="report-header">
             <div class="title-row">
-                <img src="{{ asset('images/vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
                 <h1>Cotas Nominales y Tolerancias</h1>
-                <img src="{{ asset('images/vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
+                <img src="{{ asset('images/Color_Icons/Vistas/Cotas_Nominales_Tolerancias.png') }}" class="header-view-icon" alt="Cotas Nominales" />
             </div>
             <p class="subtitle">Definición de cotas críticas y márgenes de tolerancia por proceso</p>
         </div>
