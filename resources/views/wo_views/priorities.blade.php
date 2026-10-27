@@ -1678,27 +1678,29 @@ if (!function_exists('safeDateParseDisplay')) {
                 listHtml += '</ul>';
 
                 Swal.fire({
-                    title: '¿Desactivar ' + (selectedOts.length === 1 ? 'esta Orden de Trabajo?' : selectedOts.length + ' Órdenes de Trabajo?'),
+                    title: (selectedOts.length === 1 ? '¿Desactivar orden de trabajo?' : '¿Desactivar órdenes de trabajo?'),
                     html: `
                         <div style="text-align: left; font-size: 0.92rem; line-height: 1.5; color: #334155;">
-                            <p style="margin-bottom: 8px; color: #b91c1c; font-weight: 700;">
-                                ⚠️ ATENCIÓN: Esta acción desactivará las siguientes OTs y TODOS sus procesos asociados en todo el sistema:
-                            </p>
+                            <div style="background-color: #fef2f2; border: 1.5px solid #ef4444; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                                <p style="margin: 0; color: #991b1b; font-weight: 700; font-size: 0.95rem;">
+                                    Suspensión de operaciones activas
+                                </p>
+                                <p style="margin: 6px 0 0 0; color: #b91c1c; font-size: 0.85rem;">
+                                    Las órdenes y sus procesos asociados se ocultarán de todas las áreas operativas (Prioridades, Progreso, Maquinado). Solo podrán consultarse o reactivarse desde la vista de OTs Desactivadas.
+                                </p>
+                            </div>
+                            <p style="font-weight: 600; color: #475569; margin-bottom: 4px;">Órdenes de Trabajo a desactivar:</p>
                             ${listHtml}
-                            <p style="margin-top: 10px; font-size: 0.86rem; color: #64748b; margin-bottom: 0;">
-                                Las OTs desactivadas dejarán de aparecer en Prioridades, Progreso, Maquinado y todas las demás vistas operativas. 
-                                Solo podrán ser consultadas y reactivadas por el Master desde la nueva vista <strong>Prioridades Desactivadas</strong>.
-                            </p>
                         </div>
                     `,
-                    icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Sí, Desactivar OTs',
+                    confirmButtonText: 'Desactivar',
                     cancelButtonText: 'Cancelar',
                     confirmButtonColor: '#dc2626',
                     cancelButtonColor: '#64748b',
                     reverseButtons: true,
-                    focusCancel: true
+                    focusCancel: true,
+                    customClass: { popup: 'swal2-gis-popup' }
                 }).then(function(result) {
                     if (result.isConfirmed) {
                         Swal.fire({

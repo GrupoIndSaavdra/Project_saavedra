@@ -976,4 +976,32 @@ Puedes combinar libremente clases corporativas existentes con utilidades de Tail
 </div>
 ```
 
+---
+
+## 39. Estilos Corporativos para Modales con Fricción Positiva (`.swal2-gis-popup`)
+
+Para garantizar la coherencia visual y UX premium en modales de SweetAlert2 y notificaciones:
+
+### 1. Alineación a la Derecha de Botones de Acción
+Todo modal interactivo o destructivo debe alinear sus botones a la derecha para respetar el flujo de lectura y decisión:
+```css
+.swal2-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    width: 100% !important;
+    margin: 1.25rem 0 0 0 !important;
+    padding: 0 1.5rem !important;
+    gap: 12px !important;
+}
+```
+
+### 2. Contenedor de Fricción Positiva (`.swal2-gis-popup`)
+- **Tipografía:** `'Poppins', sans-serif`.
+- **Alineación de Texto:** `text-align: left !important;` en títulos y párrafos explicativos.
+- **Bordes y Sombras:** `border-radius: 16px !important;` con elevación y sombras suaves.
+- **Prohibido Íconos:** No incluir íconos circulares decorativos de advertencia que distraigan la atención del usuario.
+
+### 3. Notificaciones Toast Oficiales (`.swal2-toast`)
+- Fijadas en la esquina inferior derecha (`position: bottom-end`).
+- Fondo blanco puro o dark mode según layout, con barra de progreso estilizada (`timerProgressBar: true`) y transición fluida `.swal2-toast-in` y `.swal2-toast-out`.
 

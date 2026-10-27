@@ -147,9 +147,8 @@ function createTable(moldings, form) {
                 e.preventDefault();
                 const res = await (window.gisConfirm ? window.gisConfirm({
                     title: "¿Eliminar moldura?",
-                    text: "¿Estás seguro de que deseas eliminar esta moldura?",
-                    icon: "warning",
-                    confirmButtonText: "Sí, eliminar",
+                    text: "Se eliminará permanentemente el registro de esta moldura del catálogo.",
+                    confirmButtonText: "Eliminar",
                     confirmButtonColor: "#b30404"
                 }) : Promise.resolve({ isConfirmed: true }));
 

@@ -1301,6 +1301,17 @@ class Dashboard {
             e.preventDefault();
             if (a.dataset.loading === "true") return;
 
+            // Fricción Positiva: Confirmación con verbo de acción y sin asunciones
+            const confirmResult = await window.gisConfirm({
+                title: `¿Finalizar pedido de ${className}?`,
+                text: `La clase se marcará como terminada y se retirará del progreso de producción. Solo se finalizará si todas las piezas requeridas están completas en todos sus procesos.`,
+                confirmButtonText: "Finalizar pedido",
+                confirmButtonColor: "#033966",
+                cancelButtonText: "Cancelar"
+            });
+
+            if (!confirmResult.isConfirmed) return;
+
             a.dataset.loading = "true";
             let originalText = a.innerHTML;
             a.innerHTML = "Procesando...";
@@ -1315,14 +1326,35 @@ class Dashboard {
                     }
                 });
 
-                let data = await response.json();
+                let data = await response.json().catch(() => ({}));
+                const isError = !response.ok || data.status === "error" || (Array.isArray(data) && data[0] === "error");
+                const mensaje = data.message || (Array.isArray(data) ? data[1] : null) || (isError ? "No se pudo finalizar el pedido debido a un error en el servidor." : "Se ha finalizado el pedido correctamente.");
 
-                // Muestra modal dinámico
-                mostrarModalFinalizarPedido(data[0], data[1], data[0] === "success");
+                if (isError) {
+                    await window.gisAlert({
+                        title: "Completar piezas requeridas",
+                        text: mensaje,
+                        confirmButtonText: "Entendido",
+                        confirmButtonColor: "#033966"
+                    });
+                } else {
+                    await window.gisAlert({
+                        title: "Pedido finalizado",
+                        text: mensaje,
+                        confirmButtonText: "Entendido",
+                        confirmButtonColor: "#033966"
+                    });
+                    location.reload();
+                }
 
             } catch (err) {
-                console.error("Error al finalizar pedido, intentando redirigir...", err);
-                window.location.href = a.href;
+                console.error("Error al finalizar pedido:", err);
+                await window.gisAlert({
+                    title: "Error de comunicación",
+                    text: "No fue posible conectar con el servidor para finalizar el pedido.",
+                    confirmButtonText: "Entendido",
+                    confirmButtonColor: "#033966"
+                });
             } finally {
                 a.innerHTML = originalText;
                 a.style.opacity = "1";
@@ -1975,48 +2007,15 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(updateCachedSections, 200);
 });
 
-window.mostrarModalFinalizarPedido = function (tipo, mensaje, recargar = false) {
-    let divOpacity = document.createElement("div");
-    divOpacity.className = "div-opacity";
-
-    let alertDiv = document.createElement("div");
-    alertDiv.className = "alert-finishOrder";
-
-    let divCerrar = document.createElement("div");
-    divCerrar.className = "div-cerrar";
-
-    let btnCerrar = document.createElement("button");
-    btnCerrar.className = "btn-cerrar";
-    btnCerrar.innerHTML = `<img class="img-cerrar" src="${window.cerrarImgUrl || window.baseUrl + '/images/Color_Icons/Generales/cerrar.png'}">`;
-
-    btnCerrar.addEventListener("click", (e) => {
-        e.stopPropagation();
-        divOpacity.remove();
-        if (recargar) location.reload();
+window.mostrarModalFinalizarPedido = async function (tipo, mensaje, recargar = false) {
+    const isError = (tipo === "error");
+    await window.gisAlert({
+        title: isError ? "Completar piezas requeridas" : "Pedido finalizado",
+        text: mensaje || (isError ? "No se pudo finalizar el pedido." : "Se ha finalizado el pedido correctamente."),
+        confirmButtonText: "Entendido",
+        confirmButtonColor: "#033966"
     });
-
-    divCerrar.appendChild(btnCerrar);
-    alertDiv.appendChild(divCerrar);
-
-    let imgRoute = (tipo === "error") ? "/images/Color_Icons/Generales/error.png" : "/images/Color_Icons/Generales/ready.png";
-    let img = document.createElement("img");
-    img.className = "img-error";
-    img.src = (window.baseUrl || "") + imgRoute;
-    img.alt = "alert image";
-    alertDiv.appendChild(img);
-
-    let label = document.createElement("label");
-    label.textContent = mensaje;
-    alertDiv.appendChild(label);
-
-    divOpacity.appendChild(alertDiv);
-
-    divOpacity.addEventListener("click", (e) => {
-        if (e.target === divOpacity) {
-            divOpacity.remove();
-            if (recargar) location.reload();
-        }
-    });
-
-    document.body.appendChild(divOpacity);
+    if (recargar) {
+        location.reload();
+    }
 };

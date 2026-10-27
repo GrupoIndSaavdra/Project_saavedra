@@ -101,13 +101,13 @@ window.generarHtmlCategorizadoCastingAprobados = function (
             const iconDefault = isDwg
                 ? `${getBaseUrl()}images/Shadow_Icons/DWG-Shadow.png`
                 : (isImg
-                ? `${getBaseUrl()}images/Shadow_Icons/Galeria-Shadow.png`
-                : `${getBaseUrl()}images/Shadow_Icons/PDF_View-Shadow.png`);
+                    ? `${getBaseUrl()}images/Shadow_Icons/Galeria-Shadow.png`
+                    : `${getBaseUrl()}images/Shadow_Icons/PDF_View-Shadow.png`);
             const iconHover = isDwg
                 ? `${getBaseUrl()}images/Color_Icons/Generales/dwg.png`
                 : (isImg
-                ? `${getBaseUrl()}images/Color_Icons/Generales/galeria.png`
-                : `${getBaseUrl()}images/Color_Icons/Generales/pdf-view.png`);
+                    ? `${getBaseUrl()}images/Color_Icons/Generales/galeria.png`
+                    : `${getBaseUrl()}images/Color_Icons/Generales/pdf-view.png`);
             const titleAttr = isDwg ? "Descargar DWG" : "Ver archivo";
             const btnText = isDwg ? "Descargar" : "Ver";
             const safeName = nombre.replace(/'/g, "\\'");
@@ -209,7 +209,7 @@ window.cargarInputsCasting = function (ot, files) {
             }
             const cleanName = existingFile ? existingFile.nombre.split("/").pop() : "";
             const isLocked = !!existingFile;
-            
+
             let groupHtml = `
                 <div style="background: #dcfce7; padding: 12px 18px; border-bottom: 1px solid #bbf7d0; display: flex; align-items: center; gap: 8px;">
                     <img src="${getBaseUrl()}images/Color_Icons/Generales/perspectiva-icon.png" style="width: 36px; height: 36px; object-fit: contain;">
@@ -278,9 +278,8 @@ window.cargarInputsCasting = function (ot, files) {
 window.quitarArchivoAprobado = async function (ot, archivo, buttonEl) {
     const res = await (window.gisConfirm ? window.gisConfirm({
         title: "¿Eliminar formato LDM?",
-        text: "¿Estás seguro de que deseas eliminar permanentemente este formato LDM? Esta acción no se puede deshacer.",
-        icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        text: "Se eliminará permanentemente este formato LDM del servidor.",
+        confirmButtonText: "Eliminar",
         confirmButtonColor: "#b30404"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) {

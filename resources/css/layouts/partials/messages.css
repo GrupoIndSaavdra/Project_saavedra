@@ -305,11 +305,12 @@
 
 .swal2-gis-popup {
     border-radius: 20px !important;
-    padding: 2rem !important;
+    padding: 2.2rem !important;
     box-shadow: 0 25px 50px -12px rgba(0, 10, 25, 0.45) !important;
     border: 3.5px solid var(--gis-blue, #033966) !important;
     font-family: 'Poppins', sans-serif !important;
     background: #ffffff !important;
+    text-align: left !important;
     -webkit-backface-visibility: hidden !important;
     backface-visibility: hidden !important;
     -webkit-transform: translateZ(0) !important;
@@ -317,24 +318,44 @@
     will-change: transform, opacity !important;
 }
 
+/* Fricción Positiva: Eliminar iconos genéricos que no aportan información y provocan clics por inercia */
+.swal2-gis-popup .swal2-icon {
+    display: none !important;
+}
+
 .swal2-gis-popup .swal2-title {
     font-family: 'Poppins', sans-serif !important;
     font-weight: 700 !important;
     color: #031d38 !important;
-    font-size: 1.5rem !important;
-    margin-bottom: 0.5rem !important;
+    font-size: 1.45rem !important;
+    margin: 0 0 0.75rem 0 !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    padding: 0 !important;
 }
 
 .swal2-gis-popup .swal2-html-container {
     font-family: 'Poppins', sans-serif !important;
     color: #475569 !important;
-    font-size: 1.05rem !important;
-    line-height: 1.5 !important;
+    font-size: 1.02rem !important;
+    line-height: 1.55 !important;
+    text-align: left !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 0 1.25rem 0 !important;
 }
 
-.swal2-gis-popup .swal2-actions {
+.swal2-gis-popup .swal2-actions,
+div:where(.swal2-container) .swal2-actions,
+.swal2-container .swal2-actions {
+    display: flex !important;
     gap: 12px !important;
-    margin-top: 1.5rem !important;
+    margin: 1.25rem 0 0 0 !important;
+    width: 100% !important;
+    justify-content: flex-end !important;
+    padding: 0 !important;
 }
 
 .swal2-gis-popup .swal2-styled {
@@ -350,18 +371,6 @@
 .swal2-gis-popup .swal2-styled:hover {
     transform: translateY(-2px) !important;
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2) !important;
-}
-
-.swal2-gis-popup .swal2-icon {
-    margin: 0.5rem auto 1rem auto !important;
-    border-width: 3px !important;
-    -webkit-animation: none !important;
-    animation: none !important;
-}
-
-.swal2-gis-popup .swal2-icon .swal2-icon-content {
-    -webkit-animation: none !important;
-    animation: none !important;
 }
 
 .swal2-gis-in,

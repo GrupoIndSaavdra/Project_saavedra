@@ -208,10 +208,9 @@ window.cargarInputsRechazados = function (ot, files, clasesRechazadas) {
 
 window.quitarArchivoRechazo = async function (ot, archivo, buttonEl) {
     const res = await (window.gisConfirm ? window.gisConfirm({
-        title: "¿Eliminar formato?",
-        text: "¿Estás seguro de que deseas eliminar permanentemente este formato? Esta acción no se puede deshacer.",
-        icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        title: "¿Eliminar formato de rechazo?",
+        text: "Se eliminará permanentemente este formato y su registro asociado en el almacén.",
+        confirmButtonText: "Eliminar",
         confirmButtonColor: "#b30404"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) {

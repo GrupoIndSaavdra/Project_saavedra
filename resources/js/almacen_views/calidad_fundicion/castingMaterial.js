@@ -120,10 +120,9 @@ window.subirArchivoAprobadoEstatico = function (ot, tipoModelo, inputId) {
 window.eliminarArchivoAprobadoServer = async function (ot, fileNombre, tipoModelo) {
     const filenameOnly = fileNombre.split("/").pop();
     const res = await (window.gisConfirm ? window.gisConfirm({
-        title: "¿Eliminar archivo?",
-        text: `¿Estás seguro de eliminar el archivo "${filenameOnly}"?`,
-        icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        title: "¿Eliminar archivo aprobado?",
+        text: `Se borrará permanentemente el documento "${filenameOnly}" del servidor.`,
+        confirmButtonText: "Eliminar",
         confirmButtonColor: "#b30404"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) {

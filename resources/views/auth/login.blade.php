@@ -7,13 +7,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
-    <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
+
+    <!-- SweetAlert2 Global GIS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     <!-- Bootstrap CSS v5.2.1 -->
     <link rel="stylesheet" href="{{ asset('bootstrap/css/bootstrap.min.css') }}">
 
     <!-- Estilos y Scripts Modularizados -->
-    @vite(['resources/css/auth/login.css', 'resources/js/auth/login.js', 'resources/js/layouts/partials/messages.js'])
+    @vite(['resources/css/auth/login.css', 'resources/css/layouts/partials/messages.css', 'resources/js/auth/login.js', 'resources/js/layouts/partials/messages.js'])
 
     <script>
         window.baseUrl = "{{ url('/') }}";

@@ -26,7 +26,17 @@ Cuando crees o modifiques JavaScript, DEBES cumplir estrictamente estas 7 reglas
 4. **Validación defensiva del DOM:** Usa encadenamiento opcional `?.` o comprobación de existencia `if (!element) return;` antes de leer o modificar propiedades del DOM para evitar `TypeError: Cannot read properties of null`.
 5. **No hardcodear URLs:** Usa `window.routes` inyectado desde Blade y reemplaza placeholders con `.replace(':id', id)`.
 6. **Aislamiento en IIFE + DOMContentLoaded:** Encapsula siempre los módulos de JS en una función autoejecutable IIFE con `document.addEventListener('DOMContentLoaded', ...)`.
-7. **PROHIBICIÓN TOTAL DE ALERT Y CONFIRM NATIVOS:** Queda estrictamente prohibido usar `alert()` y `confirm()` nativos del navegador. Usa `toastpremium(msg, tipo)` para notificaciones y `await window.gisConfirm({ title, text, icon, confirmButtonText, confirmButtonColor })` de `messages.js` para confirmaciones interactivas.
+7. **PROHIBICIÓN TOTAL DE ALERT/CONFIRM NATIVOS Y REGLA DE FRICCIÓN POSITIVA:**
+   - Queda estrictamente prohibido usar `alert()` y `confirm()` nativos del navegador.
+   - **Notificaciones / Toasts:** Usa **SIEMPRE `window.gisToast(mensaje, tipo)`** (o los alias compatibles `toastpremium`, `almacenToast`). Proyecta toasts oficiales de SweetAlert2 en la esquina inferior derecha (`bottom-end`).
+   - **Modales de Confirmación y Decisión:** Usa **`await window.gisConfirm({ title, text, confirmButtonText, confirmButtonColor, cancelButtonText })`**.
+   - **Modales de Aviso / Bloqueo:** Usa **`window.gisAlert({ title, text, confirmButtonText, confirmButtonColor })`**.
+   - **Reglas de Oro de Fricción Positiva:**
+     1. **Cero Títulos Genéricos:** PROHIBIDO usar *"Alerta del Sistema"*, *"¡Éxito!"* o *"¿Estás seguro?"*. Usa títulos específicos con el contexto y sujeto de la acción (ej: *"¿Desocupar máquina 12?"*, *"¿Eliminar registro de medición?"*).
+     2. **Cero Asunción de Género:** Redacción neutra y directa.
+     3. **Cero Botones con "Sí":** PROHIBIDO *"Sí, eliminar"*, *"Sí, continuar"*, *"Sí"*. El cerebro hace clic por inercia causando pérdida de datos. Usa el verbo exacto de la acción: `Eliminar`, `Desocupar`, `Desactivar`, `Reactivar`, `Entendido`.
+     4. **Cero Íconos Distractores:** PROHIBIDO poner `icon: 'warning'` o `icon: 'question'` en confirmaciones.
+     5. **Alineación Visual:** Contenido/descripción alineado a la izquierda para lectura consciente, y botones alineados a la derecha (`.swal2-actions { justify-content: flex-end }`).
 
 ---
 
@@ -85,37 +95,36 @@ async function procesarPieza(idPieza) {
 
 ---
 
-## 2. Alertas Elegantes (Uso de SweetAlert2)
+## 2. Alertas y Confirmaciones Oficiales (Fricción Positiva y gisToast)
 
 ```javascript
-// Alerta estándar del proyecto
-function mostrarAlerta(titulo, texto, icono) {
-    Swal.fire({
-        title: titulo,
-        text: texto,
-        icon: icono, // 'success', 'error', 'warning', 'info'
-        timer: icono === "success" ? 2500 : undefined, // Auto-cerrar en éxito
-        timerProgressBar: icono === "success",
-        confirmButtonColor: icono === "error" ? "#9c0303" : "#0a8504",
-    });
-}
+// ✅ 1. Notificación Toast no intrusiva (esquina inferior derecha)
+window.gisToast('Registro guardado correctamente', 'success');
+window.gisToast('Verifica los datos ingresados', 'warning');
+window.gisToast('Error al conectar con el servidor', 'error');
 
-// Confirmación de acción destructiva
-function confirmarEliminacion(id, callback) {
-    Swal.fire({
-        title: "¿Estás seguro?",
-        text: "Esta acción no se puede deshacer.",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#b30404", // Rojo Peligro Saavedra
-        cancelButtonColor: "#030041", // Azul Marino Saavedra
-        confirmButtonText: "Sí, eliminar",
-        cancelButtonText: "Cancelar",
-    }).then((result) => {
-        if (result.isConfirmed) {
-            callback(id);
-        }
+// ✅ 2. Alerta informativa consciente (sin íconos distractores, texto a la izquierda)
+window.gisAlert({
+    title: 'Límite de registros alcanzado',
+    text: 'Se ha cubierto la cantidad requerida de piezas para este lote de producción.',
+    confirmButtonText: 'Entendido',
+    confirmButtonColor: '#033966'
+});
+
+// ✅ 3. Confirmación de acción destructiva con Fricción Positiva (CERO "Sí", verbo directo)
+async function ejecutarEliminacion(idPieza, numeroPieza) {
+    const result = await window.gisConfirm({
+        title: `¿Eliminar medición de ${numeroPieza}?`,
+        text: 'Se removerá de forma permanente este registro dimensional del reporte oficial.',
+        confirmButtonText: 'Eliminar',        // Verbo directo de acción, NUNCA "Sí, eliminar"
+        confirmButtonColor: '#ef4444',       // Rojo Peligro Saavedra
+        cancelButtonText: 'Cancelar',
+        cancelButtonColor: '#64748b'
     });
+
+    if (result.isConfirmed) {
+        // Ejecutar acción AJAX...
+    }
 }
 ```
 
@@ -654,36 +663,58 @@ if (action === "reiniciar_parcial" || action === "reiniciar_completo") {
 
 ---
 
-## 20. Reemplazo de SweetAlert por almacenToast
+## 20. Sistema Oficial Centralizado de Toasts (`gisToast`)
 
-Para mantener la uniformidad en la aplicación (y evitar problemas de dependencias donde `Swal is not defined`), nunca utilices `Swal.fire` en el área de Almacén. Usa siempre `almacenToast`.
+Para mantener la uniformidad en toda la aplicación y erradicar toasts en markup HTML manual (`.dibujos-toast`, `.alm-toast`, `.ht-toast`, `.custom-alert-saavedra`), usa **`window.gisToast(mensaje, tipo)`** de `messages.js`.
+
+- **Ubicación:** Esquina inferior derecha (`position: 'bottom-end'`).
+- **Auto-inyección:** Si la vista no cargó SweetAlert2 en el `<head>`, `gisToast` descarga dinámicamente la librería y reproduce la notificación sin lanzar errores de consola.
+- **Tipos soportados:** `'success'`, `'error'`, `'warning'`, `'info'`.
+- **Compatibilidad:** Mapea automáticamente llamadas a `toastpremium`, `almacenToast`, `mostrarToast`, `mostrarNotificacion` y `showToastAlert`.
 
 ```javascript
-// ❌ INCORRECTO:
-Swal.fire("Error", "Mensaje", "error");
-
 // ✅ CORRECTO:
-almacenToast("Mensaje", "error");
-almacenToast("Mensaje", "success");
-almacenToast("Mensaje", "warning");
+window.gisToast('Pieza liberada exitosamente', 'success');
+window.gisToast('El subproceso no coincide', 'warning');
+window.gisToast('No se pudo guardar el archivo', 'error');
 ```
 
 ---
 
-## 21. Patrón Oficial de Alertas SweetAlert2 Concisas
+## 21. Protocolo Oficial de Modales con Fricción Positiva (`gisAlert` y `gisConfirm`)
 
-- **Eliminación de HTML complejo innecesario en alertas:**
-  No inventar clases custom redundantes (`.swal2-gis-popup`, `.swal-details-card`, etc.) para confirmaciones de acción. Seguir el patrón conciso de `Swal.fire`:
-    - **Título:** Claro, con el sujeto y número en color rojo peligro (`¿Desocupar <span style="color: #b30404;">Máquina ${numero}</span>?`).
-    - **Cuerpo (`html` o `text`):** Mensaje directo especificando únicamente la acción a realizar (`¿Estás seguro de que deseas liberar la <strong style="color: #b30404;">Máquina ${numero}</strong>?`), sin redundancias de datos ya visibles en la tabla.
-    - **Colores Oficiales de Botones:**
-        - `confirmButtonColor: '#b30404'` (Rojo Peligro Saavedra).
-        - `cancelButtonColor: '#030041'` (Azul Marino Saavedra).
-        - `reverseButtons: true` (Cancelar a la izquierda, Confirmar a la derecha).
-    - **Backdrop Azul Corporativo:**
-        ```javascript
-        backdrop: "rgba(0, 10, 25, 0.85)";
-        ```
+Evita que los operadores hagan clics mecánicos o por inercia que puedan provocar pérdida irreparable de datos. Todo modal de confirmación o aviso interactivo debe adherirse a los siguientes 5 pilares:
+
+1. **Título Específico y Contextual:**
+   - ❌ *Incorrecto:* `"Alerta del Sistema"`, `"¿Estás seguro?"`, `"Aviso"`.
+   - ✅ *Correcto:* `"¿Desocupar máquina 10?"`, `"¿Eliminar archivo adjunto?"`, `"Límite alcanzado"`.
+2. **Cuerpo Descriptivo y Neutral:**
+   - Explicar la consecuencia real sin asumir el género de quien lee.
+   - Texto alineado a la izquierda (`text-align: left`) para facilitar la comprensión.
+3. **Cero Botones con "Sí":**
+   - ❌ *Incorrecto:* `"Sí"`, `"Sí, continuar"`, `"Sí, eliminar"`.
+   - ✅ *Correcto:* `"Eliminar"`, `"Desocupar"`, `"Desactivar"`, `"Reactivar"`, `"Continuar"`, `"Entendido"`.
+4. **Cero Íconos Distractores:**
+   - ❌ *Incorrecto:* `icon: 'warning'`, `icon: 'question'`.
+   - ✅ *Correcto:* Sin ícono decorativo (`icon: undefined`). Solo el mensaje claro.
+5. **Botones Alineados a la Derecha:**
+   - La clase `.swal2-gis-popup` y las reglas en `messages.css` fuerzan `.swal2-actions { justify-content: flex-end !important; }`.
+
+```javascript
+// ✅ PATRÓN OFICIAL DE CONFIRMACIÓN:
+const result = await window.gisConfirm({
+    title: `¿Desocupar máquina ${numero}?`,
+    text: `La máquina ${numero} quedará disponible inmediatamente para nuevos trabajos.`,
+    confirmButtonText: 'Desocupar',
+    confirmButtonColor: '#b30404', // Rojo Peligro Saavedra
+    cancelButtonText: 'Cancelar',
+    cancelButtonColor: '#030041'  // Azul Marino Saavedra
+});
+
+if (result.isConfirmed) {
+    ejecutarLiberacion();
+}
+```
 
 ---
 

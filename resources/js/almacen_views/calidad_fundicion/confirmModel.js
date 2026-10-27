@@ -23,10 +23,9 @@ window.renderCmConfirmarBadges = renderCmConfirmarBadges;
 
 window.confirmarModelo = async function (ot, id_hash) {
     const res = await (window.gisConfirm ? window.gisConfirm({
-        title: "Confirmar Modelo",
-        text: `¿Confirmas que actualmente cuentas con el modelo físico para la OT ${ot}?`,
-        icon: "question",
-        confirmButtonText: "Sí, confirmar",
+        title: "¿Confirmar modelo físico?",
+        text: `El modelo quedará verificado en planta para la OT ${ot} y habilitará las operaciones siguientes.`,
+        confirmButtonText: "Confirmar",
         confirmButtonColor: "#0a8504"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) return;

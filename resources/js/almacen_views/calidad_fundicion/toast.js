@@ -1,33 +1,12 @@
-// ── TOAST NOTIFICACIONES ──────────────────────────────────────────────────────
+// ── TOAST NOTIFICACIONES (SISTEMA CENTRALIZADO GIS) ──────────────────────────
 function mostrarToast(mensaje, esError = false) {
-    const prev = document.querySelector(".alm-toast");
-    if (prev) prev.remove();
-    const toast = document.createElement("div");
-    toast.className = "alm-toast " + (esError ? "error" : "success");
-    let baseUrl = window.baseUrl || window.location.origin + "/";
-    if (!baseUrl.endsWith("/")) baseUrl += "/";
-    const iconPath = esError
-        ? baseUrl + "images/Color_Icons/Generales/delete.png"
-        : baseUrl + "images/Color_Icons/Generales/ready.png";
-    const iconAlt = esError ? "error" : "success";
-    toast.innerHTML = `
-<img src="${iconPath}" class="alert-icon-small" alt="${iconAlt}">
-<div class="alert-content">
-${mensaje}
-</div>
-<button class="close-alert-x" onclick="this.parentElement.remove()">×</button>
-`;
-    document.body.appendChild(toast);
-    setTimeout(() => {
-        if (toast.parentNode) {
-            toast.classList.add("fade-out");
-            setTimeout(() => {
-                if (toast.parentNode) toast.remove();
-            }, 450);
-        }
-    }, 4000);
+    const tipo = (esError === true || esError === "error" || esError === "danger") ? "error" : "success";
+    if (typeof window.gisToast === "function") {
+        window.gisToast(mensaje, tipo);
+    } else if (typeof window.toastpremium === "function") {
+        window.toastpremium(mensaje, tipo);
+    }
 }
-
 
 // Expose to window for global access
 window.mostrarToast = mostrarToast;

@@ -66,44 +66,24 @@ function toastpremium(message, type = "success") {
         return;
     }
 
-    // Estándar 2: Fallback nativo Saavedra si SweetAlert2 no estuviera en memoria
-    let baseUrl = window.baseUrl || (window.location.origin + window.location.pathname.split('/').slice(0, -1).join('/') + '/');
-    if (!baseUrl.endsWith('/')) baseUrl += '/';
-    if (baseUrl.includes('/login/')) baseUrl = baseUrl.replace('/login/', '/');
-
-    let container = document.getElementById('toast-container-premium');
-    if (!container) {
-        container = document.createElement('div');
-        container.id = 'toast-container-premium';
-        document.body.appendChild(container);
+    // Auto-carga asíncrona de SweetAlert2 si la vista no lo incluyó en el <head>
+    if (!window._swalLoadingPromise) {
+        window._swalLoadingPromise = new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/sweetalert2@11';
+            script.onload = () => resolve();
+            script.onerror = () => resolve();
+            document.head.appendChild(script);
+        });
     }
 
-    const toast = document.createElement('div');
-    const alertTypeClass = swalIcon === 'error' ? 'alert-danger' : (swalIcon === 'warning' ? 'alert-warning' : 'alert-success');
-    toast.className = `alert ${alertTypeClass} custom-alert-saavedra ${swalIcon}`;
-
-    let iconSrc = baseUrl + 'images/Color_Icons/Generales/ready.png';
-    if (swalIcon === 'error') iconSrc = baseUrl + 'images/Color_Icons/Generales/error.png';
-    if (swalIcon === 'warning') iconSrc = baseUrl + 'images/Color_Icons/Generales/Aviso.png';
-
-    toast.innerHTML = `
-        <img src="${iconSrc}" class="alert-icon-small" alt="${swalIcon}">
-        <div class="alert-content">
-            ${message}
-        </div>
-        <button class="close-alert-x">&times;</button>
-    `;
-
-    container.appendChild(toast);
-
-    const closeBtn = toast.querySelector('.close-alert-x');
-    if (closeBtn) closeBtn.onclick = () => toast.remove();
-
-    if (swalIcon !== 'error') {
-        setTimeout(() => {
-            if (toast.parentElement) toast.remove();
-        }, 5000);
-    }
+    window._swalLoadingPromise.then(() => {
+        if (typeof Swal !== 'undefined') {
+            toastpremium(message, type);
+        } else {
+            console.warn('[GIS Toast]:', message);
+        }
+    });
 }
 
 /**
@@ -156,9 +136,9 @@ window.showSystemModal = function(title, message, options = {}) {
                 <p class="lock-message" style="color: #475569; font-size: 1.25em; line-height: 1.6; margin: 0; font-weight: 500; padding: 0 1rem; text-align: center;">
                     ${message}
                 </p>
-                <div style="margin-top: 15px; width: 100%;">
-                    <button class="btn-lock-understood" style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); border-radius: 50px; font-weight: 800; font-size: 1.1em; text-transform: uppercase; letter-spacing: 1.5px; padding: 16px 45px; border: none; color: #fff; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 8px 24px rgba(3, 105, 161, 0.35); width: 100%; max-width: 320px;" onmouseover="this.style.filter='brightness(1.1)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.filter='none'; this.style.transform='none';">
-                        Aceptar y Continuar
+                <div style="margin-top: 15px; width: 100%; display: flex; justify-content: flex-end;">
+                    <button class="btn-lock-understood" style="background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%); border-radius: 10px; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; padding: 12px 28px; border: none; color: #fff; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(3, 105, 161, 0.35);" onmouseover="this.style.filter='brightness(1.1)'; this.style.transform='translateY(-2px)';" onmouseout="this.style.filter='none'; this.style.transform='none';">
+                        Entendido
                     </button>
                 </div>
             </div>
@@ -209,6 +189,16 @@ document.addEventListener('DOMContentLoaded', function() {
 window.toastpremium = toastpremium;
 window.gisToast = toastpremium;
 window.mostrarNotificacion = toastpremium;
+window.mostrarToast = function (message, esError = false) {
+    const tipo = (esError === true || esError === 'error' || esError === 'danger') ? 'error' : (typeof esError === 'string' ? esError : 'success');
+    return toastpremium(message, tipo);
+};
+window.almacenToast = function (message, type = 'success') {
+    return toastpremium(message, type);
+};
+window.showToastAlert = function (message, type = 'success') {
+    return toastpremium(message, type);
+};
 
 // Interceptar alert nativo para que NUNCA aparezca el popup feo del navegador
 window.alert = function (message) {
@@ -222,33 +212,32 @@ window.alert = function (message) {
 /**
  * Alerta Modal Estándar GIS (Reemplazo moderno de alert-NoCotas / alert nativo)
  * Soporta firma por objeto: gisAlert({ title, text, icon, confirmButtonText, confirmButtonColor })
- * o firma por parámetros: gisAlert(message, title, icon)
+/**
+ * Alerta Modal Estándar GIS (Fricción Positiva: alineado a la izquierda, sin iconos distractores)
+ * Soporta firma por objeto: gisAlert({ title, text, confirmButtonText, confirmButtonColor })
+ * o firma por parámetros: gisAlert(message, title)
  */
-window.gisAlert = function (arg1, arg2 = '', arg3 = 'info') {
+window.gisAlert = function (arg1, arg2 = '', arg3 = '') {
     let title = 'Aviso';
     let text = '';
-    let icon = 'info';
     let confirmButtonText = 'Entendido';
     let confirmButtonColor = '#033966';
 
     if (typeof arg1 === 'object' && arg1 !== null) {
         title = arg1.title || 'Aviso';
         text = arg1.text || '';
-        icon = arg1.icon || 'info';
         confirmButtonText = arg1.confirmButtonText || 'Entendido';
-        confirmButtonColor = arg1.confirmButtonColor || (icon === 'error' ? '#9c0303' : '#033966');
+        confirmButtonColor = arg1.confirmButtonColor || '#033966';
     } else {
         text = String(arg1 ?? '');
-        title = arg2 || (arg3 === 'error' ? 'Error' : (arg3 === 'warning' ? 'Atención' : 'Aviso'));
-        icon = arg3 || 'info';
-        confirmButtonColor = icon === 'error' ? '#9c0303' : '#033966';
+        title = arg2 || 'Aviso';
+        confirmButtonColor = '#033966';
     }
 
     if (typeof Swal !== 'undefined') {
         return Swal.fire({
             title,
             text,
-            icon,
             confirmButtonText,
             confirmButtonColor,
             backdrop: 'rgba(0, 10, 25, 0.85)',
@@ -256,23 +245,28 @@ window.gisAlert = function (arg1, arg2 = '', arg3 = 'info') {
         });
     }
 
-    // Fallback con ToastPremium o DOM modal Saavedra si SweetAlert no estuviera listo
+    // Fallback con ToastPremium si SweetAlert no estuviera listo
     if (typeof toastpremium === 'function') {
-        toastpremium(`${title}: ${text}`, icon === 'error' ? 'error' : (icon === 'warning' ? 'warning' : 'info'));
+        toastpremium(`${title}: ${text}`, 'info');
     }
     return Promise.resolve({ isConfirmed: true });
 };
 
 /**
- * Diálogo de Confirmación Estándar GIS (Reemplazo moderno de confirm() nativo)
- * Soporta firma por objeto: gisConfirm({ title, text, icon, confirmButtonText, confirmButtonColor, cancelButtonText, cancelButtonColor, reverseButtons })
+ * Diálogo de Confirmación Estándar GIS (Fricción Positiva)
+ * Elimina la inercia del clic automático:
+ * - Título con fórmula: Verbo + Sustantivo (ej. "¿Eliminar orden de trabajo?")
+ * - Botones directos con el verbo clave (CERO "Sí")
+ * - Sin iconos genéricos que no aportan información
+ * - Alineación completa a la izquierda
+ * 
+ * Soporta firma por objeto: gisConfirm({ title, text, confirmButtonText, confirmButtonColor, cancelButtonText, cancelButtonColor, reverseButtons })
  * o firma por texto: gisConfirm(message, title)
  */
-window.gisConfirm = async function (arg1, arg2 = '¿Estás seguro?') {
-    let title = '¿Estás seguro?';
+window.gisConfirm = async function (arg1, arg2 = '¿Confirmar acción?') {
+    let title = '¿Confirmar acción?';
     let text = '';
-    let icon = 'warning';
-    let confirmButtonText = 'Aceptar';
+    let confirmButtonText = 'Confirmar';
     let cancelButtonText = 'Cancelar';
     let confirmButtonColor = '#b30404'; // Rojo Peligro Saavedra por defecto
     let cancelButtonColor = '#030041';  // Azul Marino Saavedra
@@ -280,26 +274,30 @@ window.gisConfirm = async function (arg1, arg2 = '¿Estás seguro?') {
     let preConfirm = null;
 
     if (typeof arg1 === 'object' && arg1 !== null) {
-        title = arg1.title || '¿Estás seguro?';
+        title = arg1.title || '¿Confirmar acción?';
         text = arg1.text || '';
-        icon = arg1.icon || 'warning';
-        confirmButtonText = arg1.confirmButtonText || (icon === 'warning' || icon === 'error' ? 'Sí, continuar' : 'Aceptar');
+        confirmButtonText = arg1.confirmButtonText || 'Confirmar';
         cancelButtonText = arg1.cancelButtonText || 'Cancelar';
-        confirmButtonColor = arg1.confirmButtonColor || (icon === 'success' ? '#0a8504' : '#b30404');
+        confirmButtonColor = arg1.confirmButtonColor || '#b30404';
         cancelButtonColor = arg1.cancelButtonColor || '#030041';
         reverseButtons = arg1.reverseButtons !== undefined ? arg1.reverseButtons : true;
         preConfirm = arg1.preConfirm || null;
     } else {
         text = String(arg1 ?? '');
-        title = arg2 || '¿Estás seguro?';
-        confirmButtonText = 'Sí, continuar';
+        title = arg2 || '¿Confirmar acción?';
+        confirmButtonText = 'Confirmar';
+    }
+
+    // Fricción Positiva: Remover "Sí, " o "Si, " en los botones para enfatizar la palabra clave del verbo
+    if (confirmButtonText) {
+        confirmButtonText = confirmButtonText.replace(/^(Sí|Si),\s*/i, '').trim();
+        confirmButtonText = confirmButtonText.charAt(0).toUpperCase() + confirmButtonText.slice(1);
     }
 
     if (typeof Swal !== 'undefined') {
         const options = {
             title,
             text,
-            icon,
             showCancelButton: true,
             confirmButtonColor,
             cancelButtonColor,
@@ -317,27 +315,23 @@ window.gisConfirm = async function (arg1, arg2 = '¿Estás seguro?') {
         return await Swal.fire(options);
     }
 
-    // Fallback DOM Saavedra si SweetAlert2 estuviera temporalmente inaccesible (NUNCA confirm nativo)
+    // Fallback DOM Saavedra si SweetAlert2 estuviera temporalmente inaccesible
     return new Promise((resolve) => {
-        let baseUrl = window.baseUrl || (window.location.origin + '/');
-        if (!baseUrl.endsWith('/')) baseUrl += '/';
-
         const overlay = document.createElement('div');
         overlay.className = 'productivity-lock-overlay';
         overlay.style.zIndex = '100050';
         overlay.innerHTML = `
-            <div class="alm-modal-content" style="background: #ffffff; width: 95vw; max-width: 520px; border-radius: 20px; border: 4px solid #033966; box-shadow: 0 25px 60px rgba(0, 10, 25, 0.45); display: flex; flex-direction: column; overflow: hidden;">
-                <div style="background: linear-gradient(135deg, #033966 0%, #0284c7 100%); padding: 1.5em; text-align: center;">
-                    <h3 style="margin: 0; color: #fff; font-size: 1.4em; font-weight: 700; font-family: 'Poppins', sans-serif;">
+            <div class="alm-modal-content" style="background: #ffffff; width: 95vw; max-width: 520px; border-radius: 20px; border: 4px solid #033966; box-shadow: 0 25px 60px rgba(0, 10, 25, 0.45); display: flex; flex-direction: column; overflow: hidden; text-align: left;">
+                <div style="background: linear-gradient(135deg, #033966 0%, #0284c7 100%); padding: 1.5em 2em; text-align: left;">
+                    <h3 style="margin: 0; color: #fff; font-size: 1.35em; font-weight: 700; font-family: 'Poppins', sans-serif;">
                         ${title}
                     </h3>
                 </div>
-                <div style="background: #f8fafc; padding: 2em; font-family: 'Poppins', sans-serif; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 15px;">
-                    <img src="${baseUrl}images/Color_Icons/Generales/Aviso.png" alt="Aviso" style="width: 70px; height: 70px; filter: drop-shadow(0 4px 6px rgba(3, 57, 102, 0.2));">
-                    <p style="color: #475569; font-size: 1.1em; line-height: 1.5; margin: 0; font-weight: 500;">
+                <div style="background: #ffffff; padding: 2em; font-family: 'Poppins', sans-serif; text-align: left; display: flex; flex-direction: column; align-items: flex-start; gap: 15px;">
+                    <p style="color: #475569; font-size: 1.02em; line-height: 1.55; margin: 0; font-weight: 500; text-align: left;">
                         ${text}
                     </p>
-                    <div style="margin-top: 15px; display: flex; gap: 12px; justify-content: center; width: 100%;">
+                    <div style="margin-top: 15px; display: flex; gap: 12px; justify-content: flex-end; width: 100%;">
                         <button class="btn-gis-cancel" style="background: #030041; border-radius: 10px; font-weight: 700; font-size: 0.95rem; padding: 10px 24px; border: none; color: #fff; cursor: pointer;">
                             ${cancelButtonText}
                         </button>

@@ -551,9 +551,8 @@ function createButtons(idClass) {
         e.preventDefault();
         const res = await (window.gisConfirm ? window.gisConfirm({
             title: "¿Eliminar clase?",
-            text: "¿Estás seguro de que deseas eliminar esta clase?",
-            icon: "warning",
-            confirmButtonText: "Sí, eliminar",
+            text: "Se eliminarán permanentemente las piezas, programas y avances asignados a esta clase.",
+            confirmButtonText: "Eliminar",
             confirmButtonColor: "#b30404"
         }) : Promise.resolve({ isConfirmed: true }));
         if (res.isConfirmed) {
@@ -756,10 +755,9 @@ document.addEventListener("click", function (e) {
         e.preventDefault();
         e.stopPropagation();
         (window.gisConfirm ? window.gisConfirm({
-            title: "Cambios pendientes",
-            text: "Tiene cambios pendientes de guardar en esta vista. Si sale hacia otra vista del menú, los cambios no guardados se perderán.\n\n¿Desea salir sin guardar los cambios?",
-            icon: "warning",
-            confirmButtonText: "Salir sin guardar",
+            title: "¿Descartar modificaciones?",
+            text: "Existen datos modificados sin guardar. Al cambiar de vista se perderán definitivamente.",
+            confirmButtonText: "Descartar cambios",
             confirmButtonColor: "#b30404",
             cancelButtonText: "Permanecer aquí"
         }) : Promise.resolve({ isConfirmed: true })).then(res => {

@@ -141,6 +141,9 @@ El sistema utiliza perfiles numéricos en la tabla de usuarios (`perfil`). Cada 
    - Toda llamada async o navegación debe desplegar feedback visual (`loading.gif` o `setVisualLoading(true)`).
 5. **DOM Ready:**
    - Todo código JS debe inicializarse dentro de `document.addEventListener('DOMContentLoaded', ...)`.
+6. **Sistema Oficial de Toasts y Fricción Positiva en Modales:**
+   - **Toasts Oficiales:** Toda notificación debe usar `window.gisToast(mensaje, tipo)`. Prohibido crear divs de toast manuales en el DOM (`.dibujos-toast`, `.alm-toast`, `.ht-toast`, `.custom-alert-saavedra`).
+   - **Fricción Positiva en Modales:** Usar `await window.gisConfirm({...})` o `window.gisAlert({...})`. Prohibidos títulos genéricos ("Alerta del Sistema"), prohibidos botones con "Sí" (usar verbos de acción: Eliminar, Desocupar, Desactivar, Reactivar, Entendido), prohibidos íconos distractores (`warning`, `question`), y botones alineados siempre a la derecha (`.swal2-actions { justify-content: flex-end }`).
 
 ### D. Encodaje y Nomenclatura Oficial
 1. **Codificación:** Archivos guardados obligatoriamente en **UTF-8 sin BOM**. Prohibido introducir o dejar caracteres mojibake (`Ã¡`, `â€“`, etc.).

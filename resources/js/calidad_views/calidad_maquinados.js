@@ -226,18 +226,13 @@ window.calmaqVerArchivo = function (id) {
     );
 };
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
+// ── TOAST CENTRALIZADO ────────────────────────────────────────────────────────
 
 function mostrarToast(mensaje, esError = false) {
-    document.querySelector('.alm-toast')?.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'alm-toast' + (esError ? ' error' : '');
-    toast.textContent = mensaje;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add('fade-out');
-        setTimeout(() => toast.remove(), 450);
-    }, 4000);
+    const tipo = (esError === true || esError === 'error' || esError === 'danger') ? 'error' : 'success';
+    if (typeof window.gisToast === 'function') {
+        window.gisToast(mensaje, tipo);
+    } else if (typeof window.toastpremium === 'function') {
+        window.toastpremium(mensaje, tipo);
+    }
 }

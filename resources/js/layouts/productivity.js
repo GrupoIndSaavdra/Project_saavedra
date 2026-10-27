@@ -4,7 +4,7 @@
  */
 
 // --- 1. SISTEMA DE LOGGING GLOBAL ---
-window.logUserAction = function(actionName, detailsStr = null, customData = {}) {
+window.logUserAction = function (actionName, detailsStr = null, customData = {}) {
     if (!detailsStr) {
         const defaultDescriptions = {
             "Carga de Formulario de Producción": "El operador cargó la interfaz principal del sistema.",
@@ -30,9 +30,9 @@ window.logUserAction = function(actionName, detailsStr = null, customData = {}) 
     if (!csrfToken || !window.baseUrl) return;
 
     let nPieza = window.pieceToBeUsed ? (window.pieceToBeUsed.n_pieza || window.pieceToBeUsed.n_juego) : null;
-    
+
     const nowTime = new Date().toLocaleTimeString('it-IT');
-    
+
     // REGLA DE ORO: PRIORIDAD A DATOS MANUALES (PARA RANGOS PERSONALIZADOS)
     // Si no hay customData ni pieceStartTime, usamos la hora actual del sistema en lugar de la meta completa
     let h_inicio = customData.h_inicio || window.currentPieceStartTime || nowTime;
@@ -64,40 +64,32 @@ window.logUserAction = function(actionName, detailsStr = null, customData = {}) 
 };
 
 // --- 2. SISTEMA DE ALERTAS PREMIUM (TOASTS) ---
-window.showToastAlert = function(message, type = "success") {
-    let container = document.getElementById("bottom-right-toasts");
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "bottom-right-toasts";
-        container.style.cssText = "position: fixed; bottom: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;";
-        document.body.appendChild(container);
+window.showToastAlert = function (message, type = "success") {
+    if (typeof window.gisToast === "function") {
+        window.gisToast(message, type);
+        return;
     }
-
-    const toast = document.createElement("div");
-    const alertClass = type === "error" ? "alert-danger" : "alert-success";
-    toast.className = `alert ${alertClass} custom-alert`;
-    toast.style.cssText = "margin: 0; pointer-events: auto; transform: translateX(120%); transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55), opacity 0.4s ease; box-shadow: 0 10px 25px rgba(0,0,0,0.2);";
-    
-    toast.innerHTML = `<button class="close-alert">&times;</button>${message}`;
-
-    toast.querySelector('.close-alert').onclick = () => {
-        toast.style.transform = "translateX(120%)";
-        toast.style.opacity = "0";
-        setTimeout(() => toast.remove(), 400);
-    };
-
-    container.appendChild(toast);
-    requestAnimationFrame(() => toast.style.transform = "translateX(0)");
-
-    if (type === "success") {
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.style.transform = "translateX(120%)";
-                toast.style.opacity = "0";
-                setTimeout(() => toast.remove(), 400);
-            }
-        }, 6000);
+    if (typeof window.toastpremium === "function") {
+        window.toastpremium(message, type);
+        return;
     }
+    if (typeof toastpremium === "function") {
+        toastpremium(message, type);
+        return;
+    }
+    if (typeof Swal !== "undefined") {
+        Swal.fire({
+            toast: true,
+            position: "bottom-end",
+            icon: type === "danger" ? "error" : type,
+            title: message,
+            showConfirmButton: false,
+            timer: 3200,
+            timerProgressBar: true
+        });
+        return;
+    }
+    console.warn("[showToastAlert]:", message);
 };
 
 // --- 3. MONITOREO DE PRODUCTIVIDAD (SERVER-SIDE) ---
@@ -137,11 +129,11 @@ function syncProductivityWithServer() {
     }
 
     // --- PROTECCIÓN ANTI-BLIP ---
-    // Si estamos en una página conocida de producción/home pero no detectamos nada, 
+    // Si estamos en una página conocida de producción/home pero no detectamos nada,
     // evitamos enviar 'none' para no confundir al servidor momentáneamente.
-    const isOperatorPage = window.location.pathname.includes('/home') || 
-                           window.location.pathname.includes('/processProduction');
-    
+    const isOperatorPage = window.location.pathname.includes('/home') ||
+        window.location.pathname.includes('/processProduction');
+
     if (isOperatorPage && currentStatus === 'none') {
         return; // Ignorar este latido hasta que cargue la UI
     }
@@ -162,25 +154,25 @@ function syncProductivityWithServer() {
         },
         body: JSON.stringify({ status: currentStatus, standard_min: standardMin })
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.locked) {
-            renderGlobalProductivityAlert(data.locked, data.standard_min || standardMin);
-        }
-    })
-    .catch(err => console.error("Productivity Sync Error:", err));
+        .then(response => response.json())
+        .then(data => {
+            if (data.locked) {
+                renderGlobalProductivityAlert(data.locked, data.standard_min || standardMin);
+            }
+        })
+        .catch(err => console.error("Productivity Sync Error:", err));
 }
 
 function renderGlobalProductivityAlert(type, standardMinutes = 0) {
     if (document.getElementById('productivity-lock-overlay')) return;
-    
+
     // Si ya hay algo en persistencia, no pisamos el startTime
     const pendingModal = localStorage.getItem('pending_system_modal');
     let startTime = new Date().toLocaleTimeString('it-IT');
     if (pendingModal) {
         try {
             startTime = JSON.parse(pendingModal).startTime;
-        } catch (e) {}
+        } catch (e) { }
     }
 
     // MAPEO DE LUGARES PARA EL LOG
@@ -243,20 +235,20 @@ function renderGlobalProductivityAlert(type, standardMinutes = 0) {
 /**
  * Función global para procesar el desbloqueo y logging
  */
-window.handleProductivityUnlock = function(alertTitle, startTime, alertType = null, lugar = 'Sistema') {
+window.handleProductivityUnlock = function (alertTitle, startTime, alertType = null, lugar = 'Sistema') {
     const h_termino = new Date().toLocaleTimeString('it-IT');
-    
+
     // Calcular tiempo de respuesta (tiempo transcurrido desde que salió la alerta hasta que se aceptó)
     const [h1, m1, s1] = startTime.split(':').map(Number);
     const [h2, m2, s2] = h_termino.split(':').map(Number);
-    const date1 = new Date(0,0,0, h1, m1, s1);
-    const date2 = new Date(0,0,0, h2, m2, s2);
+    const date1 = new Date(0, 0, 0, h1, m1, s1);
+    const date2 = new Date(0, 0, 0, h2, m2, s2);
     let diffMs = date2 - date1;
     if (diffMs < 0) diffMs += 24 * 60 * 60 * 1000; // Por si cruza medianoche
-    
+
     const totalSeconds = Math.floor(diffMs / 1000);
     let timeTaken = "";
-    
+
     if (totalSeconds < 60) {
         timeTaken = `${totalSeconds} seg`;
     } else if (totalSeconds < 3600) {
@@ -270,11 +262,11 @@ window.handleProductivityUnlock = function(alertTitle, startTime, alertType = nu
     }
 
     let details = "";
-    const actionName = alertType === 'produccion' ? 'Exceso de Tiempo de Maquinado' : 
-                      (alertType === 'formulario' ? 'Inactividad en Formulario' : 'Inactividad en Bienvenida');
-    
+    const actionName = alertType === 'produccion' ? 'Exceso de Tiempo de Maquinado' :
+        (alertType === 'formulario' ? 'Inactividad en Formulario' : 'Inactividad en Bienvenida');
+
     details = `El operador reconoció y aceptó la alerta de ${alertType === 'produccion' ? 'Exceso de Tiempo' : 'Inactividad'} en ${lugar} tras ${timeTaken}.`;
-    
+
     // Registrar el log con el tiempo REAL y una acción NO ignorada
     window.logUserAction(actionName, details, {
         h_inicio: startTime,

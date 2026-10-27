@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAdminUI();
 });
 
-window.changeDocSelector = function(paramName, value, toClear = []) {
+window.changeDocSelector = function (paramName, value, toClear = []) {
     const url = new URL(window.location.href);
     if (value) url.searchParams.set(paramName, value);
     else url.searchParams.delete(paramName);
@@ -24,11 +24,11 @@ window.changeDocSelector = function(paramName, value, toClear = []) {
     window.location.href = url.toString();
 };
 
-window.irACarpeta = function(p1, p2, isId = false) {
+window.irACarpeta = function (p1, p2, isId = false) {
     const url = new URL(window.location.href);
 
     if (p2 && p2 !== 'null') url.searchParams.set('clase_id', p2);
-    
+
     window.location.href = url.toString();
 };
 
@@ -81,13 +81,13 @@ function updateAdminUI() {
     }
 
     const panelFiles = document.getElementById('panel-archivos');
-    
+
     // Contenedores de Alertas y Botones
     const alertReadyExists = document.getElementById('alert-ready-exists');
     const alertReadyNotExists = document.getElementById('alert-ready-not-exists');
     const alertNotReady = document.getElementById('alert-not-ready');
     const btnCrear = document.getElementById('btn-crear-carpeta');
-    
+
     const uploadReadyContent = document.getElementById('upload-ready-content');
     const uploadNotReadyContent = document.getElementById('upload-not-ready-content');
     const alertUploadNoFolder = document.getElementById('alert-upload-no-folder');
@@ -135,10 +135,10 @@ function updateAdminUI() {
         if (uploadNotReadyContent) uploadNotReadyContent.hidden = true;
         if (uploadReadyContent) uploadReadyContent.hidden = false;
         if (alertUploadNoFolder) alertUploadNoFolder.classList.toggle("hidden", existe);
-        
+
         const fileFormGroup = uploadReadyContent ? uploadReadyContent.querySelector('.dibujos-form-group') : null;
         if (fileFormGroup) fileFormGroup.classList.toggle("hidden", !existe);
-        
+
         const fileInput = document.getElementById('d-upload-file');
         if (fileInput) fileInput.disabled = !existe;
 
@@ -188,20 +188,20 @@ function initCreateFolderBtn() {
             },
             body: JSON.stringify(payload),
         })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
-            }
-        })
-        .catch(() => mostrarNotificacion('Error de conexión al crear carpeta.', true))
-        .finally(() => {
-            btnCrear.disabled = false;
-            btnCrear.innerHTML = originalHTML;
-        });
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarNotificacion(data.message || 'Carpeta creada correctamente.');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    mostrarNotificacion(data.message || 'No se pudo crear la carpeta.', true);
+                }
+            })
+            .catch(() => mostrarNotificacion('Error de conexión al crear carpeta.', true))
+            .finally(() => {
+                btnCrear.disabled = false;
+                btnCrear.innerHTML = originalHTML;
+            });
     });
 }
 
@@ -213,7 +213,7 @@ function initUploadBtn() {
     document.addEventListener('change', (e) => {
         const fileInput = e.target.closest('#d-upload-file');
         if (!fileInput) return;
-        
+
         const fileNameLabel = document.getElementById('d-upload-file-name');
         const fileLabelText = document.getElementById('d-upload-file-label-text');
         const btnSubir = document.getElementById('btn-subir-pdf');
@@ -253,8 +253,8 @@ function initUploadBtn() {
 
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            btnSubir.innerHTML = `<span class="dibujos-spinner"></span> (${i+1}/${files.length}) Subiendo...`;
-            
+            btnSubir.innerHTML = `<span class="dibujos-spinner"></span> (${i + 1}/${files.length}) Subiendo...`;
+
             try {
                 const data = await subirArchivoIndividual(payload, file);
                 if (data.success) successCount++;
@@ -279,7 +279,7 @@ function initUploadBtn() {
 
         if (successCount > 0) {
             mostrarNotificacion(successCount === 1 ? 'Archivo subido correctamente.' : `${successCount} archivos subidos correctamente.`);
-            
+
             // Recargar vista de archivos y badges
             const p1 = payload.param1;
             const p2 = payload.param2;
@@ -292,10 +292,10 @@ function initUploadBtn() {
 }
 
 function getPayloadFromBtn(btn) {
-    return { 
-        clase: btn.dataset.clase, 
-        param1: btn.dataset.folderParam1, 
-        param2: btn.dataset.folderParam2 || btn.dataset.clase 
+    return {
+        clase: btn.dataset.clase,
+        param1: btn.dataset.folderParam1,
+        param2: btn.dataset.folderParam2 || btn.dataset.clase
     };
 }
 
@@ -355,11 +355,11 @@ function renderArchivosGrid(data, param1, param2) {
     });
 }
 
-window.abrirPdf = function(url) {
+window.abrirPdf = function (url) {
     window.open(url, '_blank');
 };
 
-window.prepararReemplazo = function(nombreArchivo, param1, param2, btnElement) {
+window.prepararReemplazo = function (nombreArchivo, param1, param2, btnElement) {
     if (typeof btnElement === 'undefined') {
         btnElement = param2;
         param2 = null;
@@ -369,31 +369,30 @@ window.prepararReemplazo = function(nombreArchivo, param1, param2, btnElement) {
     hiddenInput.type = 'file';
     hiddenInput.accept = '.pdf';
     hiddenInput.hidden = true;
-    
+
     hiddenInput.addEventListener('change', () => {
         const file = hiddenInput.files[0];
         if (!file) return;
-        
+
         let payload = { archivo_anterior: nombreArchivo };
         payload.clase = param2;
-        
+
         reemplazarPdf(payload, file, btnElement, () => {
             cargarArchivosEnPanel(param1, param2);
             actualizarBadge(param1, param2);
         });
     });
-    
+
     document.body.appendChild(hiddenInput);
     hiddenInput.click();
     setTimeout(() => hiddenInput.remove(), 5000);
 };
 
-window.eliminarPdf = async function(nombreArchivo, param1, param2) {
+window.eliminarPdf = async function (nombreArchivo, param1, param2) {
     const res = await (window.gisConfirm ? window.gisConfirm({
         title: "¿Eliminar archivo?",
-        text: `¿Deseas eliminar el archivo "${nombreArchivo}"?\nEsta acción no se puede deshacer.`,
-        icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        text: `Se borrará permanentemente el documento "${nombreArchivo}" del servidor.`,
+        confirmButtonText: "Eliminar",
         confirmButtonColor: "#b30404"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) return;
@@ -410,23 +409,23 @@ window.eliminarPdf = async function(nombreArchivo, param1, param2) {
         },
         body: JSON.stringify(payload),
     })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            mostrarNotificacion(data.message || 'Archivo eliminado correctamente.');
-            setTimeout(() => window.location.reload(), 1000);
-        } else {
-            mostrarNotificacion(data.message || 'No se pudo eliminar el archivo.', true);
-        }
-    })
-    .catch(() => mostrarNotificacion('Error de conexion. Intente de nuevo.', true));
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                mostrarNotificacion(data.message || 'Archivo eliminado correctamente.');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                mostrarNotificacion(data.message || 'No se pudo eliminar el archivo.', true);
+            }
+        })
+        .catch(() => mostrarNotificacion('Error de conexion. Intente de nuevo.', true));
 };
 
 
 function subirArchivoIndividual(payload, file) {
     const formData = new FormData();
     Object.keys(payload).forEach(k => {
-        if(k !== 'param1' && k !== 'param2') formData.append(k, payload[k]);
+        if (k !== 'param1' && k !== 'param2') formData.append(k, payload[k]);
     });
     formData.append('pdf', file);
 
@@ -457,27 +456,27 @@ function reemplazarPdf(payload, file, btn, onSuccess) {
         },
         body: formData,
     })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            mostrarNotificacion(data.message || 'Archivo reemplazado correctamente.');
-            setTimeout(() => window.location.reload(), 1000);
-        } else {
-            mostrarNotificacion(data.message || 'No se pudo reemplazar.', true);
-        }
-    })
-    .catch(() => mostrarNotificacion('Error de conexion.', true))
-    .finally(() => {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
-    });
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                mostrarNotificacion(data.message || 'Archivo reemplazado correctamente.');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                mostrarNotificacion(data.message || 'No se pudo reemplazar.', true);
+            }
+        })
+        .catch(() => mostrarNotificacion('Error de conexion.', true))
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
 }
 
 function loadBadgeCounts() {
     let rows;
     rows = document.querySelectorAll('[data-clase]');
-    
-    if(!rows) return;
+
+    if (!rows) return;
 
     const observer = new IntersectionObserver((entries, obs) => {
         entries.forEach(entry => {
@@ -508,7 +507,7 @@ function getBadgeElement(param1, param2 = null) {
 
     // Fallback original con IDs
     let badgeId = `badge-${slugify(param2)}`;
-    
+
     return document.getElementById(badgeId);
 }
 
@@ -536,7 +535,7 @@ function actualizarBadge(param1, param2 = null) {
                 if (btnEliminar) {
                     const btnSpan = btnEliminar.querySelector('span');
                     const btnImg = btnEliminar.querySelector('img');
-                    
+
                     if (count > 0) {
                         if (btnSpan) btnSpan.textContent = 'Vaciar Carpeta';
                         if (btnImg) btnImg.src = window.baseUrl + '/images/Color_Icons/Generales/Eliminar-Archivos.png';
@@ -558,41 +557,41 @@ function loadAuditLog() {
     fetch(window.routes['doc.log'], {
         headers: { 'Accept': 'application/json' },
     })
-    .then(r => {
-        if (!r.ok) throw new Error();
-        return r.json();
-    })
-    .then(data => {
-        tbody.innerHTML = '';
-        if (!data.logs || data.logs.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="d-text-center d-text-subtle" style="padding:1em;">Sin acciones registradas aun.</td></tr>';
-            return;
-        }
-        data.logs.forEach(log => {
-            const accionEs = {
-                'crear_carpeta': 'Se ha creado una nueva carpeta en el sistema',
-                'subir_pdf': 'Se subió un nuevo archivo PDF al servidor',
-                'eliminar_pdf': 'Se eliminó definitivamente un archivo PDF',
-                'reemplazar_pdf': 'Se reemplazó un archivo existente por una nueva versión',
-                'eliminar_carpeta': 'Se eliminó la carpeta permanentemente',
-                'vaciar_carpeta': 'Se eliminaron todos los archivos de la carpeta'
-            };
-            
-            let actionLabel = accionEs[log.action] || log.action;
+        .then(r => {
+            if (!r.ok) throw new Error();
+            return r.json();
+        })
+        .then(data => {
+            tbody.innerHTML = '';
+            if (!data.logs || data.logs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="d-text-center d-text-subtle" style="padding:1em;">Sin acciones registradas aun.</td></tr>';
+                return;
+            }
+            data.logs.forEach(log => {
+                const accionEs = {
+                    'crear_carpeta': 'Se ha creado una nueva carpeta en el sistema',
+                    'subir_pdf': 'Se subió un nuevo archivo PDF al servidor',
+                    'eliminar_pdf': 'Se eliminó definitivamente un archivo PDF',
+                    'reemplazar_pdf': 'Se reemplazó un archivo existente por una nueva versión',
+                    'eliminar_carpeta': 'Se eliminó la carpeta permanentemente',
+                    'vaciar_carpeta': 'Se eliminaron todos los archivos de la carpeta'
+                };
 
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
+                let actionLabel = accionEs[log.action] || log.action;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
                 <td>${escapeHTML(log.created_at)}</td>
                 <td>${escapeHTML(log.user_name || '—')}</td>
                 <td><span class="action-badge ${log.action}">${escapeHTML(actionLabel)}</span></td>
                 <td>${escapeHTML(log.ruta)}</td>
                 <td>${escapeHTML(log.archivo || '—')}</td>`;
-            tbody.appendChild(tr);
+                tbody.appendChild(tr);
+            });
+        })
+        .catch(() => {
+            tbody.innerHTML = '<tr><td colspan="5" class="d-text-center d-text-subtle" style="padding:1em;">Registro no disponible.</td></tr>';
         });
-    })
-    .catch(() => {
-        tbody.innerHTML = '<tr><td colspan="5" class="d-text-center d-text-subtle" style="padding:1em;">Registro no disponible.</td></tr>';
-    });
 }
 
 function slugify(text) {
@@ -615,28 +614,19 @@ function escapeHTML(str) {
 }
 
 function mostrarNotificacion(mensaje, esError = false) {
-    const existente = document.querySelector('.dibujos-toast');
-    if (existente) existente.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'dibujos-toast' + (esError ? ' error' : '');
-    
-    const icono = esError ? '❌ ' : '✅ ';
-    toast.innerHTML = `<span style="margin-right:8px;">${icono}</span> ${escapeHTML(mensaje)}`;
-    
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add('fade-out');
-        setTimeout(() => toast.remove(), 500);
-    }, 4000);
+    const tipo = (esError === true || esError === 'error' || esError === 'danger') ? 'error' : 'success';
+    if (typeof window.gisToast === 'function') {
+        window.gisToast(mensaje, tipo);
+    } else if (typeof window.toastpremium === 'function') {
+        window.toastpremium(mensaje, tipo);
+    }
 }
 
 /* ── MÓDULO DE ELIMINACIÓN DE CARPETAS ── */
 
 let folderToDelete = null;
 
-window.confirmarEliminarCarpeta = function(p1, p2, label) {
+window.confirmarEliminarCarpeta = function (p1, p2, label) {
     folderToDelete = { p1, p2 };
     const modal = document.getElementById('dibujos-confirm-modal');
     const msgContainer = document.getElementById('confirm-message-container');
@@ -647,25 +637,25 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
         const badge = getBadgeElement(p1, p2);
         let count = 0;
         if (badge) count = parseInt(badge.textContent) || 0;
-        
+
         let isVaciar = (count > 0);
         let actionWord = isVaciar ? 'vaciar todos los archivos' : 'eliminar completamente';
         let finalHtml = '';
-        
+
         // Eliminando 'Fundicion' (Subcarpeta)
         finalHtml = `Se va a ${actionWord} de la carpeta:<br>
                         <span class="confirm-label-highlight" style="display: inline-block; margin-top: 0.3em;">Fundición</span><br>
                         <small style="color: #555;">(Clase: ${p2})</small>`;
 
         msgContainer.innerHTML = finalHtml;
-        
+
         if (modalIcon) {
             modalIcon.src = window.baseUrl + (isVaciar ? '/images/Color_Icons/Generales/Eliminar-Archivos.png' : '/images/Color_Icons/Generales/Eliminar-Carpeta.png');
         }
-        
+
         btnConfirm.textContent = isVaciar ? 'Vaciar Carpeta' : 'Eliminar Permanentemente';
         modal.hidden = false;
-        
+
         btnConfirm.onclick = () => {
             eliminarCarpetaAJAX(folderToDelete);
             cerrarConfirmarEliminar();
@@ -673,7 +663,7 @@ window.confirmarEliminarCarpeta = function(p1, p2, label) {
     }
 };
 
-window.cerrarConfirmarEliminar = function() {
+window.cerrarConfirmarEliminar = function () {
     const modal = document.getElementById('dibujos-confirm-modal');
     if (modal) modal.hidden = true;
     folderToDelete = null;
@@ -692,17 +682,17 @@ function eliminarCarpetaAJAX(folder) {
         },
         body: JSON.stringify(payload),
     })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            mostrarNotificacion(data.message || 'Carpeta eliminada.');
-            setTimeout(() => window.location.reload(), 1000);
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                mostrarNotificacion(data.message || 'Carpeta eliminada.');
+                setTimeout(() => window.location.reload(), 1000);
 
-        } else {
-            mostrarNotificacion(data.message || 'Error al eliminar carpeta.', true);
-        }
-    })
-    .catch(() => mostrarNotificacion('Error de conexión.', true));
+            } else {
+                mostrarNotificacion(data.message || 'Error al eliminar carpeta.', true);
+            }
+        })
+        .catch(() => mostrarNotificacion('Error de conexión.', true));
 }
 
 
@@ -711,7 +701,7 @@ function eliminarCarpetaAJAX(folder) {
 function renderEstructuraTable() {
     const tbody = document.querySelector('#tabla-estructura tbody');
     if (!tbody) return;
-    
+
     // Guardar conteos existentes para no perderlos y evitar peticiones extras
     const existingCounts = {};
     tbody.querySelectorAll('.badge-count').forEach(span => {
@@ -732,7 +722,7 @@ function renderEstructuraTable() {
             const badgeId = "badge-" + slugify(claseName);
             const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
             const countClass = savedCount === '0' ? 'badge-count badge-count-empty' : 'badge-count';
-            
+
             const tr = document.createElement('tr');
             tr.setAttribute('data-clase', claseName);
             tr.innerHTML = `

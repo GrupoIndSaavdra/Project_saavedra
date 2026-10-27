@@ -107,13 +107,12 @@ function createTable() {
             `;
             form.appendChild(div);
 
-            const noCotasMsg = "Las Cotas Nominales y tolerancias aún no se han cargado. Por favor notifica al área de Calidad o Software.";
+            const noCotasMsg = "Este proceso no cuenta con cotas nominales ni tolerancias cargadas. La captura dimensional no podrá validarse hasta que el área de Calidad o Software las ingrese al sistema.";
             setTimeout(() => {
                 if (typeof window.gisAlert === "function") {
                     window.gisAlert({
-                        title: "¡Sin Cotas Nominales!",
-                        text: noCotasMsg,
-                        icon: "warning"
+                        title: "Registrar cotas nominales",
+                        text: noCotasMsg
                     });
                 } else if (typeof window.toastpremium === "function") {
                     window.toastpremium(noCotasMsg, "warning");
@@ -431,65 +430,39 @@ function showDivAlert(text, close, img) {
         window.logUserAction("Avisos de Sistema", `Se mostró mensaje al operador: ${cleanText}`);
     }
 
-    // Estándar SweetAlert2 GIS
-    if (typeof Swal !== 'undefined') {
-        let icon = 'info';
-        const lower = cleanText.toLowerCase();
-        if (lower.includes('error') || lower.includes('incorrecto') || lower.includes('falla') || lower.includes('rechazad')) {
-            icon = 'error';
-        } else if (lower.includes('advertencia') || lower.includes('aviso') || lower.includes('atención')) {
-            icon = 'warning';
-        } else if (lower.includes('correcto') || lower.includes('éxito') || lower.includes('completad') || lower.includes('registrad')) {
-            icon = 'success';
-        }
-
-        Swal.fire({
-            title: cleanText,
-            icon: icon,
-            confirmButtonColor: '#033966',
+    // Estándar SweetAlert2 GIS con Fricción Positiva
+    if (typeof window.gisAlert === 'function') {
+        window.gisAlert({
+            title: 'Aviso del Sistema',
+            text: cleanText,
             confirmButtonText: 'Entendido',
-            customClass: { popup: 'swal2-gis-popup' }
+            confirmButtonColor: '#033966'
         });
-
-        // Retorna nodo invisible para llamadas tipo parent.appendChild(showDivAlert(...))
         let dummy = document.createElement("div");
         dummy.style.display = "none";
         return dummy;
     }
 
-    // Fallback nativo
-    let div_padre = createDivOpacity();
-
-    let div = document.createElement("div");
-    div.className = "alert-NoCotas";
-
-    let label = document.createElement("label");
-    label.className = "label-alert";
-    label.innerHTML = text;
-
-    let image = document.createElement("img");
-    image.className = "img-error";
-    image.src = img || window.imgError;
-
-    if (close) {
-        let div_cerrar = document.createElement("div");
-        div_cerrar.className = "div-cerrar";
-        let btn_cerrar = document.createElement("button");
-        btn_cerrar.className = "btn-cerrar";
-        btn_cerrar.addEventListener("click", function () {
-            cerrarDiv();
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: 'Aviso del Sistema',
+            text: cleanText,
+            confirmButtonColor: '#033966',
+            confirmButtonText: 'Entendido',
+            backdrop: 'rgba(0, 10, 25, 0.85)',
+            customClass: { popup: 'swal2-gis-popup' }
         });
-        let imageCerrar = document.createElement("img");
-        imageCerrar.className = "img-cerrar";
-        imageCerrar.src = window.cerrarImgUrl;
-        btn_cerrar.appendChild(imageCerrar);
-        div_cerrar.appendChild(btn_cerrar);
-        div.appendChild(div_cerrar);
+        let dummy = document.createElement("div");
+        dummy.style.display = "none";
+        return dummy;
     }
-    div.appendChild(image);
-    div.appendChild(label);
-    div_padre.appendChild(div);
-    return div_padre;
+
+    if (typeof window.gisToast === 'function') {
+        window.gisToast(cleanText, 'info');
+    }
+    let dummy = document.createElement("div");
+    dummy.style.display = "none";
+    return dummy;
 }
 
 function cerrarDiv() {

@@ -177,10 +177,9 @@ function addEventToFinishReport() {
     btn_finishReport.classList.remove("opacity-0");
     btn_finishReport.addEventListener("click", async function () {
         const confirmResult = await (window.gisConfirm ? window.gisConfirm({
-            title: "¿Terminar reporte?",
-            text: "¿Estás seguro de que deseas terminar el reporte?",
-            icon: "warning",
-            confirmButtonText: "Sí, terminar",
+            title: "¿Finalizar reporte?",
+            text: "Se cerrará el turno actual y se guardará el avance de las piezas registradas.",
+            confirmButtonText: "Finalizar",
             cancelButtonText: "Cancelar",
             confirmButtonColor: "#b30404",
             cancelButtonColor: "#030041",
@@ -236,10 +235,9 @@ function attachCancelEditEvent(btn_cancel) {
     btn_cancel.onclick = async function (e) {
         e.preventDefault();
         const confirmResult = await (window.gisConfirm ? window.gisConfirm({
-            title: "¿Cancelar?",
-            text: "¿Estás seguro de que deseas cancelar?",
-            icon: "warning",
-            confirmButtonText: "Sí, cancelar",
+            title: "¿Cancelar edición?",
+            text: "Los cambios realizados en los parámetros del reporte no se guardarán.",
+            confirmButtonText: "Cancelar edición",
             cancelButtonText: "Regresar",
             confirmButtonColor: "#b30404",
             cancelButtonColor: "#030041",
@@ -748,9 +746,8 @@ function createHistoricalTable(history) {
             e.stopPropagation();
             if (typeof window.gisAlert === "function") {
                 window.gisAlert({
-                    title: "¡Sin Cotas Nominales!",
-                    text: "Este proceso requiere cotas nominales pero aún no han sido registradas. Notifica a Calidad o Software.",
-                    icon: "warning"
+                    title: "Registrar cotas nominales",
+                    text: "Este proceso no cuenta con cotas nominales ni tolerancias cargadas. La captura dimensional no podrá validarse hasta que el área de Calidad o Software las ingrese al sistema."
                 });
             } else if (typeof window.toastpremium === "function") {
                 window.toastpremium("Este proceso no cuenta con cotas nominales cargadas.", "warning");

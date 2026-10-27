@@ -9,10 +9,10 @@ function getBaseUrl() {
 }
 // Helper para notificaciones usando el sistema del layout
 function almacenToast(message, type = "success") {
-    if (typeof window.mostrarNotificacion === "function") {
-        window.mostrarNotificacion(message, type);
-    } else if (typeof window.toastpremium === "function") {
+    if (typeof window.toastpremium === "function") {
         window.toastpremium(message, type);
+    } else if (typeof window.mostrarNotificacion === "function") {
+        window.mostrarNotificacion(message, type);
     } else if (typeof window.showToastAlert === "function") {
         window.showToastAlert(message, type);
     } else {

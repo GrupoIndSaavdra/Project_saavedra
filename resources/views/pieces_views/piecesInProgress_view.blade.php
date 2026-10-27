@@ -16,16 +16,21 @@
 
 @section('content')
     @if (session('finishOrder'))
-        <div class="div-opacity">
-            <div class="alert-finishOrder">
-                <div class="div-cerrar">
-                    <button class="btn-cerrar"><img class="img-cerrar" src="{{ asset('images/Color_Icons/Generales/cerrar.png') }}"></button>
-                </div>
-                <?php    $imgRoute = session('finishOrder')[0] == "error" ? "images/Color_Icons/Generales/error.png" : "images/Color_Icons/Generales/ready.png";?>
-                <img class="img-error" src="{{ asset($imgRoute) }}" alt="alert image">
-                <label for="">{{ session('finishOrder')[1] }}</label>
-            </div>
-        </div>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const finishOrderData = @json(session('finishOrder'));
+                const tipo = Array.isArray(finishOrderData) ? finishOrderData[0] : 'info';
+                const msg = Array.isArray(finishOrderData) ? finishOrderData[1] : String(finishOrderData);
+                if (typeof window.gisAlert === 'function') {
+                    window.gisAlert({
+                        title: tipo === 'error' ? 'Completar piezas requeridas' : 'Pedido finalizado',
+                        text: msg,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#033966'
+                    });
+                }
+            });
+        </script>
     @endif
 
     {{-- Botones flotantes de navegación rápida (Inicio / Fin) --}}

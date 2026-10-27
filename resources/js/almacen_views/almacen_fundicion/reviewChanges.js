@@ -166,15 +166,15 @@ window._actualizarBtnReinicio = function (action) {
     btn.style.opacity = '0.5';
     btn.style.cursor = 'not-allowed';
     let seconds = 5;
-    btn.textContent = `Sí, Reiniciar (${seconds}s)`;
+    btn.textContent = `Reiniciar (${seconds}s)`;
     if (window._reinicoTimer) clearInterval(window._reinicoTimer);
     window._reinicoTimer = setInterval(() => {
         seconds--;
         if (seconds > 0) {
-            btn.textContent = `Sí, Reiniciar (${seconds}s)`;
+            btn.textContent = `Reiniciar (${seconds}s)`;
         } else {
             clearInterval(window._reinicoTimer);
-            btn.textContent = 'Sí, Reiniciar Definitivamente';
+            btn.textContent = 'Reiniciar Definitivamente';
             btn.disabled = false;
             btn.style.opacity = '1';
             btn.style.cursor = 'pointer';
@@ -273,15 +273,15 @@ window._actualizarBtnReemplazo = function (action) {
     btn.style.opacity = '0.5';
     btn.style.cursor = 'not-allowed';
     let seconds = 3;
-    btn.textContent = `Sí, Reemplazar (${seconds}s)`;
+    btn.textContent = `Reemplazar (${seconds}s)`;
     if (window._reemplazoTimer) clearInterval(window._reemplazoTimer);
     window._reemplazoTimer = setInterval(() => {
         seconds--;
         if (seconds > 0) {
-            btn.textContent = `Sí, Reemplazar (${seconds}s)`;
+            btn.textContent = `Reemplazar (${seconds}s)`;
         } else {
             clearInterval(window._reemplazoTimer);
-            btn.textContent = 'Sí, Reemplazar Dibujos';
+            btn.textContent = 'Reemplazar Dibujos';
             btn.disabled = false;
             btn.style.opacity = '1';
             btn.style.cursor = 'pointer';

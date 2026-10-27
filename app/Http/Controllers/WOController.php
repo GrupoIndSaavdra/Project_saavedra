@@ -529,8 +529,8 @@ class WOController extends Controller
 
         // Obtener lista de OTs activas para el select con sus molduras
         $allOts = Orden_trabajo::whereDoesntHave('clases', function ($q) {
-                $q->where('finalizada', 2);
-            })
+            $q->where('finalizada', 2);
+        })
             ->whereHas('clases', function ($q) {
                 $q->where('finalizada', 0);
             })
@@ -683,8 +683,8 @@ class WOController extends Controller
         }
 
         $allOts = Orden_trabajo::whereHas('clases', function ($q) {
-                $q->where('finalizada', 2);
-            })
+            $q->where('finalizada', 2);
+        })
             ->with('moldura')
             ->orderBy('id', 'desc')
             ->get();
@@ -879,12 +879,31 @@ class WOController extends Controller
 
             // 3. Tablas de procesos y operaciones vinculadas por id_ot o ot_id
             $processTables = [
-                'cepillado', 'desbaste_exterior', 'rev_laterales', 'copiado', 'cavidades',
-                'asentado', 'acabado_molde', 'acabado_bombillo', 'soldadura', 'soldadura_p_t_a',
-                '1ope_soldadura', '2ope_soldadura', '1y2_ope_soldadura', 'barreno_maniobra',
-                'barreno_profundidad', 'palomas', 'off_set', 'rebajes', 'embudo_c_m',
-                'rev_calificado', 'candado_obturador', 'primera_operacion_cabeza_soplo',
-                'segunda_operacion_cabeza_soplo', 'parcialidades_ot', 'remisiones_ot',
+                'cepillado',
+                'desbaste_exterior',
+                'rev_laterales',
+                'copiado',
+                'cavidades',
+                'asentado',
+                'acabado_molde',
+                'acabado_bombillo',
+                'soldadura',
+                'soldadura_p_t_a',
+                '1ope_soldadura',
+                '2ope_soldadura',
+                '1y2_ope_soldadura',
+                'barreno_maniobra',
+                'barreno_profundidad',
+                'palomas',
+                'off_set',
+                'rebajes',
+                'embudo_c_m',
+                'rev_calificado',
+                'candado_obturador',
+                'primera_operacion_cabeza_soplo',
+                'segunda_operacion_cabeza_soplo',
+                'parcialidades_ot',
+                'remisiones_ot',
                 'pta_resultados'
             ];
 
@@ -2518,10 +2537,31 @@ class WOController extends Controller
                 return "Segunda Operacion Cabeza Soplo";
         }
     }
-    function finishOrder(Request $request)
+    function finishOrder(Request $request, $wOrderName = null, $className = null)
     {
+        $wOrderName = $wOrderName ?? $request->route('wOrderName') ?? $request->input('wOrderName');
+        $className = $className ?? $request->route('className') ?? $request->input('className');
+
         // Algoritmo para finalizar el pedido de una clase
-        $class = Clase::query()->where('id_ot', '=', $request->input('wOrderName'), 'and')->where('nombre', '=', $request->input('className'), 'and')->first();
+        $class = Clase::query()
+            ->where('id_ot', '=', $wOrderName, 'and')
+            ->where('nombre', '=', $className, 'and')
+            ->first();
+
+        if (!$class) {
+            $errorMsg = "No se localizó la clase especificada ({$className}) para la orden de trabajo {$wOrderName}.";
+            $finishOrder = ["error", $errorMsg];
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $errorMsg,
+                    0 => 'error',
+                    1 => $errorMsg
+                ], 404);
+            }
+            return redirect()->back()->with('finishOrder', $finishOrder);
+        }
+
         $arrayProcesses = $this->insertProcessesData($class);
 
         $counterRejected = 0;
@@ -2559,18 +2599,54 @@ class WOController extends Controller
             if ($total < $class->piezas) {
                 $finishOrder = ["error", $text];
                 if ($request->wantsJson() || $request->ajax()) {
-                    return response()->json($finishOrder);
+                    return response()->json([
+                        'status' => 'error',
+                        'message' => $text,
+                        0 => 'error',
+                        1 => $text
+                    ], 422);
                 }
                 return redirect()->back()->with('finishOrder', $finishOrder);
             }
         }
-        $class->finalizada = 1;
-        $class->save();
-        $finishOrder = ["success", "Se ha finalizado el pedido correctamente"];
-        if ($request->wantsJson() || $request->ajax()) {
-            return response()->json($finishOrder);
+
+        DB::beginTransaction();
+        try {
+            $class->finalizada = 1;
+            $class->save();
+            DB::commit();
+
+            $successMsg = "Se ha finalizado el pedido correctamente";
+            $finishOrder = ["success", $successMsg];
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'success',
+                    'message' => $successMsg,
+                    0 => 'success',
+                    1 => $successMsg
+                ]);
+            }
+            return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Fallo al finalizar pedido', [
+                'user_id' => auth()->id(),
+                'wOrder' => $wOrderName,
+                'class' => $className,
+                'error' => $e->getMessage()
+            ]);
+            $errorMsg = "Ocurrió un error inesperado al finalizar el pedido.";
+            $finishOrder = ["error", $errorMsg];
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => $errorMsg,
+                    0 => 'error',
+                    1 => $errorMsg
+                ], 500);
+            }
+            return redirect()->back()->with('finishOrder', $finishOrder);
         }
-        return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
     }
     /**
      * @param mixed $class

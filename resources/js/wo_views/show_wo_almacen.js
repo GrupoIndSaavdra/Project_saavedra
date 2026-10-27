@@ -241,9 +241,8 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const res = await (window.gisConfirm ? window.gisConfirm({
                 title: "¿Eliminar remisión?",
-                text: "¿Deseas eliminar esta remisión?",
-                icon: "warning",
-                confirmButtonText: "Sí, eliminar",
+                text: "Se eliminará el registro de remisión del almacén de forma permanente.",
+                confirmButtonText: "Eliminar",
                 confirmButtonColor: "#b30404"
             }) : Promise.resolve({ isConfirmed: true }));
             if (res.isConfirmed) form.submit();
@@ -280,10 +279,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 (window.gisConfirm ? window.gisConfirm({
-                    title: isTratamiento ? "¿Eliminar tratamiento?" : "¿Eliminar parcialidad?",
-                    text: msgConfirm,
-                    icon: "warning",
-                    confirmButtonText: "Sí, eliminar",
+                    title: isTratamiento ? "¿Eliminar tratamiento térmico?" : "¿Eliminar parcialidad?",
+                    text: isTratamiento ? "Se borrará el registro de tratamiento térmico asignado a las piezas." : "Se borrará el registro de parcialidad y su historial de entrega.",
+                    confirmButtonText: "Eliminar",
                     confirmButtonColor: "#b30404"
                 }) : Promise.resolve({ isConfirmed: true })).then(res => {
                     if (res.isConfirmed) {

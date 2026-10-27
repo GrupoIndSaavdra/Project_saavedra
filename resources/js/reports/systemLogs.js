@@ -185,10 +185,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (isPurging) return;
 
             const resConfirm = await (window.gisConfirm ? window.gisConfirm({
-                title: '¿DEPURAR LOGS?',
-                text: 'Esta acción generará respaldos en PDF organizados por semana y ELIMINARÁ PERMANENTEMENTE los registros respaldados. ¿Desea continuar?',
-                icon: 'warning',
-                confirmButtonText: 'Sí, depurar',
+                title: '¿Depurar bitácora del sistema?',
+                text: 'Se generarán respaldos PDF organizados por semana y se eliminarán permanentemente los registros de la base de datos.',
+                confirmButtonText: 'Depurar',
                 confirmButtonColor: '#b30404'
             }) : Promise.resolve({ isConfirmed: true }));
 

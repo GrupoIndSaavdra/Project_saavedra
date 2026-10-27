@@ -435,7 +435,7 @@ window.htEliminar = function(id, nombre) {
 
     if (titulo) titulo.textContent = '¿Desactivar herramienta?';
     if (desc)   desc.textContent   = `"${nombre}" pasará a Inactivas. Puedes reactivarla después.`;
-    if (btnSi)  { btnSi.style.background = '#9c0300'; btnSi.textContent = 'Sí, desactivar'; }
+    if (btnSi)  { btnSi.style.background = '#9c0300'; btnSi.textContent = 'Desactivar'; }
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -463,7 +463,7 @@ window.htReactivar = function(id, nombre) {
 
     if (titulo) titulo.textContent = '¿Reactivar herramienta?';
     if (desc)   desc.textContent   = `"${nombre}" volverá al catálogo activo.`;
-    if (btnSi)  { btnSi.style.background = '#027a3a'; btnSi.textContent = 'Sí, reactivar'; }
+    if (btnSi)  { btnSi.style.background = '#027a3a'; btnSi.textContent = 'Reactivar'; }
 
     overlay.classList.add('open');
     document.body.style.overflow = 'hidden';
@@ -513,13 +513,13 @@ window.htVerImagen = function(url, titulo) {
     document.body.style.overflow = 'hidden';
 };
 
-// ── TOAST ─────────────────────────────────────────────────────────────────────
+// ── TOAST CENTRALIZADO ────────────────────────────────────────────────────────
 
 function mostrarToast(mensaje, esError = false) {
-    document.querySelector('.ht-toast')?.remove();
-    const toast = document.createElement('div');
-    toast.className = 'ht-toast' + (esError ? ' error' : '');
-    toast.textContent = mensaje;
-    document.body.appendChild(toast);
-    setTimeout(() => { toast.classList.add('fade-out'); setTimeout(() => toast.remove(), 450); }, 4000);
+    const tipo = (esError === true || esError === 'error' || esError === 'danger') ? 'error' : 'success';
+    if (typeof window.gisToast === 'function') {
+        window.gisToast(mensaje, tipo);
+    } else if (typeof window.toastpremium === 'function') {
+        window.toastpremium(mensaje, tipo);
+    }
 }

@@ -60,7 +60,7 @@ window._libFiltrarTiposModelo = function (clasesActivas, todasClases) {
                 const cached = window._libFindCachedRecord ? window._libFindCachedRecord(opt.value) : (window.cacheLiberacionGlobal && window.cacheLiberacionGlobal[opt.value]);
                 const isProcessed = cached && (cached.decision === "aprobar" || cached.decision === "rechazar" || cached.estado === "aprobado" || cached.estado === "rechazado");
                 const isRejected = cached && (cached.decision === "rechazar" || cached.estado === "rechazado");
-                
+
                 if (!isProcessed && !firstUnprocessed) {
                     firstUnprocessed = opt.value;
                 }
@@ -172,10 +172,9 @@ window._libActualizarBotonesAccion = function (decision) {
 
 window.almacenEliminarOtroArchivo = async function (ot, archivo, tipo, buttonEl, origin) {
     const res = await (window.gisConfirm ? window.gisConfirm({
-        title: "¿Eliminar archivo?",
-        text: "¿Estás seguro de que deseas eliminar permanentemente este archivo? Esta acción no se puede deshacer.",
-        icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        title: "¿Eliminar archivo de calidad?",
+        text: "Se borrará permanentemente este documento del servidor.",
+        confirmButtonText: "Eliminar",
         confirmButtonColor: "#b30404"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) {
@@ -443,24 +442,24 @@ window.abrirModalEnviarAlertaLiberacion = function (
     if (!modal) return;
     const form = document.getElementById("formEnviarAlertaLiberacion");
     if (form) form.reset();
-    
+
     const arrAprobados = Array.isArray(tiposAprobados) ? tiposAprobados : [];
     const arrRechazados = Array.isArray(tiposRechazados) ? tiposRechazados : [];
     const hasAprobado = arrAprobados.length > 0;
     const hasRechazado = isAlmacen ? false : arrRechazados.length > 0;
     const esMixto = isAlmacen ? false : hasAprobado && hasRechazado;
-    
+
     document.getElementById("al-ot").value = ot;
     document.getElementById("al-decision").value = isAlmacen ? "aprobar" : esMixto ? "mixto" : decision;
     document.getElementById("al-tipo-modelo").value = [...arrAprobados, ...(isAlmacen ? [] : arrRechazados)].join(", ");
-    
+
     const fi = document.getElementById("al-fecha");
     if (fi) {
         fi.value = "";
     }
     const otClean = ot.replace(/_\d{8}_\d{6}_.*/, "");
     let bg, border, btnBg, ttl, pmt;
-    
+
     if (isAlmacen) {
         bg = "linear-gradient(135deg,#0284c7,#0369a1)";
         border = "#0284c7";
@@ -517,7 +516,7 @@ window.abrirModalEnviarAlertaLiberacion = function (
     if (p) p.textContent = pmt;
     const s = document.getElementById("alerta-lib-subtitle");
     if (s) s.textContent = `OT: ${otClean}`;
-    
+
     const dateLabel = document.getElementById("al-fecha-label");
     if (dateLabel) {
         if (esMixto) {
@@ -528,7 +527,7 @@ window.abrirModalEnviarAlertaLiberacion = function (
             dateLabel.innerHTML = `Fecha de Liberación <span style="color:#ef4444;">*</span>`;
         }
     }
-    
+
     const colA = document.getElementById("al-col-aprobados");
     if (colA) colA.classList.toggle("alm-display-none", !hasAprobado);
     const colR = document.getElementById("al-col-rechazados");
@@ -542,10 +541,10 @@ window.abrirModalEnviarAlertaLiberacion = function (
     if (aLbl) aLbl.textContent = arrAprobados.join(", ") || "—";
     const rLbl = document.getElementById("al-rechazados-tipos-label");
     if (rLbl) rLbl.textContent = arrRechazados.join(", ") || "—";
-    
+
     let baseUrl = window.baseUrl || window.location.origin + "/";
     if (!baseUrl.endsWith("/")) baseUrl += "/";
-    
+
     const rowsA = document.getElementById("al-upload-aprobados-rows");
     const rowsR = document.getElementById("al-upload-rechazados-rows");
     if (rowsA) {
@@ -558,7 +557,7 @@ window.abrirModalEnviarAlertaLiberacion = function (
             ? arrRechazados.map((t) => window._crearFilaUpload(t, "#dc2626", "#fef2f2", true, baseUrl)).join("")
             : '<p style="font-size:0.8em;color:#64748b;font-style:italic;">Sin modelos rechazados.</p>';
     }
-    
+
     if (rowsA) {
         rowsA.querySelectorAll('input[type="file"]').forEach((inp) => {
             if (hasAprobado) {
@@ -577,14 +576,14 @@ window.abrirModalEnviarAlertaLiberacion = function (
             }
         });
     }
-    
+
     const sA = document.getElementById("al-server-files-aprobados");
     const sR = document.getElementById("al-server-files-rechazados");
     const loadHtml = `<div style="text-align:center;color:#64748b;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Cargando...</div>`;
     const emptyHtml = `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
     if (sA) sA.innerHTML = loadHtml;
     if (sR) sR.innerHTML = loadHtml;
-    
+
     const strTipoModeloAl = [...arrAprobados, ...arrRechazados].join(", ");
     fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&tipo_modelo=${encodeURIComponent(strTipoModeloAl)}&_t=${Date.now()}`)
         .then((r) => r.json())
@@ -610,7 +609,7 @@ window.abrirModalEnviarAlertaLiberacion = function (
                     const modelosActivosLower = modelosActivos.map((m) => m.toLowerCase());
                     return modelosEncontrados.some((m) => modelosActivosLower.includes(m));
                 };
-                
+
                 data.archivos.forEach((f) => {
                     const pl = f.nombre.toLowerCase();
                     const isRechazadoFile = pl.includes("documentos_rechazados") || pl.includes("rechazado") || pl.includes("scar");
@@ -635,7 +634,7 @@ window.abrirModalEnviarAlertaLiberacion = function (
             if (sA) sA.innerHTML = `<div style="color:#ef4444;font-size:0.8em;grid-column:1/-1;">Error al cargar.</div>`;
             if (sR) sR.innerHTML = `<div style="color:#ef4444;font-size:0.8em;grid-column:1/-1;">Error al cargar.</div>`;
         });
-        
+
     const primerTipo = arrAprobados[0] || arrRechazados[0] || "";
     fetch(`${window.almacenRoutes.getLiberacion}?ot=${encodeURIComponent(ot)}`)
         .then((r) => r.json())
@@ -646,10 +645,10 @@ window.abrirModalEnviarAlertaLiberacion = function (
                 if (d) d.value = dest;
             }
         })
-        .catch(() => {});
-        
+        .catch(() => { });
 
-        
+
+
     modal.classList.add("open");
     document.body.classList.add("modal-open");
 };
@@ -676,7 +675,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") window.cerrarModalEnviarAlertaLiberacion();
     });
-    
+
     const form = document.getElementById("formEnviarAlertaLiberacion");
     if (form) {
         form.addEventListener("submit", async function (e) {
@@ -691,7 +690,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 almacenToast("La fecha es obligatoria.", "error");
                 return;
             }
-            
+
             const requiredFiles = form.querySelectorAll('input[type="file"][required]');
             let missingFiles = [];
             requiredFiles.forEach((inp) => {
@@ -709,17 +708,17 @@ document.addEventListener("DOMContentLoaded", () => {
                 almacenToast("Por favor, suba los archivos obligatorios: " + missingFiles.join(", "), "error");
                 return;
             }
-            
+
             const ot = document.getElementById("al-ot").value;
             const decision = document.getElementById("al-decision").value;
             const btn = document.getElementById("btn-submit-alerta-liberacion");
             if (!ot || !decision) return;
-            
+
             const fd = new FormData(this);
             const orig = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = `Enviando...`;
-            
+
             try {
                 const resp = await fetch(window.almacenRoutes.enviarAlertaLiberacion, {
                     method: "POST",
@@ -765,23 +764,23 @@ window.abrirModalFinalizarCalidad = function (
     if (!modal) return;
     const form = document.getElementById("formFinalizarCalidad");
     if (form) form.reset();
-    
+
     const arrAprobados = Array.isArray(tiposAprobados) ? tiposAprobados : [];
     const arrRechazados = Array.isArray(tiposRechazados) ? tiposRechazados : [];
-    
+
     document.getElementById("fc-ot").value = ot;
     document.getElementById("fc-decision").value = decision;
     document.getElementById("fc-tipo-modelo").value = [...arrAprobados, ...arrRechazados].join(", ");
     document.getElementById("fc-tipos-aprobados").value = JSON.stringify(arrAprobados);
     document.getElementById("fc-tipos-rechazados").value = JSON.stringify(arrRechazados);
-    
+
     const fDate = document.getElementById("fc-fecha");
     if (fDate) fDate.value = "";
-    
+
     const otClean = ot.replace(/_\d{8}_\d{6}_.*/, "");
     let baseUrl = window.baseUrl || window.location.origin + "/";
     if (!baseUrl.endsWith("/")) baseUrl += "/";
-    
+
     let bg, border, btnBg, titleText, promptHtml, btnText;
     if (decision === "aprobar") {
         bg = "linear-gradient(135deg, #10b981, #059669)";
@@ -847,12 +846,12 @@ window.abrirModalFinalizarCalidad = function (
         btnSubmit.style.background = btnBg;
         btnSubmit.style.boxShadow = `0 4px 15px ${border}40`;
     }
-    
+
     const filesContainer = document.getElementById("fc-server-files-container");
     const loadHtml2 = `<div style="text-align:center;color:#64748b;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Cargando...</div>`;
     const emptyHtml2 = `<div style="text-align:center;color:#94a3b8;grid-column:1/-1;padding:8px;font-style:italic;font-size:0.8em;">Sin archivos en servidor.</div>`;
     if (filesContainer) filesContainer.innerHTML = loadHtml2;
-    
+
     const strTipoModelo = [...arrAprobados, ...arrRechazados].join(", ");
     fetch(`${window.almacenRoutes.archivos}?ot=${encodeURIComponent(ot)}&tipo_modelo=${encodeURIComponent(strTipoModelo)}&_t=${Date.now()}`)
         .then((r) => r.json())
@@ -929,7 +928,7 @@ window.abrirModalFinalizarCalidad = function (
                     if (!isLiberacionFile && !isRechazadoFile) return false;
                     return archivoPerteneceAModelos(f.nombre, allRelevantModels);
                 });
-                
+
                 const seenBases = new Set();
                 const uniqueFilteredFiles = filteredFiles.filter((f) => {
                     const baseName = (f.nombre.split("/").pop() || f.nombre).toLowerCase();
@@ -951,7 +950,7 @@ window.abrirModalFinalizarCalidad = function (
                 filesContainer.innerHTML = `<div style="text-align:center;color:#ef4444;grid-column:1/-1;padding:8px;font-weight:600;">Error al cargar archivos.</div>`;
             }
         });
-        
+
     const defaultAlmacen = form ? (form.getAttribute("data-email-almacen") || "almacentec@grupoindsaavedra.com") : "almacentec@grupoindsaavedra.com";
     const defaultCalidad = form ? (form.getAttribute("data-email-calidad") || "inspecciontec@grupoindsaavedra.com") : "inspecciontec@grupoindsaavedra.com";
 
@@ -969,9 +968,9 @@ window.abrirModalFinalizarCalidad = function (
             dCalidadGroup.style.display = "block";
         }
     }
-        
 
-        
+
+
     modal.classList.add("open");
     document.body.classList.add("modal-open");
 };
@@ -989,7 +988,7 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") window.cerrarModalFinalizarCalidad();
     });
-    
+
     const fcForm = document.getElementById("formFinalizarCalidad");
     if (fcForm) {
         fcForm.addEventListener("submit", async function (e) {

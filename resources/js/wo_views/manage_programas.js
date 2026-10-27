@@ -433,9 +433,8 @@ window.descargarPrograma = function (url) {
 window.eliminarPrograma = async function (nombre, p1, p2, p3) {
     const res = await (window.gisConfirm ? window.gisConfirm({
         title: "¿Eliminar archivo?",
-        text: `¿Deseas eliminar el archivo "${nombre}"?\nEsta acción no se puede deshacer.`,
-        icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        text: `Se borrará permanentemente el programa "${nombre}" del servidor.`,
+        confirmButtonText: "Eliminar",
         confirmButtonColor: "#b30404"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) return;
@@ -685,16 +684,10 @@ function escapeHTML(str) {
 }
 
 function mostrarNotificacion(mensaje, esError = false) {
-    const existente = document.querySelector('.dibujos-toast');
-    if (existente) existente.remove();
-
-    const toast = document.createElement('div');
-    toast.className = 'dibujos-toast' + (esError ? ' error' : '');
-    toast.innerHTML = `<span style="margin-right:8px;">${esError ? '❌' : '✅'}</span> ${escapeHTML(mensaje)}`;
-    document.body.appendChild(toast);
-
-    setTimeout(() => {
-        toast.classList.add('fade-out');
-        setTimeout(() => toast.remove(), 500);
-    }, 4000);
+    const tipo = (esError === true || esError === 'error' || esError === 'danger') ? 'error' : 'success';
+    if (typeof window.gisToast === 'function') {
+        window.gisToast(mensaje, tipo);
+    } else if (typeof window.toastpremium === 'function') {
+        window.toastpremium(mensaje, tipo);
+    }
 }

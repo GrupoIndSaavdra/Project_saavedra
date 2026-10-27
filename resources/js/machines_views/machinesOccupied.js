@@ -209,21 +209,21 @@ function createTable(machines, form) {
 
                 tr.classList.add("machine-row-targeting");
 
-                let confirmHtml = `¿Estás seguro de que deseas liberar la <strong style="color: #b30404;">Máquina ${machineLabel}</strong>?`;
-                let plainConfirmText = `¿Estás seguro de que deseas liberar la Máquina ${machineLabel}?`;
+                let confirmHtml = `La máquina <strong style="color: #b30404;">${machineLabel}</strong> quedará marcada como disponible de inmediato para nuevas asignaciones de trabajo.`;
+                let plainConfirmText = `La máquina ${machineLabel} quedará marcada como disponible de inmediato para nuevas asignaciones de trabajo.`;
 
                 if (typeof Swal !== "undefined") {
                     Swal.fire({
-                        title: `¿Desocupar <span style="color: #b30404;">Máquina ${machineLabel}</span>?`,
+                        title: `¿Desocupar máquina ${machineLabel}?`,
                         html: confirmHtml,
-                        icon: "warning",
                         showCancelButton: true,
-                        confirmButtonColor: "#b30404", // Rojo Peligro Saavedra (skills/javascript_skill.md)
-                        cancelButtonColor: "#030041",  // Azul Marino Saavedra (skills/javascript_skill.md)
-                        confirmButtonText: "Sí, desocupar",
+                        confirmButtonColor: "#b30404", // Rojo Peligro Saavedra
+                        cancelButtonColor: "#030041",  // Azul Marino Saavedra
+                        confirmButtonText: "Desocupar",
                         cancelButtonText: "Cancelar",
                         reverseButtons: true,
-                        backdrop: "rgba(0, 10, 25, 0.85)"
+                        backdrop: "rgba(0, 10, 25, 0.85)",
+                        customClass: { popup: "swal2-gis-popup" }
                     }).then((result) => {
                         tr.classList.remove("machine-row-targeting");
                         if (result.isConfirmed) {
@@ -232,10 +232,9 @@ function createTable(machines, form) {
                     });
                 } else {
                     (window.gisConfirm ? window.gisConfirm({
-                        title: `¿Desocupar Máquina ${machineLabel}?`,
+                        title: `¿Desocupar máquina ${machineLabel}?`,
                         text: plainConfirmText,
-                        icon: "warning",
-                        confirmButtonText: "Sí, desocupar",
+                        confirmButtonText: "Desocupar",
                         confirmButtonColor: "#b30404"
                     }) : Promise.resolve({ isConfirmed: true })).then((res) => {
                         if (res.isConfirmed) {

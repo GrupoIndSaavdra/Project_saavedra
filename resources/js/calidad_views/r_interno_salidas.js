@@ -641,20 +641,34 @@
     // ─── FUNCIÓN GLOBAL: Alertas SweetAlert2 ─────────────────────────
 
     function mostrarAlerta(titulo, texto, icono) {
-        if (typeof Swal === 'undefined') {
-            if (window.toastpremium) {
-                window.toastpremium(`${titulo}: ${texto}`, icono === 'error' ? 'error' : (icono === 'warning' ? 'warning' : 'info'));
+        if (icono === 'success') {
+            if (typeof window.gisToast === 'function') {
+                window.gisToast(texto || titulo, 'success');
+                return;
             }
+        }
+        if (window.gisAlert) {
+            window.gisAlert({
+                title: titulo,
+                text: texto,
+                confirmButtonColor: icono === 'error' ? '#ef4444' : '#033966',
+                confirmButtonText: 'Entendido'
+            });
             return;
         }
-        Swal.fire({
-            title:             titulo,
-            text:              texto,
-            icon:              icono,
-            timer:             icono === 'success' ? 2500 : undefined,
-            timerProgressBar:  icono === 'success',
-            confirmButtonColor: icono === 'error' ? '#9c0303' : '#0a8504',
-        });
+        if (typeof window.gisToast === 'function') {
+            window.gisToast(`${titulo}: ${texto}`, icono);
+            return;
+        }
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                title: titulo,
+                text: texto,
+                confirmButtonColor: icono === 'error' ? '#ef4444' : '#033966',
+                confirmButtonText: 'Entendido',
+                customClass: { popup: 'swal2-gis-popup' }
+            });
+        }
     }
 
     // ─── 6. SELECTORES DE OT Y CLASE (ENCABEZADO) ────────────────────
@@ -975,16 +989,14 @@
         let confirmBtn;
 
         Swal.fire({
-            title: 'Alerta del Sistema',
-            html: '<h3 style="color: #033966; font-weight: bold; margin-bottom: 10px;">¿Enviar Reporte a la Raza?</h3><p style="margin-bottom: 15px;">Se enviará el reporte por correo y se bloqueará para futuras ediciones.</p><p style="font-weight: bold; color: #d33;">Solo se puede enviar una vez. El botón se habilitará en <span id="swal-countdown">5</span> segundos.</p>',
-            icon: 'warning',
+            title: '¿Enviar reporte de salidas?',
+            html: '<div style="text-align: left; font-size: 0.95rem; line-height: 1.5; color: #334155;"><p style="margin-bottom: 8px;">Se enviará el reporte por correo electrónico a los destinatarios y se bloqueará permanentemente para futuras ediciones.</p><p style="font-weight: 700; color: #b91c1c; font-size: 0.88rem; margin: 0;">Esta acción solo se puede realizar una vez. El botón se habilitará en <span id="swal-countdown">5</span> segundos.</p></div>',
             showCancelButton: true,
-            confirmButtonText: 'Sí, confirmar',
+            confirmButtonText: 'Enviar reporte',
             cancelButtonText: 'Cancelar',
             allowOutsideClick: false,
             customClass: {
-                popup: 'ri-swal-popup',
-                title: 'ri-swal-title',
+                popup: 'swal2-gis-popup',
                 confirmButton: 'ri-swal-btn ri-swal-btn-confirm',
                 cancelButton: 'ri-swal-btn ri-swal-btn-cancel'
             },
@@ -1014,12 +1026,11 @@
 
     async function enviarReporteBack() {
         Swal.fire({
-            title: 'Alerta del Sistema',
-            html: '<h3 style="color: #033966; font-weight: bold;">Enviando...</h3><p>Por favor espere, se está generando el PDF y enviando el correo.</p>',
+            title: 'Enviando reporte...',
+            html: '<p style="color: #64748b; font-size: 0.95rem; margin-top: 6px;">Por favor espere, se está generando el PDF y enviando el correo.</p>',
             allowOutsideClick: false,
             customClass: {
-                popup: 'ri-swal-popup',
-                title: 'ri-swal-title'
+                popup: 'swal2-gis-popup',
             },
             didOpen: () => Swal.showLoading()
         });
@@ -1036,31 +1047,46 @@
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Error al enviar el reporte');
 
-            Swal.fire({
-                title: 'Alerta del Sistema',
-                html: '<h3 style="color: #16a34a; font-weight: bold;">¡Enviado!</h3><p>El reporte se ha enviado correctamente.</p>',
-                icon: 'success',
-                customClass: {
-                    popup: 'ri-swal-popup',
-                    title: 'ri-swal-title',
-                    confirmButton: 'ri-swal-btn ri-swal-btn-confirm'
-                },
-                buttonsStyling: false
-            }).then(() => {
-                window.location.reload();
-            });
+            if (typeof window.gisToast === 'function') {
+                window.gisToast('Reporte de salidas enviado correctamente.', 'success');
+                setTimeout(() => window.location.reload(), 1500);
+            } else if (window.gisAlert) {
+                window.gisAlert({
+                    title: 'Reporte Enviado',
+                    text: 'El reporte se ha enviado correctamente a los destinatarios.',
+                    confirmButtonColor: '#16a34a',
+                    confirmButtonText: 'Entendido'
+                }).then(() => {
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    title: 'Reporte Enviado',
+                    text: 'El reporte se ha enviado correctamente a los destinatarios.',
+                    confirmButtonColor: '#16a34a',
+                    confirmButtonText: 'Entendido',
+                    customClass: { popup: 'swal2-gis-popup' }
+                }).then(() => {
+                    window.location.reload();
+                });
+            }
         } catch (error) {
-            Swal.fire({
-                title: 'Alerta del Sistema',
-                html: `<h3 style="color: #d33; font-weight: bold;">Error</h3><p>${error.message}</p>`,
-                icon: 'error',
-                customClass: {
-                    popup: 'ri-swal-popup',
-                    title: 'ri-swal-title',
-                    confirmButton: 'ri-swal-btn ri-swal-btn-cancel'
-                },
-                buttonsStyling: false
-            });
+            if (window.gisAlert) {
+                window.gisAlert({
+                    title: 'Error al enviar reporte',
+                    text: error.message,
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Entendido'
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error al enviar reporte',
+                    text: error.message,
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Entendido',
+                    customClass: { popup: 'swal2-gis-popup' }
+                });
+            }
         }
     }
 
@@ -1071,20 +1097,30 @@
         const cbsRechazados = document.querySelectorAll('.ri-checkbox-rechazado:checked');
         
         if (cbsAprobados.length === 0 && cbsRechazados.length === 0) {
-            Swal.fire({
-                icon: 'warning',
-                title: 'Reporte Vacío',
-                text: 'Debe evaluar (Liberar o Rechazar) al menos una pieza antes de generar el reporte en PDF.',
-                confirmButtonColor: '#033966'
-            });
+            if (window.gisAlert) {
+                window.gisAlert({
+                    title: 'Reporte Vacío',
+                    text: 'Debe evaluar (Liberar o Rechazar) al menos una pieza antes de generar el reporte en PDF.',
+                    confirmButtonColor: '#033966',
+                    confirmButtonText: 'Entendido'
+                });
+            } else {
+                Swal.fire({
+                    title: 'Reporte Vacío',
+                    text: 'Debe evaluar (Liberar o Rechazar) al menos una pieza antes de generar el reporte en PDF.',
+                    confirmButtonColor: '#033966',
+                    confirmButtonText: 'Entendido',
+                    customClass: { popup: 'swal2-gis-popup' }
+                });
+            }
             return;
         }
 
         Swal.fire({
-            title: 'Alerta del Sistema',
-            html: '<h3 style="color: #033966; font-weight: bold;">Generando PDF...</h3><p>Por favor espere mientras procesamos su documento.</p>',
+            title: 'Generando formato PDF...',
+            html: '<p style="color: #64748b; font-size: 0.95rem; margin-top: 6px;">Por favor espere mientras procesamos su documento oficial.</p>',
             allowOutsideClick: false,
-            customClass: { popup: 'ri-swal-popup', title: 'ri-swal-title' },
+            customClass: { popup: 'swal2-gis-popup' },
             didOpen: () => Swal.showLoading()
         });
 
@@ -1111,26 +1147,36 @@
                 a.click();
                 document.body.removeChild(a);
 
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Éxito!',
-                    text: data.message || 'PDF generado correctamente.',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
+                if (typeof window.gisToast === 'function') {
+                    window.gisToast(data.message || 'PDF generado correctamente.', 'success');
+                } else if (typeof toastpremium === 'function') {
+                    toastpremium(data.message || 'PDF generado correctamente.', 'success');
+                }
+                setTimeout(() => {
                     window.location.reload();
-                });
+                }, 1500);
             } else {
                 throw new Error('Respuesta inválida del servidor');
             }
         })
         .catch(error => {
             console.error(error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'No se pudo generar el PDF. Intente de nuevo.'
-            });
+            if (window.gisAlert) {
+                window.gisAlert({
+                    title: 'Error al generar documento PDF',
+                    text: 'No se pudo generar el formato PDF. Intente de nuevo.',
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Entendido'
+                });
+            } else {
+                Swal.fire({
+                    title: 'Error al generar documento PDF',
+                    text: 'No se pudo generar el formato PDF. Intente de nuevo.',
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Entendido',
+                    customClass: { popup: 'swal2-gis-popup' }
+                });
+            }
         });
     };
 
@@ -1138,14 +1184,13 @@
         if (!window.riReporte || !window.routes['calidad.r_interno_salidas.unlock']) return;
 
         Swal.fire({
-            title: 'Alerta del Sistema',
-            html: '<h3 style="color: #033966; font-weight: bold; margin-bottom: 10px;">Desbloqueo Master</h3>' + document.getElementById('template-master-unlock').innerHTML,
+            title: 'Desbloqueo de Reporte Master',
+            html: document.getElementById('template-master-unlock').innerHTML,
             showCancelButton: true,
             confirmButtonText: 'Desbloquear',
             cancelButtonText: 'Cancelar',
             customClass: {
-                popup: 'ri-swal-popup',
-                title: 'ri-swal-title',
+                popup: 'swal2-gis-popup',
                 confirmButton: 'ri-swal-btn ri-swal-btn-confirm',
                 cancelButton: 'ri-swal-btn ri-swal-btn-cancel'
             },
@@ -1161,10 +1206,9 @@
             if (result.isConfirmed) {
                 try {
                     Swal.fire({
-                        title: 'Alerta del Sistema',
-                        html: '<h3 style="color: #033966; font-weight: bold;">Verificando...</h3>',
+                        title: 'Verificando autorización...',
                         allowOutsideClick: false,
-                        customClass: { popup: 'ri-swal-popup', title: 'ri-swal-title' },
+                        customClass: { popup: 'swal2-gis-popup' },
                         didOpen: () => Swal.showLoading()
                     });
                     const res = await fetch(window.routes['calidad.r_interno_salidas.unlock'].replace(':id', window.riReporte.id), {
@@ -1179,23 +1223,29 @@
                     const data = await res.json();
                     if (!res.ok) throw new Error(data.error || 'Contraseña incorrecta o error de servidor');
 
-                    Swal.fire({
-                        title: 'Alerta del Sistema',
-                        html: '<h3 style="color: #16a34a; font-weight: bold;">¡Desbloqueado!</h3><p>El reporte se ha desbloqueado correctamente.</p>',
-                        icon: 'success',
-                        customClass: { popup: 'ri-swal-popup', title: 'ri-swal-title', confirmButton: 'ri-swal-btn ri-swal-btn-confirm' },
-                        buttonsStyling: false
-                    }).then(() => {
+                    if (typeof window.gisToast === 'function') {
+                        window.gisToast('El reporte se ha desbloqueado correctamente.', 'success');
+                    }
+                    setTimeout(() => {
                         window.location.reload();
-                    });
+                    }, 1200);
                 } catch (error) {
-                    Swal.fire({
-                        title: 'Alerta del Sistema',
-                        html: `<h3 style="color: #d33; font-weight: bold;">Error</h3><p>${error.message}</p>`,
-                        icon: 'error',
-                        customClass: { popup: 'ri-swal-popup', title: 'ri-swal-title', confirmButton: 'ri-swal-btn ri-swal-btn-cancel' },
-                        buttonsStyling: false
-                    });
+                    if (window.gisAlert) {
+                        window.gisAlert({
+                            title: 'Error de Autorización',
+                            text: error.message,
+                            confirmButtonColor: '#ef4444',
+                            confirmButtonText: 'Entendido'
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Error de Autorización',
+                            text: error.message,
+                            confirmButtonColor: '#ef4444',
+                            confirmButtonText: 'Entendido',
+                            customClass: { popup: 'swal2-gis-popup' }
+                        });
+                    }
                 }
             }
         });

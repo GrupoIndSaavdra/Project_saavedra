@@ -316,18 +316,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const successMsg = sessionStorage.getItem("success_cnominals");
     if (successMsg) {
         setTimeout(() => {
-            if (typeof Swal !== "undefined") {
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Éxito!',
-                    text: successMsg,
-                    confirmButtonText: 'Continuar',
-                    confirmButtonColor: '#0a8504'
-                });
-            } else if (window.toastpremium) {
-                window.toastpremium(successMsg, 'success');
+            if (typeof window.gisToast === "function") {
+                window.gisToast(successMsg, 'success');
+            } else if (typeof toastpremium === "function") {
+                toastpremium(successMsg, 'success');
             }
-        }, 500); // Dar tiempo a que cargue la librería si es asíncrona
+        }, 500);
         sessionStorage.removeItem("success_cnominals");
     }
 
@@ -440,13 +434,15 @@ document.querySelector(".form-search").addEventListener("submit", async function
 
     } catch (error) {
         console.error('[Guardar Cotas]', error);
-        if (typeof Swal !== "undefined") {
-            Swal.fire({
-                title: 'Error de Sesión',
+        if (window.gisAlert) {
+            window.gisAlert({
+                title: 'Error al guardar cotas',
                 text: error.message,
-                icon: 'error',
-                confirmButtonColor: '#9c0303'
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Entendido'
             });
+        } else if (typeof window.gisToast === "function") {
+            window.gisToast(error.message, 'error');
         } else if (window.toastpremium) {
             window.toastpremium(error.message, 'error');
         }
@@ -552,17 +548,11 @@ const observer = new MutationObserver((mutations) => {
                         }
                     });
                     
-                    // Notificar al usuario silenciosamente (Toast)
-                    if (typeof Swal !== "undefined") {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'info',
-                            title: 'Borrador recuperado automáticamente',
-                            showConfirmButton: false,
-                            timer: 3000,
-                            timerProgressBar: true
-                        });
+                    // Notificar silenciosamente usando el toast oficial GIS
+                    if (typeof window.gisToast === "function") {
+                        window.gisToast('Borrador recuperado automáticamente', 'info');
+                    } else if (typeof toastpremium === "function") {
+                        toastpremium('Borrador recuperado automáticamente', 'info');
                     }
                 }
             }

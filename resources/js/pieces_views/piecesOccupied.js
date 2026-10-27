@@ -52,6 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const hasSwal = () => typeof Swal !== 'undefined';
 
     const showToast = (icon, title) => {
+        if (typeof window.gisToast === 'function') {
+            window.gisToast(title, icon);
+            return;
+        }
         if (hasSwal()) {
             Swal.mixin({
                 toast: true,
@@ -72,12 +76,21 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const showError = (title, text) => {
-        if (hasSwal()) {
-            Swal.fire({
-                icon: 'error',
+        if (typeof window.gisAlert === 'function') {
+            window.gisAlert({
                 title,
                 text,
                 confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Entendido'
+            });
+            return;
+        }
+        if (hasSwal()) {
+            Swal.fire({
+                title,
+                text,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Entendido',
                 customClass: { popup: 'swal2-gis-popup' }
             });
         } else if (window.toastpremium) {
@@ -92,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
         title,
         text,
         icon,
-        confirmBtnText = 'Sí, continuar',
+        confirmBtnText = 'Continuar',
         isDanger = false,
         ot = '-',
         clase = '-',
@@ -344,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: `¿Liberar pieza ${piezaName}?`,
             text: initialNote,
             icon: window.images.liberar,
-            confirmBtnText: 'Sí, liberar pieza',
+            confirmBtnText: 'Liberar',
             isDanger: false,
             ot: cleanOt,
             clase: piece ? piece.clase_nombre : '-',
@@ -486,7 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: `¿Eliminar registro de ${nPieza}?`,
             text: 'Esta acción eliminará físicamente este registro huérfano. Útil si se creó una pieza duplicada o fantasma.',
             icon: window.images.aviso || window.images.delete,
-            confirmBtnText: 'Sí, eliminar',
+            confirmBtnText: 'Eliminar',
             isDanger: true,
             ot: piece && piece.id_ot ? String(piece.id_ot).replace(/^OT\s*/i, '') : '-',
             clase: piece ? piece.clase_nombre : '-',

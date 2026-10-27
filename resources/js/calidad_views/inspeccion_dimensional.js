@@ -530,13 +530,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                 }
 
-                Swal.fire({
-                    icon: iconType,
-                    title: titleText,
-                    html: htmlContent,
-                    confirmButtonColor: '#033966',
-                    confirmButtonText: 'Entendido'
-                });
+                if (window.gisAlert) {
+                    window.gisAlert({
+                        title: titleText,
+                        text: htmlContent.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim(),
+                        confirmButtonColor: '#033966',
+                        confirmButtonText: 'Entendido'
+                    });
+                } else {
+                    Swal.fire({
+                        title: titleText,
+                        html: htmlContent,
+                        confirmButtonColor: '#033966',
+                        confirmButtonText: 'Entendido',
+                        customClass: { popup: 'swal2-gis-popup' }
+                    });
+                }
                 return;
             }
 
@@ -566,12 +575,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const data = await res.json();
                 if (!res.ok || !data.success) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Límite alcanzado',
-                        text: data.error || 'No se puede agregar más filas a este lote.',
-                        confirmButtonColor: '#033966'
-                    });
+                    if (window.gisAlert) {
+                        window.gisAlert({
+                            title: 'Límite alcanzado',
+                            text: data.error || 'No se puede agregar más filas a este lote.',
+                            confirmButtonColor: '#033966',
+                            confirmButtonText: 'Entendido'
+                        });
+                    } else {
+                        Swal.fire({
+                            title: 'Límite alcanzado',
+                            text: data.error || 'No se puede agregar más filas a este lote.',
+                            confirmButtonColor: '#033966',
+                            confirmButtonText: 'Entendido',
+                            customClass: { popup: 'swal2-gis-popup' }
+                        });
+                    }
                     return;
                 }
                 if (res.ok && data.success) {
@@ -633,18 +652,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ── Eliminar Fila de Medición ──
     async function confirmDeleteRow(medidaId, tr) {
-        if (window.Swal) {
+        if (window.gisConfirm) {
+            const result = await window.gisConfirm({
+                title: '¿Eliminar fila de medición?',
+                text: 'Se removerá de forma permanente esta medición del reporte dimensional.',
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'Eliminar',
+                cancelButtonText: 'Cancelar'
+            });
+            if (!result.isConfirmed) return;
+        } else if (window.Swal) {
             const result = await Swal.fire({
-                title: '¿Eliminar fila?',
-                text: 'Se removerá esta pieza del reporte.',
-                icon: 'warning',
+                title: '¿Eliminar fila de medición?',
+                text: 'Se removerá de forma permanente esta medición del reporte dimensional.',
                 showCancelButton: true,
                 confirmButtonColor: '#ef4444',
                 cancelButtonColor: '#64748b',
-                confirmButtonText: 'Sí, eliminar',
+                confirmButtonText: 'Eliminar',
                 cancelButtonText: 'Cancelar',
-                background: '#1e293b',
-                color: '#fff'
+                customClass: { popup: 'swal2-gis-popup' }
             });
             if (!result.isConfirmed) return;
         }
@@ -696,9 +722,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderDimensionalFiles(archivos) {
         if (!excelFilesContainer) return;
-        
+
         const count = Array.isArray(archivos) ? archivos.length : 0;
-        
+
         if (excelCountBadge) {
             excelCountBadge.textContent = `(${count}/4)`;
         }
@@ -713,10 +739,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const baseDownloadUrl = (config.routes && config.routes.downloadExcel) || (`/calidad/inspeccion_dimensional/download_excel/${config.reporteId}`);
         const baseViewUrl = (config.routes && config.routes.viewExcel) || (`/calidad/inspeccion_dimensional/view_excel/${config.reporteId}`);
-        
+
         let html = '';
         archivos.forEach(archivo => {
-            const downloadUrl = archivo.download_url || (baseDownloadUrl.includes('?') 
+            const downloadUrl = archivo.download_url || (baseDownloadUrl.includes('?')
                 ? `${baseDownloadUrl}&file_id=${archivo.id}`
                 : `${baseDownloadUrl}?file_id=${archivo.id}`);
             const viewUrl = archivo.view_url || (baseViewUrl.includes('?')
@@ -742,12 +768,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span class="rd-file-badge">Archivo guardado</span>
                     </div>
                     <div class="rd-file-btn-group">
-                        <button type="button" class="btn-file-view btn-preview-file ${isExcel ? 'btn-open-excel' : ''}" 
-                            data-file-id="${archivo.id}" 
-                            data-file-name="${archivo.nombre}" 
-                            data-is-excel="${isExcel ? 'true' : 'false'}" 
-                            data-view-url="${viewUrl}" 
-                            data-download-url="${downloadUrl}" 
+                        <button type="button" class="btn-file-view btn-preview-file ${isExcel ? 'btn-open-excel' : ''}"
+                            data-file-id="${archivo.id}"
+                            data-file-name="${archivo.nombre}"
+                            data-is-excel="${isExcel ? 'true' : 'false'}"
+                            data-view-url="${viewUrl}"
+                            data-download-url="${downloadUrl}"
                             title="${isExcel ? 'Ver hoja de cálculo interactiva' : 'Ver archivo PDF'}">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             Ver
@@ -1011,20 +1037,20 @@ document.addEventListener('DOMContentLoaded', () => {
             let clave = '';
             if (window.Swal) {
                 const result = await Swal.fire({
-                    title: 'Eliminar Archivo Adjunto',
+                    title: '¿Eliminar archivo adjunto?',
                     html: `
-                        <p style="margin-bottom: 8px; font-size: 0.95rem; color: #e2e8f0;">
+                        <p style="margin-bottom: 8px; font-size: 0.95rem; color: #475569;">
                             ¿Deseas eliminar <b>"${fileName}"</b>?
                         </p>
-                        <p style="margin-bottom: 14px; font-size: 0.88rem; color: #94a3b8;">
+                        <p style="margin-bottom: 14px; font-size: 0.88rem; color: #64748b;">
                             Ingresa la clave maestra para confirmar:
                         </p>
                         <div style="position: relative; max-width: 320px; margin: 0 auto;">
-                            <input type="password" id="swal-clave-input" placeholder="Clave maestra..." 
-                                style="width: 100%; box-sizing: border-box; padding: 10px 42px 10px 14px; margin: 0; background: #02203e; color: #ffffff; border: 1.5px solid #38bdf8; border-radius: 6px; font-size: 0.95rem; outline: none; font-family: inherit;"
+                            <input type="password" id="swal-clave-input" placeholder="Clave maestra..."
+                                style="width: 100%; box-sizing: border-box; padding: 10px 42px 10px 14px; margin: 0; background: #ffffff; color: #0f172a; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 0.95rem; outline: none; font-family: inherit;"
                                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                            <button type="button" id="swal-toggle-password" title="Mostrar / Ocultar contraseña" 
-                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; color: #94a3b8; outline: none; transition: color 0.2s;">
+                            <button type="button" id="swal-toggle-password" title="Mostrar / Ocultar contraseña"
+                                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; color: #64748b; outline: none; transition: color 0.2s;">
                                 <svg id="swal-eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
                                     <circle cx="12" cy="12" r="3"></circle>
@@ -1032,14 +1058,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                         </div>
                     `,
-                    icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#9c0303',
-                    cancelButtonColor: '#404040',
+                    cancelButtonColor: '#64748b',
                     confirmButtonText: 'Eliminar Archivo',
                     cancelButtonText: 'Cancelar',
-                    background: '#033966',
-                    color: '#ffffff',
+                    customClass: { popup: 'swal2-gis-popup' },
                     didOpen: () => {
                         const input = document.getElementById('swal-clave-input');
                         const toggleBtn = document.getElementById('swal-toggle-password');
@@ -1299,8 +1323,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (window.Swal) {
             Swal.fire({
-                title: 'Alerta del Sistema',
-                html: '<h3 style="color: #033966; font-weight: bold; margin-bottom: 8px;">Generando PDF...</h3><p style="color: #64748b; font-size: 0.95rem;">Por favor espere mientras procesamos y registramos su documento oficial.</p>',
+                title: 'Generando formato PDF...',
+                html: '<p style="color: #64748b; font-size: 0.95rem; margin-top: 6px;">Por favor espere mientras procesamos y registramos su documento oficial.</p>',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading(),
                 background: '#ffffff',
@@ -1388,29 +1412,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     badgeCounter.style.display = nextCount > 0 ? '' : 'none';
                 }
 
-                if (window.Swal) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡PDF Generado!',
-                        text: `El formato V${data.pdf.version} se descargó y guardó correctamente en el historial.`,
-                        timer: 2500,
-                        showConfirmButton: false
-                    });
+                if (typeof window.gisToast === 'function') {
+                    window.gisToast(`El formato V${data.pdf.version} se descargó y guardó correctamente en el historial.`, 'success');
+                } else if (typeof toastpremium === 'function') {
+                    toastpremium(`El formato V${data.pdf.version} se descargó y guardó correctamente en el historial.`, 'success');
                 }
             } else {
                 throw new Error(data.message || 'Respuesta inesperada del servidor.');
             }
         } catch (err) {
             console.error('Error generando PDF dimensional:', err);
-            if (window.Swal) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
+            if (window.gisAlert) {
+                window.gisAlert({
+                    title: 'Error al generar formato PDF',
                     text: err.message || 'Ocurrió un error al generar el PDF. Por favor, reintenta.',
-                    confirmButtonColor: '#033966'
+                    confirmButtonColor: '#ef4444',
+                    confirmButtonText: 'Entendido'
                 });
-            } else {
-                alert(err.message || 'Error al generar el PDF.');
+            } else if (typeof window.gisToast === 'function') {
+                window.gisToast(err.message || 'Error al generar el PDF.', 'error');
             }
         }
     }
@@ -1437,10 +1457,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             Ingresa la clave maestra para confirmar:
                         </p>
                         <div style="position: relative; max-width: 320px; margin: 0 auto;">
-                            <input type="password" id="swal-clave-pdf-input" placeholder="Clave maestra..." 
+                            <input type="password" id="swal-clave-pdf-input" placeholder="Clave maestra..."
                                 style="width: 100%; box-sizing: border-box; padding: 10px 42px 10px 14px; margin: 0; background: #02203e; color: #ffffff; border: 1.5px solid #38bdf8; border-radius: 6px; font-size: 0.95rem; outline: none; font-family: inherit;"
                                 autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                            <button type="button" id="swal-toggle-password-pdf" title="Mostrar / Ocultar contraseña" 
+                            <button type="button" id="swal-toggle-password-pdf" title="Mostrar / Ocultar contraseña"
                                 style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; color: #94a3b8; outline: none; transition: color 0.2s;">
                                 <svg id="swal-eye-icon-pdf" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path>
@@ -1449,14 +1469,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             </button>
                         </div>
                     `,
-                    icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#9c0303',
-                    cancelButtonColor: '#404040',
+                    cancelButtonColor: '#64748b',
                     confirmButtonText: 'Eliminar PDF',
                     cancelButtonText: 'Cancelar',
-                    background: '#033966',
-                    color: '#ffffff',
+                    customClass: { popup: 'swal2-gis-popup' },
                     didOpen: () => {
                         const input = document.getElementById('swal-clave-pdf-input');
                         const toggleBtn = document.getElementById('swal-toggle-password-pdf');
@@ -1540,26 +1558,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     pdfVersionsContainer.style.display = 'none';
                 }
 
-                if (window.Swal) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: '¡Eliminado!',
-                        text: data.message || 'Formato PDF eliminado correctamente del historial.',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
+                if (typeof window.gisToast === 'function') {
+                    window.gisToast(data.message || 'Formato PDF eliminado correctamente del historial.', 'success');
+                } else if (typeof toastpremium === 'function') {
+                    toastpremium(data.message || 'Formato PDF eliminado correctamente del historial.', 'success');
                 }
             } catch (err) {
                 console.error('Error al eliminar PDF:', err);
-                if (window.Swal) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error de Autorización',
+                if (window.gisAlert) {
+                    window.gisAlert({
+                        title: 'Error al eliminar archivo',
                         text: err.message || 'No se pudo eliminar el archivo PDF.',
-                        confirmButtonColor: '#033966'
+                        confirmButtonColor: '#ef4444',
+                        confirmButtonText: 'Entendido'
                     });
-                } else {
-                    alert(err.message || 'Error al eliminar el archivo PDF.');
+                } else if (typeof window.gisToast === 'function') {
+                    window.gisToast(err.message || 'No se pudo eliminar el archivo PDF.', 'error');
                 }
             }
         });
@@ -1575,15 +1589,15 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnBottomPdf) btnBottomPdf.addEventListener('click', exportDimensionalPdf);
 
     function handleSendReport() {
-        if (window.Swal) {
-            Swal.fire({
-                icon: 'info',
-                title: 'Enviar Reporte',
+        if (window.gisAlert) {
+            window.gisAlert({
+                title: 'Módulo en integración',
                 text: 'El módulo de envío y notificación por correo está en proceso de integración.',
-                confirmButtonColor: '#033966'
+                confirmButtonColor: '#033966',
+                confirmButtonText: 'Entendido'
             });
-        } else {
-            alert('El módulo de envío y notificación por correo está en proceso de integración.');
+        } else if (typeof window.gisToast === 'function') {
+            window.gisToast('El módulo de envío por correo está en integración.', 'info');
         }
     }
 
@@ -1591,17 +1605,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnBottomSend) btnBottomSend.addEventListener('click', handleSendReport);
 
     function showNotice(icon, title, text) {
-        if (window.Swal) {
-            Swal.fire({
-                icon: icon,
-                title: title,
-                text: text,
-                background: '#1e293b',
-                color: '#fff',
-                confirmButtonColor: '#059669'
+        if (icon === 'success') {
+            if (typeof window.gisToast === 'function') {
+                window.gisToast(text || title, 'success');
+                return;
+            }
+        }
+        if (window.gisAlert) {
+            window.gisAlert({
+                title: title || 'Aviso del Sistema',
+                text: text || '',
+                confirmButtonColor: icon === 'error' ? '#ef4444' : '#033966',
+                confirmButtonText: 'Entendido'
             });
-        } else if (window.toastpremium) {
-            window.toastpremium(text || title, icon === 'error' ? 'error' : (icon === 'warning' ? 'warning' : 'info'));
+            return;
+        }
+        if (typeof window.gisToast === 'function') {
+            window.gisToast(text || title, icon);
         }
     }
 });

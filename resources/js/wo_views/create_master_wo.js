@@ -26,10 +26,9 @@ document.addEventListener("DOMContentLoaded", function () {
         btnCreate.addEventListener("click", function () {
             if (formUpdate && formUpdate.style.display !== "none" && hasUnsavedChanges()) {
                 (window.gisConfirm ? window.gisConfirm({
-                    title: "Cambios sin guardar",
-                    text: "Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas salir sin guardar? Los cambios no guardados se perderán.",
-                    icon: "warning",
-                    confirmButtonText: "Salir sin guardar",
+                    title: "¿Descartar modificaciones?",
+                    text: "Existen datos modificados en la Orden de Trabajo. Al continuar se perderán definitivamente.",
+                    confirmButtonText: "Descartar cambios",
                     confirmButtonColor: "#b30404"
                 }) : Promise.resolve({ isConfirmed: true })).then(res => {
                     if (res.isConfirmed) {
@@ -369,9 +368,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                 btnRemoveExisting.addEventListener("click", async function() {
                                     const res = await (window.gisConfirm ? window.gisConfirm({
                                         title: "¿Eliminar clase?",
-                                        text: "¿Estás seguro de que deseas eliminar esta clase de la Orden de Trabajo?",
-                                        icon: "warning",
-                                        confirmButtonText: "Sí, eliminar",
+                                        text: "Se eliminará esta clase de la Orden de Trabajo junto con sus procesos y registros asociados.",
+                                        confirmButtonText: "Eliminar",
                                         confirmButtonColor: "#b30404"
                                     }) : Promise.resolve({ isConfirmed: true }));
                                     if (res.isConfirmed) {
@@ -571,10 +569,9 @@ document.addEventListener("DOMContentLoaded", function () {
         woSelect.addEventListener("change", async function () {
             if (hasUnsavedChanges()) {
                 const res = await (window.gisConfirm ? window.gisConfirm({
-                    title: "Cambios sin guardar",
-                    text: "Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas cambiar de OT sin guardar? Los cambios no guardados se perderán.",
-                    icon: "warning",
-                    confirmButtonText: "Cambiar de OT",
+                    title: "¿Descartar modificaciones?",
+                    text: "Existen datos modificados en la Orden de Trabajo. Al cambiar de orden se perderán definitivamente.",
+                    confirmButtonText: "Descartar cambios",
                     confirmButtonColor: "#b30404",
                     cancelButtonText: "Permanecer aquí"
                 }) : Promise.resolve({ isConfirmed: true }));
@@ -609,10 +606,9 @@ document.addEventListener("DOMContentLoaded", function () {
             e.preventDefault();
             e.stopPropagation();
             (window.gisConfirm ? window.gisConfirm({
-                title: "Cambios sin guardar",
-                text: "Tienes cambios sin guardar en la Orden de Trabajo. ¿Estás seguro de que deseas salir sin guardar? Los cambios no guardados se perderán.",
-                icon: "warning",
-                confirmButtonText: "Salir sin guardar",
+                title: "¿Descartar modificaciones?",
+                text: "Existen datos modificados en la Orden de Trabajo. Al salir a otra sección se perderán definitivamente.",
+                confirmButtonText: "Descartar cambios",
                 confirmButtonColor: "#b30404",
                 cancelButtonText: "Permanecer aquí"
             }) : Promise.resolve({ isConfirmed: true })).then(res => {

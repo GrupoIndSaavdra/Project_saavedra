@@ -912,6 +912,9 @@ tr.drag-over-bottom td {
 .swal2-actions {
     gap: 12px !important;
     margin-top: 1.25rem !important;
+    width: 100% !important;
+    display: flex !important;
+    justify-content: flex-end !important;
 }
 
 .gis-swal-confirm,

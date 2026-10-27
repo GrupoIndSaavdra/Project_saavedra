@@ -636,32 +636,36 @@
                 listHtml += '</ul>';
 
                 Swal.fire({
-                    title: '¿Reactivar ' + (selectedOts.length === 1 ? 'esta Orden de Trabajo?' : selectedOts.length + ' Órdenes de Trabajo?'),
+                    title: (selectedOts.length === 1 ? '¿Reactivar orden de trabajo?' : '¿Reactivar órdenes de trabajo?'),
                     html: `
                         <div style="text-align: left; font-size: 0.92rem; line-height: 1.5; color: #334155;">
-                            <p style="margin-bottom: 8px; color: #15803d; font-weight: 700;">
-                                ✅ Esta acción reactivará las siguientes OTs y volverán a mostrarse en todas las vistas operativas del sistema:
-                            </p>
+                            <div style="background-color: #f0fdf4; border: 1.5px solid #22c55e; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
+                                <p style="margin: 0; color: #15803d; font-weight: 700; font-size: 0.95rem;">
+                                    Restablecimiento en el flujo de producción
+                                </p>
+                                <p style="margin: 6px 0 0 0; color: #166534; font-size: 0.85rem;">
+                                    Las órdenes volverán a integrarse inmediatamente a las vistas de Prioridades, OTs activas, Maquinado, Almacén y Control de Calidad.
+                                </p>
+                            </div>
+                            <p style="font-weight: 600; color: #475569; margin-bottom: 4px;">Órdenes de Trabajo a reactivar:</p>
                             ${listHtml}
-                            <p style="margin-top: 10px; font-size: 0.86rem; color: #64748b; margin-bottom: 0;">
-                                Volverán a estar disponibles de inmediato en el Dashboard de Prioridades, OTs en progreso, maquinados, dibujos y demás procesos.
-                            </p>
                         </div>
                     `,
-                    icon: 'question',
                     showCancelButton: true,
-                    confirmButtonText: 'Sí, Reactivar OTs',
+                    confirmButtonText: 'Reactivar',
                     cancelButtonText: 'Cancelar',
                     confirmButtonColor: '#16a34a',
                     cancelButtonColor: '#64748b',
                     reverseButtons: true,
-                    focusCancel: true
+                    focusCancel: true,
+                    customClass: { popup: 'swal2-gis-popup' }
                 }).then(function(result) {
                     if (result.isConfirmed) {
                         Swal.fire({
                             title: 'Reactivando OTs...',
                             html: 'Restableciendo el estado activo en la base de datos...',
                             allowOutsideClick: false,
+                            customClass: { popup: 'swal2-gis-popup' },
                             didOpen: function() {
                                 Swal.showLoading();
                             }
@@ -688,7 +692,8 @@
                                     title: '¡OTs Reactivadas!',
                                     text: data.message,
                                     timer: 1800,
-                                    showConfirmButton: false
+                                    showConfirmButton: false,
+                                    customClass: { popup: 'swal2-gis-popup' }
                                 }).then(function() {
                                     window.location.reload();
                                 });
@@ -696,7 +701,8 @@
                                 Swal.fire({
                                     icon: 'error',
                                     title: 'Error',
-                                    text: data.message || 'No fue posible reactivar las OTs seleccionadas.'
+                                    text: data.message || 'No fue posible reactivar las OTs seleccionadas.',
+                                    customClass: { popup: 'swal2-gis-popup' }
                                 });
                             }
                         })
@@ -705,7 +711,8 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'Error de Red',
-                                text: 'Ocurrió un error al procesar la solicitud con el servidor.'
+                                text: 'Ocurrió un error al procesar la solicitud con el servidor.',
+                                customClass: { popup: 'swal2-gis-popup' }
                             });
                         });
                     }
@@ -733,29 +740,29 @@
                 listHtml += '</ul>';
 
                 Swal.fire({
-                    title: '⚠️ ¿ELIMINAR DEFINITIVAMENTE ' + (selectedOts.length === 1 ? 'ESTA OT?' : selectedOts.length + ' OTs?'),
+                    title: (selectedOts.length === 1 ? '¿Eliminar orden de trabajo?' : '¿Eliminar órdenes de trabajo?'),
                     html: `
                         <div style="text-align: left; font-size: 0.92rem; line-height: 1.5; color: #334155;">
                             <div style="background-color: #fef2f2; border: 1.5px solid #ef4444; border-radius: 8px; padding: 12px; margin-bottom: 12px;">
                                 <p style="margin: 0; color: #991b1b; font-weight: 700; font-size: 0.95rem;">
-                                    ¡ADVERTENCIA CRÍTICA: ESTA ACCIÓN ES TOTALMENTE IRREVERSIBLE!
+                                    Acción destructiva e irreversible
                                 </p>
                                 <p style="margin: 6px 0 0 0; color: #b91c1c; font-size: 0.85rem;">
-                                    Se borrará permanentemente la Orden de Trabajo junto con todas sus clases, piezas, procesos, fechas y registros de la base de datos.
+                                    Se borrarán permanentemente de la base de datos las clases, piezas, mediciones dimensionales, trazabilidad histórica y registros de avance vinculados.
                                 </p>
                             </div>
-                            <p style="font-weight: 600; color: #475569; margin-bottom: 4px;">Órdenes de Trabajo que se destruirán:</p>
+                            <p style="font-weight: 600; color: #475569; margin-bottom: 4px;">Órdenes de Trabajo seleccionadas para destrucción:</p>
                             ${listHtml}
                         </div>
                     `,
-                    icon: 'warning',
                     showCancelButton: true,
-                    confirmButtonText: 'Sí, Eliminar Definitivamente',
+                    confirmButtonText: 'Eliminar definitivamente',
                     cancelButtonText: 'Cancelar',
                     confirmButtonColor: '#b91c1c',
                     cancelButtonColor: '#64748b',
                     reverseButtons: true,
-                    focusCancel: true
+                    focusCancel: true,
+                    customClass: { popup: 'swal2-gis-popup' }
                 }).then(function(result) {
                     if (result.isConfirmed) {
                         Swal.fire({

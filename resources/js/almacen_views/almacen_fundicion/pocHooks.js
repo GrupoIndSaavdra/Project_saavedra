@@ -8,31 +8,31 @@ window.materialesCastingPersonalizados = [];
 window.MATERIALES_CASTING_FIJOS = ["Hierro Gris", "Hierro Nodular", "Acero al Carbón", "Acero Inoxidable", "Bronce", "Aluminio"];
 window.pocAvailableClasses = [];
 
-window.abrirModalPreOrdenCasting = function(ot) {
+window.abrirModalPreOrdenCasting = function (ot) {
     const modal = document.getElementById("modalPreOrdenCasting");
     if (!modal) return;
-    
+
     window.pocState = {
         ot_raw: ot,
         moldura: '',
         pages: {}
     };
     window.materialesCastingPersonalizados = [];
-    
+
     const subtitle = document.getElementById("poc-modal-subtitle");
     if (subtitle) {
         const hasOtPrefix = /^OT\s*:/i.test(ot) || /^OT\s+/i.test(ot);
         subtitle.textContent = hasOtPrefix ? (ot.startsWith("OT:") ? ot : "OT: " + ot.replace(/^OT\s*/i, "")) : "OT: " + ot;
     }
-    
+
     modal.classList.add("open");
     document.body.classList.add("modal-open");
-    
+
     const tabsContainer = document.getElementById("poc-tabs-container");
     const pagesContainer = document.getElementById("poc-pages-container");
     if (tabsContainer) tabsContainer.innerHTML = '<div style="color:white; padding: 10px;">Cargando...</div>';
     if (pagesContainer) pagesContainer.innerHTML = '<div style="text-align:center; padding: 2em;">Cargando datos...</div>';
-    
+
     fetch(`${window.almacenRoutes.getOtData}?ot=${ot}&type=casting`)
         .then(r => r.json())
         .then(data => {
@@ -41,12 +41,12 @@ window.abrirModalPreOrdenCasting = function(ot) {
                 if (classesToUse.length === 0 && data.clases_vinculadas) {
                     classesToUse = data.clases_vinculadas.map(c => typeof c === 'string' ? { nombre: c, proveedor: '', material: 'Hierro Gris' } : { nombre: c.nombre, proveedor: c.proveedor || '', material: c.material || 'Hierro Gris' });
                 }
-                
+
                 window.pocAvailableClasses = classesToUse;
                 window.pocState.moldura = data.moldura || "N/A";
-                
+
                 let pagesCount = 0;
-                
+
                 if (data.pre_ordenes && data.pre_ordenes.length > 0) {
                     data.pre_ordenes.forEach((po, i) => {
                         pagesCount++;
@@ -67,7 +67,7 @@ window.abrirModalPreOrdenCasting = function(ot) {
                         if (!providersMap[prov]) providersMap[prov] = [];
                         providersMap[prov].push(c);
                     });
-                    
+
                     for (let prov in providersMap) {
                         pagesCount++;
                         let filas = [];
@@ -89,7 +89,7 @@ window.abrirModalPreOrdenCasting = function(ot) {
                                 fecha_entrega: data.fecha_entrega || ''
                             });
                         });
-                        
+
                         window.pocState.pages[pagesCount] = {
                             proveedor: prov === "SIN_PROVEEDOR" ? "" : prov,
                             fecha: new Date().toISOString().substring(0, 10),
@@ -98,7 +98,7 @@ window.abrirModalPreOrdenCasting = function(ot) {
                             filas: filas
                         };
                     }
-                    
+
                     if (pagesCount === 0) {
                         pagesCount = 1;
                         window.pocState.pages[1] = {
@@ -111,7 +111,7 @@ window.abrirModalPreOrdenCasting = function(ot) {
                         window.agregarFilaPoc(1);
                     }
                 }
-                
+
                 window.renderPocTabsAndPages();
                 window.switchPocPage(1);
             } else {
@@ -126,7 +126,7 @@ window.abrirModalPreOrdenCasting = function(ot) {
         });
 };
 
-window.cerrarModalPreOrdenCasting = function() {
+window.cerrarModalPreOrdenCasting = function () {
     const modal = document.getElementById("modalPreOrdenCasting");
     if (modal) {
         modal.classList.remove("open");
@@ -134,38 +134,38 @@ window.cerrarModalPreOrdenCasting = function() {
     }
 };
 
-window.renderPocTabsAndPages = function() {
+window.renderPocTabsAndPages = function () {
     const tabsContainer = document.getElementById("poc-tabs-container");
     const pagesContainer = document.getElementById("poc-pages-container");
     if (!tabsContainer || !pagesContainer) return;
-    
+
     let tabsHtml = '';
     let pagesHtml = '';
-    
+
     const pagesKeys = Object.keys(window.pocState.pages);
-    
+
     pagesKeys.forEach((pageNumKey, index) => {
         const pageNum = parseInt(pageNumKey);
         const isActive = index === 0;
-        
+
         // Tab button
         let tabContent = `<div style="display: inline-flex; align-items: stretch; margin-right: 8px; border-radius: 30px; transition: all 0.3s ease; ${isActive ? 'box-shadow: 0 4px 15px rgba(0,0,0,0.1), 0 0 0 4px rgba(255,255,255,0.2); transform: translateY(-2px);' : 'backdrop-filter: blur(4px);'}">`;
-        
+
         tabContent += `<button type="button" id="tab-poc-page-${pageNum}" onclick="window.switchPocPage(${pageNum})" class="btn-po-tab ${isActive ? 'active' : ''}" style="
-            background: ${isActive ? '#ffffff' : 'rgba(255,255,255,0.15)'}; 
-            color: ${isActive ? '#0284c7' : '#ffffff'}; 
-            border: ${isActive ? 'none' : '1px solid rgba(255,255,255,0.3)'}; 
+            background: ${isActive ? '#ffffff' : 'rgba(255,255,255,0.15)'};
+            color: ${isActive ? '#0284c7' : '#ffffff'};
+            border: ${isActive ? 'none' : '1px solid rgba(255,255,255,0.3)'};
             ${pagesKeys.length > 1 ? 'border-right: none;' : ''}
-            padding: 10px 24px; 
-            border-top-left-radius: 30px; 
-            border-bottom-left-radius: 30px; 
+            padding: 10px 24px;
+            border-top-left-radius: 30px;
+            border-bottom-left-radius: 30px;
             ${pagesKeys.length > 1 ? 'border-top-right-radius: 0; border-bottom-right-radius: 0;' : 'border-radius: 30px;'}
-            font-family: 'Poppins', sans-serif; 
-            font-weight: ${isActive ? '700' : '500'}; 
-            font-size: 0.95em; 
-            cursor: pointer; 
-            display: inline-flex; 
-            align-items: center; 
+            font-family: 'Poppins', sans-serif;
+            font-weight: ${isActive ? '700' : '500'};
+            font-size: 0.95em;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
             justify-content: center;
             outline: none;
             "
@@ -179,14 +179,14 @@ window.renderPocTabsAndPages = function() {
 
         if (pagesKeys.length > 1) {
             tabContent += `<button type="button" id="tab-poc-close-${pageNum}" onclick="event.stopPropagation(); window.removerPocPagina(${pageNum});" style="
-                background: ${isActive ? '#ffffff' : 'rgba(255,255,255,0.15)'}; 
+                background: ${isActive ? '#ffffff' : 'rgba(255,255,255,0.15)'};
                 color: ${isActive ? '#ef4444' : '#fca5a5'};
                 border: ${isActive ? 'none' : '1px solid rgba(255,255,255,0.3)'};
                 border-left: ${isActive ? '1px solid #e2e8f0' : '1px solid rgba(255,255,255,0.2)'};
                 padding: 0 16px;
                 border-top-right-radius: 30px;
                 border-bottom-right-radius: 30px;
-                font-family: 'Poppins', sans-serif; 
+                font-family: 'Poppins', sans-serif;
                 font-size: 1.4em;
                 font-weight: 700;
                 cursor: pointer;
@@ -205,7 +205,7 @@ window.renderPocTabsAndPages = function() {
         }
         tabContent += `</div>`;
         tabsHtml += tabContent;
-        
+
         // Page content
         pagesHtml += `
         <div id="poc-page-${pageNum}" class="poc-page ${isActive ? '' : 'alm-display-none cal-display-none'}">
@@ -269,36 +269,36 @@ window.renderPocTabsAndPages = function() {
             </div>
         </div>`;
     });
-    
+
     // Add "Agregar Proveedor" button to tabs
     // Add "Agregar Proveedor" button to tabs
     let availableClasesCount = window.pocAvailableClasses ? window.pocAvailableClasses.length : 1;
     let limitReached = pagesKeys.length >= availableClasesCount;
-    let addBtnStyle = limitReached 
+    let addBtnStyle = limitReached
         ? "align-items: center; gap: 8px; padding: 10px 24px; background: rgba(255, 255, 255, 0.05); border: 1.5px dashed rgba(255, 255, 255, 0.2); border-radius: 30px; color: rgba(255,255,255,0.4); font-family: 'Poppins', sans-serif; font-size: 0.95em; font-weight: 500; margin-left: 8px; cursor: not-allowed; transition: all 0.3s ease;"
         : "align-items: center; gap: 8px; padding: 10px 24px; background: rgba(255, 255, 255, 0.1); border: 1.5px dashed rgba(255, 255, 255, 0.6); border-radius: 30px; color: #ffffff; cursor: pointer; font-family: 'Poppins', sans-serif; font-size: 0.95em; font-weight: 600; transition: all 0.3s ease; margin-left: 8px;";
-        
+
     tabsHtml += `
         <button type="button" id="btn-add-poc-page" onclick="${limitReached ? 'return false;' : 'window.agregarPocPagina()'}" class="btns btn-add-tab" style="${addBtnStyle}" ${limitReached ? 'title="Se ha alcanzado el límite de proveedores (uno por cada clase)" disabled' : ''}>
             + Agregar Proveedor
         </button>
     `;
-    
+
     tabsContainer.innerHTML = tabsHtml;
     pagesContainer.innerHTML = pagesHtml;
-    
+
     // Load data for all pages
     pagesKeys.forEach(pageNumKey => {
         window.loadPocPage(parseInt(pageNumKey));
     });
 };
 
-window.agregarPocPagina = function() {
+window.agregarPocPagina = function () {
     let newPageNum = 1;
-    while(window.pocState.pages[newPageNum]) {
+    while (window.pocState.pages[newPageNum]) {
         newPageNum++;
     }
-    
+
     window.pocState.pages[newPageNum] = {
         proveedor: '',
         fecha: new Date().toISOString().substring(0, 10),
@@ -306,38 +306,37 @@ window.agregarPocPagina = function() {
         observaciones: '',
         filas: []
     };
-    
+
     window.agregarFilaPoc(newPageNum);
     window.renderPocTabsAndPages();
     window.switchPocPage(newPageNum);
 };
 
-window.removerPocPagina = async function(pageNum) {
+window.removerPocPagina = async function (pageNum) {
     if (Object.keys(window.pocState.pages).length <= 1) {
         almacenToast("Debe haber al menos un proveedor.", "warning");
         return;
     }
     const res = await (window.gisConfirm ? window.gisConfirm({
-        title: "¿Eliminar proveedor?",
-        text: `¿Estás seguro de eliminar el Proveedor ${pageNum}? Se perderán los datos ingresados en esta pestaña.`,
-        icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        title: `¿Eliminar proveedor ${pageNum}?`,
+        text: `Se eliminarán permanentemente los datos y cotizaciones asociados al Proveedor ${pageNum}.`,
+        confirmButtonText: "Eliminar",
         confirmButtonColor: "#b30404"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) return;
-    
+
     delete window.pocState.pages[pageNum];
     window.renderPocTabsAndPages();
-    
+
     const remainingKeys = Object.keys(window.pocState.pages);
     window.switchPocPage(parseInt(remainingKeys[0]));
 };
 
-window.switchPocPage = function(pageNum) {
+window.switchPocPage = function (pageNum) {
     document.querySelectorAll(".poc-page").forEach(p => p.classList.add("alm-display-none", "cal-display-none"));
-    
+
     const pagesKeys = Object.keys(window.pocState.pages);
-    
+
     // Reset all tabs to inactive styles
     document.querySelectorAll(".btn-po-tab").forEach(b => {
         if (!b.id.includes("btn-add-poc-page")) {
@@ -366,11 +365,11 @@ window.switchPocPage = function(pageNum) {
             c.style.borderLeft = "1px solid rgba(255,255,255,0.2)";
         }
     });
-    
+
     const page = document.getElementById("poc-page-" + pageNum);
     const tab = document.getElementById("tab-poc-page-" + pageNum);
     const closeBtn = document.getElementById("tab-poc-close-" + pageNum);
-    
+
     if (page) {
         page.classList.remove("alm-display-none", "cal-display-none");
     }
@@ -397,33 +396,33 @@ window.updatePocAddRowButtonState = function () {
     // Left empty on purpose because renderPocTabsAndPages now handles dynamic elements
 };
 
-window.handlePocProveedorChange = function(pageNum) {
+window.handlePocProveedorChange = function (pageNum) {
     window.savePocPageData(pageNum);
 
     const pSel = document.getElementById(`poc-p${pageNum}-proveedor`);
     if (!pSel || !pSel.value) return;
-    
+
     const currentProv = pSel.value;
     const pagesKeys = Object.keys(window.pocState.pages);
-    
+
     for (let key of pagesKeys) {
         if (key != pageNum && window.pocState.pages[key].proveedor === currentProv) {
             if (window.pocState.pages[pageNum].filas && window.pocState.pages[pageNum].filas.length > 0) {
                 window.pocState.pages[key].filas = window.pocState.pages[key].filas.concat(window.pocState.pages[pageNum].filas);
             }
-            
+
             if (window.pocState.pages[pageNum].observaciones) {
-                window.pocState.pages[key].observaciones = window.pocState.pages[key].observaciones 
-                    ? window.pocState.pages[key].observaciones + "\n" + window.pocState.pages[pageNum].observaciones 
+                window.pocState.pages[key].observaciones = window.pocState.pages[key].observaciones
+                    ? window.pocState.pages[key].observaciones + "\n" + window.pocState.pages[pageNum].observaciones
                     : window.pocState.pages[pageNum].observaciones;
             }
-            
+
             delete window.pocState.pages[pageNum];
-            
+
             window.renderPocTabsAndPages();
             window.switchPocPage(parseInt(key));
             window.loadPocPage(parseInt(key));
-            
+
             if (typeof almacenToast !== 'undefined') {
                 almacenToast(`Modelos agrupados con el proveedor existente.`, "info");
             }
@@ -432,11 +431,11 @@ window.handlePocProveedorChange = function(pageNum) {
     }
 };
 
-window.loadPocPage = function(pageNum) {
+window.loadPocPage = function (pageNum) {
     if (!pageNum) return;
     const pData = window.pocState.pages[pageNum];
     if (!pData) return;
-    
+
     const provEl = document.getElementById(`poc-p${pageNum}-proveedor`);
     const folioEl = document.getElementById(`poc-p${pageNum}-folio`);
     const obsEl = document.getElementById(`poc-p${pageNum}-observaciones`);
@@ -466,35 +465,35 @@ window.loadPocPage = function(pageNum) {
 
         pData.filas.forEach((f, idx) => {
             const tr = document.createElement("tr");
-            
+
             const cantFab = (f.cant_fabricar !== undefined && f.cant_fabricar !== null && f.cant_fabricar !== '' && f.cant_fabricar !== 'undefined' && f.cant_fabricar !== 0) ? f.cant_fabricar : '';
             const cantCons = (f.cant_consignacion !== undefined && f.cant_consignacion !== null && f.cant_consignacion !== '' && f.cant_consignacion !== 'undefined' && f.cant_consignacion !== 0) ? f.cant_consignacion : '';
             const codigoVal = (f.codigo !== undefined && f.codigo !== null && f.codigo !== 'undefined') ? f.codigo : (f.codigo_modelo ?? '');
             const pesoJuegoVal = (f.peso_juego !== undefined && f.peso_juego !== null && f.peso_juego !== '' && f.peso_juego !== 'undefined' && f.peso_juego !== 0) ? f.peso_juego : '';
             const pesoTotalVal = (f.peso_total !== undefined && f.peso_total !== null && f.peso_total !== '' && f.peso_total !== 'undefined' && f.peso_total !== 0) ? f.peso_total : '';
             const fechaEntregaVal = (f.fecha_entrega && f.fecha_entrega !== 'undefined') ? String(f.fecha_entrega).split(/[ T]/)[0] : '';
-            
+
             const selectedClass = f.id_clase || f.descripcion || f.clase_nombre || f.clase || '';
             const optionsClases = (window.pocAvailableClasses || []).map(c => {
                 const classId = c.id || c.nombre;
                 const isSel = selectedClass && (selectedClass == classId || selectedClass == c.nombre || selectedClass == c.id);
                 return `<option value="${classId}" ${isSel ? 'selected' : ''}>${c.nombre}</option>`;
             }).join('');
-            
+
             if (f.material && !window.MATERIALES_CASTING_FIJOS.includes(f.material) && f.material !== 'Otro') {
                 if (!window.materialesCastingPersonalizados.includes(f.material)) {
                     window.materialesCastingPersonalizados.push(f.material);
                 }
             }
-            
-            const customMatOptions = (window.materialesCastingPersonalizados || []).map(m => 
+
+            const customMatOptions = (window.materialesCastingPersonalizados || []).map(m =>
                 `<option value="${m}" ${f.material === m ? 'selected' : ''}>${m}</option>`
             ).join('');
-            
-            const fixedMatOptions = window.MATERIALES_CASTING_FIJOS.map(m => 
+
+            const fixedMatOptions = window.MATERIALES_CASTING_FIJOS.map(m =>
                 `<option value="${m}" ${f.material === m ? 'selected' : ''}>${m}</option>`
             ).join('');
-            
+
             const isSingleRow = pData.filas.length <= 1;
             const btnDelAttrs = isSingleRow
                 ? 'disabled title="Mínimo debe conservar una clase por proveedor" style="padding:4px 8px; background:#cbd5e1; color:#94a3b8; border:none; border-radius:4px; cursor:not-allowed;"'
@@ -582,7 +581,7 @@ window.calcularConsignacion = function (fabricar, tipo, claseNombre = "") {
     }
 };
 
-window.autoGenerarCodigo = window.autoGenerarCodigo || function(tipo, claseNombre, ot) {
+window.autoGenerarCodigo = window.autoGenerarCodigo || function (tipo, claseNombre, ot) {
     let otNumber = "";
     const cleanOt = (ot || "").replace(/_[rR]?\d{8}_\d{6}_.*/, "").replace(/_[rR]?\d+$/, "");
     const numMatch = cleanOt.match(/\d+/);
@@ -761,7 +760,7 @@ window.handlePocRowInputChange = function (el) {
             }
         }
     }
-    
+
     // Auto-populate material when class changes
     if (el === selectClase && selectClase) {
         const matInput = tr.querySelector(".poc-input-material");
@@ -854,7 +853,7 @@ window.savePocPageData = function (pageNum) {
             rowState.tipo_modelo = tipoSel ? tipoSel.value : rowState.tipo_modelo || "";
             const rawCant = tr.querySelector(".poc-input-cant-fabricar")?.value;
             rowState.cant_fabricar = (rawCant !== undefined && rawCant !== "") ? parseInt(rawCant) : 0;
-            
+
             const selectClase = tr.querySelector(".poc-select-clase");
             if (selectClase) {
                 rowState.id_clase = selectClase.value;
@@ -901,7 +900,7 @@ window.savePocPageData = function (pageNum) {
             } else if (!rowState.material) {
                 rowState.material = "Hierro Gris";
             }
-            
+
             rowState.peso_juego = parseFloat(tr.querySelector(".poc-input-peso-juego")?.value) || 0;
             const fabNum = parseInt(rowState.cant_fabricar) || 0;
             const consNum = parseInt(rowState.cant_consignacion) || 0;
@@ -918,48 +917,48 @@ window.savePocPageData = window.savePocPageData;
 document.addEventListener("DOMContentLoaded", () => {
     const formPoc = document.getElementById("formPreOrdenCasting");
     if (formPoc) {
-        formPoc.addEventListener("submit", function(e) {
+        formPoc.addEventListener("submit", function (e) {
             e.preventDefault();
-            
+
             let allValid = true;
             let pagesPayload = [];
-            
+
             Object.keys(window.pocState.pages).forEach(pageNumKey => {
                 const pageNum = parseInt(pageNumKey);
                 window.savePocPageData(pageNum);
-                
+
                 const p = window.pocState.pages[pageNum];
                 p.ot_raw = window.pocState.ot_raw;
                 p.ot = window.pocState.ot_raw;
                 p.moldura = window.pocState.moldura;
-                
+
                 if (!p.proveedor) {
                     almacenToast(`Debe seleccionar un proveedor para la pestaña Proveedor ${pageNum}.`, "error");
                     allValid = false;
                 }
-                
+
                 if (!p.filas || p.filas.length === 0) {
                     almacenToast(`El Proveedor ${pageNum} debe tener al menos una clase asignada.`, "error");
                     allValid = false;
                 }
-                
+
                 let invalidRow = p.filas.find((f) => !f.tipo_modelo || (!f.id_clase && !f.descripcion));
                 if (invalidRow) {
                     almacenToast(`Debe seleccionar el Tipo de Modelo y la Clase para todas las filas del Proveedor ${pageNum}.`, "error");
                     allValid = false;
                 }
-                
+
                 pagesPayload.push(p);
             });
-            
+
             if (!allValid) return;
-            
+
             const payload = {
                 ot: window.pocState.ot_raw,
                 type: 'casting',
                 pages: pagesPayload
             };
-            
+
             const btnSubmit = document.getElementById("btn-submit-poc");
             let originalText = '';
             if (btnSubmit) {
@@ -967,7 +966,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 btnSubmit.disabled = true;
                 btnSubmit.innerHTML = `<i class="fas fa-spinner fa-spin" style="margin-right: 8px;"></i> Procesando...`;
             }
-            
+
             const targetUrl = (window.almacenRoutes && (window.almacenRoutes.generarPreOrden || window.almacenRoutes.storePreOrden))
                 ? (window.almacenRoutes.generarPreOrden || window.almacenRoutes.storePreOrden)
                 : '/almacen/fundicion/store-preorden';
@@ -980,45 +979,45 @@ document.addEventListener("DOMContentLoaded", () => {
                 },
                 body: JSON.stringify(payload)
             })
-            .then(r => r.json())
-            .then(data => {
-                if (data.success) {
-                    almacenToast(data.message || "Pre-Orden generada.", "success");
-                    
-                    if (data.pdfs && Array.isArray(data.pdfs) && data.pdfs.length > 0) {
-                        data.pdfs.forEach(p => {
-                            if (p.url) {
-                                const a = document.createElement("a");
-                                a.href = p.url;
-                                a.download = p.filename || "PreOrden_Casting.pdf";
-                                a.target = "_blank";
-                                document.body.appendChild(a);
-                                a.click();
-                                setTimeout(() => {
-                                    if (document.body.contains(a)) document.body.removeChild(a);
-                                }, 500);
-                            }
-                        });
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        almacenToast(data.message || "Pre-Orden generada.", "success");
+
+                        if (data.pdfs && Array.isArray(data.pdfs) && data.pdfs.length > 0) {
+                            data.pdfs.forEach(p => {
+                                if (p.url) {
+                                    const a = document.createElement("a");
+                                    a.href = p.url;
+                                    a.download = p.filename || "PreOrden_Casting.pdf";
+                                    a.target = "_blank";
+                                    document.body.appendChild(a);
+                                    a.click();
+                                    setTimeout(() => {
+                                        if (document.body.contains(a)) document.body.removeChild(a);
+                                    }, 500);
+                                }
+                            });
+                        }
+
+                        window.cerrarModalPreOrdenCasting();
+                        setTimeout(() => location.reload(), 1500);
+                    } else {
+                        almacenToast(data.message || "Error al guardar.", "error");
+                        if (btnSubmit) {
+                            btnSubmit.disabled = false;
+                            btnSubmit.innerHTML = originalText;
+                        }
                     }
-                    
-                    window.cerrarModalPreOrdenCasting();
-                    setTimeout(() => location.reload(), 1500);
-                } else {
-                    almacenToast(data.message || "Error al guardar.", "error");
+                })
+                .catch(e => {
+                    console.error(e);
+                    almacenToast("Error de conexión", "error");
                     if (btnSubmit) {
                         btnSubmit.disabled = false;
                         btnSubmit.innerHTML = originalText;
                     }
-                }
-            })
-            .catch(e => {
-                console.error(e);
-                almacenToast("Error de conexión", "error");
-                if (btnSubmit) {
-                    btnSubmit.disabled = false;
-                    btnSubmit.innerHTML = originalText;
-                }
-            });
+                });
         });
     }
 });

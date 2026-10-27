@@ -717,16 +717,14 @@ function initShiftTimeModalEvents() {
             if (activeDayMode === "sab" && (selectedShiftId === "noche" || (startHour24 === 22 && endHour24 === 6))) {
                 if (window.gisAlert) {
                     window.gisAlert({
-                        icon: "warning",
-                        title: "Turno No Permitido",
-                        text: "Los sábados no está habilitado el Turno Noche en planta.",
+                        title: "Seleccionar turno válido",
+                        text: "Los turnos nocturnos no operan durante los días sábados en planta.",
                         confirmButtonColor: "#033966"
                     });
                 } else if (window.Swal) {
                     Swal.fire({
-                        icon: "warning",
-                        title: "Turno No Permitido",
-                        text: "Los sábados no está habilitado el Turno Noche en planta.",
+                        title: "Seleccionar turno válido",
+                        text: "Los turnos nocturnos no operan durante los días sábados en planta.",
                         confirmButtonColor: "#033966",
                         customClass: { popup: 'swal2-gis-popup' }
                     });
@@ -743,16 +741,14 @@ function initShiftTimeModalEvents() {
             if (formattedStart24 === formattedEnd24) {
                 if (window.gisAlert) {
                     window.gisAlert({
-                        icon: "warning",
-                        title: "Horario Inválido",
-                        text: "La hora de inicio y de término no pueden ser iguales.",
+                        title: "Corregir intervalo de horario",
+                        text: "La hora de inicio y de término deben ser distintas para registrar el turno.",
                         confirmButtonColor: "#033966"
                     });
                 } else if (window.Swal) {
                     Swal.fire({
-                        icon: "warning",
-                        title: "Horario Inválido",
-                        text: "La hora de inicio y de término no pueden ser iguales.",
+                        title: "Corregir intervalo de horario",
+                        text: "La hora de inicio y de término deben ser distintas para registrar el turno.",
                         confirmButtonColor: "#033966",
                         customClass: { popup: 'swal2-gis-popup' }
                     });

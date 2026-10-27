@@ -23,10 +23,9 @@ window.renderCmConfirmarBadges = renderCmConfirmarBadges;
 
 window.confirmarModelo = async function (ot, id_hash) {
     const res = await (window.gisConfirm ? window.gisConfirm({
-        title: "Confirmar Modelo",
-        text: `¿Confirmas que actualmente cuentas con el modelo físico para la OT ${ot}?`,
-        icon: "question",
-        confirmButtonText: "Sí, confirmar",
+        title: "¿Confirmar modelo físico?",
+        text: `El modelo quedará verificado en planta para la OT ${ot} y habilitará las operaciones siguientes.`,
+        confirmButtonText: "Confirmar",
         confirmButtonColor: "#0a8504"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) return;
@@ -67,7 +66,7 @@ window.confirmarModelo = async function (ot, id_hash) {
 window.onCmClaseToggle = function (checkbox) {
     const label = checkbox.parentElement;
     const span = label.querySelector("span");
-    
+
     if (checkbox.checked) {
         label.style.backgroundColor = "#16a34a";
         label.style.borderColor = "#15803d";
@@ -77,7 +76,7 @@ window.onCmClaseToggle = function (checkbox) {
         label.style.borderColor = "#cbd5e1";
         if (span) span.style.color = "#475569";
     }
-    
+
     const claseNombre = checkbox.value.toLowerCase();
     const fileCards = document.querySelectorAll("#cm-server-files-container .select-file-card");
     fileCards.forEach((card) => {
@@ -94,36 +93,36 @@ window.onCmClaseToggle = function (checkbox) {
 window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null, todasClases = null) {
     const modal = document.getElementById("modalConfirmarModelo");
     if (!modal) return;
-    
+
     cmConfirmarSelectedFiles = [];
     window.cmConfirmarSelectedFiles = cmConfirmarSelectedFiles;
     renderCmConfirmarBadges();
-    
+
     const form = document.getElementById("formConfirmarModelo");
     if (form) form.reset();
-    
+
     const otInput = document.getElementById("cm-ot");
     if (otInput) otInput.value = ot;
     const hashInput = document.getElementById("cm-id-hash");
     if (hashInput) hashInput.value = idHash || "";
-    
+
     const inputDestinatarioCalidad = document.getElementById("cm-destinatario-calidad");
     if (inputDestinatarioCalidad && form) {
         inputDestinatarioCalidad.value = form.getAttribute("data-email-calidad");
     }
-    
+
     const subtitle = document.getElementById("confirmar-modelo-subtitle");
     if (subtitle) subtitle.textContent = `OT: ${ot}`;
-    
+
     const fechaInput = document.getElementById("cm-fecha");
     if (fechaInput) {
         const h = new Date();
         fechaInput.value = `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, "0")}-${String(h.getDate()).padStart(2, "0")}`;
     }
-    
+
     modal.classList.add("open");
     document.body.classList.add("modal-open");
-    
+
     const clasesContainer = document.getElementById("cm-clases-container");
     if (clasesContainer) {
         clasesContainer.innerHTML = '<div class="alm-spinner" id="cm-clases-spinner" style="border-top-color:#0284c7; display:block; margin:5px auto;"></div>';
@@ -139,7 +138,7 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
                     yaProcesada = !esFaltante;
                 }
                 if (yaProcesada) return;
-                
+
                 const nombreDisplay = window.formatClaseSurgico ? window.formatClaseSurgico(nombreClase) : (nombreClase.charAt(0).toUpperCase() + nombreClase.slice(1));
                 html += `
                     <label style="display:inline-flex; align-items:center; justify-content:center; background:#fff; border:1px solid #cbd5e1; padding:6px 14px; border-radius:9999px; cursor:pointer; transition:all 0.2s ease; margin:0; user-select:none;"
@@ -160,7 +159,7 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
             clasesContainer.innerHTML = '<span style="color:#ef4444; font-size:0.9em; font-weight:500;">No hay clases configuradas para confirmar.</span>';
         }
     }
-    
+
     const filesContainer = document.getElementById("cm-server-files-container");
     if (filesContainer) {
         filesContainer.innerHTML = `
@@ -204,7 +203,7 @@ window.abrirModalConfirmarModelo = function (ot, idHash, clasesFaltantes = null,
                         "preorden"
                     );
                     filesContainer.innerHTML = sectionsHtml || `<div style="text-align: center; color: #64748b; padding: 15px; font-style: italic;">No se encontraron archivos pendientes para esta OT.</div>`;
-                    
+
                     const fileCards = filesContainer.querySelectorAll(".select-file-card");
                     fileCards.forEach((card) => {
                         const fileInput = card.querySelector('input[type="checkbox"]');
@@ -251,7 +250,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const ot = document.getElementById("cm-ot")?.value;
         const idHash = document.getElementById("cm-id-hash")?.value;
         if (!ot) return;
-        
+
         const selectedClasses = document.querySelectorAll(".cm-clase-checkbox:checked");
         if (selectedClasses.length === 0) {
             almacenToast("Debes seleccionar al menos una clase para confirmar su modelo físico.", "error");
@@ -272,7 +271,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const fd = new FormData(this);
         fd.delete("archivos[]");
-        
+
         if (window.otCurrentClasses) {
             const yaUsadas = Array.from(document.querySelectorAll(".po-clase-select"))
                 .map((s) => s.options[s.selectedIndex]?.text?.toLowerCase() || "")

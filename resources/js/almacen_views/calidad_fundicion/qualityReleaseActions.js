@@ -198,10 +198,9 @@ window._libActualizarBotonesAccion = function (decision) {
 
 window.almacenEliminarOtroArchivo = async function (ot, archivo, tipo, buttonEl, origin) {
     const res = await (window.gisConfirm ? window.gisConfirm({
-        title: "¿Eliminar archivo?",
-        text: "¿Estás seguro de que deseas eliminar permanentemente este archivo? Esta acción no se puede deshacer.",
-        icon: "warning",
-        confirmButtonText: "Sí, eliminar",
+        title: "¿Eliminar archivo de calidad?",
+        text: "Se borrará permanentemente este documento del servidor.",
+        confirmButtonText: "Eliminar",
         confirmButtonColor: "#b30404"
     }) : Promise.resolve({ isConfirmed: true }));
     if (!res.isConfirmed) {
