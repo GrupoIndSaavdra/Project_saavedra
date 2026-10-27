@@ -10,10 +10,11 @@
     <!-- SweetAlert2 Global GIS -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    @vite(['resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js', 'resources/js/layouts/productivity.js', 'resources/css/layouts/partials/messages.css', 'resources/js/layouts/partials/messages.js'])
+    @vite(['resources/css/tailwind.css', 'resources/css/layouts/appMenu.css', 'resources/js/layouts/appMenu.js', 'resources/js/layouts/productivity.js', 'resources/css/layouts/partials/messages.css', 'resources/js/layouts/partials/messages.js'])
 
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
 
+    @livewireStyles
     @yield('head')
     <style>
         :root {
@@ -110,6 +111,7 @@
         @endauth
     </header>
     @yield('content')
+    {{ $slot ?? '' }}
 </body>
 
 <!--Creacion de rutas de laravel para pasarlas a JS-->
@@ -250,4 +252,5 @@
     </script>
 @endisset
 
+@livewireScripts
 </html>

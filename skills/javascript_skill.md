@@ -9,6 +9,7 @@ version: 1.0.0
 > **Directorio de Referencia:** `resources/js/`
 
 ## Cuándo usar esta habilidad
+
 - Al crear, modificar o depurar scripts JS en `resources/js/`.
 - Al realizar peticiones AJAX/Fetch, manejar modales, FormData o eventos del DOM.
 - Al implementar estados de carga, alertas SweetAlert2 o `almacenToast`.
@@ -37,47 +38,48 @@ Olvida las cadenas `.then().catch()`. Todo debe usar `async / await` rodeado de 
 
 ```javascript
 async function procesarPieza(idPieza) {
- // 1. Prepara UI (Mostrar Loading, deshabilitar botón)
- const btn = document.getElementById('btn-procesar');
- setVisualLoading(btn, true);
+    // 1. Prepara UI (Mostrar Loading, deshabilitar botón)
+    const btn = document.getElementById("btn-procesar");
+    setVisualLoading(btn, true);
 
- try {
- // 2. Extraer CSRF Token (OBLIGATORIO)
- const token = document.querySelector('meta[name="csrf-token"]').content;
+    try {
+        // 2. Extraer CSRF Token (OBLIGATORIO)
+        const token = document.querySelector('meta[name="csrf-token"]').content;
 
- // 3. Reemplazar ID en la URL inyectada por window.routes
- const url = window.routes.apiProcesarPieza.replace(':id', idPieza);
+        // 3. Reemplazar ID en la URL inyectada por window.routes
+        const url = window.routes.apiProcesarPieza.replace(":id", idPieza);
 
- // 4. Hacer petición
- const response = await fetch(url, {
- method: 'POST',
- headers: {
- 'Content-Type': 'application/json',
- 'X-CSRF-TOKEN': token,
- 'Accept': 'application/json' // Obliga a Laravel a regresar JSON en error 422
- },
- body: JSON.stringify({ estado: 'ok' })
- });
+        // 4. Hacer petición
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": token,
+                Accept: "application/json", // Obliga a Laravel a regresar JSON en error 422
+            },
+            body: JSON.stringify({ estado: "ok" }),
+        });
 
- // 5. Verificar si el servidor dio error HTTP (4xx o 5xx)
- if (!response.ok) {
- const errorData = await response.json().catch(() => ({}));
- throw new Error(errorData.message || `Error ${response.status} del servidor`);
- }
+        // 5. Verificar si el servidor dio error HTTP (4xx o 5xx)
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(
+                errorData.message || `Error ${response.status} del servidor`,
+            );
+        }
 
- const data = await response.json();
+        const data = await response.json();
 
- // 6. Éxito
- mostrarAlerta('Éxito', data.message || data.success, 'success');
-
- } catch (error) {
- // 7. Falla (Red caída, error 500, etc.)
- console.error('[procesarPieza]', error);
- mostrarAlerta('Error', error.message, 'error');
- } finally {
- // 8. Restaurar UI sin importar si fue éxito o error
- setVisualLoading(btn, false);
- }
+        // 6. Éxito
+        mostrarAlerta("Éxito", data.message || data.success, "success");
+    } catch (error) {
+        // 7. Falla (Red caída, error 500, etc.)
+        console.error("[procesarPieza]", error);
+        mostrarAlerta("Error", error.message, "error");
+    } finally {
+        // 8. Restaurar UI sin importar si fue éxito o error
+        setVisualLoading(btn, false);
+    }
 }
 ```
 
@@ -88,32 +90,32 @@ async function procesarPieza(idPieza) {
 ```javascript
 // Alerta estándar del proyecto
 function mostrarAlerta(titulo, texto, icono) {
- Swal.fire({
- title: titulo,
- text: texto,
- icon: icono, // 'success', 'error', 'warning', 'info'
- timer: icono === 'success' ? 2500 : undefined, // Auto-cerrar en éxito
- timerProgressBar: icono === 'success',
- confirmButtonColor: icono === 'error' ? '#9c0303' : '#0a8504',
- });
+    Swal.fire({
+        title: titulo,
+        text: texto,
+        icon: icono, // 'success', 'error', 'warning', 'info'
+        timer: icono === "success" ? 2500 : undefined, // Auto-cerrar en éxito
+        timerProgressBar: icono === "success",
+        confirmButtonColor: icono === "error" ? "#9c0303" : "#0a8504",
+    });
 }
 
 // Confirmación de acción destructiva
 function confirmarEliminacion(id, callback) {
- Swal.fire({
- title: '¿Estás seguro?',
- text: "Esta acción no se puede deshacer.",
- icon: 'warning',
- showCancelButton: true,
- confirmButtonColor: '#b30404', // Rojo Peligro Saavedra
- cancelButtonColor: '#030041', // Azul Marino Saavedra
- confirmButtonText: 'Sí, eliminar',
- cancelButtonText: 'Cancelar'
- }).then((result) => {
- if (result.isConfirmed) {
- callback(id);
- }
- });
+    Swal.fire({
+        title: "¿Estás seguro?",
+        text: "Esta acción no se puede deshacer.",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#b30404", // Rojo Peligro Saavedra
+        cancelButtonColor: "#030041", // Azul Marino Saavedra
+        confirmButtonText: "Sí, eliminar",
+        cancelButtonText: "Cancelar",
+    }).then((result) => {
+        if (result.isConfirmed) {
+            callback(id);
+        }
+    });
 }
 ```
 
@@ -123,27 +125,26 @@ function confirmarEliminacion(id, callback) {
 
 ```javascript
 async function subirDocumento(formularioHTML) {
- const formData = new FormData(formularioHTML);
- const token = document.querySelector('meta[name="csrf-token"]').content;
+    const formData = new FormData(formularioHTML);
+    const token = document.querySelector('meta[name="csrf-token"]').content;
 
- // NO pongas 'Content-Type' al usar FormData — el browser lo pone con boundary automático
- try {
- const response = await fetch(window.routes.apiSubir, {
- method: 'POST',
- headers: { 'X-CSRF-TOKEN': token },
- body: formData
- });
+    // NO pongas 'Content-Type' al usar FormData — el browser lo pone con boundary automático
+    try {
+        const response = await fetch(window.routes.apiSubir, {
+            method: "POST",
+            headers: { "X-CSRF-TOKEN": token },
+            body: formData,
+        });
 
- if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
- const data = await response.json();
- mostrarAlerta('Éxito', data.message, 'success');
- return data;
-
- } catch (e) {
- mostrarAlerta('Error', e.message, 'error');
- return null;
- }
+        const data = await response.json();
+        mostrarAlerta("Éxito", data.message, "success");
+        return data;
+    } catch (e) {
+        mostrarAlerta("Error", e.message, "error");
+        return null;
+    }
 }
 ```
 
@@ -153,14 +154,14 @@ async function subirDocumento(formularioHTML) {
 
 ```javascript
 function agregarFila(datos) {
- const tbody = document.querySelector('#tabla-datos tbody');
- if (!tbody) return;
+    const tbody = document.querySelector("#tabla-datos tbody");
+    if (!tbody) return;
 
- const fila = `
+    const fila = `
  <tr id="fila-${datos.id}" class="fade-in">
  <td>${datos.nombre}</td>
  <td>
- <span class="badge ${datos.estado === 'Activo' ? 'bg-green' : 'bg-red'}">
+ <span class="badge ${datos.estado === "Activo" ? "bg-green" : "bg-red"}">
  ${datos.estado}
  </span>
  </td>
@@ -171,17 +172,17 @@ function agregarFila(datos) {
  </tr>
  `;
 
- tbody.insertAdjacentHTML('beforeend', fila);
+    tbody.insertAdjacentHTML("beforeend", fila);
 }
 
 // Eliminar fila dinámicamente
 function eliminarFilaDOM(id) {
- const fila = document.getElementById(`fila-${id}`);
- if (fila) {
- fila.style.opacity = '0';
- fila.style.transition = 'opacity 0.3s ease';
- setTimeout(() => fila.remove(), 300);
- }
+    const fila = document.getElementById(`fila-${id}`);
+    if (fila) {
+        fila.style.opacity = "0";
+        fila.style.transition = "opacity 0.3s ease";
+        setTimeout(() => fila.remove(), 300);
+    }
 }
 ```
 
@@ -193,27 +194,26 @@ Envuelve TODO el código JavaScript de un módulo en un IIFE con `DOMContentLoad
 
 ```javascript
 (function () {
- 'use strict';
+    "use strict";
 
- document.addEventListener('DOMContentLoaded', () => {
- // Inicialización de componentes, listeners, etc.
- inicializarModulo();
- });
+    document.addEventListener("DOMContentLoaded", () => {
+        // Inicialización de componentes, listeners, etc.
+        inicializarModulo();
+    });
 
- function inicializarModulo() {
- const selectLote = document.getElementById('lote_id');
- if (selectLote) {
- selectLote.addEventListener('change', (e) => {
- actualizarDetallesLote(e.target.value);
- });
- }
- }
+    function inicializarModulo() {
+        const selectLote = document.getElementById("lote_id");
+        if (selectLote) {
+            selectLote.addEventListener("change", (e) => {
+                actualizarDetallesLote(e.target.value);
+            });
+        }
+    }
 
- // Funciones internas del módulo (no expuestas globalmente)
- async function actualizarDetallesLote(id) {
- // ... Lógica fetch ...
- }
-
+    // Funciones internas del módulo (no expuestas globalmente)
+    async function actualizarDetallesLote(id) {
+        // ... Lógica fetch ...
+    }
 })();
 ```
 
@@ -228,34 +228,34 @@ Envuelve TODO el código JavaScript de un módulo en un IIFE con `DOMContentLoad
  * @param {boolean} isLoading - true para activar carga, false para restaurar
  */
 function setVisualLoading(elemento, isLoading) {
- if (isLoading) {
- elemento.disabled = true;
- elemento.dataset.originalText = elemento.innerHTML;
- elemento.innerHTML = `<span class="spinner"></span> Procesando...`;
- } else {
- elemento.disabled = false;
- elemento.innerHTML = elemento.dataset.originalText || 'Enviar';
- }
+    if (isLoading) {
+        elemento.disabled = true;
+        elemento.dataset.originalText = elemento.innerHTML;
+        elemento.innerHTML = `<span class="spinner"></span> Procesando...`;
+    } else {
+        elemento.disabled = false;
+        elemento.innerHTML = elemento.dataset.originalText || "Enviar";
+    }
 }
 
 // Overlay de carga para toda la pantalla
 function setPageLoading(show) {
- let overlay = document.getElementById('page-loading-overlay');
- if (show) {
- if (!overlay) {
- overlay = document.createElement('div');
- overlay.id = 'page-loading-overlay';
- overlay.style.cssText = `
+    let overlay = document.getElementById("page-loading-overlay");
+    if (show) {
+        if (!overlay) {
+            overlay = document.createElement("div");
+            overlay.id = "page-loading-overlay";
+            overlay.style.cssText = `
  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
  display: flex; align-items: center; justify-content: center;
  z-index: 9999;
  `;
- overlay.innerHTML = `<div class="spinner" style="width:50px;height:50px;border-width:5px;"></div>`;
- document.body.appendChild(overlay);
- }
- } else {
- overlay?.remove();
- }
+            overlay.innerHTML = `<div class="spinner" style="width:50px;height:50px;border-width:5px;"></div>`;
+            document.body.appendChild(overlay);
+        }
+    } else {
+        overlay?.remove();
+    }
 }
 ```
 
@@ -269,22 +269,26 @@ function setPageLoading(show) {
  * @returns {boolean} true si el formulario es válido
  */
 function validarFormulario(formulario) {
- const campos = formulario.querySelectorAll('[required]');
- let valido = true;
+    const campos = formulario.querySelectorAll("[required]");
+    let valido = true;
 
- campos.forEach(campo => {
- campo.classList.remove('campo-invalido');
- if (!campo.value.trim()) {
- campo.classList.add('campo-invalido');
- valido = false;
- }
- });
+    campos.forEach((campo) => {
+        campo.classList.remove("campo-invalido");
+        if (!campo.value.trim()) {
+            campo.classList.add("campo-invalido");
+            valido = false;
+        }
+    });
 
- if (!valido) {
- mostrarAlerta('Advertencia', 'Por favor completa todos los campos requeridos.', 'warning');
- }
+    if (!valido) {
+        mostrarAlerta(
+            "Advertencia",
+            "Por favor completa todos los campos requeridos.",
+            "warning",
+        );
+    }
 
- return valido;
+    return valido;
 }
 ```
 
@@ -296,21 +300,21 @@ Cuando tablas o listas tengan elementos dinámicos, no agregues event listeners 
 
 ```javascript
 // Delegación sobre el contenedor padre
-document.getElementById('tabla-piezas').addEventListener('click', (e) => {
- // Eliminar pieza
- const deleteBtn = e.target.closest('.btn-eliminar-pieza');
- if (deleteBtn) {
- const idPieza = deleteBtn.dataset.id;
- confirmarEliminacion(idPieza, ejecutarEliminacion);
- return;
- }
+document.getElementById("tabla-piezas").addEventListener("click", (e) => {
+    // Eliminar pieza
+    const deleteBtn = e.target.closest(".btn-eliminar-pieza");
+    if (deleteBtn) {
+        const idPieza = deleteBtn.dataset.id;
+        confirmarEliminacion(idPieza, ejecutarEliminacion);
+        return;
+    }
 
- // Ver detalle de pieza
- const verBtn = e.target.closest('.btn-ver-pieza');
- if (verBtn) {
- abrirModalDetalle(verBtn.dataset.id);
- return;
- }
+    // Ver detalle de pieza
+    const verBtn = e.target.closest(".btn-ver-pieza");
+    if (verBtn) {
+        abrirModalDetalle(verBtn.dataset.id);
+        return;
+    }
 });
 ```
 
@@ -318,15 +322,15 @@ document.getElementById('tabla-piezas').addEventListener('click', (e) => {
 
 ## 9. Funciones JS Globales del Proyecto (Referencia Real)
 
-| Función | Archivo | Descripción |
-|---|---|---|
-| `almacenVerPdf(ot, archivo, tipo)` | `almacen_fundicion.js` | Abre un PDF de almacén en el visor embebido |
+| Función                                      | Archivo                | Descripción                                    |
+| -------------------------------------------- | ---------------------- | ---------------------------------------------- |
+| `almacenVerPdf(ot, archivo, tipo)`           | `almacen_fundicion.js` | Abre un PDF de almacén en el visor embebido    |
 | `confirmDeletePdf(btn, ot, archivo, origin)` | `almacen_fundicion.js` | Confirma y ejecuta eliminación de PDF con Swal |
-| `calidadVerPdf(ot, archivo, tipo)` | `calidad_fundicion.js` | Abre un PDF de calidad en el visor embebido |
-| `mostrarAlerta(titulo, texto, icono)` | Global (ambos) | Muestra alerta SweetAlert2 estándar |
-| `openReproceso(otName)` | `almacen_fundicion.js` | Abre el modal de generación de reproceso |
-| `generarPreOrden(otName)` | `almacen_fundicion.js` | Inicia el flujo de pre-orden de fundición |
-| `setVisualLoading(elemento, isLoading)` | Global | Activa/desactiva estado de carga en botón |
+| `calidadVerPdf(ot, archivo, tipo)`           | `calidad_fundicion.js` | Abre un PDF de calidad en el visor embebido    |
+| `mostrarAlerta(titulo, texto, icono)`        | Global (ambos)         | Muestra alerta SweetAlert2 estándar            |
+| `openReproceso(otName)`                      | `almacen_fundicion.js` | Abre el modal de generación de reproceso       |
+| `generarPreOrden(otName)`                    | `almacen_fundicion.js` | Inicia el flujo de pre-orden de fundición      |
+| `setVisualLoading(elemento, isLoading)`      | Global                 | Activa/desactiva estado de carga en botón      |
 
 ### Patrón de Rutas Inyectadas por Blade (`window.routes`)
 
@@ -349,34 +353,37 @@ En JS: `window.routes.almacenServeFile.replace(':ot', ot).replace(':archivo', ar
 
 ```javascript
 function renderEstructuraTable() {
- const tbody = document.querySelector('#tabla-estructura tbody');
- if (!tbody) return;
+    const tbody = document.querySelector("#tabla-estructura tbody");
+    if (!tbody) return;
 
- // 1. Guardar conteos existentes antes de limpiar
- const existingCounts = {};
- tbody.querySelectorAll('.badge-count').forEach(span => {
- existingCounts[span.id] = span.textContent;
- });
+    // 1. Guardar conteos existentes antes de limpiar
+    const existingCounts = {};
+    tbody.querySelectorAll(".badge-count").forEach((span) => {
+        existingCounts[span.id] = span.textContent;
+    });
 
- tbody.innerHTML = ''; // 2. Limpiar
+    tbody.innerHTML = ""; // 2. Limpiar
 
- // 3. Re-pintar con conteos cacheados
- window.estructura.forEach(item => {
- const badgeId = 'badge-' + slugify(item);
- const savedCount = existingCounts[badgeId] !== undefined ? existingCounts[badgeId] : '0';
+    // 3. Re-pintar con conteos cacheados
+    window.estructura.forEach((item) => {
+        const badgeId = "badge-" + slugify(item);
+        const savedCount =
+            existingCounts[badgeId] !== undefined
+                ? existingCounts[badgeId]
+                : "0";
 
- const tr = document.createElement('tr');
- tr.innerHTML = `
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
  <td>${item}</td>
  <td><span class="badge-count" id="${badgeId}">${savedCount}</span></td>
  `;
- tbody.appendChild(tr);
- });
+        tbody.appendChild(tr);
+    });
 }
 
 // Helper: convertir texto a slug para IDs
 function slugify(text) {
- return text.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    return text.toLowerCase().replace(/[^a-z0-9]/g, "-");
 }
 ```
 
@@ -389,28 +396,31 @@ function slugify(text) {
 ```javascript
 // Distinguir entre error de red (sin respuesta) y error HTTP (respuesta con código de error)
 async function fetchSeguro(url, options = {}) {
- try {
- const response = await fetch(url, options);
+    try {
+        const response = await fetch(url, options);
 
- // El servidor respondió pero con error
- if (!response.ok) {
- let mensaje = `Error ${response.status}`;
- try {
- const err = await response.json();
- mensaje = err.message || err.error || mensaje;
- } catch (_) { /* El cuerpo no es JSON */ }
- throw new Error(mensaje);
- }
+        // El servidor respondió pero con error
+        if (!response.ok) {
+            let mensaje = `Error ${response.status}`;
+            try {
+                const err = await response.json();
+                mensaje = err.message || err.error || mensaje;
+            } catch (_) {
+                /* El cuerpo no es JSON */
+            }
+            throw new Error(mensaje);
+        }
 
- return await response.json();
-
- } catch (error) {
- if (error.name === 'TypeError') {
- // Error de red (sin conexión, timeout, CORS)
- throw new Error('Error de red: verifica tu conexión o contacta al administrador.');
- }
- throw error; // Re-lanzar errores HTTP
- }
+        return await response.json();
+    } catch (error) {
+        if (error.name === "TypeError") {
+            // Error de red (sin conexión, timeout, CORS)
+            throw new Error(
+                "Error de red: verifica tu conexión o contacta al administrador.",
+            );
+        }
+        throw error; // Re-lanzar errores HTTP
+    }
 }
 ```
 
@@ -430,7 +440,7 @@ const config = window.usuarioConfig ?? { perfil: 0 };
 window.estructura = window.estructura || {};
 window.estructura[ot] = window.estructura[ot] || [];
 if (!window.estructura[ot].includes(clase)) {
- window.estructura[ot].push(clase);
+    window.estructura[ot].push(clase);
 }
 ```
 
@@ -453,7 +463,7 @@ document
         const originalText = btn.innerText;
         btn.disabled = true;
         btn.innerText = "Procesando...";
-        
+
         // ... Lógica de subida ...
     });
 ```
@@ -465,22 +475,23 @@ document
 Cuando el usuario navega a una vista de detalle (por ejemplo, ver una pieza o historial de OT) y luego regresa con un botón "Regresar" o la navegación del navegador, los filtros que tenía aplicados en la tabla de origen se pierden, arruinando la experiencia de usuario.
 
 Para solucionar esto, usa el **Patrón de Persistencia con sessionStorage**:
+
 1. Antes de navegar fuera de la página, guarda los filtros actuales en `sessionStorage` en formato JSON.
 2. Al cargar la página, comprueba si existe una bandera que indique que venimos regresando de la subvista. Si es así, carga y aplica los filtros.
 3. Si el usuario entra por primera vez de forma directa, limpia la sesión para evitar filtros antiguos inesperados.
 
 ```javascript
 // ✅ PATRÓN CORRECTO: Persistencia de Filtros
-const comingBack = sessionStorage.getItem('comingFromPieceView') === 'true';
-sessionStorage.removeItem('comingFromPieceView'); // Consumir bandera inmediatamente
+const comingBack = sessionStorage.getItem("comingFromPieceView") === "true";
+sessionStorage.removeItem("comingFromPieceView"); // Consumir bandera inmediatamente
 
 if (comingBack) {
-    const savedFilters = sessionStorage.getItem('adminPiecesFilters');
+    const savedFilters = sessionStorage.getItem("adminPiecesFilters");
     if (savedFilters) {
         try {
             const parsed = JSON.parse(savedFilters);
             if (window.selectedItems) {
-                Object.keys(parsed).forEach(key => {
+                Object.keys(parsed).forEach((key) => {
                     window.selectedItems[key] = parsed[key];
                 });
             }
@@ -490,7 +501,7 @@ if (comingBack) {
     }
 } else {
     // Si no es un regreso, limpiar filtros previos para iniciar de cero
-    sessionStorage.removeItem('adminPiecesFilters');
+    sessionStorage.removeItem("adminPiecesFilters");
 }
 
 // Escuchar clics en los enlaces de detalles/ver para guardar el estado antes de irse
@@ -505,7 +516,7 @@ document.addEventListener("click", (e) => {
 
 // Al presionar el botón "Limpiar Filtros", también limpiar la persistencia
 document.getElementById("btnClearFilters")?.addEventListener("click", () => {
-    sessionStorage.removeItem('adminPiecesFilters');
+    sessionStorage.removeItem("adminPiecesFilters");
 });
 ```
 
@@ -520,23 +531,23 @@ La función debe ser **idempotente** y ejecutarse cada vez que la tabla se re-fi
 ```javascript
 // ✅ PATRÓN CORRECTO: Mostrar/ocultar condicional de botones globales
 function checkProcessAndShowButton(procesoFiltrado) {
-    const btnSoldadura = document.getElementById('btn-soldadura-report');
+    const btnSoldadura = document.getElementById("btn-soldadura-report");
     if (!btnSoldadura) return;
 
-    const procesosPermitidos = ['Soldadura', 'SoldaduraPTA'];
+    const procesosPermitidos = ["Soldadura", "SoldaduraPTA"];
 
     // Usar clases CSS de visibilidad (del styles_skill.md)
     if (procesosPermitidos.includes(procesoFiltrado)) {
-        btnSoldadura.classList.remove('hidden');
+        btnSoldadura.classList.remove("hidden");
     } else {
-        btnSoldadura.classList.add('hidden');
+        btnSoldadura.classList.add("hidden");
     }
 }
 
 // En tu función principal de filtrado de filas:
 function applyAllFilters() {
     const proceso = document.getElementById("select-proceso").value;
-    
+
     // Ejecutar verificación del botón
     checkProcessAndShowButton(proceso);
 
@@ -569,9 +580,9 @@ Cuando un operador abre un visor (como Dibujos o Programas CNC) directamente des
 ```javascript
 // ✅ PATRÓN CORRECTO: Auto-selección y bloqueo de filtros en visor de producción
 function openProgramasViewer(otVal, claseVal, procesoVal) {
-    const selOT = document.getElementById('p-viewer-ot');
-    const selClase = document.getElementById('p-viewer-clase');
-    const selProceso = document.getElementById('p-viewer-proceso');
+    const selOT = document.getElementById("p-viewer-ot");
+    const selClase = document.getElementById("p-viewer-clase");
+    const selProceso = document.getElementById("p-viewer-proceso");
 
     if (selOT && otVal) {
         selOT.value = otVal;
@@ -606,8 +617,10 @@ Para diferenciar rápidamente la extensión del archivo y dar retroalimentación
 ```javascript
 // ✅ PATRÓN CORRECTO: Cambio dinámico de imagen shadow/color al hacer hover
 function renderFileCardIcon(ext) {
-    const isNC = ext.toUpperCase() === 'NC';
-    const shadowSrc = isNC ? window.imgProgramsNCShadow : window.imgProgramsCNCShadow;
+    const isNC = ext.toUpperCase() === "NC";
+    const shadowSrc = isNC
+        ? window.imgProgramsNCShadow
+        : window.imgProgramsCNCShadow;
     const colorSrc = isNC ? window.imgProgramsNC : window.imgProgramsCNC;
 
     return `
@@ -625,14 +638,16 @@ function renderFileCardIcon(ext) {
 ## 19. Modales de Confirmación de Acciones Destructivas vs Seguras
 
 Cuando se ofrecen opciones que modifican el estado de la Base de Datos (como reiniciar el progreso de una clase) contra opciones que solo actualizan archivos (como un reemplazo de dibujos), se deben usar modales separados con temáticas de color claras:
+
 - **Rojo (Acción Destructiva)**: `_abrirModalReinicio(action)`. Usa alertas rojas, advertencias claras de pérdida de datos y un timer de 5s antes de habilitar el botón de enviar.
 - **Verde (Acción Segura)**: `_abrirModalReemplazo(action)`. Usa colores verdes, texto tranquilizador indicando que el progreso se conserva, y un timer más corto (ej. 3s).
 
 Ejemplo de enrutamiento:
+
 ```javascript
-if (action === 'reiniciar_parcial' || action === 'reiniciar_completo') {
+if (action === "reiniciar_parcial" || action === "reiniciar_completo") {
     _abrirModalReinicio(action, clasesPreSeleccionadas);
-} else if (action === 'mantener') {
+} else if (action === "mantener") {
     _abrirModalReemplazo(action, clasesPreSeleccionadas);
 }
 ```
@@ -645,12 +660,12 @@ Para mantener la uniformidad en la aplicación (y evitar problemas de dependenci
 
 ```javascript
 // ❌ INCORRECTO:
-Swal.fire('Error', 'Mensaje', 'error');
+Swal.fire("Error", "Mensaje", "error");
 
 // ✅ CORRECTO:
-almacenToast('Mensaje', 'error');
-almacenToast('Mensaje', 'success');
-almacenToast('Mensaje', 'warning');
+almacenToast("Mensaje", "error");
+almacenToast("Mensaje", "success");
+almacenToast("Mensaje", "warning");
 ```
 
 ---
@@ -659,16 +674,16 @@ almacenToast('Mensaje', 'warning');
 
 - **Eliminación de HTML complejo innecesario en alertas:**
   No inventar clases custom redundantes (`.swal2-gis-popup`, `.swal-details-card`, etc.) para confirmaciones de acción. Seguir el patrón conciso de `Swal.fire`:
-  - **Título:** Claro, con el sujeto y número en color rojo peligro (`¿Desocupar <span style="color: #b30404;">Máquina ${numero}</span>?`).
-  - **Cuerpo (`html` o `text`):** Mensaje directo especificando únicamente la acción a realizar (`¿Estás seguro de que deseas liberar la <strong style="color: #b30404;">Máquina ${numero}</strong>?`), sin redundancias de datos ya visibles en la tabla.
-  - **Colores Oficiales de Botones:**
-    - `confirmButtonColor: '#b30404'` (Rojo Peligro Saavedra).
-    - `cancelButtonColor: '#030041'` (Azul Marino Saavedra).
-    - `reverseButtons: true` (Cancelar a la izquierda, Confirmar a la derecha).
-  - **Backdrop Azul Corporativo:**
-    ```javascript
-    backdrop: 'rgba(0, 10, 25, 0.85)'
-    ```
+    - **Título:** Claro, con el sujeto y número en color rojo peligro (`¿Desocupar <span style="color: #b30404;">Máquina ${numero}</span>?`).
+    - **Cuerpo (`html` o `text`):** Mensaje directo especificando únicamente la acción a realizar (`¿Estás seguro de que deseas liberar la <strong style="color: #b30404;">Máquina ${numero}</strong>?`), sin redundancias de datos ya visibles en la tabla.
+    - **Colores Oficiales de Botones:**
+        - `confirmButtonColor: '#b30404'` (Rojo Peligro Saavedra).
+        - `cancelButtonColor: '#030041'` (Azul Marino Saavedra).
+        - `reverseButtons: true` (Cancelar a la izquierda, Confirmar a la derecha).
+    - **Backdrop Azul Corporativo:**
+        ```javascript
+        backdrop: "rgba(0, 10, 25, 0.85)";
+        ```
 
 ---
 
@@ -676,16 +691,16 @@ almacenToast('Mensaje', 'warning');
 
 - **Manejo de Números en Cadenas Mixtas:**
   Al ordenar columnas de máquinas o identificadores que pueden contener valores como `"10"` o `"1_2"`, extraer el valor numérico inicial con expresión regular (`/\d+/`) para ordenar numéricamente en lugar de alfabéticamente:
-  ```javascript
-  function extractFirstNumber(str) {
-      let match = (str || "").toString().match(/\d+/);
-      return match ? parseInt(match[0], 10) : 0;
-  }
-  ```
+    ```javascript
+    function extractFirstNumber(str) {
+        let match = (str || "").toString().match(/\d+/);
+        return match ? parseInt(match[0], 10) : 0;
+    }
+    ```
 - **Ciclo de Estados de Ordenamiento:**
-  - 0: Sin Orden (`Sin_Orden.png`) -> Restaura el `dataset.originalIndex`.
-  - 1: Ascendente (`Orden_Asc.png`).
-  - 2: Descendente (`Orden_Desc.png`).
+    - 0: Sin Orden (`Sin_Orden.png`) -> Restaura el `dataset.originalIndex`.
+    - 1: Ascendente (`Orden_Asc.png`).
+    - 2: Descendente (`Orden_Desc.png`).
 
 ---
 
@@ -713,6 +728,7 @@ No usar el selector nativo del navegador `input[type="date"]`. Se utiliza `creat
 ## 26. Bloqueo Visual y Estilizado de Campos No Modificables en Modo Edición de Reporte
 
 Al entrar en modo edición de datos generales del reporte (`edit == 1`):
+
 1. **Campos Estructurales Bloqueados**: OTs, Clases, Procesos, Subprocesos y Máquinas son datos estructurales inmutables. Deben generarse con `readOnly = true`, `tabindex="-1"`, clase `.input-locked`, contenedor `.form-group-locked` y un badge visual `.locked-field-badge` junto a la etiqueta del campo.
 2. **Campos Editables**: Únicamente los parámetros operacionales autorizados (Turno/Horario y Fecha) deben permanecer interactivos con sus respectivos pickers corporativos.
 3. **Banner Informativo**: Insertar `.edit-meta-notice-banner` en `.form-principal-data` indicando que los campos en gris están protegidos por seguridad de proceso.
@@ -722,6 +738,7 @@ Al entrar en modo edición de datos generales del reporte (`edit == 1`):
 ## 27. Modo Edición de Piezas: Tabla Extendida y Scroll en Vista Completa
 
 Al entrar al modo de edición de piezas en producción (`edit == 2`):
+
 1. **Transferencia de Scroll a la Vista Completa**: Inyectar `.is-edit-pieces-mode` en `html` y `body` para anular `overflow-y: hidden` y `height: 100vh`, permitiendo que el scroll ocurra naturalmente en la página (`window`).
 2. **Extensión de Tabla para ~12 Piezas**: La tabla `.scrollable-table` amplía su `max-height` a 760px. Si hay 12 piezas o menos, se muestra completa sin scroll vertical interno. Si hay lotes grandes (ej. 80 piezas), el tope de 760px contiene la tabla con scroll interno para evitar una página inmanejable.
 3. **Auto-Scroll Suave**: Iniciar con `scrollTop = 0` y ejecutar `scrollIntoView({ behavior: 'smooth', block: 'start' })` hacia `.form-tablePieces` para posicionar la vista directamente sobre la tabla editable.
@@ -733,38 +750,39 @@ Al entrar al modo de edición de piezas en producción (`edit == 2`):
 Al construir modales interactivos para validación o liberación de piezas/registros (`qualityReleaseModal.js`):
 
 1. **Mapeo Riguroso de Códigos de Liberación**:
-   - `1` = Liberar (`"Liberado"`, clase `.row-liberado`, badge `.is-liberado`).
-   - `2` = Rechazar (`"Rechazado"`, clase `.row-rechazado`, badge `.is-rechazado`).
-   - `5` = Incompleto (`"Incompleto"`, clase `.row-incompleto`, badge `.is-incompleto`).
-   - Cualquier función de evaluación de estatus (`getStatusKeyForSet`, `getMostRestrictiveStatus`, `getStatusKeyByPiece`, `getStatusText`, `getStatusSlug`) debe contemplar explícitamente el código `5`. Si se deja como `default: 'sin_liberar'`, las piezas incompletas previamente guardadas volverán a mostrarse erróneamente como "Sin liberar".
+    - `1` = Liberar (`"Liberado"`, clase `.row-liberado`, badge `.is-liberado`).
+    - `2` = Rechazar (`"Rechazado"`, clase `.row-rechazado`, badge `.is-rechazado`).
+    - `5` = Incompleto (`"Incompleto"`, clase `.row-incompleto`, badge `.is-incompleto`).
+    - Cualquier función de evaluación de estatus (`getStatusKeyForSet`, `getMostRestrictiveStatus`, `getStatusKeyByPiece`, `getStatusText`, `getStatusSlug`) debe contemplar explícitamente el código `5`. Si se deja como `default: 'sin_liberar'`, las piezas incompletas previamente guardadas volverán a mostrarse erróneamente como "Sin liberar".
 
 2. **Pre-población de Acciones y Comentarios Previos**:
-   - Al iterar las piezas (`renderSets()`), inspeccionar el estado actual (`piece.liberacion`). Si la pieza ya fue dictaminada con anterioridad (`1`, `2` o `5`), asignar dicho valor al select y aplicar su clase de fondo corporativo:
-     ```javascript
-     if (currentAction) {
-         selectAction.value = currentAction;
-         selectAction.classList.add(`action-selected-${currentAction}`);
-     }
-     ```
-   - Pre-llenar el `textarea` de observaciones (`.comments-input`) con el comentario existente (`piece.comments` o `piece.observacion_liberacion`) garantizando que el controlador backend incluya dicho campo en el JSON de respuesta.
+    - Al iterar las piezas (`renderSets()`), inspeccionar el estado actual (`piece.liberacion`). Si la pieza ya fue dictaminada con anterioridad (`1`, `2` o `5`), asignar dicho valor al select y aplicar su clase de fondo corporativo:
+        ```javascript
+        if (currentAction) {
+            selectAction.value = currentAction;
+            selectAction.classList.add(`action-selected-${currentAction}`);
+        }
+        ```
+    - Pre-llenar el `textarea` de observaciones (`.comments-input`) con el comentario existente (`piece.comments` o `piece.observacion_liberacion`) garantizando que el controlador backend incluya dicho campo en el JSON de respuesta.
 
 3. **Sincronización Reactiva en Tiempo Real (Live Change Listener)**:
-   - Al dispararse el evento `change` en el `<select class="select-release">`:
-     - Remover clases previas del select (`action-selected-1`, `action-selected-2`, `action-selected-5`) y agregar la del nuevo valor.
-     - Actualizar la clase de la fila (`tr.row-liberado`, `tr.row-rechazado`, `tr.row-incompleto`).
-     - Actualizar inmediatamente el chip visual de la columna Estado Actual (`.status-chip`):
-       ```javascript
-       selectAction.addEventListener('change', () => {
-           const val = selectAction.value;
-           // Limpiar y aplicar clases en select y tr
-           // Actualizar badge visual en vivo:
-           if (statusChip) {
-               statusChip.className = 'status-chip ' + getStatusChipClass(val);
-               statusChip.textContent = getStatusDisplayText(val);
-           }
-       });
-       ```
-   - Esto evita discrepancias visuales entre lo que el usuario elige en el combo y lo que la fila / badge muestra antes de oprimir el botón de guardar.
+    - Al dispararse el evento `change` en el `<select class="select-release">`:
+        - Remover clases previas del select (`action-selected-1`, `action-selected-2`, `action-selected-5`) y agregar la del nuevo valor.
+        - Actualizar la clase de la fila (`tr.row-liberado`, `tr.row-rechazado`, `tr.row-incompleto`).
+        - Actualizar inmediatamente el chip visual de la columna Estado Actual (`.status-chip`):
+            ```javascript
+            selectAction.addEventListener("change", () => {
+                const val = selectAction.value;
+                // Limpiar y aplicar clases en select y tr
+                // Actualizar badge visual en vivo:
+                if (statusChip) {
+                    statusChip.className =
+                        "status-chip " + getStatusChipClass(val);
+                    statusChip.textContent = getStatusDisplayText(val);
+                }
+            });
+            ```
+    - Esto evita discrepancias visuales entre lo que el usuario elige en el combo y lo que la fila / badge muestra antes de oprimir el botón de guardar.
 
 ---
 
@@ -773,42 +791,119 @@ Al construir modales interactivos para validación o liberación de piezas/regis
 En tablas con encabezados y filas guía fijas (`position: sticky`), un auto-scroll ciego al fondo (`scrollable.scrollTop = scrollable.scrollHeight`) desplaza el contenedor hasta el último pixel, empujando las piezas anteriores hacia arriba y ocultándolas detrás de las tolerancias fijas.
 
 1. **Detección Dinámica de Filas Activa y Previa**:
-   - Localizar la fila de captura activa (`.table-row-pieceUsed`) y su hermana previa (`.table-row-piece`).
-   - Calcular dinámicamente el offset de cabeceras fijas (`const stickyHeadersOffset = hasCotas ? 156 : 56`) según si el proceso maneja cotas nominales y tolerancias o solo título.
+    - Localizar la fila de captura activa (`.table-row-pieceUsed`) y su hermana previa (`.table-row-piece`).
+    - Calcular dinámicamente el offset de cabeceras fijas (`const stickyHeadersOffset = hasCotas ? 156 : 56`) según si el proceso maneja cotas nominales y tolerancias o solo título.
 
 2. **Cálculo de Encuadre Seguro**:
-   ```javascript
-   function redirectToEndTable() {
-       const isEditPiecesMode = window.arrayData && window.arrayData["edit"] == 2;
-       const scrollFn = () => {
-           const scrollable = document.querySelector(".scrollable-table");
-           if (scrollable && !isEditPiecesMode) {
-               const pieceUsedRow = scrollable.querySelector(".table-row-pieceUsed");
-               if (pieceUsedRow) {
-                   const prevPieceRow = pieceUsedRow.previousElementSibling;
-                   const hasCotas = !!scrollable.querySelector(".table-row-cNominals");
-                   const stickyHeadersOffset = hasCotas ? 156 : 56;
 
-                   // Encuadrar desde la pieza anterior para que ambas queden visibles
-                   if (prevPieceRow && prevPieceRow.classList.contains("table-row-piece")) {
-                       const targetScroll = Math.max(0, prevPieceRow.offsetTop - stickyHeadersOffset);
-                       scrollable.scrollTop = targetScroll;
-                   } else {
-                       const targetScroll = Math.max(0, pieceUsedRow.offsetTop - stickyHeadersOffset);
-                       scrollable.scrollTop = targetScroll;
-                   }
-               } else {
-                   scrollable.scrollTop = scrollable.scrollHeight;
-               }
-           }
-       };
-       if (document.readyState === "complete") {
-           setTimeout(scrollFn, 60);
-       } else {
-           window.addEventListener("load", scrollFn);
-       }
-   }
-   ```
+    ```javascript
+    function redirectToEndTable() {
+        const isEditPiecesMode =
+            window.arrayData && window.arrayData["edit"] == 2;
+        const scrollFn = () => {
+            const scrollable = document.querySelector(".scrollable-table");
+            if (scrollable && !isEditPiecesMode) {
+                const pieceUsedRow = scrollable.querySelector(
+                    ".table-row-pieceUsed",
+                );
+                if (pieceUsedRow) {
+                    const prevPieceRow = pieceUsedRow.previousElementSibling;
+                    const hasCotas = !!scrollable.querySelector(
+                        ".table-row-cNominals",
+                    );
+                    const stickyHeadersOffset = hasCotas ? 156 : 56;
+
+                    // Encuadrar desde la pieza anterior para que ambas queden visibles
+                    if (
+                        prevPieceRow &&
+                        prevPieceRow.classList.contains("table-row-piece")
+                    ) {
+                        const targetScroll = Math.max(
+                            0,
+                            prevPieceRow.offsetTop - stickyHeadersOffset,
+                        );
+                        scrollable.scrollTop = targetScroll;
+                    } else {
+                        const targetScroll = Math.max(
+                            0,
+                            pieceUsedRow.offsetTop - stickyHeadersOffset,
+                        );
+                        scrollable.scrollTop = targetScroll;
+                    }
+                } else {
+                    scrollable.scrollTop = scrollable.scrollHeight;
+                }
+            }
+        };
+        if (document.readyState === "complete") {
+            setTimeout(scrollFn, 60);
+        } else {
+            window.addEventListener("load", scrollFn);
+        }
+    }
+    ```
 
 3. **Beneficio**: Tanto la pieza previa (referencia de trabajo) como la pieza activa quedan inmediatamente encuadradas bajo las tolerancias al cargar la vista, sin que ninguna fila se quede escondida "hasta arriba" ni se corte el botón de guardar inferior.
 
+---
+
+## 24. Navegación Jerárquica Determinística y Persistencia en Menús Anidados (`appMenu.js`)
+
+En sistemas con perfiles multidireccionales (ej. Perfil 3 Master o Perfil 6 Supervisor), múltiples departamentos pueden compartir rutas idénticas (como `/releasePieces`, `/piecesInProgress`, `/cNominals` o `/manageWO` con o sin query params).
+
+1. **Atributo Jerárquico `data-menu-path`:**
+   Al construir listas anidadas, pasar un array acumulativo `trail` para registrar la ruta completa de migas:
+    - Ejemplo: `data-menu-path="Calidad > Liberación de Piezas > Liberación de piezas"`
+    - `data-top-section="Calidad"`
+2. **Persistencia en Eventos de Clic (`handleNavClick`):**
+   Al hacer clic en cualquier enlace `a.nav-link`:
+    ```javascript
+    sessionStorage.setItem("active_menu_path", a.dataset.menuPath);
+    sessionStorage.setItem("active_top_section", a.dataset.topSection);
+    sessionStorage.setItem("active_menu_href", a.href);
+    ```
+3. **Resolución de Selección en Carga (`createMenu`):**
+    - **Prioridad 1:** Si `sessionStorage.getItem("active_menu_path")` y `active_menu_href` coinciden con la ruta actual o una de sus sub-rutas (`isSameOrSubRoute`), se selecciona EXACTAMENTE ese elemento del árbol, sin importar que existan otras opciones con la misma URL en otros departamentos.
+    - **Prioridad 2:** Detección por query params explícitos (`sec=calidad`, `sec=almacen`, `admin_only=1`).
+    - **Prioridad 3:** Coincidencia exacta de pathname y search.
+4. **Scroll Automático al Abrir Menú:**
+   Cuando el drawer se despliega, enfocar suavemente la opción activa para mejorar la usabilidad:
+    ```javascript
+    const activeLink = nav.querySelector("a.nav-link.active");
+    if (activeLink) {
+        setTimeout(() => {
+            activeLink.scrollIntoView({ block: "center", behavior: "smooth" });
+        }, 50);
+    }
+    ```
+
+---
+
+## 25. Convivencia entre Vanilla JS, Livewire 3 y Alpine.js
+
+Con la integración de **Laravel Livewire v3** y **Alpine.js**, el proyecto adopta una arquitectura progresiva:
+
+1. **Prioridad para Nuevas Funcionalidades Dinámicas:**
+    - Preferir componentes Livewire para flujos interactivos que consultan o escriben en base de datos (evita escribir `fetch()`, sincronizar rutas en `window.routes`, manejar tokens CSRF y construir HTML dinámico con `innerHTML`).
+    - Usar **Alpine.js** (`x-data`, `x-show`, `@click`) para micro-interacciones 100% del lado del cliente (modales simples, colapsables, pestañas, toggles de filtros).
+
+2. **Intercomunicación entre Vanilla JS y Livewire:**
+    - **Escuchar eventos de Livewire en Vanilla JS:**
+        ```javascript
+        document.addEventListener("livewire:initialized", () => {
+            Livewire.on("pieza-liberada", (data) => {
+                Swal.fire({
+                    icon: "success",
+                    title: "Pieza liberada",
+                    text: `Pieza #${data.piezaId} procesada con éxito.`,
+                });
+            });
+        });
+        ```
+    - **Disparar eventos hacia Livewire desde Vanilla JS:**
+        ```javascript
+        Livewire.dispatch("actualizar-filtro", { query: valorBuscado });
+        ```
+
+3. **Preservar Módulos Vanilla Existentes:**
+    - Los módulos existentes como `almacen_fundicion.js`, `calidad_fundicion.js` o `appMenu.js` continúan operando con normalidad. No es necesario reescribirlos a Livewire a menos que se solicite explícitamente una refactorización.

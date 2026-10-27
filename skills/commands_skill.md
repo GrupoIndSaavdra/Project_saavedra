@@ -113,9 +113,39 @@ linea_nueva = " // Línea insertada aquí\n"
 lines.insert(45, linea_nueva)
 
 with open('ruta/archivo.php', 'w', encoding='utf-8') as f:
- f.writelines(lines)
+    f.writelines(lines)
 print('Línea insertada en posición 46')
 ```
+
+---
+
+## 2.1 Instalación y Puesta a Punto en un Solo Paso (All-In-One Setup / "De un Jalón")
+
+Para configurar y levantar todo el ecosistema de Project Saavedra (PHP + Composer + Laravel Livewire v3 + Node.js + NPM + Tailwind CSS v3 + Vite) de una sola vez sin ejecutar comandos aislados uno por uno:
+
+### Opción A — Script Todo en Uno (Recomendado para Windows)
+Doble clic en el archivo raíz **`setup.bat`** o ejecutar en terminal PowerShell:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+```
+O bien:
+```powershell
+npm run setup
+```
+
+### Opción B — Vía NPM Script
+```powershell
+npm run install:all
+```
+*(Ejecuta secuencialmente `composer install && npm install && npm run build`)*
+
+### ¿Qué ejecuta internamente este flujo automático?
+1. **PHP Check:** Valida la disponibilidad de PHP 8.2+.
+2. **Composer Install:** Descarga las dependencias de Laravel 10 y **Livewire v3** respetando la configuración `audit.block-insecure: false`.
+3. **Environment:** Crea el archivo `.env` a partir de `.env.example` y genera el `APP_KEY` si aún no existe.
+4. **Livewire Assets:** Publica la configuración de `livewire.php` configurada hacia `layouts.appMenu`.
+5. **NPM Install:** Instala **Tailwind CSS v3**, PostCSS, Autoprefixer y plugins de Vite.
+6. **Optimización & Build:** Ejecuta `php artisan optimize:clear` y compila los 89 bundles de producción con `npm run build`.
 
 ---
 
@@ -169,6 +199,11 @@ php artisan make:request GuardarDatoRequest
 
 # Crear Mailable
 php artisan make:mail NombreCorreo --markdown=emails.nombre-vista
+
+# Comandos Livewire v3
+php artisan make:livewire NombreComponente
+php artisan livewire:delete NombreComponente
+php artisan livewire:publish --config
 
 # Ver estado de migraciones
 php artisan migrate:status

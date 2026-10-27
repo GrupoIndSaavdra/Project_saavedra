@@ -35,6 +35,13 @@ function initAppMenu() {
                 btn_open.setAttribute("aria-expanded", "true");
                 nav.style.visibility = "visible";
                 nav.style.opacity = "1";
+
+                const activeLink = nav.querySelector("a.nav-link.active");
+                if (activeLink) {
+                    setTimeout(() => {
+                        activeLink.scrollIntoView({ block: "center", behavior: "smooth" });
+                    }, 50);
+                }
             }
         });
 
@@ -78,45 +85,63 @@ function createMenu(profile) {
         let ul = document.querySelector(".nav-list");
         if (!ul) return;
         ul.innerHTML = "";
-        ul.appendChild(createList(routes, false));
-
-        // Determinar la sección principal preferida (Administración, Calidad, Almacén)
-        let preferredTopSection = null;
-        if (window.location.search.includes('almacen_only=1') || window.location.search.includes('sec=almacen')) {
-            preferredTopSection = "Almacén";
-        } else if (window.location.search.includes('sec=calidad')) {
-            preferredTopSection = "Calidad";
-        } else if (window.location.search.includes('admin_only=1') || window.location.search.includes('sec=admin')) {
-            preferredTopSection = "Administración";
-        } else {
-            preferredTopSection = sessionStorage.getItem("active_top_section");
-        }
+        ul.appendChild(createList(routes, false, []));
 
         const currentPath = window.location.pathname;
+        const currentSearch = window.location.search;
         const allLinks = Array.from(ul.querySelectorAll("a.nav-link"));
         let targetLink = null;
 
-        // 1. Si hay una sección preferida, buscar un enlace coincidente dentro de esa sección primero
-        if (preferredTopSection) {
-            const topSections = Array.from(ul.querySelectorAll(":scope > li.menu-section"));
-            const prefLi = topSections.find(li => {
-                const toggle = li.querySelector(":scope > .submenu-toggle");
-                return toggle && toggle.textContent.trim() === preferredTopSection;
-            });
-            if (prefLi) {
-                const prefLinks = Array.from(prefLi.querySelectorAll("a.nav-link"));
-                // Primero buscar coincidencia exacta de pathname
-                targetLink = prefLinks.find(a => {
-                    const linkUrl = new URL(a.href, window.location.origin);
-                    return currentPath === linkUrl.pathname && isLinkMatching(a, currentPath);
-                });
-                if (!targetLink) {
-                    targetLink = prefLinks.find(a => isLinkMatching(a, currentPath));
+        // Detección de sección preferida explícita por parámetros en URL
+        let urlPreferredSection = null;
+        if (currentSearch.includes('almacen_only=1') || currentSearch.includes('sec=almacen')) {
+            urlPreferredSection = "Almacén";
+        } else if (currentSearch.includes('sec=calidad')) {
+            urlPreferredSection = "Calidad";
+        } else if (currentSearch.includes('admin_only=1') || currentSearch.includes('sec=admin')) {
+            urlPreferredSection = "Administración";
+        }
+
+        const savedPath = sessionStorage.getItem("active_menu_path");
+        const savedHref = sessionStorage.getItem("active_menu_href");
+        const savedTopSection = sessionStorage.getItem("active_top_section");
+        const preferredTopSection = urlPreferredSection || savedTopSection;
+
+        // 1. Prioridad Máxima: Si el usuario hizo clic en una opción específica del menú y coincide con la vista actual
+        if (savedPath && savedHref) {
+            const isMatch = isSameOrSubRoute(currentPath, savedHref);
+            if (isMatch) {
+                const candidate = allLinks.find(a => a.dataset.menuPath === savedPath);
+                if (candidate) {
+                    if (!urlPreferredSection || candidate.dataset.topSection === urlPreferredSection) {
+                        targetLink = candidate;
+                    }
                 }
             }
         }
 
-        // 2. Si no hay sección preferida o no hubo coincidencia en ella, buscar primero coincidencia exacta de pathname en todo el menú
+        // 2. Coincidencia dentro de la sección preferida (por query param o guardada)
+        if (!targetLink && preferredTopSection) {
+            const prefLinks = allLinks.filter(a => a.dataset.topSection === preferredTopSection);
+
+            // 2.a. Coincidencia exacta de pathname y search
+            targetLink = prefLinks.find(a => {
+                const linkUrl = new URL(a.href, window.location.origin);
+                return currentPath === linkUrl.pathname && isLinkMatching(a, currentPath);
+            });
+
+            // 2.b. Coincidencia flexible de pathname
+            if (!targetLink) {
+                targetLink = prefLinks.find(a => isLinkMatching(a, currentPath));
+            }
+
+            // 2.c. Coincidencia por sub-rutas dentro de la sección
+            if (!targetLink) {
+                targetLink = prefLinks.find(a => isPathMatching(currentPath, a.href));
+            }
+        }
+
+        // 3. Coincidencia exacta de pathname y search en todo el menú
         if (!targetLink) {
             targetLink = allLinks.find(a => {
                 const linkUrl = new URL(a.href, window.location.origin);
@@ -124,13 +149,22 @@ function createMenu(profile) {
             });
         }
 
-        // 3. Si aún no hay coincidencia exacta, buscar coincidencia por sub-rutas
+        // 4. Coincidencia flexible en todo el menú
         if (!targetLink) {
             targetLink = allLinks.find(a => isLinkMatching(a, currentPath));
         }
 
+        // 5. Coincidencia por sub-rutas en todo el menú
+        if (!targetLink) {
+            targetLink = allLinks.find(a => isPathMatching(currentPath, a.href));
+        }
+
         // Expandir solo la rama del enlace activo seleccionado
         if (targetLink) {
+            // Limpiar cualquier active previo para evitar duplicados
+            allLinks.forEach(a => a.classList.remove("active"));
+            ul.querySelectorAll(".menu-section.active").forEach(sec => sec.classList.remove("active"));
+
             targetLink.classList.add("active");
             let parentEl = targetLink.parentElement;
             while (parentEl && parentEl.tagName !== "NAV" && parentEl !== document.body) {
@@ -140,16 +174,32 @@ function createMenu(profile) {
                     if (directSubmenu) {
                         directSubmenu.hidden = false;
                     }
-                    if (parentEl.parentElement && parentEl.parentElement.classList.contains("nav-list")) {
-                        const toggleBtn = parentEl.querySelector(":scope > .submenu-toggle");
-                        if (toggleBtn) {
-                            sessionStorage.setItem("active_top_section", toggleBtn.textContent.trim());
-                        }
-                    }
                 }
                 parentEl = parentEl.parentElement;
             }
+
+            // Sincronizar sessionStorage con la opción activa confirmada
+            if (targetLink.dataset.menuPath) {
+                sessionStorage.setItem("active_menu_path", targetLink.dataset.menuPath);
+            }
+            if (targetLink.dataset.topSection) {
+                sessionStorage.setItem("active_top_section", targetLink.dataset.topSection);
+            } else {
+                sessionStorage.removeItem("active_top_section");
+            }
+            sessionStorage.setItem("active_menu_href", targetLink.href);
         }
+    }
+}
+
+function isSameOrSubRoute(currentPath, savedHref) {
+    if (!savedHref) return false;
+    try {
+        const savedUrl = new URL(savedHref, window.location.origin);
+        if (savedUrl.pathname === currentPath) return true;
+        return isPathMatching(currentPath, savedHref);
+    } catch (e) {
+        return false;
     }
 }
 
@@ -240,12 +290,42 @@ function isPathMatching(currentPath, aHref) {
     }
 }
 
-function createList(sections, isNested = false) {
+function handleNavClick(a) {
+    if (a.dataset.menuPath) {
+        sessionStorage.setItem("active_menu_path", a.dataset.menuPath);
+    }
+    if (a.dataset.topSection) {
+        sessionStorage.setItem("active_top_section", a.dataset.topSection);
+    } else {
+        sessionStorage.removeItem("active_top_section");
+    }
+    sessionStorage.setItem("active_menu_href", a.href);
+
+    let div_opacity = document.createElement("div");
+    div_opacity.classList.add("div-opacity");
+
+    let div_loading = document.createElement("div");
+    div_loading.classList.add("loading");
+
+    let img_loading = document.createElement("img");
+    img_loading.classList.add("img-loading");
+    img_loading.src = window.loading;
+    img_loading.alt = "Cargando...";
+    div_loading.appendChild(img_loading);
+
+    div_opacity.appendChild(div_loading);
+    document.body.appendChild(div_opacity);
+
+    window.location.href = a.href;
+}
+
+function createList(sections, isNested = false, trail = []) {
     const fragment = document.createDocumentFragment();
 
     sections.forEach((section) => {
         // Sección con título (submenú)
         if (section.title) {
+            const currentTrail = [...trail, section.title];
             const liSection = document.createElement("li");
             liSection.classList.add("menu-section");
             if (isNested) {
@@ -263,7 +343,7 @@ function createList(sections, isNested = false) {
             // Si routes tiene sub-secciones (objetos) en lugar de arrays
             const firstRoute = section.routes[0];
             if (firstRoute && typeof firstRoute === "object" && !Array.isArray(firstRoute)) {
-                ulSubmenu.appendChild(createList(section.routes, true));
+                ulSubmenu.appendChild(createList(section.routes, true, currentTrail));
             } else {
                 section.routes.forEach((route) => {
                     const li = document.createElement("li");
@@ -280,34 +360,13 @@ function createList(sections, isNested = false) {
                     }
                     a.textContent = route[1];
 
+                    const itemTrail = [...currentTrail, route[1]];
+                    a.dataset.menuPath = itemTrail.join(" > ");
+                    a.dataset.topSection = currentTrail[0] || "";
+
                     a.addEventListener("click", (e) => {
                         e.preventDefault();
-
-                        // Guardar en sessionStorage el menú principal donde hizo clic el usuario
-                        const topLi = li.closest(".nav-list > .menu-section");
-                        if (topLi) {
-                            const toggleBtn = topLi.querySelector(":scope > .submenu-toggle");
-                            if (toggleBtn) {
-                                sessionStorage.setItem("active_top_section", toggleBtn.textContent.trim());
-                            }
-                        }
-
-                        let div_opacity = document.createElement("div");
-                        div_opacity.classList.add("div-opacity");
-
-                        let div_loading = document.createElement("div");
-                        div_loading.classList.add("loading");
-
-                        let img_loading = document.createElement("img");
-                        img_loading.classList.add("img-loading");
-                        img_loading.src = window.loading;
-                        img_loading.alt = "Cargando...";
-                        div_loading.appendChild(img_loading);
-
-                        div_opacity.appendChild(div_loading);
-                        document.body.appendChild(div_opacity);
-
-                        window.location.href = a.href;
+                        handleNavClick(a);
                     });
 
                     li.appendChild(a);
@@ -362,25 +421,12 @@ function createList(sections, isNested = false) {
                 }
                 a.textContent = route[1];
 
+                a.dataset.menuPath = route[1];
+                a.dataset.topSection = "";
+
                 a.addEventListener("click", (e) => {
                     e.preventDefault();
-                    sessionStorage.removeItem("active_top_section");
-                    let div_opacity = document.createElement("div");
-                    div_opacity.classList.add("div-opacity");
-
-                    let div_loading = document.createElement("div");
-                    div_loading.classList.add("loading");
-
-                    let img_loading = document.createElement("img");
-                    img_loading.classList.add("img-loading");
-                    img_loading.src = window.loading;
-                    img_loading.alt = "Cargando...";
-                    div_loading.appendChild(img_loading);
-
-                    div_opacity.appendChild(div_loading);
-                    document.body.appendChild(div_opacity);
-
-                    window.location.href = a.href;
+                    handleNavClick(a);
                 });
 
                 li.appendChild(a);
@@ -657,7 +703,7 @@ function getRoutes(profile) {
                 },
                 {
                     title: "Liberación de Piezas",
-                    routes: [["showReleasePieces_view", "Liberacion de piezas"]],
+                    routes: [["showReleasePieces_view", "Liberación de piezas"]],
                 },
                 {
                     title: "Producción",

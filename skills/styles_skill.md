@@ -19,7 +19,7 @@ version: 1.0.0
 
 Cuando crees o modifiques estilos CSS, DEBES cumplir estrictamente estas 5 reglas:
 
-1. **NO USAR TailwindCSS ni Bootstrap:** Todo el diseño es **Vanilla CSS** con la fuente **Poppins**.
+1. **Tailwind CSS v3 Integrado (`preflight: false`) + Vanilla CSS:** El diseño se compone de **Vanilla CSS corporativo** (`global.css`) junto a utilidades de **Tailwind CSS v3** (`resources/css/tailwind.css`). Prohibido añadir Bootstrap u otros frameworks no configurados.
 2. **Importar `global.css`:** En todo CSS de módulo nuevo, incluye `@import "../global.css";` al inicio.
 3. **Usar Variables CSS Corporativas:** Usa `var(--gis-green)`, `var(--gis-blue)`, `var(--gis-red)`, `var(--gis-gray)`. NUNCA hardcodees colores hex/rgb sueltos.
 4. **Prefijos `-webkit-` SIEMPRE ANTES del estándar:** Por ejemplo `-webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);`.
@@ -935,5 +935,45 @@ En paneles de producción de alta densidad (`processProduction`):
      - **Resplandor interior en las orillas (`inset`):** Iluminar el perímetro interno con `inset 0 0 8px rgba(255, 255, 255, 0.6)` e `inset 0 0 18px rgba(251, 191, 36, 0.45)`.
      - **Corona de neón exterior:** Núcleo láser (`0 0 10px rgba(255, 215, 0, 0.8)`), dispersión media (`0 0 24px rgba(245, 158, 11, 0.65)`) y aura ambiental (`0 0 38px rgba(234, 88, 12, 0.45)`).
      - **Animación de respiración neón:** Animar la expansión y contracción lumínica (`alertPulseAmberNeon`) de forma periódica (2.4s) para alertar visualmente sin alterar la geometría de la interfaz.
+
+---
+
+## 38. Ecosistema Tailwind CSS v3 + Vanilla CSS (Coexistencia y Reglas de Oro)
+
+Tailwind CSS v3 está formalmente integrado en el proyecto para acelerar la construcción de componentes y reducir el código CSS manual repetitivo, manteniendo al 100% la identidad visual de Grupo Industrial Saavedra.
+
+### 1. Configuración Base (`tailwind.config.js`)
+- **`preflight: false`:** Deshabilitado estrictamente para no resetear estilos base del navegador, permitiendo que los botones `.btns`, tablas y formularios existentes se vean exactamente igual.
+- **Paleta Oficial Extendida (`theme.extend.colors.gis.*`):**
+  - `bg-gis-blue`, `text-gis-blue`, `border-gis-blue` (`#033966`)
+  - `bg-gis-green`, `text-gis-green` (`#0a8504`)
+  - `bg-gis-red`, `text-gis-red` (`#9c0303`)
+  - `bg-gis-gray`, `text-gis-gray` (`#404040`)
+  - `bg-gis-dark` (`#012344`)
+- **Tipografía:** `font-sans` configurada con `"Poppins", sans-serif`.
+
+### 2. Archivo de Entrada y Compilación (`resources/css/tailwind.css`)
+Tailwind compila exclusivamente a través de su archivo dedicado:
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+Este archivo se carga en los layouts principales mediante `@vite(['resources/css/tailwind.css', ...])`.
+
+### 3. Patrón de Diseño Híbrido (Vanilla + Tailwind)
+Puedes combinar libremente clases corporativas existentes con utilidades de Tailwind:
+```blade
+{{-- Contenedor Glassmorphism tradicional con flex y espaciado de Tailwind --}}
+<div class="glass-panel flex flex-col md:flex-row items-center justify-between gap-4 p-6 shadow-xl">
+    <div class="flex items-center gap-3">
+        <img src="{{ icon('ot') }}" alt="OT" class="w-10 h-10 object-contain drop-shadow" />
+        <h2 class="text-gis-blue font-bold text-xl uppercase tracking-wide">Órdenes de Trabajo</h2>
+    </div>
+    <button class="btns blue flex items-center gap-2 hover:scale-105 transition-transform">
+        <span>Nueva Orden</span>
+    </button>
+</div>
+```
 
 

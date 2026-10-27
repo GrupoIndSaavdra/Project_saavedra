@@ -308,5 +308,82 @@ Para evitar rutas fijas dispersas (`images/iconos/...`) y permitir cambiar o uni
    - Inyectado globalmente en `appMenu.blade.php`: `window.getIcon('aprobado')`
 4. **Ventaja:** Modificar la ruta de un icono en `config/icons.php` actualiza automáticamente todas las vistas Blade y scripts JS en todo el sistema sin tocar plantillas.
 
+---
+
+## 20. Uso de Tailwind CSS v3 en Vistas Blade
+
+Con Tailwind CSS v3 integrado en el layout raíz (`layouts.appMenu`), las vistas Blade pueden usar libremente clases utilitarias para maquetar interfaces sin necesidad de escribir hojas de estilo CSS dedicadas para cada componente pequeño.
+
+1. **Carga Global:** `resources/css/tailwind.css` ya está inyectado en `@vite` dentro de `layouts/appMenu.blade.php`. En vistas hijas que extiendan de este layout, las utilidades están disponibles inmediatamente.
+2. **Coexistencia con Clases Corporativas:**
+   - Puedes usar clases utilitarias de Tailwind en combinación con clases existentes como `.btns`, `.glass-panel`, `.status-ok`.
+   - Ejemplo de tarjeta híbrida moderna:
+   ```blade
+   <div class="glass-panel p-6 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
+       <div class="flex items-center gap-3">
+           <img src="{{ icon('ot') }}" alt="OT" class="w-10 h-10 object-contain" />
+           <span class="text-gis-blue font-bold text-lg">Control de Producción</span>
+       </div>
+       <div class="flex gap-2">
+           <button class="btns blue text-sm py-2 px-4 hover:scale-105 transition-transform">Filtrar</button>
+       </div>
+   </div>
+   ```
+3. **Colores GIS Nativos de Tailwind:** Usar `text-gis-blue`, `bg-gis-blue`, `border-gis-blue`, `bg-gis-green`, `bg-gis-red`, `bg-gis-dark`.
+
+---
+
+## 21. Uso de Laravel Livewire v3 y Alpine.js en Vistas Blade
+
+Con Livewire v3 y Alpine.js disponibles nativamente en el proyecto, ya no es necesario escribir llamadas manuales a `fetch()`, listeners de DOM con `document.querySelector` ni sincronizar tokens CSRF a mano para interactividad dinámica.
+
+1. **Inyección de Assets:**
+   - El layout principal `layouts/appMenu.blade.php` ya contiene `@livewireStyles` en el `<head>` y `@livewireScripts` antes del cierre de `</html>`.
+   - Cualquier vista hija hereda automáticamente el runtime reactivo y Alpine.js.
+
+2. **Creación de Componentes:**
+   ```bash
+   php artisan make:livewire NombreComponente
+   ```
+   - Crea la clase lógica en `app/Livewire/NombreComponente.php`.
+   - Crea la plantilla Blade en `resources/views/livewire/nombre-componente.blade.php`.
+
+3. **Inserción de Componentes en Vistas Existentes:**
+   ```blade
+   {{-- Sintaxis recomendada de componente --}}
+   <livewire:buscador-piezas :perfil="auth()->user()->perfil" />
+
+   {{-- O directiva tradicional --}}
+   @livewire('buscador-piezas', ['perfil' => auth()->user()->perfil])
+   ```
+
+4. **Reactividad Server-Driven con Livewire:**
+   ```blade
+   <div>
+       <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar OT o pieza..." class="form-control" />
+       
+       <div wire:loading class="text-gis-blue font-semibold mt-2">
+           Cargando resultados...
+       </div>
+
+       <button wire:click="liberarPieza({{ $piezaId }})" class="btns green">
+           Liberar
+       </button>
+   </div>
+   ```
+
+5. **Micro-interacciones en Cliente con Alpine.js:**
+   Alpine.js está integrado en el runtime de Livewire 3 sin librerías externas:
+   ```blade
+   <div x-data="{ open: false }">
+       <button @click="open = !open" class="btns blue">Ver Detalles</button>
+       
+       <div x-show="open" x-transition class="glass-panel p-4 mt-2">
+           <p>Contenido desplegable instantáneo sin llamadas de red ni JS adicional.</p>
+       </div>
+   </div>
+   ```
+
+
 
 

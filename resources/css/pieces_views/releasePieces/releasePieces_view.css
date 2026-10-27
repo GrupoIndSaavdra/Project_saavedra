@@ -911,7 +911,9 @@ label {
     cursor: pointer !important;
     opacity: 1 !important;
     transform: scale(1);
-    box-shadow: 0 4px 12px rgba(10, 92, 32, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+    box-shadow:
+        0 4px 12px rgba(10, 92, 32, 0.45),
+        inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
 }
 
 /* Estado HOVER cuando está activo: Verde Normal / Brillante */
@@ -919,7 +921,9 @@ label {
     background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%) !important;
     color: #ffffff !important;
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
+    box-shadow:
+        0 6px 16px rgba(34, 197, 94, 0.55),
+        inset 0 1px 1px rgba(255, 255, 255, 0.4) !important;
 }
 
 /* Estado INACTIVO / BLOQUEADO: Gris */

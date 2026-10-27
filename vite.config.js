@@ -7,6 +7,7 @@ export default defineConfig({
             input: [
                 // Base global — Paleta GIS, Poppins, utilidades compartidas
                 "resources/css/global.css",
+                "resources/css/tailwind.css",
 
                 //Layout messages
                 "resources/css/layouts/partials/messages.css",

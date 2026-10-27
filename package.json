@@ -3,14 +3,19 @@
     "type": "module",
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "setup": "powershell -NoProfile -ExecutionPolicy Bypass -File ./setup.ps1",
+        "install:all": "composer install && npm install && npm run build"
     },
     "devDependencies": {
         "@prettier/plugin-php": "^0.24.0",
+        "autoprefixer": "^10.6.2",
         "axios": "^1.1.2",
         "laravel-vite-plugin": "^0.8.0",
+        "postcss": "^8.5.32",
         "prettier": "^3.9.5",
         "prettier-plugin-blade": "^3.2.2",
+        "tailwindcss": "^3.4.19",
         "vite": "^4.0.0"
     },
     "dependencies": {

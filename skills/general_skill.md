@@ -70,21 +70,23 @@ Antes de proponer o implementar cualquier solución, evalúa mentalmente esta es
 1. **YAGNI (You Ain't Gonna Need It):** Si el usuario no lo pidió explícitamente o no agrega valor inmediato, NO lo construyas.
 2. **Reutilizar existente:** Usa `grep_search` en `app/Models`, `app/Http/Controllers`, `resources/js`, etc., para reutilizar scopes, traits y helpers existentes.
 3. **Plataforma web nativa:** Usa elementos HTML5/JS nativos antes de inventar componentes JS o wrappers complejos.
-4. **Respetar el stack nativo:** No agregues frameworks JS (React, Vue, Alpine) ni bibliotecas CSS (Tailwind, Bootstrap). Todo es **Blade + Vanilla JS + Vanilla CSS**.
-5. **Cero clases vacías o wrappers de una línea:** Si una función del controlador o scope del modelo lo resuelve, no crees una Service Class ni Repository innecesario.
+4. **Respetar el stack nativo:** El stack oficial es **Blade + Laravel Livewire v3 (con Alpine.js) + Tailwind CSS v3** (`preflight: false`) + **Vanilla JS/CSS**. No agregues frameworks externos como React, Vue ni Bootstrap.
+5. **Cero clases vacías o wrappers de una línea:** Si una función del controlador, componente Livewire o scope del modelo lo resuelve, no crees una Service Class ni Repository innecesario.
 
 ---
 
-## Stack Tecnológico (No Cambiar)
+## Stack Tecnológico (Oficial)
 
-- **Backend:** Laravel (PHP 8.x) con Eloquent ORM
-- **Frontend:** Blade + Vanilla JS + Vanilla CSS (sin Tailwind, sin Bootstrap, sin Alpine)
+- **Backend:** Laravel 10 (PHP 8.2+) con Eloquent ORM
+- **Reactividad & UI:** Laravel Livewire v3 + Alpine.js (para interactividad dinámica server-driven y micro-interacciones sin escribir JS boilerplate)
+- **Frontend & Estilos:** Blade + Vanilla JS + Vanilla CSS + Tailwind CSS v3 (con `preflight: false`)
 - **Assets:** Vite para compilar CSS y JS
 - **PDF:** DomPDF (Barryvdh)
 - **Alertas UI:** SweetAlert2
 - **Base de datos:** MySQL
 - **Entorno:** Windows (PowerShell) en desarrollo, Linux en producción
 - **Encoding:** Todos los archivos deben ser UTF-8 sin BOM (ver `fix_encoding.py` si hay problemas de mojibake)
+- **Instalación Todo en Uno:** `setup.bat` o `npm run setup` / `npm run install:all` (instala Composer + Livewire v3 + NPM + Tailwind CSS v3 y compila assets en un solo paso)
 
 ---
 

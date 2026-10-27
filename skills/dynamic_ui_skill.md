@@ -191,3 +191,86 @@ document.getElementById('mi-overlay').style.display = 'flex';
 // Ocultar
 document.getElementById('mi-overlay').style.display = 'none';
 ```
+
+---
+
+## 3. Alternativa Moderna: Reactividad Server-Driven con Livewire v3 y Alpine.js
+
+Para nuevas interfaces interactivas, **Livewire v3** y **Alpine.js** eliminan la necesidad de gestionar manualmente objetos `window.*`, callbacks de `fetch()` y manipulación de strings HTML:
+
+### A. Livewire 3: Morfado de DOM sin recargas ni JS manual
+El servidor renderiza el Blade y actualiza únicamente los nodos modificados (DOM morphing):
+```php
+// app/Livewire/TablaPiezas.php
+namespace App\Livewire;
+use Livewire\Component;
+use App\Models\Piece;
+
+class TablaPiezas extends Component
+{
+    public $search = '';
+    public $estatus = 'todos';
+
+    public function liberar($piezaId)
+    {
+        // Mutación directa en BD con transacción
+        \DB::beginTransaction();
+        try {
+            Piece::where('id', '=', $piezaId, 'and')->update(['liberada' => 1]);
+            \DB::commit();
+            $this->dispatch('notificar', ['msg' => 'Pieza liberada exitosamente']);
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            $this->dispatch('error', ['msg' => 'Error al liberar']);
+        }
+    }
+
+    public function render()
+    {
+        $piezas = Piece::query()
+            ->when($this->search, fn($q) => $q->where('ot', 'like', "%{$this->search}%", 'and'))
+            ->get();
+
+        return view('livewire.tabla-piezas', compact('piezas'));
+    }
+}
+```
+
+```blade
+{{-- resources/views/livewire/tabla-piezas.blade.php --}}
+<div>
+    <input type="text" wire:model.live.debounce.300ms="search" placeholder="Buscar OT..." class="form-control mb-3" />
+
+    <div wire:loading class="text-gis-blue font-semibold mb-2">
+        <span>Actualizando tabla...</span>
+    </div>
+
+    <table class="table">
+        @foreach($piezas as $p)
+            <tr wire:key="pieza-{{ $p->id }}">
+                <td>{{ $p->ot }}</td>
+                <td>{{ $p->clase }}</td>
+                <td>
+                    <button wire:click="liberar({{ $p->id }})" class="btns green">Liberar</button>
+                </td>
+            </tr>
+        @endforeach
+    </table>
+</div>
+```
+
+### B. Alpine.js: Interactividad de cliente sin llamadas a red
+Para modales, tooltips o colapsables inmediatos sin escribir funciones en JS Vanilla:
+```blade
+<div x-data="{ modalOpen: false }">
+    <button @click="modalOpen = true" class="btns blue">Abrir Detalle</button>
+
+    <div x-show="modalOpen" x-cloak class="gis-lock-overlay" style="display: flex;">
+        <div class="alm-modal-content" @click.outside="modalOpen = false">
+            <h3>Detalle de la Orden</h3>
+            <p>Contenido reactivo instantáneo en el cliente.</p>
+            <button @click="modalOpen = false" class="btns gray">Cerrar</button>
+        </div>
+    </div>
+</div>
+```
