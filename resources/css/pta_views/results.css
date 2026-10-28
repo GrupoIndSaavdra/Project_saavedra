@@ -1,632 +1,1512 @@
-/* global.css: reset, Poppins, variables GIS */
+/* ═════════════════════════════════════════════════════════════════════
+   PTA RESULTS VIEW — GIS CORPORATE DESIGN
+   Efecto Glassmorphism Refractivo Líquido, Contraste y Sistema Dual de Iconos
+   ═════════════════════════════════════════════════════════════════════ */
 @import "../global.css";
 
-/* ── Layout general ───────────────────────────────────────────────── */
+/* ── Ocultamiento Seguro de Inputs de Archivo Nativos ─────────────── */
+.pta-file-input-hidden,
+input[type="file"].d-none {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    pointer-events: none !important;
+}
+
+/* ── Layout General ────────────────────────────────────────────────── */
 .pta-wrapper {
     width: 100%;
-    margin: 2rem auto;
-    padding: 0 1.5rem 3rem;
+    max-width: 1560px;
+    margin: 1.5rem auto 3.5rem auto;
+    padding: 0 1.5rem;
+    box-sizing: border-box;
 }
 
-.pta-header {
-    background: var(--glass-bg-blue) !important;
-    -webkit-backdrop-filter: blur(15px);
-    backdrop-filter: blur(15px);
-    border: 5px solid var(--glass-border-blue) !important;
-    box-shadow: var(--glass-shadow) !important;
-    color: #fff;
-    border-radius: 12px;
-    padding: 1.4rem 1.8rem;
-    margin-bottom: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.pta-header h2 {
-    margin: 0;
-    font-size: 1.35rem;
-    font-weight: 700;
-}
-
-.pta-header p {
-    margin: 0;
-    opacity: 0.8;
-    font-size: 0.875rem;
-}
-
-/* ── Selectores en línea ───────────────────────────────────── */
-.pta-selectors-row {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1.2rem;
-    flex-wrap: wrap;
-}
-
-.pta-selectors-row > * {
-    flex: 1;
-    min-width: 240px;
-    margin-bottom: 0;
-}
-
-/* ── Selector OT / Clase / Pieza ───────────────────────────────────── */
-.pta-ot-selector,
-.pta-clase-selector,
-.pta-piece-selector {
-    background: var(--glass-bg-white) !important;
-    -webkit-backdrop-filter: blur(15px);
-    backdrop-filter: blur(15px);
-    border: 5px solid var(--glass-border-white) !important;
-    box-shadow: var(--glass-shadow) !important;
-    border-radius: 10px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.pta-ot-selector label,
-.pta-clase-selector label,
-.pta-piece-selector label {
-    font-weight: 600;
-    color: #1e3a5f;
-    white-space: nowrap;
-}
-
-.pta-ot-selector select,
-.pta-clase-selector select,
-.pta-piece-selector select {
-    border: 2px solid #2d6a9f;
-    border-radius: 8px;
-    padding: 0.45rem 0.8rem;
-    font-size: 1rem;
-    color: #1e3a5f;
-    background: #f0f7ff;
-    cursor: pointer;
-    min-width: 260px;
-    transition: all 0.2s ease-in-out;
-}
-
-.pta-ot-selector select:hover,
-.pta-clase-selector select:hover,
-.pta-piece-selector select:hover {
-    background: #dce8f5;
-    border: 2px solid #1e3a5f;
-    transform: scale(1.03);
-}
-
-/* ── Formulario resultados ────────────────────────────────────────── */
-.pta-form-card {
-    background: var(--glass-bg-white) !important;
-    -webkit-backdrop-filter: blur(15px);
-    backdrop-filter: blur(15px);
-    border: 5px solid var(--glass-border-white) !important;
-    box-shadow: var(--glass-shadow) !important;
-    border-radius: 10px;
-    overflow: hidden;
-    margin-bottom: 1.5rem;
-}
-
-.pta-form-card-header {
-    background: #2d6a9f;
-    color: #fff;
-    padding: 0.85rem 1.4rem;
-    font-weight: 700;
-    font-size: 0.95rem;
-}
-
-.pta-form-card-body {
-    padding: 1.4rem;
-    background: transparent;
-}
-
-.pta-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.2rem;
-    align-items: start;
-}
-
-@media (max-width: 900px) {
-    .pta-grid {
-        grid-template-columns: 1fr 1fr;
-    }
-}
-
-@media (max-width: 640px) {
-    .pta-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-.pta-field {
-    background: #f7f7f7;
-    border: 4px solid #dce8f5;
-    border-radius: 8px;
-    padding: 1rem;
-    transition: all 0.2s ease-in-out;
-}
-
-.pta-field:hover {
-    background: #dce8f5;
-    border: 4px solid #2d6a9f;
-    transform: scale(1.02);
-}
-
-.pta-field label {
-    font-weight: 600;
-    color: #1e3a5f;
-    font-size: 0.85rem;
-    margin-bottom: 0.4rem;
-    display: block;
-}
-
-.pta-field select {
+/* ═════════════════════════════════════════════════════════════════════
+   SISTEMA DE ICONOS ESTÁTICOS A COLOR (TÍTULOS, LABELS Y TABLAS)
+   ═════════════════════════════════════════════════════════════════════ */
+.static-color-icon {
     width: 100%;
-    border: 1.5px solid #2d6a9f;
-    border-radius: 6px;
-    padding: 0.4rem 0.7rem;
-    font-size: 0.92rem;
-    color: #1e3a5f;
-    background: #fff;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.16));
+    transition: transform 0.25s ease;
 }
 
-.pta-img-wrapper {
-    margin-top: 0.75rem;
+.selector-icon-badge {
+    width: 86px;
+    height: 86px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 2px solid rgba(3, 57, 102, 0.24);
+    border-radius: 18px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 6px 18px rgba(2, 38, 68, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+    flex-shrink: 0;
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease,
+        box-shadow 0.3s ease;
 }
 
-.pta-img-btn-label {
+.pta-selector-card:hover .selector-icon-badge {
+    transform: scale(1.08) rotate(-1deg);
+    border-color: var(--gis-blue);
+    box-shadow: 0 10px 24px rgba(3, 57, 102, 0.22);
+}
+
+.stage-icon-badge {
+    width: 78px;
+    height: 78px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 2px solid rgba(3, 57, 102, 0.24);
+    border-radius: 18px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 6px 16px rgba(2, 38, 68, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 1);
+    flex-shrink: 0;
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.pta-stage-section:hover .stage-icon-badge {
+    transform: scale(1.08);
+    border-color: var(--gis-blue);
+}
+
+.form-header-icon-box {
+    width: 78px;
+    height: 78px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 18px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+    flex-shrink: 0;
+}
+
+.table-icon-badge {
+    width: 78px;
+    height: 78px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: 18px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+    flex-shrink: 0;
+}
+
+.badge-static-icon {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   SISTEMA DE ICONOS DUALES EN BOTONES (LIGHT EN REPOSO ➔ COLOR EN HOVER)
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-icon-duo {
+    position: relative;
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    background: #e8f0fe;
-    border: 1.5px dashed #2d6a9f;
-    border-radius: 6px;
-    padding: 0.35rem 0.75rem;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: #2d6a9f;
-    cursor: pointer;
-    transition: all 0.5s ease-in-out;
-}
-
-.pta-img-btn-label:hover {
-    background: #c8ddf8;
-}
-
-.pta-img-status {
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-top: 0.3rem;
-}
-
-.pta-img-status.empty {
-    color: #c0392b;
-}
-
-.pta-img-status.filled {
-    color: #1a7a45;
-}
-
-.pta-actions {
-    display: flex;
     justify-content: center;
-    margin-top: 1rem;
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
 }
 
-.btn-pta-save {
-    background: #008b1c;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 0.55rem 1.6rem;
+.pta-icon-duo .icon-light,
+.pta-icon-duo .icon-color {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition:
+        opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+        transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.pta-icon-duo .icon-light {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.pta-icon-duo .icon-color {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.85);
+    pointer-events: none;
+}
+
+/* Activación hover SOLO en botones con icon-duo */
+.btn-pta-back:hover .btn-icon-duo .icon-light,
+.pta-img-btn-label:hover .upload-icon-duo .icon-light {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.8);
+}
+
+.btn-pta-back:hover .btn-icon-duo .icon-color,
+.pta-img-btn-label:hover .upload-icon-duo .icon-color {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15);
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35));
+}
+
+.btn-icon-duo {
+    width: 32px;
+    height: 32px;
+}
+
+.upload-icon-duo {
+    width: 22px;
+    height: 22px;
+}
+
+.save-power-icon {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+    transition: transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-pta-save:hover .save-power-icon {
+    transform: scale(1.1);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   HEADER PRINCIPAL — GLASS AZUL GIS
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-header {
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 2px solid var(--glass-border-blue) !important;
+    box-shadow: var(--glass-shadow-dark) !important;
+    border-radius: 20px;
+    padding: 1.5rem 2.2rem;
+    margin-bottom: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.8rem;
+    flex-wrap: wrap;
+    transition:
+        box-shadow 0.3s ease,
+        border-color 0.3s ease;
+}
+
+.pta-header:hover {
+    border-color: rgba(255, 255, 255, 0.35) !important;
+    box-shadow: 0 20px 45px rgba(2, 38, 68, 0.45) !important;
+}
+
+.pta-header-left {
+    display: flex;
+    align-items: center;
+    gap: 1.4rem;
+    flex: 1 1 540px;
+}
+
+.pta-header-icon-box {
+    background: rgba(255, 255, 255, 0.14);
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    border-radius: 20px;
+    padding: 12px;
+    width: 82px;
+    height: 82px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+    transition:
+        transform 0.3s ease,
+        background 0.3s ease;
+    flex-shrink: 0;
+}
+
+.pta-header:hover .pta-header-icon-box {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(-2px);
+}
+
+.pta-header-text h2 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.pta-header-badges {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.pta-badge-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 30px;
+    padding: 6px 14px;
+    font-size: 0.86rem;
     font-weight: 700;
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.3s ease-in-out;
+    color: #ffffff;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transition: all 0.25s ease;
+    cursor: default;
 }
 
-.btn-pta-save:hover {
-    background: #00a421;
-    transform: scale(1.05);
+.pta-badge-chip:hover {
+    background: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.45);
+    transform: translateY(-1px);
+}
+
+.pta-badge-chip-green {
+    background: rgba(74, 222, 128, 0.18);
+    border-color: rgba(74, 222, 128, 0.42);
+    color: #4ade80;
+}
+
+.pta-badge-chip-green:hover {
+    background: rgba(74, 222, 128, 0.28);
+    border-color: #4ade80;
+}
+
+.pta-badge-chip-sub {
+    background: transparent;
+    border-color: transparent;
+    color: rgba(255, 255, 255, 0.78);
+    font-weight: 500;
+    padding-left: 2px;
+}
+
+.pta-header-right {
+    display: flex;
+    align-items: center;
 }
 
 .btn-pta-back {
-    background: #2d6a9f;
-    color: #c4c4c4;
-    border: none;
-    border-radius: 8px;
-    padding: 0.55rem 1.2rem;
-    font-weight: 600;
-    text-decoration: none;
-    font-size: 0.95rem;
     display: inline-flex;
     align-items: center;
-    transition: all 0.3s ease-in-out;
+    gap: 12px;
+    background: rgba(255, 255, 255, 0.14);
+    border: 1.5px solid rgba(255, 255, 255, 0.32);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-size: 0.94rem;
+    font-weight: 700;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
 }
 
 .btn-pta-back:hover {
-    background: #1e3a5f;
-    color: #fff;
-    transform: scale(1.05);
+    background: rgba(255, 255, 255, 0.26);
+    border-color: #ffffff;
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28);
 }
 
-/* ── Alertas auto-dismiss ─────────────────────────────────────────── */
+/* ═════════════════════════════════════════════════════════════════════
+   ALERTAS DEL SISTEMA
+   ═════════════════════════════════════════════════════════════════════ */
 .pta-alert {
-    border-radius: 8px;
-    padding: 0.75rem 1rem;
-    margin-bottom: 1rem;
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: all 0.5s ease-in-out;
-    overflow: hidden;
-    max-height: 200px;
+    border-radius: 14px;
+    padding: 0.95rem 1.5rem;
+    margin-bottom: 1.4rem;
+    font-weight: 700;
+    font-size: 0.96rem;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+    transition: all 0.4s ease;
+}
+
+.pta-alert img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+    flex-shrink: 0;
 }
 
 .pta-alert.fade-out {
     opacity: 0;
-    max-height: 0;
-    padding-top: 0;
-    padding-bottom: 0;
-    margin-bottom: 0;
+    transform: translateY(-10px);
 }
 
 .pta-alert-success {
-    background: #d4edda;
-    color: #155724;
-    border: 1px solid #c3e6cb;
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1.5px solid #a7f3d0;
 }
 
 .pta-alert-error {
-    background: #f8d7da;
-    color: #721c24;
-    border: 1px solid #f5c6cb;
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1.5px solid #fecaca;
 }
 
-/* ── Tabla resumen ────────────────────────────────────────────────── */
-.pta-overview-wrap {
-    background: #f7f7f7;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    overflow-x: auto;
-    margin-top: 2rem;
-}
-
-.pta-overview-wrap h4 {
-    background: #1e3a5f;
-    color: #fff;
-    margin: 0;
-    padding: 0.8rem 1.2rem;
-    font-size: 0.95rem;
-    font-weight: 700;
-    border-radius: 10px 10px 0 0;
-}
-
-.pta-overview-wrap table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.84rem;
-}
-
-.pta-overview-wrap thead th {
-    background: #2d6a9f;
-    color: #fff;
-    padding: 0.6rem 0.8rem;
-    text-align: center;
-    white-space: nowrap;
-}
-
-.pta-overview-wrap tbody td {
-    padding: 0.55rem 0.8rem;
-    border-bottom: 1px solid #e8eef5;
-    vertical-align: middle;
-    text-align: center;
-}
-
-.pta-overview-wrap tbody tr {
-    transition: all 0.3s ease-in-out;
-}
-
-.pta-overview-wrap tbody tr:last-child td {
-    border-bottom: none;
-}
-
-.pta-overview-wrap tbody tr.row-selected {
-    background: #3986c9;
-    color: #fff;
-}
-
-.badge-si {
-    background: #d4edda;
-    color: #155724;
-    border-radius: 4px;
-    padding: 2px 7px;
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.badge-no {
-    background: #f8d7da;
-    color: #721c24;
-    border-radius: 4px;
-    padding: 2px 7px;
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.badge-na {
-    background: #e2e3e5;
-    color: #383d41;
-    border-radius: 4px;
-    padding: 2px 7px;
-    font-size: 0.78rem;
-    font-weight: 700;
-}
-
-.badge-empty {
-    background: #fff3cd;
-    color: #856404;
-    border-radius: 4px;
-    padding: 2px 7px;
-    font-size: 0.78rem;
-}
-
-.btn-edit-row {
-    background: #2d6a9f;
-    color: #fff;
-    border: none;
-    border-radius: 5px;
-    padding: 3px 11px;
-    font-size: 0.78rem;
-    font-weight: 700;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-}
-
-.btn-edit-row:hover {
-    opacity: 0.85;
-    color: #fff;
-}
-
-/* ── Sección resumen de juegos ─────────────────────────────────────── */
-.pta-summary-section {
-    margin-top: 2rem;
-    margin-bottom: 1.5rem;
-}
-
-.pta-summary-title {
-    background: #1e3a5f;
-    color: #fff;
-    margin: 0 0 1rem;
-    padding: 0.8rem 1.2rem;
-    font-size: 0.95rem;
-    font-weight: 700;
-    border-radius: 10px;
-}
-
-.pta-summary-juego {
-    background: #f7f7f7;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
-    margin-bottom: 1.2rem;
-    overflow: hidden;
-}
-
-.pta-summary-juego-header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
-    color: #fff;
-    padding: 0.6rem 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.pta-summary-juego-num {
-    font-weight: 700;
-    font-size: 0.95rem;
-}
-
-.pta-summary-estado {
-    border-radius: 12px;
-    padding: 2px 10px;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-.pta-summary-estado--liberado {
-    background: #d4edda;
-    color: #155724;
-}
-
-.pta-summary-estado--pendiente {
-    background: #fff3cd;
-    color: #856404;
-}
-
-.pta-summary-liberador {
-    font-size: 0.75rem;
-    opacity: 0.85;
-    margin-left: auto;
-}
-
-/* ── Dos mitades lado a lado ──────────────────────────────────────── */
-.pta-summary-halves {
+/* ═════════════════════════════════════════════════════════════════════
+   FILA DE SELECTORES (OT, CLASE, PIEZA) — GLASS REFRACTIVO
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-selectors-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1px;
-    background: #dce8f5;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
 }
 
-@media (max-width: 640px) {
-    .pta-summary-halves {
+@media (max-width: 980px) {
+    .pta-selectors-row {
         grid-template-columns: 1fr;
     }
 }
 
-.pta-summary-half {
-    background: #f7f7f7;
-    padding: 0;
+.pta-selector-card {
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 2px solid var(--glass-border-white) !important;
+    box-shadow: var(--glass-shadow) !important;
+    border-radius: 18px;
+    padding: 1.4rem 1.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-.pta-summary-half--empty {
-    opacity: 0.65;
+.pta-selector-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(3, 57, 102, 0.35) !important;
+    box-shadow:
+        0 20px 40px rgba(2, 38, 68, 0.18),
+        inset 0 1px 1px #ffffff !important;
 }
 
-.pta-summary-half-header {
-    background: #2d6a9f;
-    color: #fff;
-    padding: 0.45rem 1rem;
-    font-weight: 700;
-    font-size: 0.85rem;
+.pta-selector-header {
     display: flex;
     align-items: center;
+    gap: 16px;
 }
 
-.pta-summary-half-body {
-    padding: 0.75rem 1rem;
-}
-
-.pta-summary-row {
+.selector-title-wrap {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 3px 0;
-    border-bottom: 1px solid #edf2f8;
-    font-size: 0.82rem;
+    flex-direction: column;
+    gap: 3px;
 }
 
-.pta-summary-row:last-child {
-    border-bottom: none;
+.selector-kicker {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #475569;
 }
 
-.pta-summary-row--img {
-    margin-top: 4px;
-}
-
-.pta-summary-lbl {
-    font-weight: 600;
-    color: #1e3a5f;
-    margin-right: 0.5rem;
-}
-
-.pta-summary-no-data {
-    font-size: 0.82rem;
-    color: #999;
-    margin: 0.5rem 0 0;
-}
-
-/* ── Modal de imágenes (resumen de juegos) ────────────────────────── */
-.pta-modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    z-index: 100001;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-}
-
-.pta-modal-overlay.show {
-    display: flex;
-}
-
-.pta-modal-box {
-    background: #fff;
-    border-radius: 12px;
-    max-width: 92vw;
-    width: 640px;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
-    overflow: hidden;
-    animation: modal-in 0.2s ease;
-}
-
-@keyframes modal-in {
-    from {
-        opacity: 0;
-        transform: scale(0.96);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1);
-    }
-}
-
-.pta-modal-header {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d6a9f 100%);
-    color: #fff;
-    padding: 0.75rem 1.2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.pta-modal-header h5 {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 700;
-}
-
-.btn-modal-close {
-    background: transparent;
-    border: none;
-    color: #fff;
-    font-size: 1.1rem;
+.selector-title-wrap label {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #022644;
     cursor: pointer;
-    line-height: 1;
-    transition: all 0.2s ease-in-out;
+    line-height: 1.2;
 }
 
-.btn-modal-close:hover {
-    opacity: 0.7;
+.pta-select-wrap {
+    position: relative;
+    width: 100%;
 }
 
-.pta-modal-body {
-    padding: 1.2rem;
+.pta-select-wrap select {
+    width: 100%;
+    border: 1.5px solid rgba(3, 57, 102, 0.22);
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #022644;
+    background: #ffffff;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    transition: all 0.25s ease;
+    outline: none;
+}
+
+.pta-select-wrap select:hover {
+    border-color: var(--gis-blue);
+    background: #f8fafc;
+}
+
+.pta-select-wrap select:focus {
+    border-color: var(--gis-blue);
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.16);
+    background: #ffffff;
+}
+
+.pta-select-wrap select:disabled {
+    background: #f1f5f9;
+    color: #94a3b8;
+    border-color: #e2e8f0;
+    cursor: not-allowed;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   TARJETA DEL FORMULARIO DE RESULTADOS TÉCNICOS (GLASS EXTERIOR)
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-form-card {
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border: 2px solid var(--glass-border-white) !important;
+    box-shadow: var(--glass-shadow) !important;
+    border-radius: 22px;
+    overflow: hidden;
+    margin-bottom: 2.5rem;
+}
+
+.pta-form-card-header {
+    background: var(--glass-bg-blue) !important;
+    color: #ffffff;
+    padding: 1.3rem 2.2rem;
     display: flex;
-    justify-content: center;
     align-items: center;
-    max-height: 70vh;
-    overflow: auto;
+    justify-content: space-between;
+    gap: 1.4rem;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--glass-border-blue);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
-.pta-modal-body img {
-    max-width: 100%;
-    max-height: 60vh;
+.pta-form-title-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.pta-form-header-text h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+}
+
+.pta-form-header-subtitle {
+    font-size: 0.88rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+}
+
+.piece-highlight {
+    background: rgba(74, 222, 128, 0.25);
+    border: 1px solid rgba(74, 222, 128, 0.5);
+    padding: 2px 10px;
     border-radius: 6px;
+    margin-left: 4px;
+    color: #4ade80;
+    font-weight: 800;
+    display: inline-block;
+}
+
+.badge-status-edited {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(74, 222, 128, 0.22);
+    border: 1px solid rgba(74, 222, 128, 0.5);
+    color: #4ade80;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 0.84rem;
+    font-weight: 700;
+}
+
+.badge-status-edited img {
+    width: 16px;
+    height: 16px;
     object-fit: contain;
 }
 
-/* ── Botón imagen thumb ────────────────────────────────────────────── */
-.btn-img-thumb {
-    background: #e8f0fe;
-    border: 1.5px solid #2d6a9f;
-    border-radius: 6px;
-    padding: 3px 10px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: #2d6a9f;
+.pta-form-card-body {
+    padding: 2rem 2.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   ESTRUCTURA DE ETAPAS / FASES — CONTRASTE MARCADO (ADIÓS BLANCO SOBRE BLANCO)
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-stage-section {
+    border-radius: 18px;
+    padding: 1.5rem 1.6rem;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    box-shadow:
+        0 10px 26px -6px rgba(2, 38, 68, 0.12),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Fase 01: Pico (Acento Azul GIS) */
+.pta-stage-pico {
+    background: linear-gradient(
+        135deg,
+        rgba(235, 243, 252, 0.82) 0%,
+        rgba(218, 232, 248, 0.72) 100%
+    ) !important;
+    border: 1.5px solid rgba(3, 57, 102, 0.22) !important;
+    border-left: 6px solid var(--gis-blue) !important;
+}
+
+.badge-pico {
+    background: var(--gis-blue);
+}
+
+/* Fase 02: Conexión (Acento Zafiro Industrial) */
+.pta-stage-conexion {
+    background: linear-gradient(
+        135deg,
+        rgba(240, 249, 255, 0.82) 0%,
+        rgba(224, 242, 254, 0.72) 100%
+    ) !important;
+    border: 1.5px solid rgba(2, 132, 199, 0.25) !important;
+    border-left: 6px solid #0284c7 !important;
+}
+
+.badge-conexion {
+    background: #0284c7;
+}
+
+/* Fase 03: Perfilado (Acento Esmeralda GIS) */
+.pta-stage-perfilado {
+    background: linear-gradient(
+        135deg,
+        rgba(236, 253, 245, 0.82) 0%,
+        rgba(209, 250, 229, 0.72) 100%
+    ) !important;
+    border: 1.5px solid rgba(10, 133, 4, 0.25) !important;
+    border-left: 6px solid var(--gis-green) !important;
+}
+
+.badge-perfilado {
+    background: var(--gis-green);
+}
+
+.pta-stage-section:hover {
+    box-shadow:
+        0 14px 34px -4px rgba(2, 38, 68, 0.18),
+        inset 0 1px 1px rgba(255, 255, 255, 1) !important;
+    transform: translateY(-2px);
+}
+
+.pta-stage-header {
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.9rem;
+    border-bottom: 1.5px solid rgba(3, 57, 102, 0.12);
+}
+
+.pta-stage-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.pta-stage-badge {
+    color: #ffffff;
+    font-size: 0.74rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 4px 11px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.pta-stage-info h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #022644;
+}
+
+.pta-stage-info p {
+    margin: 2px 0 0 0;
+    font-size: 0.83rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+/* Grid de Distribución por Etapa (Parámetros vs Evidencia) */
+.pta-stage-grid {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    gap: 1.4rem;
+    align-items: start;
+}
+
+@media (max-width: 900px) {
+    .pta-stage-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.pta-stage-params {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.1rem;
+    align-items: start;
+}
+
+@media (max-width: 600px) {
+    .pta-stage-params {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tarjetas Individuales de Campos (Blanco Puro Flotante) */
+.pta-field-card {
+    background: #ffffff !important;
+    border: 1.5px solid rgba(3, 57, 102, 0.18) !important;
+    border-radius: 14px;
+    padding: 1.15rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    height: auto;
+    min-height: 0;
+    transition: all 0.25s ease;
+    box-shadow:
+        0 4px 14px rgba(2, 38, 68, 0.07),
+        inset 0 1px 0 #ffffff !important;
+}
+
+.pta-field-card:hover {
+    border-color: var(--gis-blue) !important;
+    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.16) !important;
+    transform: translateY(-2px);
+}
+
+.pta-field-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.field-step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--gis-blue);
+    color: #ffffff;
+    font-size: 0.82rem;
+    font-weight: 800;
+    flex-shrink: 0;
+    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.3);
+}
+
+.pta-field-header label {
+    font-size: 0.94rem;
+    font-weight: 700;
+    color: #022644;
     cursor: pointer;
-    transition: all 0.2s ease-in-out;
+    line-height: 1.25;
 }
 
-.btn-img-thumb:hover {
-    background: #c8ddf8;
+.pta-input-group select {
+    width: 100%;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 10px;
+    padding: 0.65rem 0.9rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #022644;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+    outline: none;
+    cursor: pointer;
 }
 
-/* Auto-generated utility classes */
-.res-font-weight-400 { font-weight: 400; }
-.res-font-size-8rem { font-size: .8rem; }
-.res-object-fit-contain { object-fit: contain; }
-.res-opacity-9 { opacity: .9; }
-.res-max-height-250px { max-height: 250px; }
-.res-max-width-100pct { max-width: 100%; }
-.res-border-radius-6px { border-radius: 6px; }
-.res-margin-top-0 { margin-top: 0; }
-.res-border-1px-solid-dce8f5 { border: 1px solid #dce8f5; }
+.pta-input-group select:hover {
+    background: #ffffff;
+    border-color: var(--gis-blue);
+}
+
+.pta-input-group select:focus {
+    background: #ffffff;
+    border-color: var(--gis-blue);
+    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   EVIDENCIA FOTOGRÁFICA — VISOR Y CARGADOR INTEGRADO MODERNO
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-field-evidence {
+    background: #ffffff !important;
+    border: 1.5px solid rgba(3, 57, 102, 0.18) !important;
+    border-radius: 14px;
+    padding: 1.15rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 0.75rem;
+    height: auto;
+    min-height: 0;
+    transition: all 0.25s ease;
+    box-shadow:
+        0 4px 14px rgba(2, 38, 68, 0.07),
+        inset 0 1px 0 #ffffff !important;
+}
+
+.pta-field-evidence:hover {
+    border-color: var(--gis-blue) !important;
+    box-shadow: 0 8px 24px rgba(3, 57, 102, 0.16) !important;
+    transform: translateY(-2px);
+}
+
+.pta-evidence-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.field-header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.evidence-status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 9px;
+    border-radius: 20px;
+    font-size: 0.73rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    transition: all 0.2s ease;
+}
+
+.evidence-status-pill .pill-icon {
+    width: 12px;
+    height: 12px;
+    object-fit: contain;
+}
+
+.status-pill-filled {
+    background: rgba(16, 185, 129, 0.14);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.status-pill-empty {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.pta-evidence-body {
+    width: 100%;
+    position: relative;
+}
+
+/* Estado 1: Dropzone interactivo cuando no hay foto */
+.pta-evidence-dropzone {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.55rem 0.85rem;
+    background: linear-gradient(135deg, #f8fafc 0%, #f0f7ff 100%);
+    border: 1.5px dashed rgba(3, 57, 102, 0.28);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.pta-evidence-dropzone:hover {
+    background: #ffffff;
+    border-color: var(--gis-blue);
+    border-style: solid;
+    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.12);
+    transform: translateY(-1px);
+}
+
+.dropzone-icon-box {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: rgba(3, 57, 102, 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.dropzone-icon-box .upload-icon-duo img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.dropzone-text-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.dropzone-main-text {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--gis-blue);
+    line-height: 1.2;
+}
+
+.dropzone-sub-text {
+    font-size: 0.74rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+/* Estado 2: Tarjeta visual cuando sí hay foto */
+.pta-evidence-loaded-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0.45rem 0.65rem;
+    background: #f8fafc;
+    border: 1.5px solid rgba(3, 57, 102, 0.15);
+    border-radius: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    transition: all 0.22s ease;
+}
+
+.pta-evidence-loaded-card:hover {
+    background: #ffffff;
+    border-color: var(--gis-blue);
+    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.1);
+}
+
+.loaded-thumb-wrapper {
+    position: relative;
+    width: 88px;
+    height: 52px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1.5px solid rgba(3, 57, 102, 0.25);
+    background: #0f172a;
+    flex-shrink: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.loaded-thumb-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.loaded-thumb-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(2, 38, 68, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    color: #ffffff;
+    font-size: 0.74rem;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.loaded-thumb-overlay img {
+    width: 12px;
+    height: 12px;
+    object-fit: contain;
+}
+
+.loaded-thumb-wrapper:hover .loaded-thumb-overlay {
+    opacity: 1;
+}
+
+.loaded-info-col {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 0;
+}
+
+.loaded-filename {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #0f172a;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 165px;
+}
+
+.loaded-actions-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-wrap: wrap;
+}
+
+.btn-evidence-view {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--gis-blue);
+    background: #ffffff;
+    border: 1.5px solid rgba(3, 57, 102, 0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-evidence-view img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
+.btn-evidence-view:hover {
+    background: var(--gis-blue);
+    color: #ffffff;
+    border-color: var(--gis-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(3, 57, 102, 0.25);
+}
+
+.btn-evidence-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #475569;
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-evidence-change img {
+    width: 14px;
+    height: 14px;
+    object-fit: contain;
+}
+
+.btn-evidence-change:hover {
+    background: #0284c7;
+    color: #ffffff;
+    border-color: #0284c7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(2, 132, 199, 0.25);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   MODAL LIGHTBOX DE INSPECCIÓN FOTOGRÁFICA EN TIEMPO REAL
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-lightbox-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 100050;
+    background: rgba(0, 10, 25, 0.88) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: ptaFadeIn 0.25s ease-out;
+}
+
+@keyframes ptaFadeIn {
+    0% { opacity: 0; transform: scale(0.97); }
+    100% { opacity: 1; transform: scale(1); }
+}
+
+.pta-lightbox-card {
+    background: #0f172a;
+    border: 2px solid rgba(255, 255, 255, 0.22);
+    border-radius: 18px;
+    max-width: 92vw;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 25px 65px rgba(0, 0, 0, 0.65);
+}
+
+.pta-lightbox-header {
+    padding: 12px 20px;
+    background: #033966;
+    color: #ffffff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.18);
+    gap: 16px;
+}
+
+.pta-lightbox-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    font-size: 0.98rem;
+    letter-spacing: -0.01em;
+}
+
+.pta-lightbox-title img {
+    width: 22px;
+    height: 22px;
+    object-fit: contain;
+}
+
+.pta-lightbox-close {
+    background: rgba(255, 255, 255, 0.16);
+    border: none;
+    color: #ffffff;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.pta-lightbox-close:hover {
+    background: #dc2626;
+    transform: rotate(90deg);
+}
+
+.pta-lightbox-body {
+    padding: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle, #1e293b 0%, #0a0f1d 100%);
+    overflow: auto;
+}
+
+.pta-lightbox-body img {
+    max-width: 84vw;
+    max-height: 76vh;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   FOOTER DEL FORMULARIO Y BOTÓN GUARDAR HERO
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-form-card-footer {
+    background: rgba(241, 245, 249, 0.8);
+    border-top: 1.5px solid rgba(3, 57, 102, 0.15);
+    padding: 1.4rem 2.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-pta-save {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+    color: #ffffff !important;
+    border: 2px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 14px;
+    padding: 0.9rem 3.4rem;
+    font-size: 1.08rem;
+    font-weight: 800;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.btn-pta-save:hover {
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 12px 30px rgba(16, 185, 129, 0.55);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+}
+
+.btn-pta-save:active {
+    transform: translateY(1px) scale(0.99);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   TABLA RESUMEN DE PIEZAS — GLASS REFRACTIVO GIS
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-overview-wrap {
+    background: var(--glass-bg-white) !important;
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border: 2px solid var(--glass-border-white) !important;
+    box-shadow: var(--glass-shadow) !important;
+    border-radius: 22px;
+    overflow: hidden;
+    margin-top: 2rem;
+}
+
+.pta-overview-header {
+    background: var(--glass-bg-blue) !important;
+    color: #ffffff;
+    padding: 1.2rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.2rem;
+    flex-wrap: wrap;
+    border-bottom: 2px solid var(--glass-border-blue);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+}
+
+.pta-overview-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.table-title-group h4 {
+    margin: 0;
+    font-size: 1.12rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.table-subtitle {
+    font-size: 0.83rem;
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+}
+
+.badge-total-pieces {
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 30px;
+    padding: 5px 14px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #ffffff;
+}
+
+.pta-table-container {
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* Scrollbar cross-browser */
+.pta-table-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.pta-table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+.pta-table-container::-webkit-scrollbar-thumb {
+    background: #94a3b8;
+    border-radius: 4px;
+}
+@supports (scrollbar-width: thin) {
+    .pta-table-container {
+        scrollbar-width: thin;
+        scrollbar-color: #94a3b8 #f1f5f9;
+    }
+}
+
+.pta-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.pta-table thead th {
+    color: #ffffff;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+/* Fila Superior de Agrupación por Fase */
+.pta-th-group-row th {
+    padding: 0.75rem 0.9rem;
+    border-bottom: 1.5px solid rgba(255, 255, 255, 0.2);
+}
+
+.th-col-piece,
+.th-col-status {
+    background: #022644 !important;
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    border-right: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.th-col-status {
+    border-right: none;
+    border-left: 2px solid rgba(255, 255, 255, 0.15);
+}
+
+.th-group-phase {
+    transition: background 0.25s ease;
+}
+
+/* Encabezado Fase 01: Pico */
+.th-group-pico {
+    background: linear-gradient(135deg, #033966 0%, #064073 100%) !important;
+    border-top: 4px solid #38bdf8;
+    border-right: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Encabezado Fase 02: Conexión */
+.th-group-conexion {
+    background: linear-gradient(135deg, #034b75 0%, #0284c7 100%) !important;
+    border-top: 4px solid #67e8f9;
+    border-right: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Encabezado Fase 03: Perfilado */
+.th-group-perfilado {
+    background: linear-gradient(135deg, #065f46 0%, #0a8504 100%) !important;
+    border-top: 4px solid #4ade80;
+    border-right: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.th-phase-tag {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin-right: 6px;
+}
+
+.th-phase-title {
+    font-size: 0.88rem;
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+
+/* Segunda Fila (Subcolumnas Llenado / Soldadura) */
+.pta-th-sub-row th {
+    padding: 0.55rem 0.8rem;
+    font-size: 0.76rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border-bottom: 2px solid rgba(3, 57, 102, 0.3);
+}
+
+.th-sub-pico {
+    background: #064375 !important;
+}
+
+.th-sub-conexion {
+    background: #026ca0 !important;
+}
+
+.th-sub-perfilado {
+    background: #086d3b !important;
+}
+
+.th-sub-boundary {
+    border-right: 2.5px solid rgba(2, 38, 68, 0.45) !important;
+}
+
+/* Cuerpo de la Tabla */
+.pta-table tbody tr {
+    background: rgba(255, 255, 255, 0.85);
+    border-bottom: 1px solid rgba(203, 213, 225, 0.8);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.pta-table tbody tr:nth-child(even) {
+    background: rgba(248, 250, 252, 0.9);
+}
+
+.pta-table tbody tr:hover {
+    background: #e0f2fe !important;
+    transform: scale(1.002);
+}
+
+.pta-table tbody tr.row-selected {
+    background: rgba(3, 57, 102, 0.14) !important;
+    box-shadow: inset 5px 0 0 var(--gis-blue);
+    font-weight: 700;
+}
+
+.pta-table tbody td {
+    padding: 0.75rem 0.9rem;
+    vertical-align: middle;
+    border-bottom: 1px solid rgba(226, 232, 240, 0.85);
+}
+
+/* Tintes sutiles por fase en las columnas del cuerpo */
+.td-phase-pico {
+    background: rgba(235, 243, 252, 0.35);
+}
+
+.td-phase-conexion {
+    background: rgba(240, 249, 255, 0.45);
+}
+
+.td-phase-perfilado {
+    background: rgba(236, 253, 245, 0.35);
+}
+
+.td-col-piece {
+    border-right: 2px solid rgba(3, 57, 102, 0.14);
+}
+
+.td-phase-boundary {
+    border-right: 2.5px solid rgba(3, 57, 102, 0.22) !important;
+}
+
+.td-col-status {
+    border-left: 2px solid rgba(3, 57, 102, 0.14);
+}
+
+.piece-cell {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+    color: #022644;
+}
+
+.piece-bullet {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--gis-blue);
+    transition: all 0.2s ease;
+}
+
+.row-selected .piece-bullet {
+    background: #10b981;
+    box-shadow: 0 0 8px #10b981;
+    transform: scale(1.2);
+}
+
+/* ═════════════════════════════════════════════════════════════════════
+   BADGES DE RESULTADOS EN TABLA
+   ═════════════════════════════════════════════════════════════════════ */
+.pta-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+}
+
+.badge-si {
+    background: rgba(16, 185, 129, 0.16);
+    color: #065f46;
+    border: 1px solid rgba(16, 185, 129, 0.45);
+}
+
+.badge-no {
+    background: rgba(239, 68, 68, 0.16);
+    color: #991b1b;
+    border: 1px solid rgba(239, 68, 68, 0.45);
+}
+
+.badge-na {
+    background: rgba(148, 163, 184, 0.2);
+    color: #334155;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+}
+
+.badge-empty {
+    background: rgba(245, 158, 11, 0.16);
+    color: #92400e;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.badge-liberada {
+    background: #ecfdf5;
+    color: #065f46;
+    border: 1.5px solid #10b981;
+}
+
+.badge-guardada {
+    background: #eff6ff;
+    color: #1e40af;
+    border: 1.5px solid #3b82f6;
+}
+
+.badge-pendiente {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1.5px solid #f59e0b;
+}

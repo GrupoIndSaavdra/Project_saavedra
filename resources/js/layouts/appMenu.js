@@ -1,4 +1,5 @@
 import "../layouts/partials/messages.js";
+import "../components/cursorPagination.js";
 
 function initAppMenu() {
     let btn_open = document.querySelector(".open-menu");
@@ -1205,3 +1206,11 @@ function crearBotonVer(infoPiezas, i, usuarios) {
     a.appendChild(image);
     return a;
 }
+
+// Marcar en sessionStorage cuando el usuario navega dando clic al menú de navegación
+document.addEventListener("click", function (e) {
+    const link = e.target.closest("a");
+    if (link && link.closest(".nav-list, .filter-opacity, nav, header")) {
+        sessionStorage.setItem("gis_nav_entry", "true");
+    }
+});

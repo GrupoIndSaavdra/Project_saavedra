@@ -1,21 +1,37 @@
 import { createDateFilterTrigger } from '../components/modalCmCalendar.js';
 
 document.addEventListener("DOMContentLoaded", () => {
-    if (window.logsData && window.logsData.length > 0) {
-        crearTabla(window.logsData);
+    // Notificación elegante al ingresar desde el menú de navegación (no en F5)
+    if (sessionStorage.getItem("gis_nav_entry") === "true") {
+        sessionStorage.removeItem("gis_nav_entry");
+        if (window.gisToast) {
+            window.gisToast("Puedes combinar filtros y hacer clic en las cabeceras para ordenar registros.", "info");
+        }
     }
-    createFilters();
 
-    // Adaptar tabla al modo admin
+    setupHeaderOrderBadge();
+
+    // Adaptar tabla al modo admin antes de renderizar
     if (window.isAdminOnly) {
-        // Renombrar encabezado Operador -> Administrador
         const labelTh = document.querySelector('.col-admin-label');
-        if (labelTh) labelTh.textContent = 'Administrador';
+        if (labelTh) {
+            const titleSpan = labelTh.querySelector('.th-title');
+            if (titleSpan) {
+                titleSpan.textContent = 'Administrador';
+            } else {
+                labelTh.textContent = 'Administrador';
+            }
+        }
         // Inyectar CSS para ocultar columnas de operador
         const style = document.createElement('style');
         style.textContent = '.col-operador-only { display: none !important; } .col-operador-only-td { display: none !important; }';
         document.head.appendChild(style);
     }
+
+    if (window.logsData && window.logsData.length > 0) {
+        crearTabla(window.logsData);
+    }
+    createFilters();
 
     // Lógica para colapsar/expandir niveles en la tabla de colores
     document.querySelectorAll(".level-toggle").forEach(header => {
@@ -590,6 +606,7 @@ function createFilters() {
 }
 
 let currentRenderId = null;
+let globalRowCounter = 0;
 
 function crearTabla(logs, append = false) {
     if (currentRenderId && !append) {
@@ -606,6 +623,7 @@ function crearTabla(logs, append = false) {
         table.appendChild(tbody);
     } else if (!append) {
         tbody.innerHTML = "";
+        globalRowCounter = 0;
     }
 
     // Función para asignar color vivo u oscuro según palabras clave en la descripción
@@ -953,9 +971,12 @@ function crearTabla(logs, append = false) {
                 return numero ? numero + "J" : rawPieza;
             })();
 
+            const rowIndex = globalRowCounter++;
+
             chunkHtml += `
             <tr style="background-color: ${color}; color: ${textColor}; font-weight: 600;"
-                data-action="${esc(log.action)}">
+                data-action="${esc(log.action)}"
+                data-original-index="${rowIndex}">
                 <td>${esc(log.date)}</td>
                 <td>${esc(log.time)}</td>
                 <td>${esc(log.operador)} - ${esc(log.operador_nombre)}</td>
@@ -977,12 +998,227 @@ function crearTabla(logs, append = false) {
 
         tbody.innerHTML += chunkHtml;
 
-        if (index < logs.length) {
+        const totalBatch = logs.length;
+        const currentLoaded = Math.min(index, totalBatch);
+        const totalLabel = document.querySelector(".total-records-found");
+
+        if (index < totalBatch) {
+            const percent = Math.round((currentLoaded / totalBatch) * 100);
+            if (totalLabel) {
+                totalLabel.innerHTML = `
+                    <span class="loading-progress-container">
+                        <span class="loading-pulse-dot"></span>
+                        <span>Cargando registros: <strong>${currentLoaded.toLocaleString()}</strong> de <strong>${totalBatch.toLocaleString()}</strong> (${percent}%)</span>
+                        <span class="loading-progress-bar-bg"><span class="loading-progress-bar-fill" style="width: ${percent}%;"></span></span>
+                    </span>
+                `;
+            }
             currentRenderId = requestAnimationFrame(renderNextChunk);
         } else {
             currentRenderId = null;
+            updateCompletedBadge();
+            initTableSorting();
+            if (currentSortColumn >= 0 && currentSortDirection !== "none") {
+                sortTable(currentSortColumn, currentSortDirection);
+            }
         }
     }
 
     renderNextChunk();
+}
+
+/**
+ * Actualiza el badge estético inferior con el conteo final de registros
+ */
+function updateCompletedBadge() {
+    const totalLabel = document.querySelector(".total-records-found");
+    if (!totalLabel) return;
+    const currentRows = document.querySelectorAll(".table tbody tr").length;
+    totalLabel.innerHTML = `
+        <span class="records-completed-badge">
+            <span class="badge-status-dot"></span>
+            <span>Registros cargados: <strong>${currentRows.toLocaleString()}</strong></span>
+        </span>
+    `;
+    const countSpan = document.getElementById("current-count");
+    if (countSpan) countSpan.textContent = currentRows.toLocaleString();
+}
+
+// ========================================================
+// ORDENAMIENTO DE COLUMNAS (TH) E INDICADOR GIS
+// ========================================================
+let tableSortingInitialized = false;
+let currentSortColumn = -1;
+let currentSortDirection = "none";
+
+function getThSortIcon(name) {
+    if (name === "sin_orden") return window.iconSinOrdenLight || (window.getIcon ? window.getIcon("sin_orden_light") : "");
+    if (name === "orden_asc") return window.iconOrdenAscLight || (window.getIcon ? window.getIcon("orden_asc_light") : "");
+    if (name === "orden_desc") return window.iconOrdenDescLight || (window.getIcon ? window.getIcon("orden_desc_light") : "");
+    return "";
+}
+
+function getShadowSortIcon(name) {
+    if (name === "sin_orden") return window.iconSinOrdenShadow || (window.getIcon ? window.getIcon("sin_orden_shadow") : "");
+    if (name === "orden_asc") return window.iconOrdenAscShadow || (window.getIcon ? window.getIcon("orden_asc_shadow") : "");
+    if (name === "orden_desc") return window.iconOrdenDescShadow || (window.getIcon ? window.getIcon("orden_desc_shadow") : "");
+    return "";
+}
+
+function setupHeaderOrderBadge() {
+    const badge = document.getElementById("headerOrderBadge");
+    if (badge) {
+        badge.addEventListener("click", () => {
+            resetAllSorting();
+        });
+    }
+}
+
+function initTableSorting() {
+    const table = document.querySelector(".table");
+    if (!table) return;
+    const thead = table.querySelector("thead");
+    if (!thead) return;
+    const ths = thead.querySelectorAll("th");
+    if (ths.length === 0) return;
+
+    if (tableSortingInitialized) return;
+    tableSortingInitialized = true;
+
+    ths.forEach((th, index) => {
+        const rawText = th.textContent.trim();
+        if (!rawText) return;
+
+        th.classList.add("sortable-th");
+        th.dataset.colIndex = index;
+        th.dataset.sortDir = "none";
+        th.title = `Clic para ordenar por ${rawText} (Asc / Desc / Sin orden)`;
+
+        th.innerHTML = `
+            <div class="th-content">
+                <span class="th-title">${rawText}</span>
+                <img class="th-sort-icon" src="${getThSortIcon('sin_orden')}" alt="orden">
+            </div>
+        `;
+
+        th.addEventListener("click", () => {
+            const currentDir = th.dataset.sortDir || "none";
+            let nextDir = "asc";
+            if (currentDir === "asc") nextDir = "desc";
+            else if (currentDir === "desc") nextDir = "none";
+
+            // Resetear todos los demás encabezados
+            ths.forEach(otherTh => {
+                if (otherTh.classList.contains("sortable-th")) {
+                    otherTh.dataset.sortDir = "none";
+                    const otherImg = otherTh.querySelector(".th-sort-icon");
+                    if (otherImg) otherImg.src = getThSortIcon("sin_orden");
+                }
+            });
+
+            // Asignar estado a este th
+            th.dataset.sortDir = nextDir;
+            const myImg = th.querySelector(".th-sort-icon");
+            if (myImg) {
+                myImg.src = getThSortIcon(nextDir === "none" ? "sin_orden" : (nextDir === "asc" ? "orden_asc" : "orden_desc"));
+            }
+
+            currentSortColumn = nextDir === "none" ? -1 : index;
+            currentSortDirection = nextDir;
+
+            updateOrderFilterBadge(rawText, nextDir);
+            sortTable(index, nextDir);
+        });
+    });
+}
+
+function sortTable(colIndex, direction) {
+    const tbody = document.querySelector(".table tbody");
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    if (rows.length === 0) return;
+
+    if (direction === "none") {
+        rows.sort((a, b) => {
+            const idxA = parseInt(a.dataset.originalIndex || "0", 10);
+            const idxB = parseInt(b.dataset.originalIndex || "0", 10);
+            return idxA - idxB;
+        });
+    } else {
+        rows.sort((a, b) => {
+            const cellA = (a.children[colIndex] ? a.children[colIndex].textContent : "").trim();
+            const cellB = (b.children[colIndex] ? b.children[colIndex].textContent : "").trim();
+
+            if (cellA === cellB) return 0;
+            if (cellA === "" || cellA === "N/A") return 1;
+            if (cellB === "" || cellB === "N/A") return -1;
+
+            // 1. Detección de fechas YYYY-MM-DD
+            if (/^\d{4}-\d{2}-\d{2}$/.test(cellA) && /^\d{4}-\d{2}-\d{2}$/.test(cellB)) {
+                return direction === "asc" ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+            }
+
+            // 2. Detección de tiempos HH:MM:SS
+            if (/^\d{2}:\d{2}:\d{2}$/.test(cellA) && /^\d{2}:\d{2}:\d{2}$/.test(cellB)) {
+                return direction === "asc" ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+            }
+
+            // 3. Orden numérico natural para Juego (ej. "1J", "2J", "10J", "100J")
+            const matchA = cellA.match(/^(\d+)(.*)$/);
+            const matchB = cellB.match(/^(\d+)(.*)$/);
+            if (matchA && matchB) {
+                const numDiff = parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+                if (numDiff !== 0) {
+                    return direction === "asc" ? numDiff : -numDiff;
+                }
+                const suffixDiff = matchA[2].localeCompare(matchB[2]);
+                return direction === "asc" ? suffixDiff : -suffixDiff;
+            }
+
+            // 4. Comprobación numérica pura (ej. Máquina, OT)
+            const numA = Number(cellA);
+            const numB = Number(cellB);
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return direction === "asc" ? numA - numB : numB - numA;
+            }
+
+            // 5. Comparación de texto en español
+            const comp = cellA.localeCompare(cellB, 'es', { numeric: true, sensitivity: 'base' });
+            return direction === "asc" ? comp : -comp;
+        });
+    }
+
+    const fragment = document.createDocumentFragment();
+    rows.forEach(r => fragment.appendChild(r));
+    tbody.appendChild(fragment);
+}
+
+function resetAllSorting() {
+    const ths = document.querySelectorAll(".table thead th.sortable-th");
+    ths.forEach(th => {
+        th.dataset.sortDir = "none";
+        const img = th.querySelector(".th-sort-icon");
+        if (img) img.src = getThSortIcon("sin_orden");
+    });
+    currentSortColumn = -1;
+    currentSortDirection = "none";
+    updateOrderFilterBadge(null, "none");
+    sortTable(0, "none");
+}
+
+function updateOrderFilterBadge(columnName, direction) {
+    const icon = document.getElementById("headerOrderIcon");
+    const text = document.getElementById("headerOrderText");
+    if (!icon || !text) return;
+
+    if (direction === "asc") {
+        icon.src = getShadowSortIcon("orden_asc");
+        text.textContent = columnName ? `${columnName} (Asc)` : "Ascendente";
+    } else if (direction === "desc") {
+        icon.src = getShadowSortIcon("orden_desc");
+        text.textContent = columnName ? `${columnName} (Desc)` : "Descendente";
+    } else {
+        icon.src = getShadowSortIcon("sin_orden");
+        text.textContent = "Sin orden";
+    }
 }

@@ -34,9 +34,9 @@
         window.imgOperator = "{{ asset('images/Light_Icons/Operador-Light.png') }}";
         window.imgLocked = "{{ asset('images/Light_Icons/Bloqueado-Light.png') }}";
         window.imgUnlocked = "{{ asset('images/Color_Icons/Generales/desbloqueado.png') }}";
-        window.imgSinOrden = "{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}";
-        window.imgOrdenAsc = "{{ asset('images/Color_Icons/Generales/Orden_Asc.png') }}";
-        window.imgOrdenDesc = "{{ asset('images/Color_Icons/Generales/Orden_Desc.png') }}";
+        window.imgSinOrden = "{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}";
+        window.imgOrdenAsc = "{{ asset('images/Light_Icons/Orden_Asc-Light.png') }}";
+        window.imgOrdenDesc = "{{ asset('images/Light_Icons/Orden_Desc-Light.png') }}";
     </script>
 @endsection
 

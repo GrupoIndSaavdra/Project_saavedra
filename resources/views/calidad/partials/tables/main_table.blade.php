@@ -1,19 +1,27 @@
-@foreach ([
-        'activa' => 'Documentos Activos (Dibujos y Ayudas)',
-        'inactiva' => 'Documentos Inactivos (Histórico)',
-    ] as $estado => $titulo)
+@php
+    $estadoActual = $estado ?? 'activa';
+    $tablasAMostrar = match($estadoActual) {
+        'inactiva' => ['inactiva' => 'Documentos Inactivos (Histórico)'],
+        'todas' => ['activa' => 'Documentos Activos (Dibujos y Ayudas)', 'inactiva' => 'Documentos Inactivos (Histórico)'],
+        default => ['activa' => 'Documentos Activos (Dibujos y Ayudas)'],
+    };
+@endphp
+
+@foreach ($tablasAMostrar as $estadoKey => $titulo)
     @php
-        $registrosEstado = $registros->where('status', $estado);
+        $registrosEstado = $estadoActual === 'todas'
+            ? $registros->where('status', $estadoKey)
+            : $registros;
     @endphp
 
     <div class="alm-table-card cal-margin-bottom-2em">
         <div class="alm-table-header"
-            style="{{ $estado === 'inactiva' ? 'background: #6c757d; border-bottom: 2px solid #5a6268;' : '' }}">
+            style="{{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-bottom: 2px solid #5a6268;' : '' }}">
             <h2>{{ $titulo }}</h2>
             <span class="alm-results-count">{{ $registrosEstado->count() }}
                 resultado{{ $registrosEstado->count() !== 1 ? 's' : '' }}</span>
         </div>
-        @if ($estado === 'activa')
+        @if ($estadoKey === 'activa')
             {{-- ── BARRA DE SINCRONIZACIÓN MANUAL (solo tabla Activa) ── --}}
             <div id="sync-bar-activa"
                 class="cal-display-flex cal-align-items-center cal-justify-content-space-between cal-flex-wrap-wrap cal-gap-10px cal-padding-10px-20px cal-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct cal-border-bottom-1px-solid-bae6fd cal-font-size-0-85rem cal-color-0369a1 cal-font-family-Poppins-sans-serif">
@@ -66,36 +74,36 @@
                     <thead>
                         <tr>
                             <th
-                                style="width:30%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}">
+                                style="width:30%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}">
                                 Orden de Trabajo
                             </th>
-                            <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:12%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">
                                 Estado
                             </th>
-                            <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:12%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">
                                 Modelo
                             </th>
-                            <th style="width:18%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:18%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">
                                 Último envío
                             </th>
-                            <th style="width:10%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:10%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">
                                 Archivos
                             </th>
-                            <th style="width:16%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:16%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">
                                 Acciones
                             </th>
                         </tr>
                     </thead>
-                    <tbody id="alm-tbody-{{ $estado }}">
+                    <tbody id="alm-tbody-{{ $estadoKey }}">
                         @foreach ($registrosEstado as $reg)
                             @include('calidad.partials.tables.table_row', [
                                 'reg' => $reg,
-                                'estado' => $estado,
+                                'estado' => $estadoKey,
                                 'titulo' => $titulo,
                                 'deptName' => $deptName,
                                 'loop' => $loop,
@@ -107,6 +115,9 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- ── Paginación por Cursor GIS ── --}}
+            <x-cursor-pagination :paginator="$registros" label="órdenes de trabajo" />
         @endif
     </div>
 @endforeach

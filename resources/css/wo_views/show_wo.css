@@ -1033,8 +1033,7 @@ label {
 }
 
 /* ── Filtro de fondo oscuro fluido para modales (estilo .filter-opacity sin blur) ── */
-.swal2-container,
-.swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-center.swal2-backdrop-show,
 .gis-modal-backdrop,
 .modal-backdrop {
     background: rgba(0, 10, 25, 0.85) !important;

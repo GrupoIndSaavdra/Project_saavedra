@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
+use App\Traits\HasCursorPagination;
 use Illuminate\Http\Request as HttpRequest;
 
 class UserController extends Controller
 {
+    use HasCursorPagination;
+
     // This controller handles user-related actions such as creating, storing, and recovering passwords.
     public function __construct(){
         $this->middleware('auth');
@@ -25,10 +28,31 @@ class UserController extends Controller
         ];
         return $layout[$profile] ?? "layouts.menu.appAdmin";
     }
-    public function show(){
+    public function show(HttpRequest $request){
         $layout = $this->getLayout();
-        $users = User::all();
-        return view("users_views.users", compact("layout", "users"));
+        $query = User::query();
+
+        if ($request->filled('q')) {
+            $q = trim($request->q);
+            $query->where(function ($w) use ($q) {
+                $w->where('matricula', 'like', "%{$q}%")
+                  ->orWhere('nombre', 'like', "%{$q}%")
+                  ->orWhere('a_paterno', 'like', "%{$q}%")
+                  ->orWhere('a_materno', 'like', "%{$q}%");
+            });
+        }
+
+        if ($request->filled('rol') && $request->rol !== 'todos') {
+            $query->where('perfil', '=', $request->rol, 'and');
+        }
+
+        if ($request->filled('estatus') && $request->estatus !== 'todos') {
+            $query->where('estatus', '=', $request->estatus === 'Activo' ? 1 : 0, 'and');
+        }
+
+        $users = $query->orderBy('nombre')->orderBy('a_paterno')->orderByDesc('id')->cursorPaginate(30)->withQueryString();
+        $totalUsers = User::count();
+        return view("users_views.users", compact("layout", "users", "totalUsers"));
     }
     public function organigrama(HttpRequest $request){
         $layout = $this->getLayout();

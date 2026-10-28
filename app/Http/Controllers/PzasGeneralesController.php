@@ -145,8 +145,8 @@ class PzasGeneralesController extends Controller
         $filtersData = $this->getFiltersInfo();
 
         // Siempre cargar observaciones: los índices de BD hacen las queries eficientes
-        $isPdf = $piecesData["action"] === 'pdf';
-        $pieces = $this->buscarPiezas($piecesData, $selectedItems, true);
+        $isPdf = ($piecesData["action"] ?? '') === 'pdf';
+        $pieces = $this->buscarPiezas($piecesData, $selectedItems, true, $isPdf);
 
         $pieces = $pieces == null ? array() : $pieces;
 
@@ -304,6 +304,7 @@ class PzasGeneralesController extends Controller
             "dateTo" => $request->dateTo,
             "n_juego" => $request->n_juego,
             "status" => $request->status,
+            "order" => $request->input("order", "desc"),
             "action" => $request->input("action"),
         );
         return $this->search($datosPiezas, 'admin');
@@ -313,7 +314,7 @@ class PzasGeneralesController extends Controller
      * @param mixed &$itemElegidos
      * @param mixed bool $includeObservations
      */
-    public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false)
+    public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false, bool $isPdf = false)
     {
         // ── OPTIMIZACIÓN: filtrar directamente en SQL en lugar de cargar Pieza::all() ──
         $finishedClassIds = Clase::query()->where('finalizada', '!=', 0, 'and')->pluck('id')->toArray();
@@ -378,7 +379,10 @@ class PzasGeneralesController extends Controller
         }
 
         // Seleccionar solo las columnas necesarias para evitar Fatal error: memory exhausted en tablas grandes
-        $query->select(['id', 'id_ot', 'id_clase', 'n_pieza', 'id_operador', 'maquina', 'proceso', 'error', 'liberacion', 'fecha_liberacion', 'user_liberacion', 'observacion_liberacion', 'created_at']);
+        $orderDir = strtolower($piecesData['order'] ?? 'desc') === 'asc' ? 'asc' : 'desc';
+        $query->select(['id', 'id_ot', 'id_clase', 'n_pieza', 'id_operador', 'maquina', 'proceso', 'error', 'liberacion', 'fecha_liberacion', 'user_liberacion', 'observacion_liberacion', 'created_at'])
+            ->orderBy('id', $orderDir);
+
         $piezas = $query->get();
         return $piezas->isEmpty() ? [] : $this->saveInArray($piezas, $includeObservations);
     }

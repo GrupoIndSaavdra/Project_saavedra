@@ -1,0 +1,164 @@
+/* =============================================================================
+   CURSOR-PAGINATION.CSS — Componente Universal de Paginación por Cursor (GIS)
+   Grupo Industrial Saavedra
+   ============================================================================= */
+
+.gis-cursor-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 20px;
+    margin-top: 1.5rem;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+/* ── Botones de Paginación ─────────────────────────────────────────────────── */
+.gis-pagination-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-user-select: none;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+.gis-pagination-btn:not(.gis-pagination-disabled) {
+    background: linear-gradient(135deg, var(--gis-blue) 0%, #002244 100%);
+    color: #ffffff !important;
+    border: 1px solid var(--gis-blue);
+    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.25);
+    cursor: pointer;
+}
+
+.gis-pagination-btn:not(.gis-pagination-disabled):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.35);
+    background: linear-gradient(135deg, #02467d 0%, #001a33 100%);
+    color: #ffffff !important;
+}
+
+.gis-pagination-btn:not(.gis-pagination-disabled):active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(3, 57, 102, 0.2);
+}
+
+/* ── Estado Deshabilitado ─────────────────────────────────────────────────── */
+.gis-pagination-disabled {
+    background: #f1f5f9;
+    color: #94a3b8 !important;
+    border: 1px solid #e2e8f0;
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: 0.65;
+}
+
+/* ── Información Central de Registros ─────────────────────────────────────── */
+.gis-pagination-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.gis-pagination-badge {
+    background: #f0f7ff;
+    color: var(--gis-blue);
+    border: 1px solid #bae6fd;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.gis-pagination-badge::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: #0284c7;
+}
+
+/* ── Adaptabilidad Responsiva ──────────────────────────────────────────────── */
+@media (max-width: 640px) {
+    .gis-cursor-pagination {
+        flex-direction: column;
+        gap: 12px;
+        padding: 12px 14px;
+    }
+
+    .gis-cursor-pagination-actions {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .gis-pagination-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 12px;
+        font-size: 0.82rem;
+    }
+}
+
+/* ── Modo Cargar Más (Load-More Dinámico) ─────────────────────────────────── */
+.gis-cursor-loadmore-wrap {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    width: 100%;
+}
+
+.gis-pagination-loadmore {
+    padding: 10px 24px;
+    font-size: 0.92rem;
+}
+
+.gis-loadmore-spinner {
+    -webkit-animation: gisSpin 0.9s linear infinite;
+    animation: gisSpin 0.9s linear infinite;
+}
+
+@-webkit-keyframes gisSpin {
+    from {
+        -webkit-transform: rotate(0deg);
+    }
+    to {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes gisSpin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.gis-cursor-item-enter {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+

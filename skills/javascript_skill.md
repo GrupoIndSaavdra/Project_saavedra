@@ -729,9 +729,9 @@ if (result.isConfirmed) {
     }
     ```
 - **Ciclo de Estados de Ordenamiento:**
-    - 0: Sin Orden (`Sin_Orden.png`) -> Restaura el `dataset.originalIndex`.
-    - 1: Ascendente (`Orden_Asc.png`).
-    - 2: Descendente (`Orden_Desc.png`).
+    - 0: Sin Orden (`Sin_Orden-Light.png`) -> Restaura el `dataset.originalIndex`.
+    - 1: Ascendente (`Orden_Asc-Light.png`).
+    - 2: Descendente (`Orden_Desc-Light.png`).
 
 ---
 

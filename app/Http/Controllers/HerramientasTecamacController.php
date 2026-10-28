@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\HerramientaImagen;
 use App\Models\HerramientaTecamac;
+use App\Traits\HasCursorPagination;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -18,6 +19,8 @@ use Illuminate\Support\Str;
  */
 class HerramientasTecamacController extends Controller
 {
+    use HasCursorPagination;
+
     private const PERFILES_PERMITIDOS = ['1', '3', '5', '6'];
     private const PERFILES_ALMACEN   = ['1', '3', '5', '6'];   // CRUD completo + inactivar/reactivar
     private const PERFILES_STOCK     = ['1', '3', '6'];   // Solo editar mínimo y máximo
@@ -108,7 +111,11 @@ class HerramientasTecamacController extends Controller
             });
         }
 
-        $herramientas = $query->with('imagenes')->orderBy('nombre_herramienta')->get();
+        $herramientas = $query->with('imagenes')
+            ->orderBy('nombre_herramienta')
+            ->orderByDesc('id')
+            ->cursorPaginate(24)
+            ->withQueryString();
 
         $totalActivas   = HerramientaTecamac::where('activo', '=', true, 'and')->count();
         $totalInactivas = HerramientaTecamac::where('activo', '=', false, 'and')->count();

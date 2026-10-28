@@ -10,9 +10,9 @@ function createTable(machines, form) {
 
     let tr = document.createElement("tr");
 
-    const iconSin = window.imgSinOrden || (window.baseUrl + "/images/Color_Icons/Generales/Sin_Orden.png");
-    const iconAsc = window.imgOrdenAsc || (window.baseUrl + "/images/Color_Icons/Generales/Orden_Asc.png");
-    const iconDesc = window.imgOrdenDesc || (window.baseUrl + "/images/Color_Icons/Generales/Orden_Desc.png");
+    const iconSin = window.imgSinOrden || (window.baseUrl + "/images/Light_Icons/Sin_Orden-Light.png");
+    const iconAsc = window.imgOrdenAsc || (window.baseUrl + "/images/Light_Icons/Orden_Asc-Light.png");
+    const iconDesc = window.imgOrdenDesc || (window.baseUrl + "/images/Light_Icons/Orden_Desc-Light.png");
 
     // Nuevo orden de columnas con soporte de ordenamiento
     let arrayHeader = [

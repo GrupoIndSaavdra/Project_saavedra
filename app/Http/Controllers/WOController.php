@@ -204,7 +204,36 @@ class WOController extends Controller
     {
         $moldings = Moldura::all();
         $workOrdersAll = Orden_trabajo::with(['clases', 'moldura'])->orderByRaw('CAST(id AS UNSIGNED) ASC')->orderBy('id', 'ASC')->get();
-        return view('wo_views.create_master_wo', compact('moldings', 'workOrdersAll'));
+
+        $baseClients = [
+            'BA GLASS',
+            'COSMOS',
+            'FEVCOM',
+            'FEVISA',
+            'GLASS & GLASS',
+            'L. VERACRUZ',
+            'MEXICALI',
+            'SAVERGLASS',
+            'SIVESA',
+            'SLP',
+            'VETRO',
+            'VETRO CANTABRIO',
+        ];
+
+        $dbClients = Orden_trabajo::whereNotNull('cliente')
+            ->where('cliente', '<>', '')
+            ->distinct()
+            ->pluck('cliente')
+            ->map(function ($c) {
+                return trim($c);
+            })
+            ->filter()
+            ->toArray();
+
+        $clientes = array_values(array_unique(array_merge($baseClients, $dbClients)));
+        sort($clientes, SORT_NATURAL | SORT_FLAG_CASE);
+
+        return view('wo_views.create_master_wo', compact('moldings', 'workOrdersAll', 'clientes'));
     }
 
     /**
@@ -1882,14 +1911,22 @@ class WOController extends Controller
     }
 
 
-    public function showViewPiecesInProgress()
+    public function showViewPiecesInProgress(Request $request)
     {
-        // ── OPTIMIZACIÓN: eager loading evita N+1 de clases, moldura, procesos, fechas y piezas ──
-        $wOInProgress = array();
-        $workOrders = Orden_trabajo::query()
+        $perPage = 6;
+        $page = max(1, (int) $request->input('page', 1));
+        $offset = ($page - 1) * $perPage;
+
+        $baseQuery = Orden_trabajo::query()
             ->whereHas('clases', function ($q) {
                 $q->where('finalizada', 0);
-            })
+            });
+
+        $totalWOs = (clone $baseQuery)->count();
+
+        // ── OPTIMIZACIÓN: eager loading paginado evita saturación de memoria RAM y CPU ──
+        $wOInProgress = array();
+        $workOrders = (clone $baseQuery)
             ->with([
                 'clases' => function ($q) {
                     $q->where('finalizada', 0);
@@ -1904,6 +1941,8 @@ class WOController extends Controller
             ->orderByRaw('prioridad IS NULL ASC')
             ->orderBy('prioridad')
             ->orderBy('id')
+            ->skip($offset)
+            ->take($perPage)
             ->get();
 
         foreach ($workOrders as $workOrder) {
@@ -1923,7 +1962,7 @@ class WOController extends Controller
             }
         }
 
-        // ── Datos de cards PTA (para las OTs actualmente en progreso) ────────
+        // ── Datos de cards PTA (solo para las OTs de este lote) ────────
         // buildCardData devuelve null si la clase no tiene registros en PTA.
         $ptaCardsData = [];
         foreach (array_keys($wOInProgress) as $otId) {
@@ -1941,7 +1980,7 @@ class WOController extends Controller
             }
         }
 
-        // ── Checklist de Fundición (solo OTs con flujo activo en fundicion_history) ──
+        // ── Checklist de Fundición (solo para las OTs de este lote) ──
         // Se construye en bloque; OTs sin flujo de fundición retornan null y se omiten.
         $fundicionChecklist = [];
         foreach (array_keys($wOInProgress) as $otId) {
@@ -1957,6 +1996,28 @@ class WOController extends Controller
             }
         }
 
+        $orderedOtIds = array_keys($wOInProgress);
+        $loadedSoFar = min($offset + $workOrders->count(), $totalWOs);
+        $hasMore = $loadedSoFar < $totalWOs;
+        $nextPage = $page + 1;
+        $remaining = max(0, $totalWOs - $loadedSoFar);
+
+        // Si es petición asíncrona para "Cargar más OTs":
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'wOInProgress' => $wOInProgress,
+                'orderedOtIds' => $orderedOtIds,
+                'ptaCardsData' => $ptaCardsData,
+                'fundicionChecklist' => $fundicionChecklist,
+                'hasMore' => $hasMore,
+                'nextPage' => $nextPage,
+                'totalWOs' => $totalWOs,
+                'loadedSoFar' => $loadedSoFar,
+                'remaining' => $remaining,
+            ]);
+        }
+
         $userProfile = (int) (auth()->user()->perfil ?? 0);
         if ($userProfile === 4) {
             [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
@@ -1964,7 +2025,6 @@ class WOController extends Controller
             $pieces_Released = [];
             $info_Pieces = [];
         }
-        $orderedOtIds = array_keys($wOInProgress);
 
         return view('pieces_views.piecesInProgress_view', compact(
             'wOInProgress',
@@ -1972,7 +2032,12 @@ class WOController extends Controller
             'pieces_Released',
             'info_Pieces',
             'ptaCardsData',
-            'fundicionChecklist'
+            'fundicionChecklist',
+            'hasMore',
+            'nextPage',
+            'totalWOs',
+            'loadedSoFar',
+            'remaining'
         ));
     }
 

@@ -6,6 +6,16 @@ var operacion = false;
 const comingBack = sessionStorage.getItem('comingFromPieceView') === 'true';
 sessionStorage.removeItem('comingFromPieceView');
 
+// Notificación breve si el usuario ingresa dando clic al menú de navegación
+if (sessionStorage.getItem('gis_nav_entry') === 'true') {
+    sessionStorage.removeItem('gis_nav_entry');
+    setTimeout(() => {
+        if (typeof window.gisToast === 'function') {
+            window.gisToast('Puedes combinar múltiples filtros en tiempo real para refinar tu búsqueda.', 'info');
+        }
+    }, 900);
+}
+
 if (comingBack) {
     const savedFilters = sessionStorage.getItem('adminPiecesFilters');
     if (savedFilters) {
@@ -49,7 +59,10 @@ document.addEventListener("click", (e) => {
     }
 });
 
+let isRenderingChunks = true;
+
 function crearTabla(piezas, infoPiezas) {
+    isRenderingChunks = true;
     const table = document.querySelector(".table");
     const tbody = document.createElement("tbody");
     table.appendChild(tbody);
@@ -72,6 +85,7 @@ function crearTabla(piezas, infoPiezas) {
             let pieza = orderedArray(piezaOG);
 
             chunkHtml += `<tr style="background-color: ${pieza.colorPiece};"
+                data-original-index="${index}"
                 data-color="${esc(pieza.colorPiece).toUpperCase()}"
                 data-workorder="${esc(pieza.workOrder)}"
                 data-class="${esc(pieza.class)}"
@@ -103,10 +117,26 @@ function crearTabla(piezas, infoPiezas) {
 
         tbody.innerHTML += chunkHtml;
 
-        if (index < piezas.length) {
+        const totalCount = piezas.length;
+        const currentLoaded = Math.min(index, totalCount);
+        const totalLabel = document.querySelector(".total-records-found");
+
+        if (index < totalCount) {
+            const percent = Math.round((currentLoaded / totalCount) * 100);
+            if (totalLabel) {
+                totalLabel.innerHTML = `
+                    <span class="loading-progress-container">
+                        <span class="loading-pulse-dot"></span>
+                        <span>Cargando registros: <strong>${currentLoaded.toLocaleString()}</strong> de <strong>${totalCount.toLocaleString()}</strong> (${percent}%)</span>
+                        <span class="loading-progress-bar-bg"><span class="loading-progress-bar-fill" style="width: ${percent}%;"></span></span>
+                    </span>
+                `;
+            }
             requestAnimationFrame(renderNextChunk);
         } else {
+            isRenderingChunks = false;
             applyAllFilters();
+            initTableSorting();
             const loading = document.querySelector('.loading');
             if (loading) loading.hidden = true;
         }
@@ -210,6 +240,7 @@ function createFilters() {
         n_juego: "N# Pieza/Juego"
     };
     Object.keys(window.selectedItems).forEach((item) => {
+        if (item === "order" || item === "action" || item === "n_juego" || item === "status") return;
         let div = document.createElement("div");
         div.className = "filter filter-" + item;
 
@@ -517,11 +548,195 @@ function createStatusFilterUI() {
     // FILTRO CONDICIONAL: Persona (activo solo cuando hay estado seleccionado)
     // ============================================
     createStatusPersonFilterUI();
+    setupHeaderOrderBadge();
 
     // Si ya hay un estado guardado en sesión, activar el filtro de persona
     if (savedStatus && savedStatus !== "Todos") {
         // Se activa después de que el DOM esté listo
         setTimeout(() => updateStatusPersonFilter(savedStatus), 0);
+    }
+}
+
+/**
+ * Obtiene la URL del icono Light para encabezados de tabla (TH).
+ */
+function getThSortIcon(name) {
+    if (name === "sin_orden") return window.iconSinOrdenLight || (window.getIcon ? window.getIcon("sin_orden_light") : "");
+    if (name === "orden_asc") return window.iconOrdenAscLight || (window.getIcon ? window.getIcon("orden_asc_light") : "");
+    if (name === "orden_desc") return window.iconOrdenDescLight || (window.getIcon ? window.getIcon("orden_desc_light") : "");
+    return "";
+}
+
+/**
+ * Obtiene la URL del icono Shadow para el indicador/badge de orden superior izquierdo.
+ */
+function getShadowSortIcon(name) {
+    if (name === "sin_orden") return window.iconSinOrdenShadow || (window.getIcon ? window.getIcon("sin_orden_shadow") : "");
+    if (name === "orden_asc") return window.iconOrdenAscShadow || (window.getIcon ? window.getIcon("orden_asc_shadow") : "");
+    if (name === "orden_desc") return window.iconOrdenDescShadow || (window.getIcon ? window.getIcon("orden_desc_shadow") : "");
+    return "";
+}
+
+/**
+ * Configura el botón/indicador de orden ubicado en la parte superior izquierda.
+ */
+function setupHeaderOrderBadge() {
+    const badge = document.getElementById("headerOrderBadge");
+    if (badge) {
+        badge.addEventListener("click", () => {
+            resetAllSorting();
+        });
+    }
+}
+
+let tableSortingInitialized = false;
+
+/**
+ * Inicializa el ordenamiento por clic en los encabezados (TH) de la tabla.
+ */
+function initTableSorting() {
+    const table = document.querySelector(".table");
+    if (!table) return;
+    const thead = table.querySelector("thead");
+    if (!thead) return;
+    const ths = thead.querySelectorAll("th");
+    if (ths.length === 0) return;
+
+    if (tableSortingInitialized) return;
+    tableSortingInitialized = true;
+
+    const nonSortable = ["ver", "liberar", "rechazar"];
+
+    ths.forEach((th, index) => {
+        const rawText = th.textContent.trim();
+        const lowerText = rawText.toLowerCase();
+        if (nonSortable.includes(lowerText)) return;
+
+        th.classList.add("sortable-th");
+        th.dataset.colIndex = index;
+        th.dataset.sortDir = "none";
+        th.title = `Clic para ordenar por ${rawText} (Asc / Desc / Sin orden)`;
+
+        th.innerHTML = `
+            <div class="th-content">
+                <span class="th-title">${rawText}</span>
+                <img class="th-sort-icon" src="${getThSortIcon('sin_orden')}" alt="orden">
+            </div>
+        `;
+
+        th.addEventListener("click", () => {
+            const currentDir = th.dataset.sortDir || "none";
+            let nextDir = "asc";
+            if (currentDir === "asc") nextDir = "desc";
+            else if (currentDir === "desc") nextDir = "none";
+
+            // Resetear todos los demás encabezados
+            ths.forEach(otherTh => {
+                if (otherTh.classList.contains("sortable-th")) {
+                    otherTh.dataset.sortDir = "none";
+                    const otherImg = otherTh.querySelector(".th-sort-icon");
+                    if (otherImg) otherImg.src = getThSortIcon("sin_orden");
+                }
+            });
+
+            // Asignar estado a este th
+            th.dataset.sortDir = nextDir;
+            const myImg = th.querySelector(".th-sort-icon");
+            if (myImg) {
+                myImg.src = getThSortIcon(nextDir === "none" ? "sin_orden" : (nextDir === "asc" ? "orden_asc" : "orden_desc"));
+            }
+
+            updateOrderFilterBadge(rawText, nextDir);
+            sortTable(index, nextDir);
+        });
+    });
+}
+
+/**
+ * Ordena las filas del tbody según la columna y dirección especificada.
+ */
+function sortTable(colIndex, direction) {
+    const tbody = document.querySelector(".table tbody");
+    if (!tbody) return;
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    if (rows.length === 0) return;
+
+    if (direction === "none") {
+        rows.sort((a, b) => {
+            const idxA = parseInt(a.dataset.originalIndex || "0", 10);
+            const idxB = parseInt(b.dataset.originalIndex || "0", 10);
+            return idxA - idxB;
+        });
+    } else {
+        rows.sort((a, b) => {
+            const cellA = (a.children[colIndex] ? a.children[colIndex].textContent : "").trim();
+            const cellB = (b.children[colIndex] ? b.children[colIndex].textContent : "").trim();
+
+            if (cellA === cellB) return 0;
+            if (cellA === "" || cellA === "No liberado" || cellA === "N/A") return 1;
+            if (cellB === "" || cellB === "No liberado" || cellB === "N/A") return -1;
+
+            // 1. Orden numérico natural para Juego (ej. "1J", "2J", "10J", "100J")
+            const matchA = cellA.match(/^(\d+)(.*)$/);
+            const matchB = cellB.match(/^(\d+)(.*)$/);
+            if (matchA && matchB) {
+                const numDiff = parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+                if (numDiff !== 0) {
+                    return direction === "asc" ? numDiff : -numDiff;
+                }
+                const suffixDiff = matchA[2].localeCompare(matchB[2]);
+                return direction === "asc" ? suffixDiff : -suffixDiff;
+            }
+
+            // 2. Comprobación numérica pura (ej. Máquina, OT)
+            const numA = Number(cellA);
+            const numB = Number(cellB);
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return direction === "asc" ? numA - numB : numB - numA;
+            }
+
+            // 3. Comparación de texto / fecha
+            const comp = cellA.localeCompare(cellB, 'es', { numeric: true, sensitivity: 'base' });
+            return direction === "asc" ? comp : -comp;
+        });
+    }
+
+    const fragment = document.createDocumentFragment();
+    rows.forEach(r => fragment.appendChild(r));
+    tbody.appendChild(fragment);
+}
+
+/**
+ * Restablece el orden de todas las columnas al original.
+ */
+function resetAllSorting() {
+    const ths = document.querySelectorAll(".table thead th.sortable-th");
+    ths.forEach(th => {
+        th.dataset.sortDir = "none";
+        const img = th.querySelector(".th-sort-icon");
+        if (img) img.src = getThSortIcon("sin_orden");
+    });
+    updateOrderFilterBadge(null, "none");
+    sortTable(0, "none");
+}
+
+/**
+ * Actualiza el texto y el icono del indicador superior de orden.
+ */
+function updateOrderFilterBadge(columnName, direction) {
+    const icon = document.getElementById("headerOrderIcon") || document.getElementById("orderFilterIcon");
+    const text = document.getElementById("headerOrderText") || document.getElementById("orderFilterText");
+    if (!icon || !text) return;
+
+    if (direction === "asc") {
+        icon.src = getShadowSortIcon("orden_asc");
+        text.textContent = columnName ? `${columnName} (Asc)` : "Ascendente";
+    } else if (direction === "desc") {
+        icon.src = getShadowSortIcon("orden_desc");
+        text.textContent = columnName ? `${columnName} (Desc)` : "Descendente";
+    } else {
+        icon.src = getShadowSortIcon("sin_orden");
+        text.textContent = "Sin orden";
     }
 }
 
@@ -760,6 +975,7 @@ function setupCascadingFilters() {
 setupCascadingFilters();
 
 function applyAllFilters() {
+    if (isRenderingChunks) return;
     let visibleCount = 0;
     const getVal = (name) => {
         let el = document.querySelector(`[name="${name}"]`);
@@ -888,29 +1104,36 @@ function applyAllFilters() {
 
     let totalLabel = document.querySelector(".total-records-found");
     if (totalLabel) {
-        totalLabel.textContent = `Registros encontrados: ${visibleCount}`;
-
-        // Agregar o actualizar nota explicativa debajo del contador
-        let explanation = document.querySelector(".filter-explanation");
-        if (!explanation) {
-            explanation = document.createElement("div");
-            explanation.className = "filter-explanation alm-explanation-text";
-            explanation.textContent = "Nota: Los filtros se aplican en tiempo real de forma acumulativa (puedes combinar múltiples criterios).";
-            totalLabel.insertAdjacentElement("afterend", explanation);
+        const totalCount = (window.pieces && window.pieces.length) ? window.pieces.length : visibleCount;
+        if (visibleCount === totalCount) {
+            totalLabel.innerHTML = `
+                <span class="records-completed-badge">
+                    <span class="badge-status-dot"></span>
+                    <span>Registros cargados: <strong>${totalCount.toLocaleString()}</strong></span>
+                </span>
+            `;
+        } else {
+            totalLabel.innerHTML = `
+                <span class="records-completed-badge">
+                    <span class="badge-status-dot"></span>
+                    <span>Encontrados: <strong>${totalCount.toLocaleString()}</strong> <span class="badge-divider">|</span> Mostrados: <strong>${visibleCount.toLocaleString()}</strong></span>
+                </span>
+            `;
         }
 
-        // Agregar o actualizar mensaje de 'No hay datos'
-        let noDataMsg = document.getElementById("no-data-alert");
-        if (visibleCount === 0) {
-            if (!noDataMsg) {
-                noDataMsg = document.createElement("div");
-                noDataMsg.id = "no-data-alert";
-                noDataMsg.className = "alm-no-data-msg";
-                noDataMsg.textContent = "No hay datos para ese filtro aplicado.";
-                explanation.insertAdjacentElement("afterend", noDataMsg);
+        // Eliminar nota explicativa plana para un diseño completamente limpio
+        let explanation = document.querySelector(".filter-explanation");
+        if (explanation) explanation.remove();
+
+        // Eliminar banner DOM antiguo si existe
+        let oldNoData = document.getElementById("no-data-alert");
+        if (oldNoData) oldNoData.remove();
+
+        // Notificación lateral si no se encuentran datos al filtrar
+        if (visibleCount === 0 && !isRenderingChunks) {
+            if (typeof window.gisToast === "function") {
+                window.gisToast("No se encontraron registros para los filtros aplicados", "warning");
             }
-        } else {
-            if (noDataMsg) noDataMsg.remove();
         }
     }
 

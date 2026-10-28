@@ -80,6 +80,7 @@ class PzasLiberadasController extends Controller
             "dateTo" => $request->dateTo,
             "n_juego" => $request->n_juego,
             "status" => $request->status,
+            "order" => $request->input("order", "desc"),
             "action" => $request->input("action"),
         );
         return $this->showPieces($this->controladorPzas->search($datosPiezas, "quality"));

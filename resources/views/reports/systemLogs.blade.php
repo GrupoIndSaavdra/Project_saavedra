@@ -12,6 +12,12 @@
     window.nextPageUrl = "{{ $nextPage ?? '' }}";
     window.hasMorePages = {{ $hasMore ? 'true' : 'false' }};
     window.isAdminOnly = {{ request('admin_only') == 1 ? 'true' : 'false' }};
+    window.iconSinOrdenLight = "{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}";
+    window.iconOrdenAscLight = "{{ asset('images/Light_Icons/Orden_Asc-Light.png') }}";
+    window.iconOrdenDescLight = "{{ asset('images/Light_Icons/Orden_Desc-Light.png') }}";
+    window.iconSinOrdenShadow = "{{ asset('images/Shadow_Icons/Sin_Orden-Shadow.png') }}";
+    window.iconOrdenAscShadow = "{{ asset('images/Shadow_Icons/Orden_Asc-Shadow.png') }}";
+    window.iconOrdenDescShadow = "{{ asset('images/Shadow_Icons/Orden_Desc-Shadow.png') }}";
 </script>
 @section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 @section('content')
@@ -40,6 +46,14 @@
 
     <form action="{{ route('systemLogsReport') }}" method="get" class="form-search" id="filters-form">
         <div class="report-header">
+            <!-- INDICADOR / BOTÓN DE ORDEN SUPERIOR IZQUIERDO -->
+            <button type="button" class="header-order-badge" id="headerOrderBadge" title="Haz clic para restablecer el orden original">
+                <div class="header-order-icon-wrapper">
+                    <img src="{{ asset('images/Shadow_Icons/Sin_Orden-Shadow.png') }}" class="header-order-icon" id="headerOrderIcon" alt="Orden">
+                </div>
+                <span class="header-order-text" id="headerOrderText">Sin orden</span>
+            </button>
+
             @php
                 $logTitle = request('admin_only') == 1 ? 'Logs de administradores' : 'Auditoría y Logs del Sistema';
                 $logSubtitle =
@@ -77,7 +91,7 @@
                         <tr>
                             <th>Fecha</th>
                             <th>Hora</th>
-                            <th class="col-admin-label">Operador</th>
+                            <th class="col-admin-label">{{ request('admin_only') == 1 ? 'Administrador' : 'Operador' }}</th>
                             <th>Acción</th>
                             <th>Detalles</th>
                             <th class="col-operador-only">Orden de Trabajo</th>
@@ -96,12 +110,10 @@
             <div class="log-footer-container">
                 <!-- Elementos centrados -->
                 <div class="total-records-found">
-                    Registros encontrados: <span id="total-found-count" class="sys-color-21618C">{{ $totalFound }}</span>
-                    |
-                    Mostrados: <span id="current-count">{{ count($logsRender) }}</span>
-                </div>
-                <div class="filter-explanation">
-                    Nota: Los filtros se aplican de forma acumulativa (puedes combinar múltiples criterios).
+                    <span class="records-completed-badge">
+                        <span class="badge-status-dot"></span>
+                        <span>Registros cargados: <strong id="total-found-count">{{ number_format(count($logsRender)) }}</strong></span>
+                    </span>
                 </div>
 
                 <!-- Botón de Depuración Manual (Izquierda) -->

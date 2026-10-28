@@ -26,14 +26,14 @@ Cuando escribas o refactorices consultas SQL, comandos Artisan o bucles masivos,
 
 ## 1. Tabla de Riesgo de Memoria por Modelo
 
-| Modelo / Tabla | Filas Aprox. | Riesgo de RAM | Regla de Consulta |
-|---|---|---|---|
-| `Pieza` / `piezas` | **76,000+** | 🔴 CRÍTICO | `->select([...])` obligatorio siempre |
-| `Metas` / `metas` | **6,400+** | 🔴 Alto | `DB::table()` o `->select([...])` |
-| `SystemLog` / `system_logs` | **10,000+** | 🔴 Alto | `->paginate(50)` + `->select([...])` |
-| `*_pza` (Maquinado) | **8,000–9,500** | 🔴 Alto | `->select([...])` obligatorio siempre |
-| `FundicionHistory` | < 1,000 | 🟡 Medio | Eager loading con `with(...)` |
-| `Clase` / `User` / `Maquinas` | < 300 | ✅ Seguro | `get()` seguro |
+| Modelo / Tabla                | Filas Aprox.    | Riesgo de RAM | Regla de Consulta                     |
+| ----------------------------- | --------------- | ------------- | ------------------------------------- |
+| `Pieza` / `piezas`            | **76,000+**     | 🔴 CRÍTICO    | `->select([...])` obligatorio siempre |
+| `Metas` / `metas`             | **6,400+**      | 🔴 Alto       | `DB::table()` o `->select([...])`     |
+| `SystemLog` / `system_logs`   | **10,000+**     | 🔴 Alto       | `->paginate(50)` + `->select([...])`  |
+| `*_pza` (Maquinado)           | **8,000–9,500** | 🔴 Alto       | `->select([...])` obligatorio siempre |
+| `FundicionHistory`            | < 1,000         | 🟡 Medio      | Eager loading con `with(...)`         |
+| `Clase` / `User` / `Maquinas` | < 300           | ✅ Seguro     | `get()` seguro                        |
 
 ---
 
@@ -101,3 +101,44 @@ class AlmacenTableRowViewModel
 }
 ```
 
+---
+
+## 5. Patrón Oficial de Paginación por Cursor Resiliente (Keyset Pagination)
+
+Para tablas de alta concurrencia (`piezas`, `fundicion_histories`, `calidad`, etc.) o vistas pesadas con ViewModels complejos, **evitar `->get()` masivo** y **evitar `->paginate()` con OFFSET**:
+
+### Ventajas Técnicas:
+
+1. **O(1) Directo en B-Tree:** La base de datos busca mediante `WHERE id < :cursor ORDER BY id DESC LIMIT 25`, sin recorrer offsets lentos (`LIMIT 50000, 25`).
+2. **Cero Drift de Concurrencia:** Inmune a inserciones o eliminaciones concurrentes en planta (sin registros duplicados o saltados).
+3. **Cero `SELECT COUNT(*)`:** Reduce el estrés y bloqueos sobre el motor InnoDB.
+
+### Implementación en Controlador:
+
+```php
+// ✅ PATRÓN CORRECTO: Cursor determinista con preservación de filtros
+$registros = $query
+    ->orderByDesc('id')
+    ->cursorPaginate(25)
+    ->withQueryString();
+
+// Conteo global rápido mediante índices para tarjetas de estadísticas
+$totalCount = FundicionHistory::count();
+$activasCount = FundicionHistory::where('status', '=', 'activa', 'and')->count();
+```
+
+### Implementación en Blade:
+
+Usar el componente oficial `<x-cursor-pagination>` con soporte para navegación anterior/siguiente y conteo de página:
+
+```blade
+{{-- Tabla de resultados --}}
+<table class="table ...">
+    ...
+</table>
+
+{{-- Componente oficial de navegación por cursor --}}
+<x-cursor-pagination :paginator="$registros" label="órdenes de trabajo" />
+```
+
+Estilos universales provistos en `resources/css/components/cursor-pagination.css` (importado en `global.css`).

@@ -436,3 +436,157 @@ div:where(.swal2-container) .swal2-actions,
     }
 }
 
+/* ════════════════════════════════════════════════════════════════ */
+/* ANIMACIONES Y ESTILO SWEETALERT2 TOAST (MESSAGES.JS)            */
+/* ════════════════════════════════════════════════════════════════ */
+body.swal2-toast-shown,
+body.swal2-toast-shown .swal2-container,
+body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-bottom-end,
+.swal2-container.swal2-bottom-start,
+.swal2-container.swal2-top-end,
+.swal2-container.swal2-top-start,
+.swal2-container.swal2-bottom-end.swal2-backdrop-show,
+.swal2-container.swal2-bottom-start.swal2-backdrop-show,
+.swal2-container.swal2-top-end.swal2-backdrop-show,
+.swal2-container.swal2-top-start.swal2-backdrop-show,
+.swal2-container.swal2-backdrop-show:has(.swal2-toast),
+.swal2-container:has(.swal2-toast) {
+    background: transparent !important;
+    background-color: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
+    z-index: 100020 !important;
+    padding-bottom: 25px !important;
+    padding-right: 25px !important;
+}
+
+.swal2-popup.swal2-toast {
+    pointer-events: auto !important;
+    background: #ffffff !important;
+    border: 2px solid var(--gis-blue, #033966) !important;
+    border-left: 6px solid var(--gis-blue, #033966) !important;
+    box-shadow: 0 16px 36px -6px rgba(0, 10, 25, 0.45), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+    border-radius: 14px !important;
+    padding: 0.85rem 1.25rem !important;
+    font-family: 'Poppins', 'Outfit', sans-serif !important;
+    -webkit-backface-visibility: hidden !important;
+    backface-visibility: hidden !important;
+    -webkit-transform: translateZ(0) !important;
+    transform: translateZ(0) !important;
+    will-change: transform, opacity !important;
+}
+
+.swal2-popup.swal2-toast .swal2-title {
+    font-family: 'Poppins', 'Outfit', sans-serif !important;
+    font-size: 0.95rem !important;
+    font-weight: 700 !important;
+    color: #031d38 !important;
+    letter-spacing: -0.2px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.swal2-popup.swal2-toast .swal2-timer-progress-bar {
+    background: linear-gradient(90deg, var(--gis-blue, #033966), #0284c7) !important;
+    height: 3.5px !important;
+    border-radius: 2px !important;
+}
+
+/* Variantes de color por tipo en el Toast */
+.swal2-popup.swal2-toast.swal2-icon-success {
+    border-color: rgba(10, 133, 4, 0.35) !important;
+    border-left: 6px solid var(--gis-green, #0a8504) !important;
+}
+.swal2-popup.swal2-toast.swal2-icon-success .swal2-timer-progress-bar {
+    background: linear-gradient(90deg, var(--gis-green, #0a8504), #22c55e) !important;
+}
+
+.swal2-popup.swal2-toast.swal2-icon-error {
+    border-color: rgba(156, 3, 3, 0.35) !important;
+    border-left: 6px solid var(--gis-red, #9c0303) !important;
+}
+.swal2-popup.swal2-toast.swal2-icon-error .swal2-timer-progress-bar {
+    background: linear-gradient(90deg, var(--gis-red, #9c0303), #ef4444) !important;
+}
+
+.swal2-popup.swal2-toast.swal2-icon-warning {
+    border-color: rgba(245, 158, 11, 0.35) !important;
+    border-left: 6px solid #f59e0b !important;
+}
+.swal2-popup.swal2-toast.swal2-icon-warning .swal2-timer-progress-bar {
+    background: linear-gradient(90deg, #f59e0b, #fbbf24) !important;
+}
+
+.swal2-popup.swal2-toast.swal2-icon-info {
+    border-color: rgba(3, 57, 102, 0.35) !important;
+    border-left: 6px solid var(--gis-blue, #033966) !important;
+}
+.swal2-popup.swal2-toast.swal2-icon-info .swal2-timer-progress-bar {
+    background: linear-gradient(90deg, var(--gis-blue, #033966), #0284c7) !important;
+}
+
+.swal2-toast-in {
+    -webkit-animation: swalToastIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) !important;
+    animation: swalToastIn 0.32s cubic-bezier(0.2, 0.9, 0.3, 1) !important;
+}
+
+.swal2-toast-out {
+    -webkit-animation: swalToastOut 0.22s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+    animation: swalToastOut 0.22s cubic-bezier(0.4, 0, 1, 1) forwards !important;
+}
+
+@-webkit-keyframes swalToastIn {
+    from {
+        opacity: 0;
+        -webkit-transform: translate3d(0, 24px, 0);
+        transform: translate3d(0, 24px, 0);
+    }
+    to {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@keyframes swalToastIn {
+    from {
+        opacity: 0;
+        -webkit-transform: translate3d(0, 24px, 0);
+        transform: translate3d(0, 24px, 0);
+    }
+    to {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
+}
+
+@-webkit-keyframes swalToastOut {
+    from {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        opacity: 0;
+        -webkit-transform: translate3d(0, 18px, 0);
+        transform: translate3d(0, 18px, 0);
+    }
+}
+
+@keyframes swalToastOut {
+    from {
+        opacity: 1;
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
+    }
+    to {
+        opacity: 0;
+        -webkit-transform: translate3d(0, 18px, 0);
+        transform: translate3d(0, 18px, 0);
+    }
+}
+

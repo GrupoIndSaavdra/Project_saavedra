@@ -14,7 +14,6 @@
 @section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
 
 @section('content')
-
     <div class="alm-wrapper">
         @php
             $perfil = Auth::user()->perfil;
@@ -28,48 +27,50 @@
             </div>
             <div class="alm-header-text">
                 <h1>Almacén — Dibujos y Ayudas Visuales de Fundición</h1>
-
-                <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Almacén. Registro
-                    permanente e inmutable.</p>
+                <p>Consulta histórica de todos los dibujos y ayudas visuales enviados a Almacén. Registro permanente e inmutable.</p>
             </div>
             <span class="alm-readonly-badge">Solo lectura</span>
         </div>
 
         <div class="alm-main-layout">
-
             @include('almacen.partials.sidebar_legend')
 
             {{-- ── COLUMNA DERECHA (CONTENIDO PRINCIPAL) ────────────────── --}}
             <main class="alm-content">
                 {{-- ── STATS ───────────────────────────────────────────────── --}}
                 @php
-                    $total = $registros->count();
-                    $activas = $registros->where('status', 'activa')->count();
-                    $inactivas = $registros->where('status', 'inactiva')->count();
+                    $total = $totalCount ?? $registros->count();
+                    $activas = $activasCount ?? $registros->where('status', 'activa')->count();
+                    $inactivas = $inactivasCount ?? $registros->where('status', 'inactiva')->count();
                 @endphp
 
                 <div class="alm-stats">
                     <div class="alm-stat-card stat-total">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="Total" class="alm-w-60">
+                            <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" alt="Total"
+                                class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $total }}</div>
                             <div class="alm-stat-label">OTs en historial</div>
                         </div>
                     </div>
+
                     <div class="alm-stat-card stat-activas">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/Color_Icons/Generales/ready.png') }}" alt="Activas" class="alm-w-60">
+                            <img src="{{ asset('images/Color_Icons/Generales/ready.png') }}" alt="Activas"
+                                class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $activas }}</div>
                             <div class="alm-stat-label">OTs activas</div>
                         </div>
                     </div>
+
                     <div class="alm-stat-card stat-inactivas">
                         <div class="alm-stat-icon">
-                            <img src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Archivadas" class="alm-w-60">
+                            <img src="{{ asset('images/Color_Icons/Generales/Eliminar-Carpeta.png') }}" alt="Archivadas"
+                                class="alm-w-60">
                         </div>
                         <div>
                             <div class="alm-stat-value">{{ $inactivas }}</div>
@@ -84,10 +85,12 @@
                     <form method="GET" action="{{ route('almacen.fundicion.index') }}" id="alm-filter-form">
                         <div class="filters">
                             <div class="filter">
-                                <select id="alm-search-ot" class="select-filter" name="ot" onchange="this.form.submit()">
+                                <select id="alm-search-ot" class="select-filter" name="ot"
+                                    onchange="this.form.submit()">
                                     <option value="">Todas las OTs</option>
                                     @foreach ($listaOts as $otOption)
-                                        <option value="{{ $otOption }}" {{ $busquedaOt === $otOption ? 'selected' : '' }}>
+                                        <option value="{{ $otOption }}"
+                                            {{ $busquedaOt === $otOption ? 'selected' : '' }}>
                                             {{ preg_replace('/_\d{8}_\d{6}_.*/', '', $otOption) }}
                                         </option>
                                     @endforeach
@@ -96,18 +99,31 @@
                             </div>
 
                             <div class="filter">
-                                <input id="alm-desde" class="input-filter" type="date" name="desde" value="{{ $desde }}"
+                                <select id="alm-filter-status" class="select-filter" name="estado"
                                     onchange="this.form.submit()">
+                                    <option value="activa" {{ ($estado ?? 'activa') === 'activa' ? 'selected' : '' }}>
+                                        Activas (En proceso)</option>
+                                    <option value="inactiva" {{ ($estado ?? '') === 'inactiva' ? 'selected' : '' }}>
+                                        Archivadas (Inactivas)</option>
+                                    <option value="todas" {{ ($estado ?? '') === 'todas' ? 'selected' : '' }}>Todas
+                                    </option>
+                                </select>
+                                <label for="alm-filter-status">Estado: </label>
+                            </div>
+
+                            <div class="filter">
+                                <input id="alm-desde" class="input-filter" type="date" name="desde"
+                                    value="{{ $desde }}" onchange="this.form.submit()">
                                 <label for="alm-desde">Desde: </label>
                             </div>
 
                             <div class="filter">
-                                <input id="alm-hasta" class="input-filter" type="date" name="hasta" value="{{ $hasta }}"
-                                    onchange="this.form.submit()">
+                                <input id="alm-hasta" class="input-filter" type="date" name="hasta"
+                                    value="{{ $hasta }}" onchange="this.form.submit()">
                                 <label for="alm-hasta">Hasta: </label>
                             </div>
 
-                            @if ($busquedaOt || $desde || $hasta)
+                            @if ($busquedaOt || $desde || $hasta || ($estado ?? 'activa') !== 'activa')
                                 <button type="button" class="btns btn-clear-filters"
                                     onclick="window.location.href='{{ route('almacen.fundicion.index') }}'">
                                     Limpiar Filtros
@@ -121,22 +137,16 @@
             </main>
         </div>
     </div>
+    {{-- /.alm-wrapper --}}
 
+    {{-- ── MODALES ─────────────────────────────────────────────────── --}}
     @include('almacen.partials.modals.confirm_modal')
     @include('almacen.partials.modals.preorder_modal')
-
     @include('almacen.partials.modals.casting_preorder_modal')
-
-        @include('almacen.partials.modals.send_preorder_modal')
-
-
-
-
+    @include('almacen.partials.modals.send_preorder_modal')
     @include('almacen.partials.modals.start_casting_modal')
-
-        @include('almacen.partials.modals.review_changes_modal')
-        @include('almacen.partials.modals.new_confirm_modals')
-
+    @include('almacen.partials.modals.review_changes_modal')
+    @include('almacen.partials.modals.new_confirm_modals')
 
     <script>
         window.almacenRoutes = {
@@ -170,10 +180,7 @@
             rechazado: "{{ asset('images/Color_Icons/Generales/Rechazado.png') }}",
             guardado: "{{ asset('images/Color_Icons/Generales/Guardado.png') }}",
             revisando: "{{ asset('images/Color_Icons/Generales/Revisando.png') }}",
-            espera: "{{ asset('images/Color_Icons/Generales/Espera.png') }}",
+            espera: "{{ asset('images/Color_Icons/Generales/Espera.png') }}"
         };
-
-        // Contenedores organizados estáticamente por etapa
     </script>
-
 @endsection

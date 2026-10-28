@@ -1,17 +1,28 @@
-@foreach (['activa' => 'Documentos Activos (Dibujos y Ayudas)', 'inactiva' => 'Documentos Inactivos (Histórico)'] as $estado => $titulo)
+@php
+    $estadoActual = $estado ?? 'activa';
+    $tablasAMostrar = match($estadoActual) {
+        'inactiva' => ['inactiva' => 'Documentos Inactivos (Histórico)'],
+        'todas' => ['activa' => 'Documentos Activos (Dibujos y Ayudas)', 'inactiva' => 'Documentos Inactivos (Histórico)'],
+        default => ['activa' => 'Documentos Activos (Dibujos y Ayudas)'],
+    };
+@endphp
+
+@foreach ($tablasAMostrar as $estadoKey => $titulo)
     @php
-        $registrosEstado = $registros->where('status', $estado);
+        $registrosEstado = $estadoActual === 'todas'
+            ? $registros->where('status', $estadoKey)
+            : $registros;
     @endphp
 
     <div class="alm-table-card alm-margin-bottom-2em">
         <div class="alm-table-header"
-            style="{{ $estado === 'inactiva' ? 'background: #6c757d; border-bottom: 2px solid #5a6268;' : '' }}">
+            style="{{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-bottom: 2px solid #5a6268;' : '' }}">
             <h2>{{ $titulo }}</h2>
             <span class="alm-results-count">{{ $registrosEstado->count() }}
                 resultado{{ $registrosEstado->count() !== 1 ? 's' : '' }}</span>
         </div>
 
-        @if ($estado === 'activa')
+        @if ($estadoKey === 'activa')
             {{-- ── BARRA DE SINCRONIZACIÓN MANUAL (solo tabla Activa) ── --}}
             <div id="sync-bar-activa"
                 class="alm-display-flex alm-align-items-center alm-justify-content-space-between alm-flex-wrap-wrap alm-gap-10px alm-padding-10px-20px alm-background-linear-gradient-135deg-f0f9ff-0-e0f2fe-100pct alm-border-bottom-1px-solid-bae6fd alm-font-size-0-85rem alm-color-0369a1 alm-font-family-Poppins-sans-serif">
@@ -63,24 +74,24 @@
                     <thead>
                         <tr>
                             <th
-                                style="width:30%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}">
+                                style="width:30%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}">
                                 Orden de Trabajo</th>
-                            <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:12%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">Estado</th>
-                            <th style="width:12%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:12%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">Modelo</th>
-                            <th style="width:18%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:18%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">Último envío</th>
-                            <th style="width:10%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:10%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">Archivos</th>
-                            <th style="width:16%; {{ $estado === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
+                            <th style="width:16%; {{ $estadoKey === 'inactiva' ? 'background: #6c757d; border-color: #5a6268;' : '' }}"
                                 class="d-text-center">Acciones</th>
                         </tr>
                     </thead>
-                    <tbody id="alm-tbody-{{ $estado }}">
+                    <tbody id="alm-tbody-{{ $estadoKey }}">
                         @foreach ($registrosEstado as $reg)
                             @php
-                                $vm = new \App\ViewModels\AlmacenTableRowViewModel($reg, $estado, $deptName);
+                                $vm = new \App\ViewModels\AlmacenTableRowViewModel($reg, $estadoKey, $deptName);
                                 $targetReg = $vm->targetReg;
                                 $hasFilesOrControl = $vm->hasFilesOrControl;
                                 $hasPendingChanges = $vm->hasPendingChanges;
@@ -148,9 +159,9 @@
                                         </button>
                                     @elseif ($hasFilesOrControl)
                                         <button class="btn-toggle-files"
-                                            data-target="files-{{ $estado }}-{{ $loop->index }}"
+                                            data-target="files-{{ $estadoKey }}-{{ $loop->index }}"
                                             data-ot="{{ $reg->ot }}"
-                                            id="toggle-btn-{{ $estado }}-{{ $loop->index }}"
+                                            id="toggle-btn-{{ $estadoKey }}-{{ $loop->index }}"
                                             aria-expanded="false">
                                             Ver Archivos
                                         </button>
@@ -162,7 +173,7 @@
 
                             {{-- Fila desplegable de archivos --}}
                             @if ($hasFilesOrControl)
-                                <tr class="alm-files-row" id="files-{{ $estado }}-{{ $loop->index }}">
+                                <tr class="alm-files-row" id="files-{{ $estadoKey }}-{{ $loop->index }}">
                                     <td colspan="6">
                                         {{-- CONTENEDOR PRINCIPAL PROCESOS (CONTENEDOR 0) --}}
                                         <div class="alm-contenedor-principal-procesos"
@@ -184,6 +195,9 @@
                     </tbody>
                 </table>
             </div>
+
+            {{-- ── Paginación por Cursor GIS ── --}}
+            <x-cursor-pagination :paginator="$registros" label="órdenes de trabajo" />
         @endif
     </div>
 @endforeach

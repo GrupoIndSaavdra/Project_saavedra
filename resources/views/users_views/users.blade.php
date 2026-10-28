@@ -22,7 +22,7 @@
             <div class="header-title-content">
                 <div class="header-title-row">
                     <h1>Gestión de Usuarios</h1>
-                    <span class="record-count" id="record-count">{{ $users->count() }} usuarios</span>
+                    <span class="record-count" id="record-count">{{ $totalUsers ?? $users->count() }} usuarios</span>
                 </div>
                 <span class="header-subtitle">Control de personal, asignación operativa y permisos de acceso</span>
             </div>
@@ -250,6 +250,9 @@
             </tbody>
         </table>
     </div>
+
+    {{-- ── Paginación por Cursor Resiliente ── --}}
+    <x-cursor-pagination :paginator="$users" label="usuarios" />
 
 </div>
 

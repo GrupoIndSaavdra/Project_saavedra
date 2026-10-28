@@ -462,13 +462,11 @@ class SystemLogController extends Controller
             }
         }
 
-        // Ordenar por lo más reciente
-        $query->orderBy('system_logs.created_at', 'desc');
-
-        // 3. PAGINACIÓN: Solo traemos 500 registros por vez para evitar saturación
-        // IMPORTANTE: withQueryString() mantiene los filtros activos en los enlaces de paginación
+        // 3. PAGINACIÓN POR CURSOR RESILIENTE: O(1) en MySQL, inmune a concurrencia
+        // Orden determinista por ID descendente
         $limit = 500;
-        $paginator = $query->paginate($limit)->appends(request()->query());
+        $totalFound = $request->ajax() ? null : (clone $query)->count();
+        $paginator = $query->orderByDesc('system_logs.id')->cursorPaginate($limit)->withQueryString();
         $logsRaw = $paginator->items();
 
         // 4. Mapear para el renderizado (Procesamiento ligero)
@@ -532,7 +530,6 @@ class SystemLogController extends Controller
         }
 
         // 5. Preparar respuesta
-        $totalFound = $paginator->total();
         $selectedItems = $request->only(['ot', 'clase', 'proceso', 'maquina', 'action', 'operador', 'dateFrom', 'dateTo', 'n_pieza', 'audit_status']);
 
         if ($request->ajax()) {

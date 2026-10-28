@@ -6,10 +6,16 @@
     @vite(['resources/css/pieces_views/piecesReport/adminPieces.css', 'resources/js/pieces_views/piecesReport/adminPieces.js'])
 @endsection
 <script>
-    window.liberar = "{{ asset('images/Color_Icons/Generales/Liberar.png') }}"
-    window.rechazar = "{{ asset('images/Color_Icons/Generales/Rechazar.png') }}"
-    window.ojito = "{{ asset('images/Color_Icons/Generales/ojito.png') }}"
-    window.loading = "{{ asset('images/Color_Icons/Generales/loading.gif') }}"
+    window.liberar = "{{ asset('images/Color_Icons/Generales/Liberar.png') }}";
+    window.rechazar = "{{ asset('images/Color_Icons/Generales/Rechazar.png') }}";
+    window.ojito = "{{ asset('images/Color_Icons/Generales/ojito.png') }}";
+    window.loading = "{{ asset('images/Color_Icons/Generales/loading.gif') }}";
+    window.iconSinOrdenLight = "{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}";
+    window.iconOrdenAscLight = "{{ asset('images/Light_Icons/Orden_Asc-Light.png') }}";
+    window.iconOrdenDescLight = "{{ asset('images/Light_Icons/Orden_Desc-Light.png') }}";
+    window.iconSinOrdenShadow = "{{ asset('images/Shadow_Icons/Sin_Orden-Shadow.png') }}";
+    window.iconOrdenAscShadow = "{{ asset('images/Shadow_Icons/Orden_Asc-Shadow.png') }}";
+    window.iconOrdenDescShadow = "{{ asset('images/Shadow_Icons/Orden_Desc-Shadow.png') }}";
     window.baseUrl = "{{ url('/') }}";
 </script>
 @section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
@@ -29,16 +35,6 @@
                     font-size: 1rem;
                 }
 
-                /* .generar_pdf {
-                                                                                                                width: 10%;
-                                                                                                                height: 10%;
-                                                                                                            }
-
-                                                                                                            form {
-                                                                                                                overflow: hidden;
-                                                                                                                width: 100%;
-                                                                                                            } */
-
                 .icono-liberar,
                 .icono-rechazar {
                     width: 20px;
@@ -55,6 +51,14 @@
         @csrf
         <input type="hidden" name="profile" value="admin">
         <div class="report-header">
+            <!-- INDICADOR / BOTÓN DE ORDEN SUPERIOR IZQUIERDO -->
+            <button type="button" class="header-order-badge" id="headerOrderBadge" title="Haz clic para restablecer el orden original">
+                <div class="header-order-icon-wrapper">
+                    <img src="{{ asset('images/Shadow_Icons/Sin_Orden-Shadow.png') }}" class="header-order-icon" id="headerOrderIcon" alt="Orden">
+                </div>
+                <span class="header-order-text" id="headerOrderText">Sin orden</span>
+            </button>
+
             <div class="title-row">
                 <img src="{{ asset('images/Color_Icons/Vistas/Reporte_Pzas.png') }}" class="header-view-icon"
                     alt="Reporte de piezas" />
@@ -65,9 +69,10 @@
             <!-- IMAGEN DE PDF -->
             <button type="submit" name="action" value="pdf" class="btn-PDF" title="Descargar PDF">
                 <div class="pdf-btn-wrapper">
-                    <img src="{{ asset('images/Shadow_Icons/PDF_View-Shadow.png') }}" class="pdf-icon icon-shadow" alt="PDF">
-                    <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}" class="pdf-icon icon-view generar_pdf" id="pdf"
+                    <img src="{{ asset('images/Shadow_Icons/PDF_View-Shadow.png') }}" class="pdf-icon icon-shadow"
                         alt="PDF">
+                    <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}"
+                        class="pdf-icon icon-view generar_pdf" id="pdf" alt="PDF">
                 </div>
                 <span class="pdf-btn-text">Descargar PDF</span>
             </button>
@@ -99,7 +104,12 @@
                     </thead>
                 </table>
             </div>
-            <div class="total-records-found">Registros encontrados: {{ count($pieces) }}</div>
+            <div class="total-records-found">
+                <span class="records-completed-badge">
+                    <span class="badge-status-dot"></span>
+                    <span>Registros cargados: <strong>{{ number_format(count($pieces)) }}</strong></span>
+                </span>
+            </div>
         @else
             <div class="letrero">
                 <label class="advertence"> No hay piezas trabajadas.</label>

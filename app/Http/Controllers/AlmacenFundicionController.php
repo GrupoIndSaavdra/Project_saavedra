@@ -70,8 +70,25 @@ class AlmacenFundicionController extends Controller
         $busquedaOt = trim($request->query('ot', ''));
         $desde = $request->query('desde', '');
         $hasta = $request->query('hasta', '');
+        $estado = $request->query('estado', 'activa');
 
-        $query = FundicionHistory::query()->orderByDesc('alert_sent_at');
+        // Métricas globales rápidas para las tarjetas de estadísticas (O(1) sobre índices)
+        $totalCount = FundicionHistory::query()
+            ->whereNotNull('alert_sent_at', 'and')
+            ->count();
+        $activasCount = FundicionHistory::query()
+            ->whereNotNull('alert_sent_at', 'and')
+            ->where('status', '=', 'activa', 'and')
+            ->count();
+        $inactivasCount = FundicionHistory::query()
+            ->whereNotNull('alert_sent_at', 'and')
+            ->where('status', '=', 'inactiva', 'and')
+            ->count();
+
+        // Consulta base determinista ordenada por ID descendente para cursor pagination
+        $query = FundicionHistory::query()
+            ->whereNotNull('alert_sent_at', 'and')
+            ->orderByDesc('id');
 
         // Filtro: búsqueda por nombre de OT (incluye todas, activas e inactivas)
         if ($busquedaOt !== '') {
@@ -86,10 +103,14 @@ class AlmacenFundicionController extends Controller
             $query->whereDate('alert_sent_at', '<=', $hasta);
         }
 
-        // Solo registros que al menos hayan sido enviados a Almacén (alert_sent_at no nulo)
-        $query->whereNotNull('alert_sent_at', 'and');
+        // Filtro por estado
+        if ($estado === 'activa' || $estado === 'inactiva') {
+            $query->where('status', '=', $estado, 'and');
+        }
 
-        $registros = $query->get();
+        // Paginación por cursor (Keyset Pagination) con preservación automática de query params
+        $perPage = 25;
+        $registros = $query->cursorPaginate($perPage)->withQueryString();
 
         // Obtener lista única de OTs para el dropdown (solo los que están en Almacén)
         $listaOts = FundicionHistory::query()
@@ -102,7 +123,11 @@ class AlmacenFundicionController extends Controller
             'listaOts',
             'busquedaOt',
             'desde',
-            'hasta'
+            'hasta',
+            'estado',
+            'totalCount',
+            'activasCount',
+            'inactivasCount'
         ));
     }
 

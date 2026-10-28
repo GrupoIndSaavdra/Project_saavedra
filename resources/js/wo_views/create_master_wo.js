@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () {
             moldingSelected && moldingSelected.value !== "" &&
             fechaCompra && fechaCompra.value.trim() !== "" &&
             ordenCompra && ordenCompra.value.trim() !== "" &&
-            cliente && cliente.value !== "" &&
+            cliente && cliente.value !== "" && cliente.value !== "__nuevo__" &&
             fechaEntregaCliente && fechaEntregaCliente.value.trim() !== ""
         );
 
@@ -289,9 +289,15 @@ document.addEventListener("DOMContentLoaded", function () {
                         const opt = document.createElement("option");
                         opt.value = clientVal;
                         opt.textContent = clientVal;
-                        clienteSelect.appendChild(opt);
+                        const optNuevo = clienteSelect.querySelector("option[value='__nuevo__']");
+                        if (optNuevo) {
+                            clienteSelect.insertBefore(opt, optNuevo);
+                        } else {
+                            clienteSelect.appendChild(opt);
+                        }
                     }
                     clienteSelect.value = clientVal;
+                    clienteSelect.dataset.lastValidValue = clientVal;
                 }
 
                 const matSelect = document.getElementById("mod_material");
@@ -619,6 +625,116 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
     }, true);
+
+    // ── Funcionalidad interactiva para registrar nuevos clientes dinámicamente ──
+    function promptAddNewClient(targetSelectId) {
+        const targetSelect = document.getElementById(targetSelectId);
+        const lastValue = targetSelect ? (targetSelect.dataset.lastValidValue || "") : "";
+
+        const restoreSelect = () => {
+            if (targetSelect && targetSelect.value === "__nuevo__") {
+                targetSelect.value = lastValue;
+                targetSelect.dispatchEvent(new Event("change"));
+            }
+        };
+
+        const executeAdd = (rawName) => {
+            if (!rawName || !rawName.trim()) {
+                restoreSelect();
+                return;
+            }
+
+            const clientName = rawName.trim().toUpperCase();
+            const selects = [document.getElementById("cliente"), document.getElementById("mod_cliente")];
+
+            selects.forEach(sel => {
+                if (!sel) return;
+                const existing = Array.from(sel.options).find(opt => opt.value.toUpperCase() === clientName);
+                if (!existing) {
+                    const newOpt = document.createElement("option");
+                    newOpt.value = clientName;
+                    newOpt.textContent = clientName;
+                    const optNuevo = sel.querySelector("option[value='__nuevo__']");
+                    if (optNuevo) {
+                        sel.insertBefore(newOpt, optNuevo);
+                    } else {
+                        sel.appendChild(newOpt);
+                    }
+                }
+            });
+
+            if (targetSelect) {
+                targetSelect.value = clientName;
+                targetSelect.dataset.lastValidValue = clientName;
+                targetSelect.dispatchEvent(new Event("change"));
+                targetSelect.dispatchEvent(new Event("input"));
+            }
+
+            if (typeof window.gisToast === "function") {
+                window.gisToast(`Cliente "${clientName}" agregado a la lista.`, "success");
+            }
+        };
+
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                title: "Agregar Nuevo Cliente",
+                text: "Ingrese el nombre del cliente o empresa a registrar:",
+                input: "text",
+                inputPlaceholder: "Ej. COSMOS, SIVESA, BA GLASS...",
+                showCancelButton: true,
+                confirmButtonText: "Agregar",
+                cancelButtonText: "Cancelar",
+                confirmButtonColor: "#057a35",
+                cancelButtonColor: "#64748b",
+                reverseButtons: true,
+                inputAttributes: {
+                    maxlength: 50,
+                    autocapitalize: "characters"
+                },
+                inputValidator: (val) => {
+                    if (!val || !val.trim()) {
+                        return "Debe ingresar el nombre del cliente.";
+                    }
+                }
+            }).then(result => {
+                if (result.isConfirmed && result.value) {
+                    executeAdd(result.value);
+                } else {
+                    restoreSelect();
+                }
+            });
+        } else {
+            const result = prompt("Ingrese el nombre del nuevo cliente:");
+            if (result && result.trim()) {
+                executeAdd(result);
+            } else {
+                restoreSelect();
+            }
+        }
+    }
+
+    const clientSelects = [
+        { select: document.getElementById("cliente"), btn: document.getElementById("btn-add-client-create") },
+        { select: document.getElementById("mod_cliente"), btn: document.getElementById("btn-add-client-modify") }
+    ];
+
+    clientSelects.forEach(({ select, btn }) => {
+        if (select) {
+            select.dataset.lastValidValue = select.value !== "__nuevo__" ? select.value : "";
+            select.addEventListener("change", function () {
+                if (this.value === "__nuevo__") {
+                    promptAddNewClient(this.id);
+                } else {
+                    this.dataset.lastValidValue = this.value;
+                }
+            });
+        }
+        if (btn && select) {
+            btn.addEventListener("click", function () {
+                promptAddNewClient(select.id);
+            });
+        }
+    });
 
     // Advertencia al cerrar o recargar la ventana/pestaña si hay cambios sin guardar
     window.addEventListener("beforeunload", function (e) {

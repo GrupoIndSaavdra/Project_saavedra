@@ -4,10 +4,16 @@
     <title>Liberación de piezas</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('images/logos/favicon.ico') }}?v=3">
     <script>
-        window.liberar = "{{ asset('images/Color_Icons/Generales/Liberar.png') }}"
-        window.rechazar = "{{ asset('images/Color_Icons/Generales/Rechazar.png') }}"
-        window.ojito = "{{ asset('images/Color_Icons/Generales/ojito.png') }}"
-        window.loading = "{{ asset('images/Color_Icons/Generales/loading.gif') }}"
+        window.liberar = "{{ asset('images/Color_Icons/Generales/Liberar.png') }}";
+        window.rechazar = "{{ asset('images/Color_Icons/Generales/Rechazar.png') }}";
+        window.ojito = "{{ asset('images/Color_Icons/Generales/ojito.png') }}";
+        window.loading = "{{ asset('images/Color_Icons/Generales/loading.gif') }}";
+        window.iconSinOrdenLight = "{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}";
+        window.iconOrdenAscLight = "{{ asset('images/Light_Icons/Orden_Asc-Light.png') }}";
+        window.iconOrdenDescLight = "{{ asset('images/Light_Icons/Orden_Desc-Light.png') }}";
+        window.iconSinOrdenShadow = "{{ asset('images/Shadow_Icons/Sin_Orden-Shadow.png') }}";
+        window.iconOrdenAscShadow = "{{ asset('images/Shadow_Icons/Orden_Asc-Shadow.png') }}";
+        window.iconOrdenDescShadow = "{{ asset('images/Shadow_Icons/Orden_Desc-Shadow.png') }}";
         window.back = "{{ asset('images/Color_Icons/Generales/img-back.png') }}";
         window.baseUrl = "{{ url('/') }}";
     </script>
@@ -45,6 +51,14 @@
         @csrf
         <!-- FILTROS DE BÚSQUEDA Y RESULTADOS DE PIEZAS EN GENERAL. -->
         <div class="report-header">
+            <!-- INDICADOR / BOTÓN DE ORDEN SUPERIOR IZQUIERDO -->
+            <button type="button" class="header-order-badge" id="headerOrderBadge" title="Haz clic para restablecer el orden original">
+                <div class="header-order-icon-wrapper">
+                    <img src="{{ asset('images/Shadow_Icons/Sin_Orden-Shadow.png') }}" class="header-order-icon" id="headerOrderIcon" alt="Orden">
+                </div>
+                <span class="header-order-text" id="headerOrderText">Sin orden</span>
+            </button>
+
             <div class="title-row">
                 <img src="{{ asset('images/Color_Icons/Vistas/Liberacion_Pzas.png') }}" class="header-view-icon"
                     alt="Liberación de piezas" />
@@ -88,7 +102,12 @@
                     </thead>
                 </table>
             </div>
-            <div class="total-records-found">Registros encontrados: {{ count($pieces) }}</div>
+            <div class="total-records-found">
+                <span class="records-completed-badge">
+                    <span class="badge-status-dot"></span>
+                    <span>Registros cargados: <strong>{{ number_format(count($pieces)) }}</strong></span>
+                </span>
+            </div>
         @else
             <div class="letrero">
                 <label class="advertence"> No hay piezas trabajadas.</label>

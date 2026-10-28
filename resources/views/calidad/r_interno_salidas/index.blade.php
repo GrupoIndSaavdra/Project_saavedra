@@ -93,37 +93,37 @@
                     <tr>
                         <th class="sortable" data-type="number" style="cursor: pointer; user-select: none;" title="Ordenar por OT">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                OT <img src="{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                OT <img src="{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Moldura">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Moldura <img src="{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Moldura <img src="{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Clase">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Clase <img src="{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Clase <img src="{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Formato">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Formato <img src="{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Formato <img src="{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Inspector">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Inspector <img src="{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Inspector <img src="{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable" data-type="string" style="cursor: pointer; user-select: none;" title="Ordenar por Fecha Inicio">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Fecha Inicio <img src="{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Fecha Inicio <img src="{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="sortable d-text-center" data-type="number" style="cursor: pointer; user-select: none;" title="Ordenar por Piezas">
                             <div style="display: flex; align-items: center; justify-content: center; gap: 5px;">
-                                Total Piezas <img src="{{ asset('images/Color_Icons/Generales/Sin_Orden.png') }}" class="sort-icon" width="14" height="14">
+                                Total Piezas <img src="{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}" class="sort-icon" width="14" height="14">
                             </div>
                         </th>
                         <th class="d-text-center">Acción</th>
@@ -206,9 +206,9 @@
 
         const headers = table.querySelectorAll('th.sortable');
         
-        const iconSin = '{{ asset("images/Color_Icons/Generales/Sin_Orden.png") }}';
-        const iconAsc = '{{ asset("images/Color_Icons/Generales/Orden_Asc.png") }}';
-        const iconDesc = '{{ asset("images/Color_Icons/Generales/Orden_Desc.png") }}';
+        const iconSin = '{{ asset("images/Light_Icons/Sin_Orden-Light.png") }}';
+        const iconAsc = '{{ asset("images/Light_Icons/Orden_Asc-Light.png") }}';
+        const iconDesc = '{{ asset("images/Light_Icons/Orden_Desc-Light.png") }}';
 
         headers.forEach((th, colIndex) => {
             // Estado inicial: 0 = sin orden, 1 = asc, 2 = desc

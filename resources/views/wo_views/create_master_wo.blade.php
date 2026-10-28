@@ -68,14 +68,18 @@
 
             <!-- 5. Cliente -->
             <div class="form-field">
-                <label for="cliente">5. Cliente <span class="text-danger">*</span></label>
+                <div class="field-header-action">
+                    <label for="cliente">5. Cliente <span class="text-danger">*</span></label>
+                    <button type="button" class="btn-add-client" id="btn-add-client-create" title="Agregar nuevo cliente a la lista">+ Nuevo Cliente</button>
+                </div>
                 <select name="cliente" id="cliente" required>
                     <option value="" disabled {{ old('cliente') ? '' : 'selected' }}>Seleccione el cliente</option>
-                    @foreach(['SLP', 'FEVISA', 'SAVERGLASS', 'MEXICALI', 'GLASS & GLASS', 'VETRO', 'L. VERACRUZ'] as $clienteOption)
+                    @foreach($clientes ?? ['BA GLASS', 'COSMOS', 'FEVCOM', 'FEVISA', 'GLASS & GLASS', 'L. VERACRUZ', 'MEXICALI', 'SAVERGLASS', 'SIVESA', 'SLP', 'VETRO', 'VETRO CANTABRIO'] as $clienteOption)
                         <option value="{{ $clienteOption }}" {{ old('cliente') == $clienteOption ? 'selected' : '' }}>
                             {{ $clienteOption }}
                         </option>
                     @endforeach
+                    <option value="__nuevo__" class="opt-add-new-client">+ Agregar nuevo cliente...</option>
                 </select>
             </div>
 
@@ -130,12 +134,16 @@
             </div>
 
             <div class="form-field">
-                <label for="mod_cliente">Cliente <span class="text-danger">*</span></label>
+                <div class="field-header-action">
+                    <label for="mod_cliente">Cliente <span class="text-danger">*</span></label>
+                    <button type="button" class="btn-add-client" id="btn-add-client-modify" title="Agregar nuevo cliente a la lista">+ Nuevo Cliente</button>
+                </div>
                 <select name="cliente" id="mod_cliente" required>
                     <option value="" disabled selected>Seleccione el cliente</option>
-                    @foreach(['SLP', 'FEVISA', 'SAVERGLASS', 'MEXICALI', 'GLASS & GLASS', 'VETRO', 'L. VERACRUZ'] as $clienteOption)
+                    @foreach($clientes ?? ['BA GLASS', 'COSMOS', 'FEVCOM', 'FEVISA', 'GLASS & GLASS', 'L. VERACRUZ', 'MEXICALI', 'SAVERGLASS', 'SIVESA', 'SLP', 'VETRO', 'VETRO CANTABRIO'] as $clienteOption)
                         <option value="{{ $clienteOption }}">{{ $clienteOption }}</option>
                     @endforeach
+                    <option value="__nuevo__" class="opt-add-new-client">+ Agregar nuevo cliente...</option>
                 </select>
             </div>
 

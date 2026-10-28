@@ -47,21 +47,32 @@ function toastpremium(message, type = "success") {
 
     // Estándar 1: SweetAlert2 Toast Ultra-Fluido
     if (typeof Swal !== 'undefined') {
-        Swal.mixin({
+        Swal.fire({
             toast: true,
             position: 'bottom-end',
             showConfirmButton: false,
             timer: 3200,
             timerProgressBar: true,
+            backdrop: false,
+            icon: swalIcon,
+            title: message,
             showClass: {
                 popup: 'swal2-toast-in',
             },
             hideClass: {
                 popup: 'swal2-toast-out',
             },
-        }).fire({
-            icon: swalIcon,
-            title: message,
+            didOpen: (toast) => {
+                const container = toast.closest('.swal2-container');
+                if (container) {
+                    container.classList.remove('swal2-backdrop-show');
+                    container.style.setProperty('background', 'transparent', 'important');
+                    container.style.setProperty('background-color', 'transparent', 'important');
+                    container.style.setProperty('backdrop-filter', 'none', 'important');
+                    container.style.setProperty('-webkit-backdrop-filter', 'none', 'important');
+                    container.style.setProperty('box-shadow', 'none', 'important');
+                }
+            }
         });
         return;
     }

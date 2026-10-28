@@ -486,13 +486,34 @@ body {
 }
 
 /* Modales globales (SweetAlert2 y overlays): filtro azul corporativo sin blur */
-.swal2-container,
-.swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-center.swal2-backdrop-show,
 .gis-modal-backdrop,
 .modal-backdrop {
     background: rgba(0, 10, 25, 0.85) !important;
     -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
+}
+
+/* Toasts de SweetAlert2: 100% transparentes, sin filtro azul ni backdrop */
+body.swal2-toast-shown,
+body.swal2-toast-shown .swal2-container,
+body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
+.swal2-container.swal2-bottom-end,
+.swal2-container.swal2-bottom-start,
+.swal2-container.swal2-top-end,
+.swal2-container.swal2-top-start,
+.swal2-container.swal2-bottom-end.swal2-backdrop-show,
+.swal2-container.swal2-bottom-start.swal2-backdrop-show,
+.swal2-container.swal2-top-end.swal2-backdrop-show,
+.swal2-container.swal2-top-start.swal2-backdrop-show,
+.swal2-container.swal2-backdrop-show:has(.swal2-toast),
+.swal2-container:has(.swal2-toast) {
+    background: transparent !important;
+    background-color: transparent !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    pointer-events: none !important;
 }
 .loading {
     position: fixed !important;
