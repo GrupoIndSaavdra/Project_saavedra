@@ -12,6 +12,7 @@
     window.nextPageUrl = "{{ $nextPage ?? '' }}";
     window.hasMorePages = {{ $hasMore ? 'true' : 'false' }};
     window.isAdminOnly = {{ request('admin_only') == 1 ? 'true' : 'false' }};
+    window.canPurgeLogs = {{ in_array(auth()->user()->perfil, [1, 3, 6]) ? 'true' : 'false' }};
     window.iconSinOrdenLight = "{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}";
     window.iconOrdenAscLight = "{{ asset('images/Light_Icons/Orden_Asc-Light.png') }}";
     window.iconOrdenDescLight = "{{ asset('images/Light_Icons/Orden_Desc-Light.png') }}";
@@ -108,29 +109,12 @@
             </div>
 
             <div class="log-footer-container">
-                <!-- Elementos centrados -->
+                <!-- Barra de Paginación Unificada Glass Azul con Controles Integrados -->
                 <div class="total-records-found">
                     <span class="records-completed-badge">
                         <span class="badge-status-dot"></span>
                         <span>Registros cargados: <strong id="total-found-count">{{ number_format(count($logsRender)) }}</strong></span>
                     </span>
-                </div>
-
-                <!-- Botón de Depuración Manual (Izquierda) -->
-                @if (in_array(auth()->user()->perfil, [1, 3, 6]))
-                    <div id="manual-purge-container">
-                        <button type="button" id="btn-manual-purge" class="btn-manual-purge-premium">
-                            <span id="purge-btn-icon">🗑</span>
-                            <span id="purge-btn-text">Depurar Logs</span>
-                        </button>
-                    </div>
-                @endif
-
-                <!-- Botón de carga en la parte inferior derecha -->
-                <div id="load-more-container" style="display: {{ $hasMore ? 'block' : 'none' }};">
-                    <button type="button" id="btn-load-more" class="btn-load-more-premium">
-                        Cargar más registros...
-                    </button>
                 </div>
             </div>
         @else

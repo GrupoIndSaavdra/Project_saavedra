@@ -628,8 +628,8 @@ table.ht-table {
 /* Columna y botones de acción (Separados en fila, elegantes y con presencia) */
 .th-acciones,
 .ht-table tbody td.td-acciones {
-    min-width: 210px;
-    width: 210px;
+    min-width: 240px;
+    width: 240px;
     padding: 0.75rem 0.8rem !important;
     text-align: center;
 }
@@ -637,7 +637,7 @@ table.ht-table {
 .ht-actions {
     display: flex;
     flex-direction: row;
-    gap: 10px;
+    gap: 12px;
     justify-content: center;
     align-items: center;
     width: 100%;
@@ -645,12 +645,12 @@ table.ht-table {
 
 .ht-btn-accion {
     flex: 0 1 auto;
-    min-width: 80px;
-    padding: 0.55rem 0.75rem;
-    font-size: 0.72rem;
+    min-width: 96px;
+    padding: 0.68rem 0.95rem;
+    font-size: 0.84rem;
     font-weight: 800;
     font-family: var(--font-ui);
-    border-radius: 9px;
+    border-radius: 11px;
     border: 1px solid rgba(255, 255, 255, 0.35);
     cursor: pointer;
     text-transform: uppercase;
@@ -663,7 +663,7 @@ table.ht-table {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 5px;
+    gap: 6px;
     color: #ffffff;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.16);
     white-space: nowrap;
@@ -689,8 +689,10 @@ table.ht-table {
 }
 
 .ht-btn-icon-img {
-    width: 26px;
-    height: 26px;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
     object-fit: contain;
     flex-shrink: 0;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
@@ -1512,13 +1514,13 @@ table.ht-table {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 0.5rem 0.8rem;
+    gap: 5px;
+    padding: 0.55rem 0.85rem;
     background: #e0f2fe;
     color: #0369a1;
     border: 1.5px solid #bae6fd;
     border-radius: 12px;
-    font-size: 0.74rem;
+    font-size: 0.78rem;
     font-weight: 700;
     cursor: pointer;
     -webkit-user-select: none;
@@ -1526,7 +1528,7 @@ table.ht-table {
     list-style: none;
     transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     white-space: nowrap;
-    min-width: 68px;
+    min-width: 74px;
     box-shadow: 0 2px 5px rgba(3, 105, 161, 0.08);
 }
 
@@ -1535,8 +1537,10 @@ table.ht-table {
 }
 
 .ht-gallery-cam-icon {
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    min-height: 34px;
     object-fit: contain;
     flex-shrink: 0;
     filter: drop-shadow(0 2px 4px rgba(3, 105, 161, 0.2));

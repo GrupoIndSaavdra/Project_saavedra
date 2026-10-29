@@ -7,6 +7,8 @@ use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use App\Traits\HasCursorPagination;
 use Illuminate\Http\Request as HttpRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class UserController extends Controller
 {
@@ -30,7 +32,11 @@ class UserController extends Controller
     }
     public function show(HttpRequest $request){
         $layout = $this->getLayout();
-        $query = User::query();
+        $query = User::query()->select([
+            'id', 'matricula', 'nombre', 'a_paterno', 'a_materno',
+            'perfil', 'turno', 'planta', 'area', 'puesto',
+            'estatus', 'created_at'
+        ]);
 
         if ($request->filled('q')) {
             $q = trim($request->q);
@@ -50,7 +56,7 @@ class UserController extends Controller
             $query->where('estatus', '=', $request->estatus === 'Activo' ? 1 : 0, 'and');
         }
 
-        $users = $query->orderBy('nombre')->orderBy('a_paterno')->orderByDesc('id')->cursorPaginate(30)->withQueryString();
+        $users = $query->orderBy('nombre')->orderBy('a_paterno')->orderByDesc('id')->get();
         $totalUsers = User::count();
         return view("users_views.users", compact("layout", "users", "totalUsers"));
     }
@@ -76,10 +82,34 @@ class UserController extends Controller
      * @param int|string $id
      */
     public function altaUsuario(HttpRequest $request, $id){
-        $user = User::findOrFail($id);
-        $user->estatus = 1;
-        $user->save();
-        return redirect()->back()->with('success', 'Usuario marcado como activo.');
+        try {
+            DB::beginTransaction();
+            $user = User::findOrFail($id);
+            $user->estatus = 1;
+            $user->save();
+            DB::commit();
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Usuario marcado como activo.',
+                    'id'      => $user->id,
+                    'estatus' => 1,
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Usuario marcado como activo.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al activar usuario.', [
+                'user_id' => $id,
+                'error'   => $e->getMessage(),
+            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error al activar el usuario.'], 500);
+            }
+            return redirect()->back()->with('error', 'Error al activar el usuario.');
+        }
     }
 
     /**
@@ -87,10 +117,34 @@ class UserController extends Controller
      * @param int|string $id
      */
     public function bajaUsuario(HttpRequest $request, $id){
-        $user = User::findOrFail($id);
-        $user->estatus = 0;
-        $user->save();
-        return redirect()->back()->with('success', 'Usuario marcado como inactivo.');
+        try {
+            DB::beginTransaction();
+            $user = User::findOrFail($id);
+            $user->estatus = 0;
+            $user->save();
+            DB::commit();
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Usuario marcado como inactivo.',
+                    'id'      => $user->id,
+                    'estatus' => 0,
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Usuario marcado como inactivo.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al inactivar usuario.', [
+                'user_id' => $id,
+                'error'   => $e->getMessage(),
+            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error al inactivar el usuario.'], 500);
+            }
+            return redirect()->back()->with('error', 'Error al inactivar el usuario.');
+        }
     }
 
     /**
@@ -99,14 +153,49 @@ class UserController extends Controller
      */
     public function eliminarUsuario(HttpRequest $request, $id){
         try {
+            DB::beginTransaction();
             $user = User::findOrFail($id);
             if(auth()->check() && auth()->user()->id == $user->id) {
+                if ($request->expectsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'No puedes eliminar tu propio usuario.'], 403);
+                }
                 return redirect()->back()->with('error', 'No puedes eliminar tu propio usuario.');
             }
             $user->delete();
+            DB::commit();
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Usuario eliminado correctamente.',
+                    'id'      => (int)$id,
+                ]);
+            }
+
             return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
         } catch (\Illuminate\Database\QueryException $e) {
+            DB::rollBack();
+            Log::error('Fallo de integridad al eliminar usuario.', [
+                'user_id' => $id,
+                'error'   => $e->getMessage(),
+            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede eliminar el usuario porque tiene registros asociados (OTs, piezas o inspecciones).'
+                ], 422);
+            }
             return redirect()->back()->with('error', 'No se puede eliminar el usuario porque tiene registros asociados (o error de base de datos).');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error inesperado al eliminar usuario.', [
+                'user_id' => $id,
+                'error'   => $e->getMessage(),
+            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error interno al procesar la eliminación.'], 500);
+            }
+            return redirect()->back()->with('error', 'Error interno al procesar la eliminación.');
         }
     }
 
@@ -115,27 +204,62 @@ class UserController extends Controller
      * @param int|string $id
      */
     public function updateUsuario(HttpRequest $request, $id){
-        $user = User::findOrFail($id);
-        $data = $request->validate([
-            'nombre' => 'required|string',
-            'a_paterno' => 'required|string',
-            'a_materno' => 'required|string',
-            'perfil' => 'required',
-            'turno' => 'nullable|string',
-            'planta' => 'nullable|string',
-            'area' => 'nullable|string',
-            'puesto' => 'nullable|string',
-            'contrasena' => 'nullable|string|min:8',
-        ]);
+        try {
+            DB::beginTransaction();
+            $user = User::findOrFail($id);
+            $data = $request->validate([
+                'nombre' => 'required|string',
+                'a_paterno' => 'required|string',
+                'a_materno' => 'required|string',
+                'perfil' => 'required',
+                'turno' => 'nullable|string',
+                'planta' => 'nullable|string',
+                'area' => 'nullable|string',
+                'puesto' => 'nullable|string',
+                'contrasena' => 'nullable|string|min:8',
+            ]);
 
-        if (!empty($data['contrasena'])) {
-            $data['contrasena'] = bcrypt($data['contrasena']);
-        } else {
-            unset($data['contrasena']);
+            if (!empty($data['contrasena'])) {
+                $data['contrasena'] = bcrypt($data['contrasena']);
+            } else {
+                unset($data['contrasena']);
+            }
+
+            $user->update($data);
+            DB::commit();
+
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Usuario actualizado correctamente.',
+                    'user'    => [
+                        'id'              => $user->id,
+                        'matricula'       => $user->matricula,
+                        'nombre'          => $user->nombre,
+                        'a_paterno'       => $user->a_paterno,
+                        'a_materno'       => $user->a_materno,
+                        'nombre_completo' => $user->name,
+                        'perfil'          => (string)$user->perfil,
+                        'planta'          => $user->planta ?? '—',
+                        'turno'           => $user->turno ?? '—',
+                        'area'            => $user->area ?? '—',
+                        'puesto'          => $user->puesto ?? '—',
+                    ]
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Usuario actualizado correctamente.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al actualizar usuario.', [
+                'user_id' => $id,
+                'error'   => $e->getMessage(),
+            ]);
+            if ($request->expectsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error al actualizar usuario.'], 500);
+            }
+            return redirect()->back()->with('error', 'Error al actualizar usuario.');
         }
-
-        $user->update($data);
-        return redirect()->back()->with('success', 'Usuario actualizado correctamente.');
     }
     public function showRecoverPassword(){
         return view('users_views.recoverPassword');

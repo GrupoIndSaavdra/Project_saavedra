@@ -22,8 +22,8 @@ class HerramientasTecamacController extends Controller
     use HasCursorPagination;
 
     private const PERFILES_PERMITIDOS = ['1', '3', '5', '6'];
-    private const PERFILES_ALMACEN   = ['1', '3', '5', '6'];   // CRUD completo + inactivar/reactivar
-    private const PERFILES_STOCK     = ['1', '3', '6'];   // Solo editar mínimo y máximo
+    private const PERFILES_ALMACEN = ['1', '3', '5', '6'];   // CRUD completo + inactivar/reactivar
+    private const PERFILES_STOCK = ['1', '3', '6'];   // Solo editar mínimo y máximo
 
     private const DIR_PUBLIC = 'herramientas_tecamac';
 
@@ -37,12 +37,30 @@ class HerramientasTecamacController extends Controller
 
     /** Lista oficial de procesos del sistema */
     public const PROCESOS = [
-        'Cepillado', 'Desbaste Exterior', 'Revisión Laterales', '1ª Operación',
-        'Barreno Maniobra', '2ª Operación', 'Soldadura', 'Soldadura PTA',
-        'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo',
-        'Acabado Molde', 'Barreno Profundidad', 'Cavidades', 'Copiado',
-        'OffSet', 'Palomas', 'Rebajes', 'Grabado', 'Operación Equipo',
-        'Embudo CM', '1ª Op. Cabeza Soplo', '2ª Op. Cabeza Soplo',
+        'Cepillado',
+        'Desbaste Exterior',
+        'Revisión Laterales',
+        '1ª Operación',
+        'Barreno Maniobra',
+        '2ª Operación',
+        'Soldadura',
+        'Soldadura PTA',
+        'Rectificado',
+        'Asentado',
+        'Calificado',
+        'Acabado Bombillo',
+        'Acabado Molde',
+        'Barreno Profundidad',
+        'Cavidades',
+        'Copiado',
+        'OffSet',
+        'Palomas',
+        'Rebajes',
+        'Grabado',
+        'Operación Equipo',
+        'Embudo CM',
+        '1ª Op. Cabeza Soplo',
+        '2ª Op. Cabeza Soplo',
     ];
 
     // ── ACCESO ────────────────────────────────────────────────────────────────
@@ -80,9 +98,9 @@ class HerramientasTecamacController extends Controller
     {
         $this->verificarAcceso();
 
-        $perfil        = (string) Auth::user()->perfil;
-        $modo          = $request->query('modo', 'activas');
-        $busqueda      = trim($request->query('q', ''));
+        $perfil = (string) Auth::user()->perfil;
+        $modo = $request->query('modo', 'activas');
+        $busqueda = trim($request->query('q', ''));
         $filtroProceso = trim($request->query('proceso', ''));
 
         if ($modo === 'inactivas') {
@@ -93,7 +111,7 @@ class HerramientasTecamacController extends Controller
                 ->whereNotNull('minimo')
                 ->whereColumn('cantidad_portaherramientas', '<', 'minimo');
         } else {
-            $modo  = 'activas';
+            $modo = 'activas';
             $query = HerramientaTecamac::query()->where('activo', true);
         }
 
@@ -104,20 +122,19 @@ class HerramientasTecamacController extends Controller
         if ($busqueda !== '') {
             $query->where(function ($q) use ($busqueda) {
                 $q->where('descripcion_herramienta', 'like', "%{$busqueda}%")
-                  ->orWhere('nombre_herramienta', 'like', "%{$busqueda}%")
-                  ->orWhere('descripcion_inserto', 'like', "%{$busqueda}%")
-                  ->orWhere('nombre_accesorio', 'like', "%{$busqueda}%")
-                  ->orWhere('proceso', 'like', "%{$busqueda}%");
+                    ->orWhere('nombre_herramienta', 'like', "%{$busqueda}%")
+                    ->orWhere('descripcion_inserto', 'like', "%{$busqueda}%")
+                    ->orWhere('nombre_accesorio', 'like', "%{$busqueda}%")
+                    ->orWhere('proceso', 'like', "%{$busqueda}%");
             });
         }
 
         $herramientas = $query->with('imagenes')
             ->orderBy('nombre_herramienta')
             ->orderByDesc('id')
-            ->cursorPaginate(24)
-            ->withQueryString();
+            ->get();
 
-        $totalActivas   = HerramientaTecamac::where('activo', '=', true, 'and')->count();
+        $totalActivas = HerramientaTecamac::where('activo', '=', true, 'and')->count();
         $totalInactivas = HerramientaTecamac::where('activo', '=', false, 'and')->count();
         $totalStockBajo = HerramientaTecamac::where('activo', '=', true, 'and')
             ->whereNotNull('minimo')
@@ -125,7 +142,7 @@ class HerramientasTecamacController extends Controller
             ->count();
 
         $esAlmacen = in_array($perfil, self::PERFILES_ALMACEN, true);
-        $esAdmin   = in_array($perfil, self::PERFILES_STOCK, true);
+        $esAdmin = in_array($perfil, self::PERFILES_STOCK, true);
 
         // Retrocompatibilidad con la vista existente
         $esCrud = $esAlmacen;
@@ -134,9 +151,18 @@ class HerramientasTecamacController extends Controller
         $procesos = self::PROCESOS;
 
         return view('herramientas.index', compact(
-            'herramientas', 'busqueda', 'modo', 'filtroProceso',
-            'totalActivas', 'totalInactivas', 'totalStockBajo',
-            'esCrud', 'esAlta', 'esAlmacen', 'esAdmin', 'procesos'
+            'herramientas',
+            'busqueda',
+            'modo',
+            'filtroProceso',
+            'totalActivas',
+            'totalInactivas',
+            'totalStockBajo',
+            'esCrud',
+            'esAlta',
+            'esAlmacen',
+            'esAdmin',
+            'procesos'
         ));
     }
 
@@ -147,35 +173,43 @@ class HerramientasTecamacController extends Controller
         $this->verificarAlmacen();
 
         $validated = $request->validate([
-            'proceso'                    => 'nullable|array',
-            'proceso.*'                  => 'nullable|string|max:100',
-            'nombre_herramienta'         => 'nullable|string|max:255',
-            'descripcion_herramienta'    => 'nullable|string|max:255',
-            'descripcion_inserto'        => 'nullable|string|max:255',
-            'nombre_accesorio'           => 'nullable|string|max:255',
-            'accesorios'                 => 'nullable|string|max:500',
+            'proceso' => 'nullable|array',
+            'proceso.*' => 'nullable|string|max:100',
+            'nombre_herramienta' => 'nullable|string|max:255',
+            'descripcion_herramienta' => 'nullable|string|max:255',
+            'descripcion_inserto' => 'nullable|string|max:255',
+            'nombre_accesorio' => 'nullable|string|max:255',
+            'accesorios' => 'nullable|string|max:500',
             'cantidad_portaherramientas' => 'required|integer|min:0',
-            'profundidad_corte'          => 'nullable|numeric|min:0',
-            'rpm'                        => 'nullable|integer|min:0',
-            'avances'                    => 'nullable|string|max:100',
-            'minimo'                     => 'nullable|integer|min:0',
-            'maximo'                     => 'nullable|integer|min:0',
-            'img_herramienta.*'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_herramienta.*'           => 'nullable|string|max:150',
-            'img_accesorio.*'             => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_accesorio.*'             => 'nullable|string|max:150',
-            'img_tornilleria.*'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_tornilleria.*'           => 'nullable|string|max:150',
+            'profundidad_corte' => 'nullable|numeric|min:0',
+            'rpm' => 'nullable|integer|min:0',
+            'avances' => 'nullable|string|max:100',
+            'minimo' => 'nullable|integer|min:0',
+            'maximo' => 'nullable|integer|min:0',
+            'img_herramienta.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_herramienta.*' => 'nullable|string|max:150',
+            'img_accesorio.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_accesorio.*' => 'nullable|string|max:150',
+            'img_tornilleria.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_tornilleria.*' => 'nullable|string|max:150',
             'img_tornilleria_accesorio.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
             'nom_tornilleria_accesorio.*' => 'nullable|string|max:150',
-            'img_imagen_fisica.*'         => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_imagen_fisica.*'         => 'nullable|string|max:150',
+            'img_imagen_fisica.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_imagen_fisica.*' => 'nullable|string|max:150',
         ]);
 
         $camposBase = collect($validated)->only([
-            'nombre_herramienta', 'descripcion_herramienta', 'descripcion_inserto',
-            'nombre_accesorio', 'accesorios', 'cantidad_portaherramientas',
-            'profundidad_corte', 'rpm', 'avances', 'minimo', 'maximo',
+            'nombre_herramienta',
+            'descripcion_herramienta',
+            'descripcion_inserto',
+            'nombre_accesorio',
+            'accesorios',
+            'cantidad_portaherramientas',
+            'profundidad_corte',
+            'rpm',
+            'avances',
+            'minimo',
+            'maximo',
         ])->toArray();
         $camposBase['proceso'] = array_values(array_filter($request->input('proceso', [])));
 
@@ -183,9 +217,9 @@ class HerramientasTecamacController extends Controller
         $this->guardarImagenesMultiples($request, $herramienta);
 
         return response()->json([
-            'ok'          => true,
+            'ok' => true,
             'herramienta' => $herramienta->load('imagenes'),
-            'message'     => 'Herramienta creada correctamente.',
+            'message' => 'Herramienta creada correctamente.',
         ], 201);
     }
 
@@ -199,37 +233,45 @@ class HerramientasTecamacController extends Controller
         $h = HerramientaTecamac::findOrFail($id);
 
         $validated = $request->validate([
-            'proceso'                    => 'nullable|array',
-            'proceso.*'                  => 'nullable|string|max:100',
-            'nombre_herramienta'         => 'nullable|string|max:255',
-            'descripcion_herramienta'    => 'nullable|string|max:255',
-            'descripcion_inserto'        => 'nullable|string|max:255',
-            'nombre_accesorio'           => 'nullable|string|max:255',
-            'accesorios'                 => 'nullable|string|max:500',
+            'proceso' => 'nullable|array',
+            'proceso.*' => 'nullable|string|max:100',
+            'nombre_herramienta' => 'nullable|string|max:255',
+            'descripcion_herramienta' => 'nullable|string|max:255',
+            'descripcion_inserto' => 'nullable|string|max:255',
+            'nombre_accesorio' => 'nullable|string|max:255',
+            'accesorios' => 'nullable|string|max:500',
             'cantidad_portaherramientas' => 'required|integer|min:0',
-            'profundidad_corte'          => 'nullable|numeric|min:0',
-            'rpm'                        => 'nullable|integer|min:0',
-            'avances'                    => 'nullable|string|max:100',
-            'minimo'                     => 'nullable|integer|min:0',
-            'maximo'                     => 'nullable|integer|min:0',
-            'img_herramienta.*'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_herramienta.*'           => 'nullable|string|max:150',
-            'img_accesorio.*'             => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_accesorio.*'             => 'nullable|string|max:150',
-            'img_tornilleria.*'           => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_tornilleria.*'           => 'nullable|string|max:150',
+            'profundidad_corte' => 'nullable|numeric|min:0',
+            'rpm' => 'nullable|integer|min:0',
+            'avances' => 'nullable|string|max:100',
+            'minimo' => 'nullable|integer|min:0',
+            'maximo' => 'nullable|integer|min:0',
+            'img_herramienta.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_herramienta.*' => 'nullable|string|max:150',
+            'img_accesorio.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_accesorio.*' => 'nullable|string|max:150',
+            'img_tornilleria.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_tornilleria.*' => 'nullable|string|max:150',
             'img_tornilleria_accesorio.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
             'nom_tornilleria_accesorio.*' => 'nullable|string|max:150',
-            'img_imagen_fisica.*'         => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
-            'nom_imagen_fisica.*'         => 'nullable|string|max:150',
-            'delete_img_ids'              => 'nullable|array',
-            'delete_img_ids.*'            => 'integer',
+            'img_imagen_fisica.*' => 'nullable|file|mimes:jpg,jpeg,png,webp|max:8192',
+            'nom_imagen_fisica.*' => 'nullable|string|max:150',
+            'delete_img_ids' => 'nullable|array',
+            'delete_img_ids.*' => 'integer',
         ]);
 
         $camposBase = collect($validated)->only([
-            'nombre_herramienta', 'descripcion_herramienta', 'descripcion_inserto',
-            'nombre_accesorio', 'accesorios', 'cantidad_portaherramientas',
-            'profundidad_corte', 'rpm', 'avances', 'minimo', 'maximo',
+            'nombre_herramienta',
+            'descripcion_herramienta',
+            'descripcion_inserto',
+            'nombre_accesorio',
+            'accesorios',
+            'cantidad_portaherramientas',
+            'profundidad_corte',
+            'rpm',
+            'avances',
+            'minimo',
+            'maximo',
         ])->toArray();
         $camposBase['proceso'] = array_values(array_filter($request->input('proceso', [])));
 
@@ -241,7 +283,8 @@ class HerramientasTecamacController extends Controller
                 ->where('herramienta_id', '=', $h->id, 'and')->get();
             foreach ($toDelete as $img) {
                 $path = public_path($img->ruta);
-                if (file_exists($path)) @unlink($path);
+                if (file_exists($path))
+                    @unlink($path);
                 $img->delete();
             }
         }
@@ -249,9 +292,9 @@ class HerramientasTecamacController extends Controller
         $this->guardarImagenesMultiples($request, $h);
 
         return response()->json([
-            'ok'          => true,
+            'ok' => true,
             'herramienta' => $h->load('imagenes')->fresh(),
-            'message'     => 'Herramienta actualizada correctamente.',
+            'message' => 'Herramienta actualizada correctamente.',
         ]);
     }
 
@@ -275,10 +318,10 @@ class HerramientasTecamacController extends Controller
         ]);
 
         return response()->json([
-            'ok'      => true,
+            'ok' => true,
             'message' => 'Stock actualizado correctamente.',
-            'minimo'  => $h->fresh()->minimo,
-            'maximo'  => $h->fresh()->maximo,
+            'minimo' => $h->fresh()->minimo,
+            'maximo' => $h->fresh()->maximo,
         ]);
     }
 
@@ -326,17 +369,18 @@ class HerramientasTecamacController extends Controller
             'imagen' => 'required|file|mimes:jpg,jpeg,png,webp|max:8192',
         ]);
 
-        $img  = HerramientaImagen::findOrFail($imgId);
+        $img = HerramientaImagen::findOrFail($imgId);
 
         // Eliminar archivo anterior
         $oldPath = public_path($img->ruta);
-        if (file_exists($oldPath)) @unlink($oldPath);
+        if (file_exists($oldPath))
+            @unlink($oldPath);
 
         // Guardar nuevo archivo
         $img->update(['ruta' => $this->guardarImagen($request->file('imagen'))]);
 
         return response()->json([
-            'ok'  => true,
+            'ok' => true,
             'url' => asset($img->ruta),
             'message' => 'Imagen sustituida correctamente.',
         ]);
@@ -354,23 +398,25 @@ class HerramientasTecamacController extends Controller
         }
 
         foreach (self::TIPOS_IMAGEN as $tipo) {
-            $fileKey   = 'img_' . $tipo;
+            $fileKey = 'img_' . $tipo;
             $nombreKey = 'nom_' . $tipo;
 
-            if (!$request->hasFile($fileKey)) continue;
+            if (!$request->hasFile($fileKey))
+                continue;
 
-            $files   = $request->file($fileKey);
+            $files = $request->file($fileKey);
             $nombres = $request->input($nombreKey, []);
 
             foreach ($files as $idx => $file) {
-                if (!$file || !$file->isValid()) continue;
+                if (!$file || !$file->isValid())
+                    continue;
                 $ordenBase[$tipo]++;
                 HerramientaImagen::create([
                     'herramienta_id' => $h->id,
-                    'tipo'           => $tipo,
-                    'nombre'         => $nombres[$idx] ?? null,
-                    'ruta'           => $this->guardarImagen($file),
-                    'orden'          => $ordenBase[$tipo],
+                    'tipo' => $tipo,
+                    'nombre' => $nombres[$idx] ?? null,
+                    'ruta' => $this->guardarImagen($file),
+                    'orden' => $ordenBase[$tipo],
                 ]);
             }
         }
@@ -382,9 +428,10 @@ class HerramientasTecamacController extends Controller
      */
     private function guardarImagen($file): string
     {
-        $nombre  = time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+        $nombre = time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
         $destino = public_path(self::DIR_PUBLIC);
-        if (!is_dir($destino)) mkdir($destino, 0755, true);
+        if (!is_dir($destino))
+            mkdir($destino, 0755, true);
         $file->move($destino, $nombre);
         return self::DIR_PUBLIC . '/' . $nombre;
     }

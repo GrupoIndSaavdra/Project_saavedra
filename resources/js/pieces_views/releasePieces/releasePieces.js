@@ -70,135 +70,249 @@ document.addEventListener("click", (e) => {
     }
 });
 
-let isRenderingChunks = true;
+let allMappedPieces = [];
+let currentFilteredPieces = [];
+let currentPage = 1;
+let pageSize = 50;
+let currentSortColumn = -1;
+let currentSortDirection = "none";
+const profileValue = 'quality';
+const esc = (v) => v ? String(v).replace(/"/g, '&quot;').replace(/>/g, '&gt;').replace(/</g, '&lt;') : '';
 
-function crearTabla(piezas, infoPiezas) {
-    isRenderingChunks = true;
+function renderCurrentPage() {
     const table = document.querySelector(".table");
-    // Limpiar cualquier tbody existente para evitar duplicidad y que los filtros respondan correctamente
-    const oldTbodies = table.querySelectorAll("tbody");
-    oldTbodies.forEach(tb => tb.remove());
+    if (!table) return;
 
-    const tbody = document.createElement("tbody");
-    table.appendChild(tbody);
+    let tbody = table.querySelector("tbody");
+    if (!tbody) {
+        tbody = document.createElement("tbody");
+        table.appendChild(tbody);
 
-    // Delegación de eventos para los botones de liberar/rechazar
-    tbody.addEventListener("click", (e) => {
-        const btn = e.target.closest(".btn-action-liberar, .btn-action-rechazar");
-        if (!btn) return;
-        e.preventDefault();
+        tbody.addEventListener("click", (e) => {
+            const btn = e.target.closest(".btn-action-liberar, .btn-action-rechazar");
+            if (!btn) return;
+            e.preventDefault();
 
-        const dataPieza = btn.getAttribute("data-pieza");
-        const proceso = btn.getAttribute("data-proceso");
+            const dataPieza = btn.getAttribute("data-pieza");
+            const proceso = btn.getAttribute("data-proceso");
 
-        if (btn.classList.contains("btn-action-liberar")) {
-            create_ObservationsField({
-                pieza: dataPieza,
-                proceso: proceso,
-                liberar: true,
-                buena: btn.getAttribute("data-buena") === "true",
-            });
-        } else {
-            create_ObservationsField({
-                pieza: dataPieza,
-                proceso: proceso,
-                liberar: false,
-                buena: false,
-            });
+            if (btn.classList.contains("btn-action-liberar")) {
+                create_ObservationsField({
+                    pieza: dataPieza,
+                    proceso: proceso,
+                    liberar: true,
+                    buena: btn.getAttribute("data-buena") === "true",
+                });
+            } else {
+                create_ObservationsField({
+                    pieza: dataPieza,
+                    proceso: proceso,
+                    liberar: false,
+                    buena: false,
+                });
+            }
+        });
+    }
+
+    const totalCount = currentFilteredPieces.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, totalCount);
+    const pageItems = currentFilteredPieces.slice(startIdx, endIdx);
+
+    let html = "";
+    for (let i = 0; i < pageItems.length; i++) {
+        let data = pageItems[i];
+        let piezaOG = data.original;
+        let infoP = data.info;
+        let pieza = data.ordered;
+        let piezasIds = infoP[0].join(",");
+        let origIdx = data.originalIndex !== undefined ? data.originalIndex : (startIdx + i);
+
+        html += `<tr style="background-color: ${pieza.colorPiece};"
+            data-original-index="${origIdx}"
+            data-color="${esc(pieza.colorPiece).toUpperCase()}"
+            data-workorder="${esc(pieza.workOrder)}"
+            data-class="${esc(pieza.class)}"
+            data-operator="${esc(pieza.operator)}"
+            data-machine="${esc(pieza.machine)}"
+            data-process="${esc(pieza.process)}"
+            data-error="${esc(pieza.errors)}"
+            data-date="${esc(pieza.machinedDate)}"
+            data-njuego="${esc(pieza.noAssembly)}"
+        >`;
+
+        Object.keys(pieza).forEach((key) => {
+            if (key !== "colorPiece") {
+                let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
+
+                if (key === "btn_release") {
+                    let btnHtml = "";
+                    if (!pieza[key][1].includes("Incompleto") && pieza[key][0] != 1) {
+                        let bool = (infoP[2] == "Ninguno" && piezaOG[9] != 2);
+                        btnHtml = `<a class="btn-liberar btn-action-liberar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}" data-buena="${bool}"><img src="${window.liberar}" alt="Liberar" class="ver"></a>`;
+                    }
+                    html += `<td>${btnHtml}</td>`;
+                } else if (key === "btn_decline") {
+                    let btnHtml = "";
+                    if (pieza[key] != 2) {
+                        btnHtml = `<a class="btn-liberar btn-action-rechazar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}"><img src="${window.rechazar}" alt="Rechazar" class="ver"></a>`;
+                    }
+                    html += `<td>${btnHtml}</td>`;
+                } else if (key === "btn_seePiece") {
+                    let url = `${window.baseUrl}/pieces/${piezasIds}/${infoP[1]}/${profileValue}`;
+                    html += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver" class="ver"></a></td>`;
+                } else {
+                    let cellClass = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' class="wide-cell"' : '';
+                    html += `<td${cellClass}>${cellValue}</td>`;
+                }
+            }
+        });
+        html += `</tr>`;
+    }
+
+    if (totalCount === 0) {
+        html = `<tr class="empty-row"><td colspan="15" style="text-align: center; padding: 25px; color: #64748b; font-weight: 600;">No se encontraron piezas con los filtros seleccionados.</td></tr>`;
+    }
+
+    tbody.innerHTML = html;
+
+    updatePaginationUI(totalCount, totalPages, startIdx, endIdx);
+
+    const loading = document.querySelector('.loading');
+    if (loading) loading.hidden = true;
+}
+
+function updatePaginationUI(totalCount, totalPages, startIdx, endIdx) {
+    let totalLabel = document.querySelector(".total-records-found");
+    if (!totalLabel) return;
+
+    const grandTotal = (allMappedPieces && allMappedPieces.length) ? allMappedPieces.length : totalCount;
+
+    totalLabel.innerHTML = `
+        <nav class="gis-unified-pagination" aria-label="Navegación de piezas">
+            <div class="gis-pagination-left">
+                <span class="gis-pagination-stat-badge">
+                    <span class="gis-pagination-stat-dot"></span>
+                    <span>Total: <strong>${grandTotal.toLocaleString()}</strong></span>
+                    ${totalCount !== grandTotal ? `<span style="color:rgba(255,255,255,0.4); margin:0 4px;">|</span><span style="color:#7dd3fc;">Filtradas: <strong>${totalCount.toLocaleString()}</strong></span>` : ''}
+                </span>
+
+                <div class="gis-pagination-select-wrap">
+                    <label for="pieces-page-size-select">Filas:</label>
+                    <select id="pieces-page-size-select" class="gis-pagination-select" aria-label="Cantidad de filas por página">
+                        <option value="50" ${pageSize === 50 ? 'selected' : ''}>50</option>
+                        <option value="100" ${pageSize === 100 ? 'selected' : ''}>100</option>
+                        <option value="250" ${pageSize === 250 ? 'selected' : ''}>250</option>
+                        <option value="500" ${pageSize === 500 ? 'selected' : ''}>500</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="gis-pagination-center">
+                <span class="gis-pagination-range-pill">
+                    ${totalCount === 0 
+                        ? 'Sin piezas registradas con estos filtros' 
+                        : `Mostrando <strong>${(startIdx + 1).toLocaleString()} - ${endIdx.toLocaleString()}</strong> de <strong>${totalCount.toLocaleString()}</strong> piezas &nbsp;•&nbsp; Pág. <strong>${currentPage}</strong> de <strong>${totalPages}</strong>`}
+                </span>
+            </div>
+
+            <div class="gis-pagination-right">
+                <button type="button" 
+                        class="gis-pagination-btn-nav gis-pagination-btn-icon-only ${currentPage <= 1 ? 'disabled-btn' : 'active-btn'}" 
+                        id="pieces-btn-first" 
+                        title="Primera página" 
+                        ${currentPage <= 1 ? 'disabled' : ''}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="11 17 6 12 11 7"></polyline>
+                        <polyline points="18 17 13 12 18 7"></polyline>
+                    </svg>
+                </button>
+
+                <button type="button" 
+                        class="gis-pagination-btn-nav ${currentPage <= 1 ? 'disabled-btn' : 'active-btn'}" 
+                        id="pieces-btn-prev" 
+                        title="Página anterior" 
+                        ${currentPage <= 1 ? 'disabled' : ''}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    <span>Anterior</span>
+                </button>
+
+                <button type="button" 
+                        class="gis-pagination-btn-nav ${currentPage >= totalPages ? 'disabled-btn' : 'active-btn'}" 
+                        id="pieces-btn-next" 
+                        title="Página siguiente" 
+                        ${currentPage >= totalPages ? 'disabled' : ''}>
+                    <span>Siguiente</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+
+                <button type="button" 
+                        class="gis-pagination-btn-nav gis-pagination-btn-icon-only ${currentPage >= totalPages ? 'disabled-btn' : 'active-btn'}" 
+                        id="pieces-btn-last" 
+                        title="Última página" 
+                        ${currentPage >= totalPages ? 'disabled' : ''}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="13 17 18 12 13 7"></polyline>
+                        <polyline points="6 17 11 12 6 7"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    `;
+
+    document.getElementById("pieces-btn-first")?.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage = 1;
+            renderCurrentPage();
+            document.querySelector(".div-table")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     });
 
-    const CHUNK_SIZE = 500;
-    let index = 0;
-    const esc = (v) => v ? String(v).replace(/"/g, '&quot;').replace(/>/g, '&gt;').replace(/</g, '&lt;') : '';
-
-    // releasePieces usa 'quality' como perfil por defecto
-    const profileValue = 'quality';
-
-    function renderNextChunk() {
-        let chunkHtml = "";
-        const limit = Math.min(index + CHUNK_SIZE, piezas.length);
-
-        for (; index < limit; index++) {
-            let data = piezas[index]; // Ahora recibimos objetos ya mapeados { original, info, ordered }
-            let piezaOG = data.original;
-            let infoP = data.info;
-            let pieza = data.ordered;
-
-            // Para el atributo data-pieza usamos join para ser más rápidos que JSON.stringify
-            let piezasIds = infoP[0].join(",");
-
-            chunkHtml += `<tr style="background-color: ${pieza.colorPiece};"
-                data-original-index="${index}"
-                data-color="${esc(pieza.colorPiece).toUpperCase()}"
-                data-workorder="${esc(pieza.workOrder)}"
-                data-class="${esc(pieza.class)}"
-                data-operator="${esc(pieza.operator)}"
-                data-machine="${esc(pieza.machine)}"
-                data-process="${esc(pieza.process)}"
-                data-error="${esc(pieza.errors)}"
-                data-date="${esc(pieza.machinedDate)}"
-                data-njuego="${esc(pieza.noAssembly)}"
-            >`;
-
-            Object.keys(pieza).forEach((key) => {
-                if (key !== "colorPiece") {
-                    let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
-
-                    if (key === "btn_release") {
-                        let btnHtml = "";
-                        // Logic de negocio original
-                        if (!pieza[key][1].includes("Incompleto") && pieza[key][0] != 1) {
-                            let bool = (infoP[2] == "Ninguno" && piezaOG[9] != 2);
-                            btnHtml = `<a class="btn-liberar btn-action-liberar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}" data-buena="${bool}"><img src="${window.liberar}" alt="Liberar" class="ver"></a>`;
-                        }
-                        chunkHtml += `<td>${btnHtml}</td>`;
-                    } else if (key === "btn_decline") {
-                        let btnHtml = "";
-                        if (pieza[key] != 2) {
-                            btnHtml = `<a class="btn-liberar btn-action-rechazar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}"><img src="${window.rechazar}" alt="Rechazar" class="ver"></a>`;
-                        }
-                        chunkHtml += `<td>${btnHtml}</td>`;
-                    } else if (key === "btn_seePiece") {
-                        let url = `${window.baseUrl}/pieces/${piezasIds}/${infoP[1]}/${profileValue}`;
-                        chunkHtml += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver" class="ver"></a></td>`;
-                    } else {
-                        let cellClass = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' class="wide-cell"' : '';
-                        chunkHtml += `<td${cellClass}>${cellValue}</td>`;
-                    }
-                }
-            });
-            chunkHtml += `</tr>`;
+    document.getElementById("pieces-btn-prev")?.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderCurrentPage();
+            document.querySelector(".div-table")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+    });
 
-        tbody.innerHTML += chunkHtml;
-
-        const totalCount = piezas.length;
-        const currentLoaded = Math.min(index, totalCount);
-        const totalLabel = document.querySelector(".total-records-found");
-
-        if (index < totalCount) {
-            const percent = Math.round((currentLoaded / totalCount) * 100);
-            if (totalLabel) {
-                totalLabel.innerHTML = `
-                    <span class="loading-progress-container">
-                        <span class="loading-pulse-dot"></span>
-                        <span>Cargando registros: <strong>${currentLoaded.toLocaleString()}</strong> de <strong>${totalCount.toLocaleString()}</strong> (${percent}%)</span>
-                        <span class="loading-progress-bar-bg"><span class="loading-progress-bar-fill" style="width: ${percent}%;"></span></span>
-                    </span>
-                `;
-            }
-            requestAnimationFrame(renderNextChunk);
-        } else {
-            isRenderingChunks = false;
-            applyAllFilters();
-            initTableSorting();
-            const loading = document.querySelector('.loading');
-            if (loading) loading.hidden = true;
+    document.getElementById("pieces-btn-next")?.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderCurrentPage();
+            document.querySelector(".div-table")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
-    }
+    });
 
-    renderNextChunk();
+    document.getElementById("pieces-btn-last")?.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage = totalPages;
+            renderCurrentPage();
+            document.querySelector(".div-table")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+
+    document.getElementById("pieces-page-size-select")?.addEventListener("change", function() {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        renderCurrentPage();
+    });
+}
+
+function crearTabla(piezas, infoPiezas) {
+    allMappedPieces = piezas || [];
+    currentFilteredPieces = [...allMappedPieces];
+    currentPage = 1;
+    renderCurrentPage();
+    initTableSorting();
 }
 function asignColorTr(status, error, process) {
     switch (status) {
@@ -903,54 +1017,55 @@ function initTableSorting() {
  * Ordena las filas del tbody según la columna y dirección especificada.
  */
 function sortTable(colIndex, direction) {
-    const tbody = document.querySelector(".table tbody");
-    if (!tbody) return;
-    const rows = Array.from(tbody.querySelectorAll("tr"));
-    if (rows.length === 0) return;
+    currentSortColumn = colIndex;
+    currentSortDirection = direction;
 
     if (direction === "none") {
-        rows.sort((a, b) => {
-            const idxA = parseInt(a.dataset.originalIndex || "0", 10);
-            const idxB = parseInt(b.dataset.originalIndex || "0", 10);
+        currentFilteredPieces.sort((a, b) => {
+            const idxA = a.originalIndex !== undefined ? a.originalIndex : 0;
+            const idxB = b.originalIndex !== undefined ? b.originalIndex : 0;
             return idxA - idxB;
         });
     } else {
-        rows.sort((a, b) => {
-            const cellA = (a.children[colIndex] ? a.children[colIndex].textContent : "").trim();
-            const cellB = (b.children[colIndex] ? b.children[colIndex].textContent : "").trim();
+        const colKeys = [
+            "class", "workOrder", "noAssembly", "operator", "machine",
+            "process", "errors", "observations", "machinedDate",
+            "liberationDate", "user_liberation", "observacion_liberacion"
+        ];
+        const key = colKeys[colIndex];
 
-            if (cellA === cellB) return 0;
-            if (cellA === "" || cellA === "No liberado" || cellA === "N/A") return 1;
-            if (cellB === "" || cellB === "No liberado" || cellB === "N/A") return -1;
+        currentFilteredPieces.sort((a, b) => {
+            let valA = (key && a.ordered[key] !== undefined && a.ordered[key] !== null) ? String(a.ordered[key]).trim() : "";
+            let valB = (key && b.ordered[key] !== undefined && b.ordered[key] !== null) ? String(b.ordered[key]).trim() : "";
 
-            // 1. Orden numérico natural para Juego (ej. "1J", "2J", "10J", "100J")
-            const matchA = cellA.match(/^(\d+)(.*)$/);
-            const matchB = cellB.match(/^(\d+)(.*)$/);
-            if (matchA && matchB) {
-                const numDiff = parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
-                if (numDiff !== 0) {
-                    return direction === "asc" ? numDiff : -numDiff;
+            if (valA === valB) return 0;
+            if (valA === "" || valA === "No liberado" || valA === "N/A") return 1;
+            if (valB === "" || valB === "No liberado" || valB === "N/A") return -1;
+
+            if (key === "noAssembly") {
+                const matchA = valA.match(/^(\d+)(.*)$/);
+                const matchB = valB.match(/^(\d+)(.*)$/);
+                if (matchA && matchB) {
+                    const numDiff = parseInt(matchA[1], 10) - parseInt(matchB[1], 10);
+                    if (numDiff !== 0) return direction === "asc" ? numDiff : -numDiff;
+                    const suffixDiff = matchA[2].localeCompare(matchB[2]);
+                    return direction === "asc" ? suffixDiff : -suffixDiff;
                 }
-                const suffixDiff = matchA[2].localeCompare(matchB[2]);
-                return direction === "asc" ? suffixDiff : -suffixDiff;
             }
 
-            // 2. Comprobación numérica pura (ej. Máquina, OT)
-            const numA = Number(cellA);
-            const numB = Number(cellB);
-            if (!isNaN(numA) && !isNaN(numB)) {
+            const numA = Number(valA);
+            const numB = Number(valB);
+            if (!isNaN(numA) && !isNaN(numB) && valA !== "" && valB !== "") {
                 return direction === "asc" ? numA - numB : numB - numA;
             }
 
-            // 3. Comparación de texto / fecha
-            const comp = cellA.localeCompare(cellB, 'es', { numeric: true, sensitivity: 'base' });
+            const comp = valA.localeCompare(valB, 'es', { numeric: true, sensitivity: 'base' });
             return direction === "asc" ? comp : -comp;
         });
     }
 
-    const fragment = document.createDocumentFragment();
-    rows.forEach(r => fragment.appendChild(r));
-    tbody.appendChild(fragment);
+    currentPage = 1;
+    renderCurrentPage();
 }
 
 /**
@@ -964,6 +1079,8 @@ function resetAllSorting() {
         if (img) img.src = getThSortIcon("sin_orden");
     });
     updateOrderFilterBadge(null, "none");
+    currentSortColumn = -1;
+    currentSortDirection = "none";
     sortTable(0, "none");
 }
 
@@ -1044,24 +1161,20 @@ function updateStatusPersonFilter(statusValue) {
     // Resto → operador (data-operator)
     const useOperator = (statusValue === "#90EE90" || statusValue === "#DDA0DD" || statusValue === "#FFD700");
 
-    const rows = document.querySelectorAll(".table tbody tr");
     let personSet = new Set();
+    const sourcePieces = (allMappedPieces && allMappedPieces.length > 0) ? allMappedPieces : [];
 
-    rows.forEach(row => {
-        let rowColor = (row.dataset.color || "").toUpperCase();
+    sourcePieces.forEach(item => {
+        let ord = item.ordered;
+        let rowColor = (ord.colorPiece || "").toUpperCase();
         if (rowColor !== statusValue.toUpperCase()) return;
 
         if (useOperator) {
-            let ops = String(row.dataset.operator || "").split("/").map(o => o.trim()).filter(Boolean);
+            let ops = String(ord.operator || "").split("/").map(o => o.trim()).filter(Boolean);
             ops.forEach(op => { if (op) personSet.add(op); });
         } else {
-            let liberador = row.dataset.liberador || "";
-            if (!liberador) {
-                // En releasePieces la columna "Liberado por" es la índice 10
-                let cells = row.querySelectorAll("td");
-                if (cells[10]) liberador = cells[10].textContent.trim();
-            }
-            if (liberador) personSet.add(liberador);
+            let liberador = String(ord.user_liberation || "").trim();
+            if (liberador && liberador !== "No liberado" && liberador !== "—") personSet.add(liberador);
         }
     });
 
@@ -1089,29 +1202,20 @@ function updateStatusPersonFilter(statusValue) {
 }
 
 function applyAllFilters() {
-    if (isRenderingChunks) return;
-    let visibleCount = 0;
     const getVal = (name) => {
         let el = document.querySelector(`[name="${name}"]`);
         if (!el) return "Todos";
         if (name === "operator") {
-            return el.options[el.selectedIndex].textContent.trim();
+            return (el.options && el.selectedIndex >= 0 && el.options[el.selectedIndex])
+                ? el.options[el.selectedIndex].textContent.trim()
+                : "Todos";
         }
         if (name === "dateFrom" || name === "dateTo") {
-            let v = el.value.trim();
+            let v = el.value ? el.value.trim() : "";
             return (v === "Todos" || !v || !/^\d{4}-\d{2}-\d{2}$/.test(v)) ? "" : v;
         }
-        return el.value.trim();
+        return el.value !== undefined ? el.value.trim() : "Todos";
     };
-
-    let statusFilterEl = document.getElementById("statusPieceFilter");
-    let statusFilter = statusFilterEl ? statusFilterEl.value : "Todos";
-
-    let statusPersonFilterEl = document.getElementById("statusPersonFilter");
-    let statusPersonFilter = statusPersonFilterEl ? statusPersonFilterEl.value : "Todos";
-
-    // Liberadas/Rechazadas → filtrar por liberador; resto → filtrar por operador
-    const personUsesOperator = (statusFilter === "#90EE90" || statusFilter === "#DDA0DD" || statusFilter === "#FFD700");
 
     let f = {
         workOrder: getVal("workOrder"),
@@ -1125,128 +1229,105 @@ function applyAllFilters() {
         n_juego: getVal("n_juego")
     };
 
-    const rows = document.querySelectorAll(".table tbody tr");
-    rows.forEach(row => {
-        let show = true;
-        let ds = row.dataset;
+    let statusFilterEl = document.getElementById("statusPieceFilter");
+    let statusFilter = statusFilterEl ? statusFilterEl.value : "Todos";
+
+    let statusPersonFilterEl = document.getElementById("statusPersonFilter");
+    let statusPersonFilter = statusPersonFilterEl ? statusPersonFilterEl.value : "Todos";
+
+    const personUsesOperator = (statusFilter === "#90EE90" || statusFilter === "#DDA0DD" || statusFilter === "#FFD700");
+
+    currentFilteredPieces = allMappedPieces.filter(data => {
+        let ord = data.ordered;
 
         if (f.workOrder && f.workOrder !== "Todos") {
-            let dsId = String(ds.workorder).split(' ')[0].split('-')[0].trim();
+            let dsId = String(ord.workOrder).split(' ')[0].split('-')[0].trim();
             let fId = String(f.workOrder).split(' ')[0].split('-')[0].trim();
-            if (dsId !== fId) show = false;
-        }
-        if (f.class && f.class !== "Todos" && String(ds.class).trim() !== f.class) show = false;
-        if (f.operator && f.operator !== "Todos") {
-            let rowOperators = String(ds.operator).split('/').map(op => op.trim());
-            if (!rowOperators.includes(f.operator)) show = false;
+            if (dsId !== fId) return false;
         }
 
+        if (f.class && f.class !== "Todos" && String(ord.class).trim() !== f.class) return false;
+
+        if (f.operator && f.operator !== "Todos") {
+            let rowOperators = String(ord.operator).split('/').map(op => op.trim());
+            if (!rowOperators.includes(f.operator)) return false;
+        }
 
         if (f.machine && f.machine !== "Todos") {
             let mach = f.machine.replace(" y ", "_");
-            let strMach = String(ds.machine).trim();
-            if (strMach !== f.machine && strMach !== mach) show = false;
+            let strMach = String(ord.machine).trim();
+            if (f.machine.includes("_")) {
+                let parts = f.machine.split("_");
+                if (!parts.includes(strMach) && strMach !== f.machine && strMach !== mach) return false;
+            } else {
+                if (strMach !== f.machine && strMach !== mach) return false;
+            }
         }
 
-        if (f.process && f.process !== "Todos" && String(ds.process).trim() !== f.process) show = false;
+        if (f.process && f.process !== "Todos" && String(ord.process).trim() !== f.process) return false;
 
         if (f.error && f.error !== "Todos") {
-            let err = typeof ds.error === "string" && ds.error.trim() !== "" ? ds.error : "Ninguno";
+            let err = typeof ord.errors === "string" && ord.errors.trim() !== "" ? ord.errors : "Ninguno";
             if (f.error === "Ninguno") {
-                if (err.toLowerCase() !== "ninguno" && err !== "") show = false;
+                if (err.toLowerCase() !== "ninguno" && err !== "") return false;
             } else {
-                if (!err.toLowerCase().includes(f.error.toLowerCase())) show = false;
+                if (!err.toLowerCase().includes(f.error.toLowerCase())) return false;
             }
         }
 
-        if (f.n_juego && f.n_juego !== "Todos" && ds.njuego) {
-            let numPiece = String(ds.njuego).replace(/[^0-9]/g, "");
+        if (f.n_juego && f.n_juego !== "Todos" && ord.noAssembly) {
+            let numPiece = String(ord.noAssembly).replace(/[^0-9]/g, "");
             let numFilter = String(f.n_juego).replace(/[^0-9]/g, "");
-            if (numPiece !== numFilter && String(ds.njuego).trim() !== f.n_juego) show = false;
+            if (numPiece !== numFilter && String(ord.noAssembly).trim() !== f.n_juego) return false;
         }
 
-        if (statusFilter !== "Todos" && ds.color) {
-            if (ds.color !== statusFilter.toUpperCase()) show = false;
+        if (statusFilter !== "Todos" && ord.colorPiece) {
+            if (ord.colorPiece.toUpperCase() !== statusFilter.toUpperCase()) return false;
         }
 
-        // Filtro de Persona (solo activo si Estado != Todos)
         if (statusFilter !== "Todos" && statusPersonFilter && statusPersonFilter !== "Todos") {
             if (personUsesOperator) {
-                let rowOps = String(ds.operator || "").split("/").map(o => o.trim());
-                if (!rowOps.includes(statusPersonFilter)) show = false;
+                let rowOps = String(ord.operator || "").split("/").map(o => o.trim());
+                if (!rowOps.includes(statusPersonFilter)) return false;
             } else {
-                let liberador = ds.liberador || "";
-                if (!liberador) {
-                    // En releasePieces la columna "Liberado por" es índice 10
-                    let cells = row.querySelectorAll("td");
-                    if (cells[10]) liberador = cells[10].textContent.trim();
-                }
-                if (liberador !== statusPersonFilter) show = false;
+                let liberador = String(ord.user_liberation || "").trim();
+                if (liberador !== statusPersonFilter) return false;
             }
         }
 
-        // Filtro de fecha: se aplica sobre la fecha de maquinado (machinedDate)
-        // El estado de liberación es irrelevante para este filtro.
-        // Si la pieza tiene fecha de maquinado válida, se compara contra el rango.
-        // Si no tiene fecha de maquinado (caso borde), se muestra igualmente.
-        if (ds.date && ds.date.trim() !== "" && ds.date !== "No liberado") {
-            let dsDate = ds.date.replace(/\n/g, "").trim().split(" ")[0];
+        if (ord.machinedDate && ord.machinedDate.trim() !== "" && ord.machinedDate !== "No liberado") {
+            let dsDate = ord.machinedDate.replace(/\n/g, "").trim().split(" ")[0];
             if (f.dateFrom && f.dateFrom !== "" && f.dateFrom !== "Todos") {
-                if (dsDate < f.dateFrom) show = false;
+                if (dsDate < f.dateFrom) return false;
             }
             if (f.dateTo && f.dateTo !== "" && f.dateTo !== "Todos") {
-                if (dsDate > f.dateTo) show = false;
+                if (dsDate > f.dateTo) return false;
             }
         }
 
-        row.classList.toggle("hidden", !(show));
-        if (show) visibleCount++;
+        return true;
     });
 
-    let totalLabel = document.querySelector(".total-records-found");
-    if (totalLabel) {
-        const totalCount = (window.pieces && window.pieces.length) ? window.pieces.length : visibleCount;
-        if (visibleCount === totalCount) {
-            totalLabel.innerHTML = `
-                <span class="records-completed-badge">
-                    <span class="badge-status-dot"></span>
-                    <span>Registros cargados: <strong>${totalCount.toLocaleString()}</strong></span>
-                </span>
-            `;
-        } else {
-            totalLabel.innerHTML = `
-                <span class="records-completed-badge">
-                    <span class="badge-status-dot"></span>
-                    <span>Encontrados: <strong>${totalCount.toLocaleString()}</strong> <span class="badge-divider">|</span> Mostrados: <strong>${visibleCount.toLocaleString()}</strong></span>
-                </span>
-            `;
-        }
+    if (currentSortColumn >= 0 && currentSortDirection !== "none") {
+        sortTable(currentSortColumn, currentSortDirection);
+    } else {
+        currentPage = 1;
+        renderCurrentPage();
+    }
 
-        // Eliminar nota explicativa plana para un diseño completamente limpio
-        let explanation = document.querySelector(".filter-explanation");
-        if (explanation) explanation.remove();
-
-        // Eliminar banner DOM antiguo si existe
-        let oldNoData = document.getElementById("no-data-alert");
-        if (oldNoData) oldNoData.remove();
-
-        // Notificación lateral si no se encuentran datos al filtrar
-        if (visibleCount === 0 && !isRenderingChunks) {
-            if (typeof window.gisToast === "function") {
-                window.gisToast("No se encontraron registros para los filtros aplicados", "warning");
-            }
+    if (currentFilteredPieces.length === 0) {
+        if (typeof window.gisToast === "function") {
+            window.gisToast("No se encontraron registros para los filtros aplicados", "warning");
         }
     }
 
     if (window.updateClearButtonState) window.updateClearButtonState();
 
-    // Actualizar opciones del filtro de persona si el estado está activo
     let curStatus = statusFilterEl ? statusFilterEl.value : "Todos";
-    if (curStatus !== "Todos") {
+    if (curStatus !== "Todos" && typeof updateStatusPersonFilter === "function") {
         updateStatusPersonFilter(curStatus);
     }
 
-    // Guardar filtros en sessionStorage
     sessionStorage.setItem('adminPiecesFilters', JSON.stringify(f));
 }
 
@@ -1257,7 +1338,8 @@ function sortPiezasDatabaseOrder(piezas, infoPiezas) {
         return {
             original: p,
             info: infoPiezas[i],
-            ordered: orderedArray(p)
+            ordered: orderedArray(p),
+            originalIndex: i
         };
     }).filter(m => m !== null);
 

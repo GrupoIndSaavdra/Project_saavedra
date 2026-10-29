@@ -31,7 +31,7 @@ function createTable(moldings, form) {
         let th = document.createElement("th");
         th.textContent = header;
         if (index == 1) {
-            th.style.width = "280px";
+            th.style.width = "320px";
         }
         tr.appendChild(th);
     });

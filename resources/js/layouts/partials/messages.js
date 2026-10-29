@@ -53,7 +53,6 @@ function toastpremium(message, type = "success") {
             showConfirmButton: false,
             timer: 3200,
             timerProgressBar: true,
-            backdrop: false,
             icon: swalIcon,
             title: message,
             showClass: {

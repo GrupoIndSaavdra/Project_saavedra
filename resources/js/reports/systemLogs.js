@@ -71,71 +71,65 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ---------------------------------------------------------
-    // LÓGICA DE CARGA DINÁMICA (PAGINACIÓN AJAX)
+    // LÓGICA DE CARGA DINÁMICA (PAGINACIÓN AJAX CON DELEGACIÓN DE EVENTOS)
     // ---------------------------------------------------------
-    const btnLoadMore = document.getElementById('btn-load-more');
-    const loadMoreContainer = document.getElementById('load-more-container');
-    const currentCountSpan = document.getElementById('current-count');
+    let isLoadingMoreLogs = false;
+    document.addEventListener('click', async (e) => {
+        const btnLoadMore = e.target.closest('#btn-load-more');
+        if (!btnLoadMore) return;
+        if (!window.nextPageUrl || isLoadingMoreLogs) return;
 
-    if (btnLoadMore) {
-        btnLoadMore.addEventListener('click', async () => {
-            if (!window.nextPageUrl) return;
+        isLoadingMoreLogs = true;
+        btnLoadMore.disabled = true;
+        btnLoadMore.classList.add('opacity-70');
+        const originalHtml = btnLoadMore.innerHTML;
+        btnLoadMore.innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" class="animate-spin" style="animation: spin 1s linear infinite;">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"></circle>
+                <path fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+            </svg>
+            <span>Cargando...</span>
+        `;
 
-            btnLoadMore.disabled = true;
-            btnLoadMore.textContent = 'Cargando registros...';
-            btnLoadMore.classList.add('opacity-70');
-
-            try {
-                const response = await fetch(window.nextPageUrl, {
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    }
-                });
-                const data = await response.json();
-
-                if (data.logsData && data.logsData.length > 0) {
-                    // Usar la función existente para renderizar los nuevos registros (Append)
-                    crearTabla(data.logsData, true);
-
-                    // Actualizar estado de paginación
-                    window.nextPageUrl = data.next_page;
-                    window.hasMorePages = data.has_more;
-
-                    // Actualizar contadores visuales
-                    const totalFoundSpan = document.getElementById('total-found-count');
-                    const currentCountSpan = document.getElementById('current-count');
-
-                    if (totalFoundSpan && data.total_found !== undefined) {
-                        totalFoundSpan.textContent = data.total_found;
-                    }
-
-                    const currentRows = document.querySelectorAll('.table tbody tr').length;
-                    if (currentCountSpan) {
-                        currentCountSpan.textContent = currentRows;
-                    }
-
-                    // Mostrar/Ocultar botón según disponibilidad
-                    if (!window.hasMorePages || !window.nextPageUrl) {
-                        loadMoreContainer.classList.add("sys-display-none");
-                    }
+        try {
+            const response = await fetch(window.nextPageUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
-            } catch (error) {
-                console.error('Error al cargar más logs:', error);
-                if (window.toastpremium) {
-                    window.toastpremium('No se pudieron cargar más registros. Intente de nuevo.', 'error');
+            });
+            const data = await response.json();
+
+            if (data.logsData && data.logsData.length > 0) {
+                window.nextPageUrl = data.next_page;
+                window.hasMorePages = !!data.has_more;
+
+                crearTabla(data.logsData, true);
+
+                if (window.gisToast) {
+                    window.gisToast(`Se cargaron ${data.logsData.length} registros más`, 'success');
                 }
-            } finally {
-                btnLoadMore.disabled = false;
-                btnLoadMore.textContent = 'Cargar más registros...';
-                btnLoadMore.classList.remove('opacity-70');
+            } else {
+                window.hasMorePages = false;
+                renderCurrentPage();
             }
-        });
-    }
+        } catch (error) {
+            console.error('Error al cargar más logs:', error);
+            if (window.gisToast) {
+                window.gisToast('No se pudieron cargar más registros. Intente de nuevo.', 'error');
+            } else if (window.toastpremium) {
+                window.toastpremium('No se pudieron cargar más registros. Intente de nuevo.', 'error');
+            }
+            btnLoadMore.innerHTML = originalHtml;
+            btnLoadMore.disabled = false;
+            btnLoadMore.classList.remove('opacity-70');
+        } finally {
+            isLoadingMoreLogs = false;
+        }
+    });
 
     // ---------------------------------------------------------
     // LÓGICA DE DEPURACIÓN MANUAL (PURGE) — con progreso y bloqueo
     // ---------------------------------------------------------
-    const btnPurge   = document.getElementById('btn-manual-purge');
     const overlay    = document.getElementById('purge-progress-overlay');
     const progressBar = document.getElementById('purge-progress-bar');
     const statusText  = document.getElementById('purge-progress-status');
@@ -195,8 +189,9 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    if (btnPurge) {
-        btnPurge.addEventListener('click', async () => {
+    document.addEventListener('click', async (e) => {
+        const btnPurge = e.target.closest('#btn-manual-purge');
+        if (!btnPurge) return;
             // Bloquear si ya hay una depuración en curso
             if (isPurging) return;
 
@@ -289,10 +284,10 @@ document.addEventListener("DOMContentLoaded", () => {
                 isPurging = false;
                 btnPurge.disabled = false;
                 btnPurge.classList.remove('purge-btn-loading');
-                document.getElementById('purge-btn-text').textContent = 'Depurar Logs';
+                const textSpan = document.getElementById('purge-btn-text');
+                if (textSpan) textSpan.textContent = 'Depurar Logs';
             }
         });
-    }
 });
 
 /**
@@ -608,23 +603,18 @@ function createFilters() {
 let currentRenderId = null;
 let globalRowCounter = 0;
 
-function crearTabla(logs, append = false) {
-    if (currentRenderId && !append) {
-        cancelAnimationFrame(currentRenderId);
-    }
+let allLogs = [];
+let rawLogsBackup = [];
+let currentPage = 1;
+let pageSize = 50;
+
+
 
     // Tracker para detectar piezas que completan un juego (M + H)
-    const piezasTracker = new Set();
+    
 
-    const table = document.querySelector(".table");
-    let tbody = table.querySelector("tbody");
-    if (!tbody) {
-        tbody = document.createElement("tbody");
-        table.appendChild(tbody);
-    } else if (!append) {
-        tbody.innerHTML = "";
-        globalRowCounter = 0;
-    }
+    
+    
 
     // Función para asignar color vivo u oscuro según palabras clave en la descripción
     function getColorFromDescription(desc, action) {
@@ -792,18 +782,10 @@ function crearTabla(logs, append = false) {
         "Default": "#1B4F72"
     };
 
-    const CHUNK_SIZE = 500;
-    let index = 0;
-    const esc = (v) => v ? String(v).replace(/"/g, '&quot;').replace(/>/g, '&gt;').replace(/</g, '&lt;') : '';
+const esc = (v) => v ? String(v).replace(/"/g, '&quot;').replace(/>/g, '&gt;').replace(/</g, '&lt;') : '';
 
-    function renderNextChunk() {
-        let chunkHtml = "";
-        const limit = Math.min(index + CHUNK_SIZE, logs.length);
-
-        for (; index < limit; index++) {
-            let log = logs[index];
-
-            // Lógica de color por Acción o Descripción
+function renderLogRow(log, rowIndex) {
+// Lógica de color por Acción o Descripción
             let color = actionColors[log.action];
             if (!color || color === "#FFFFFF") {
                 color = getColorFromDescription(log.details, log.action);
@@ -971,9 +953,9 @@ function crearTabla(logs, append = false) {
                 return numero ? numero + "J" : rawPieza;
             })();
 
-            const rowIndex = globalRowCounter++;
+            // rowIndex passed as parameter
 
-            chunkHtml += `
+            return `
             <tr style="background-color: ${color}; color: ${textColor}; font-weight: 600;"
                 data-action="${esc(log.action)}"
                 data-original-index="${rowIndex}">
@@ -993,55 +975,206 @@ function crearTabla(logs, append = false) {
                 <td class="col-operador-only-td">${esc(log.maquina)}</td>
                 `}
             </tr>`;
+}
 
+function renderCurrentPage() {
+    const table = document.querySelector(".table");
+    if (!table) return;
+    let tbody = table.querySelector("tbody");
+    if (!tbody) {
+        tbody = document.createElement("tbody");
+        table.appendChild(tbody);
+    }
+
+    const totalCount = allLogs.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+    if (currentPage > totalPages) currentPage = totalPages;
+    if (currentPage < 1) currentPage = 1;
+
+    const startIdx = (currentPage - 1) * pageSize;
+    const endIdx = Math.min(startIdx + pageSize, totalCount);
+    const pageLogs = allLogs.slice(startIdx, endIdx);
+
+    let html = "";
+    for (let i = 0; i < pageLogs.length; i++) {
+        html += renderLogRow(pageLogs[i], startIdx + i);
+    }
+    tbody.innerHTML = html;
+
+    updatePaginationUI(totalCount, totalPages, startIdx, endIdx);
+
+    const countSpan = document.getElementById("current-count");
+    if (countSpan) countSpan.textContent = totalCount.toLocaleString();
+}
+
+function updatePaginationUI(totalCount, totalPages, startIdx, endIdx) {
+    const totalLabel = document.querySelector(".total-records-found");
+    if (!totalLabel) return;
+
+    totalLabel.innerHTML = `
+        <nav class="gis-unified-pagination" aria-label="Navegación de logs">
+            <div class="gis-pagination-left">
+                ${window.canPurgeLogs ? `
+                    <button type="button" id="btn-manual-purge" class="gis-pagination-btn-purge" title="Depurar bitácora del sistema y respaldar en PDF">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="3 6 5 6 21 6"></polyline>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                        </svg>
+                        <span id="purge-btn-text">Depurar Logs</span>
+                    </button>
+                    <span style="color: rgba(255,255,255,0.25); margin: 0 2px;">|</span>
+                ` : ''}
+
+                <span class="gis-pagination-stat-badge">
+                    <span class="gis-pagination-stat-dot"></span>
+                    <span>Total cargados: <strong>${totalCount.toLocaleString()}</strong></span>
+                </span>
+
+                <div class="gis-pagination-select-wrap">
+                    <label for="logs-page-size-select">Filas:</label>
+                    <select id="logs-page-size-select" class="gis-pagination-select" aria-label="Cantidad de filas por página">
+                        <option value="50" ${pageSize === 50 ? 'selected' : ''}>50</option>
+                        <option value="100" ${pageSize === 100 ? 'selected' : ''}>100</option>
+                        <option value="250" ${pageSize === 250 ? 'selected' : ''}>250</option>
+                        <option value="500" ${pageSize === 500 ? 'selected' : ''}>500</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="gis-pagination-center">
+                <span class="gis-pagination-range-pill">
+                    ${totalCount === 0 
+                        ? 'Sin logs registrados' 
+                        : `Mostrando <strong>${(startIdx + 1).toLocaleString()} - ${endIdx.toLocaleString()}</strong> de <strong>${totalCount.toLocaleString()}</strong> logs &nbsp;•&nbsp; Pág. <strong>${currentPage}</strong> de <strong>${totalPages}</strong>`}
+                </span>
+            </div>
+
+            <div class="gis-pagination-right">
+                ${(window.hasMorePages && window.nextPageUrl) ? `
+                    <button type="button" id="btn-load-more" class="gis-pagination-btn-loadmore" title="Cargar siguientes 500 registros del servidor">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Cargar más</span>
+                    </button>
+                    <span style="color: rgba(255,255,255,0.25); margin: 0 2px;">|</span>
+                ` : ''}
+
+                <button type="button" 
+                        class="gis-pagination-btn-nav gis-pagination-btn-icon-only ${currentPage <= 1 ? 'disabled-btn' : 'active-btn'}" 
+                        id="logs-btn-first" 
+                        title="Primera página" 
+                        ${currentPage <= 1 ? 'disabled' : ''}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="11 17 6 12 11 7"></polyline>
+                        <polyline points="18 17 13 12 18 7"></polyline>
+                    </svg>
+                </button>
+
+                <button type="button" 
+                        class="gis-pagination-btn-nav ${currentPage <= 1 ? 'disabled-btn' : 'active-btn'}" 
+                        id="logs-btn-prev" 
+                        title="Página anterior" 
+                        ${currentPage <= 1 ? 'disabled' : ''}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    <span>Anterior</span>
+                </button>
+
+                <button type="button" 
+                        class="gis-pagination-btn-nav ${currentPage >= totalPages ? 'disabled-btn' : 'active-btn'}" 
+                        id="logs-btn-next" 
+                        title="Página siguiente" 
+                        ${currentPage >= totalPages ? 'disabled' : ''}>
+                    <span>Siguiente</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+
+                <button type="button" 
+                        class="gis-pagination-btn-nav gis-pagination-btn-icon-only ${currentPage >= totalPages ? 'disabled-btn' : 'active-btn'}" 
+                        id="logs-btn-last" 
+                        title="Última página" 
+                        ${currentPage >= totalPages ? 'disabled' : ''}>
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="13 17 18 12 13 7"></polyline>
+                        <polyline points="6 17 11 12 6 7"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </nav>
+    `;
+
+    document.getElementById("logs-btn-first")?.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage = 1;
+            renderCurrentPage();
+            document.querySelector(".table")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
+    });
 
-        tbody.innerHTML += chunkHtml;
+    document.getElementById("logs-btn-prev")?.addEventListener("click", () => {
+        if (currentPage > 1) {
+            currentPage--;
+            renderCurrentPage();
+            document.querySelector(".table")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
 
-        const totalBatch = logs.length;
-        const currentLoaded = Math.min(index, totalBatch);
-        const totalLabel = document.querySelector(".total-records-found");
+    document.getElementById("logs-btn-next")?.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage++;
+            renderCurrentPage();
+            document.querySelector(".table")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
 
-        if (index < totalBatch) {
-            const percent = Math.round((currentLoaded / totalBatch) * 100);
-            if (totalLabel) {
-                totalLabel.innerHTML = `
-                    <span class="loading-progress-container">
-                        <span class="loading-pulse-dot"></span>
-                        <span>Cargando registros: <strong>${currentLoaded.toLocaleString()}</strong> de <strong>${totalBatch.toLocaleString()}</strong> (${percent}%)</span>
-                        <span class="loading-progress-bar-bg"><span class="loading-progress-bar-fill" style="width: ${percent}%;"></span></span>
-                    </span>
-                `;
-            }
-            currentRenderId = requestAnimationFrame(renderNextChunk);
+    document.getElementById("logs-btn-last")?.addEventListener("click", () => {
+        if (currentPage < totalPages) {
+            currentPage = totalPages;
+            renderCurrentPage();
+            document.querySelector(".table")?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    });
+
+    document.getElementById("logs-page-size-select")?.addEventListener("change", function() {
+        pageSize = parseInt(this.value, 10);
+        currentPage = 1;
+        renderCurrentPage();
+    });
+}
+
+function crearTabla(logs, append = false) {
+    if (!append) {
+        if (logs) {
+            logs.forEach((log, i) => { log._originalIndex = i; });
+            rawLogsBackup = [...logs];
+            allLogs = [...logs];
         } else {
-            currentRenderId = null;
-            updateCompletedBadge();
-            initTableSorting();
-            if (currentSortColumn >= 0 && currentSortDirection !== "none") {
-                sortTable(currentSortColumn, currentSortDirection);
-            }
+            rawLogsBackup = [];
+            allLogs = [];
+        }
+        currentPage = 1;
+    } else {
+        if (logs && logs.length > 0) {
+            const currentLen = rawLogsBackup.length;
+            logs.forEach((log, i) => { log._originalIndex = currentLen + i; });
+            rawLogsBackup = rawLogsBackup.concat(logs);
+            allLogs = allLogs.concat(logs);
         }
     }
 
-    renderNextChunk();
-}
-
-/**
- * Actualiza el badge estético inferior con el conteo final de registros
- */
-function updateCompletedBadge() {
-    const totalLabel = document.querySelector(".total-records-found");
-    if (!totalLabel) return;
-    const currentRows = document.querySelectorAll(".table tbody tr").length;
-    totalLabel.innerHTML = `
-        <span class="records-completed-badge">
-            <span class="badge-status-dot"></span>
-            <span>Registros cargados: <strong>${currentRows.toLocaleString()}</strong></span>
-        </span>
-    `;
-    const countSpan = document.getElementById("current-count");
-    if (countSpan) countSpan.textContent = currentRows.toLocaleString();
+    renderCurrentPage();
+    initTableSorting();
+    if (currentSortColumn >= 0 && currentSortDirection !== "none") {
+        sortTable(currentSortColumn, currentSortDirection);
+    }
 }
 
 // ========================================================
@@ -1132,38 +1265,51 @@ function initTableSorting() {
     });
 }
 
-function sortTable(colIndex, direction) {
-    const tbody = document.querySelector(".table tbody");
-    if (!tbody) return;
-    const rows = Array.from(tbody.querySelectorAll("tr"));
-    if (rows.length === 0) return;
+function getLogCellValue(log, colIndex) {
+    if (colIndex === 0) return log.date || '';
+    if (colIndex === 1) return log.time || '';
+    if (colIndex === 2) return `${log.operador || ''} - ${log.operador_nombre || ''}`.trim();
+    if (colIndex === 3) return log.is_critical ? 'Captura Crítica' : (log.action === 'Inicio de Reporte Pendiente' ? 'Inactividad en Bienvenida' : (log.action || ''));
+    if (colIndex === 4) return log.details || '';
+    if (!window.isAdminOnly) {
+        if (colIndex === 5) return log.ot || '';
+        if (colIndex === 6) {
+            let rawPieza = log.n_juego ? String(log.n_juego).trim().toUpperCase() : "";
+            if (!rawPieza || rawPieza === "N/A") return "N/A";
+            if (rawPieza.includes(',') || rawPieza.endsWith('H') || rawPieza.endsWith('M') || rawPieza.endsWith('J')) return rawPieza;
+            let numero = rawPieza.replace(/[^0-9]/g, '');
+            return numero ? numero + "J" : rawPieza;
+        }
+        if (colIndex === 7) return log.hora_inicio || '';
+        if (colIndex === 8) return log.hora_termino || '';
+        if (colIndex === 9) return log.tiempo_total || '';
+        if (colIndex === 10) return log.clase || '';
+        if (colIndex === 11) return log.proceso || '';
+        if (colIndex === 12) return log.maquina || '';
+    }
+    return '';
+}
 
+function sortTable(colIndex, direction) {
     if (direction === "none") {
-        rows.sort((a, b) => {
-            const idxA = parseInt(a.dataset.originalIndex || "0", 10);
-            const idxB = parseInt(b.dataset.originalIndex || "0", 10);
-            return idxA - idxB;
-        });
+        allLogs.sort((a, b) => (a._originalIndex ?? 0) - (b._originalIndex ?? 0));
     } else {
-        rows.sort((a, b) => {
-            const cellA = (a.children[colIndex] ? a.children[colIndex].textContent : "").trim();
-            const cellB = (b.children[colIndex] ? b.children[colIndex].textContent : "").trim();
+        allLogs.sort((logA, logB) => {
+            const cellA = getLogCellValue(logA, colIndex).trim();
+            const cellB = getLogCellValue(logB, colIndex).trim();
 
             if (cellA === cellB) return 0;
             if (cellA === "" || cellA === "N/A") return 1;
             if (cellB === "" || cellB === "N/A") return -1;
 
-            // 1. Detección de fechas YYYY-MM-DD
             if (/^\d{4}-\d{2}-\d{2}$/.test(cellA) && /^\d{4}-\d{2}-\d{2}$/.test(cellB)) {
                 return direction === "asc" ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
             }
 
-            // 2. Detección de tiempos HH:MM:SS
             if (/^\d{2}:\d{2}:\d{2}$/.test(cellA) && /^\d{2}:\d{2}:\d{2}$/.test(cellB)) {
                 return direction === "asc" ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
             }
 
-            // 3. Orden numérico natural para Juego (ej. "1J", "2J", "10J", "100J")
             const matchA = cellA.match(/^(\d+)(.*)$/);
             const matchB = cellB.match(/^(\d+)(.*)$/);
             if (matchA && matchB) {
@@ -1175,22 +1321,18 @@ function sortTable(colIndex, direction) {
                 return direction === "asc" ? suffixDiff : -suffixDiff;
             }
 
-            // 4. Comprobación numérica pura (ej. Máquina, OT)
             const numA = Number(cellA);
             const numB = Number(cellB);
             if (!isNaN(numA) && !isNaN(numB)) {
                 return direction === "asc" ? numA - numB : numB - numA;
             }
 
-            // 5. Comparación de texto en español
-            const comp = cellA.localeCompare(cellB, 'es', { numeric: true, sensitivity: 'base' });
-            return direction === "asc" ? comp : -comp;
+            return direction === "asc" ? cellA.localeCompare(cellB, 'es', { numeric: true, sensitivity: 'base' }) : cellB.localeCompare(cellA, 'es', { numeric: true, sensitivity: 'base' });
         });
     }
 
-    const fragment = document.createDocumentFragment();
-    rows.forEach(r => fragment.appendChild(r));
-    tbody.appendChild(fragment);
+    currentPage = 1;
+    renderCurrentPage();
 }
 
 function resetAllSorting() {
@@ -1203,7 +1345,9 @@ function resetAllSorting() {
     currentSortColumn = -1;
     currentSortDirection = "none";
     updateOrderFilterBadge(null, "none");
-    sortTable(0, "none");
+    allLogs.sort((a, b) => (a._originalIndex ?? 0) - (b._originalIndex ?? 0));
+    currentPage = 1;
+    renderCurrentPage();
 }
 
 function updateOrderFilterBadge(columnName, direction) {

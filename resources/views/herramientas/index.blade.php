@@ -493,9 +493,6 @@
                         <p>Ninguna herramienta coincide con la búsqueda.</p>
                     </div>
                 </div>
-
-                {{-- ── Paginación por Cursor Resiliente ── --}}
-                <x-cursor-pagination :paginator="$herramientas" label="herramientas" />
             @endif
         </div>{{-- /.ht-table-card --}}
 

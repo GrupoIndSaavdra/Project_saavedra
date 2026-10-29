@@ -136,7 +136,11 @@
                         default         => null,
                     };
                 @endphp
-                <tr data-rol="{{ $rolLabel }}" data-status="{{ $user->estatus ? 'Activo' : 'Inactivo' }}">
+                <tr id="user-row-{{ $user->id }}"
+                    data-id="{{ $user->id }}"
+                    data-rol="{{ $rolLabel }}"
+                    data-status="{{ $user->estatus ? 'Activo' : 'Inactivo' }}"
+                    data-search="{{ strtolower($user->matricula . ' ' . $user->name . ' ' . ($user->planta ?? '') . ' ' . ($user->turno ?? '') . ' ' . ($user->area ?? '') . ' ' . ($user->puesto ?? '')) }}">
                     {{-- Rol (Icono superior en círculo temático + Texto debajo) --}}
                     <td>
                         <div class="role-cell-container">
@@ -219,7 +223,7 @@
                             </button>
 
                             {{-- Activar / Inactivar --}}
-                            <form action="{{ route($user->estatus ? 'baja_usuario' : 'alta_usuario', $user->id) }}" method="POST" class="use-display-inline">
+                            <form action="{{ route($user->estatus ? 'baja_usuario' : 'alta_usuario', $user->id) }}" method="POST" class="use-display-inline" onsubmit="event.preventDefault(); toggleUserStatus({{ $user->id }}, this);">
                                 @csrf
                                 <button type="submit" class="btn-action-icon {{ $user->estatus ? 'btn-action-inactivate' : 'btn-action-activate' }}" title="{{ $user->estatus ? 'Inactivar usuario' : 'Activar usuario' }}">
                                     <img src="{{ asset($user->estatus ? 'images/Color_Icons/Generales/inactivar.png' : 'images/Color_Icons/Generales/activar.png') }}" alt="{{ $user->estatus ? 'Inactivar' : 'Activar' }}" class="action-img-icon">
@@ -231,7 +235,7 @@
                                 action="{{ route('eliminar_usuario', $user->id) }}"
                                 method="POST"
                                 class="use-display-inline"
-                                onsubmit="event.preventDefault(); window.gisConfirm({ title: '¿Eliminar usuario?', text: 'Se eliminará permanentemente la cuenta de {{ addslashes($user->name) }} y se revocarán todos sus accesos al sistema.', confirmButtonText: 'Eliminar', confirmButtonColor: '#b30404' }).then(r => { if (r.isConfirmed) this.submit(); });"
+                                onsubmit="event.preventDefault(); deleteUser({{ $user->id }}, '{{ addslashes($user->name) }}', this);"
                             >
                                 @csrf
                                 @method('DELETE')
@@ -251,8 +255,28 @@
         </table>
     </div>
 
-    {{-- ── Paginación por Cursor Resiliente ── --}}
-    <x-cursor-pagination :paginator="$users" label="usuarios" />
+    {{-- ── Paginación Reactiva en Cliente ── --}}
+    <nav class="gis-cursor-pagination users-client-pagination" id="users-pagination" aria-label="Navegación de usuarios">
+        <button type="button" class="gis-pagination-btn" id="users-prev-btn" title="Página anterior">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+            <span>Anterior</span>
+        </button>
+
+        <div class="gis-pagination-info">
+            <span class="gis-pagination-badge" id="users-page-info">
+                Mostrando 1 - 25 de {{ $users->count() }} usuarios
+            </span>
+        </div>
+
+        <button type="button" class="gis-pagination-btn" id="users-next-btn" title="Página siguiente">
+            <span>Siguiente</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </button>
+    </nav>
 
 </div>
 
@@ -507,22 +531,260 @@
         }
     });
 
-    // ── Filtrado en tiempo real ──────────────────────────────────
+    // ── Helper para token CSRF ────────────────────────────────────────────────
+    function getCsrfToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+            || document.querySelector('input[name="_token"]')?.value
+            || '';
+    }
+
+    // ── Operación Asíncrona: Activar / Inactivar Usuario ───────────────────────
+    async function toggleUserStatus(userId, formElement) {
+        const btn = formElement.querySelector('button');
+        if (!btn || btn.disabled) return;
+
+        btn.disabled = true;
+        btn.style.opacity = '0.5';
+
+        try {
+            const response = await fetch(formElement.action, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                if (window.gisToast) window.gisToast(data.message, 'success');
+
+                const row = document.getElementById(`user-row-${userId}`);
+                if (row) {
+                    const isActivo = data.estatus === 1;
+                    row.dataset.status = isActivo ? 'Activo' : 'Inactivo';
+
+                    // Actualizar celda de estatus
+                    const statusCell = row.querySelector('.status-cell-container');
+                    if (statusCell) {
+                        const iconSrc = isActivo ? '{{ asset("images/Color_Icons/Generales/activar.png") }}' : '{{ asset("images/Color_Icons/Generales/inactivar.png") }}';
+                        const badgeClass = isActivo ? 'badge-activo' : 'badge-inactivo';
+                        const text = isActivo ? 'Activo' : 'Inactivo';
+                        statusCell.innerHTML = `
+                            <img src="${iconSrc}" alt="${text}" class="status-img-icon">
+                            <span class="badge-status ${badgeClass}">${text}</span>
+                        `;
+                    }
+
+                    // Actualizar botón de acción (alternar ruta, título, icono)
+                    const newAction = isActivo ? '{{ url("/baja-usuario") }}/' + userId : '{{ url("/alta-usuario") }}/' + userId;
+                    formElement.action = newAction;
+                    const btnIcon = isActivo ? '{{ asset("images/Color_Icons/Generales/inactivar.png") }}' : '{{ asset("images/Color_Icons/Generales/activar.png") }}';
+                    btn.className = `btn-action-icon ${isActivo ? 'btn-action-inactivate' : 'btn-action-activate'}`;
+                    btn.title = isActivo ? 'Inactivar usuario' : 'Activar usuario';
+                    btn.innerHTML = `<img src="${btnIcon}" alt="${isActivo ? 'Inactivar' : 'Activar'}" class="action-img-icon">`;
+                }
+            } else {
+                if (window.gisToast) window.gisToast(data.message || 'Error al cambiar estatus', 'error');
+            }
+        } catch (err) {
+            console.error('Error toggleUserStatus:', err);
+            if (window.gisToast) window.gisToast('Error de red al actualizar estatus.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.style.opacity = '';
+        }
+    }
+
+    // ── Operación Asíncrona: Eliminar Usuario ──────────────────────────────────
+    async function deleteUser(userId, userName, formElement) {
+        const confirmed = await (window.gisConfirm ? window.gisConfirm({
+            title: '¿Eliminar usuario?',
+            text: `Se eliminará permanentemente la cuenta de ${userName} y se revocarán todos sus accesos al sistema.`,
+            confirmButtonText: 'Eliminar',
+            confirmButtonColor: '#b30404'
+        }) : Promise.resolve({ isConfirmed: confirm(`¿Eliminar al usuario ${userName}?`) }));
+
+        if (!confirmed || !confirmed.isConfirmed) return;
+
+        const btn = formElement.querySelector('button');
+        if (btn) { btn.disabled = true; btn.style.opacity = '0.5'; }
+
+        try {
+            const response = await fetch(formElement.action, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                if (window.gisToast) window.gisToast(data.message, 'success');
+                const row = document.getElementById(`user-row-${userId}`);
+                if (row) {
+                    row.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+                    row.style.opacity = '0';
+                    row.style.transform = 'scale(0.96)';
+                    setTimeout(() => {
+                        const idxAll = allUserRows.indexOf(row);
+                        if (idxAll > -1) allUserRows.splice(idxAll, 1);
+                        const idxMatch = matchingUserRows.indexOf(row);
+                        if (idxMatch > -1) matchingUserRows.splice(idxMatch, 1);
+                        row.remove();
+                        renderUsersPage();
+                    }, 260);
+                }
+            } else {
+                if (window.gisToast) window.gisToast(data.message || 'No se pudo eliminar el usuario', 'error');
+            }
+        } catch (err) {
+            console.error('Error deleteUser:', err);
+            if (window.gisToast) window.gisToast('Error de red al procesar la eliminación.', 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.style.opacity = ''; }
+        }
+    }
+
+    // ── Operación Asíncrona: Guardar Modificación en Modal ─────────────────────
+    editForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const submitBtn = editForm.querySelector('button[type="submit"]');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Guardando…'; }
+
+        try {
+            const formData = new FormData(editForm);
+            const response = await fetch(editForm.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRF-TOKEN': getCsrfToken(),
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.user) {
+                if (window.gisToast) window.gisToast(data.message, 'success');
+                closeEditModal();
+
+                const row = document.getElementById(`user-row-${data.user.id}`);
+                if (row) {
+                    // Actualizar Nombre
+                    const nameSpan = row.querySelector('.user-name');
+                    if (nameSpan) nameSpan.textContent = data.user.nombre_completo;
+
+                    // Actualizar Rol
+                    const roleContainer = row.querySelector('.role-cell-container');
+                    const rolMap = {
+                        '1': { label: 'Administrador', class: 'badge-admin', icon: '{{ icon("images/Light_Icons/Administracion-Light.png") }}' },
+                        '2': { label: 'Operador', class: 'badge-operador', icon: '{{ icon("images/Light_Icons/Operador-Light.png") }}' },
+                        '3': { label: 'Master', class: 'badge-master', icon: '{{ icon("images/Light_Icons/Master-Light.png") }}' },
+                        '4': { label: 'Calidad', class: 'badge-calidad', icon: '{{ icon("images/Light_Icons/Calidad-Light.png") }}' },
+                        '5': { label: 'Almacén', class: 'badge-almacen', icon: '{{ icon("images/Light_Icons/Almacen-Light.png") }}' },
+                        '6': { label: 'Supervisor', class: 'badge-supervisor', icon: '{{ icon("images/Light_Icons/Supervision-Light.png") }}' }
+                    };
+                    const rInfo = rolMap[data.user.perfil] || { label: data.user.perfil, class: 'badge-default', icon: null };
+                    row.dataset.rol = rInfo.label;
+                    if (roleContainer) {
+                        roleContainer.innerHTML = `
+                            ${rInfo.icon ? `<div class="role-icon-circle ${rInfo.class}" title="${rInfo.label}"><img src="${rInfo.icon}" alt="${rInfo.label}" class="role-img-icon"></div>` : ''}
+                            <span class="badge-rol ${rInfo.class}">${rInfo.label}</span>
+                        `;
+                    }
+
+                    // Actualizar Celdas Planta, Turno, Área, Puesto
+                    const cells = row.querySelectorAll('td');
+                    if (cells[3]) cells[3].innerHTML = `<span class="badge-planta">${data.user.planta}</span>`;
+                    if (cells[4]) cells[4].innerHTML = `<span class="badge-turno">${data.user.turno}</span>`;
+                    if (cells[5]) cells[5].innerHTML = `<span>${data.user.area}</span>`;
+                    if (cells[6]) cells[6].innerHTML = `<span>${data.user.puesto}</span>`;
+
+                    // Actualizar búsqueda en memoria
+                    row.dataset.search = (data.user.matricula + ' ' + data.user.nombre_completo + ' ' + data.user.planta + ' ' + data.user.turno + ' ' + data.user.area + ' ' + data.user.puesto).toLowerCase();
+
+                    // Actualizar botón editar
+                    const editBtn = row.querySelector('.btn-action-edit');
+                    if (editBtn) {
+                        editBtn.onclick = () => openEditModal(data.user);
+                    }
+                }
+            } else {
+                if (window.gisToast) window.gisToast(data.message || 'Error al actualizar usuario', 'error');
+            }
+        } catch (err) {
+            console.error('Error editForm submit:', err);
+            if (window.gisToast) window.gisToast('Error de red al actualizar usuario.', 'error');
+        } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Guardar Cambios'; }
+        }
+    });
+
+    // ── Filtrado y Paginación en tiempo real (Optimizado O(1) sin Layout Reflow) ──
     const searchInput  = document.getElementById('search-input');
     const roleFilter   = document.getElementById('role-filter');
     const statusFilter = document.getElementById('status-filter');
     const tbody        = document.getElementById('users-tbody');
     const countBadge   = document.getElementById('record-count');
+    const prevBtn      = document.getElementById('users-prev-btn');
+    const nextBtn      = document.getElementById('users-next-btn');
+    const pageInfo     = document.getElementById('users-page-info');
+
+    const USERS_PER_PAGE = 25;
+    let userCurrentPage  = 1;
+    const allUserRows    = Array.from(tbody.querySelectorAll('tr[data-rol]'));
+    let matchingUserRows = [...allUserRows];
+
+    function renderUsersPage() {
+        const totalMatches = matchingUserRows.length;
+        const totalPages   = Math.max(1, Math.ceil(totalMatches / USERS_PER_PAGE));
+        if (userCurrentPage > totalPages) userCurrentPage = totalPages;
+        if (userCurrentPage < 1) userCurrentPage = 1;
+
+        const startIdx = (userCurrentPage - 1) * USERS_PER_PAGE;
+        const endIdx   = Math.min(startIdx + USERS_PER_PAGE, totalMatches);
+
+        allUserRows.forEach(row => { row.style.display = 'none'; });
+
+        for (let i = startIdx; i < endIdx; i++) {
+            matchingUserRows[i].style.display = '';
+        }
+
+        countBadge.textContent = totalMatches + ' usuario' + (totalMatches !== 1 ? 's' : '');
+
+        if (pageInfo) {
+            pageInfo.textContent = totalMatches === 0
+                ? '0 usuarios encontrados'
+                : `Mostrando ${(startIdx + 1)} - ${endIdx} de ${totalMatches} usuarios (Página ${userCurrentPage} de ${totalPages})`;
+        }
+
+        if (prevBtn) {
+            const isPrevDisabled = userCurrentPage <= 1;
+            prevBtn.disabled = isPrevDisabled;
+            prevBtn.classList.toggle('gis-pagination-disabled', isPrevDisabled);
+        }
+
+        if (nextBtn) {
+            const isNextDisabled = userCurrentPage >= totalPages;
+            nextBtn.disabled = isNextDisabled;
+            nextBtn.classList.toggle('gis-pagination-disabled', isNextDisabled);
+        }
+    }
 
     function filterTable() {
         const query  = searchInput.value.toLowerCase().trim();
         const role   = roleFilter.value;
         const status = statusFilter.value;
 
-        let visible = 0;
-
-        tbody.querySelectorAll('tr[data-rol]').forEach(row => {
-            const text   = row.innerText.toLowerCase();
+        matchingUserRows = allUserRows.filter(row => {
+            const text = row.dataset.search || '';
             const rowRol = row.dataset.rol;
             const rowSt  = row.dataset.status;
 
@@ -530,17 +792,35 @@
             const matchRole   = role   === 'todos' || rowRol === role;
             const matchStatus = status === 'todos' || rowSt  === status;
 
-            const show = matchText && matchRole && matchStatus;
-            row.style.display = show ? '' : 'none';
-            if (show) visible++;
+            return matchText && matchRole && matchStatus;
         });
 
-        countBadge.textContent = visible + ' usuario' + (visible !== 1 ? 's' : '');
+        userCurrentPage = 1;
+        renderUsersPage();
     }
 
-    searchInput.addEventListener('input',  filterTable);
+    let filterDebounceTimer;
+    searchInput.addEventListener('input', function() {
+        clearTimeout(filterDebounceTimer);
+        filterDebounceTimer = setTimeout(filterTable, 120);
+    });
     roleFilter.addEventListener('change',  filterTable);
     statusFilter.addEventListener('change', filterTable);
+
+    prevBtn?.addEventListener('click', () => {
+        if (userCurrentPage > 1) {
+            userCurrentPage--;
+            renderUsersPage();
+        }
+    });
+
+    nextBtn?.addEventListener('click', () => {
+        const totalPages = Math.max(1, Math.ceil(matchingUserRows.length / USERS_PER_PAGE));
+        if (userCurrentPage < totalPages) {
+            userCurrentPage++;
+            renderUsersPage();
+        }
+    });
 
     // ── Limpiar filtros ──────────────────────────────────────────
     document.getElementById('btn-clear-filters').addEventListener('click', function () {
@@ -549,6 +829,9 @@
         statusFilter.value  = 'todos';
         filterTable();
     });
+
+    // Renderizado inicial reactivo
+    renderUsersPage();
 </script>
 
 @endsection

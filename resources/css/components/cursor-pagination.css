@@ -162,3 +162,299 @@
 }
 
 
+
+/* ── Barra de Paginacion Unificada GIS Glass Azul (Ancho Completo y Auto-Distribuida) ────── */
+.gis-unified-pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    margin: 10px 0 6px 0;
+    gap: 16px;
+    padding: 10px 24px;
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border: 2px solid var(--glass-border-blue) !important;
+    border-radius: 14px;
+    box-shadow:
+        0 14px 34px -6px rgba(3, 57, 102, 0.45),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    color: #ffffff;
+}
+
+.gis-pagination-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.gis-pagination-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 1 auto;
+    white-space: nowrap;
+}
+
+.gis-pagination-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.gis-pagination-stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(255, 255, 255, 0.12);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    color: #ffffff;
+    font-weight: 500;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.gis-pagination-stat-badge strong {
+    color: #ffffff;
+}
+
+.gis-pagination-stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #22c55e;
+    box-shadow: 0 0 8px rgba(34, 197, 94, 0.8);
+    display: inline-block;
+    flex-shrink: 0;
+}
+
+.gis-pagination-select-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.gis-pagination-select {
+    width: auto !important;
+    min-width: 68px !important;
+    max-width: 80px !important;
+    padding: 5px 10px !important;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: var(--gis-blue, #033966) !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.9) !important;
+    background-color: #ffffff !important;
+    cursor: pointer;
+    outline: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin: 0 !important;
+}
+
+.gis-pagination-select:focus,
+.gis-pagination-select:hover {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35) !important;
+}
+
+.gis-pagination-range-pill {
+    background: rgba(255, 255, 255, 0.16);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2), 0 4px 12px rgba(0, 0, 0, 0.15);
+    letter-spacing: 0.2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin: 0 auto;
+}
+
+.gis-pagination-range-pill strong {
+    color: #ffffff;
+}
+
+.gis-pagination-range-pill::before {
+    content: '';
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.9);
+    flex-shrink: 0;
+}
+
+.gis-pagination-btn-nav {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 15px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: 1.5px solid rgba(255, 255, 255, 0.8);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-user-select: none;
+    user-select: none;
+    box-sizing: border-box;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.gis-pagination-btn-nav.active-btn {
+    background: #ffffff;
+    color: var(--gis-blue, #033966) !important;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+}
+
+.gis-pagination-btn-nav.active-btn:hover {
+    transform: translateY(-2px);
+    background: #f0f7ff;
+    color: #0284c7 !important;
+    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.35);
+}
+
+.gis-pagination-btn-nav.active-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.gis-pagination-btn-nav.disabled-btn {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.35) !important;
+    border-color: rgba(255, 255, 255, 0.12);
+    cursor: not-allowed;
+    opacity: 0.65;
+    box-shadow: none;
+    transform: none;
+    pointer-events: none;
+}
+
+.gis-pagination-btn-icon-only {
+    padding: 6px 11px;
+}
+
+/* ── Botón de Depuración Manual integrado a la Barra Glass ───────── */
+.gis-pagination-btn-purge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, rgba(220, 38, 38, 0.88) 0%, rgba(185, 28, 28, 0.95) 100%) !important;
+    border: 1.5px solid rgba(254, 202, 202, 0.6) !important;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(185, 28, 28, 0.35);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-user-select: none;
+    user-select: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    outline: none;
+}
+
+.gis-pagination-btn-purge:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    box-shadow: 0 5px 14px rgba(239, 68, 68, 0.5);
+    border-color: #ffffff !important;
+}
+
+.gis-pagination-btn-purge:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.gis-pagination-btn-purge:disabled,
+.gis-pagination-btn-purge.purge-btn-loading {
+    background: rgba(180, 83, 9, 0.85) !important;
+    border-color: rgba(253, 230, 138, 0.5) !important;
+    cursor: not-allowed;
+    opacity: 0.85;
+    transform: none;
+}
+
+/* ── Botón Cargar Más Servidor integrado a la Barra Glass ───────── */
+.gis-pagination-btn-loadmore {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, rgba(22, 163, 74, 0.88) 0%, rgba(21, 128, 61, 0.95) 100%) !important;
+    border: 1.5px solid rgba(187, 247, 208, 0.6) !important;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(21, 128, 61, 0.35);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    -webkit-user-select: none;
+    user-select: none;
+    white-space: nowrap;
+    flex-shrink: 0;
+    outline: none;
+}
+
+.gis-pagination-btn-loadmore:hover:not(:disabled) {
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%) !important;
+    box-shadow: 0 5px 14px rgba(34, 197, 94, 0.5);
+    border-color: #ffffff !important;
+}
+
+.gis-pagination-btn-loadmore:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+    .gis-unified-pagination {
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px;
+        width: 100%;
+    }
+    .gis-pagination-left,
+    .gis-pagination-center,
+    .gis-pagination-right {
+        width: 100%;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+}

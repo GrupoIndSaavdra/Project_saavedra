@@ -47,9 +47,9 @@ body {
     width: 98%;
     max-width: 98%;
     margin: 75px auto 40px;
-    background: var(--glass-bg-white);
-    -webkit-backdrop-filter: blur(15px);
-    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.94);
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
     border-radius: var(--radius-card);
     border: 5px solid var(--glass-border-white);
     box-shadow: var(--glass-shadow);
@@ -305,47 +305,57 @@ body {
 
 /* Selects de filtro */
 .role-select-toolbar {
-    padding: 8px 14px;
-    font-size: 1em;
-    font-weight: 500;
+    padding: 10px 18px;
+    font-size: 0.95em;
+    font-weight: 600;
     letter-spacing: 0.5px;
-    border: 5px solid var(--color-border);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     border-radius: var(--radius-card);
-    background: var(--color-primary);
+    background: linear-gradient(135deg, #0a8504 0%, #066202 100%);
     color: #ffffff;
     outline: none;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.35);
 }
 
 .role-select-toolbar:focus,
 .role-select-toolbar:hover {
-    background: var(--color-primary-hover);
-    transform: scale(1.02);
+    background: linear-gradient(135deg, #0fa307 0%, #0a8504 100%);
+    border-color: #ffffff;
+    box-shadow: 0 6px 16px rgba(10, 133, 4, 0.5);
+    transform: translateY(-2px);
+}
+
+.role-select-toolbar option {
+    background: #033966;
+    color: #ffffff;
+    font-weight: 500;
 }
 
 /* Botón limpiar filtros */
 .btn-clear-filters {
-    padding: 8px 16px;
+    padding: 10px 18px;
     font-size: 0.9em;
     font-weight: 700;
     letter-spacing: 0.5px;
-    border: 5px solid var(--color-primary);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     border-radius: var(--radius-card);
-    background: #ffffff;
-    color: var(--color-primary);
+    background: linear-gradient(135deg, #0a8504 0%, #066202 100%);
+    color: #ffffff;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     white-space: nowrap;
     text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.35);
 }
 
 .btn-clear-filters:hover {
-    background: var(--color-danger);
-    border-color: var(--color-danger);
+    background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+    border-color: #ffffff;
     color: #ffffff;
-    transform: scale(1.04);
-    box-shadow: 0 4px 15px rgba(156, 3, 0, 0.3);
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 6px 16px rgba(156, 3, 0, 0.4);
 }
 
 .btn-clear-filters:active {
@@ -608,37 +618,42 @@ table td:last-child {
     border: 1.5px solid var(--gis-red);
 }
 
-/* ── Botones de acción sin recuadro en reposo y con hover ────── */
+/* ── Botones de acción con presencia, contraste y tamaño óptimo ────── */
 .actions-cell {
     display: inline-flex;
-    gap: 8px;
+    gap: 10px;
     align-items: center;
     justify-content: center;
     white-space: nowrap;
     vertical-align: middle;
 }
 
+table thead th:last-child,
+table tbody td:last-child {
+    min-width: 200px;
+}
+
 .btn-action-icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    max-width: 44px;
-    max-height: 44px;
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
+    max-width: 52px;
+    max-height: 52px;
     aspect-ratio: 1 / 1;
-    padding: 4px;
-    background: transparent;
-    border: 2px solid transparent;
-    border-radius: 10px;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1.5px solid rgba(3, 57, 102, 0.16);
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     outline: none;
     text-decoration: none;
     vertical-align: middle;
-    box-shadow: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
     flex-shrink: 0;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
@@ -646,19 +661,19 @@ table td:last-child {
 }
 
 .action-img-icon {
-    width: 34px;
-    height: 34px;
-    min-width: 34px;
-    min-height: 34px;
-    max-width: 34px;
-    max-height: 34px;
+    width: 40px;
+    height: 40px;
+    min-width: 40px;
+    min-height: 40px;
+    max-width: 40px;
+    max-height: 40px;
     aspect-ratio: 1 / 1;
     object-fit: contain;
     display: block;
     margin: auto;
     flex-shrink: 0;
     transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.25s ease;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.20));
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
     transform: translateZ(0);
@@ -668,12 +683,12 @@ table td:last-child {
 .btn-action-icon:hover {
     background: #ffffff;
     transform: translateY(-3px) scale(1.12);
-    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.20);
+    box-shadow: 0 6px 18px rgba(3, 57, 102, 0.24);
 }
 
 .btn-action-icon:hover .action-img-icon {
     transform: scale(1.08) translateZ(0);
-    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.26));
+    filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.28));
 }
 
 .btn-action-edit:hover {

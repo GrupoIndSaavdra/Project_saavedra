@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 showConfirmButton: false,
                 timer: 3200,
                 timerProgressBar: true,
-                backdrop: false,
                 showClass: {
                     popup: 'swal2-toast-in',
                 },
