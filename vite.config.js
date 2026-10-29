@@ -164,6 +164,7 @@ export default defineConfig({
         }),
     ],
     build: {
+        emptyOutDir: false,
         chunkSizeWarningLimit: 1500,
     },
 });
