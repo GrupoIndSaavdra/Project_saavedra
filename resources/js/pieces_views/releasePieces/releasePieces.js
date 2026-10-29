@@ -272,7 +272,7 @@ function crearFecha(fecha) {
 function create_ObservationsField(keys) {
     //Creacion del div con efcto blur
     let div_opacity = document.createElement("div");
-    div_opacity.className = "div-opacity";
+    div_opacity.className = "div-opacity div-opacity-liberation";
     div_opacity.addEventListener("click", () => {
         div_opacity.remove();
     });

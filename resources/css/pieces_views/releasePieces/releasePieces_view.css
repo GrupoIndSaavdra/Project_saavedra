@@ -812,6 +812,11 @@ label {
     animation: fadeIn 0.3s ease;
 }
 
+.div-opacity-liberation,
+.div-opacity:has(.form-liberation) {
+    z-index: 2147483645 !important;
+}
+
 .form-liberation {
     background-color: #fff;
     padding: 30px;
@@ -822,6 +827,8 @@ label {
     gap: 20px;
     width: 500px;
     max-width: 90%;
+    position: relative;
+    z-index: 2147483646 !important;
     animation: slideUp 0.3s ease;
 }
 

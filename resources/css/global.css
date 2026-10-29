@@ -367,6 +367,16 @@
     padding: 20px;
 }
 
+.div-opacity-liberation,
+.div-opacity:has(.form-liberation),
+.div-opacity:has(.textArea-liberation) {
+    z-index: 2147483645 !important;
+}
+
+.swal2-container {
+    z-index: 2147483647 !important;
+}
+
 /* ── Toasts oficiales SweetAlert2: 100% transparentes sin filtro azul ni backdrop ── */
 body.swal2-toast-shown,
 body.swal2-toast-shown .swal2-container,
@@ -387,7 +397,7 @@ body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
     backdrop-filter: none !important;
     box-shadow: none !important;
     pointer-events: none !important;
-    z-index: 100020 !important;
+    z-index: 2147483647 !important;
     padding-bottom: 25px !important;
     padding-right: 25px !important;
 }

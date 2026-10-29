@@ -1027,9 +1027,10 @@ function crearBotonRechazar(infoPiezas, i, tr, divOpacity) {
 
 function create_ObservationsField(keys, tr, divOpacity) {
     const div_opacity = document.createElement("div");
-    div_opacity.className = "div-opacity";
+    div_opacity.className = "div-opacity div-opacity-liberation";
 
     function closeObservationModal() {
+        document.removeEventListener("keydown", handleKeyDown);
         div_opacity.style.willChange = "opacity";
         div_opacity.style.transition = "opacity 0.16s ease";
         div_opacity.style.opacity = "0";
@@ -1039,6 +1040,13 @@ function create_ObservationsField(keys, tr, divOpacity) {
             }
         }, 170);
     }
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Escape") {
+            closeObservationModal();
+        }
+    };
+    document.addEventListener("keydown", handleKeyDown);
 
     div_opacity.addEventListener("click", (e) => {
         if (e.target === div_opacity) {
@@ -1062,6 +1070,9 @@ function create_ObservationsField(keys, tr, divOpacity) {
 
     const formBox = document.createElement("div");
     formBox.className = "form-liberation";
+    formBox.addEventListener("click", (e) => {
+        e.stopPropagation();
+    });
     formBox.innerHTML = `
         <div class="form-liberation-header">
             <h3 class="form-liberation-title">${actionTitle}</h3>

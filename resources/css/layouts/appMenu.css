@@ -38,7 +38,6 @@ body {
     overflow-x: hidden;
 }
 /* MODAL PARA OBSERVACIONES DE LIBERACION (Estilo Unificado y Global) */
-/* MODAL PARA OBSERVACIONES DE LIBERACION (Estilo Unificado y Global) */
 .form-liberation {
     background-color: #fff;
     padding: 24px;
@@ -49,7 +48,8 @@ body {
     gap: 16px;
     width: 520px;
     max-width: 92%;
-    z-index: 100000;
+    position: relative;
+    z-index: 2147483646 !important;
     animation: springPopIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     border: 1px solid rgba(0, 0, 0, 0.1);
     will-change: transform, opacity;
@@ -485,7 +485,17 @@ body {
     z-index: 2147483647 !important;
 }
 
+.div-opacity-liberation,
+.div-opacity:has(.form-liberation),
+.div-opacity:has(.textArea-liberation) {
+    z-index: 2147483645 !important;
+}
+
 /* Modales globales (SweetAlert2 y overlays): filtro azul corporativo sin blur */
+.swal2-container {
+    z-index: 2147483647 !important;
+}
+
 .swal2-container.swal2-center.swal2-backdrop-show,
 .gis-modal-backdrop,
 .modal-backdrop {
