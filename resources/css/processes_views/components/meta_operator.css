@@ -507,9 +507,9 @@ p {
 .warning-pieces {
     width: 100%;
     max-width: 100%;
-    font-size: 0.95rem;
+    font-size: clamp(0.7rem, 0.88vw, 0.8rem);
     font-weight: 600;
-    padding: clamp(0.6rem, 1.2vh, 1.1rem) clamp(0.8rem, 1.3vw, 1.5rem);
+    padding: clamp(0.35rem, 0.8vh, 0.55rem) clamp(0.6rem, 1vw, 1rem);
     margin: 0;
     border-radius: 16px;
     background: linear-gradient(
@@ -541,10 +541,14 @@ p {
     box-sizing: border-box;
 }
 
-/* Modo Normal (con tarjeta de acciones): ambos contenedores comparten el 50% / 50% de la altura exacta */
+/* Modo Normal (con tarjeta de acciones): el banner envuelve su contenido de forma natural y limpia sin desbordamiento */
 .div-table-meta:has(.production-actions-card) .warning-pieces {
-    flex: 1 1 0;
+    flex: 0 0 auto;
     min-height: 0;
+    height: auto !important;
+    max-height: none !important;
+    padding: clamp(0.4rem, 0.8vh, 0.6rem) clamp(0.6rem, 1vw, 1rem) !important;
+    overflow: visible;
 }
 
 /* Modo Edición de Reporte (sin tarjeta de acciones): el banner no se deforma ni se infla */
@@ -572,8 +576,8 @@ p {
 }
 
 .warning-icon-img {
-    width: clamp(44px, 4vw, 62px);
-    height: clamp(44px, 4vw, 62px);
+    width: clamp(26px, 2.2vw, 36px);
+    height: clamp(26px, 2.2vw, 36px);
     object-fit: contain;
     filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.35));
 }
@@ -592,7 +596,7 @@ p {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     background: linear-gradient(
         135deg,
         #dc2626 0%,
@@ -601,12 +605,12 @@ p {
     ) !important;
     border: 1.5px solid rgba(255, 255, 255, 0.95) !important;
     border-radius: 20px;
-    padding: 4px clamp(14px, 1.4vw, 24px);
-    font-size: clamp(0.86rem, 0.94vw, 1.05rem);
+    padding: 2px clamp(10px, 1vw, 18px);
+    font-size: clamp(0.74rem, 0.85vw, 0.85rem);
     font-weight: 800;
     letter-spacing: 0.06em;
     color: #ffe100 !important;
-    margin: 0 auto 8px auto;
+    margin: 0 auto 3px auto;
     text-transform: uppercase;
     box-shadow:
         0 3px 10px rgba(185, 28, 28, 0.45),
@@ -627,9 +631,9 @@ p {
 
 .warning-body {
     color: #ffffff;
-    font-size: clamp(0.78rem, 0.86vw, 0.98rem);
+    font-size: clamp(0.72rem, 0.82vw, 0.84rem);
     font-weight: 600;
-    line-height: 1.55;
+    line-height: 1.35;
     text-align: center;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
 }
@@ -901,14 +905,16 @@ p {
 }
 
 .operator-name-text {
-    font-size: clamp(0.92rem, 1vw, 1.08rem);
+    font-size: clamp(0.82rem, 0.95vw, 1rem);
     font-weight: 800;
     color: #ffffff !important;
-    letter-spacing: 0.03em;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
-    line-height: 1.28;
+    line-height: 1.25;
     display: block;
     text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .table-code-th-content {

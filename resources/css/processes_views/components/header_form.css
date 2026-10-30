@@ -62,8 +62,10 @@ html,
 body {
     min-height: 100vh;
     height: 100vh;
-    overflow-y: auto;
-    overflow-x: hidden;
+    max-height: 100vh;
+    overflow: hidden !important;
+    overflow-y: hidden !important;
+    overflow-x: hidden !important;
 }
 
 body::-webkit-scrollbar {
@@ -90,10 +92,11 @@ body::-webkit-scrollbar-thumb {
 /* En modo edición de piezas, el scroll pasa de la tabla a la vista completa */
 html.is-edit-pieces-mode,
 body.is-edit-pieces-mode {
-    height: auto !important;
+    height: 100vh !important;
+    max-height: 100vh !important;
     min-height: 100vh !important;
-    max-height: none !important;
-    overflow-y: auto !important;
+    overflow: hidden !important;
+    overflow-y: hidden !important;
     overflow-x: hidden !important;
 }
 
@@ -112,9 +115,9 @@ body {
     flex-wrap: nowrap;
     justify-content: stretch;
     align-items: stretch;
-    padding: 0.5rem clamp(0.6rem, 1vw, 1.2rem);
-    margin-bottom: 0.65rem;
-    gap: clamp(0.75rem, 1.2vw, 1.25rem);
+    padding: 0.35rem clamp(0.5rem, 0.8vw, 1rem);
+    margin-bottom: 0.35rem;
+    gap: clamp(0.5rem, 0.8vw, 0.85rem);
     width: 100%;
     box-sizing: border-box;
     transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1650,34 +1653,36 @@ body.table-focus-mode .meta-summary-strip {
    Especificidad alta + !important para prevalecer sobre los ajustes por altura.
    ========================================================================== */
 .principal-data .panel-section-header {
-    font-size: clamp(0.85rem, 3.9cqi, 1.2rem) !important;
+    font-size: clamp(0.8rem, 3.2cqi, 0.95rem) !important;
+    margin-bottom: 0.35rem !important;
 }
 
 .principal-data .panel-header-icon {
-    width: clamp(22px, 8cqi, 38px) !important;
-    height: clamp(22px, 8cqi, 38px) !important;
+    width: clamp(20px, 6cqi, 28px) !important;
+    height: clamp(20px, 6cqi, 28px) !important;
 }
 
 .principal-data .form-grid {
-    gap: clamp(0.4rem, 2.2cqi, 0.85rem) clamp(0.45rem, 2.6cqi, 0.95rem) !important;
+    gap: clamp(0.25rem, 1.5cqi, 0.45rem) clamp(0.35rem, 2cqi, 0.65rem) !important;
 }
 
 .principal-data .form-control,
 .principal-data .normal-input,
 .principal-data select.form-control {
-    height: clamp(32px, 11cqi, 50px) !important;
-    min-height: clamp(32px, 11cqi, 50px) !important;
-    font-size: clamp(0.8rem, 3.9cqi, 1.15rem) !important;
+    height: clamp(28px, 8.5cqi, 38px) !important;
+    min-height: clamp(28px, 8.5cqi, 38px) !important;
+    font-size: clamp(0.76rem, 3cqi, 0.92rem) !important;
 }
 
 .principal-data .form-label {
-    font-size: clamp(0.7rem, 3cqi, 0.95rem) !important;
-    gap: clamp(3px, 1.2cqi, 6px);
+    font-size: clamp(0.66rem, 2.3cqi, 0.8rem) !important;
+    gap: clamp(3px, 1.2cqi, 5px);
+    margin-bottom: 2px !important;
 }
 
 .principal-data .form-label-icon {
-    width: clamp(18px, 6.5cqi, 28px) !important;
-    height: clamp(18px, 6.5cqi, 28px) !important;
+    width: clamp(15px, 4.8cqi, 20px) !important;
+    height: clamp(15px, 4.8cqi, 20px) !important;
 }
 
 .principal-data .btn-submit {

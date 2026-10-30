@@ -598,7 +598,7 @@ export class Process {
                 case 2:
                     if (this.nameProcess != "Soldadura" && this.nameProcess != "Asentado" && this.nameProcess != "Rectificado" && this.nameProcess != "Soldadura PTA") {
                         tr = document.createElement("tr");
-                        tr.className = "table-row-cNominals";
+                        tr.className = "table-row-cNominals " + (i == 1 ? "row-cnominal" : "row-tolerancias");
                         let divisions = i == 1 ? divisionsCNomi : divisionsTole;
 
                         for (let x = 0; x < names[i - 1].length; x++) {

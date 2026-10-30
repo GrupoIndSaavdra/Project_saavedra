@@ -762,18 +762,16 @@ function createHistoricalTable(history) {
     processTitle.innerHTML = currentProcessName;
     processSection.appendChild(processTitle);
 
-    // 4. Total disponible
+    // 4. Total disponible con tipografía nítida blanca (12px)
     let limitLabel = document.createElement("label");
     limitLabel.className = "limit-label";
+    limitLabel.style.fontSize = "12px";
+    limitLabel.style.color = "rgb(255, 255, 255)";
     limitLabel.innerHTML = `Total disponible: ${consignmentPieces}`;
     processSection.appendChild(limitLabel);
 
     const goodCount = processData ? (processData.pieces.good || 0) : 0;
     const badCount = processData ? (processData.pieces.bad || 0) : 0;
-
-    if (goodCount === 0 && badCount === 0) {
-        processSection.classList.add("inactive-process");
-    }
 
     let goodPercentage = consignmentPieces == 0 ? (goodCount > 0 ? 100 : 0) : (goodCount * 100) / consignmentPieces;
     goodPercentage = Math.min(100, goodPercentage);
@@ -781,13 +779,27 @@ function createHistoricalTable(history) {
     let hue = 30 + (goodPercentage * 0.9);
     processSection.style.setProperty('--glow-hue', hue);
 
+    // Tooltip descriptivo idéntico al sistema corporativo
+    if (goodPercentage === 0) {
+        processSection.title = "Proceso aún no iniciado. Esperando primeras piezas.";
+    } else if (goodPercentage < 50) {
+        processSection.title = `Progreso bajo (${goodPercentage.toFixed(1)}%). Se requiere atención.`;
+    } else if (goodPercentage < 100) {
+        processSection.title = `Progreso estable (${goodPercentage.toFixed(1)}%). Buen ritmo de trabajo.`;
+    } else {
+        processSection.title = "¡Proceso completado exitosamente al 100%!";
+    }
+
     // Borde dinámico según progreso y estado de cotas en el contenedor .hub-progress
     let parentCol = targetContainer.closest(".hub-progress") || targetContainer;
+    processSection.style.boxShadow = 'none';
+
     if (!hasCotas && !isNoCotasProcess) {
         if (parentCol) {
             parentCol.style.borderColor = '#f59e0b';
             parentCol.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4)';
         }
+        processSection.style.borderColor = '#f59e0b';
         numberBadge.style.color = '#f59e0b';
         numberBadge.style.borderColor = 'rgba(245, 158, 11, 0.5)';
         numberBadge.style.background = 'rgba(245, 158, 11, 0.12)';
@@ -796,33 +808,35 @@ function createHistoricalTable(history) {
             parentCol.style.borderColor = '#4ade80';
             parentCol.style.boxShadow = '0 0 14px rgba(74, 222, 128, 0.45), 0 8px 24px rgba(0, 0, 0, 0.4)';
         }
-        numberBadge.style.color = '#4ade80';
-        numberBadge.style.borderColor = 'rgba(74, 222, 128, 0.5)';
-        numberBadge.style.background = 'rgba(74, 222, 128, 0.12)';
+        processSection.style.borderColor = 'rgb(18, 255, 0)';
+        numberBadge.style.color = 'rgb(65, 255, 51)';
+        numberBadge.style.borderColor = 'rgba(18, 255, 0, 0.4)';
+        numberBadge.style.background = 'rgba(18, 255, 0, 0.15)';
     } else if (goodPercentage > 0) {
         if (parentCol) {
             parentCol.style.borderColor = `hsl(${hue}, 100%, 50%)`;
             parentCol.style.boxShadow = `0 0 14px hsla(${hue}, 100%, 50%, 0.35), 0 8px 24px rgba(0, 0, 0, 0.4)`;
         }
-        numberBadge.style.color = `hsl(${hue}, 100%, 50%)`;
-        numberBadge.style.borderColor = `hsla(${hue}, 100%, 50%, 0.5)`;
-        numberBadge.style.background = `hsla(${hue}, 100%, 50%, 0.12)`;
+        processSection.style.borderColor = `hsl(${hue}, 100%, 50%)`;
+        numberBadge.style.color = `hsl(${hue}, 100%, 60%)`;
+        numberBadge.style.borderColor = `hsla(${hue}, 100%, 50%, 0.4)`;
+        numberBadge.style.background = `hsla(${hue}, 100%, 50%, 0.15)`;
     } else {
         if (parentCol) {
-            parentCol.style.borderColor = '#22c55e';
+            parentCol.style.borderColor = 'rgb(18, 255, 0)';
             parentCol.style.boxShadow = '0 0 10px rgba(34, 197, 94, 0.25), 0 8px 24px rgba(0, 0, 0, 0.4)';
         }
-        numberBadge.style.color = '#22c55e';
-        numberBadge.style.borderColor = 'rgba(34, 197, 94, 0.5)';
-        numberBadge.style.background = 'rgba(34, 197, 94, 0.12)';
+        processSection.style.borderColor = 'rgb(18, 255, 0)';
+        numberBadge.style.color = 'rgb(65, 255, 51)';
+        numberBadge.style.borderColor = 'rgba(18, 255, 0, 0.4)';
+        numberBadge.style.background = 'rgba(18, 255, 0, 0.15)';
     }
 
-    // Barras de progreso
+    // Barras de progreso estilo píldora con tracks bar-good-track y bar-bad-track
     let pieces = [goodCount, badCount];
     for (let i = 0; i < pieces.length; i++) {
         let progressBar = document.createElement("div");
-        progressBar.className = "progress-bar";
-        progressBar.style.backgroundColor = i == 0 ? "rgba(12, 130, 1, 0.18)" : "rgba(157, 4, 2, 0.18)";
+        progressBar.className = i == 0 ? "progress-bar bar-good-track" : "progress-bar bar-bad-track";
 
         let progress = document.createElement("div");
         progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
@@ -833,15 +847,24 @@ function createHistoricalTable(history) {
 
         progress.style.width = `${percentage}%`;
 
+        // Gradiente vibrante para buenas y malas
         if (i === 0 && percentage > 0) {
-            let barHue = 30 + (percentage * 0.9);
-            progress.style.backgroundColor = `hsl(${barHue}, 100%, 32%)`;
+            if (percentage >= 100) {
+                progress.style.background = "linear-gradient(90deg, rgb(16, 230, 0) 0%, rgb(13, 179, 0) 100%)";
+            } else {
+                let barHue = 30 + (percentage * 0.9);
+                progress.style.background = `linear-gradient(90deg, hsl(${barHue}, 100%, 45%) 0%, hsl(${barHue}, 100%, 35%) 100%)`;
+            }
+        } else if (i === 1 && percentage > 0) {
+            progress.style.background = "linear-gradient(90deg, rgb(239, 68, 68) 0%, rgb(185, 28, 28) 100%)";
         }
 
         displayPercentage = displayPercentage != 0 ? displayPercentage.toFixed(1) : 0;
         let percentageLabel = document.createElement("div");
         percentageLabel.className = "progress-percentage";
-        percentageLabel.innerText = pieces[i] == 1 ? `${displayPercentage}% ${pieces[i]} pieza` : `${displayPercentage}% ${pieces[i]} piezas`;
+        percentageLabel.innerText = pieces[i] == 1
+            ? `${displayPercentage}% • ${pieces[i]} pieza`
+            : `${displayPercentage}% • ${pieces[i]} piezas`;
 
         progressBar.appendChild(progress);
         progressBar.appendChild(percentageLabel);
@@ -863,12 +886,18 @@ function renderPlaceholderProgress(container) {
     let consignmentPieces = window.arrayData ? (window.arrayData.consignmentPieces || 0) : 0;
 
     let processSection = document.createElement("div");
-    processSection.className = "process-section inactive-process";
+    processSection.className = "process-section";
     processSection.style.position = "relative";
+    processSection.title = "Proceso aún no iniciado. Esperando primeras piezas.";
+    processSection.style.borderColor = "rgb(18, 255, 0)";
+    processSection.style.boxShadow = "none";
 
     let numberBadge = document.createElement("span");
     numberBadge.className = "process-number-badge";
     numberBadge.textContent = "--";
+    numberBadge.style.color = "rgb(65, 255, 51)";
+    numberBadge.style.borderColor = "rgba(18, 255, 0, 0.4)";
+    numberBadge.style.background = "rgba(18, 255, 0, 0.15)";
     processSection.appendChild(numberBadge);
 
     let cotasBadge = document.createElement("img");
@@ -877,7 +906,7 @@ function renderPlaceholderProgress(container) {
     const slash = baseUrl.endsWith('/') ? '' : '/';
     cotasBadge.src = `${baseUrl}${slash}images/Color_Icons/Generales/icono_sin_cotas.png`;
     cotasBadge.title = "Sin cotas registradas";
-    cotasBadge.style.opacity = "0.4";
+    cotasBadge.style.opacity = "0.7";
     processSection.appendChild(cotasBadge);
 
     let processTitle = document.createElement("h3");
@@ -887,19 +916,20 @@ function renderPlaceholderProgress(container) {
 
     let limitLabel = document.createElement("label");
     limitLabel.className = "limit-label";
+    limitLabel.style.fontSize = "12px";
+    limitLabel.style.color = "rgb(255, 255, 255)";
     limitLabel.innerHTML = `Total disponible: ${consignmentPieces}`;
     processSection.appendChild(limitLabel);
 
     for (let i = 0; i < 2; i++) {
         let progressBar = document.createElement("div");
-        progressBar.className = "progress-bar";
-        progressBar.style.backgroundColor = i == 0 ? "rgba(12, 130, 1, 0.15)" : "rgba(157, 4, 2, 0.15)";
+        progressBar.className = i == 0 ? "progress-bar bar-good-track" : "progress-bar bar-bad-track";
         let progress = document.createElement("div");
         progress.className = i == 0 ? "good-progress progress" : "bad-progress progress";
         progress.style.width = "0%";
         let percentageLabel = document.createElement("div");
         percentageLabel.className = "progress-percentage";
-        percentageLabel.innerText = "0% 0 piezas";
+        percentageLabel.innerText = "0% • 0 piezas";
         progressBar.appendChild(progress);
         progressBar.appendChild(percentageLabel);
         processSection.appendChild(progressBar);

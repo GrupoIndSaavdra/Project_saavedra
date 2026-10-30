@@ -379,6 +379,13 @@
 
 /* ── Toasts oficiales SweetAlert2: 100% transparentes sin filtro azul ni backdrop ── */
 body.swal2-toast-shown,
+html.swal2-toast-shown {
+    pointer-events: auto !important;
+    overflow-y: auto !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
+
 body.swal2-toast-shown .swal2-container,
 body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
 .swal2-container.swal2-bottom-end,
@@ -400,6 +407,18 @@ body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
     z-index: 2147483647 !important;
     padding-bottom: 25px !important;
     padding-right: 25px !important;
+    overflow: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    -ms-overflow-style: none !important;
+}
+
+body.swal2-toast-shown .swal2-container::-webkit-scrollbar,
+.swal2-container:has(.swal2-toast)::-webkit-scrollbar,
+.swal2-container.swal2-bottom-end::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 
 .swal2-popup.swal2-toast {

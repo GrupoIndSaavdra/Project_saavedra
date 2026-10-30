@@ -1505,7 +1505,10 @@ header {
 /* ══════════════════════════════════════════════════════════
    ALERTAS FLOTANTES SWEETALERT2 GIS: 100% TRANSPARENTES SIN FILTRO AZUL
    ══════════════════════════════════════════════════════════ */
-body.swal2-toast-shown,
+body.swal2-toast-shown {
+    pointer-events: auto !important;
+}
+
 body.swal2-toast-shown .swal2-container,
 body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
 .swal2-container.swal2-bottom-end,

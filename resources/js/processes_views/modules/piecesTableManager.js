@@ -97,14 +97,15 @@ function createTable() {
                 insertButton_saveOrChoose(form, table);
             }
         } else {
-            //Mostrar DIV de alerta para Cotas No disponibles
-            let div = document.createElement("div");
-            div.className = "label-noCotas";
+            // Mostrar tarjeta de estado para Cotas No disponibles
             const noCotasIconSrc = window.imgNoCotas || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Color_Icons/Generales/icono_sin_cotas.png` : "/images/Color_Icons/Generales/icono_sin_cotas.png");
-            div.innerHTML = `
-                <img src="${noCotasIconSrc}" class="no-cotas-icon" alt="Sin Cotas Nominales">
-                <span>No hay Cotas Nominales disponibles. Notificar inmediatamente al área de software o calidad.</span>
-            `;
+            let div = createStatusBanner({
+                type: "no-cotas",
+                icon: noCotasIconSrc,
+                title: "NO HAY COTAS NOMINALES DISPONIBLES",
+                description: "Este proceso no cuenta con cotas nominales ni tolerancias cargadas en el sistema. La captura dimensional no podrá validarse hasta que el área correspondiente las ingrese.",
+                advice: "Notificar inmediatamente al área de Software o Calidad para registrar los planos y medidas."
+            });
             form.appendChild(div);
 
             const noCotasMsg = "Este proceso no cuenta con cotas nominales ni tolerancias cargadas. La captura dimensional no podrá validarse hasta que el área de Calidad o Software las ingrese al sistema.";
@@ -313,6 +314,34 @@ function insertTableOnForm(cNominals, tolerances, scrollableTable, form, subproc
     return table;
 }
 
+
+/**
+ * Crea una tarjeta estilizada de estado para la captura de piezas
+ * (Sin piezas disponibles, Sin piezas previas, Sin cotas, Completado)
+ */
+function createStatusBanner({ type = "no-pieces", icon, title, description, advice }) {
+    let div = document.createElement("div");
+    div.className = `production-status-banner status-${type}`;
+    div.setAttribute("role", "status");
+
+    const defaultIcon = icon || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Color_Icons/Generales/icono_sin_piezas.png` : "/images/Color_Icons/Generales/icono_sin_piezas.png");
+
+    div.innerHTML = `
+        <img src="${defaultIcon}" class="status-banner-icon" alt="${title}">
+        <h3 class="status-banner-title">${title}</h3>
+        ${description ? `<p class="status-banner-desc">${description}</p>` : ''}
+        ${advice ? `
+            <div class="status-banner-advice">
+                <span class="status-banner-advice-dot"></span>
+                <span>${advice}</span>
+            </div>
+        ` : ''}
+    `;
+
+    return div;
+}
+window.createStatusBanner = createStatusBanner;
+
 function insertButton_saveOrChoose(form, table) {
     let btnsContainer = document.createElement("div");
     btnsContainer.className = "table-actions-container";
@@ -335,38 +364,81 @@ function insertButton_saveOrChoose(form, table) {
             btnsContainer.appendChild(btn);
             form.appendChild(btnsContainer);
         } else {
-            //Mostrar DIV de alerta para "No hay piezas registradas anteriormente"
-            document
-                .querySelector("body")
-                .appendChild(
-                showDivAlert(
-                    "No hay piezas registradas anteriormente. Por favor notifica a un Supervisor o al área de Software.",
-                    true
-                )
-            );
+            // Mostrar tarjeta de estado para "No hay piezas registradas anteriormente"
+            const noPiecesIconSrc = window.imgNoPiecesCustom || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Color_Icons/Generales/icono_sin_piezas.png` : "/images/Color_Icons/Generales/icono_sin_piezas.png");
+            let banner = createStatusBanner({
+                type: "no-previous-pieces",
+                icon: noPiecesIconSrc,
+                title: "NO HAY PIEZAS REGISTRADAS ANTERIORMENTE",
+                description: "No se encontraron piezas o ensambles previos registrados en este proceso para continuar la secuencia.",
+                advice: "Por favor notifica a un Supervisor de Producción o al área de Software / Calidad."
+            });
+            form.appendChild(banner);
+
+            if (typeof window.gisAlert === "function") {
+                window.gisAlert({
+                    title: "Aviso de Secuencia",
+                    text: "No hay piezas registradas anteriormente. Por favor notifica a un Supervisor o al área de Software / Calidad.",
+                    confirmButtonText: "Entendido"
+                });
+            }
         }
     } else {
         if (window.arrayData["availableAssemblies"] && window.arrayData["availableAssemblies"].length > 0) {
             if (!isEditMode) {
-                // Cambiar la ruta del formulario para seleccionar un juego y registralo
+                // Cambiar la ruta del formulario para seleccionar un juego y registrarlo
                 form.action = window.baseUrl + "/processProduction/selectAssembly";
+                btnsContainer.classList.add("piece-selection-mode");
 
-                insertAvaliablePiecesSelect(form); // Insertar select de piezas disponibles
+                // Insertar select de piezas disponibles en el mismo contenedor para que queden al mismo nivel
+                let selectElement = insertAvaliablePiecesSelect(btnsContainer);
 
                 // Crear botón de "Elegir pieza"
                 let btn = document.createElement("button");
                 btn.type = "submit";
-                btn.className = "btn-savePiece";
-                btn.innerHTML = `<img src="${saveIconSrc}" class="save-piece-icon" alt="Elegir pieza"><span>Elegir pieza</span>`;
+                btn.className = "btn-savePiece btn-choose-piece";
+                const pieceCubeIcon = window.imgPiezaCubo || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Pieza_Cubo-Light.png` : "/images/Light_Icons/Pieza_Cubo-Light.png");
+                btn.innerHTML = `<img src="${pieceCubeIcon}" class="save-piece-icon" alt="Elegir pieza"><span>Elegir pieza</span>`;
+
+                // Validación amigable previa
+                btn.addEventListener("click", function (e) {
+                    if (selectElement && !selectElement.value) {
+                        e.preventDefault();
+                        selectElement.focus();
+                        if (typeof window.gisToast === "function") {
+                            window.gisToast("Selecciona una pieza en la lista para continuar.", "warning");
+                        }
+                    }
+                });
+
                 btnsContainer.appendChild(btn);
                 form.appendChild(btnsContainer);
             }
         } else {
-            //Mostrar alerta para "No hay piezas disponibles"
+            // Mostrar tarjeta de estado para "No hay piezas por registrar / proceso anterior"
             if (!isEditMode) {
-                document
-                    .querySelector("body")
-                    .appendChild(showDivAlert("No hay piezas por registrar", true, window.imgNoPieces));
+                const isCompleted = window.arrayData && typeof window.arrayData["remainingPieces"] !== "undefined" && Number(window.arrayData["remainingPieces"]) <= 0;
+                const noPiecesIconSrc = window.imgNoPiecesCustom || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Color_Icons/Generales/icono_sin_piezas.png` : "/images/Color_Icons/Generales/icono_sin_piezas.png");
+                const completedIconSrc = window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Color_Icons/Generales/ready.png` : "/images/Color_Icons/Generales/ready.png";
+
+                let banner = createStatusBanner({
+                    type: isCompleted ? "completed" : "no-pieces",
+                    icon: isCompleted ? completedIconSrc : noPiecesIconSrc,
+                    title: isCompleted 
+                        ? "TODAS LAS PIEZAS HAN SIDO COMPLETADAS" 
+                        : "NO HAY PIEZAS DEL PROCESO ANTERIOR O POR REGISTRAR",
+                    description: isCompleted
+                        ? "Se ha completado el total de piezas programadas para este proceso en la orden actual."
+                        : "No hay piezas disponibles listas para procesar. Verifica si el proceso anterior ya completó y liberó las piezas correspondientes.",
+                    advice: isCompleted
+                        ? "Si requieres procesar piezas adicionales, solicita una nueva meta al Supervisor de Producción."
+                        : "Consulta el avance en Seguimiento de O.T. o notifica a tu Supervisor de Producción."
+                });
+                form.appendChild(banner);
+
+                if (typeof window.gisToast === "function") {
+                    window.gisToast(isCompleted ? "Meta de piezas alcanzada en esta orden." : "No hay piezas disponibles del proceso anterior para registrar.", "info");
+                }
             }
         }
         if (isEditMode) {
@@ -382,11 +454,15 @@ function insertButton_saveOrChoose(form, table) {
         }
     }
 }
-function insertAvaliablePiecesSelect(form) {
+function insertAvaliablePiecesSelect(container = null) {
+    let selectWrapper = document.createElement("div");
+    selectWrapper.className = "select-pieces-wrapper";
+
     let select = document.createElement("select");
     select.className = "select-pieces";
     select.name = "selectedAssembly";
     select.required = true;
+    select.setAttribute("aria-label", "Seleccionar pieza a procesar");
 
     select.addEventListener("change", function () {
         if (this.value) {
@@ -394,30 +470,35 @@ function insertAvaliablePiecesSelect(form) {
             if (typeof window.refreshPieceStartTime === "function") {
                 window.refreshPieceStartTime();
             }
-            if (typeof window.toastpremium === "function") {
-                window.toastpremium(`${this.value} seleccionado correctamente`, "success");
-            }
+            select.classList.add("has-selection");
+        } else {
+            select.classList.remove("has-selection");
         }
     });
 
-    //Agregar opciones al select
-    window.arrayData["availableAssemblies"].forEach((assembly, index) => {
-        //Crear opción vacia
-        if (index === 0) {
+    // Crear opción vacía
+    let defaultOption = document.createElement("option");
+    defaultOption.value = "";
+    defaultOption.textContent = "Seleccionar pieza";
+    select.appendChild(defaultOption);
+
+    // Crear las opciones con las piezas disponibles
+    if (window.arrayData && window.arrayData["availableAssemblies"] && Array.isArray(window.arrayData["availableAssemblies"])) {
+        window.arrayData["availableAssemblies"].forEach((assembly) => {
             let option = document.createElement("option");
-            option.value = "";
-            option.textContent = "Seleccionar pieza";
+            option.value = assembly;
+            option.textContent = assembly;
             select.appendChild(option);
-        }
-        //Crear las opciones con las piezas disponibles
-        let option = document.createElement("option");
-        option.value = assembly;
-        option.textContent = assembly;
-        select.appendChild(option);
-    });
+        });
+    }
 
-    // Insertar el select directamente en el formulario (fuera de la tabla)
-    form.appendChild(select);
+    selectWrapper.appendChild(select);
+
+    if (container) {
+        container.appendChild(selectWrapper);
+    }
+
+    return select;
 }
 
 
@@ -531,7 +612,7 @@ function redirectToEndTable() {
                 if (pieceUsedRow) {
                     const prevPieceRow = pieceUsedRow.previousElementSibling;
                     const hasCotas = !!scrollable.querySelector(".table-row-cNominals");
-                    const stickyHeadersOffset = hasCotas ? 156 : 56;
+                    const stickyHeadersOffset = hasCotas ? 102 : 38;
 
                     // Si hay pieza anterior maquinada, encuadramos desde ella para que queden visibles tanto la anterior como la activa
                     if (prevPieceRow && prevPieceRow.classList.contains("table-row-piece")) {
@@ -629,6 +710,7 @@ window.createBtnTechDocs = createBtnTechDocs;
 
 export {
     createTable,
+    createStatusBanner,
     createForm,
     insertPrincipalVariables,
     insertTableOnForm,

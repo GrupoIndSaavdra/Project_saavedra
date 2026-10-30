@@ -124,19 +124,29 @@ function initTableFocusMode() {
         const isEditMeta = window.arrayData && window.arrayData["edit"] == 1;
         const hasMeta = window.arrayData && !!window.arrayData.meta;
         if (!hasMeta || isEditMeta) {
+            document.body.classList.remove("table-focus-mode");
+            document.documentElement.classList.remove("table-focus-mode");
             if (btnToggle) btnToggle.style.display = "none";
             return false;
         }
 
+        // Requiere que exista un contenedor y una tabla de captura real
         const tableContainer = document.querySelector(".scrollable-table");
-        const table = document.querySelector(".table, .pta-table, .scrollable-table table");
-        const formTable = document.querySelector(".form-tablePieces");
-        const isActive = !!(tableContainer && (table || formTable));
+        const table = document.querySelector(".scrollable-table .table, .scrollable-table .pta-table, .scrollable-table table");
+        const isActive = !!(tableContainer && table);
+
+        if (!isActive) {
+            // Si no hay tabla activa (ej: sin cotas nominales disponibles), siempre limpiar focus mode
+            document.body.classList.remove("table-focus-mode");
+            document.documentElement.classList.remove("table-focus-mode");
+            if (btnToggle) btnToggle.style.display = "none";
+            return false;
+        }
 
         if (btnToggle) {
-            btnToggle.style.display = isActive ? "inline-flex" : "none";
+            btnToggle.style.display = "inline-flex";
         }
-        return isActive;
+        return true;
     };
     window.checkTableActive = checkTableActive;
 
@@ -145,6 +155,7 @@ function initTableFocusMode() {
         if (!isActive) {
             document.body.classList.remove("table-focus-mode");
             document.documentElement.classList.remove("table-focus-mode");
+            if (btnToggle) btnToggle.style.display = "none";
             return;
         }
 
@@ -182,7 +193,9 @@ function initTableFocusMode() {
     const toggleMode = (forceState = null) => {
         const currentlyFocus = document.body.classList.contains("table-focus-mode");
         const nextState = forceState !== null ? forceState : !currentlyFocus;
-        localStorage.setItem("gis_production_table_focus", nextState ? "1" : "0");
+        try {
+            localStorage.setItem("gis_production_table_focus", nextState ? "1" : "0");
+        } catch(e) {}
         updateUI(nextState);
     };
 
@@ -190,20 +203,23 @@ function initTableFocusMode() {
         btnToggle.addEventListener("click", () => toggleMode());
     }
 
+    // Por defecto, la pantalla siempre inicia en vista normal (con todos los paneles visibles)
+    // El operador activa "Más Zoom" voluntariamente cuando desea expandir la tabla.
+    // Solo si el usuario previamente activó Más Zoom expresamente en la sesión actual se restaura:
     const applySavedFocusState = () => {
         if (!checkTableActive()) return;
-        const savedPref = localStorage.getItem("gis_production_table_focus");
         let shouldBeFocus = false;
-        if (savedPref !== null) {
-            shouldBeFocus = savedPref === "1";
-        } else if (window.innerHeight <= 768) {
-            shouldBeFocus = true;
-        }
+        try {
+            const savedPref = localStorage.getItem("gis_production_table_focus");
+            if (savedPref === "1") {
+                shouldBeFocus = true;
+            }
+        } catch(e) {}
         updateUI(shouldBeFocus);
     };
     window.applySavedFocusState = applySavedFocusState;
 
-    // Observar inserción de tabla en el DOM para activar botones y restaurar el modo zoom guardado
+    // Observar inserción de tabla en el DOM para activar botones
     let initialFocusRestored = false;
     const observer = new MutationObserver(() => {
         if (checkTableActive()) {
@@ -219,6 +235,8 @@ function initTableFocusMode() {
         initialFocusRestored = true;
         applySavedFocusState();
     } else {
+        document.body.classList.remove("table-focus-mode");
+        document.documentElement.classList.remove("table-focus-mode");
         if (btnToggle) btnToggle.style.display = "none";
     }
 }
@@ -239,7 +257,7 @@ if (document.readyState === "loading") {
     bootProductionFocus();
 }
 
-// 4. Bloqueo para evitar doble submit
+// 4. Bloqueo para evitar doble submit y atajos ergonómicos
 document.addEventListener("submit", (e) => {
     const btn = e.target.querySelector("button[type='submit']");
     if (btn) {
@@ -248,9 +266,41 @@ document.addEventListener("submit", (e) => {
                 window.logUserAction("Inicio de Reporte", "El operador inició un nuevo reporte de producción");
             }
         }
-        btn.disabled = true;
+        // Evitar bloqueo si es botón de elegir pieza sin selección
+        if (!btn.classList.contains("btn-choose-piece")) {
+            btn.disabled = true;
+        }
     }
 });
+
+// Atajo ergonómico F2: Alternar rápidamente el modo foco (Más Zoom / Menos Zoom)
+document.addEventListener("keydown", (e) => {
+    if (e.key === "F2") {
+        e.preventDefault();
+        const btnToggle = document.getElementById("btnToggleFocus");
+        if (btnToggle && btnToggle.style.display !== "none") {
+            btnToggle.click();
+        }
+    }
+});
+
+// Auto-enfoque ergonómico en la primera cota editable de la pieza activa
+function autoFocusFirstCota() {
+    if (window.pieceToBeUsed && window.pieceToBeUsed !== "NoPreviousPieces") {
+        setTimeout(() => {
+            const firstInput = document.querySelector(".scrollable-table input:not([readonly]):not([disabled])");
+            if (firstInput && document.activeElement !== firstInput) {
+                firstInput.focus();
+                firstInput.select?.();
+            }
+        }, 300);
+    }
+}
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", autoFocusFirstCota);
+} else {
+    autoFocusFirstCota();
+}
 
 // 5. Flujo Principal de Inicialización del Reporte
 if (window.arrayData) {

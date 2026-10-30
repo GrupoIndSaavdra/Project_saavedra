@@ -3,10 +3,14 @@
     position: relative;
     width: 100%;
     height: auto;
+    flex: 0 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-bottom: 0;
+    justify-content: flex-start;
+    padding-bottom: 0.35rem !important;
+    box-sizing: border-box;
 }
 
 .label-table {
@@ -23,45 +27,68 @@
 
 .scrollable-table {
     position: relative;
-    margin-top: 0.25rem;
-    margin-bottom: 0.25rem;
-    border-radius: 12px;
-    width: 100%;
-    min-height: 290px;
-    max-height: 335px;
+    flex: 0 1 auto;
     height: auto;
-    overflow-x: auto;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    padding: 2px;
-    transition: all 0.3s ease;
+    min-height: 0;
+    max-height: calc(100vh - 430px);
+    width: 100%;
+    margin-top: 0.25rem;
+    margin-bottom: 0.35rem;
+    border-radius: 12px;
+    overflow-x: auto !important;
+    overflow-y: auto !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+    transition: all 0.25s ease;
+}
+
+/* Cuando NO tiene zoom: altura adaptada al contenido hasta max-height con scroll interno */
+body:not(.table-focus-mode) .scrollable-table {
+    flex: 0 1 auto;
+    height: auto;
+    min-height: 0;
+    max-height: calc(100vh - 430px);
 }
 
 .scrollable-table.pta-scrollable-container {
-    min-height: 290px;
-    max-height: calc(100vh - 415px);
+    flex: 0 1 auto;
+    height: auto;
+    min-height: 0;
+    max-height: calc(100vh - 430px);
 }
 
-/* Modo Edición de Piezas: la tabla se extiende para mostrar hasta ~12 piezas y el scroll pasa a la vista completa */
+/* Modo Edición de Piezas: mantiene el scroll 100% interno sin generar jamás scroll en la página */
 .is-edit-pieces-mode .scrollable-table,
 .scrollable-table.is-edit-pieces-mode,
 .is-edit-pieces-mode .scrollable-table.pta-scrollable-container {
-    max-height: 760px !important; /* Capacidad para visualizar hasta ~12 piezas cómodamente */
+    flex: 0 1 auto;
     height: auto !important;
+    min-height: 0;
+    max-height: calc(100vh - 430px) !important;
     overflow-y: auto !important;
-    margin-top: 0.5rem;
-    margin-bottom: 1.25rem;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    margin-top: 0.25rem !important;
+    margin-bottom: 0.35rem !important;
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+}
+
+body.table-focus-mode.is-edit-pieces-mode .scrollable-table,
+body.table-focus-mode .is-edit-pieces-mode .scrollable-table {
+    flex: 0 1 auto;
+    height: auto !important;
+    min-height: 0;
+    max-height: calc(100vh - 165px) !important;
 }
 
 .is-edit-pieces-mode .form-tablePieces {
-    padding-bottom: 3.5rem !important;
+    flex: 0 1 auto;
+    height: auto;
+    min-height: 0;
+    padding-bottom: 0.35rem !important;
+    margin-bottom: 0 !important;
 }
 
 .is-edit-pieces-mode .table-actions-container {
-    margin-top: 0.85rem !important;
-    margin-bottom: 1.5rem !important;
+    margin-top: 0.35rem !important;
+    margin-bottom: 0.45rem !important;
 }
 
 .scrollable-table::-webkit-scrollbar {
@@ -105,17 +132,18 @@
 }
 
 .table-title {
-    background-color: var(--gis-blue);
+    background-color: var(--gis-blue) !important;
     color: #fff;
     padding: 6px 4px;
-    height: 56px;
-    min-height: 56px;
-    max-height: 56px;
+    height: 44px;
+    min-height: 44px;
+    max-height: 44px;
     text-align: center;
-    font-size: 1.05em;
+    font-size: 0.98rem;
+    font-weight: 800;
     position: sticky;
     top: 0;
-    z-index: 5; /* Aumentado para estar sobre otras celdas */
+    z-index: 5;
     box-sizing: border-box;
     vertical-align: middle;
 }
@@ -123,40 +151,44 @@
 /* Filas estáticas de C.Nominal y Tolerancias (Guías de Medidas) */
 .table tr.table-row-cNominals td {
     background-color: #d6e8f8 !important;
+    height: 38px;
+    min-height: 38px;
+    max-height: 38px;
+    padding: 2px 6px;
+    box-sizing: border-box;
+    vertical-align: middle;
 }
 
-.table tr.table-row-cNominals:nth-child(2) td {
+.table tr.table-row-cNominals:nth-child(2) td,
+.table tr.table-row-cNominals.row-cnominal td {
     position: sticky;
-    top: 56px; /* Debajo del encabezado de 56px */
+    top: 44px; /* Debajo de los títulos de 44px */
     z-index: 4;
     background-color: #d6e8f8 !important;
-    height: 50px;
-    min-height: 50px;
-    max-height: 50px;
-    box-sizing: border-box;
 }
-.table tr.table-row-cNominals:nth-child(3) td {
+
+.table tr.table-row-cNominals:nth-child(3) td,
+.table tr.table-row-cNominals.row-tolerancias td {
     position: sticky;
-    top: 106px; /* Debajo de C.Nominal (56px + 50px de altura) */
+    top: 82px; /* Debajo de C.Nominal (44px + 38px) */
     z-index: 4;
     background-color: #d6e8f8 !important;
-    height: 50px;
-    min-height: 50px;
-    max-height: 50px;
-    box-sizing: border-box;
 }
 
 /* Celdas de la primera columna para filas estáticas (intersección sticky) */
-.table tr.table-row-cNominals:nth-child(2) td:first-child {
-    top: 56px;
+.table tr.table-row-cNominals:nth-child(2) td:first-child,
+.table tr.table-row-cNominals.row-cnominal td:first-child {
+    top: 44px;
     left: 0;
     z-index: 6;
     background-color: #eaf2fa !important;
     color: var(--gis-blue) !important;
     font-weight: 800 !important;
 }
-.table tr.table-row-cNominals:nth-child(3) td:first-child {
-    top: 106px;
+
+.table tr.table-row-cNominals:nth-child(3) td:first-child,
+.table tr.table-row-cNominals.row-tolerancias td:first-child {
+    top: 82px;
     left: 0;
     z-index: 6;
     background-color: #eaf2fa !important;
@@ -222,17 +254,20 @@
 
 .table td {
     width: 200px;
-    height: 50px;
+    height: 42px;
+    min-height: 42px;
     text-align: center;
-    font-size: 1.1em;
+    font-size: 1.02em;
     font-weight: 700;
     border: 3px solid var(--gis-blue);
     background-color: #fff;
+    vertical-align: middle;
 }
 
 /* Tabla compacta para procesos con pocas columnas (Soldadura, Asentado, etc.) */
 .table.table-compact {
-    width: auto;
+    width: 100%;
+    max-width: 100%;
 }
 
 .table.table-compact th.table-title {
@@ -366,13 +401,19 @@ td select {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1.25rem;
     width: 100%;
-    margin-top: 0.2rem;
-    margin-bottom: 0.35rem;
-    padding: 0;
+    margin-top: 0.35rem;
+    margin-bottom: 0.45rem;
+    padding: 0 1rem;
     box-sizing: border-box;
     transition: all 0.25s ease;
+}
+
+.table-actions-container.piece-selection-mode {
+    justify-content: center;
+    align-items: center;
 }
 
 .table-actions-container .btn-savePiece,
@@ -620,19 +661,62 @@ td select {
     }
 }
 
+.select-pieces-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+}
+
 .select-pieces {
-    text-align: center;
-    background: #404040;
-    border: 3px solid #fff;
-    color: #ffffff;
-    width: auto;
-    padding: 0.5em 1.5em;
-    font-size: 1em;
-    border-radius: 5px;
-    margin-top: 1.2em;
-    align-self: flex-start;
-    margin-left: 1em;
+    position: relative;
+    height: 48px;
+    min-height: 48px;
+    min-width: 220px;
+    max-width: 320px;
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+    border: 2px solid rgba(255, 255, 255, 0.85) !important;
+    border-radius: 11px;
+    color: #ffffff !important;
+    font-size: 1.02rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 0 2.5rem 0 1.25rem;
     cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    outline: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-appearance: none;
+    appearance: none;
+    background-image: var(--triangulo-abajo, url('/images/Color_Icons/Generales/triangulo_abajo.png'));
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 14px;
+    margin: 0 !important;
+    text-align: left;
+    box-sizing: border-box;
+}
+
+.select-pieces:hover {
+    background: linear-gradient(135deg, #033966 0%, #0d5ca8 55%, #1d72b8 100%) !important;
+    border-color: #ffffff !important;
+    box-shadow: 0 6px 20px rgba(13, 92, 168, 0.55), 0 0 16px 3px rgba(56, 189, 248, 0.45) !important;
+    -webkit-transform: translateY(-2px) scale(1.02);
+    transform: translateY(-2px) scale(1.02);
+}
+
+.select-pieces:focus,
+.select-pieces.has-selection {
+    background: linear-gradient(135deg, #033966 0%, #0d5ca8 55%, #1d72b8 100%) !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 18px rgba(56, 189, 248, 0.6) !important;
+}
+
+.select-pieces option {
+    background: #0f172a !important;
+    color: #ffffff !important;
+    font-size: 1rem;
+    padding: 8px 12px;
 }
 
 .div-opacity {
@@ -865,20 +949,26 @@ td select {
    ========================================================================== */
 
 body.table-focus-mode .scrollable-table {
-    min-height: 280px !important;
-    max-height: calc(100vh - 225px) !important;
+    flex: 0 1 auto;
+    height: auto !important;
+    min-height: 0;
+    max-height: calc(100vh - 165px) !important;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
     overflow-y: auto !important;
 }
 
 @media (max-height: 860px) {
-    .scrollable-table {
-        min-height: 220px;
+    body:not(.table-focus-mode) .scrollable-table {
+        min-height: 0;
         max-height: calc(100vh - 380px);
     }
+    .is-edit-pieces-mode .scrollable-table {
+        min-height: 0;
+        max-height: calc(100vh - 380px) !important;
+    }
     body.table-focus-mode .scrollable-table {
-        min-height: 240px !important;
-        max-height: calc(100vh - 195px) !important;
+        min-height: 0;
+        max-height: calc(100vh - 150px) !important;
     }
     .table th,
     .table td {
@@ -889,22 +979,206 @@ body.table-focus-mode .scrollable-table {
         height: 28px;
         font-size: 0.82rem;
     }
+    .table-actions-container .select-pieces,
+    .table-actions-container .btn-savePiece,
     .btn-savePiece {
-        height: 40px !important;
+        height: 42px !important;
+        min-height: 42px !important;
         padding: 0 24px !important;
         font-size: 0.95rem !important;
+    }
+    .table-actions-container {
+        margin-top: 0.25rem !important;
+        margin-bottom: 0.35rem !important;
+        gap: 1rem !important;
     }
 }
 
 @media (max-height: 740px) {
-    .scrollable-table {
-        min-height: 180px;
+    body:not(.table-focus-mode) .scrollable-table {
+        min-height: 0;
         max-height: calc(100vh - 330px);
     }
+    .is-edit-pieces-mode .scrollable-table {
+        min-height: 0;
+        max-height: calc(100vh - 330px) !important;
+    }
     body.table-focus-mode .scrollable-table {
-        min-height: 200px !important;
-        max-height: calc(100vh - 175px) !important;
+        min-height: 0;
+        max-height: calc(100vh - 130px) !important;
+    }
+    .table-actions-container .select-pieces,
+    .table-actions-container .btn-savePiece,
+    .btn-savePiece {
+        height: 38px !important;
+        min-height: 38px !important;
+        padding: 0 18px !important;
+        font-size: 0.88rem !important;
     }
 }
 
 
+
+
+/* ==========================================================================
+   BANNERS DE ESTADOS DE PRODUCCIÓN (Sin cotas, Sin piezas, Sin piezas previas)
+   ========================================================================== */
+.production-status-banner {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin: 1.5rem auto;
+    width: -webkit-fit-content;
+    width: -moz-fit-content;
+    width: fit-content;
+    max-width: 820px;
+    padding: 1.6rem 2.8rem;
+    box-sizing: border-box;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow:
+        0 10px 25px rgba(0, 0, 0, 0.08),
+        0 2px 6px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    animation: fadeInBanner 0.35s ease-out;
+}
+
+@keyframes fadeInBanner {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.production-status-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+}
+
+/* 1. Variante: Sin Piezas por Registrar / Proceso Anterior (Azul Corporativo GIS) */
+.production-status-banner.status-no-pieces {
+    border: 3.5px solid #033966;
+    border-top: none;
+    box-shadow: 0 8px 25px rgba(3, 57, 102, 0.20);
+}
+.production-status-banner.status-no-pieces::before {
+    background: linear-gradient(90deg, #033966 0%, #0d5ca8 50%, #38bdf8 100%);
+}
+.production-status-banner.status-no-pieces .status-banner-title {
+    color: #033966;
+}
+
+/* 2. Variante: Sin Piezas Registradas Anteriormente (Índigo) */
+.production-status-banner.status-no-previous-pieces {
+    border: 3.5px solid #4338ca;
+    border-top: none;
+    box-shadow: 0 8px 25px rgba(67, 56, 202, 0.20);
+}
+.production-status-banner.status-no-previous-pieces::before {
+    background: linear-gradient(90deg, #3730a3 0%, #6366f1 50%, #818cf8 100%);
+}
+.production-status-banner.status-no-previous-pieces .status-banner-title {
+    color: #3730a3;
+}
+
+/* 3. Variante: Sin Cotas Nominales (Ámbar Dorado) */
+.production-status-banner.status-no-cotas {
+    border: 3.5px solid #d97706;
+    border-top: none;
+    box-shadow: 0 8px 25px rgba(217, 119, 6, 0.22);
+}
+.production-status-banner.status-no-cotas::before {
+    background: linear-gradient(90deg, #b45309 0%, #f59e0b 50%, #fbbf24 100%);
+}
+.production-status-banner.status-no-cotas .status-banner-title {
+    color: #92400e;
+}
+
+/* 4. Variante: Completado / Meta Lograda (Verde Esmeralda) */
+.production-status-banner.status-completed {
+    border: 3.5px solid #059669;
+    border-top: none;
+    box-shadow: 0 8px 25px rgba(5, 150, 105, 0.22);
+}
+.production-status-banner.status-completed::before {
+    background: linear-gradient(90deg, #047857 0%, #10b981 50%, #34d399 100%);
+}
+.production-status-banner.status-completed .status-banner-title {
+    color: #065f46;
+}
+
+/* 5. Variante: Calidad / Liberación Pendiente (Azul Marino / Cian) */
+.production-status-banner.status-pending-quality {
+    border: 3.5px solid #0284c7;
+    border-top: none;
+    box-shadow: 0 8px 25px rgba(2, 132, 199, 0.20);
+}
+.production-status-banner.status-pending-quality::before {
+    background: linear-gradient(90deg, #0369a1 0%, #0284c7 50%, #38bdf8 100%);
+}
+.production-status-banner.status-pending-quality .status-banner-title {
+    color: #0369a1;
+}
+
+.status-banner-icon {
+    width: 76px;
+    height: 76px;
+    object-fit: contain;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.12));
+    margin-bottom: 2px;
+}
+
+.status-banner-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1.35;
+    margin: 0;
+}
+
+.status-banner-desc {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #475569;
+    line-height: 1.45;
+    margin: 0;
+    max-width: 650px;
+}
+
+.status-banner-advice {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+    padding: 6px 14px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    color: #64748b;
+    letter-spacing: 0.02em;
+}
+
+.status-banner-advice-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: currentColor;
+    display: inline-block;
+    flex-shrink: 0;
+}

@@ -53,6 +53,7 @@ function toastpremium(message, type = "success") {
             showConfirmButton: false,
             timer: 3200,
             timerProgressBar: true,
+            scrollbarPadding: false,
             icon: swalIcon,
             title: message,
             showClass: {
@@ -70,7 +71,13 @@ function toastpremium(message, type = "success") {
                     container.style.setProperty('backdrop-filter', 'none', 'important');
                     container.style.setProperty('-webkit-backdrop-filter', 'none', 'important');
                     container.style.setProperty('box-shadow', 'none', 'important');
+                    container.style.setProperty('pointer-events', 'none', 'important');
+                    container.style.setProperty('overflow', 'hidden', 'important');
+                    container.style.setProperty('overflow-x', 'hidden', 'important');
+                    container.style.setProperty('overflow-y', 'hidden', 'important');
+                    container.style.setProperty('scrollbar-width', 'none', 'important');
                 }
+                toast.style.setProperty('pointer-events', 'auto', 'important');
             }
         });
         return;

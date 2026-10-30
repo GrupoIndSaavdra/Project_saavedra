@@ -22,6 +22,8 @@
     window.imgMasZoom = "{{ asset('images/Light_Icons/Mas_Zoom-Light.png') }}";
     window.imgMenosZoom = "{{ asset('images/Light_Icons/Menos_Zoom-Light.png') }}";
     window.imgOt = "{{ asset('images/Light_Icons/OT-Light.png') }}";
+    window.imgPiezaCubo = "{{ asset('images/Light_Icons/Pieza_Cubo-Light.png') }}";
+    window.imgNoPiecesCustom = "{{ asset('images/Color_Icons/Generales/icono_sin_piezas.png') }}";
     window.occupiedMachines = @json((new \App\Http\Controllers\MachinesController)->machinesOccupied());
 </script>
 @isset($arrayData)
@@ -41,21 +43,5 @@
                 document.addEventListener('DOMContentLoaded', () => document.body.classList.add('is-edit-pieces-mode'));
             }
         @endif
-        @if (!empty($arrayData['meta']) && (empty($arrayData['edit']) || $arrayData['edit'] != 1))
-            try {
-                var savedFocus = localStorage.getItem('gis_production_table_focus');
-                var shouldFocus = savedFocus !== null ? (savedFocus === '1') : (window.innerHeight <= 768);
-                if (shouldFocus) {
-                    document.documentElement.classList.add('table-focus-mode');
-                    if (document.body) {
-                        document.body.classList.add('table-focus-mode');
-                    } else {
-                        document.addEventListener('DOMContentLoaded', function() {
-                            document.body.classList.add('table-focus-mode');
-                        });
-                    }
-                }
-            } catch(e) {}
-        @endif
-    </script>
+        </script>
 @endisset

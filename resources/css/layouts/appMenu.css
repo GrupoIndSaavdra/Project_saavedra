@@ -125,7 +125,9 @@ body {
     text-align: left;
     resize: none;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
     box-sizing: border-box;
 }
 
@@ -150,7 +152,9 @@ body {
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: background 0.2s, color 0.2s;
+    transition:
+        background 0.2s,
+        color 0.2s;
 }
 
 .btn-liberation-cancel:hover {
@@ -421,7 +425,9 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.16s ease;
+    transition:
+        transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1),
+        filter 0.16s ease;
     will-change: transform;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
@@ -506,6 +512,13 @@ body {
 
 /* Toasts de SweetAlert2: 100% transparentes, sin filtro azul ni backdrop */
 body.swal2-toast-shown,
+html.swal2-toast-shown {
+    pointer-events: auto !important;
+    overflow-y: auto !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
+
 body.swal2-toast-shown .swal2-container,
 body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
 .swal2-container.swal2-bottom-end,
@@ -524,6 +537,18 @@ body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
     backdrop-filter: none !important;
     box-shadow: none !important;
     pointer-events: none !important;
+    overflow: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    -ms-overflow-style: none !important;
+}
+
+body.swal2-toast-shown .swal2-container::-webkit-scrollbar,
+.swal2-container:has(.swal2-toast)::-webkit-scrollbar,
+.swal2-container.swal2-bottom-end::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
 }
 .loading {
     position: fixed !important;
@@ -704,7 +729,12 @@ body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
 }
 .filter-opacity {
     position: fixed;
-    background: rgba(0, 10, 25, 0.85); /* Filtro azulito sin blur para evitar que se trabe */
+    background: rgba(
+        0,
+        10,
+        25,
+        0.85
+    ); /* Filtro azulito sin blur para evitar que se trabe */
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
     top: 0;
