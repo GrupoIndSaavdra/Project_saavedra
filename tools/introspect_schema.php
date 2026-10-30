@@ -6,7 +6,6 @@ $kernel = $app->make(Illuminate\Contracts\Console\Kernel::class);
 $kernel->bootstrap();
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 try {
     $dbName = config('database.connections.mysql.database');
@@ -93,4 +92,3 @@ try {
     echo "❌ Error al introspeccionar BD: " . $e->getMessage() . "\n";
     exit(1);
 }
-
