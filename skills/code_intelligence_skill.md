@@ -169,20 +169,23 @@ flowchart TD
 
 ---
 
-## 📋 TABLA RESUMEN DE ATAJOS PARA EL AGENTE
+## 📋 TABLA RESUMEN DE ATAJOS (CLI UNIFICADO `tools\agent.bat`)
 
-| Necesidad / Pregunta | Herramienta Recomendada | Comando |
+Todas las herramientas están unificadas bajo un único punto de entrada: `tools\agent.bat` (o `tools/agent.sh` en Linux):
+
+| Necesidad / Pregunta | Comando Unificado Windows | Comando Linux |
 |---|---|---|
-| "¿Qué archivos existen y cómo se conectan en general?" | **Repomap** | Leer `repomap.txt` |
-| "¿Qué columnas tiene la tabla X?" | **Prisma Schema** | Buscar en `prisma/schema.prisma` |
-| "¿Dónde está definida la función o método X?" | **Universal Ctags** | `python tools/generate_tags.py -s <nombre>` |
-| "¿Dónde se usa el string o variable X?" | **Ripgrep** | `.\tools\rg.bat "<texto>" <carpeta>` |
-| "¿Qué afecta modificar este modelo o controlador?" | **NetworkX Graph** | `python tools/dependency_graph.py -q <nombre>` |
-| "¿Qué métodos tiene este controlador grande sin leerlo entero?" | **Tree-sitter AST** | `python tools/ast_skeleton.py <archivo.php>` |
-| "¿Cuántos tokens me cuesta este archivo?" | **Tiktoken** | `python tools/count_tokens.py <archivo>` |
-| "¿Qué error ocurrió en el log sin comerme 50 páginas?" | **LLMLingua Compressor** | `python tools/compress_context.py storage/logs/laravel.log --log` |
-| "¿Cuáles son mis cambios atómicos de git?" | **Clean Git Diff** | `python tools/clean_diff.py` |
-| "¿Dónde se usa esta estructura AST en el código?" | **AST-grep** | `.\tools\sg.bat run -p '<patron>' <ruta>` |
+| "¿Qué archivos existen y cómo se conectan en general?" | `tools\agent.bat repomap` (o leer `repomap.txt`) | `tools/agent.sh repomap` |
+| "¿Qué columnas tiene la tabla X?" | Buscar en `prisma/schema.prisma` | Buscar en `prisma/schema.prisma` |
+| "¿Dónde está definida la función o método X?" | `tools\agent.bat tags -s <nombre>` | `tools/agent.sh tags -s <nombre>` |
+| "¿Dónde se usa el string o variable X?" | `tools\agent.bat rg "<texto>" <carpeta>` | `tools/agent.sh rg "<texto>" <carpeta>` |
+| "¿Qué afecta modificar este modelo o controlador?" | `tools\agent.bat graph -q <nombre>` | `tools/agent.sh graph -q <nombre>` |
+| "¿Qué métodos tiene este archivo sin leerlo entero?" | `tools\agent.bat skeleton <archivo.php>` | `tools/agent.sh skeleton <archivo.php>` |
+| "¿Cuántos tokens me cuesta este archivo?" | `tools\agent.bat tokens <archivo>` | `tools/agent.sh tokens <archivo>` |
+| "¿Qué error ocurrió en el log sin comerme 50 páginas?" | `tools\agent.bat compress storage/logs/laravel.log` | `tools/agent.sh compress storage/logs/laravel.log` |
+| "¿Cuáles son mis cambios atómicos de git?" | `tools\agent.bat diff` | `tools/agent.sh diff` |
+| "¿Dónde se usa esta estructura AST en el código?" | `tools\agent.bat sg run -p '<patron>' <ruta>` | `tools/agent.sh sg run -p '<patron>' <ruta>` |
+| "¿Cómo instalo o actualizo las herramientas de IA?" | `.\setup.bat` (o `tools\agent.bat install`) | `tools/agent.sh install` |
 
 ---
 

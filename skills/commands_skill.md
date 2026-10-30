@@ -490,22 +490,24 @@ Cuando el usuario solicite un mensaje de commit o se finalice una tarea, **el te
 Para instalar o regenerar todo el ecosistema de inteligencia de código en cualquier entorno o servidor:
 
 ```powershell
-# En Windows / Windows Server (1 clic):
-.\install_agent_tools.bat
+# En Windows / Windows Server (Instalador único):
+.\setup.bat
 
 # En Linux / Servidores de Producción:
-chmod +x install_agent_tools.sh && ./install_agent_tools.sh
+./tools/agent.sh install
 ```
 
-### Atajos de Línea de Comandos:
-- `tools\rg.bat "query" [path]` — Ripgrep ultrarrápido en Rust.
-- `tools\sg.bat run -p "pattern" [path]` — AST-grep búsqueda estructural.
-- `python tools/ast_skeleton.py <archivo.php|js>` — Esqueleto AST sin cuerpos de función (-90% tokens).
-- `python tools/dependency_graph.py -q <nombre>` — Consulta de impacto en el DAG de NetworkX.
-- `python tools/generate_tags.py -s <simbolo>` — Búsqueda instantánea de definición en `tags`.
-- `python tools/compress_context.py <archivo>` — Compresor de logs y prompts (estilo LLMLingua).
-- `python tools/count_tokens.py <archivo|dir>` — Presupuesto exacto de tokens con tiktoken.
-- `python tools/clean_diff.py` — Git diff atómico y limpio sin ruido.
+### CLI Unificado del Agente (`tools\agent.bat`):
+- `tools\agent.bat rg "query" [path]` — Ripgrep ultrarrápido en Rust.
+- `tools\agent.bat sg run -p "pattern" [path]` — AST-grep búsqueda estructural.
+- `tools\agent.bat skeleton <archivo.php|js>` — Esqueleto AST sin cuerpos de función (-90% tokens).
+- `tools\agent.bat graph -q <nombre>` — Consulta de impacto en el DAG de NetworkX.
+- `tools\agent.bat tags -s <simbolo>` — Búsqueda instantánea de definición en `tags`.
+- `tools\agent.bat compress <archivo>` — Compresor de logs y prompts (estilo LLMLingua).
+- `tools\agent.bat tokens <archivo/dir>` — Presupuesto exacto de tokens con tiktoken.
+- `tools\agent.bat diff` — Git diff atómico y limpio sin ruido (-U1).
+- `tools\agent.bat schema` — Introspección de MySQL a prisma/schema.prisma.
+
 
 
 
