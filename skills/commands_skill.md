@@ -483,4 +483,29 @@ Cuando el usuario solicite un mensaje de commit o se finalice una tarea, **el te
    - **Línea de Asunto:** Máximo 72 caracteres, verbo en imperativo (`add`, `fix`, `refactor`, `update`, `optimize`).
    - **Cuerpo Opcional:** Viñetas simples y directas explicando los cambios clave en los componentes modificados.
 
+---
+
+## 15. Herramientas de Inteligencia de Código y Ahorro de Tokens (`tools/`)
+
+Para instalar o regenerar todo el ecosistema de inteligencia de código en cualquier entorno o servidor:
+
+```powershell
+# En Windows / Windows Server (1 clic):
+.\install_agent_tools.bat
+
+# En Linux / Servidores de Producción:
+chmod +x install_agent_tools.sh && ./install_agent_tools.sh
+```
+
+### Atajos de Línea de Comandos:
+- `tools\rg.bat "query" [path]` — Ripgrep ultrarrápido en Rust.
+- `tools\sg.bat run -p "pattern" [path]` — AST-grep búsqueda estructural.
+- `python tools/ast_skeleton.py <archivo.php|js>` — Esqueleto AST sin cuerpos de función (-90% tokens).
+- `python tools/dependency_graph.py -q <nombre>` — Consulta de impacto en el DAG de NetworkX.
+- `python tools/generate_tags.py -s <simbolo>` — Búsqueda instantánea de definición en `tags`.
+- `python tools/compress_context.py <archivo>` — Compresor de logs y prompts (estilo LLMLingua).
+- `python tools/count_tokens.py <archivo|dir>` — Presupuesto exacto de tokens con tiktoken.
+- `python tools/clean_diff.py` — Git diff atómico y limpio sin ruido.
+
+
 

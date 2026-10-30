@@ -47,6 +47,8 @@ Analiza mentalmente cuál de las skills del Índice de abajo cubre el contexto d
 | Optimización extrema de rendimiento y RAM | `performance_opt_skill.md` |
 | Ciclo de reprocesos (_R1), liberaciones y reinicios | `rework_cycle_skill.md` |
 | Catálogo global de clases, normalización y reglas | `classes_skill.md` |
+| Límites de pruebas del agente, verificaciones backend (`php -l`) | `no_testing_skill.md` |
+| Navegación de código, AST, grafo de dependencias, ahorro de tokens | `code_intelligence_skill.md` |
 
 ### Paso 2 — Leer el archivo `.md` completo con `view_file`
 Usa la herramienta `view_file` para leer el contenido de la skill identificada **antes** de proponer o escribir cualquier solución.
@@ -113,6 +115,7 @@ Antes de proponer o implementar cualquier solución, evalúa mentalmente esta es
 19. **[Optimización de Rendimiento](performance_opt_skill.md)** — Prevención de memoria exhausta, DB::table(), lazyById() y desfragmentación
 20. **[Ciclo de Reprocesos y Liberaciones](rework_cycle_skill.md)** — Reinicios destructivos vs reemplazos seguros, aislamiento de clases y SCARs
 21. **[Catálogo y Normalización de Clases](classes_skill.md)** — config/global_classes.php, normalización de nombres, categorizaciones y matching singular/plural
+22. **[Inteligencia de Código y Optimización de Tokens](code_intelligence_skill.md)** — Tree-sitter, Repomap, NetworkX DAG, AST-grep, Universal Ctags, Ripgrep, Clean Diff, Tiktoken, Compresión LLMLingua e Introspección Prisma
 
 ---
 
@@ -176,9 +179,11 @@ Project_saavedra/
 
 | Perfil | Nombre | Acceso Principal |
 |--------|--------|-----------------|
-| `1` | Administrador | Acceso total, creación de OTs, depuración, acceso global |
-| `2` | Gerente/Supervisor | Ver todo, aprobar, auditoría completa |
-| `4` | Calidad Fundición | Revisión y liberación de OTs, SCARs, liberación de modelos |
-| `5` | Almacén | Recepción, pre-órdenes, reprocesos, subida de documentos |
-| `6` | Operador Maquinado | Maquinado de piezas, registro de medidas en procesos |
-| `8` | Calidad Soldadura | Liberación de botes y lotes de soldadura |
+| `1` | Administrador | Acceso total, creación de OTs, depuración, usuarios y acceso global |
+| `2` | Operador Maquinado | Registro de proceso de producción y herramientas (sin menú extendido) |
+| `3` | Master / Maestro | Supervisión global. Menú multi-sección (Administración, Calidad, Almacén) |
+| `4` | Calidad Fundición / Maquinados | Liberación de piezas, SCARs, inspección visual, dimensional y reportes |
+| `5` | Almacén | Modificación de O.T., control de soldadura (QRs, recepción, entrega), inventarios |
+| `6` | Supervisor de Producción | Administración de producción, prioridades, reporte de piezas y seguimiento |
+| `8` | Calidad Soldadura / PTA | Análisis de soldadura PTA, segunda pasada y liberación especializada |
+| `pta_temp` | Sesión Temporal PTA | Vista acotada exclusivamente al flujo del procedimiento PTA en curso |

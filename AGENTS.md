@@ -43,6 +43,7 @@
 | Catálogo y normalización de clases (`global_classes.php`) | `skills/classes_skill.md` | Normalización de nombres de modelos y clases de fundición. |
 | Ausencia de tests automatizados | `skills/no_testing_skill.md` | Protocolo para proyectos sin suite de pruebas unitarias automatizadas. |
 | Estándar de creación de skills | `skills/agent_skills_standard.md` | Formato estándar para crear o extender skills en la carpeta `skills/`. |
+| Inteligencia de código, AST y optimización de tokens | `skills/code_intelligence_skill.md` | Tree-sitter, Repomap, NetworkX DAG, AST-grep, Ctags, Ripgrep, Tiktoken, Prisma. |
 
 ---
 

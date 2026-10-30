@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+npx --no-install ast-grep "$@"
+

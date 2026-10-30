@@ -33,3 +33,16 @@ yarn-error.log
 # Archivos temporales de agentes/skills
 /skills/aprendizajes_temp.md
 
+# Python cache & artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+# Índices dinámicos de herramientas de IA
+/tags
+/storage/code_dependency_graph.json
+
+
+

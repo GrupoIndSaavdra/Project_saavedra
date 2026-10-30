@@ -35,9 +35,9 @@ Al hacer operaciones CRUD (crear carpetas, subir PDFs, eliminar archivos), la pr
 En vez de recargar la página, se usa el **Patrón de Estado Local** con objetos `window` (como `window.estructura`, `window.historiales`, `window.todasLasOTs`, etc.) que actúan como "Fuente de Verdad".
 
 ### 1. Actualizar el Backend (Controlador)
-Ensure your controller returns the necessary identifiers in the JSON response, so the frontend knows exactly what was created, deleted, or modified.
+Asegúrate de que tu controlador devuelva los identificadores necesarios en la respuesta JSON, para que el frontend sepa exactamente qué registro se creó, eliminó o modificó.
 
-**Example for creating a folder:**
+**Ejemplo para creación de carpetas/registros:**
 ```php
 if ($request->expectsJson()) {
  return response()->json([
@@ -49,7 +49,7 @@ if ($request->expectsJson()) {
 }
 ```
 
-**Example for linking alerts/records:**
+**Ejemplo para vinculación de alertas/ayudas:**
 ```php
 if ($request->expectsJson()) {
  return response()->json([
@@ -61,8 +61,8 @@ if ($request->expectsJson()) {
 }
 ```
 
-### 2. Actualizar el Frontend (JavaScript)
-En el bloque `.then(data => { ... })` de tu `fetch`, parsea los identificadores enviados por el controlador y actualiza los objetos globales `window.*` según corresponda. Luego llama a las funciones de renderizado para actualizar el DOM quirúrgicamente.
+### 2. Actualizar el Frontend (JavaScript con async/await)
+Tras recibir la respuesta exitosa con `const data = await response.json()`, parsea los identificadores enviados por el controlador y muta los objetos globales `window.*` según corresponda. Luego llama a las funciones de renderizado para actualizar el DOM quirúrgicamente sin recargar la página.
 
 **Example for Folder Creation:**
 ```javascript

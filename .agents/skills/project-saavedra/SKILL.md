@@ -7,4 +7,5 @@ description: Guía de arquitectura, localización de archivos y patrones de desa
 
 Consulta directamente:
 - [AGENTS.md](file:///c:/Users/Jaxer020406/Documents/GitHub/Project_saavedra/AGENTS.md) para el mapa rápido de controladores, vistas Blade, scripts JS y estilos CSS.
-- [general_skill.md](file:///c:/Users/Jaxer020406/Documents/GitHub/Project_saavedra/skills/general_skill.md) para el protocolo maestro y catálogo de las 22 skills especializadas del proyecto.
+- [general_skill.md](file:///c:/Users/Jaxer020406/Documents/GitHub/Project_saavedra/skills/general_skill.md) para el protocolo maestro y catálogo de las 23 skills especializadas del proyecto.
+- [code_intelligence_skill.md](file:///c:/Users/Jaxer020406/Documents/GitHub/Project_saavedra/skills/code_intelligence_skill.md) para el protocolo de navegación inteligente con Tree-sitter, Repomap, NetworkX y herramientas de ahorro de tokens.

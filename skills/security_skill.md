@@ -75,12 +75,14 @@ El sistema restringe las funcionalidades según la matriz de perfiles del person
 
 | ID Perfil | Nombre del Rol | Ejemplo de Permiso |
 |-----------|----------------|--------------------| 
-| **1** | Administrador | Creación de OTs, dibujos, depuración total, acceso global |
-| **2** | Gerente/Supervisor | Ver todo, aprobar, auditoría completa |
+| **1** | Administrador | Creación de OTs, dibujos, depuración total, gestión de usuarios, acceso global |
+| **2** | Operador Maquinado | Registro de producción en máquinas y herramientas (sin menú extendido) |
+| **3** | Master | Supervisión global multi-módulo (Administración, Calidad, Almacén) |
 | **4** | Calidad Fundición | Revisión y liberación de OTs, SCARs, liberación de modelos |
-| **5** | Almacén | Recepción, pre-órdenes, reprocesos, subida de documentos |
-| **6** | Operador Maquinado | Maquinado de piezas, registro de medidas en procesos |
-| **8** | Calidad Soldadura | Liberación de botes y lotes de soldadura |
+| **5** | Almacén | Recepción, pre-órdenes, reprocesos, subida de documentos, inventarios |
+| **6** | Supervisor de Producción | Administración de producción, prioridades, seguimiento de OTs |
+| **8** | Calidad Soldadura / PTA | Liberación de botes/lotes, análisis PTA, segunda pasada |
+| **pta_temp**| Sesión Temporal PTA | Vista acotada exclusivamente al flujo del procedimiento PTA en curso |
 
 ### Middleware de Ruta (Seguridad Temprana)
 Protege las rutas en el archivo `routes/web.php` usando middlewares existentes o validación en el constructor de controladores:
@@ -135,19 +137,23 @@ public function destroy($id) {
 | `CheckPtaAccess` | `CheckPtaAccess.php` | Verifica permisos específicos del flujo PTA |
 | `guest` | `RedirectIfAuthenticated.php` | Redirige usuarios autenticados que intentan ir al login |
 
-### Perfiles Reales del Sistema (Actualizado)
+### Perfiles Reales del Sistema (Actualizado Oficial)
 ```php
-// auth()->user()->perfil — valores reales en uso:
-// 1 = Administrador: acceso total
-// 2 = Gerente/Supervisor: ver todo, aprobar
-// 4 = Calidad: revisión y liberación de OTs, SCARs
-// 5 = Almacén: recepción, pre-órdenes, reprocesos
-// 6 = Operador: maquinado de piezas, registro de medidas
-// 8 = Calidad Soldadura: liberación de botes y lotes de soldadura
+// auth()->user()->perfil — valores reales en producción:
+// 1 = Administrador: acceso total a todo el sistema
+// 2 = Operador Maquinado: registro de medidas y producción en máquinas
+// 3 = Master: supervisión global con menú extendido
+// 4 = Calidad Fundición / Maquinados: liberación de piezas y SCARs
+// 5 = Almacén: recepción, entrega, pre-órdenes, reprocesos, inventarios
+// 6 = Supervisor de Producción: administración de prioridades y reportes
+// 8 = Calidad Soldadura / PTA: análisis de laboratorio y liberación
+// pta_temp = Sesión temporal restringida a PTA
 
-// Verificación estándar en controladores de Fundición:
+// Verificación estándar en controladores:
 $perfil = auth()->user()->perfil;
-$puedeEliminar = in_array($perfil, [1, 2]);
-$esAlmacen = ($perfil === 5);
-$esCalidad = ($perfil === 4);
+$esAdmin = ($perfil == 1);
+$esSupervisor = ($perfil == 6);
+$puedeEliminar = in_array($perfil, [1, 6]);
+$esAlmacen = ($perfil == 5);
+$esCalidad = in_array($perfil, [4, 8]);
 ```

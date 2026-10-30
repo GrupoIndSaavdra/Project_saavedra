@@ -52,11 +52,13 @@ public function procesarReporte() {
 **Perfiles y sus nombres reales:**
 ```php
 // 1 = Administrador: acceso total
-// 2 = Gerente/Supervisor: ver todo, aprobar
-// 4 = Calidad: revisión y liberación de OTs, SCARs
-// 5 = Almacén: recepción, pre-órdenes, reprocesos
-// 6 = Operador Maquinado: maquinado de piezas
-// 8 = Calidad Soldadura: liberación de botes y lotes
+// 2 = Operador Maquinado: registro en máquinas (sin menú extendido)
+// 3 = Master: supervisión global con menú extendido
+// 4 = Calidad Fundición / Maquinados: liberación de piezas y SCARs
+// 5 = Almacén: recepción, pre-órdenes, reprocesos, inventarios
+// 6 = Supervisor de Producción: administración de prioridades y reportes
+// 8 = Calidad Soldadura / PTA: análisis de laboratorio y liberación
+// pta_temp = Sesión temporal restringida a PTA
 ```
 
 ---

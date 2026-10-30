@@ -1,0 +1,65 @@
+# 🗺️ REPOMAP EJECUTIVO — PROJECT SAAVEDRA
+> Mapa estructural ordenado por PageRank (relevancia e interconexión).
+> Total nodos: 368 | Controladores: 72 | Modelos: 146 | Rutas: 86 | Vistas: 64
+
+## 🕹️ CONTROLADORES NÚCLEO (Top Hubs)
+- **HomeController**: Models: Clase, Pieza | Views: home
+- **LogoutController**: Models: SystemLog, Maquinas, Pza_cepillado, Metas | Views: ninguna
+- **AlmacenWOController**: Models: RemisionOt, ParcialidadOt | Views: ninguna
+- **ProgresoProcesosController**: Models: Clase, Pza_cepillado, DesbasteExterior, RevLaterales | Views: processesAdmin.verProcesos
+- **TrackingSoldaduraController**: Models: ninguno | Views: trackingSoldadura_views.trackingSoldadura
+- **GenerarQRLoteController**: Models: SoldaduraLote | Views: trackingSoldadura_views.generarQRLote
+- **GenerarQRIndividualController**: Models: SoldaduraBote, SoldaduraLote | Views: trackingSoldadura_views.generarQRIndividual
+- **LiberarQRPlantaController**: Models: SoldaduraLiberacion, User, SoldaduraRecepcionPlanta, SoldaduraBote | Views: trackingSoldadura_views.liberarQRPlanta, trackingSoldadura_views.recepcionPlanta
+- **RegenerarQRController**: Models: User, SoldaduraBote, SoldaduraLote | Views: trackingSoldadura_views.regenerarQR_verificacion, trackingSoldadura_views.regenerarQR_lista
+- **PtaResultsController**: Models: SoldaduraPTA, SystemLog, Clase, SoldaduraPTA_pza | Views: pta_views.analysis, pta_views.results, pta_views.segunda_pasada
+- **ReporteProduccionController**: Models: Clase, Orden_trabajo, Moldura, User | Views: reportes.reenvio
+- **EnvioPtaController**: Models: Clase, Orden_trabajo, PtaReporteLog, SoldaduraPTA | Views: reportes.envio_pta
+- **DibujosPdfController**: Models: SystemLog, Clase, DibujoOtHistory, Orden_trabajo | Views: wo_views.manage_dibujos
+- **ProgramasCncController**: Models: SystemLog, Clase, Orden_trabajo, Procesos | Views: wo_views.manage_programas
+- **CalidadDashboardController**: Models: ninguno | Views: ninguna
+- **MeasurementsWebController**: Models: ninguno | Views: ninguna
+- **SystemLogController**: Models: SystemLog, Clase, Orden_trabajo, User | Views: reports.systemLogs
+- **ProductivityController**: Models: SystemLog, User | Views: ninguna
+- **HerramientasTecamacController**: Models: HerramientaImagen, HerramientaTecamac | Views: herramientas.index
+- **RInternoSalidasController**: Models: RInternoSalidaLog, RInternoSalida, RInternoSalidaPieza, Orden_trabajo | Views: calidad.r_interno_salidas.index, calidad.r_interno_salidas.form
+
+## 📦 MODELOS ELOQUENT NÚCLEO (Top Hubs)
+- **AcabadoBombilo_pza**: Usado por: AcabadoBombilloController, DatosProduccionController, PzasGeneralesController, PzasLiberadasController
+- **AcabadoMolde_pza**: Usado por: AcabadoMoldeController, DatosProduccionController, PzasGeneralesController, PzasLiberadasController
+- **ScarModelo**: Usado por: AlmacenFundicionController, CalidadFundicionController, WOController
+- **FundicionHistory**: Usado por: AlmacenFundicionController, CalidadFundicionController, DibujosFundicionPdfController, WOController
+- **Clase**: Usado por: HomeController, ProgresoProcesosController, PtaResultsController, ReporteProduccionController
+- **Orden_trabajo**: Usado por: ProgresoProcesosController, PtaResultsController, ReporteProduccionController, EnvioPtaController
+- **PreOrdenFundicion**: Usado por: AlmacenFundicionController, CalidadFundicionController, WOController
+- **PreOrdenLog**: Usado por: AlmacenFundicionController
+- **RechazoLog**: Usado por: AlmacenFundicionController, CalidadFundicionController
+- **LiberacionModeloFundicion**: Usado por: AlmacenFundicionController, CalidadFundicionController, WOController
+- **RemisionOt**: Usado por: AlmacenWOController, WOController
+- **ParcialidadOt**: Usado por: AlmacenWOController, WOController
+- **Asentado_pza**: Usado por: AsentadoController, DatosProduccionController, PzasGeneralesController, PzasLiberadasController
+- **SystemLog**: Usado por: LogoutController, PtaResultsController, DibujosPdfController, ProgramasCncController
+- **AyudaVisualFundicionFileLog**: Usado por: AyudasVisualesFundicionPdfController
+- **AyudaVisualFundicionHistory**: Usado por: AyudasVisualesFundicionPdfController
+- **Procesos**: Usado por: ProgramasCncController, AyudasVisualesFundicionPdfController, AyudasVisualesPdfController, ClassController
+- **Fecha_proceso**: Usado por: AyudasVisualesFundicionPdfController, AyudasVisualesPdfController, ClassController, WOController
+- **AyudaVisualFileLog**: Usado por: AyudasVisualesPdfController
+- **AyudaVisualHistory**: Usado por: AyudasVisualesPdfController
+
+## 🌐 RUTAS WEB PRINCIPALES
+Prefijos de ruta más utilizados:
+- `/soldadura/*` (14 endpoints)
+- `/{id}/*` (6 endpoints)
+- `/wo/*` (5 endpoints)
+- `/pdf/*` (4 endpoints)
+- `/results/*` (3 endpoints)
+- `/analysis/*` (2 endpoints)
+- `/segunda-pasada/*` (2 endpoints)
+- `/metaPzas/*` (2 endpoints)
+- `/measurements_web/*` (2 endpoints)
+- `/system-logs/*` (2 endpoints)
+- `/productivity/*` (2 endpoints)
+- `/imagen/*` (2 endpoints)
+- `/calidad/*` (2 endpoints)
+- `//*` (1 endpoints)
+- `/logout/*` (1 endpoints)

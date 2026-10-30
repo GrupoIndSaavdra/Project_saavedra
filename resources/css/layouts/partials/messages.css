@@ -440,6 +440,13 @@ div:where(.swal2-container) .swal2-actions,
 /* ANIMACIONES Y ESTILO SWEETALERT2 TOAST (MESSAGES.JS)            */
 /* ════════════════════════════════════════════════════════════════ */
 body.swal2-toast-shown,
+html.swal2-toast-shown {
+    pointer-events: auto !important;
+    overflow-y: auto !important;
+    padding-right: 0 !important;
+    margin-right: 0 !important;
+}
+
 body.swal2-toast-shown .swal2-container,
 body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
 .swal2-container.swal2-bottom-end,
@@ -461,6 +468,10 @@ body.swal2-toast-shown .swal2-container.swal2-backdrop-show,
     z-index: 2147483647 !important;
     padding-bottom: 25px !important;
     padding-right: 25px !important;
+    overflow: hidden !important;
+    overflow-x: hidden !important;
+    overflow-y: hidden !important;
+    -ms-overflow-style: none !important;
 }
 
 .swal2-popup.swal2-toast {
