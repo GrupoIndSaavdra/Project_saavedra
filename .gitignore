@@ -40,9 +40,11 @@ __pycache__/
 *.pyd
 .pytest_cache/
 
-# Índices dinámicos de herramientas de IA
+# Índices dinámicos de herramientas de IA (generados automáticamente por entorno/servidor)
 /tags
+/repomap.txt
 /storage/code_dependency_graph.json
+/prisma/schema.prisma
 
 
 
