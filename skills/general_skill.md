@@ -49,6 +49,7 @@ Analiza mentalmente cuál de las skills del Índice de abajo cubre el contexto d
 | Catálogo global de clases, normalización y reglas | `classes_skill.md` |
 | Límites de pruebas del agente, verificaciones backend (`php -l`) | `no_testing_skill.md` |
 | Navegación de código, AST, grafo de dependencias, ahorro de tokens | `code_intelligence_skill.md` |
+| Scripts .bat, setup.bat, tools\agent.bat y actualización diaria | `bat_cli_skill.md` |
 
 ### Paso 2 — Leer el archivo `.md` completo con `view_file`
 Usa la herramienta `view_file` para leer el contenido de la skill identificada **antes** de proponer o escribir cualquier solución.
@@ -116,6 +117,7 @@ Antes de proponer o implementar cualquier solución, evalúa mentalmente esta es
 20. **[Ciclo de Reprocesos y Liberaciones](rework_cycle_skill.md)** — Reinicios destructivos vs reemplazos seguros, aislamiento de clases y SCARs
 21. **[Catálogo y Normalización de Clases](classes_skill.md)** — config/global_classes.php, normalización de nombres, categorizaciones y matching singular/plural
 22. **[Inteligencia de Código y Optimización de Tokens](code_intelligence_skill.md)** — Tree-sitter, Repomap, NetworkX DAG, AST-grep, Universal Ctags, Ripgrep, Clean Diff, Tiktoken, Compresión LLMLingua e Introspección Prisma
+23. **[Guía de Scripts BAT y CLI del Agente](bat_cli_skill.md)** — Regla de los 2 archivos .bat únicos (setup.bat y tools\agent.bat), comandos de actualización rápida y paridad Linux
 
 ---
 
