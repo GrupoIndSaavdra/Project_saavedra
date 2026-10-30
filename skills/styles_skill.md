@@ -1005,3 +1005,48 @@ Todo modal interactivo o destructivo debe alinear sus botones a la derecha para 
 - Fijadas en la esquina inferior derecha (`position: bottom-end`).
 - Fondo blanco puro o dark mode según layout, con barra de progreso estilizada (`timerProgressBar: true`) y transición fluida `.swal2-toast-in` y `.swal2-toast-out`.
 
+---
+
+## 40. Estilos Corporativos para Selector de Fecha Universal (`.gis-datepicker-wrapper`)
+
+Para garantizar que todos los selectores de fecha compartan la misma identidad visual GIS:
+
+1. **Estructura del Trigger:**
+   ```css
+   .gis-datepicker-wrapper {
+       position: relative;
+       width: 100%;
+       display: inline-flex;
+       align-items: center;
+       box-sizing: border-box;
+   }
+
+   .gis-datepicker-display {
+       width: 100%;
+       cursor: pointer !important;
+       padding-right: 38px !important;
+       -webkit-user-select: none; /* Safari / iOS */
+       user-select: none;
+       box-sizing: border-box;
+       transition: all 0.2s ease;
+   }
+
+   .gis-datepicker-display.is-empty {
+       color: #64748b;
+   }
+   ```
+
+2. **Botón e Ícono de Calendario:**
+   - Ubicado a la derecha con posicionamiento absoluto (`right: 8px; top: 50%; transform: translateY(-50%);`).
+   - El icono es [`Fecha.png`](file:///c:/Users/Jaxer020406/Documents/GitHub/Project_saavedra/public/images/Color_Icons/Generales/Fecha.png).
+   - **Inversión sobre Fondos Oscuros:** Si el input tiene clase `.input-filter` (fondo azul oscuro `--gis-blue`), el icono se invierte automáticamente a blanco mediante:
+     ```css
+     .input-filter ~ .gis-datepicker-btn img {
+         filter: brightness(0) invert(1);
+         opacity: 0.9;
+     }
+     ```
+
+3. **Superposición de Capas (Z-Index):**
+   - El modal `#modalCmCalendar` debe tener siempre `z-index: 999999 !important;` para garantizar que se sobreponga limpiamente incluso sobre ventanas de SweetAlert2 (`z-index: 1060+`) y drawers laterales.
+

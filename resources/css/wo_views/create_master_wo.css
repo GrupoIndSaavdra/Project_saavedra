@@ -99,6 +99,17 @@ body {
     box-shadow: none;
 }
 
+.form-field .gis-datepicker-wrapper {
+    width: 100%;
+    position: relative;
+    display: flex;
+}
+
+.form-field .gis-datepicker-display {
+    padding-right: 38px !important;
+    cursor: pointer !important;
+}
+
 .btn-container {
     grid-column: 1 / -1;
     text-align: center;

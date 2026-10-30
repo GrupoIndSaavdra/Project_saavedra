@@ -122,11 +122,11 @@
             <div class="logs-filtros">
                 <div class="logs-filtro-item">
                     <label for="filtro-fecha-desde">Desde</label>
-                    <input type="date" id="filtro-fecha-desde" class="envio-pta-input logs-filtro-input">
+                    <input type="date" id="filtro-fecha-desde" class="envio-pta-input logs-filtro-input" data-title="Fecha Desde">
                 </div>
                 <div class="logs-filtro-item">
                     <label for="filtro-fecha-hasta">Hasta</label>
-                    <input type="date" id="filtro-fecha-hasta" class="envio-pta-input logs-filtro-input">
+                    <input type="date" id="filtro-fecha-hasta" class="envio-pta-input logs-filtro-input" data-title="Fecha Hasta">
                 </div>
                 <div class="logs-filtro-item logs-filtro-ot">
                     <label for="filtro-ot">Orden de Trabajo</label>

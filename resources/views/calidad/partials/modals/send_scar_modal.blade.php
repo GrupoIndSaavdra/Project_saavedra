@@ -31,7 +31,7 @@
                             class="cal-font-weight-700 cal-color-334155 cal-display-block cal-margin-bottom-4px">
                             Fecha Compromiso de Devolución (Obligatoria):
                         </label>
-                        <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso"
+                        <input type="date" id="env-scar-fecha-compromiso" name="fecha_compromiso" data-title="Fecha Compromiso de Devolución"
                             class="form-control" required />
                     </div>
 

@@ -384,6 +384,27 @@ Con Livewire v3 y Alpine.js disponibles nativamente en el proyecto, ya no es nec
    </div>
    ```
 
+---
+
+## 11. Estandarización de Selectores de Fecha con Calendario GIS (`#modalCmCalendar`)
+
+Queda estrictamente prohibido permitir que el navegador abra el selector nativo (`input[type="date"]` con el popup predeterminado de Chromium/Windows).
+
+1. **Inclusión Global:**
+   El modal `#modalCmCalendar` está embebido de forma única y global en el pie de [`resources/views/layouts/appMenu.blade.php`](file:///c:/Users/Jaxer020406/Documents/GitHub/Project_saavedra/resources/views/layouts/appMenu.blade.php) mediante `@include('components.modal_cm_calendar')` con directiva `@once`. No es necesario volver a incluirlo en vistas hijas.
+
+2. **Uso Declarativo en Formularios Blade:**
+   En cualquier formulario tradicional o modal de Blade, simplemente declara el input con el atributo `data-title` para asignarle un título contextual elegante:
+   ```blade
+   <div class="form-field">
+       <label for="fecha_compra">Fecha de Compra <span class="text-danger">*</span></label>
+       <input type="date" name="fecha_compra" id="fecha_compra" required value="{{ old('fecha_compra') }}" data-title="Fecha de Compra">
+   </div>
+   ```
+   - El script `modalCmCalendar.js` transforma automáticamente este input en un trigger estilizado con icono de calendario.
+   - El input funcional conserva su `name`, `id` y valor `YYYY-MM-DD` como `hidden`, por lo que el controlador de Laravel y el FormRequest reciben el valor estándar sin requerir cambios en el backend.
+   - En la interfaz, el usuario visualiza la fecha formateada en `DD/MM/YYYY`.
+
 
 
 

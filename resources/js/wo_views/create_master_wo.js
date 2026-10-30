@@ -79,6 +79,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (formCreate) {
+        formCreate.addEventListener("input", validateCreateWOForm);
+        formCreate.addEventListener("change", validateCreateWOForm);
         const createInputs = formCreate.querySelectorAll("input, select");
         createInputs.forEach(el => {
             el.addEventListener("input", validateCreateWOForm);

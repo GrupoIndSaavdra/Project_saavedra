@@ -1446,10 +1446,15 @@ if (!function_exists('safeDateParseDisplay')) {
                 }
             }
 
-            try {
-                input.showPicker();
-            } catch (e) {
-                input.focus();
+            if (typeof window.openModalCalendar === 'function') {
+                var title = onchangeStr.includes('fecha_entrega_fundicion') ? 'Seleccionar Fecha de Fundición' : 'Seleccionar Fecha de Entrega';
+                window.openModalCalendar(input, td.querySelector('.date-display'), null, title);
+            } else {
+                try {
+                    input.showPicker();
+                } catch (e) {
+                    input.focus();
+                }
             }
         }
     }

@@ -737,7 +737,22 @@ if (result.isConfirmed) {
 
 ## 23. Modal Corporativo de Selección de Fecha (`modalCmCalendar.js`)
 
-No usar el selector nativo del navegador `input[type="date"]`. Se utiliza `createDateFilterTrigger()` de `modalCmCalendar.js`, el cual levanta un modal con selección interactiva (Año, Mes, Día) adaptado al estilo GIS corporativo.
+Queda estrictamente prohibido que el navegador abra su selector nativo (`input[type="date"]` con popup predeterminado de Chromium/Windows). Se estandariza el componente corporativo GIS `#modalCmCalendar`:
+
+1. **Inclusión Global:** Se encuentra embebido una única vez en `resources/views/layouts/appMenu.blade.php` mediante `@include('components.modal_cm_calendar')` con directiva `@once`.
+2. **Auto-Transformación Reactiva (`enhanceDateInput` / `initAllGisDatePickers`):**
+   - El script `resources/js/components/modalCmCalendar.js` se carga globalmente desde `appMenu.js`.
+   - Transforma automáticamente cualquier `input[type="date"]` o elemento con atributo `data-gis-datepicker` o clase `.gis-datepicker` en un trigger GIS (`.gis-datepicker-wrapper` con campo display estilizado y botón de icono `Fecha.png`).
+   - El input original preserva su `id`, `name` y valor `YYYY-MM-DD` como `hidden`, asegurando compatibilidad 100% con envíos tradicionales de formularios POST/GET y validaciones de Laravel.
+   - **Validación HTML5 sin Bloqueos:** El atributo `required` se transfiere al campo visual display mientras que al `hidden` se le remueve, evitando el error del navegador *"An invalid form control with name='...' is not focusable"*.
+   - **Sincronización Bidireccional:** Cuenta con intercepción del setter `value` en `HTMLInputElement.prototype` para sincronizar asignaciones programáticas en JavaScript (`input.value = 'YYYY-MM-DD'` actualiza de inmediato el display a `DD/MM/YYYY`).
+   - **Accesibilidad por Teclado:** Al enfocar el campo, pulsar `Enter`, `Espacio` o `Flecha Abajo` abre el modal; pulsar `Backspace` o `Supr` en campos no requeridos limpia la fecha seleccionada.
+   - **Detección Dinámica:** Integra un `MutationObserver` automático que detecta e inicializa inputs inyectados dinámicamente por modales o AJAX sin intervención manual.
+3. **Filtros en Tablas Dinámicas:**
+   - Para barras de filtros dinámicos (piezas, auditorías, logs), se continúa utilizando `createDateFilterTrigger(containerDiv, fieldName, initialValue, titleLabel, callback)`.
+4. **Navegación Rápida:**
+   - Soporta navegación mensual (`◀` / `▶`) y salto rápido interanual (`«` / `»`).
+   - Respeta restricciones de fecha `min` y `max` inhabilitando días fuera de rango.
 
 ---
 

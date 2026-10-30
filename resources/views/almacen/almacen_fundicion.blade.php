@@ -113,13 +113,13 @@
 
                             <div class="filter">
                                 <input id="alm-desde" class="input-filter" type="date" name="desde"
-                                    value="{{ $desde }}" onchange="this.form.submit()">
+                                    value="{{ $desde }}" onchange="this.form.submit()" data-title="Fecha Desde">
                                 <label for="alm-desde">Desde: </label>
                             </div>
 
                             <div class="filter">
                                 <input id="alm-hasta" class="input-filter" type="date" name="hasta"
-                                    value="{{ $hasta }}" onchange="this.form.submit()">
+                                    value="{{ $hasta }}" onchange="this.form.submit()" data-title="Fecha Hasta">
                                 <label for="alm-hasta">Hasta: </label>
                             </div>
 

@@ -1,6 +1,7 @@
 /**
  * Componente interactivo para el modal de calendario de fecha (#modalCmCalendar)
- * Compatible con filtros dinámicos (systemLogs, adminPieces, releasePieces).
+ * Compatible con filtros dinámicos (systemLogs, adminPieces, releasePieces),
+ * formularios maestros (create_master_wo, show_wo_almacen) y cualquier input type="date".
  */
 
 const cmMonthNames = [
@@ -15,21 +16,63 @@ let activeClearBtn = null;
 let isInitialized = false;
 
 /**
- * Valida si un string es una fecha válida en formato YYYY-MM-DD
+ * Valida si un string es una fecha válida en formato YYYY-MM-DD o DD/MM/YYYY
  */
 export function isValidDateStr(str) {
     if (!str || typeof str !== "string" || str === "Todos") return false;
-    return /^\d{4}-\d{2}-\d{2}$/.test(str.trim());
+    const trimmed = str.trim();
+    return /^\d{4}-\d{2}-\d{2}$/.test(trimmed) || /^\d{2}\/\d{2}\/\d{4}$/.test(trimmed);
+}
+
+/**
+ * Parsea un string YYYY-MM-DD o DD/MM/YYYY a objeto Date seguro
+ */
+export function parseDateString(str) {
+    if (!str || typeof str !== "string") return null;
+    const trimmed = str.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const parts = trimmed.split("-").map(Number);
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            return new Date(parts[0], parts[1] - 1, parts[2] || 1);
+        }
+    }
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+        const parts = trimmed.split("/").map(Number);
+        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+            return new Date(parts[2], parts[1] - 1, parts[0] || 1);
+        }
+    }
+    return null;
 }
 
 /**
  * Formatea 'YYYY-MM-DD' a 'DD/MM/YYYY' para visualización amigable
  */
 export function formatDisplayDate(dateStr) {
-    if (!isValidDateStr(dateStr)) return "";
-    const parts = dateStr.trim().split("-");
-    if (parts.length === 3 && parts[0].length === 4) {
-        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    if (!dateStr || typeof dateStr !== "string") return "";
+    const trimmed = dateStr.trim();
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) return trimmed;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+        const parts = trimmed.split("-");
+        if (parts.length === 3 && parts[0].length === 4) {
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+        }
+    }
+    return "";
+}
+
+/**
+ * Formatea 'DD/MM/YYYY' o 'YYYY-MM-DD' a 'YYYY-MM-DD' (ISO)
+ */
+export function formatIsoDate(dateStr) {
+    if (!dateStr || typeof dateStr !== "string") return "";
+    const trimmed = dateStr.trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) return trimmed;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+        const parts = trimmed.split("/");
+        if (parts.length === 3) {
+            return `${parts[2]}-${parts[1].padStart(2, "0")}-${parts[0].padStart(2, "0")}`;
+        }
     }
     return "";
 }
@@ -48,13 +91,17 @@ export function openModalCalendar(inputEl, displayLabelEl, clearBtnEl, title = "
         titleEl.textContent = title;
     }
 
-    if (inputEl && inputEl.value && isValidDateStr(inputEl.value)) {
-        const parts = inputEl.value.split("-").map(Number);
-        if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1])) {
-            cmCalCurrentDate = new Date(parts[0], parts[1] - 1, parts[2] || 1);
-        } else {
-            cmCalCurrentDate = new Date();
-        }
+    let parsed = null;
+    if (inputEl && inputEl.value) {
+        parsed = parseDateString(inputEl.value);
+    }
+    if (!parsed && displayLabelEl) {
+        const lblVal = (displayLabelEl.tagName === "INPUT" ? displayLabelEl.value : displayLabelEl.textContent) || "";
+        parsed = parseDateString(lblVal);
+    }
+
+    if (parsed && !isNaN(parsed.getTime())) {
+        cmCalCurrentDate = parsed;
     } else {
         cmCalCurrentDate = new Date();
     }
@@ -85,6 +132,8 @@ function initCalendarModalEvents() {
     const modal = document.getElementById("modalCmCalendar");
     const prevBtn = document.getElementById("cm-cal-prev");
     const nextBtn = document.getElementById("cm-cal-next");
+    const prevYearBtn = document.getElementById("cm-cal-prev-year");
+    const nextYearBtn = document.getElementById("cm-cal-next-year");
 
     if (prevBtn) {
         prevBtn.addEventListener("click", (e) => {
@@ -98,6 +147,22 @@ function initCalendarModalEvents() {
         nextBtn.addEventListener("click", (e) => {
             e.stopPropagation();
             cmCalCurrentDate.setMonth(cmCalCurrentDate.getMonth() + 1);
+            renderCalendarDays();
+        });
+    }
+
+    if (prevYearBtn) {
+        prevYearBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            cmCalCurrentDate.setFullYear(cmCalCurrentDate.getFullYear() - 1);
+            renderCalendarDays();
+        });
+    }
+
+    if (nextYearBtn) {
+        nextYearBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            cmCalCurrentDate.setFullYear(cmCalCurrentDate.getFullYear() + 1);
             renderCalendarDays();
         });
     }
@@ -137,7 +202,17 @@ function renderCalendarDays() {
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
-    const selectedDate = (activeTargetInput && isValidDateStr(activeTargetInput.value)) ? activeTargetInput.value.trim() : "";
+
+    let selectedIso = "";
+    if (activeTargetInput && activeTargetInput.value) {
+        selectedIso = formatIsoDate(activeTargetInput.value);
+    } else if (activeDisplayLabel) {
+        const val = (activeDisplayLabel.tagName === "INPUT" ? activeDisplayLabel.value : activeDisplayLabel.textContent) || "";
+        selectedIso = formatIsoDate(val);
+    }
+
+    const minDateStr = (activeTargetInput && activeTargetInput.min) ? activeTargetInput.min.trim() : "";
+    const maxDateStr = (activeTargetInput && activeTargetInput.max) ? activeTargetInput.max.trim() : "";
 
     daysContainer.innerHTML = "";
 
@@ -151,12 +226,18 @@ function renderCalendarDays() {
     for (let i = 1; i <= daysInMonth; i++) {
         const dStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(i).padStart(2, "0")}`;
 
+        const isOutOfMin = minDateStr && dStr < minDateStr;
+        const isOutOfMax = maxDateStr && dStr > maxDateStr;
+        const isDisabled = isOutOfMin || isOutOfMax;
+
         let bg = "transparent";
-        let color = "#334155";
+        let color = isDisabled ? "#94a3b8" : "#334155";
         let fw = "500";
+        let cursor = isDisabled ? "not-allowed" : "pointer";
+        let opacity = isDisabled ? "0.38" : "1";
         let extraStyles = "border: 1px solid transparent;";
 
-        if (selectedDate === dStr) {
+        if (selectedIso === dStr) {
             bg = "#0a8504";
             color = "#fff";
             fw = "700";
@@ -172,54 +253,56 @@ function renderCalendarDays() {
         }
 
         const dayDiv = document.createElement("div");
-        dayDiv.className = "cm-cal-day";
+        dayDiv.className = "cm-cal-day" + (isDisabled ? " disabled" : "");
         dayDiv.dataset.date = dStr;
         dayDiv.textContent = i;
-        dayDiv.style.cssText = `padding: 8px 0; border-radius: 8px; cursor: pointer; background: ${bg}; color: ${color}; font-weight: ${fw}; font-size: 1.1em; transition: all 0.2s; ${extraStyles}`;
+        dayDiv.style.cssText = `padding: 8px 0; border-radius: 8px; cursor: ${cursor}; opacity: ${opacity}; background: ${bg}; color: ${color}; font-weight: ${fw}; font-size: 1.1em; transition: all 0.2s; ${extraStyles}`;
 
-        dayDiv.addEventListener("mouseover", function () {
-            if (this.dataset.date !== selectedDate) {
-                this.style.background = "#e2e8f0";
-            }
-        });
+        if (!isDisabled) {
+            dayDiv.addEventListener("mouseover", function () {
+                if (this.dataset.date !== selectedIso) {
+                    this.style.background = "#e2e8f0";
+                }
+            });
 
-        dayDiv.addEventListener("mouseout", function () {
-            if (this.dataset.date !== selectedDate) {
-                const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
-                this.style.background = isToday ? "#dcfce7" : "transparent";
-            }
-        });
+            dayDiv.addEventListener("mouseout", function () {
+                if (this.dataset.date !== selectedIso) {
+                    const isToday = today.getFullYear() === year && today.getMonth() === month && today.getDate() === i;
+                    this.style.background = isToday ? "#dcfce7" : "transparent";
+                }
+            });
 
-        dayDiv.addEventListener("click", function () {
-            if (activeTargetInput) {
-                activeTargetInput.value = this.dataset.date;
-                if (activeDisplayLabel) {
-                    const formatted = formatDisplayDate(this.dataset.date);
-                    if (activeDisplayLabel.tagName === "INPUT") {
-                        activeDisplayLabel.value = formatted;
-                    } else {
-                        activeDisplayLabel.textContent = formatted;
+            dayDiv.addEventListener("click", function () {
+                if (activeTargetInput) {
+                    activeTargetInput.value = this.dataset.date;
+                    if (activeDisplayLabel) {
+                        const formatted = formatDisplayDate(this.dataset.date);
+                        if (activeDisplayLabel.tagName === "INPUT") {
+                            activeDisplayLabel.value = formatted;
+                        } else {
+                            activeDisplayLabel.textContent = formatted;
+                        }
+                        activeDisplayLabel.style.color = "#0f172a";
+                        activeDisplayLabel.style.fontWeight = "600";
+                        if (activeClearBtn && activeDisplayLabel.classList.contains("date-trigger-label")) {
+                            activeDisplayLabel.style.flex = "0 0 68%";
+                            activeDisplayLabel.style.width = "68%";
+                            activeDisplayLabel.style.maxWidth = "68%";
+                        }
+                        activeDisplayLabel.classList.remove("is-empty");
                     }
-                    activeDisplayLabel.style.color = "#0f172a";
-                    activeDisplayLabel.style.fontWeight = "600";
                     if (activeClearBtn) {
-                        activeDisplayLabel.style.flex = "0 0 68%";
-                        activeDisplayLabel.style.width = "68%";
-                        activeDisplayLabel.style.maxWidth = "68%";
+                        activeClearBtn.style.display = "inline-flex";
                     }
-                    activeDisplayLabel.classList.remove("is-empty");
+                    activeTargetInput.dispatchEvent(new Event("input", { bubbles: true }));
+                    activeTargetInput.dispatchEvent(new Event("change", { bubbles: true }));
+                    if (typeof window.updateClearButtonState === "function") {
+                        window.updateClearButtonState();
+                    }
                 }
-                if (activeClearBtn) {
-                    activeClearBtn.style.display = "inline-flex";
-                }
-                activeTargetInput.dispatchEvent(new Event("input", { bubbles: true }));
-                activeTargetInput.dispatchEvent(new Event("change", { bubbles: true }));
-                if (typeof window.updateClearButtonState === "function") {
-                    window.updateClearButtonState();
-                }
-            }
-            closeModalCalendar();
-        });
+                closeModalCalendar();
+            });
+        }
 
         daysContainer.appendChild(dayDiv);
     }
@@ -227,14 +310,9 @@ function renderCalendarDays() {
 
 /**
  * Crea el elemento disparador (trigger) dentro del div .filter contenedor
- * @param {HTMLElement} containerDiv - El contenedor .filter
- * @param {string} fieldName - 'dateFrom' o 'dateTo'
- * @param {string} initialValue - Valor inicial YYYY-MM-DD (si es 'Todos' o inválido, queda vacío)
- * @param {string} titleLabel - Etiqueta descriptiva ('Desde', 'Hasta')
- * @param {function|null} onChangeCallback - Callback al cambiar fecha
+ * Mantiene compatibilidad total con adminPieces, releasePieces y systemLogs.
  */
 export function createDateFilterTrigger(containerDiv, fieldName, initialValue = "", titleLabel = "Fecha", onChangeCallback = null) {
-    // Si viene "Todos" o algo que no es fecha YYYY-MM-DD, se inicializa completamente vacío sin filtros
     const validVal = isValidDateStr(initialValue) ? initialValue.trim() : "";
     const hasInitialDate = validVal !== "";
 
@@ -252,13 +330,11 @@ export function createDateFilterTrigger(containerDiv, fieldName, initialValue = 
     btn.setAttribute("aria-label", `Seleccionar fecha para ${titleLabel}`);
     btn.style.cssText = "display: flex !important; align-items: center !important; justify-content: space-between !important; text-align: left !important; width: 100% !important; min-width: 0 !important; max-width: 100% !important; box-sizing: border-box !important; padding: clamp(0.38rem, 0.9vh, 0.55rem) clamp(0.4rem, 0.8vw, 0.55rem) !important; gap: 4px !important; overflow: hidden !important;";
 
-    // Texto de la fecha (se adapta al ancho sin empujar el contenedor)
     const labelSpan = document.createElement("span");
     labelSpan.className = "date-trigger-label" + (hasInitialDate ? "" : " is-empty");
     labelSpan.style.cssText = `font-family: inherit; font-size: inherit; font-weight: ${hasInitialDate ? '600' : '500'}; color: ${hasInitialDate ? '#0f172a' : '#64748b'}; letter-spacing: 0.01em; flex: 1 1 auto; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;`;
     labelSpan.textContent = hasInitialDate ? formatDisplayDate(validVal) : "dd/mm/aaaa";
 
-    // Botón de limpiar fecha (tamaño cómodo y fijo para no alterar el tamaño del filtro)
     const clearBtn = document.createElement("span");
     clearBtn.className = "btn-clear-single-date";
     clearBtn.title = "Limpiar fecha";
@@ -307,4 +383,228 @@ export function createDateFilterTrigger(containerDiv, fieldName, initialValue = 
     containerDiv.appendChild(btn);
 
     return { hiddenInput, btn, labelSpan, clearBtn };
+}
+
+/**
+ * Transforma un elemento input de tipo fecha en un componente interactivo GIS
+ * con el modal corporativo (#modalCmCalendar).
+ */
+export function enhanceDateInput(inputEl) {
+    if (!inputEl || inputEl.dataset.gisEnhanced === "true") return;
+    if (inputEl.dataset.noGisDatepicker !== undefined) return;
+
+    // Si está explícitamente oculto (celdas de priorities, etc.), no envolver
+    if (inputEl.style.opacity === "0" || inputEl.style.visibility === "hidden") {
+        return;
+    }
+
+    inputEl.dataset.gisEnhanced = "true";
+
+    // Extraer título contextual (del label, placeholder, title o data-title)
+    let modalTitle = inputEl.dataset.title || "";
+    if (!modalTitle && inputEl.id) {
+        const label = document.querySelector(`label[for="${inputEl.id}"]`);
+        if (label) {
+            let lblText = label.textContent.replace(/[\*\:\#]/g, "").trim();
+            lblText = lblText.replace(/^\d+[\.\-\s]+/, "").trim();
+            if (lblText) {
+                modalTitle = `Seleccionar ${lblText}`;
+            }
+        }
+    }
+    if (!modalTitle && inputEl.placeholder) {
+        modalTitle = `Seleccionar ${inputEl.placeholder}`;
+    }
+    if (!modalTitle) {
+        modalTitle = "Seleccionar Fecha";
+    }
+
+    const initialVal = inputEl.value ? inputEl.value.trim() : "";
+    const wasRequired = inputEl.required;
+    const isDisabled = inputEl.disabled;
+    const isReadOnly = inputEl.readOnly;
+
+    // Convertir el input original en hidden para mantener su name, id y valor funcional
+    inputEl.type = "hidden";
+    inputEl.required = false;
+
+    // Crear contenedor wrapper
+    const wrapper = document.createElement("div");
+    wrapper.className = "gis-datepicker-wrapper";
+
+    // Visible display input
+    const displayInput = document.createElement("input");
+    displayInput.type = "text";
+    displayInput.readOnly = true;
+    displayInput.tabIndex = isDisabled ? -1 : 0;
+    displayInput.className = (inputEl.className ? inputEl.className + " " : "") + "gis-datepicker-display";
+    if (inputEl.id) {
+        displayInput.id = `display_${inputEl.id}`;
+    }
+    displayInput.placeholder = inputEl.placeholder || "dd/mm/aaaa";
+    displayInput.value = formatDisplayDate(initialVal);
+    displayInput.required = wasRequired;
+    displayInput.disabled = isDisabled;
+    displayInput.title = inputEl.title || "Haz clic para seleccionar la fecha";
+
+    if (!initialVal) {
+        displayInput.classList.add("is-empty");
+    }
+
+    // Botón / Icono de Calendario
+    const iconBtn = document.createElement("button");
+    iconBtn.type = "button";
+    iconBtn.tabIndex = -1;
+    iconBtn.className = "gis-datepicker-btn";
+    iconBtn.title = "Abrir calendario";
+    iconBtn.setAttribute("aria-label", modalTitle);
+
+    const iconImg = document.createElement("img");
+    const fechaIconUrl = (typeof window.getIcon === "function") 
+        ? window.getIcon("fecha") 
+        : ((window.baseUrl || "") + "/images/Color_Icons/Generales/Fecha.png");
+    iconImg.src = fechaIconUrl;
+    iconImg.alt = "Fecha";
+    iconBtn.appendChild(iconImg);
+
+    // Eventos de apertura de calendario
+    const triggerOpen = (e) => {
+        if (displayInput.disabled || isReadOnly) return;
+        if (e) e.preventDefault();
+        openModalCalendar(inputEl, displayInput, null, modalTitle);
+    };
+
+    displayInput.addEventListener("click", triggerOpen);
+    iconBtn.addEventListener("click", triggerOpen);
+    displayInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
+            triggerOpen(e);
+        } else if (e.key === "Backspace" || e.key === "Delete") {
+            if (!wasRequired) {
+                e.preventDefault();
+                inputEl.value = "";
+                displayInput.value = "";
+                displayInput.classList.add("is-empty");
+                inputEl.dispatchEvent(new Event("input", { bubbles: true }));
+                inputEl.dispatchEvent(new Event("change", { bubbles: true }));
+            }
+        }
+    });
+
+    // Si el usuario hace clic en el <label> asociado, enfocar el displayInput
+    if (inputEl.id) {
+        const label = document.querySelector(`label[for="${inputEl.id}"]`);
+        if (label) {
+            label.addEventListener("click", (e) => {
+                e.preventDefault();
+                triggerOpen(e);
+            });
+        }
+    }
+
+    // Interceptar el setter de value en inputEl para sincronizar cambios programáticos
+    const originalDescriptor = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    if (originalDescriptor) {
+        Object.defineProperty(inputEl, "value", {
+            get() {
+                return originalDescriptor.get.call(this);
+            },
+            set(val) {
+                originalDescriptor.set.call(this, val);
+                const formatted = formatDisplayDate(val);
+                displayInput.value = formatted;
+                if (val && String(val).trim()) {
+                    displayInput.classList.remove("is-empty");
+                } else {
+                    displayInput.classList.add("is-empty");
+                }
+            },
+            configurable: true
+        });
+    }
+
+    inputEl.addEventListener("input", () => {
+        displayInput.value = formatDisplayDate(inputEl.value);
+    });
+    inputEl.addEventListener("change", () => {
+        displayInput.value = formatDisplayDate(inputEl.value);
+    });
+
+    // Insertar en el DOM
+    if (inputEl.parentNode) {
+        inputEl.parentNode.insertBefore(wrapper, inputEl);
+        wrapper.appendChild(inputEl);
+        wrapper.appendChild(displayInput);
+        wrapper.appendChild(iconBtn);
+    }
+}
+
+/**
+ * Escanea y transforma automáticamente todos los inputs de fecha en el contenedor dado.
+ */
+export function initAllGisDatePickers(root = document) {
+    if (!root || !root.querySelectorAll) return;
+    const candidates = root.querySelectorAll('input[type="date"], input.gis-datepicker, input[data-gis-datepicker]');
+    candidates.forEach((el) => {
+        enhanceDateInput(el);
+    });
+}
+
+/**
+ * Observador de mutaciones para transformar dinámicamente inputs creados por JS o modales
+ */
+let isObserverActive = false;
+export function setupDatePickersObserver() {
+    if (isObserverActive || typeof MutationObserver === "undefined") return;
+    const observer = new MutationObserver((mutations) => {
+        for (const mut of mutations) {
+            if (mut.addedNodes && mut.addedNodes.length > 0) {
+                for (const node of mut.addedNodes) {
+                    if (node.nodeType === 1) { // ELEMENT_NODE
+                        if (node.matches && node.matches('input[type="date"], input.gis-datepicker, input[data-gis-datepicker]')) {
+                            enhanceDateInput(node);
+                        } else if (node.querySelectorAll) {
+                            initAllGisDatePickers(node);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    if (document.body) {
+        observer.observe(document.body, { childList: true, subtree: true });
+        isObserverActive = true;
+    } else {
+        document.addEventListener("DOMContentLoaded", () => {
+            if (!isObserverActive && document.body) {
+                observer.observe(document.body, { childList: true, subtree: true });
+                isObserverActive = true;
+            }
+        });
+    }
+}
+
+// Inicialización automática
+if (typeof document !== "undefined") {
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
+            initAllGisDatePickers();
+            setupDatePickersObserver();
+        });
+    } else {
+        initAllGisDatePickers();
+        setupDatePickersObserver();
+    }
+}
+
+// Exponer en window para acceso global
+if (typeof window !== "undefined") {
+    window.openModalCalendar = openModalCalendar;
+    window.closeModalCalendar = closeModalCalendar;
+    window.isValidDateStr = isValidDateStr;
+    window.formatDisplayDate = formatDisplayDate;
+    window.formatIsoDate = formatIsoDate;
+    window.enhanceDateInput = enhanceDateInput;
+    window.initAllGisDatePickers = initAllGisDatePickers;
 }

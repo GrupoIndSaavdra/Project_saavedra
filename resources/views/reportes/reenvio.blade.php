@@ -51,7 +51,7 @@
                 <div class="reenvio-field">
                     <label>Fecha del turno a reportar</label>
                     <input type="date" name="fecha" class="reenvio-input" value="{{ old('fecha', now()->toDateString()) }}"
-                        max="{{ now()->toDateString() }}" required>
+                        max="{{ now()->toDateString() }}" required data-title="Fecha del Turno">
                     <p class="reenvio-hint">Solo puedes seleccionar fechas pasadas o el día de hoy.</p>
                 </div>
 

@@ -40,7 +40,7 @@
                         Fecha de Emisión / Entrega
                         <span class="cal-color-9c0300">*</span>
                     </label>
-                    <input type="date" id="al-fecha" name="fecha"
+                    <input type="date" id="al-fecha" name="fecha" data-title="Fecha de Emisión / Entrega"
                         class="form-control cal-font-family-quot cal-font-size-1-15em cal-padding-14px-20px cal-height-auto cal-border-radius-10px"
                         required />
                 </div>

@@ -1,4 +1,5 @@
 <!-- Modal de Selección de Fecha con Calendario Interactivo -->
+@once
 <div id="modalCmCalendar" class="alm-modal"
     style="padding: 0px; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 999999 !important; position: fixed; inset: 0;">
     <div
@@ -20,15 +21,25 @@
         </div>
         <div id="cm-inline-calendar" style="user-select: none;">
             <div
-                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px;">
-                <button type="button" id="cm-cal-prev"
-                    style="border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 1.3em; color: #475569; padding: 4px 14px; transition: 0.2s;"
-                    onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">&#9664;</button>
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding: 0 4px; gap: 6px;">
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <button type="button" id="cm-cal-prev-year" title="Año anterior"
+                        style="border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: bold; color: #475569; padding: 4px 10px; transition: 0.2s;"
+                        onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">&#171;</button>
+                    <button type="button" id="cm-cal-prev" title="Mes anterior"
+                        style="border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 1.2em; color: #475569; padding: 4px 12px; transition: 0.2s;"
+                        onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">&#9664;</button>
+                </div>
                 <span id="cm-cal-month-year"
-                    style="font-weight: 700; color: #0f172a; font-size: 1.2em; text-transform: capitalize;"></span>
-                <button type="button" id="cm-cal-next"
-                    style="border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 1.3em; color: #475569; padding: 4px 14px; transition: 0.2s;"
-                    onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">&#9654;</button>
+                    style="font-weight: 700; color: #0f172a; font-size: 1.15em; text-transform: capitalize; text-align: center; flex: 1;"></span>
+                <div style="display: flex; gap: 4px; align-items: center;">
+                    <button type="button" id="cm-cal-next" title="Mes siguiente"
+                        style="border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 1.2em; color: #475569; padding: 4px 12px; transition: 0.2s;"
+                        onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">&#9654;</button>
+                    <button type="button" id="cm-cal-next-year" title="Año siguiente"
+                        style="border: none; background: #f1f5f9; border-radius: 8px; cursor: pointer; font-size: 1.1em; font-weight: bold; color: #475569; padding: 4px 10px; transition: 0.2s;"
+                        onmouseover="this.style.background='#e2e8f0'" onmouseout="this.style.background='#f1f5f9'">&#187;</button>
+                </div>
             </div>
             <div
                 style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 1em; font-weight: 700; color: #64748b; margin-bottom: 8px;">
@@ -45,3 +56,4 @@
         </div>
     </div>
 </div>
+@endonce

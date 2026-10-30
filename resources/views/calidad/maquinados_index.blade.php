@@ -113,13 +113,13 @@
 
                         {{-- Rango de fechas (recarga el servidor para filtrar) --}}
                         <div class="filter">
-                            <input id="calmaq-desde" class="input-filter" type="date" name="desde"
+                            <input id="calmaq-desde" class="input-filter" type="date" name="desde" data-title="Fecha Desde"
                                    value="{{ $desde }}" onchange="this.form.submit()">
                             <label for="calmaq-desde">Desde</label>
                         </div>
 
                         <div class="filter">
-                            <input id="calmaq-hasta" class="input-filter" type="date" name="hasta"
+                            <input id="calmaq-hasta" class="input-filter" type="date" name="hasta" data-title="Fecha Hasta"
                                    value="{{ $hasta }}" onchange="this.form.submit()">
                             <label for="calmaq-hasta">Hasta</label>
                         </div>

@@ -23,7 +23,7 @@
                         </div>
                         <div class="form-group po-fecha-group">
                             <label for="po-fecha" style="font-weight: 700; color: #0f172a; font-size: 0.95em; margin-bottom: 8px; display: block;">Fecha <span class="alm-text-danger">*</span>:</label>
-                            <input type="date" id="po-fecha" name="fecha" class="form-control" style="width: 100%; height: 44px; padding: 8px 14px; border-radius: 10px; border: 1.5px solid #0a8504; font-family: 'Poppins', sans-serif; font-size: 0.95em; background: #ffffff; color: #0f172a; box-shadow: 0 2px 4px rgba(10,133,4,0.05);" required
+                            <input type="date" id="po-fecha" name="fecha" data-title="Fecha de Pre-Orden" class="form-control" style="width: 100%; height: 44px; padding: 8px 14px; border-radius: 10px; border: 1.5px solid #0a8504; font-family: 'Poppins', sans-serif; font-size: 0.95em; background: #ffffff; color: #0f172a; box-shadow: 0 2px 4px rgba(10,133,4,0.05);" required
                                 value="{{ date('Y-m-d') }}">
                         </div>
                         <div class="form-group po-folio-group">

@@ -78,3 +78,62 @@
     border-color: var(--gis-blue);
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.25);
 }
+
+/* ── Datepicker Universal GIS ─────────────────────────────────────────────── */
+.gis-datepicker-wrapper {
+    position: relative;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.gis-datepicker-display {
+    width: 100%;
+    cursor: pointer !important;
+    padding-right: 38px !important;
+    -webkit-user-select: none;
+    user-select: none;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.gis-datepicker-display.is-empty {
+    color: #64748b;
+}
+
+.gis-datepicker-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 4px;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+    z-index: 2;
+    pointer-events: auto;
+}
+
+.gis-datepicker-btn:hover {
+    transform: translateY(-50%) scale(1.1);
+}
+
+.gis-datepicker-btn img {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    pointer-events: none;
+    opacity: 0.85;
+}
+
+/* En filtros con fondo azul oscuro, el ícono de fecha se invierte a blanco */
+.input-filter ~ .gis-datepicker-btn img {
+    filter: brightness(0) invert(1);
+    opacity: 0.9;
+}

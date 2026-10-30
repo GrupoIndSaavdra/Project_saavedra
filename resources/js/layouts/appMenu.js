@@ -1,5 +1,6 @@
 import "../layouts/partials/messages.js";
 import "../components/cursorPagination.js";
+import "../components/modalCmCalendar.js";
 
 function initAppMenu() {
     let btn_open = document.querySelector(".open-menu");

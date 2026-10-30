@@ -57,7 +57,7 @@
             <!-- 3. Fecha de Compra -->
             <div class="form-field">
                 <label for="fecha_compra">3. Fecha de Compra <span class="text-danger">*</span></label>
-                <input type="date" name="fecha_compra" id="fecha_compra" required value="{{ old('fecha_compra') }}">
+                <input type="date" name="fecha_compra" id="fecha_compra" required value="{{ old('fecha_compra') }}" data-title="Fecha de Compra">
             </div>
 
             <!-- 4. Orden de Compra -->
@@ -86,7 +86,7 @@
             <!-- 6. F. Comprometida con el Cliente -->
             <div class="form-field">
                 <label for="fecha_entrega_cliente">6. F. Comprometida con el Cliente <span class="text-danger">*</span></label>
-                <input type="date" name="fecha_entrega_cliente" id="fecha_entrega_cliente" required value="{{ old('fecha_entrega_cliente') }}">
+                <input type="date" name="fecha_entrega_cliente" id="fecha_entrega_cliente" required value="{{ old('fecha_entrega_cliente') }}" data-title="Fecha Comprometida con el Cliente">
             </div>
 
             <div class="btn-container">
@@ -125,7 +125,7 @@
 
             <div class="form-field">
                 <label for="mod_fecha_compra">Fecha de Compra <span class="text-danger">*</span></label>
-                <input type="date" name="fecha_compra" id="mod_fecha_compra" required>
+                <input type="date" name="fecha_compra" id="mod_fecha_compra" required data-title="Fecha de Compra">
             </div>
 
             <div class="form-field">
@@ -149,7 +149,7 @@
 
             <div class="form-field">
                 <label for="mod_fecha_entrega_cliente">F. Comprometida con el Cliente <span class="text-danger">*</span></label>
-                <input type="date" name="fecha_entrega_cliente" id="mod_fecha_entrega_cliente" required>
+                <input type="date" name="fecha_entrega_cliente" id="mod_fecha_entrega_cliente" required data-title="Fecha Comprometida con el Cliente">
             </div>
 
             <!-- Tabla de Clases y Cantidades de la OT -->

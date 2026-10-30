@@ -252,5 +252,7 @@
     </script>
 @endisset
 
+@include('components.modal_cm_calendar')
+
 @livewireScripts
 </html>

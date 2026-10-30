@@ -32,12 +32,12 @@
 
                 <div class="ri-log-filter-group">
                     <label for="filter-log-desde">Desde:</label>
-                    <input type="date" id="filter-log-desde" class="ri-log-filter-input">
+                    <input type="date" id="filter-log-desde" class="ri-log-filter-input" data-title="Fecha Desde">
                 </div>
 
                 <div class="ri-log-filter-group">
                     <label for="filter-log-hasta">Hasta:</label>
-                    <input type="date" id="filter-log-hasta" class="ri-log-filter-input">
+                    <input type="date" id="filter-log-hasta" class="ri-log-filter-input" data-title="Fecha Hasta">
                 </div>
 
                 <div class="ri-log-filter-group ri-log-filter-group--search">

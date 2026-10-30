@@ -304,7 +304,7 @@
                     </div>
                     <div class="field field-date">
                         <label>Fecha recepción</label>
-                        <input type="date" name="fecha_recepcion" id="parcialidad-fecha" required class="form-control"
+                        <input type="date" name="fecha_recepcion" id="parcialidad-fecha" required class="form-control" data-title="Fecha de Recepción"
                                value="{{ date('Y-m-d') }}">
                     </div>
                 </div>
@@ -371,7 +371,7 @@
                                     <td class="text-center font-bold text-muted-sm">{{ $i + 1 }}</td>
                                     <td>
                                         <span class="view-fecha">{{ $p->fecha_recepcion->format('d/m/Y') }}</span>
-                                        <input type="date" class="edit-fecha form-control" value="{{ $p->fecha_recepcion->format('Y-m-d') }}">
+                                        <input type="date" class="edit-fecha form-control" value="{{ $p->fecha_recepcion->format('Y-m-d') }}" data-title="Editar Fecha Recepción">
                                     </td>
                                     <td class="text-center">
                                         <span class="view-cantidad badge-cantidad {{ $p->cantidad == 0 ? 'badge-cantidad-cero' : '' }}">{{ $p->cantidad }}</span>
