@@ -1,0 +1,286 @@
+/* ── Toolbar (Glassmorphism GIS — Modo Una Sola Línea) ────────── */
+.toolbar {
+    position: relative;
+    z-index: 1200;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--glass-bg-blue);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border: 5px solid var(--glass-border-blue);
+    padding: 13px 20px;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    flex-wrap: nowrap !important;
+    gap: 12px;
+    color: #ffffff;
+    box-sizing: border-box;
+    overflow: visible !important;
+}
+
+.filters-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: nowrap !important;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.filter-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.filter-group label {
+    font-weight: 700;
+    font-size: 12.5px;
+    color: #e2e8f0;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.filter-group input,
+.filter-group select {
+    padding: 7px 12px;
+    border: 1.5px solid rgba(56, 189, 248, 0.4);
+    border-radius: 9px;
+    font-size: 13px;
+    font-weight: 600;
+    background-color: rgba(3, 45, 82, 0.9);
+    color: #ffffff;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    height: 40px;
+    box-sizing: border-box;
+}
+
+.filter-group input:focus,
+.filter-group select:focus {
+    outline: none;
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+}
+
+.filter-group select#start_week,
+.filter-group select#end_week {
+    min-width: 105px;
+}
+
+.filter-group select#ot_id {
+    max-width: 240px;
+    min-width: 140px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.filter-group input[type="number"] {
+    width: 70px;
+}
+
+.filter-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.btn-filter,
+.btn-clear,
+.btn-export-excel,
+.btn-export-pdf,
+.btn-print {
+    padding: 7px 15px;
+    border: none;
+    border-radius: 9px;
+    cursor: pointer;
+    font-weight: 700;
+    text-decoration: none;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    height: 40px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition:
+        transform 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+        box-shadow 0.2s cubic-bezier(0.25, 0.8, 0.25, 1),
+        background-color 0.2s ease;
+}
+
+.btn-filter {
+    background-color: var(--gis-blue);
+    color: white;
+    box-shadow: 0 4px 6px var(--shadow-blue);
+}
+
+.btn-print {
+    background-color: #f97316;
+    color: white;
+    box-shadow: 0 4px 6px rgba(249, 115, 22, 0.4);
+}
+
+.btn-clear {
+    background-color: var(--gis-gray);
+    color: white;
+    box-shadow: 0 4px 6px rgba(64, 64, 64, 0.3);
+}
+
+.btn-export-excel {
+    background-color: var(--gis-green);
+    color: white;
+    box-shadow: 0 4px 6px var(--shadow-green);
+}
+
+.btn-export-pdf {
+    background-color: var(--gis-red);
+    color: white;
+    box-shadow: 0 4px 6px var(--shadow-red);
+}
+
+.btn-filter:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(3, 57, 102, 0.5);
+}
+.btn-clear:hover {
+    transform: translateY(-2px);
+    background-color: #2a2a2a;
+}
+.btn-print:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(249, 115, 22, 0.6);
+    background-color: #ea580c;
+}
+.btn-export-excel:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(10, 133, 4, 0.5);
+}
+.btn-export-pdf:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 15px rgba(156, 3, 3, 0.5);
+}
+
+/* ── Sección de Acciones a la Derecha ────────────────────────────── */
+.export-actions {
+    position: relative;
+    z-index: 1300;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    flex-wrap: nowrap !important;
+}
+
+/* ── Badge de Estado de Autoguardado ────────────────────────────── */
+.pm-table-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 255, 102, 0.12);
+    color: #00ff66;
+    border: 1.5px solid rgba(0, 255, 102, 0.5);
+    border-radius: 9px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(0, 255, 102, 0.4);
+    box-shadow: 0 0 10px rgba(0, 255, 102, 0.15);
+    -webkit-user-select: none;
+    user-select: none;
+    height: 40px;
+    box-sizing: border-box;
+    white-space: nowrap;
+}
+
+.pm-table-status-badge.pm-status-readonly {
+    background: rgba(148, 163, 184, 0.12) !important;
+    color: #94a3b8 !important;
+    border: 1.5px solid rgba(148, 163, 184, 0.35) !important;
+    text-shadow: none !important;
+    box-shadow: none !important;
+}
+
+.pm-table-status-badge.pm-status-saving {
+    background: rgba(56, 189, 248, 0.15);
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.5);
+    text-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+}
+
+.pm-table-status-badge.pm-status-saved {
+    background: rgba(0, 255, 102, 0.2);
+    color: #00ff66;
+    border-color: #00ff66;
+    text-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+    box-shadow: 0 0 12px rgba(0, 255, 102, 0.25);
+}
+
+.pm-table-status-badge.pm-status-error {
+    background: rgba(248, 113, 113, 0.2);
+    color: #f87171;
+    border-color: #f87171;
+    text-shadow: none;
+    box-shadow: none;
+}
+
+.pm-table-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(56, 189, 248, 0.3);
+    border-top-color: #38bdf8;
+    border-radius: 50%;
+    animation: pm-spin 0.6s linear infinite;
+}
+
+@keyframes pm-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Botón para alternar vistas (Activas vs Desactivadas) */
+.btn-switch-view {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border: 1.5px solid rgba(255, 255, 255, 0.25);
+    border-radius: 9px;
+    padding: 7px 15px;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    box-sizing: border-box;
+    white-space: nowrap;
+    transition: all 0.2s ease;
+}
+
+.btn-switch-view:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    color: #ffffff;
+}
+
+.btn-switch-icon {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.btn-switch-view:hover .btn-switch-icon {
+    transform: scale(1.15);
+}

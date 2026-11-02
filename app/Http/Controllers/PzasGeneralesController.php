@@ -104,7 +104,7 @@ use Illuminate\Support\Facades\Hash;
 //Clase para el control de las piezas generales
 class PzasGeneralesController extends Controller
 {
-    /** Cache de usuarios indexado por matrícula para evitar N+1 queries */
+    /** Memoria cache de usuarios indexada por matrícula para evitar N+1 queries */
     protected array $usersCache = [];
 
     public function __construct()
@@ -314,12 +314,12 @@ class PzasGeneralesController extends Controller
      * @param mixed &$itemElegidos
      * @param mixed bool $includeObservations
      */
-    public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false, bool $isPdf = false)
+    public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false, bool $isPdf = false, bool $includeFinished = false)
     {
         // ── OPTIMIZACIÓN: filtrar directamente en SQL en lugar de cargar Pieza::all() ──
         $finishedClassIds = Clase::query()->where('finalizada', '!=', 0, 'and')->pluck('id')->toArray();
         $query = Pieza::query();
-        if (!empty($finishedClassIds)) {
+        if (!empty($finishedClassIds) && !$includeFinished) {
             $query->whereNotIn('id_clase', $finishedClassIds, 'and', true);
         }
 
@@ -384,7 +384,7 @@ class PzasGeneralesController extends Controller
             ->orderBy('id', $orderDir);
 
         $piezas = $query->get();
-        return $piezas->isEmpty() ? [] : $this->saveInArray($piezas, $includeObservations);
+        return $piezas->isEmpty() ? [] : $this->saveInArray($piezas, $includeObservations, $includeFinished);
     }
     //Obtener los procesos por los que pasa una clase
     /**
@@ -460,7 +460,7 @@ class PzasGeneralesController extends Controller
      * @param mixed $arrayP
      * @param mixed bool $includeObservations
      */
-    public function saveInArray($arrayP, bool $includeObservations = false)
+    public function saveInArray($arrayP, bool $includeObservations = false, bool $includeFinished = false)
     {
         // ── OPTIMIZACIÓN: pre-cargar todo en memoria para eliminar N+1 queries ──
         $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
@@ -542,7 +542,7 @@ class PzasGeneralesController extends Controller
         });
 
         foreach ($arrayP as $item) {
-            if (in_array($item->id_clase, $finishedClassIds)) {
+            if (!$includeFinished && in_array($item->id_clase, $finishedClassIds)) {
                 continue;
             }
 
@@ -2296,7 +2296,7 @@ class PzasGeneralesController extends Controller
             if ($filters['error'] === 'Ninguno') {
                 $query->where(function ($q) {
                     $q->where('soldadura_pza.error', '=', 'Ninguno', 'and')
-                      ->orWhereNull('soldadura_pza.error');
+                        ->orWhereNull('soldadura_pza.error');
                 });
             } else {
                 $query->where('soldadura_pza.error', 'LIKE', '%' . $filters['error'] . '%', 'and');
@@ -2416,7 +2416,7 @@ class PzasGeneralesController extends Controller
             if ($filters['error'] === 'Ninguno') {
                 $query->where(function ($q) {
                     $q->where('soldaduraPTA_pza.defecto_pta', '=', 'Ninguno', 'and')
-                      ->orWhereNull('soldaduraPTA_pza.defecto_pta');
+                        ->orWhereNull('soldaduraPTA_pza.defecto_pta');
                 });
             } else {
                 $query->where('soldaduraPTA_pza.defecto_pta', 'LIKE', '%' . $filters['error'] . '%', 'and');
@@ -2614,11 +2614,11 @@ class PzasGeneralesController extends Controller
                             '3' => 'P3 - 2',
                             '4' => 'P4 - 1.5'
                         ][strval($tipoRaw)]) ? [
-                            '1' => 'P1 - 3',
-                            '2' => 'P2 - 2.5',
-                            '3' => 'P3 - 2',
-                            '4' => 'P4 - 1.5'
-                        ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
+                                '1' => 'P1 - 3',
+                                '2' => 'P2 - 2.5',
+                                '3' => 'P3 - 2',
+                                '4' => 'P4 - 1.5'
+                            ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
                         'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
                         'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
@@ -2775,7 +2775,7 @@ class PzasGeneralesController extends Controller
                         $tipoRaw = $piece->tipo_soldadura;
                         if (empty($tipoRaw) || in_array(strval($tipoRaw), ['0', '.0', '00', '000', '0000'])) {
                             if ($clase) {
-                                    $tipoRaw = $clase->tipo_soldadura;
+                                $tipoRaw = $clase->tipo_soldadura;
                             }
                         }
 
@@ -2791,11 +2791,11 @@ class PzasGeneralesController extends Controller
                                 '3' => 'P3 - 2',
                                 '4' => 'P4 - 1.5'
                             ][strval($tipoRaw)]) ? [
-                                '1' => 'P1 - 3',
-                                '2' => 'P2 - 2.5',
-                                '3' => 'P3 - 2',
-                                '4' => 'P4 - 1.5'
-                            ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
+                                    '1' => 'P1 - 3',
+                                    '2' => 'P2 - 2.5',
+                                    '3' => 'P3 - 2',
+                                    '4' => 'P4 - 1.5'
+                                ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
                             'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                             'lote' => $piece->lote ?? 'N/A',
                             'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',

@@ -95,6 +95,7 @@ Route::controller(WOController::class)->group(function () {
     Route::get('/master/prioridades/desactivadas/pdf', 'downloadPrioritiesDisabledPdf')->name('master.priorities.disabled.pdf');
     Route::post('/master/prioridades/reactivate', 'reactivatePriorities')->name('master.priorities.reactivate');
     Route::post('/master/prioridades/delete-permanent', 'deletePrioritiesPermanently')->name('master.priorities.delete_permanent');
+    Route::get('/master/prioridades/download-backup-zip', 'downloadBackupZip')->name('master.priorities.download_backup_zip');
     Route::get('/showWO/{workOrder}', 'show')->name('showWO');
     Route::get('/destroyWO/{wo}', 'destroy')->name('destroyWO');
     Route::get('/generatePDFWO/{wo}', 'generatePDF')->name('generatePDFWO');

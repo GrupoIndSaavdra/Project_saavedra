@@ -1,0 +1,277 @@
+/* ==========================================================================
+   TEMA PRIORIDADES DESACTIVADAS (Tema Gris Glassmorphic / Inactivo)
+   ========================================================================== */
+.priorities-wrapper.priorities-disabled-theme .toolbar {
+    background: linear-gradient(
+        135deg,
+        rgba(58, 64, 73, 0.88) 0%,
+        rgba(38, 43, 50, 0.94) 100%
+    ) !important;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 5px solid rgba(175, 185, 198, 0.55) !important;
+    padding: 13px 20px !important;
+    margin-bottom: 20px;
+    border-radius: 16px;
+    box-shadow:
+        0 18px 45px rgba(0, 0, 0, 0.65),
+        inset 0 1px 2px rgba(255, 255, 255, 0.25),
+        0 0 25px rgba(180, 190, 205, 0.22) !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px !important;
+    flex-wrap: nowrap !important;
+    color: #ffffff;
+    box-sizing: border-box;
+    overflow: visible !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .filters-form {
+    display: flex;
+    align-items: center;
+    gap: 10px !important;
+    flex: 0 1 auto;
+    flex-wrap: nowrap !important;
+    min-width: 0;
+}
+
+.priorities-wrapper.priorities-disabled-theme .filter-group {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.priorities-wrapper.priorities-disabled-theme .filter-group label,
+.priorities-wrapper.priorities-disabled-theme .filters-form label {
+    font-weight: 700;
+    font-size: 12.5px;
+    color: #e5e7eb !important;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.priorities-wrapper.priorities-disabled-theme .filter-group select,
+.priorities-wrapper.priorities-disabled-theme .filters-form select {
+    background-color: rgba(30, 34, 40, 0.95) !important;
+    border: 1.5px solid rgba(156, 163, 175, 0.55) !important;
+    color: #ffffff !important;
+    padding: 7px 12px !important;
+    border-radius: 9px !important;
+    font-size: 13px !important;
+    font-weight: 600;
+    font-family: inherit;
+    height: 40px !important;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+.priorities-wrapper.priorities-disabled-theme .filter-group select:focus,
+.priorities-wrapper.priorities-disabled-theme .filters-form select:focus {
+    outline: none;
+    border-color: #cbd5e1 !important;
+    box-shadow: 0 0 0 3px rgba(203, 213, 225, 0.35) !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .filter-group select#ot_id {
+    max-width: 240px !important;
+    min-width: 140px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.priorities-wrapper.priorities-disabled-theme .btn-clear {
+    background: linear-gradient(135deg, #4b525d 0%, #373d46 100%) !important;
+    border: 1.5px solid rgba(156, 163, 175, 0.5) !important;
+    color: #ffffff !important;
+    padding: 7px 15px !important;
+    border-radius: 9px !important;
+    font-size: 13px !important;
+    font-weight: 700;
+    height: 40px !important;
+    box-sizing: border-box;
+    white-space: nowrap !important;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.35) !important;
+    transition: all 0.2s ease;
+}
+
+.priorities-wrapper.priorities-disabled-theme .btn-clear:hover {
+    background: linear-gradient(135deg, #626b79 0%, #4b525d 100%) !important;
+    border-color: #d1d5db !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.45) !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .export-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px !important;
+    flex-shrink: 0;
+    flex-wrap: nowrap !important;
+}
+
+/* Label "Modo Depuración" — con estilo glass rojo */
+.pm-debug-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px !important;
+    border-radius: 9px !important;
+    font-size: 13px !important;
+    font-weight: 700;
+    color: #fca5a5;
+    background: rgba(153, 27, 27, 0.35);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(248, 113, 113, 0.5);
+    box-shadow: 0 0 10px rgba(220, 38, 38, 0.2);
+    white-space: nowrap;
+    height: 40px !important;
+    box-sizing: border-box;
+}
+
+.priorities-wrapper.priorities-disabled-theme .btn-switch-view {
+    background: rgba(255, 255, 255, 0.1);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    border: 1.5px solid rgba(209, 213, 219, 0.45);
+    color: #ffffff;
+    padding: 7px 15px !important;
+    border-radius: 9px !important;
+    font-size: 13px !important;
+    font-weight: 700;
+    gap: 8px !important;
+    height: 40px !important;
+    box-sizing: border-box;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.priorities-wrapper.priorities-disabled-theme .btn-switch-view:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(255, 255, 255, 0.25);
+}
+
+.priorities-wrapper.priorities-disabled-theme .actions-dropdown-menu {
+    background: #1e2228 !important;
+    border: 2px solid #6b7280 !important;
+    box-shadow:
+        0 25px 60px rgba(0, 0, 0, 0.88),
+        0 0 30px rgba(156, 163, 175, 0.25) !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .actions-menu-header {
+    color: #cbd5e1;
+    border-bottom-color: rgba(148, 163, 184, 0.3);
+}
+
+.priorities-wrapper.priorities-disabled-theme
+    .actions-menu-item.item-delete-permanent {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.priorities-wrapper.priorities-disabled-theme
+    .actions-menu-item.item-delete-permanent:hover {
+    background: rgba(220, 38, 38, 0.28);
+    border-color: #ef4444;
+    box-shadow: 0 4px 16px rgba(220, 38, 38, 0.45);
+}
+
+/* Indicador visual y resaltado para modo reactivación / eliminación en tabla */
+#prioritiesTable.is-selection-mode.mode-delete-active th.col-select {
+    background-color: #991b1b !important;
+    border-color: #7f1d1d !important;
+}
+
+tr.row-selected-delete td {
+    background-color: #fef2f2 !important;
+    border-color: #fca5a5 !important;
+    color: #991b1b !important;
+    font-weight: 600;
+}
+
+tr.row-selected-delete td:first-child {
+    border-left: 4px solid #dc2626 !important;
+}
+
+tr.row-selected-reactivate td {
+    background-color: #f0fdf4 !important;
+    border-color: #86efac !important;
+    color: #166534 !important;
+    font-weight: 600;
+}
+
+tr.row-selected-reactivate td:first-child {
+    border-left: 4px solid #16a34a !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-header {
+    border: 2px solid #475569;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-table {
+    border: 2px solid #475569;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-header .header-title {
+    background-color: #475569 !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-header .header-title h1 {
+    color: #ffffff !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-header .header-week {
+    background-color: #64748b !important;
+    color: #f1f5f9 !important;
+    border-left: 2px solid #334155;
+    border-right: 2px solid #334155;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-header .header-week h2 {
+    color: #ffffff !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-header .header-week p {
+    color: #e2e8f0 !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-header .header-date {
+    background-color: #f1f5f9;
+    border-left: 1px solid #94a3b8;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-header .header-date h3 {
+    color: #334155;
+}
+
+.priorities-wrapper.priorities-disabled-theme .excel-table thead th {
+    background-color: #475569 !important;
+    border: 1px solid #1e293b !important;
+    color: #ffffff !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme
+    #prioritiesTable.is-selection-mode
+    th.col-select {
+    background-color: #334155 !important;
+    border: 1px solid #1e293b !important;
+}
+
+.priorities-wrapper.priorities-disabled-theme
+    .excel-table
+    tbody
+    tr.week-group-header
+    td {
+    background: linear-gradient(90deg, #475569 0%, #1e293b 100%) !important;
+    border-color: #1e293b !important;
+    color: #ffffff !important;
+}

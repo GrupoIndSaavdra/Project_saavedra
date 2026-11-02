@@ -26,9 +26,11 @@ use App\Models\TratamientoTermico;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\File;
+use ZipArchive;
 use App\Http\Controllers\DibujosFundicionPdfController;
 use App\Services\FundicionPaths;
+use App\Http\Controllers\PzasGeneralesController;
 
 /**
  * @noinspection PhpUndefinedFieldInspection
@@ -870,9 +872,12 @@ class WOController extends Controller
     }
 
     /**
-     * Eliminar OTs permanentemente desde Prioridades Desactivadas.
-     * Solo accesible para el perfil Master (perfil = 3).
-     * Elimina definitivamente la OT y todas sus clases, piezas, procesos y dependencias.
+     * Ocultar y respaldar OTs desde Prioridades Desactivadas (Exclusivo Master).
+     * No elimina las filas de la base de datos (se preservan clases, piezas, procesos, trazabilidad),
+     * actualiza clases.finalizada a 3 para ocultarlas y genera el respaldo automático
+     * en PDF (Piezas, Soldadura, Soldadura PTA) y clonación de DOCUMENTACION_GIS respectiva,
+     * empaquetando todo en ZIP "Reportes OT [Numero] - [Nombre] - [Fecha].zip"
+     * guardado en storage/app/RESPALDO_PRIORIDADES/ y disponible para descarga inmediata.
      */
     public function deletePrioritiesPermanently(Request $request)
     {
@@ -880,7 +885,7 @@ class WOController extends Controller
         if ($userProfile !== '3') {
             return response()->json([
                 'success' => false,
-                'message' => 'No tienes permisos de Master para eliminar Órdenes de Trabajo.'
+                'message' => 'No tienes permisos de Master para eliminar u ocultar Órdenes de Trabajo.'
             ], 403);
         }
 
@@ -891,98 +896,405 @@ class WOController extends Controller
 
         $otIds = $validated['ot_ids'];
 
+        @ini_set('max_execution_time', '600');
+        @ini_set('memory_limit', '2048M');
+        @set_time_limit(600);
+
+        $baseBackupPath = storage_path('app/RESPALDO_PRIORIDADES');
+        if (!file_exists($baseBackupPath)) {
+            mkdir($baseBackupPath, 0755, true);
+        }
+        $baseDocGis = storage_path('app/DOCUMENTACION_GIS');
+        $fecha = date('d-m-Y');
+
+        $pzasController = app(PzasGeneralesController::class);
+        $processedOts = [];
+        $generatedZipFiles = [];
+
         DB::beginTransaction();
         try {
-            // Obtener IDs de clases asociadas a estas OTs
-            $classIds = Clase::whereIn('id_ot', $otIds)->pluck('id')->toArray();
+            foreach ($otIds as $idWOrder) {
+                $ot = Orden_trabajo::with(['moldura', 'clases'])->find($idWOrder);
+                if (!$ot) {
+                    continue;
+                }
 
-            // 1. Eliminar fechas de procesos y procesos de las clases
-            if (!empty($classIds)) {
-                Fecha_proceso::whereIn('clase', $classIds)->delete();
-                Procesos::whereIn('id_clase', $classIds)->delete();
-            }
+                $productName = $ot->moldura ? $ot->moldura->nombre : ($ot->nombre_producto ?? 'Sin_Moldura');
+                $cleanProduct = $this->sanitizePathSegment($productName);
 
-            // 2. Eliminar piezas y metas de estas OTs
-            Pieza::whereIn('id_ot', $otIds)->delete();
-            Metas::whereIn('id_ot', $otIds)->delete();
+                // Carpeta temporal de trabajo para compilar PDFs y clonar archivos antes de comprimir
+                $tempFolderName = 'tmp_OT_' . $ot->id . '_' . uniqid();
+                $otBackupPath = $baseBackupPath . DIRECTORY_SEPARATOR . $tempFolderName;
+                if (!file_exists($otBackupPath)) {
+                    mkdir($otBackupPath, 0755, true);
+                }
 
-            // 3. Tablas de procesos y operaciones vinculadas por id_ot o ot_id
-            $processTables = [
-                'cepillado',
-                'desbaste_exterior',
-                'rev_laterales',
-                'copiado',
-                'cavidades',
-                'asentado',
-                'acabado_molde',
-                'acabado_bombillo',
-                'soldadura',
-                'soldadura_p_t_a',
-                '1ope_soldadura',
-                '2ope_soldadura',
-                '1y2_ope_soldadura',
-                'barreno_maniobra',
-                'barreno_profundidad',
-                'palomas',
-                'off_set',
-                'rebajes',
-                'embudo_c_m',
-                'rev_calificado',
-                'candado_obturador',
-                'primera_operacion_cabeza_soplo',
-                'segunda_operacion_cabeza_soplo',
-                'parcialidades_ot',
-                'remisiones_ot',
-                'pta_resultados'
-            ];
+                $reportNames = [];
 
-            foreach ($processTables as $table) {
-                if (Schema::hasTable($table)) {
-                    if (Schema::hasColumn($table, 'id_ot')) {
-                        DB::table($table)->whereIn('id_ot', $otIds)->delete();
-                    } elseif (Schema::hasColumn($table, 'ot_id')) {
-                        DB::table($table)->whereIn('ot_id', $otIds)->delete();
+                // 1. Reportes de Piezas (divididos por Clase y luego por Proceso para evitar reportes gigantes)
+                $piecesReportCount = 0;
+                foreach ($ot->clases as $clase) {
+                    $totalPiecesInClass = Pieza::query()
+                        ->where('id_ot', '=', $ot->id, 'and')
+                        ->where('id_clase', '=', $clase->id, 'and')
+                        ->count();
+
+                    if ($totalPiecesInClass === 0) {
+                        continue;
+                    }
+
+                    $cleanClase = $this->sanitizePathSegment($clase->nombre);
+
+                    // Obtener procesos con piezas registradas en esta clase
+                    $distinctProcesses = Pieza::query()
+                        ->where('id_ot', '=', $ot->id, 'and')
+                        ->where('id_clase', '=', $clase->id, 'and')
+                        ->whereNotNull('proceso')
+                        ->where('proceso', '!=', '', 'and')
+                        ->distinct()
+                        ->pluck('proceso');
+
+                    if ($distinctProcesses->isEmpty()) {
+                        // Respaldo de clase general si no tienen proceso asignado
+                        try {
+                            $selectedItems = [];
+                            $infoPieces = [];
+                            $filtersData = $pzasController->getFiltersInfo();
+                            $piecesData = [
+                                'workOrder' => (string) $ot->id,
+                                'class' => $clase->nombre,
+                                'action' => 'pdf'
+                            ];
+                            $pieces = $pzasController->buscarPiezas($piecesData, $selectedItems, true, true, true);
+                            if (is_array($pieces) && count($pieces) > 0) {
+                                $pzasController->saveInfoPzas($infoPieces, $pieces);
+                                $pdfPiezas = FacadePdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
+                                $classDir = $otBackupPath . DIRECTORY_SEPARATOR . 'Reportes_Piezas' . DIRECTORY_SEPARATOR . $cleanClase;
+                                if (!file_exists($classDir)) {
+                                    mkdir($classDir, 0755, true);
+                                }
+                                $piezasFile = "OT_{$ot->id}_{$cleanClase}_General_Reporte_Piezas.pdf";
+                                file_put_contents($classDir . DIRECTORY_SEPARATOR . $piezasFile, $pdfPiezas->output());
+                                $piecesReportCount++;
+                            }
+                        } catch (\Throwable $e) {
+                            Log::warning("No se pudo generar Reporte de Piezas general para clase {$clase->nombre} de OT {$ot->id}: " . $e->getMessage());
+                        }
+                    } else {
+                        foreach ($distinctProcesses as $proc) {
+                            try {
+                                $selectedItems = [];
+                                $infoPieces = [];
+                                $filtersData = $pzasController->getFiltersInfo();
+                                $piecesData = [
+                                    'workOrder' => (string) $ot->id,
+                                    'class' => $clase->nombre,
+                                    'process' => $proc,
+                                    'action' => 'pdf'
+                                ];
+                                $pieces = $pzasController->buscarPiezas($piecesData, $selectedItems, true, true, true);
+                                if (is_array($pieces) && count($pieces) > 0) {
+                                    $pzasController->saveInfoPzas($infoPieces, $pieces);
+                                    $pdfPiezas = FacadePdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
+
+                                    $cleanProc = $this->sanitizePathSegment($proc);
+                                    $classDir = $otBackupPath . DIRECTORY_SEPARATOR . 'Reportes_Piezas' . DIRECTORY_SEPARATOR . $cleanClase;
+                                    if (!file_exists($classDir)) {
+                                        mkdir($classDir, 0755, true);
+                                    }
+                                    $piezasFile = "OT_{$ot->id}_{$cleanClase}_{$cleanProc}_Reporte_Piezas.pdf";
+                                    file_put_contents($classDir . DIRECTORY_SEPARATOR . $piezasFile, $pdfPiezas->output());
+                                    $piecesReportCount++;
+                                }
+                            } catch (\Throwable $e) {
+                                Log::warning("No se pudo generar Reporte de Piezas para clase {$clase->nombre} proceso {$proc} de OT {$ot->id}: " . $e->getMessage());
+                            }
+                        }
                     }
                 }
+
+                if ($piecesReportCount > 0) {
+                    $reportNames[] = "Reportes de Piezas ({$piecesReportCount} PDFs por clase y proceso)";
+                }
+
+                // 2. Reporte de Soldadura (solo si la OT tiene piezas en proceso Soldadura)
+                $hasSoldadura = Pieza::query()
+                    ->where('id_ot', '=', $ot->id, 'and')
+                    ->where('proceso', '=', 'Soldadura', 'and')
+                    ->exists();
+
+                if ($hasSoldadura) {
+                    try {
+                        $reqSold = new Request(['workOrder' => (string) $ot->id, 'process' => 'Soldadura']);
+                        $respSold = $pzasController->downloadSoldaduraExtraInfoPDF($reqSold);
+                        if ($respSold instanceof \Illuminate\Http\Response) {
+                            $soldFile = "OT_{$ot->id}_{$cleanProduct}_Reporte_Soldadura.pdf";
+                            file_put_contents($otBackupPath . DIRECTORY_SEPARATOR . $soldFile, $respSold->getContent());
+                            $reportNames[] = 'Reporte de Soldadura';
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning("No se pudo generar Reporte de Soldadura para respaldo de OT {$ot->id}: " . $e->getMessage());
+                    }
+                }
+
+                // 3. Reporte de Soldadura PTA (solo si la OT tiene piezas en proceso Soldadura PTA)
+                $hasPta = Pieza::query()
+                    ->where('id_ot', '=', $ot->id, 'and')
+                    ->where('proceso', '=', 'Soldadura PTA', 'and')
+                    ->exists();
+
+                if ($hasPta) {
+                    try {
+                        $reqPta = new Request(['workOrder' => (string) $ot->id, 'process' => 'Soldadura PTA']);
+                        $respPta = $pzasController->downloadSoldaduraExtraInfoPDF($reqPta);
+                        if ($respPta instanceof \Illuminate\Http\Response) {
+                            $ptaFile = "OT_{$ot->id}_{$cleanProduct}_Reporte_Soldadura_PTA.pdf";
+                            file_put_contents($otBackupPath . DIRECTORY_SEPARATOR . $ptaFile, $respPta->getContent());
+                            $reportNames[] = 'Reporte de Soldadura PTA';
+                        }
+                    } catch (\Throwable $e) {
+                        Log::warning("No se pudo generar Reporte de Soldadura PTA para respaldo de OT {$ot->id}: " . $e->getMessage());
+                    }
+                }
+
+                // 4. Clonar carpetas respectivas de DOCUMENTACION_GIS (únicamente carpetas de esta OT con archivos reales, excluyendo INACTIVAS)
+                $clonedDocCount = 0;
+                if (is_dir($baseDocGis)) {
+                    $categories = scandir($baseDocGis);
+                    foreach ($categories as $cat) {
+                        if ($cat === '.' || $cat === '..' || strtoupper($cat) === 'INACTIVAS') {
+                            continue;
+                        }
+                        $catPath = $baseDocGis . DIRECTORY_SEPARATOR . $cat;
+                        if (!is_dir($catPath)) {
+                            continue;
+                        }
+
+                        // Caso A: Si la categoría misma es la carpeta de la OT (ej: DOCUMENTACION_GIS/OT 6844)
+                        if (preg_match('/^OT[ _-]?' . preg_quote((string) $ot->id, '/') . '(\b|[^0-9])/i', $cat)) {
+                            $fileCount = $this->countFilesInDirectory($catPath);
+                            if ($fileCount > 0) {
+                                $targetDir = $otBackupPath . DIRECTORY_SEPARATOR . 'DOCUMENTACION_GIS' . DIRECTORY_SEPARATOR . $cat;
+                                File::copyDirectory($catPath, $targetDir);
+                                $reportNames[] = "Documentación GIS ({$cat})";
+                                $clonedDocCount++;
+                            }
+                            continue;
+                        }
+
+                        // Caso B: Subcarpetas por departamento/categoría (ALMACEN_FUNDICION, CALIDAD_FUNDICION, DIBUJOS, etc.)
+                        $subDirs = scandir($catPath);
+                        foreach ($subDirs as $sub) {
+                            if ($sub === '.' || $sub === '..') {
+                                continue;
+                            }
+                            $subPath = $catPath . DIRECTORY_SEPARATOR . $sub;
+                            if (!is_dir($subPath)) {
+                                continue;
+                            }
+                            if (preg_match('/^OT[ _-]?' . preg_quote((string) $ot->id, '/') . '(\b|[^0-9])/i', $sub)) {
+                                $fileCount = $this->countFilesInDirectory($subPath);
+                                if ($fileCount > 0) {
+                                    $targetDir = $otBackupPath . DIRECTORY_SEPARATOR . 'DOCUMENTACION_GIS' . DIRECTORY_SEPARATOR . $cat . DIRECTORY_SEPARATOR . $sub;
+                                    File::copyDirectory($subPath, $targetDir);
+                                    $reportNames[] = "Documentación GIS ({$cat}/{$sub})";
+                                    $clonedDocCount++;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Si no se generaron reportes ni documentos, crear ficha mínima de información
+                if (empty($reportNames)) {
+                    file_put_contents(
+                        $otBackupPath . DIRECTORY_SEPARATOR . "OT_{$ot->id}_Info.txt",
+                        "Respaldo de Orden de Trabajo {$ot->id} - {$productName}\nFecha: {$fecha}\nSin piezas ni documentación adicional registrada."
+                    );
+                    $reportNames[] = 'Ficha de Información';
+                }
+
+                // 5. Crear el archivo ZIP en storage/app/RESPALDO_PRIORIDADES/
+                $zipFileName = "Reportes OT {$ot->id} - {$cleanProduct} - {$fecha}.zip";
+                $zipFilePath = $baseBackupPath . DIRECTORY_SEPARATOR . $zipFileName;
+
+                $zip = new ZipArchive();
+                if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                    $this->addDirectoryToZip($zip, $otBackupPath, '');
+                    $zip->close();
+                    $generatedZipFiles[] = [
+                        'ot_id' => $ot->id,
+                        'file_name' => $zipFileName,
+                        'file_path' => $zipFilePath,
+                    ];
+                } else {
+                    Log::warning("No se pudo crear archivo ZIP de respaldo para OT {$ot->id} en {$zipFilePath}");
+                }
+
+                // Eliminar carpeta temporal de trabajo
+                File::deleteDirectory($otBackupPath);
+
+                // 6. Ocultar la OT (actualizar clases a finalizada = 3) sin borrar ningún registro
+                Clase::where('id_ot', '=', $ot->id, 'and')->update(['finalizada' => 3]);
+
+                // 7. Registrar en SystemLog
+                SystemLog::create([
+                    'user_matricula' => auth()->user()->matricula ?? 'MASTER',
+                    'action' => 'Eliminación y Respaldo de OT',
+                    'details' => "El usuario Master eliminó/ocultó la OT {$ot->id} y generó el respaldo comprimido ({$zipFileName}) con " . implode(', ', $reportNames) . " en storage/app/RESPALDO_PRIORIDADES/.",
+                    'ot' => $ot->id,
+                    'id_ot' => $ot->id,
+                ]);
+
+                $processedOts[] = [
+                    'id' => $ot->id,
+                    'product' => $productName,
+                    'zip_file' => $zipFileName,
+                    'reports' => $reportNames,
+                    'cloned_doc_count' => $clonedDocCount,
+                ];
             }
-
-            // 4. Limpiar / inactivar registros en FundicionHistory
-            foreach ($otIds as $idWOrder) {
-                FundicionHistory::query()
-                    ->where('ot', 'LIKE', "OT {$idWOrder}%")
-                    ->delete();
-            }
-
-            // 5. Eliminar las clases
-            Clase::whereIn('id_ot', $otIds)->delete();
-
-            // 6. Eliminar las OTs definitivamente
-            $deletedCount = Orden_trabajo::whereIn('id', $otIds)->delete();
 
             DB::commit();
 
-            Log::info("Master [user " . auth()->id() . "] eliminó permanentemente " . count($otIds) . " OTs.", [
+            // Determinar archivo para descarga inmediata
+            $downloadFileName = null;
+            if (count($generatedZipFiles) === 1) {
+                $downloadFileName = $generatedZipFiles[0]['file_name'];
+            } elseif (count($generatedZipFiles) > 1) {
+                $downloadFileName = "Reportes OTs - {$fecha}.zip";
+                $bundlePath = $baseBackupPath . DIRECTORY_SEPARATOR . $downloadFileName;
+                $bundleZip = new ZipArchive();
+                if ($bundleZip->open($bundlePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
+                    foreach ($generatedZipFiles as $gz) {
+                        $bundleZip->addFile($gz['file_path'], $gz['file_name']);
+                    }
+                    $bundleZip->close();
+                }
+            }
+
+            Log::info("Master [user " . auth()->id() . "] ocultó y respaldó " . count($processedOts) . " OTs en formato ZIP.", [
                 'ot_ids' => $otIds,
-                'deleted_count' => $deletedCount,
+                'zip_file' => $downloadFileName,
+                'backup_folder' => 'storage/app/RESPALDO_PRIORIDADES',
             ]);
 
             return response()->json([
                 'success' => true,
-                'message' => count($otIds) . ' Órden(es) de Trabajo eliminada(s) permanentemente del sistema con éxito.',
+                'message' => count($processedOts) . ' Órden(es) de Trabajo eliminada(s) y respaldada(s) en formato ZIP con éxito.',
                 'deleted_ots' => $otIds,
+                'backup_dir' => 'storage/app/RESPALDO_PRIORIDADES',
+                'zip_file' => $downloadFileName,
+                'download_url' => $downloadFileName ? route('master.priorities.download_backup_zip', ['file' => $downloadFileName]) : null,
+                'processed' => $processedOts,
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Error al eliminar OTs permanentemente: ' . $e->getMessage(), [
+            Log::error('Error al ocultar y respaldar OTs desde prioridades desactivadas: ' . $e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'ot_ids' => $otIds,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocurrió un error al eliminar permanentemente las OTs seleccionadas: ' . $e->getMessage()
+                'message' => 'Ocurrió un error al procesar el respaldo y eliminación de las OTs: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Descargar archivo ZIP de respaldo de prioridades (Exclusivo Master).
+     */
+    public function downloadBackupZip(Request $request)
+    {
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if ($userProfile !== '3') {
+            abort(403, 'No tienes permisos de Master para descargar respaldos de Órdenes de Trabajo.');
+        }
+
+        $fileName = basename((string) $request->query('file'));
+        if (empty($fileName) || !str_ends_with(strtolower($fileName), '.zip')) {
+            abort(400, 'Nombre de archivo de respaldo no válido.');
+        }
+
+        $filePath = storage_path('app/RESPALDO_PRIORIDADES' . DIRECTORY_SEPARATOR . $fileName);
+        if (!file_exists($filePath)) {
+            abort(404, 'El archivo de respaldo solicitado no existe en storage/app/RESPALDO_PRIORIDADES.');
+        }
+
+        return response()->download($filePath, $fileName, [
+            'Content-Type' => 'application/zip',
+        ]);
+    }
+
+    /**
+     * Agregar directorio recursivamente a un archivo ZipArchive.
+     */
+    private function addDirectoryToZip(ZipArchive $zip, string $sourcePath, string $zipSubPath = ''): void
+    {
+        if (!is_dir($sourcePath)) {
+            return;
+        }
+
+        $items = scandir($sourcePath);
+        if ($items === false) {
+            return;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+
+            $realItemPath = $sourcePath . DIRECTORY_SEPARATOR . $item;
+            $inZipPath = $zipSubPath !== '' ? $zipSubPath . '/' . $item : $item;
+
+            if (is_dir($realItemPath)) {
+                $zip->addEmptyDir($inZipPath);
+                $this->addDirectoryToZip($zip, $realItemPath, $inZipPath);
+            } elseif (is_file($realItemPath)) {
+                $zip->addFile($realItemPath, $inZipPath);
+            }
+        }
+    }
+
+    /**
+     * Sanitizar nombre para uso seguro en archivos y directorios.
+     */
+    private function sanitizePathSegment(string $name): string
+    {
+        $clean = preg_replace('/[\\\\\/:\*\?"<>\|]/', '_', $name);
+        return trim(preg_replace('/\s+/', ' ', $clean));
+    }
+
+    /**
+     * Contar recursivamente la cantidad de archivos reales en un directorio.
+     */
+    private function countFilesInDirectory(string $dir): int
+    {
+        if (!is_dir($dir)) {
+            return 0;
+        }
+
+        $count = 0;
+        $items = scandir($dir);
+        if ($items === false) {
+            return 0;
+        }
+
+        foreach ($items as $item) {
+            if ($item === '.' || $item === '..') {
+                continue;
+            }
+            $fullPath = $dir . DIRECTORY_SEPARATOR . $item;
+            if (is_file($fullPath)) {
+                $count++;
+            } elseif (is_dir($fullPath)) {
+                $count += $this->countFilesInDirectory($fullPath);
+            }
+        }
+
+        return $count;
     }
 
     /**
