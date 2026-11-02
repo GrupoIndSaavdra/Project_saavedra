@@ -258,9 +258,37 @@ class PzasGeneralesController extends Controller
             return User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno', 'perfil'])->get();
         });
 
+        $globalClases = config('global_classes.clases', []);
+        $dbClasses = \Illuminate\Support\Facades\Cache::remember('clases_distinct_nombres', 60, function () {
+            return Clase::query()->distinct()->whereNotNull('nombre', 'and')->pluck('nombre')->toArray();
+        });
+
+        $seen = [];
+        $classList = [];
+        // Primero registrar las existentes en BD para respetar la nomenclatura que ya tienen las piezas
+        foreach ($dbClasses as $dbClass) {
+            $clean = trim($dbClass);
+            $lower = mb_strtolower($clean, 'UTF-8');
+            if ($clean !== '' && !isset($seen[$lower])) {
+                $seen[$lower] = true;
+                $classList[] = $clean;
+            }
+        }
+        // Incorporar las clases maestras configuradas en global_classes.php
+        foreach ($globalClases as $gc) {
+            $clean = trim($gc);
+            $lower = mb_strtolower($clean, 'UTF-8');
+            if ($clean !== '' && !isset($seen[$lower])) {
+                $seen[$lower] = true;
+                $classList[] = mb_convert_case($clean, MB_CASE_TITLE, 'UTF-8');
+            }
+        }
+        natcasesort($classList);
+        $classList = array_values($classList);
+
         $filtersData = array(
             "workOrder" => $this->objectToArrayFromDB($orders, "workOrder", $molduras),
-            "class" => ["Bombillo", "Molde", "Obturador", "Fondo", "Corona", "Plato", "Embudo", "Cabeza de Soplo", "Candado Obturador"],
+            "class" => $classList,
             "operator" => $this->objectToArrayFromDB($users, "operator"),
             "machine" => [1, 2, 3, 4, 5, 6, 7],
             "process" => ["Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion", "Embudo CM", "Primera Operacion Cabeza Soplo", "Segunda Operacion Cabeza Soplo"],
@@ -343,7 +371,12 @@ class PzasGeneralesController extends Controller
                     $query->where('id_ot', '=', $workOrderId, 'and');
                     break;
                 case 'class':
-                    $claseIds = Clase::query()->where('nombre', '=', $value, 'and')->pluck('id');
+                    $cleanClass = trim(preg_replace('/^\d+\s*-\s*/', '', $value));
+                    $claseIds = Clase::query()
+                        ->where('nombre', '=', $value, 'and')
+                        ->orWhere('nombre', '=', $cleanClass)
+                        ->orWhere('nombre', 'LIKE', '% - ' . $cleanClass)
+                        ->pluck('id');
                     $query->whereIn('id_clase', $claseIds, 'and', false);
                     break;
                 case 'operator':
@@ -977,10 +1010,24 @@ class PzasGeneralesController extends Controller
         }
 
         // Find Class ID - search by nombre AND id_ot to uniquely identify the class
-        $clase = Clase::query()->where('nombre', $className)->where('id_ot', $otId)->first();
+        $cleanClass = trim(preg_replace('/^\d+\s*-\s*/', '', (string) $className));
+        $clase = Clase::query()
+            ->where('id_ot', '=', $otId, 'and')
+            ->where(function ($q) use ($className, $cleanClass) {
+                $q->where('nombre', '=', $className, 'and')
+                    ->orWhere('nombre', '=', $cleanClass)
+                    ->orWhere('nombre', 'LIKE', '% - ' . $cleanClass);
+            })
+            ->first();
         // Fallback: search by nombre only if not found with id_ot
         if (!$clase) {
-            $clase = Clase::query()->where('nombre', $className)->first();
+            $clase = Clase::query()
+                ->where(function ($q) use ($className, $cleanClass) {
+                    $q->where('nombre', '=', $className, 'and')
+                        ->orWhere('nombre', '=', $cleanClass)
+                        ->orWhere('nombre', 'LIKE', '% - ' . $cleanClass);
+                })
+                ->first();
         }
         if (!$clase) {
             return response()->json([]);

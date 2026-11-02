@@ -1246,7 +1246,12 @@ function applyAllFilters() {
             if (dsId !== fId) return false;
         }
 
-        if (f.class && f.class !== "Todos" && String(ord.class).trim() !== f.class) return false;
+        if (f.class && f.class !== "Todos") {
+            const rowClass = String(ord.class || '').trim();
+            const cleanRowClass = rowClass.replace(/^\d+\s*-\s*/, '').toLowerCase();
+            const cleanFilterClass = String(f.class).trim().replace(/^\d+\s*-\s*/, '').toLowerCase();
+            if (rowClass !== f.class && cleanRowClass !== cleanFilterClass) return false;
+        }
 
         if (f.operator && f.operator !== "Todos") {
             let rowOperators = String(ord.operator).split('/').map(op => op.trim());
@@ -1486,7 +1491,10 @@ function loadAvailableGames(ot, clase, selectElement) {
                     : String(ot).trim();
                 const selectedClass = String(clase).trim();
 
-                if (pieceOT === selectedOT && pieceClass === selectedClass) {
+                const cleanPieceClass = pieceClass.replace(/^\d+\s*-\s*/, '').toLowerCase();
+                const cleanSelectedClass = selectedClass.replace(/^\d+\s*-\s*/, '').toLowerCase();
+
+                if (pieceOT === selectedOT && (pieceClass === selectedClass || cleanPieceClass === cleanSelectedClass)) {
                     games.add(p[1]);
                 }
             }

@@ -168,17 +168,17 @@ function updatePaginationUI(totalCount, totalPages, startIdx, endIdx) {
 
             <div class="gis-pagination-center">
                 <span class="gis-pagination-range-pill">
-                    ${totalCount === 0 
-                        ? 'Sin piezas registradas con estos filtros' 
-                        : `Mostrando <strong>${(startIdx + 1).toLocaleString()} - ${endIdx.toLocaleString()}</strong> de <strong>${totalCount.toLocaleString()}</strong> piezas &nbsp;•&nbsp; Pág. <strong>${currentPage}</strong> de <strong>${totalPages}</strong>`}
+                    ${totalCount === 0
+            ? 'Sin piezas registradas con estos filtros'
+            : `Mostrando <strong>${(startIdx + 1).toLocaleString()} - ${endIdx.toLocaleString()}</strong> de <strong>${totalCount.toLocaleString()}</strong> piezas &nbsp;•&nbsp; Pág. <strong>${currentPage}</strong> de <strong>${totalPages}</strong>`}
                 </span>
             </div>
 
             <div class="gis-pagination-right">
-                <button type="button" 
-                        class="gis-pagination-btn-nav gis-pagination-btn-icon-only ${currentPage <= 1 ? 'disabled-btn' : 'active-btn'}" 
-                        id="pieces-btn-first" 
-                        title="Primera página" 
+                <button type="button"
+                        class="gis-pagination-btn-nav gis-pagination-btn-icon-only ${currentPage <= 1 ? 'disabled-btn' : 'active-btn'}"
+                        id="pieces-btn-first"
+                        title="Primera página"
                         ${currentPage <= 1 ? 'disabled' : ''}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="11 17 6 12 11 7"></polyline>
@@ -186,10 +186,10 @@ function updatePaginationUI(totalCount, totalPages, startIdx, endIdx) {
                     </svg>
                 </button>
 
-                <button type="button" 
-                        class="gis-pagination-btn-nav ${currentPage <= 1 ? 'disabled-btn' : 'active-btn'}" 
-                        id="pieces-btn-prev" 
-                        title="Página anterior" 
+                <button type="button"
+                        class="gis-pagination-btn-nav ${currentPage <= 1 ? 'disabled-btn' : 'active-btn'}"
+                        id="pieces-btn-prev"
+                        title="Página anterior"
                         ${currentPage <= 1 ? 'disabled' : ''}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="15 18 9 12 15 6"></polyline>
@@ -197,10 +197,10 @@ function updatePaginationUI(totalCount, totalPages, startIdx, endIdx) {
                     <span>Anterior</span>
                 </button>
 
-                <button type="button" 
-                        class="gis-pagination-btn-nav ${currentPage >= totalPages ? 'disabled-btn' : 'active-btn'}" 
-                        id="pieces-btn-next" 
-                        title="Página siguiente" 
+                <button type="button"
+                        class="gis-pagination-btn-nav ${currentPage >= totalPages ? 'disabled-btn' : 'active-btn'}"
+                        id="pieces-btn-next"
+                        title="Página siguiente"
                         ${currentPage >= totalPages ? 'disabled' : ''}>
                     <span>Siguiente</span>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -208,10 +208,10 @@ function updatePaginationUI(totalCount, totalPages, startIdx, endIdx) {
                     </svg>
                 </button>
 
-                <button type="button" 
-                        class="gis-pagination-btn-nav gis-pagination-btn-icon-only ${currentPage >= totalPages ? 'disabled-btn' : 'active-btn'}" 
-                        id="pieces-btn-last" 
-                        title="Última página" 
+                <button type="button"
+                        class="gis-pagination-btn-nav gis-pagination-btn-icon-only ${currentPage >= totalPages ? 'disabled-btn' : 'active-btn'}"
+                        id="pieces-btn-last"
+                        title="Última página"
                         ${currentPage >= totalPages ? 'disabled' : ''}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="13 17 18 12 13 7"></polyline>
@@ -254,7 +254,7 @@ function updatePaginationUI(totalCount, totalPages, startIdx, endIdx) {
         }
     });
 
-    document.getElementById("pieces-page-size-select")?.addEventListener("change", function() {
+    document.getElementById("pieces-page-size-select")?.addEventListener("change", function () {
         pageSize = parseInt(this.value, 10);
         currentPage = 1;
         renderCurrentPage();
@@ -1156,7 +1156,12 @@ function applyAllFilters() {
             if (dsWo !== fWo && dsId !== fId) return false;
         }
 
-        if (f.class && f.class !== "Todos" && String(ord.class).trim() !== f.class) return false;
+        if (f.class && f.class !== "Todos") {
+            const rowClass = String(ord.class || '').trim();
+            const cleanRowClass = rowClass.replace(/^\d+\s*-\s*/, '').toLowerCase();
+            const cleanFilterClass = String(f.class).trim().replace(/^\d+\s*-\s*/, '').toLowerCase();
+            if (rowClass !== f.class && cleanRowClass !== cleanFilterClass) return false;
+        }
 
         if (f.operator && f.operator !== "Todos") {
             let rowOperators = String(ord.operator).split('/').map(op => op.trim());
