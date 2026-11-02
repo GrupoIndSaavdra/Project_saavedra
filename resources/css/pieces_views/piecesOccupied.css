@@ -133,25 +133,97 @@ html, body {
     color: var(--gis-danger);
 }
 
+.kpi-chip-incomplete .kpi-val {
+    color: #f59e0b;
+}
+
 .kpi-txt {
     font-size: 0.85rem;
     font-weight: 700;
     color: #334155;
 }
 
-/* Barra de Filtros compacta horizontal (estilo Reporte de Piezas) */
+/* Botón Actualizar integrado en la Cinta de KPIs: Azul por defecto -> Verde al hover */
+.kpi-chip.kpi-btn-refresh {
+    cursor: pointer;
+    background: linear-gradient(135deg, #033966 0%, #0284c7 100%);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    font-family: inherit;
+    outline: none;
+    min-height: 58px;
+    box-sizing: border-box;
+    box-shadow:
+        0 4px 14px rgba(3, 57, 102, 0.28),
+        inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    transition:
+        background 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+        border-color 0.3s ease,
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.25s ease;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+.kpi-chip.kpi-btn-refresh .kpi-icon {
+    width: 32px;
+    height: 32px;
+    filter: brightness(0) invert(1) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+    transition:
+        transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+        filter 0.25s ease;
+}
+
+.kpi-chip.kpi-btn-refresh .kpi-txt-btn {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: 0.02rem;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    transition: color 0.2s ease, text-shadow 0.2s ease;
+}
+
+.kpi-chip.kpi-btn-refresh:hover {
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 50%, #22c55e 100%);
+    border-color: #86efac;
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 22px rgba(22, 163, 74, 0.42),
+        inset 0 1px 1px rgba(255, 255, 255, 0.45);
+}
+
+.kpi-chip.kpi-btn-refresh:hover .kpi-txt-btn {
+    color: #ffffff;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+
+.kpi-chip.kpi-btn-refresh:hover .kpi-icon {
+    transform: rotate(180deg) scale(1.15);
+    filter: brightness(0) invert(1) drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+}
+
+.kpi-chip.kpi-btn-refresh:active {
+    transform: scale(0.96);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.35);
+}
+
+/* Barra de Filtros compacta horizontal (Glass Azul Premium GIS) */
 .filters {
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
     gap: 0.75rem;
     flex-wrap: wrap;
-    margin-bottom: 0.45rem;
-    padding: 0.45rem 0.85rem;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.68) 100%);
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.75);
-    box-shadow: 0 4px 12px rgba(31, 38, 135, 0.04);
+    margin: clamp(0.25rem, 0.8vh, 0.5rem) 0 0.45rem 0;
+    padding: clamp(0.55rem, 1.2vh, 0.85rem) 1rem;
+    background: var(--glass-bg-blue) !important;
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
+    border-radius: 14px;
+    border: 2px solid var(--glass-border-blue) !important;
+    box-shadow:
+        0 14px 34px -6px rgba(3, 57, 102, 0.4),
+        inset 0 1px 1px 0 rgba(255, 255, 255, 0.45),
+        inset 0 -1px 2px 0 rgba(0, 0, 0, 0.25);
     box-sizing: border-box;
     flex-shrink: 0;
 }
@@ -159,98 +231,194 @@ html, body {
 .filter {
     display: flex;
     flex-direction: column-reverse;
-    gap: 0.25rem;
+    gap: 0.3em;
     flex: 1 1 180px;
     min-width: 140px;
 }
 
 .filter label {
-    font-size: 0.82rem;
+    font-size: clamp(0.72rem, 1.2vh, 0.8rem);
     font-weight: 700;
-    color: var(--gis-blue);
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
     letter-spacing: 0.5px;
     display: flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.5rem;
     text-transform: uppercase;
 }
 
 .filter label .icon-label {
-    width: 32px;
-    height: 32px;
+    width: 26px;
+    height: 26px;
     object-fit: contain;
-    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.25));
     flex-shrink: 0;
 }
 
-.filter select {
+.filter select,
+.filter input {
     width: 100%;
-    border-radius: 6px;
-    padding: 0.45rem 1.8rem 0.45rem 0.75rem;
-    border: 1px solid rgba(3, 57, 102, 0.25);
+    border-radius: 8px;
+    padding: clamp(0.42rem, 1vh, 0.58rem) clamp(0.6rem, 1.5vw, 1rem);
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
     background-color: #ffffff;
-    color: #1e293b;
-    font-size: 0.84rem;
-    font-weight: 500;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    color: #0f172a;
+    font-size: clamp(0.78rem, 1.4vh, 0.88rem);
+    font-weight: 600;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
     outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-    cursor: pointer;
+    transition: all 0.22s ease;
+    box-sizing: border-box;
+    font-family: inherit;
+    min-height: 38px;
 }
 
-.filter select:focus {
-    border-color: var(--gis-blue);
-    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
+.filter select {
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23033966%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.8em top 50%;
+    background-size: 0.65em auto;
+}
+
+.filter input {
+    cursor: text;
+}
+
+.filter input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+    font-size: 0.82rem;
+}
+
+.filter select:hover,
+.filter input:hover {
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.22);
+    border-color: #ffffff;
+}
+
+.filter select:focus,
+.filter input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.35);
+}
+
+.filter select:disabled,
+.filter input:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    background-color: #e2e8f0;
+    color: #64748b;
+    border-color: rgba(255, 255, 255, 0.4);
+    box-shadow: none;
 }
 
 .filter-actions-inline {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
     padding-bottom: 2px;
 }
 
-/* Botón Actualizar (Verde predeterminado con filtro blanco, hover blanco sin filtro, animaciones fluidas) */
+/* Botón Actualizar (Azul GIS cuando activo, Gris cuando inactivo/cargando) */
 .btn-refresh-gis {
     display: inline-flex;
     align-items: center;
-    gap: 0.65rem;
-    padding: 0.55rem 1.5rem;
-    font-size: 0.98rem;
+    justify-content: center;
+    gap: 0.55rem;
+    padding: clamp(0.42rem, 1vh, 0.58rem) 16px;
+    font-size: clamp(0.78rem, 1.4vh, 0.88rem);
     font-weight: 700;
     border-radius: 8px;
-    background: linear-gradient(135deg, var(--gis-green) 0%, #0c9c05 100%);
-    color: #ffffff;
-    border: 1.5px solid transparent;
-    box-shadow: 0 3px 8px rgba(10, 133, 4, 0.35);
+    border: none;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
     white-space: nowrap;
+    min-height: 38px;
+    box-sizing: border-box;
+    font-family: inherit;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-refresh-gis:enabled {
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #0284c7 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35);
 }
 
 .btn-refresh-gis .icon-refresh {
-    width: 30px;
-    height: 30px;
+    width: 20px;
+    height: 20px;
     object-fit: contain;
     filter: brightness(0) invert(1);
-    transition: filter 0.2s ease, transform 0.3s ease;
+    transition: transform 0.3s ease;
 }
 
-.btn-refresh-gis:hover {
-    background: #ffffff;
-    color: var(--gis-blue);
-    border-color: var(--gis-blue);
-    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.25);
-    transform: scale(1.04);
+.btn-refresh-gis:hover:enabled {
+    background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.45);
+    transform: translateY(-2px) scale(1.02);
 }
 
-.btn-refresh-gis:hover .icon-refresh {
-    filter: none;
+.btn-refresh-gis:hover:enabled .icon-refresh {
     transform: rotate(180deg);
 }
 
-.btn-refresh-gis:active {
-    transform: scale(0.97);
+.btn-refresh-gis:active:enabled {
+    transform: scale(0.98);
+}
+
+.btn-refresh-gis:disabled {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    opacity: 0.55 !important;
+    transform: scale(0.98);
+}
+
+/* Botón Limpiar Filtros en Piezas Ocupadas */
+.btn-clear-filters {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(0.42rem, 1vh, 0.58rem) 16px !important;
+    border-radius: 8px !important;
+    font-size: clamp(0.78rem, 1.4vh, 0.88rem) !important;
+    font-weight: 700;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    box-sizing: border-box;
+    min-height: 38px;
+    border: none;
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.btn-clear-filters:enabled {
+    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #0284c7 100%) !important;
+    color: #ffffff !important;
+    cursor: pointer !important;
+    opacity: 1 !important;
+    transform: scale(1);
+    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+}
+
+.btn-clear-filters:hover:enabled {
+    background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%) !important;
+    color: #ffffff !important;
+    transform: translateY(-2px) scale(1.02);
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.45) !important;
+}
+
+.btn-clear-filters:disabled {
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%) !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    opacity: 0.55 !important;
+    transform: scale(0.98);
 }
 
 /* Botón Liberar Lote */
@@ -403,16 +571,18 @@ html, body {
 
 /* Contenedor de la Tabla en forma de Tablita Saavedra */
 .div-table {
-    margin-top: 0.15rem;
+    margin-top: 0.25rem;
     flex: 1 1 0;
     min-height: 0;
     max-height: none;
-    overflow-x: hidden;
+    overflow-x: auto;
     overflow-y: auto;
-    border-radius: 10px;
-    border: 3px solid var(--gis-blue);
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05), 0 6px 16px rgba(0, 0, 0, 0.05);
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.68) 100%);
+    border-radius: 12px;
+    border: 2.5px solid var(--gis-blue);
+    box-shadow:
+        0 10px 28px -6px rgba(3, 57, 102, 0.15),
+        inset 0 1px 2px rgba(255, 255, 255, 0.9);
+    background: #ffffff;
 }
 
 .div-table::-webkit-scrollbar {
@@ -420,49 +590,64 @@ html, body {
     height: 8px;
 }
 .div-table::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.02);
+    background: #f1f5f9;
     border-radius: 8px;
 }
 .div-table::-webkit-scrollbar-thumb {
-    background: rgba(3, 57, 102, 0.3);
+    background: rgba(3, 57, 102, 0.35);
     border-radius: 8px;
 }
 .div-table::-webkit-scrollbar-thumb:hover {
-    background: rgba(3, 57, 102, 0.6);
+    background: rgba(3, 57, 102, 0.65);
 }
 
 .table-gis {
     width: 100%;
     min-width: 100%;
     table-layout: auto;
-    border-collapse: collapse;
-    background: transparent;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: #ffffff;
 }
 
 .table-gis th {
-    background: linear-gradient(135deg, var(--gis-blue) 0%, #065494 100%);
+    background: linear-gradient(180deg, var(--gis-blue) 0%, #01223f 100%);
     color: #ffffff;
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
-    padding: 8px 8px;
-    font-size: 0.8rem;
-    letter-spacing: 0.3px;
-    border: 1px solid #065494;
+    padding: 12px 10px;
+    font-size: 0.81rem;
+    letter-spacing: 0.04rem;
+    text-transform: uppercase;
+    border: none;
+    border-bottom: 3px solid #0284c7;
+    border-right: 1px solid rgba(255, 255, 255, 0.14);
     position: sticky;
     top: 0;
     z-index: 20;
     white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.table-gis th:last-child {
+    border-right: none;
 }
 
 .table-gis td {
     text-align: center;
-    font-size: 0.85rem;
-    padding: 6px 8px;
-    border: 1px solid rgba(3, 57, 102, 0.18);
-    background: rgba(255, 255, 255, 0.35);
+    font-size: 0.86rem;
+    padding: 10px 10px;
+    border: none;
+    border-bottom: 1px solid #e2e8f0;
+    border-right: 1px solid #f1f5f9;
+    background: #ffffff;
     vertical-align: middle;
-    color: #1e293b;
-    transition: background-color 0.15s ease;
+    color: #0f172a;
+    transition: background-color 0.18s ease, transform 0.18s ease;
+}
+
+.table-gis td:last-child {
+    border-right: none;
 }
 
 /* Evitar que se rompan o corten palabras en columnas cortas o identificadores */
@@ -519,91 +704,279 @@ html, body {
 
 /* En la tabla de piezas ocupadas: asegurar espacio sin corte para OT, Clase, Proceso */
 #table-occupied-pieces th:nth-child(1),
-#table-occupied-pieces td:nth-child(1),
-#table-occupied-pieces th:nth-child(2),
-#table-occupied-pieces td:nth-child(2),
-#table-occupied-pieces th:nth-child(3),
-#table-occupied-pieces td:nth-child(3),
-#table-occupied-pieces th:nth-child(4),
-#table-occupied-pieces td:nth-child(4),
-#table-occupied-pieces th:nth-child(7),
-#table-occupied-pieces td:nth-child(7),
-#table-occupied-pieces th:nth-child(8),
-#table-occupied-pieces td:nth-child(8),
-#table-occupied-pieces th:nth-child(9),
-#table-occupied-pieces td:nth-child(9) {
+#table-occupied-pieces td:nth-child(1) {
     white-space: nowrap;
+    width: 95px;
 }
 
 #table-occupied-pieces th:nth-child(2),
 #table-occupied-pieces td:nth-child(2) {
-    min-width: 110px;
+    white-space: nowrap;
+    min-width: 120px;
     padding-left: 12px;
     padding-right: 12px;
 }
 
 #table-occupied-pieces th:nth-child(3),
 #table-occupied-pieces td:nth-child(3) {
+    white-space: nowrap;
+    min-width: 130px;
+}
+
+#table-occupied-pieces th:nth-child(4),
+#table-occupied-pieces td:nth-child(4) {
+    white-space: nowrap;
     min-width: 110px;
 }
 
+#table-occupied-pieces th:nth-child(5),
+#table-occupied-pieces td:nth-child(5) {
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+#table-occupied-pieces th:nth-child(6),
+#table-occupied-pieces td:nth-child(6) {
+    white-space: nowrap;
+    min-width: 170px;
+    text-align: left;
+    padding-left: 14px;
+}
+
+#table-occupied-pieces th:nth-child(7),
+#table-occupied-pieces td:nth-child(7) {
+    white-space: nowrap;
+    width: 130px;
+}
+
+#table-occupied-pieces th:nth-child(8),
+#table-occupied-pieces td:nth-child(8) {
+    white-space: nowrap;
+    min-width: 270px;
+}
+
+#table-occupied-pieces th:nth-child(9),
+#table-occupied-pieces td:nth-child(9) {
+    white-space: nowrap;
+    width: 165px;
+    min-width: 160px;
+    text-align: center;
+}
+
+/* Filas normales con alternancia suave y borde indicador izquierdo */
+.table-gis tbody tr td:first-child {
+    border-left: 4px solid transparent;
+}
+
 .table-gis tbody tr:nth-child(even) td {
-    background: rgba(255, 255, 255, 0.55);
+    background-color: #f8fafc;
 }
 
 .table-gis tbody tr:hover td {
-    background-color: rgba(255, 255, 255, 0.9);
+    background-color: #f0f7ff !important;
 }
 
+.table-gis tbody tr:not(.row-orphan):not(.row-incomplete):not(.row-active):hover td:first-child {
+    border-left-color: var(--gis-blue);
+}
+
+/* Filas desvinculadas (registros sin máquina activa) */
 .table-gis tbody tr.row-orphan td {
-    background-color: rgba(254, 226, 226, 0.5);
+    background-color: #fff1f2 !important;
+}
+
+.table-gis tbody tr.row-orphan td:first-child {
+    border-left: 4px solid #f43f5e !important;
 }
 
 .table-gis tbody tr.row-orphan:hover td {
-    background-color: rgba(254, 202, 202, 0.8);
+    background-color: #ffe4e6 !important;
+}
+
+/* Filas incompletas (mitad faltante) */
+.table-gis tbody tr.row-incomplete td {
+    background-color: #fffbeb !important;
+}
+
+.table-gis tbody tr.row-incomplete td:first-child {
+    border-left: 4px solid #f59e0b !important;
+}
+
+.table-gis tbody tr.row-incomplete:hover td {
+    background-color: #fef3c7 !important;
+}
+
+/* Filas con máquina activa (proceso vigente) */
+.table-gis tbody tr.row-active td {
+    background-color: #f0fdf4 !important;
+}
+
+.table-gis tbody tr.row-active td:first-child {
+    border-left: 4px solid #16a34a !important;
+}
+
+.table-gis tbody tr.row-active:hover td {
+    background-color: #dcfce7 !important;
+}
+
+/* =============================================================================
+   CONTENEDOR DE ICONOS DUAL (SHADOW <-> COLOR AL HOVER: CROSSFADE ELEGANTE SIN GIRO)
+   ============================================================================= */
+.badge-icon-swap {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.badge-icon-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition:
+        opacity 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.28s ease;
+    will-change: transform, opacity;
+}
+
+.badge-icon-img.icon-shadow {
+    z-index: 1;
+    opacity: 0.95;
+    transform: scale(1);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.badge-icon-img.icon-color {
+    z-index: 2;
+    opacity: 0;
+    transform: scale(0.92);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.22));
+}
+
+/* EFECTO HOVER: Transición suave entre shadow y color sin rotación lateral */
+.table-gis tbody tr:hover .badge-icon-img.icon-shadow,
+.badge:hover .badge-icon-img.icon-shadow {
+    opacity: 0;
+    transform: scale(0.92);
+}
+
+.table-gis tbody tr:hover .badge-icon-img.icon-color,
+.badge:hover .badge-icon-img.icon-color {
+    opacity: 1;
+    transform: scale(1.08);
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.28));
+}
+
+.table-gis tbody tr:hover .badge,
+.badge:hover {
+    transform: translateY(-1px);
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
 }
 
 /* Badges / Píldoras compactas */
 .badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
-    padding: 0.32rem 0.75rem;
-    border-radius: 18px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    line-height: 1.2;
+    gap: 0.6rem;
+    padding: 0.35rem 0.85rem 0.35rem 0.6rem;
+    border-radius: 24px;
+    font-size: 0.84rem;
+    font-weight: 700;
+    font-family: 'Poppins', sans-serif;
+    letter-spacing: 0.02rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    -webkit-user-select: none;
+    user-select: none;
+    cursor: default;
     white-space: nowrap;
 }
 
+.badge-text {
+    font-weight: 700;
+    letter-spacing: 0.01rem;
+}
+
 .badge-orphan {
-    background: rgba(239, 68, 68, 0.12);
-    color: #b91c1c;
-    border: 1px solid rgba(239, 68, 68, 0.25);
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    color: #9f1239;
+    border: 1.5px solid #fda4af;
+    box-shadow: 0 2px 8px rgba(244, 63, 94, 0.14);
+}
+
+.table-gis tbody tr:hover .badge-orphan,
+.badge-orphan:hover {
+    background: linear-gradient(135deg, #ffe4e6 0%, #fecdd3 100%);
+    border-color: #f43f5e;
+    box-shadow: 0 4px 14px rgba(244, 63, 94, 0.24);
+    transform: translateY(-1px);
+}
+
+.badge-incomplete {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    color: #92400e;
+    border: 1.5px solid #fde68a;
+    box-shadow: 0 2px 8px rgba(245, 158, 11, 0.14);
+}
+
+.table-gis tbody tr:hover .badge-incomplete,
+.badge-incomplete:hover {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde047 100%);
+    border-color: #f59e0b;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.24);
+    transform: translateY(-1px);
 }
 
 .badge-active {
-    background: rgba(16, 185, 129, 0.12);
-    color: #047857;
-    border: 1px solid rgba(16, 185, 129, 0.25);
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    color: #065f46;
+    border: 1.5px solid #a7f3d0;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.14);
+}
+
+.table-gis tbody tr:hover .badge-active,
+.badge-active:hover {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    border-color: #10b981;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.24);
+    transform: translateY(-1px);
 }
 
 .badge-ot {
-    background: rgba(3, 57, 102, 0.1);
-    color: var(--gis-blue);
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+    color: #033966;
+    border: 1px solid #7dd3fc;
     font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 0.81rem;
+    letter-spacing: 0.02rem;
+    box-shadow: 0 1px 3px rgba(3, 57, 102, 0.08);
 }
 
 .badge-process {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    color: #0f172a;
+    border: 1px solid #cbd5e1;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: 6px;
+    font-size: 0.81rem;
+    letter-spacing: 0.02rem;
 }
 
 .badge-piece {
-    font-weight: 700;
-    color: #0f172a;
-    font-size: 0.92rem;
+    font-weight: 800;
+    color: #002244;
+    font-size: 0.94rem;
+    letter-spacing: 0.03rem;
 }
 
 .icon-badge {
@@ -615,72 +988,157 @@ html, body {
     filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
 }
 
-/* Botones de acción en tabla: idéntica altura, tamaño y alineación perfecta */
+/* Botones de acción en tabla: Formato Columna (Icono arriba, Texto abajo) */
 .table-actions {
     display: inline-flex;
-    gap: 0.6rem;
+    gap: 10px;
     justify-content: center;
     align-items: center;
+    flex-wrap: nowrap;
 }
 
-.btn-icon-action {
+.btn-action-col {
     display: inline-flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 42px;
-    min-width: 42px;
-    min-height: 42px;
-    max-width: 42px;
-    max-height: 42px;
-    padding: 0;
+    gap: 4px;
+    width: 62px;
+    min-width: 62px;
+    height: 56px;
+    padding: 5px 6px;
     margin: 0;
     box-sizing: border-box;
     border-radius: 10px;
-    border: 1.5px solid rgba(0, 0, 0, 0.1);
-    background: #ffffff;
     cursor: pointer;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease;
-    line-height: 0;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+    transition:
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        box-shadow 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease;
+    font-family: inherit;
+    -webkit-user-select: none;
+    user-select: none;
+    white-space: nowrap;
+    border: 1.5px solid transparent;
 }
 
-.btn-icon-action:hover {
-    transform: scale(1.15);
-    box-shadow: 0 5px 14px rgba(0, 0, 0, 0.18);
+.btn-action-col .btn-action-txt {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.03rem;
+    line-height: 1;
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    text-transform: uppercase;
 }
 
-.btn-icon-action:active {
+/* Contenedor swap de iconos (estático <-> hover con transición suave) */
+.action-icon-swap {
+    position: relative;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.action-icon-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    pointer-events: none;
+    transition:
+        opacity 0.25s ease,
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.25s ease;
+    will-change: transform, opacity;
+}
+
+.action-icon-img.icon-static {
+    z-index: 1;
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.25));
+}
+
+.action-icon-img.icon-hover {
+    z-index: 2;
+    opacity: 0;
+    transform: scale(0.9);
+    filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.3));
+}
+
+/* Botón LIBERAR (Verde GIS) */
+.btn-action-free {
+    border-color: #22c55e;
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 100%);
+    box-shadow: 0 2px 6px rgba(21, 128, 61, 0.28);
+}
+
+.btn-action-free:hover:not(:disabled) {
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+    border-color: #86efac;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.42);
+}
+
+/* Botón EDITAR (Azul GIS) */
+.btn-action-edit {
+    border-color: #38bdf8;
+    background: linear-gradient(135deg, #033966 0%, #0284c7 100%);
+    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.28);
+}
+
+.btn-action-edit:hover:not(:disabled) {
+    background: linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%);
+    border-color: #7dd3fc;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(2, 132, 199, 0.42);
+}
+
+/* Transición suave entre icono estático y color al hacer hover */
+.btn-action-col:hover:not(:disabled) .action-icon-img.icon-static {
+    opacity: 0;
+    transform: scale(0.88);
+}
+
+.btn-action-col:hover:not(:disabled) .action-icon-img.icon-hover {
+    opacity: 1;
+    transform: scale(1.12);
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.35));
+}
+
+.btn-action-col:active:not(:disabled) {
     transform: scale(0.95);
 }
 
-.btn-action-free {
-    border-color: rgba(16, 185, 129, 0.45);
-    background: #f0fdf4;
+/* Botones bloqueados / deshabilitados (para filas con máquina activa) */
+.btn-action-col:disabled,
+.btn-action-col.btn-action-disabled {
+    background: #e2e8f0 !important;
+    border: 1.5px solid #cbd5e1 !important;
+    cursor: not-allowed !important;
+    opacity: 0.55 !important;
+    transform: none !important;
+    box-shadow: none !important;
+    pointer-events: auto; /* Permite mostrar el tooltip del navegador */
 }
 
-.btn-action-free:hover {
-    background: #dcfce7;
-    border-color: #10b981;
+.btn-action-col:disabled .btn-action-txt,
+.btn-action-col.btn-action-disabled .btn-action-txt {
+    color: #64748b !important;
+    text-shadow: none !important;
 }
 
-.btn-action-edit {
-    border-color: rgba(3, 57, 102, 0.35);
-    background: #f0f7ff;
-}
-
-.btn-action-edit:hover {
-    background: #e0f2fe;
-    border-color: var(--gis-blue);
-}
-
-.icon-action {
-    width: 28px;
-    height: 28px;
-    object-fit: contain;
-    display: block;
-    pointer-events: none;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.12));
+.btn-action-col:disabled .action-icon-img,
+.btn-action-col.btn-action-disabled .action-icon-img {
+    filter: brightness(0.4) opacity(0.55) !important;
 }
 
 /* Iconos de cabecera y labels */
@@ -720,21 +1178,246 @@ html, body {
     margin: 0;
 }
 
-/* Pie de tabla informativo */
-.table-footer-legend {
+.total-records-found {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
-    padding: 0.3rem 0.25rem 0 0.25rem;
-    font-size: 0.74rem;
-    color: #475569;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    width: 100%;
+    flex-shrink: 0;
+    margin-top: 0.35rem;
+    margin-bottom: 0.15rem;
+}
+
+/* =============================================================================
+   DRAWER / SIDEBAR DE CÓDIGO DE COLORES FLOTANTE COLLAPSABLE (GIS PREMIUM)
+   ============================================================================= */
+.colors-legend-container {
+    position: fixed;
+    top: 55%;
+    left: 0;
+    transform: translateY(-50%);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+}
+
+.colors-toggle-btn {
+    background: linear-gradient(180deg, var(--gis-blue) 0%, #032847 100%);
+    color: #ffffff;
+    border: 1.5px solid rgba(255, 255, 255, 0.45);
+    border-left: none;
+    padding: 24px 10px;
+    border-radius: 0 14px 14px 0;
+    cursor: pointer;
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: "Poppins", sans-serif;
+    letter-spacing: 0.05rem;
+    box-shadow: 4px 0 20px rgba(3, 57, 102, 0.35);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition:
+        transform 0.22s ease,
+        background 0.22s ease,
+        box-shadow 0.22s ease;
+}
+
+.colors-toggle-btn .toggle-icon {
+    transform: rotate(90deg);
+    color: #38bdf8;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.3));
+    transition: transform 0.2s ease;
+}
+
+.colors-toggle-btn:hover {
+    background: linear-gradient(180deg, #0284c7 0%, var(--gis-blue) 100%);
+    box-shadow: 6px 0 26px rgba(2, 132, 199, 0.5);
+    transform: translateX(3px);
+}
+
+.colors-toggle-btn:hover .toggle-icon {
+    transform: rotate(90deg) scale(1.15);
+}
+
+.colors-content {
+    background: linear-gradient(
+        135deg,
+        rgba(8, 45, 88, 0.92) 0%,
+        rgba(3, 32, 68, 0.95) 100%
+    ) !important;
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(255, 255, 255, 0.35) !important;
+    border-radius: 18px !important;
+    box-shadow:
+        0 24px 60px rgba(0, 15, 35, 0.45),
+        0 0 0 1px rgba(255, 255, 255, 0.25) inset !important;
+    padding: 0;
+    width: 0;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateX(-15px);
+    transition:
+        width 0.34s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.25s ease,
+        transform 0.25s ease;
+}
+
+.colors-legend-container:hover .colors-content,
+.colors-legend-container.active .colors-content {
+    width: 490px;
+    opacity: 1;
+    transform: translateX(12px);
+    padding: 18px 20px;
+    max-height: 86vh;
+    overflow-y: auto;
+}
+
+.table-colors {
+    width: 100% !important;
+    min-width: unset !important;
+    border-collapse: separate !important;
+    border-spacing: 0 6px !important;
+    background: transparent !important;
+    border: none !important;
+    margin: 0 !important;
+}
+
+.table-colors thead th {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-family: "Poppins", sans-serif !important;
+    font-size: 1rem !important;
+    letter-spacing: 0.05rem !important;
+    padding: 13px 18px !important;
+    border: none !important;
+    border-radius: 12px 12px 0 0 !important;
+    text-align: center !important;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35) !important;
+}
+
+.table-colors thead tr:nth-child(2) th {
+    background: rgba(15, 23, 42, 0.92) !important;
+    font-size: 0.8rem !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.08rem !important;
+    color: #f8fafc !important;
+    font-weight: 800 !important;
+    padding: 8px 16px !important;
+    border-radius: 0 !important;
+}
+
+.table-colors thead tr:nth-child(2) th:first-child {
+    border-radius: 0 0 0 8px !important;
+    width: 38% !important;
+}
+
+.table-colors thead tr:nth-child(2) th:last-child {
+    border-radius: 0 0 8px 0 !important;
+}
+
+.table-colors .color-row td {
+    padding: 10px 14px !important;
+    font-size: 0.86rem !important;
+    vertical-align: middle !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.table-colors td.color-chip {
+    font-weight: 700 !important;
+    font-family: "Poppins", sans-serif !important;
+    border-radius: 9px 0 0 9px !important;
+    border: 1px solid rgba(0, 0, 0, 0.06) !important;
+    border-right: none !important;
+    text-align: left !important;
+    padding: 8px 12px !important;
+    box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+}
+
+.chip-content-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.chip-icon-box {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    min-width: 38px;
+    min-height: 38px;
+    background: #ffffff;
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.22);
     flex-shrink: 0;
 }
 
-.legend-note {
-    color: #64748b;
+.chip-inline-icon {
+    width: 26px;
+    height: 26px;
+    object-fit: contain;
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.18));
+}
+
+.chip-label-txt {
+    font-size: 0.95rem;
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    letter-spacing: 0.03rem;
+}
+
+.table-colors td.color-desc {
+    border-radius: 0 9px 9px 0 !important;
+    background-color: rgba(255, 255, 255, 0.95) !important;
+    color: #0f172a !important;
+    font-weight: 500 !important;
+    line-height: 1.4 !important;
+    border-left: none !important;
+    text-align: left !important;
+    padding-left: 14px !important;
+    transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+}
+
+.table-colors td.color-desc strong {
+    color: #033966;
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.table-colors .color-row:hover td.color-desc {
+    background-color: #ffffff !important;
+}
+
+/* Chips de color */
+.chip-rojo {
+    background: linear-gradient(135deg, #dc2626 0%, #f87171 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.45) !important;
+}
+
+.chip-amarillo {
+    background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(217, 119, 6, 0.45) !important;
+}
+
+.chip-verde {
+    background: linear-gradient(135deg, #16a34a 0%, #4ade80 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.45) !important;
 }
 
 /* Modal Flotante de Edición - GIS Premium */

@@ -37,7 +37,7 @@
         <tr>
             <th>
                 <div class="table-code-th-content">
-                    <img src="{{ asset('images/Color_Icons/Generales/Codigo-Icon.png') }}" class="table-code-icon" alt="Código">
+                    <img src="{{ asset('images/Light_Icons/Codigo-Icon.png') }}" class="table-code-icon" alt="Código">
                     <span>Código</span>
                 </div>
             </th>

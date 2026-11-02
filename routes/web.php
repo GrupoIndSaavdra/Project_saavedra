@@ -199,6 +199,7 @@ Route::controller(MachinesController::class)->group(function () {
 Route::controller(\App\Http\Controllers\PiecesOccupiedController::class)->group(function () {
     Route::get('/piecesOccupied', 'show')->name('piecesOccupied');
     Route::get('/piecesOccupied/classes', 'getClassesByOt')->name('piecesOccupied.classes');
+    Route::post('/piecesOccupied/piecesByContext', 'getPiecesByContext')->name('piecesOccupied.piecesByContext');
     Route::post('/piecesOccupied/getPieces', 'getOccupiedPieces')->name('piecesOccupied.getPieces');
     Route::post('/piecesOccupied/freeUp', 'freeUp')->name('piecesOccupied.freeUp');
     Route::post('/piecesOccupied/freeUpBatch', 'freeUpBatch')->name('piecesOccupied.freeUpBatch');

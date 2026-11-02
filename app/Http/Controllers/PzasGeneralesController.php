@@ -258,25 +258,14 @@ class PzasGeneralesController extends Controller
             return User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno', 'perfil'])->get();
         });
 
-        $globalClases = config('global_classes.clases', []);
         $dbClasses = \Illuminate\Support\Facades\Cache::remember('clases_distinct_nombres', 60, function () {
             return Clase::query()->distinct()->whereNotNull('nombre', 'and')->pluck('nombre')->toArray();
         });
 
         $seen = [];
         $classList = [];
-        // Primero registrar las existentes en BD para respetar la nomenclatura que ya tienen las piezas
         foreach ($dbClasses as $dbClass) {
-            $clean = trim($dbClass);
-            $lower = mb_strtolower($clean, 'UTF-8');
-            if ($clean !== '' && !isset($seen[$lower])) {
-                $seen[$lower] = true;
-                $classList[] = $clean;
-            }
-        }
-        // Incorporar las clases maestras configuradas en global_classes.php
-        foreach ($globalClases as $gc) {
-            $clean = trim($gc);
+            $clean = trim(preg_replace('/^\d+\s*-\s*/', '', (string) $dbClass));
             $lower = mb_strtolower($clean, 'UTF-8');
             if ($clean !== '' && !isset($seen[$lower])) {
                 $seen[$lower] = true;
