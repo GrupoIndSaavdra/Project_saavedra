@@ -228,8 +228,9 @@ class ProcessesController extends Controller
      */
     public function getDefaultProcessesByClass(string $className): ?array
     {
-        return match ($className) {
-            'Bombillo', 'Molde' => [
+        $baseType = \App\Models\Clase::normalizeClassName($className);
+        return match ($baseType) {
+            'Bombillo' => [
                 'Cepillado',
                 'Desbaste Exterior',
                 'Revision Laterales',
@@ -238,6 +239,18 @@ class ProcessesController extends Controller
                 'Segunda Operacion',
                 'Calificado',
                 'Acabado Bombillo',
+                'Barreno Profundidad',
+            ],
+            'Molde' => [
+                'Cepillado',
+                'Desbaste Exterior',
+                'Revision Laterales',
+                'Primera Operacion',
+                'Barreno Maniobra',
+                'Segunda Operacion',
+                'Calificado',
+                'Acabado Molde',
+                'Barreno Profundidad',
             ],
             'Corona' => [
                 'Cepillado',

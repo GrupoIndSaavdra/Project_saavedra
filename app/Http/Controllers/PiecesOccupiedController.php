@@ -166,17 +166,45 @@ class PiecesOccupiedController extends Controller
         ],
     ];
 
+    /**
+     * Mapeo de columnas de la tabla procesos a claves de proceso en $processConfig.
+     */
+    protected static array $processColumnMap = [
+        'cepillado' => 'Cepillado',
+        'desbaste_exterior' => 'Desbaste Exterior',
+        'revision_laterales' => 'Revision Laterales',
+        'pOperacion' => 'Primera Operacion',
+        'barreno_maniobra' => 'Barreno Maniobra',
+        'sOperacion' => 'Segunda Operacion',
+        'soldadura' => 'Soldadura',
+        'soldaduraPTA' => 'Soldadura PTA',
+        'rectificado' => 'Rectificado',
+        'asentado' => 'Asentado',
+        'calificado' => 'Calificado',
+        'acabadoBombillo' => 'Acabado Bombillo',
+        'acabadoMolde' => 'Acabado Molde',
+        'barreno_profundidad' => 'Barreno Profundidad',
+        'cavidades' => 'Cavidades',
+        'copiado' => 'Copiado',
+        'offSet' => 'Off Set',
+        'palomas' => 'Palomas',
+        'rebajes' => 'Rebajes',
+        'operacionEquipo' => 'Operacion Equipo',
+        'embudoCM' => 'Embudo CM',
+        'primeraOperacionCabezaSoplo' => 'Primera Operacion Cabeza Soplo',
+        'segundaOperacionCabezaSoplo' => 'Segunda Operacion Cabeza Soplo',
+    ];
+
     public function __construct()
     {
         $this->middleware('auth');
     }
 
     /**
-     * Muestra la vista principal de piezas ocupadas.
+     * Obtiene los IDs de OTs que tienen piezas ocupadas en cualquier proceso.
      */
-    public function show()
+    protected function getOccupiedOtIds(): array
     {
-        // Obtener OTs con piezas ocupadas en cualquier proceso para asegurar su presencia en el filtro
         $occupiedOtIds = [];
         $activeMetas = Metas::query()->select(['id', 'id_ot'])->get()->keyBy('id');
 
@@ -193,7 +221,7 @@ class PiecesOccupiedController extends Controller
                         if ($parent && isset($parent->id_ot)) {
                             $occupiedOtIds[] = $parent->id_ot;
                         } elseif ($parent && isset($parent->id_proceso)) {
-                            $parts = explode('_', $parent->id_proceso);
+                            $parts = explode('_', (string) $parent->id_proceso);
                             $otCandidate = end($parts);
                             if (is_numeric($otCandidate)) {
                                 $occupiedOtIds[] = (int) $otCandidate;
@@ -203,27 +231,55 @@ class PiecesOccupiedController extends Controller
                 }
             }
         }
-        $occupiedOtIds = array_unique(array_filter($occupiedOtIds));
-        $recentOtIds = Orden_trabajo::query()->orderBy('id', 'desc')->limit(100)->pluck('id')->toArray();
-        $targetOtIds = array_unique(array_merge($occupiedOtIds, $recentOtIds));
+        return array_values(array_unique(array_filter($occupiedOtIds)));
+    }
 
-        // Cargar OTs para el selector inicial (con moldura)
-        $workOrders = Orden_trabajo::query()
-            ->select(['id', 'id_moldura', 'created_at'])
-            ->with(['moldura:id,nombre'])
-            ->whereIn('id', $targetOtIds, 'and', false)
-            ->orderBy('id', 'desc')
-            ->get();
+    /**
+     * Obtiene los IDs de las OTs activas que tienen piezas en maquinado/producción actualmente
+     * (idéntico a la lógica de Liberación de Piezas / Reporte de Piezas).
+     */
+    protected function getActiveOtIds(): array
+    {
+        $finishedClassIds = Clase::query()
+            ->where('finalizada', '!=', 0, 'and')
+            ->pluck('id')
+            ->toArray();
 
-        $processesList = array_map(function ($key, $cfg) {
-            return [
-                'key' => $key,
-                'label' => $cfg['label'],
-            ];
-        }, array_keys(self::$processConfig), self::$processConfig);
+        return Pieza::query()
+            ->whereNotIn('id_clase', $finishedClassIds, 'and', true)
+            ->distinct()
+            ->pluck('id_ot')
+            ->filter()
+            ->map(fn($id) => (string) $id)
+            ->unique()
+            ->values()
+            ->toArray();
+    }
 
-        // Catálogo de clases reales registradas en BD (normalizadas sin prefijos ej. '3 - BOMBILLO' -> 'Bombillo')
-        $dbClasses = Clase::query()->distinct()->whereNotNull('nombre', 'and')->pluck('nombre')->toArray();
+    /**
+     * Obtiene el catálogo de clases activas en el sistema para OTs que tengan piezas realizándose.
+     */
+    protected function getActiveClasses(?string $otId = null): array
+    {
+        $finishedClassIds = Clase::query()
+            ->where('finalizada', '!=', 0, 'and')
+            ->pluck('id')
+            ->toArray();
+
+        $activeOtIds = $this->getActiveOtIds();
+
+        $query = Clase::query()
+            ->distinct()
+            ->whereNotNull('nombre', 'and')
+            ->whereNotIn('id', $finishedClassIds, 'and', true);
+
+        if (!empty($otId)) {
+            $query->where('id_ot', '=', $otId, 'and');
+        } else {
+            $query->whereIn('id_ot', $activeOtIds, 'and', false);
+        }
+
+        $dbClasses = $query->pluck('nombre')->toArray();
         $seen = [];
         $classesList = [];
         foreach ($dbClasses as $dbClass) {
@@ -235,17 +291,121 @@ class PiecesOccupiedController extends Controller
             }
         }
         natcasesort($classesList);
-        $classesList = array_values($classesList);
+        return array_values($classesList);
+    }
 
-        // Operadores con piezas ocupadas para pre-poblar el filtro inicial
-        $initialOccupied = $this->fetchOccupiedPiecesList();
+    /**
+     * Obtiene los procesos activos según el contexto (OT, Clase o general en el sistema).
+     */
+    protected function getActiveProcesses(?string $otId = null, ?string $claseId = null): array
+    {
+        $finishedClassIds = Clase::query()
+            ->where('finalizada', '!=', 0, 'and')
+            ->pluck('id')
+            ->toArray();
 
-        $initialOperatorsMap = [];
-        foreach ($initialOccupied as $p) {
+        $activeOtIds = $this->getActiveOtIds();
+
+        $claseQuery = Clase::query()
+            ->whereNotIn('id', $finishedClassIds, 'and', true);
+
+        if (!empty($otId)) {
+            $claseQuery->where('id_ot', '=', $otId, 'and');
+            if (!empty($claseId)) {
+                if (is_numeric($claseId)) {
+                    $claseQuery->where('id', '=', (int) $claseId, 'and');
+                } else {
+                    $cleanName = trim(preg_replace('/^\d+\s*-\s*/', '', mb_strtolower($claseId, 'UTF-8')));
+                    $claseQuery->where(function ($q) use ($claseId, $cleanName) {
+                        $q->where('nombre', '=', $claseId, 'and')
+                            ->orWhere('nombre', 'LIKE', "%{$cleanName}%");
+                    });
+                }
+            }
+        } else {
+            $claseQuery->whereIn('id_ot', $activeOtIds, 'and', false);
+        }
+
+        $activeClassIds = $claseQuery->pluck('id')->toArray();
+
+        $activeProcessKeys = [];
+        if (!empty($activeClassIds)) {
+            $procesosRows = \App\Models\Procesos::query()->whereIn('id_clase', $activeClassIds, 'and', false)->get();
+            foreach ($procesosRows as $pRow) {
+                foreach (self::$processColumnMap as $col => $procKey) {
+                    if (!empty($pRow->{$col})) {
+                        $activeProcessKeys[$procKey] = true;
+                    }
+                }
+            }
+        }
+
+        // Además, incluir cualquier proceso con piezas activas registradas en Pieza para este contexto
+        $piezaQuery = Pieza::query()->whereNotIn('id_clase', $finishedClassIds, 'and', true);
+        if (!empty($otId)) {
+            $piezaQuery->where('id_ot', '=', $otId, 'and');
+        } else {
+            $piezaQuery->whereIn('id_ot', $activeOtIds, 'and', false);
+        }
+        $procsInPieza = $piezaQuery->distinct()->pluck('proceso')->filter()->toArray();
+        foreach ($procsInPieza as $prName) {
+            foreach (self::$processConfig as $key => $cfg) {
+                if (strcasecmp($prName, $key) === 0 || strcasecmp($prName, $cfg['label']) === 0) {
+                    $activeProcessKeys[$key] = true;
+                }
+            }
+        }
+
+        $processesList = [];
+        foreach (self::$processConfig as $key => $cfg) {
+            if (isset($activeProcessKeys[$key])) {
+                $processesList[] = [
+                    'key' => $key,
+                    'label' => $cfg['label'],
+                ];
+            }
+        }
+
+        if (empty($processesList)) {
+            foreach (self::$processConfig as $key => $cfg) {
+                $processesList[] = [
+                    'key' => $key,
+                    'label' => $cfg['label'],
+                ];
+            }
+        }
+
+        return $processesList;
+    }
+
+    /**
+     * Obtiene los operadores activos en el sistema (perfil 2 = Operador Maquinado, estatus = 1)
+     * e incluye cualquier operador con piezas ocupadas actualmente.
+     */
+    protected function getActiveOperators(array $occupiedPieces = []): array
+    {
+        $activeOperators = User::query()
+            ->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])
+            ->where('perfil', '=', 2, 'and')
+            ->where('estatus', '=', 1, 'and')
+            ->get();
+
+        $operatorsMap = [];
+        foreach ($activeOperators as $u) {
+            $fullName = trim("{$u->nombre} {$u->a_paterno} {$u->a_materno}");
+            $operatorsMap[(string) $u->matricula] = [
+                'matricula' => (string) $u->matricula,
+                'nombre' => "{$fullName} (Mat: {$u->matricula})",
+                'clean_name' => $fullName,
+            ];
+        }
+
+        // Asegurar que operadores con piezas ocupadas retenidas actualmente estén presentes
+        foreach ($occupiedPieces as $p) {
             $mat = $p['operador_matricula'] ?? null;
             $nom = trim((string) ($p['operador_nombre'] ?? ''));
-            if ($mat && !empty($nom) && $nom !== 'Desconocido') {
-                $initialOperatorsMap[(string) $mat] = [
+            if ($mat && !empty($nom) && $nom !== 'Desconocido' && !isset($operatorsMap[(string) $mat])) {
+                $operatorsMap[(string) $mat] = [
                     'matricula' => (string) $mat,
                     'nombre' => "{$nom} (Mat: {$mat})",
                     'clean_name' => $nom,
@@ -253,50 +413,78 @@ class PiecesOccupiedController extends Controller
             }
         }
 
-        uasort($initialOperatorsMap, fn($a, $b) => strcasecmp($a['clean_name'], $b['clean_name']));
-        $operatorsList = array_values(array_map(fn($op) => [
+        uasort($operatorsMap, fn($a, $b) => strcasecmp($a['clean_name'], $b['clean_name']));
+        return array_values(array_map(fn($op) => [
             'matricula' => $op['matricula'],
             'nombre' => $op['nombre'],
-        ], $initialOperatorsMap));
+        ], $operatorsMap));
+    }
+
+    /**
+     * Muestra la vista principal de piezas ocupadas con filtros activos exclusivamente.
+     */
+    public function show()
+    {
+        $targetOtIds = $this->getActiveOtIds();
+
+        // Cargar SOLO OTs activas que tengan piezas realizándose en maquinado (con moldura)
+        $workOrders = Orden_trabajo::query()
+            ->select(['id', 'id_moldura', 'created_at'])
+            ->with(['moldura:id,nombre'])
+            ->whereIn('id', $targetOtIds, 'and', false)
+            ->orderBy('id', 'asc')
+            ->get();
+
+        // Procesos y clases activas en el sistema para estas OTs
+        $processesList = $this->getActiveProcesses(null, null);
+        $classesList = $this->getActiveClasses();
+
+        // Operadores activos en el sistema (perfil 2 y estatus 1)
+        $initialOccupied = $this->fetchOccupiedPiecesList();
+        $operatorsList = $this->getActiveOperators($initialOccupied);
 
         return view('pieces_views.piecesOccupied', compact('workOrders', 'processesList', 'classesList', 'operatorsList'));
     }
 
     /**
-     * Obtiene las clases disponibles para una OT dada.
+     * Obtiene las clases y procesos activos disponibles según la combinación de OT y Clase.
      */
     public function getClassesByOt(Request $request)
     {
         $otId = $request->query('ot');
+        $claseId = $request->query('clase_id');
+
         if (!$otId) {
-            // Si no se especifica OT, devolver las clases reales normalizadas
-            $dbClasses = Clase::query()->distinct()->whereNotNull('nombre', 'and')->pluck('nombre')->toArray();
-            $seen = [];
-            $classes = [];
-            foreach ($dbClasses as $dbClass) {
-                $clean = trim(preg_replace('/^\d+\s*-\s*/', '', (string) $dbClass));
-                $lower = mb_strtolower($clean, 'UTF-8');
-                if ($clean !== '' && !isset($seen[$lower])) {
-                    $seen[$lower] = true;
-                    $titleName = mb_convert_case($clean, MB_CASE_TITLE, 'UTF-8');
-                    $classes[] = [
-                        'id' => $clean,
-                        'nombre' => $titleName,
-                        'piezas' => 0,
-                    ];
-                }
-            }
-            usort($classes, fn($a, $b) => strnatcasecmp($a['nombre'], $b['nombre']));
-            return response()->json(['classes' => $classes]);
+            // Si no se especifica OT, devolver las clases activas normalizadas en el sistema
+            $classesList = $this->getActiveClasses();
+            $classes = array_map(function ($cName) {
+                return [
+                    'id' => $cName,
+                    'nombre' => $cName,
+                    'piezas' => null,
+                ];
+            }, $classesList);
+        } else {
+            $finishedClassIds = Clase::query()
+                ->where('finalizada', '!=', 0, 'and')
+                ->pluck('id')
+                ->toArray();
+
+            $classes = Clase::query()
+                ->select(['id', 'id_ot', 'nombre', 'piezas', 'finalizada'])
+                ->where('id_ot', '=', $otId, 'and')
+                ->whereNotIn('id', $finishedClassIds, 'and', true)
+                ->orderBy('nombre')
+                ->get();
         }
 
-        $classes = Clase::query()
-            ->select(['id', 'id_ot', 'nombre', 'piezas', 'finalizada'])
-            ->where('id_ot', '=', $otId, 'and')
-            ->orderBy('nombre')
-            ->get();
+        // Obtener los procesos activos para este contexto de OT y Clase
+        $processes = $this->getActiveProcesses($otId, $claseId);
 
-        return response()->json(['classes' => $classes]);
+        return response()->json([
+            'classes' => $classes,
+            'processes' => $processes,
+        ]);
     }
 
     /**
@@ -383,24 +571,8 @@ class PiecesOccupiedController extends Controller
         // 1. Obtener las piezas ocupadas para el contexto de OT, Clase y Proceso
         $contextPieces = $this->fetchOccupiedPiecesList($targetOt, $targetClaseId, $targetProcess);
 
-        // Operadores disponibles en este contexto (se reducen dinámicamente)
-        $operatorsMap = [];
-        foreach ($contextPieces as $p) {
-            $mat = $p['operador_matricula'] ?? null;
-            $nom = trim((string) ($p['operador_nombre'] ?? ''));
-            if ($mat && !empty($nom) && $nom !== 'Desconocido') {
-                $operatorsMap[(string) $mat] = [
-                    'matricula' => (string) $mat,
-                    'nombre' => "{$nom} (Mat: {$mat})",
-                    'clean_name' => $nom,
-                ];
-            }
-        }
-        uasort($operatorsMap, fn($a, $b) => strcasecmp($a['clean_name'], $b['clean_name']));
-        $availableOperators = array_values(array_map(fn($op) => [
-            'matricula' => $op['matricula'],
-            'nombre' => $op['nombre'],
-        ], $operatorsMap));
+        // Operadores activos en el sistema (perfil 2 y estatus 1) + operadores con piezas ocupadas
+        $availableOperators = $this->getActiveOperators($contextPieces);
 
         // Números de pieza: solo se activan y calculan si OT, Clase y Proceso están los 3 seleccionados
         $allThreeSelected = !empty($targetOt) && !empty($targetClaseId) && !empty($targetProcess);
@@ -499,7 +671,14 @@ class PiecesOccupiedController extends Controller
         }
 
         $occupiedPieces = [];
+        $activeMachiningOtIds = $this->getActiveOtIds();
+        $finishedClassIds = Clase::query()
+            ->where('finalizada', '!=', 0, 'and')
+            ->pluck('id')
+            ->toArray();
 
+        // Pre-cargar catálogo de clases para mapeo rápido sin N+1
+        $classesMap = Clase::query()->select(['id', 'nombre', 'id_ot', 'finalizada'])->get()->keyBy('id');
         // Pre-cargar usuarios para mapear matricula -> nombre de operador sin N+1
         $usersMap = User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])->get()->keyBy('matricula');
         // Pre-cargar máquinas activas actualmente
@@ -605,9 +784,15 @@ class PiecesOccupiedController extends Controller
                     $ot = end($parts);
                 }
 
-                // Filtrar por OT si fue especificada
-                if (!empty($targetOt) && (string) $ot !== (string) $targetOt) {
-                    continue;
+                // Filtrar por OT si fue especificada; si no, asegurar que pertenezca a las OTs activas en maquinado
+                if (!empty($targetOt)) {
+                    if ((string) $ot !== (string) $targetOt) {
+                        continue;
+                    }
+                } else {
+                    if (!$ot || !in_array((string) $ot, $activeMachiningOtIds)) {
+                        continue;
+                    }
                 }
 
                 // Determinar Clase
@@ -615,13 +800,18 @@ class PiecesOccupiedController extends Controller
                 $claseNombre = 'N/A';
 
                 if ($claseId) {
-                    $claseObj = Clase::find($claseId);
+                    $claseObj = $classesMap->get($claseId);
                     $claseNombre = $claseObj ? $claseObj->nombre : "Clase #{$claseId}";
                 } elseif ($parent && isset($parent->id_proceso)) {
                     $parts = explode('_', $parent->id_proceso);
                     if (count($parts) >= 2) {
                         $claseNombre = $parts[1];
                     }
+                }
+
+                // Descartar piezas pertenecientes a clases ya finalizadas
+                if ($claseId && in_array($claseId, $finishedClassIds)) {
+                    continue;
                 }
 
                 // Filtrar por Clase si fue especificada
@@ -716,7 +906,14 @@ class PiecesOccupiedController extends Controller
 
         if (!empty($targetOt)) {
             $incompleteGeneralQuery->where('id_ot', '=', $targetOt, 'and');
+        } else {
+            $incompleteGeneralQuery->whereIn('id_ot', $activeMachiningOtIds, 'and', false);
         }
+
+        if (!empty($finishedClassIds)) {
+            $incompleteGeneralQuery->whereNotIn('id_clase', $finishedClassIds, 'and', true);
+        }
+
         if (!empty($targetProcess)) {
             $incompleteGeneralQuery->where('proceso', '=', $targetProcess, 'and');
         }
@@ -735,7 +932,7 @@ class PiecesOccupiedController extends Controller
 
         $generalIncompletes = $incompleteGeneralQuery->get();
         foreach ($generalIncompletes as $gp) {
-            $claseObj = $gp->id_clase ? Clase::find($gp->id_clase) : null;
+            $claseObj = $gp->id_clase ? $classesMap->get($gp->id_clase) : null;
             $claseNombre = $claseObj ? $claseObj->nombre : 'N/A';
 
             if (!$matchesTargetClass($gp->id_clase, $claseNombre)) {

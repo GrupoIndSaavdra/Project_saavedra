@@ -396,7 +396,10 @@ function createTableClasses(classes) {
 
             let selectedClass = classes.find((c) => String(c.id) === String(button.value));
             let selectedClassName = selectedClass ? selectedClass.nombre : "";
-            createOperationsCheckBox(selectedClassName, window.processes ? window.processes[button.value] : null, false);
+            let procsForClass = (window.processes && window.processes[button.value] && Object.keys(window.processes[button.value]).length > 0)
+                ? window.processes[button.value]
+                : null;
+            createOperationsCheckBox(selectedClassName, procsForClass, false);
             setOrDelete_ClassButtons(button.value, false);
         });
 
@@ -556,7 +559,10 @@ function enableEditClass(idClass) {
 
     if (selectedClass && window.profile != 5) {
         let className = selectedClass.nombre;
-        createOperationsCheckBox(className, window.processes ? window.processes[idClass] : null, true);
+        let procsForClass = (window.processes && window.processes[idClass] && Object.keys(window.processes[idClass]).length > 0)
+            ? window.processes[idClass]
+            : null;
+        createOperationsCheckBox(className, procsForClass, true);
         toggleWeldingTypeVisibility(className);
     }
 
@@ -822,7 +828,7 @@ function createProcessBox(operation, processIndex, operationName, markedProcesse
 
     let machineInput = document.createElement("input");
     machineInput.type = "number";
-    machineInput.name = "machines[]";
+    machineInput.name = `machines[${operationName}]`;
     machineInput.className = "input-machine";
     machineInput.id = `process-${processIndex}`;
     machineInput.min = "1";
@@ -938,8 +944,7 @@ function toggleWeldingTypeVisibility(className) {
 // ────────────────────────────────────────
 window.validateWOForm = function () {
     let btn_saveProcess = document.getElementById("btn-saveProcess");
-    let btn_addClass = document.querySelector(".btn-addClass:not(#btn-saveProcess):not(#btn-saveClass)");
-    let targetBtn = btn_saveProcess || btn_addClass;
+    let targetBtn = btn_saveProcess;
 
     if (!targetBtn) return;
 
@@ -1078,7 +1083,12 @@ let isSubmittingForm = false;
 document.addEventListener("DOMContentLoaded", function () {
     let form = document.getElementById("form");
     if (form) {
-        form.addEventListener("submit", function () {
+        form.addEventListener("submit", function (e) {
+            let btnSave = document.getElementById("btn-saveProcess");
+            if (!btnSave || btnSave.disabled) {
+                e.preventDefault();
+                return false;
+            }
             isSubmittingForm = true;
         });
     }
@@ -1088,8 +1098,7 @@ window.hasUnsavedChanges = function () {
     if (isSubmittingForm) return false;
 
     let btn_saveProcess = document.getElementById("btn-saveProcess");
-    let btn_addClass = document.querySelector(".btn-addClass:not(#btn-saveProcess):not(#btn-saveClass)");
-    let targetBtn = btn_saveProcess || btn_addClass;
+    let targetBtn = btn_saveProcess;
 
     if (!targetBtn) return false;
 

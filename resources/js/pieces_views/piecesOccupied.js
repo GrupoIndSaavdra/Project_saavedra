@@ -1072,7 +1072,34 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Cambio de OT -> Actualizar dropdown de Clases, sincronizar piezas y recargar
+    /**
+     * Sincroniza dinámicamente las opciones del dropdown de procesos según el catálogo activo.
+     */
+    function updateProcessesDropdown(processes) {
+        if (!selectProceso || !processes) return;
+        const currentProcVal = selectProceso.value;
+        selectProceso.innerHTML = '<option value="">Todos los Procesos</option>';
+        let procStillValid = false;
+
+        processes.forEach(proc => {
+            const opt = document.createElement('option');
+            opt.value = proc.key;
+            opt.textContent = proc.label;
+            if (proc.key === currentProcVal) {
+                opt.selected = true;
+                procStillValid = true;
+            }
+            selectProceso.appendChild(opt);
+        });
+
+        if (procStillValid) {
+            selectProceso.value = currentProcVal;
+        } else if (currentProcVal !== '') {
+            selectProceso.value = '';
+        }
+    }
+
+    // Cambio de OT -> Actualizar dropdown de Clases y Procesos activos en cascada
     if (selectOt) {
         selectOt.addEventListener('change', async () => {
             const otId = selectOt.value;
@@ -1086,12 +1113,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     data.classes.forEach(c => {
                         const opt = document.createElement('option');
                         opt.value = c.id;
-                        opt.textContent = c.piezas !== undefined ? `${c.nombre} (${c.piezas} pzas)` : c.nombre;
+                        opt.textContent = c.piezas !== undefined && c.piezas !== null ? `${c.nombre} (${c.piezas} pzas)` : c.nombre;
                         selectClase.appendChild(opt);
                     });
                 }
+                if (data.processes && data.processes.length > 0) {
+                    updateProcessesDropdown(data.processes);
+                }
             } catch (err) {
-                console.error('Error al cargar clases:', err);
+                console.error('Error al cargar clases y procesos:', err);
             }
 
             currentPage = 1;
@@ -1101,7 +1131,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Filtros de Clase y Proceso
     if (selectClase) {
-        selectClase.addEventListener('change', () => {
+        selectClase.addEventListener('change', async () => {
+            const otId = selectOt ? selectOt.value : '';
+            const claseId = selectClase.value;
+
+            try {
+                const params = new URLSearchParams();
+                if (otId) params.append('ot', otId);
+                if (claseId) params.append('clase_id', claseId);
+                const url = `${window.routes.getClasses}?${params.toString()}`;
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.processes && data.processes.length > 0) {
+                    updateProcessesDropdown(data.processes);
+                }
+            } catch (err) {
+                console.error('Error al actualizar procesos por clase:', err);
+            }
+
             currentPage = 1;
             refreshCurrentView(true);
         });
@@ -1145,22 +1192,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (selectOperador) selectOperador.value = '';
 
-            // Restaurar catálogo general de clases en el dropdown
-            if (selectClase && window.routes?.getClasses) {
-                selectClase.innerHTML = '<option value="">Todas las Clases</option>';
+            // Restaurar catálogo general de clases y procesos activos en los dropdowns
+            if (window.routes?.getClasses) {
                 try {
                     const res = await fetch(window.routes.getClasses);
                     const data = await res.json();
-                    if (data.classes && data.classes.length > 0) {
+                    if (selectClase && data.classes && data.classes.length > 0) {
+                        selectClase.innerHTML = '<option value="">Todas las Clases</option>';
                         data.classes.forEach(c => {
                             const opt = document.createElement('option');
                             opt.value = c.id;
-                            opt.textContent = c.piezas !== undefined ? `${c.nombre} (${c.piezas} pzas)` : c.nombre;
+                            opt.textContent = c.piezas !== undefined && c.piezas !== null ? `${c.nombre} (${c.piezas} pzas)` : c.nombre;
                             selectClase.appendChild(opt);
                         });
                     }
+                    if (data.processes && data.processes.length > 0) {
+                        updateProcessesDropdown(data.processes);
+                    }
                 } catch (err) {
-                    console.error('Error al restaurar clases:', err);
+                    console.error('Error al restaurar clases y procesos:', err);
                 }
             }
 

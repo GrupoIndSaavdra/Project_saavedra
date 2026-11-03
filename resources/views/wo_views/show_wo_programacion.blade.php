@@ -23,6 +23,7 @@
     <input type="hidden" name="workOrder" value="{{ $workOrder->id }}">
     <input type="hidden" name="molding"   value="{{ $molding->id }}">
     <input type="hidden" name="idClass"   id="idClass">
+    <input type="hidden" name="from_programming" value="1">
 
     <div class="main-layout">
         {{-- Panel izquierdo: información y listado de clases --}}
@@ -85,7 +86,7 @@
                                                     break;
                                                 }
                                                 $p = $cl->procesos;
-                                                $procCols = ['cepillado', 'desbaste_exterior', 'revision_laterales', 'pOperacion', 'barreno_maniobra', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado', 'acabadoBombillo', 'acabadoMolde', 'barreno_profundidad', 'cavidades', 'copiado', 'offSet', 'palomas', 'rebajes', 'grabado', 'operacionEquipo', 'embudoCM'];
+                                                $procCols = ['cepillado', 'desbaste_exterior', 'revision_laterales', 'pOperacion', 'barreno_maniobra', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado', 'acabadoBombillo', 'acabadoMolde', 'barreno_profundidad', 'cavidades', 'copiado', 'offSet', 'palomas', 'rebajes', 'grabado', 'operacionEquipo', 'embudoCM', 'primeraOperacionCabezaSoplo', 'segundaOperacionCabezaSoplo'];
                                                 $hasAnyProc = false;
                                                 foreach ($procCols as $col) {
                                                     if (isset($p->$col) && (int)$p->$col > 0) {
@@ -118,7 +119,7 @@
             <div class="div-rows"></div>
 
             <div class="div-btns">
-                <button type="submit" class="btn-addClass btn hidden" hidden form="form">Guardar Clase</button>
+                <button type="button" class="btn-addClass btn hidden" hidden form="form" disabled>Guardar Clase</button>
             </div>
         </div>
 

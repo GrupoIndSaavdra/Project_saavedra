@@ -107,6 +107,7 @@
                 <input type="hidden" name="class"     id="hidden-clase-nombre">
                 <input type="hidden" name="size"      id="hidden-clase-tamanio">
                 <input type="hidden" name="from_almacen" value="1">
+                <input type="hidden" name="partial_edit" value="1">
                 {{-- Fechas vacías: almacén no las edita --}}
                 <input type="hidden" name="start_date" value="">
                 <input type="hidden" name="start_time" value="">

@@ -222,8 +222,13 @@ class ClassController extends Controller
             }
         }
 
-        //Actualizar los procesos de la clase
-        if (!$request->has('partial_edit') || $nameChanged) {
+        //Actualizar los procesos de la clase ÚNICAMENTE si no es edición de almacén, no es parcial_edit,
+        // y la petición incluye payload de operaciones, proviene de programación o cambió el nombre
+        $isFromAlmacen = (int)$request->input('from_almacen') === 1;
+        $isPartialEdit = $request->has('partial_edit');
+        $hasOperationsPayload = $request->has('operations') || $request->filled('from_programming');
+
+        if (!$isFromAlmacen && !$isPartialEdit && ($hasOperationsPayload || $nameChanged)) {
             $process = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();
             if (!$process) {
                 $process = new Procesos();
@@ -311,31 +316,69 @@ class ClassController extends Controller
             $process = Procesos::query()->where('id_clase', '=', $class->id)->first() ?? new Procesos();
         }
 
+        // Si dataProcess es null y el registro de procesos ya existe, proteger la configuración existente
+        if ($dataProcess === null && $process->exists) {
+            return;
+        }
+
         //Obtener la clase que sera registrada por su id único
         $class = Clase::query()->find($class->id);
 
         $processNames = [];
-        $clLower = strtolower($class->nombre ?? '');
-        $isExcluded = str_contains($clLower, 'base') || str_contains($clLower, 'tip') || str_contains($clLower, 'roll pin') || str_contains($clLower, 'porta') || str_contains($clLower, 'pastilla') || str_contains($clLower, 'canastilla');
+        $baseType = Clase::normalizeClassName($class->nombre ?? '');
 
-        //Asignar los procesos por los que pasara la clase únicamente a las 9 clases permitidas
-        if (!$isExcluded) {
-            if (str_contains($clLower, 'bombillo')) {
-                $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
-            } elseif (str_contains($clLower, 'molde')) {
-                $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
-            } elseif (str_contains($clLower, 'fondo') || str_contains($clLower, 'obturador')) {
-                $processNames = array("operacionEquipo", "soldadura", "soldaduraPTA"); //Asigno los procesos.
-            } elseif (str_contains($clLower, 'corona')) {
-                $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
-            } elseif (str_contains($clLower, 'plato')) {
-                $processNames = array("barreno_maniobra", "operacionEquipo");
-            } elseif (str_contains($clLower, 'embudo')) {
-                $processNames = array("operacionEquipo", "embudoCM");
-            } elseif (str_contains($clLower, 'cabeza de soplo')) {
-                $processNames = array("primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo");
-            } elseif (str_contains($clLower, 'candado')) {
-                $processNames = array("operacionEquipo");
+        if ($baseType !== '') {
+            switch ($baseType) {
+                case 'Bombillo':
+                    $processNames = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                    break;
+                case 'Molde':
+                    $processNames = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                    break;
+                case 'Fondo':
+                case 'Obturador':
+                    $processNames = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                    break;
+                case 'Corona':
+                    $processNames = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                    break;
+                case 'Plato':
+                    $processNames = ["barreno_maniobra", "operacionEquipo"];
+                    break;
+                case 'Embudo':
+                    $processNames = ["operacionEquipo", "embudoCM"];
+                    break;
+                case 'Cabeza de Soplo':
+                    $processNames = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                    break;
+                case 'Candado Obturador':
+                    $processNames = ["operacionEquipo"];
+                    break;
+            }
+        }
+
+        if (empty($processNames)) {
+            $clLower = strtolower($class->nombre ?? '');
+            $isExcluded = str_contains($clLower, 'base') || str_contains($clLower, 'tip') || str_contains($clLower, 'roll pin') || str_contains($clLower, 'porta') || str_contains($clLower, 'pastilla') || str_contains($clLower, 'canastilla');
+
+            if (!$isExcluded) {
+                if (str_contains($clLower, 'bombillo')) {
+                    $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
+                } elseif (str_contains($clLower, 'molde')) {
+                    $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
+                } elseif (str_contains($clLower, 'candado')) {
+                    $processNames = array("operacionEquipo");
+                } elseif (str_contains($clLower, 'fondo') || str_contains($clLower, 'obturador')) {
+                    $processNames = array("operacionEquipo", "soldadura", "soldaduraPTA");
+                } elseif (str_contains($clLower, 'corona')) {
+                    $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
+                } elseif (str_contains($clLower, 'plato')) {
+                    $processNames = array("barreno_maniobra", "operacionEquipo");
+                } elseif (str_contains($clLower, 'embudo')) {
+                    $processNames = array("operacionEquipo", "embudoCM");
+                } elseif (str_contains($clLower, 'cabeza de soplo') || str_contains($clLower, 'soplo')) {
+                    $processNames = array("primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo");
+                }
             }
         }
 
@@ -391,15 +434,24 @@ class ClassController extends Controller
                 //Asignar los procesos a la clase
                 $counterMachines = 0;
                 $noProcess = 0;
+                $dataProcessArray = is_array($dataProcess) ? $dataProcess : [];
                 for ($i = 0; $i < count($processNames); $i++) {
-                    if (in_array($processNames[$i], $dataProcess)) {
+                    if (in_array($processNames[$i], $dataProcessArray)) {
                         $string = $processNames[$i]; //Asigno el nombre del proceso.
                         //Asigno el valor de la máquina al campo correspondiente del proceso
-                        $process->$string = $machines[$counterMachines];
+                        $machineVal = 1;
+                        if (is_array($machines)) {
+                            if (isset($machines[$string]) && (int)$machines[$string] > 0) {
+                                $machineVal = (int)$machines[$string];
+                            } elseif (isset($machines[$counterMachines]) && (int)$machines[$counterMachines] > 0) {
+                                $machineVal = (int)$machines[$counterMachines];
+                            }
+                        }
+                        $process->$string = $machineVal;
                         $counterMachines++;
 
                         //Crear el registro de la fecha de inicio del proceso
-                        $processDates = $this->registerProcessDates($class, $processNames, $i, $noProcess, $machines[$counterMachines - 1]);
+                        $processDates = $this->registerProcessDates($class, $processNames, $i, $noProcess, $machineVal);
                         $noProcess++;
                     } else {
                         $dateProcess = Fecha_proceso::query()->where('clase', '=', $class->id, 'and')->where('proceso', '=', $processNames[$i], 'and')->first();
