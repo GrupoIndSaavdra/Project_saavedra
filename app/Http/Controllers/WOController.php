@@ -21,8 +21,10 @@ use App\Models\TratamientoTermico;
 use App\Models\User;
 use App\Services\FundicionPaths;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
+use Carbon\Carbon;
 use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
@@ -273,7 +275,7 @@ class WOController extends Controller
                 return $matches[1];
             }
             try {
-                return \Carbon\Carbon::parse($dateStr)->format('Y-m-d');
+                return Carbon::parse($dateStr)->format('Y-m-d');
             } catch (\Exception $e) {
                 return substr($dateStr, -10);
             }
@@ -337,7 +339,7 @@ class WOController extends Controller
                 return $matches[1];
             }
             try {
-                return \Carbon\Carbon::parse($dateStr)->format('Y-m-d');
+                return Carbon::parse($dateStr)->format('Y-m-d');
             } catch (\Exception $e) {
                 return substr($dateStr, -10);
             }
@@ -426,7 +428,7 @@ class WOController extends Controller
         }
 
         if ($request->has('new_classes') && is_array($request->input('new_classes'))) {
-            $classController = new \App\Http\Controllers\ClassController();
+            $classController = new ClassController();
             foreach ($request->input('new_classes') as $newClass) {
                 $nombre = $newClass['nombre'] ?? null;
                 $cantidad = (int) ($newClass['cantidad'] ?? 0);
@@ -447,7 +449,7 @@ class WOController extends Controller
                         $class->proveedor = $proveedor;
                         $class->save();
 
-                        $controllerProductionTime = new \App\Http\Controllers\TiemposProduccionController();
+                        $controllerProductionTime = new tiemposProduccionController();
                         $controllerProductionTime->setProductionTimes($class);
 
                         $process = new Procesos();
@@ -1040,7 +1042,7 @@ class WOController extends Controller
                     try {
                         $reqSold = new Request(['workOrder' => (string) $ot->id, 'process' => 'Soldadura']);
                         $respSold = $pzasController->downloadSoldaduraExtraInfoPDF($reqSold);
-                        if ($respSold instanceof \Illuminate\Http\Response) {
+                        if ($respSold instanceof Response) {
                             $soldFile = "OT_{$ot->id}_{$cleanProduct}_Reporte_Soldadura.pdf";
                             file_put_contents($otBackupPath.DIRECTORY_SEPARATOR.$soldFile, $respSold->getContent());
                             $reportNames[] = 'Reporte de Soldadura';
@@ -1060,7 +1062,7 @@ class WOController extends Controller
                     try {
                         $reqPta = new Request(['workOrder' => (string) $ot->id, 'process' => 'Soldadura PTA']);
                         $respPta = $pzasController->downloadSoldaduraExtraInfoPDF($reqPta);
-                        if ($respPta instanceof \Illuminate\Http\Response) {
+                        if ($respPta instanceof Response) {
                             $ptaFile = "OT_{$ot->id}_{$cleanProduct}_Reporte_Soldadura_PTA.pdf";
                             file_put_contents($otBackupPath.DIRECTORY_SEPARATOR.$ptaFile, $respPta->getContent());
                             $reportNames[] = 'Reporte de Soldadura PTA';
@@ -1436,7 +1438,7 @@ class WOController extends Controller
             try {
                 // Replace slashes with dashes to help Carbon parse DD/MM/YYYY better
                 $cleanValue = str_replace('/', '-', $value);
-                $value = \Carbon\Carbon::parse($cleanValue)->format('Y-m-d');
+                $value = Carbon::parse($cleanValue)->format('Y-m-d');
             } catch (\Exception $e) {
                 return response()->json(['success' => false, 'message' => 'Formato de fecha inválido.'], 400);
             }
@@ -1470,7 +1472,7 @@ class WOController extends Controller
                         $val = ! empty($item['fecha']) ? str_replace('/', '-', $item['fecha']) : null;
                         if ($val) {
                             try {
-                                $val = \Carbon\Carbon::parse($val)->format('Y-m-d');
+                                $val = Carbon::parse($val)->format('Y-m-d');
                             } catch (\Exception $e) {
                                 $val = null;
                             }
@@ -2782,7 +2784,7 @@ class WOController extends Controller
                     }
                 }
                 if ($earliestTime) {
-                    $fechaPrimerDibujo = \Carbon\Carbon::createFromTimestamp($earliestTime);
+                    $fechaPrimerDibujo = Carbon::createFromTimestamp($earliestTime);
                 }
             }
 

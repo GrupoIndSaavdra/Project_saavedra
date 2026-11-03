@@ -422,7 +422,7 @@ class ProcessesController extends Controller
 
         // Actualizar cada pieza de las meta
         foreach ($metas as $meta) {
-            $controller = app(\App\Http\Controllers\ProcessProductionController::class);
+            $controller = app(ProcessProductionController::class);
             $controller->updatePieces($process, $operation, $meta, $class);
         }
     }

@@ -47,7 +47,7 @@ class AlmacenFundicionController extends Controller
 
     private function verificarAcceso(): void
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
 
         if (! $user || ! in_array($user->perfil, self::PERFILES_PERMITIDOS, true)) {
@@ -258,8 +258,8 @@ class AlmacenFundicionController extends Controller
                     ]
                 );
                 $baseOtPath = self::ALMACEN_DIR.'/'.$folderName;
-                if (\Storage::disk('local')->exists($baseOtPath)) {
-                    $dirs = \Storage::disk('local')->directories($baseOtPath);
+                if (Storage::disk('local')->exists($baseOtPath)) {
+                    $dirs = Storage::disk('local')->directories($baseOtPath);
                     foreach ($dirs as $dir) {
                         $basename = strtolower(basename($dir));
                         if (! in_array($basename, ['escaneados', 'ayudas_visuales']) && ! in_array($basename, $defaultClasses)) {
@@ -336,8 +336,8 @@ class AlmacenFundicionController extends Controller
                         ]
                     );
                     $baseOtPath = self::ALMACEN_DIR.'/'.$folderName;
-                    if (\Storage::disk('local')->exists($baseOtPath)) {
-                        $dirs = \Storage::disk('local')->directories($baseOtPath);
+                    if (Storage::disk('local')->exists($baseOtPath)) {
+                        $dirs = Storage::disk('local')->directories($baseOtPath);
                         foreach ($dirs as $dir) {
                             $basename = strtolower(basename($dir));
                             if (! in_array($basename, ['escaneados', 'ayudas_visuales']) && ! in_array($basename, $defaultClasses)) {
@@ -1508,7 +1508,7 @@ class AlmacenFundicionController extends Controller
 
         if ($esReinicioTotal) {
             // Si es reinicio total (todas las clases activas se confirman de nuevo), reseteamos todo en Storage y BD
-            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, true);
+            DibujosFundicionPdfController::copyToAlmacen($ot, true);
         } else {
             // Si es parcial, borramos los documentos aprobados/rechazados de las clases seleccionadas
             foreach ($clasesSeleccionadas as $claseNombre) {
@@ -1625,7 +1625,7 @@ class AlmacenFundicionController extends Controller
             }
 
             // Sincronizar snapshot en Almacén solo para las clases afectadas
-            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false, $clasesSeleccionadas);
+            DibujosFundicionPdfController::copyToAlmacen($ot, false, $clasesSeleccionadas);
         }
 
         // ── Guardar archivos de recepción adjuntos (Bloque 2) ──────────────────
@@ -2119,7 +2119,7 @@ class AlmacenFundicionController extends Controller
                     $almDir = self::ALMACEN_DIR.'/'.$relFolder;
                     $pathsToCheck = [];
 
-                    if (\Storage::disk('local')->exists($calDir)) {
+                    if (Storage::disk('local')->exists($calDir)) {
                         $pathsToCheck[] = $calDir.'/Documentos_Aprobados/FDLDM';
                         $classFolders = FundicionPaths::getClassFoldersForOt($calDir, $tipo);
                         foreach ($classFolders as $cf) {
@@ -2129,7 +2129,7 @@ class AlmacenFundicionController extends Controller
                         }
                     }
 
-                    if (\Storage::disk('local')->exists($almDir)) {
+                    if (Storage::disk('local')->exists($almDir)) {
                         $pathsToCheck[] = $almDir.'/Documentos_Aprobados/FDLDM';
                         $classFoldersAlm = FundicionPaths::getClassFoldersForOt($almDir, $tipo);
                         foreach ($classFoldersAlm as $cf) {
@@ -2140,8 +2140,8 @@ class AlmacenFundicionController extends Controller
                     }
 
                     foreach ($pathsToCheck as $dir) {
-                        if (\Storage::disk('local')->exists($dir)) {
-                            $files = \Storage::disk('local')->files($dir);
+                        if (Storage::disk('local')->exists($dir)) {
+                            $files = Storage::disk('local')->files($dir);
                             foreach ($files as $file) {
                                 $baseName = strtolower(basename($file));
                                 if (strpos($baseName, 'f_ccl_ldm') !== false && strpos($baseName, $claseNorm) !== false) {
@@ -2217,7 +2217,7 @@ class AlmacenFundicionController extends Controller
                 $almDir = self::ALMACEN_DIR.'/'.$relFolder;
                 $pathsToCheck = [];
 
-                if (\Storage::disk('local')->exists($calDir)) {
+                if (Storage::disk('local')->exists($calDir)) {
                     $pathsToCheck[] = $calDir.'/Documentos_Rechazados/FDRDM';
                     $classFolders = FundicionPaths::getClassFoldersForOt($calDir, $tipo);
                     foreach ($classFolders as $cf) {
@@ -2226,7 +2226,7 @@ class AlmacenFundicionController extends Controller
                     }
                 }
 
-                if (\Storage::disk('local')->exists($almDir)) {
+                if (Storage::disk('local')->exists($almDir)) {
                     $pathsToCheck[] = $almDir.'/Documentos_Rechazados/FDRDM';
                     $classFoldersAlm = FundicionPaths::getClassFoldersForOt($almDir, $tipo);
                     foreach ($classFoldersAlm as $cf) {
@@ -2236,8 +2236,8 @@ class AlmacenFundicionController extends Controller
                 }
 
                 foreach ($pathsToCheck as $dir) {
-                    if (\Storage::disk('local')->exists($dir)) {
-                        $files = \Storage::disk('local')->files($dir);
+                    if (Storage::disk('local')->exists($dir)) {
+                        $files = Storage::disk('local')->files($dir);
                         foreach ($files as $file) {
                             $baseName = strtolower(basename($file));
                             if (strpos($baseName, 'f_ccl_rdm') !== false && strpos($baseName, $claseNorm) !== false) {
@@ -2971,7 +2971,7 @@ class AlmacenFundicionController extends Controller
      * Helper para guardar las pre-órdenes de Casting dinámicamente con N proveedores.
      *
      * @param  array  $pagesData  Array of page data objects
-     * @param  \App\Models\User|null  $user
+     * @param  User|null  $user
      */
     private function saveCastingPreOrdenesDynamic(array $pagesData, $user): array
     {
@@ -4899,10 +4899,10 @@ class AlmacenFundicionController extends Controller
             $nuevosList = [];
             // Nuevos (Ingeniería) — buscar en raíz de la clase Y en la subcarpeta PDF si existe
             $ingBasePaths = [
-                \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR.'/'.$folderName.'/'.$clase,
-                \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR.'/'.strtoupper($folderName).'/'.strtoupper($clase),
-                \App\Http\Controllers\DibujosFundicionPdfController::OLD_BASE_DIR.'/'.$folderName.'/'.$clase,
-                \App\Http\Controllers\DibujosFundicionPdfController::OLD_BASE_DIR.'/'.strtoupper($folderName).'/'.strtoupper($clase),
+                DibujosFundicionPdfController::BASE_DIR.'/'.$folderName.'/'.$clase,
+                DibujosFundicionPdfController::BASE_DIR.'/'.strtoupper($folderName).'/'.strtoupper($clase),
+                DibujosFundicionPdfController::OLD_BASE_DIR.'/'.$folderName.'/'.$clase,
+                DibujosFundicionPdfController::OLD_BASE_DIR.'/'.strtoupper($folderName).'/'.strtoupper($clase),
             ];
             $seenNuevos = [];
             foreach ($ingBasePaths as $ingenieriaDir) {
@@ -5127,7 +5127,7 @@ class AlmacenFundicionController extends Controller
 
             $history->save();
 
-            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, true);
+            DibujosFundicionPdfController::copyToAlmacen($ot, true);
         } elseif ($action === 'reiniciar_parcial' || $action === 'reiniciar') {
             // Reiniciar proceso únicamente para las clases afectadas
             $activeClasses = array_diff($allClassesInOt, $pending);
@@ -5400,8 +5400,8 @@ class AlmacenFundicionController extends Controller
                     $reprocesoBaseRoots = [
                         self::ALMACEN_DIR,
                         self::CALIDAD_DIR,
-                        \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR,
-                        \App\Http\Controllers\DibujosFundicionPdfController::OLD_BASE_DIR,
+                        DibujosFundicionPdfController::BASE_DIR,
+                        DibujosFundicionPdfController::OLD_BASE_DIR,
                         'DOCUMENTACION_GIS/CALIDAD_FUNDICION',
                         'DOCUMENTACION_GIS/Fundicion_Calidad',
                         'DOCUMENTACION_GIS/ALMACEN_FUNDICION',
@@ -5545,7 +5545,7 @@ class AlmacenFundicionController extends Controller
                 }
             }
 
-            \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false, $pending);
+            DibujosFundicionPdfController::copyToAlmacen($ot, false, $pending);
         } else {
             Log::info('RESOLVE_PENDING_CHANGES_MANTENER', ['pending' => $pending]);
             // Solo reemplazar archivos manteniendo el avance del proceso

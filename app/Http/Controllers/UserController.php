@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateUserRequest;
 use App\Models\User;
 use App\Traits\HasCursorPagination;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request as HttpRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -188,7 +189,7 @@ class UserController extends Controller
             }
 
             return redirect()->back()->with('success', 'Usuario eliminado correctamente.');
-        } catch (\Illuminate\Database\QueryException $e) {
+        } catch (QueryException $e) {
             DB::rollBack();
             Log::error('Fallo de integridad al eliminar usuario.', [
                 'user_id' => $id,

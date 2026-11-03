@@ -99,7 +99,9 @@ use App\Models\SoldaduraPTA_pza;
 use App\Models\SystemLog;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
+use DateTime;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -706,7 +708,7 @@ class PzasGeneralesController extends Controller
                 }
 
                 $array[$contador][4] = $item->proceso;
-                $date = new \DateTime($item->created_at);
+                $date = new DateTime($item->created_at);
                 $array[$contador][6] = $date->format('Y-m-d H:i:s');
 
                 $metaKey = $item->id_ot.'_'.$item->id_clase.'_'.$item->proceso.'_'.$date->format('Y-m-d');
@@ -724,8 +726,8 @@ class PzasGeneralesController extends Controller
                     $array[$contador]['hora_inicio'] = $mMatch->h_inicio;
                     $array[$contador]['hora_termino'] = $mMatch->h_termino;
 
-                    $inicioStr = new \DateTime($mMatch->h_inicio);
-                    $terminoStr = new \DateTime($mMatch->h_termino);
+                    $inicioStr = new DateTime($mMatch->h_inicio);
+                    $terminoStr = new DateTime($mMatch->h_termino);
                     $array[$contador]['tiempo_total'] = $inicioStr->diff($terminoStr)->format('%H:%I:%S');
                 } else {
                     $array[$contador]['hora_inicio'] = 'N/A';
@@ -1496,7 +1498,7 @@ class PzasGeneralesController extends Controller
                 break;
         }
         // Obtener meta para obtener la ot y la clase
-        if (is_array($pieceInfo) || $pieceInfo instanceof \Illuminate\Support\Collection) { //Si el juego es mitad o coleccion (Soldadura PTA)
+        if (is_array($pieceInfo) || $pieceInfo instanceof Collection) { //Si el juego es mitad o coleccion (Soldadura PTA)
             $meta = Metas::query()->find($pieceInfo[0]->id_meta);
         } else { //Si no es mitad
             $meta = Metas::query()->find($pieceInfo->id_meta);
@@ -1507,7 +1509,7 @@ class PzasGeneralesController extends Controller
         if ($process != 'Asentado') {
             $piecesInfo = [];
             //Si el juego es mitad
-            if (is_array($pieceInfo) || $pieceInfo instanceof \Illuminate\Support\Collection) {
+            if (is_array($pieceInfo) || $pieceInfo instanceof Collection) {
                 $contador = 0;
                 foreach ($pieceInfo as $pza) {
                     $piecesInfo[$contador] = $pza->toArray();

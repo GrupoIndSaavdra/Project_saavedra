@@ -386,3 +386,31 @@ Al editar modelos padres que tienen configuraciones hijas críticas (ej: `Clase`
      }
      ```
 
+
+---
+
+## 15. Estándares Obligatorios de Limpieza, Tipado y Cero Sobrecarga
+
+1. **Cero Imports Muertos y Estandarización de FQCNs a Cabecera:**
+   - Prohibido dejar declaraciones `use` no utilizadas tras refactorizaciones de modelos (ej. antiguos `*_pza` tras migrar a `Pieza::class`).
+   - Prohibido escribir FQCNs dispersos inline (`\App\Models\Clase::`, `\DB::`, `\Log::`, `\Cache::`, `\Carbon\Carbon::`, `\Illuminate\Support\Facades\Storage::`). Todos deben importarse formalmente al inicio del archivo.
+   - Si un modelo de BD utiliza nomenclatura no estándar en camelCase o snake_case (ej. `revCalificado_tolerancia`), definir un alias en PascalCase en el import para evitar advertencias de servidores de lenguaje e IDEs:
+     ```php
+     use App\Models\revCalificado_tolerancia as RevCalificadoTolerancia;
+     ```
+
+2. **Prohibición Estricta de Propiedades Muertas e Instanciaciones en `__construct()`:**
+   - Prohibido declarar propiedades de clase (`protected $classController;`, `protected $releasedPiecesController;`, `protected $cepilladoController;`) e instanciar controladores secundarios en el constructor si no son invocados directamente en ningún método del controlador.
+   - Instanciar controladores que no se usan consume memoria RAM y ciclos de procesamiento innecesarios en cada solicitud HTTP. Si un método requiere asistencia de otro controlador, instáncialo localmente dentro de ese método específico o reutiliza un Service / Helper.
+
+3. **Paginación por Cursor y Resolución Estática de Tipos (`hasMorePages`):**
+   - El método `->cursorPaginate()` devuelve formalmente la interfaz `Illuminate\Contracts\Pagination\CursorPaginator`, la cual omite la firma del método `hasMorePages()`. Sin embargo, la clase concreta en tiempo de ejecución sí lo implementa.
+   - Para evitar falsos positivos del analizador estático (PHP Intelephense / Language Server), documentar la variable con un bloque PHPDoc:
+     ```php
+     /** @var \Illuminate\Pagination\CursorPaginator $paginator */
+     $paginator = $query->orderByDesc('system_logs.id')->cursorPaginate($limit)->withQueryString();
+     ```
+
+4. **Formateo Estricto PSR-12 y Verificación Silenciosa:**
+   - Todo controlador creado o editado debe formatearse bajo el estándar oficial de Laravel ejecutando `.\vendor\bin\pint.bat app/Http/Controllers/[NombreController].php`.
+   - Validar siempre la sintaxis post-edición con `php -l [ruta/al/controlador.php]`.

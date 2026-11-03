@@ -16,14 +16,6 @@ use Illuminate\Http\Request;
 
 class ClassController extends Controller
 {
-    /** @var \App\Http\Controllers\UserController */
-    public $userController;
-
-    public function __construct()
-    {
-        $this->userController = new UserController();
-    }
-
     /**
      * @param  mixed  $workOrder
      */

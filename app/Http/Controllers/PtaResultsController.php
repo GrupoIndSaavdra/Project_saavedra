@@ -14,6 +14,7 @@ use App\Models\SystemLog;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class PtaResultsController extends Controller
@@ -849,7 +850,7 @@ class PtaResultsController extends Controller
     public static function buildCardData(string $otId, int $claseId, $piezasClase = null): ?array
     {
         // 1. Obtener TODAS las piezas de esta clase en esta OT (reusar colección precargada si existe)
-        $piezasClase = ($piezasClase instanceof \Illuminate\Support\Collection)
+        $piezasClase = ($piezasClase instanceof Collection)
             ? $piezasClase
             : Pieza::query()->where('id_ot', $otId)
                 ->where('id_clase', $claseId)

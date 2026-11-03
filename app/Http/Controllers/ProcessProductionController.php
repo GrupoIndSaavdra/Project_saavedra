@@ -17,6 +17,7 @@ use App\Models\tiempoproduccion;
 use App\Models\User;
 use Carbon\Carbon;
 use DateTime;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
@@ -399,7 +400,7 @@ class ProcessProductionController extends Controller
                             $newPiece->n_juego = $assembly;
                             try {
                                 $newPiece->save();
-                            } catch (\Illuminate\Database\QueryException $ex) {
+                            } catch (QueryException $ex) {
                                 if ($ex->errorInfo[1] == 1062) {
                                     return back()->with('error', 'Este juego ya fue asignado.');
                                 }
@@ -876,7 +877,7 @@ class ProcessProductionController extends Controller
                     $newPiece->n_juego = $request->input('selectedAssembly');
                     try {
                         $newPiece->save();
-                    } catch (\Illuminate\Database\QueryException $ex) {
+                    } catch (QueryException $ex) {
                         if ($ex->errorInfo[1] == 1062) {
                             return back()->with('error', 'Este juego ya fue asignado.');
                         }
@@ -1007,7 +1008,7 @@ class ProcessProductionController extends Controller
 
                                 try {
                                     $newPiece->save();
-                                } catch (\Illuminate\Database\QueryException $ex) {
+                                } catch (QueryException $ex) {
                                     if ($ex->errorInfo[1] == 1062) {
                                         return back()->with('error', 'Este juego ya fue asignado.');
                                     }
@@ -1025,7 +1026,7 @@ class ProcessProductionController extends Controller
                             $newPiece->n_juego = $request->input('selectedAssembly');
                             try {
                                 $newPiece->save();
-                            } catch (\Illuminate\Database\QueryException $ex) {
+                            } catch (QueryException $ex) {
                                 if ($ex->errorInfo[1] == 1062) {
                                     return back()->with('error', 'Este juego ya fue asignado.');
                                 }

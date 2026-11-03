@@ -6,6 +6,8 @@ use App\Models\Clase;
 use App\Models\RVisual;
 use App\Models\RVisualMedida;
 use App\Models\RVisualPdf;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -667,7 +669,7 @@ class InspeccionVisualController extends Controller
         // Calcular versión incremental
         $siguienteVersion = RVisualPdf::where('r_visual_id', $id)->count() + 1;
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calidad.inspeccion_visual.pdf', compact(
+        $pdf = Pdf::loadView('calidad.inspeccion_visual.pdf', compact(
             'reporte', 'otData', 'claseData', 'pedido', 'totalPiezas', 'consignacion', 'medidas', 'logoBase64', 'piezasCompletas', 'porcentajeActual', 'siguienteVersion'
         ));
 
@@ -677,7 +679,7 @@ class InspeccionVisualController extends Controller
             ->setOption('defaultFont', 'DejaVu Sans');
 
         // Sanitizar nombres de archivo y carpetas
-        $fechaStr = \Carbon\Carbon::now()->format('Y-m-d');
+        $fechaStr = Carbon::now()->format('Y-m-d');
         $otNum = trim((string) $reporte->ot_id);
         $otNombreOriginal = trim((string) ($otData->nombre_moldura ?? $otData->nombre_pieza ?? ''));
         $otNombreSeguro = preg_replace('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]/', '_', $otNombreOriginal);

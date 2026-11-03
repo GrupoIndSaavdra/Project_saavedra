@@ -6,6 +6,8 @@ use App\Models\Clase;
 use App\Models\RDimensional;
 use App\Models\RDimensionalMedida;
 use App\Models\RDimensionalPdf;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -813,7 +815,7 @@ class InspeccionDimensionalController extends Controller
         // Calcular versión incremental
         $siguienteVersion = RDimensionalPdf::where('r_dimensional_id', $id)->count() + 1;
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calidad.inspeccion_dimensional.pdf', compact(
+        $pdf = Pdf::loadView('calidad.inspeccion_dimensional.pdf', compact(
             'reporte', 'otData', 'claseData', 'pedido', 'totalPiezas', 'consignacion', 'medidas', 'logoBase64', 'diagramaBase64', 'esMolde', 'piezasCompletas', 'porcentajeActual', 'siguienteVersion'
         ));
 
@@ -823,7 +825,7 @@ class InspeccionDimensionalController extends Controller
             ->setOption('defaultFont', 'DejaVu Sans');
 
         // Sanitizar nombres de archivo y carpetas para almacenamiento
-        $fechaStr = \Carbon\Carbon::now()->format('Y-m-d');
+        $fechaStr = Carbon::now()->format('Y-m-d');
         $otNum = trim((string) $reporte->ot_id);
         $otNombreOriginal = trim((string) ($otData->nombre_moldura ?? $otData->nombre_pieza ?? ''));
         $otNombreSeguro = preg_replace('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]/', '_', $otNombreOriginal);

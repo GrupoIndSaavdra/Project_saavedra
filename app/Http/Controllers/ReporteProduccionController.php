@@ -11,6 +11,7 @@ use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -215,7 +216,7 @@ class ReporteProduccionController extends Controller
      *
      * @return array<string, mixed>
      */
-    private function agruparJerarquicamente(\Illuminate\Support\Collection $piezas): array
+    private function agruparJerarquicamente(Collection $piezas): array
     {
         /** @var array<string, mixed> $reporteFinal */
         $reporteFinal = [];
@@ -225,7 +226,7 @@ class ReporteProduccionController extends Controller
         $clasesMap = [];
         $usuariosMap = [];
 
-        $dt = new \App\Http\Controllers\DatosProduccionController();
+        $dt = new DatosProduccionController();
         $processesAssembly = ['Barreno Maniobra', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Barreno Profundidad', 'Palomas', 'Rebajes', 'Grabado', 'Operacion Equipo', 'Operacion Equipo_1 operacion', 'Operacion Equipo_2 operacion'];
 
         // Índice global de mitades: para detectar H y M de operadores distintos

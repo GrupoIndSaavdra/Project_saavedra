@@ -6,7 +6,9 @@ use App\Models\Clase;
 use App\Models\Orden_trabajo;
 use App\Models\SystemLog;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -521,8 +523,8 @@ class SystemLogController extends Controller
                 $h_termino = $log->h_termino ?? $log->created_at->format('H:i:s');
                 if ($h_inicio && $h_termino && $h_inicio !== $h_termino) {
                     try {
-                        $start = \Carbon\Carbon::parse($h_inicio);
-                        $end = \Carbon\Carbon::parse($h_termino);
+                        $start = Carbon::parse($h_inicio);
+                        $end = Carbon::parse($h_termino);
                         $tiempoTotal = $start->diff($end)->format('%H:%I:%S');
                     } catch (\Exception $e) {
                         $tiempoTotal = '00:00:00';
@@ -658,8 +660,8 @@ class SystemLogController extends Controller
             }
 
             // Ejecutar el comando de consola
-            \Illuminate\Support\Facades\Artisan::call('app:depurar-logs');
-            $output = \Illuminate\Support\Facades\Artisan::output();
+            Artisan::call('app:depurar-logs');
+            $output = Artisan::output();
 
             return response()->json([
                 'success' => true,

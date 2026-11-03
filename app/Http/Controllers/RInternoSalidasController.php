@@ -410,7 +410,7 @@ class RInternoSalidasController extends Controller
             // Actualizar fecha de inicio si llegó el dato
             if ($request->has('fecha_inicio') && $request->fecha_inicio) {
                 $anterior = $reporte->fecha_inicio
-                    ? \Carbon\Carbon::parse($reporte->fecha_inicio)->toDateString()
+                    ? Carbon::parse($reporte->fecha_inicio)->toDateString()
                     : null;
                 $nueva = $request->fecha_inicio;
                 if ($anterior !== $nueva) {
