@@ -255,3 +255,21 @@ Route::get('/almacen/fundicion/{ot}', [AlmacenFundicionController::class, 'show'
 Route::get('/almacen/fundicion/{ot}', [AlmacenFundicionController::class, 'show'])->name('almacen.fundicion.show');
 Route::get('/almacen/fundicion/crear', [AlmacenFundicionController::class, 'crear'])->name('almacen.fundicion.crear');
 ```
+
+---
+
+## 11. Advertencia Crítica de Route Cache en Entornos XAMPP / Subdirectorios
+
+> ⚠️ **NO USAR `php artisan route:cache` O `php artisan optimize` EN XAMPP:**
+> Cuando Laravel se sirve en un servidor local o intranet mediante Apache/XAMPP bajo una subcarpeta (ej. `http://servidor/Project_saavedra/public`), compilar las rutas con `route:cache` serializa el árbol de rutas asumiendo una raíz estricta. Esto provoca desajustes en el matching de HTTP methods y lanza el error:
+> ```text
+> MethodNotAllowedHttpException: The GET method is not supported for route /. Supported methods: HEAD.
+> ```
+> 
+> **Regla de Oro:**
+> - En XAMPP, las rutas deben mantenerse **dinámicas**: ejecutar siempre `php artisan route:clear`.
+> - Para optimizar rendimiento en producción sin romper las rutas, precompilar únicamente las vistas: `php artisan view:cache`.
+> - Si este error ocurre, se resuelve de inmediato ejecutando en consola:
+>   ```powershell
+>   php artisan route:clear
+>   ```

@@ -4,6 +4,7 @@
     "scripts": {
         "dev": "vite",
         "build": "vite build",
+        "deploy": "node deploy.js",
         "setup": "powershell -NoProfile -ExecutionPolicy Bypass -File ./setup.ps1",
         "install:all": "composer install && npm install && npm run build"
     },

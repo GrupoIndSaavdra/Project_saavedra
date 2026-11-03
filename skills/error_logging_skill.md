@@ -129,6 +129,12 @@ SystemLog::create([
 ]);
 ```
 
+> ⚠️ **REGLA CRÍTICA DE TIPOS EN `SystemLog` (Aprendizaje Reciente):**
+> La columna `id_ot` en la tabla `system_logs` es de tipo **INTEGER**. NUNCA asignes el código o folio string de la OT (ej. `'OT_TEST_4021'`) a `id_ot`, ya que provocará un error fatal `SQLSTATE[22007] Incorrect integer value`.
+> - Código string de OT (ej. `'OT_1234'`): Guárdalo en la columna `ot`.
+> - ID numérico de OT (ej. `$ot->id`): Guárdalo en la columna `id_ot` (o `null` si no se cuenta con el ID primario).
+
+
 ### Archivos de Log del Sistema (Rutas Reales)
 - **Laravel Log (Técnico):** `storage/logs/laravel.log`
 - **Revisar en tiempo real (PowerShell):**

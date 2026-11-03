@@ -125,3 +125,47 @@ foreach (scandir($directorio) ?: [] as $fileName) {
     @endforeach
 </select>
 ```
+
+---
+
+## 6. Normalización Obligatoria en Match/Switch de Procesos y Cotas Nominales
+
+En la base de datos, las clases de una Orden de Trabajo comúnmente se almacenan con su prefijo de orden (ej: `"3 - BOMBILLO"`, `"1 - MOLDE"`, `"4 - CORONA"`).
+
+Si se utiliza una expresión `match` o `switch` sobre el nombre de la clase para determinar procesos por defecto o tolerancias (como en `ProcessesController::getDefaultProcessesByClass`):
+
+```php
+// ❌ INCORRECTO: Falla en runtime y devuelve null para "3 - BOMBILLO"
+public function getDefaultProcessesByClass(string $className): ?array {
+    return match ($className) {
+        'BOMBILLO' => [...],
+        'MOLDE' => [...],
+        default => null,
+    };
+}
+
+// ✅ PATRÓN CORRECTO: Normalizar primero al tipo base canónico
+public function getDefaultProcessesByClass(string $className): ?array {
+    $baseType = Clase::normalizeClassName($className);
+    
+    return match ($baseType) {
+        'Bombillo' => [
+            'Cepillado', 'Desbaste Exterior', 'Revision Laterales',
+            'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion',
+            'Calificado', 'Acabado Bombillo', 'Barreno Profundidad'
+        ],
+        'Molde' => [
+            'Cepillado', 'Desbaste Exterior', 'Revision Laterales',
+            'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion',
+            'Calificado', 'Acabado Molde', 'Barreno Profundidad'
+        ],
+        'Corona' => ['Cepillado', 'Desbaste Exterior', 'Primera Operacion', 'Segunda Operacion', 'Calificado'],
+        'Fondo', 'Obturador', 'Candado Obturador' => ['Operacion Equipo'],
+        'Plato' => ['Barreno Maniobra', 'Operacion Equipo'],
+        'Embudo' => ['Operacion Equipo', 'Embudo CM'],
+        'Cabeza de Soplo' => ['Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'],
+        default => null,
+    };
+}
+```
+Esto garantiza que la vista de Cotas Nominales (`/cNominals`) nunca quede en blanco por discrepancia en el nombre de la clase.

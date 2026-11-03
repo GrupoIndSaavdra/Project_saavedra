@@ -94,6 +94,9 @@ try {
             python tools/repomap.py --save
             python tools/generate_tags.py --build
 
+            Write-Host "  -> Analizando logs y commits para buffer de aprendizajes..." -ForegroundColor Gray
+            php artisan app:analizar-aprendizajes --ansi
+
             Write-Host "  -> Herramientas de agente configuradas exitosamente." -ForegroundColor Green
         } else {
             Write-Host "  -> Aviso: Python no detectado. Se omitio la instalacion de herramientas AST." -ForegroundColor Yellow

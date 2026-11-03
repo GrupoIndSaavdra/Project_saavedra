@@ -19,6 +19,8 @@ if /i "%CMD%"=="diff" goto run_diff
 if /i "%CMD%"=="compress" goto run_compress
 if /i "%CMD%"=="tokens" goto run_tokens
 if /i "%CMD%"=="schema" goto run_schema
+if /i "%CMD%"=="learn" goto run_learn
+if /i "%CMD%"=="aprendizajes" goto run_learn
 if /i "%CMD%"=="install" goto run_install
 if /i "%CMD%"=="setup" goto run_install
 if /i "%CMD%"=="help" goto help
@@ -69,6 +71,10 @@ exit /b %errorlevel%
 php tools/introspect_schema.php %1 %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%
 
+:run_learn
+php artisan app:analizar-aprendizajes %1 %2 %3 %4 %5 %6 %7 %8 %9
+exit /b %errorlevel%
+
 :run_install
 powershell -NoProfile -ExecutionPolicy Bypass -File setup.ps1 -OnlyTools
 exit /b %errorlevel%
@@ -91,6 +97,7 @@ echo    diff [--staged]          - Git diff limpio y atomico (-U1)
 echo    compress [archivo]       - Compresor de logs y prompts (estilo LLMLingua)
 echo    tokens [archivo/dir]     - Medidor de presupuesto de tokens con tiktoken
 echo    schema                   - Introspeccion de MySQL a prisma/schema.prisma
+echo    learn                    - Escanea commits y logs para actualizar aprendizajes_temp.md
 echo    install                  - Instalar o actualizar dependencias y grafos de IA
 echo ====================================================================
 exit /b 0

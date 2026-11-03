@@ -28,8 +28,9 @@ En `Project_saavedra` **SOLO EXISTEN EXACTAMENTE 2 ARCHIVOS `.BAT`** en todo el 
 
 | Situación / Requerimiento | Comando Exacto | ¿Qué hace? | Tiempo aprox. |
 |---|---|---|---|
-| **Día a día: Actualizar todo rápido** | `.\tools\agent.bat install` | Reconstruye esquema de BD, grafo NetworkX, Repomap y símbolos Ctags en un solo paso. | ~5 segundos |
+| **Día a día: Actualizar todo rápido** | `.\tools\agent.bat install` | Reconstruye esquema de BD, grafo NetworkX, Repomap, símbolos Ctags y aprendizajes en un solo paso. | ~5 segundos |
 | **Consultar la ayuda / ver comandos** | `.\tools\agent.bat help` *(o solo `.\tools\agent.bat`)* | Muestra la lista interactiva de todos los comandos disponibles. | Instantáneo |
+| **Escanear errores y retroalimentar skills** | `.\tools\agent.bat learn` | Escanea logs y commits recientes para generar el buffer `skills/aprendizajes_temp.md`. | ~2 segundos |
 | **Se crearon o modificaron tablas en MySQL** | `.\tools\agent.bat schema` | Introspecciona la base de datos activa (`.env`) y actualiza `prisma/schema.prisma`. | ~2 segundos |
 | **Se agregaron nuevas funciones, clases o métodos** | `.\tools\agent.bat tags` | Reconstruye el archivo de índice de símbolos Ctags (`tags`). | ~1 segundo |
 | **Se crearon nuevas rutas web o controladores** | `.\tools\agent.bat repomap` | Recalcula el PageRank del sistema y actualiza `repomap.txt`. | ~2 segundos |

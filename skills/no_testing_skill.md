@@ -46,8 +46,11 @@ Aunque las pruebas en navegador están prohibidas para el agente, el agente **S�
 2. **Pruebas Unitarias e Integración (PHPUnit):**
  Puedes crear y correr pruebas de HTTP o consola para endpoints críticos si el proyecto cuenta con infraestructura de pruebas:
  ```bash
- php artisan test
+ php artisan test --filter=NombreDeLaPrueba
  ```
+ > **Reglas para Pruebas con Base de Datos:**
+ > - Usa siempre el trait `use DatabaseTransactions;` dentro del test class para que cada inserción o modificación se revierta automáticamente sin dejar registros basura en la base de datos MySQL activa.
+ > - Evita valores fijos en columnas con constraint único (como `matricula`); genera valores dinámicos tipo `'TEST_' . rand(10000, 99999)` para no colisionar con datos reales existentes.
 3. **Pruebas de Rutas e Integridad de Rutas:**
  Asegúrate de que las nuevas rutas no entren en conflicto con las existentes compilando o listando la caché de rutas:
  ```bash

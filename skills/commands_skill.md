@@ -211,8 +211,9 @@ php artisan migrate:status
 
 ---
 
-## 4. NPM / Vite — Assets Frontend
+## 4. NPM / Vite — Assets Frontend y Despliegue en Producción
 
+### Comandos de Compilación
 ```powershell
 # Compilar assets en modo desarrollo (hot reload)
 npm run dev
@@ -220,11 +221,32 @@ npm run dev
 # Compilar assets para producción (minificado)
 npm run build
 
+# Despliegue automatizado completo a producción (1 solo comando)
+npm run deploy    # o: node deploy.js
+
 # Verificar que Vite compila sin errores (capturando stdout y stderr)
 npm run build 2>&1
 ```
 
 > Si el build falla con errores de sintaxis JS, revisar primero si hay escapes inválidos (`\'` dentro de strings en archivos .js). Ver `javascript_skill.md` sección 10.
+
+### 🛑 Regla de Oro en Servidores de Producción (Apache / XAMPP):
+1. **`npm run dev` NUNCA debe ejecutarse en el servidor de producción:**
+   - Al correr `npm run dev`, Vite crea el archivo `public/hot` apuntando a `localhost:5173`.
+   - Mientras `public/hot` exista, Laravel **ignora `public/build/`** y fuerza a todos los clientes de la red local a conectarse a `localhost:5173` de su propia máquina, generando timeouts de 30 segundos, congelando la interfaz y bloqueando scripts/estilos.
+   - Si se detecta lentitud extrema o bloqueos tras un deploy, eliminar `public/hot` de inmediato:
+     ```powershell
+     Remove-Item public\hot -Force -ErrorAction SilentlyContinue
+     ```
+2. **Peligro de `php artisan optimize` / `route:cache` en XAMPP:**
+   - Si el proyecto corre bajo un subdirectorio o alias de Apache (ej. `http://servidor/Project_saavedra/public`), el comando `route:cache` (incluido en `optimize`) rompe el matching de la ruta raíz y causa el error:
+     `MethodNotAllowedHttpException: The GET method is not supported for route /. Supported methods: HEAD.`
+   - **Solución oficial:** En XAMPP, **NUNCA cachear rutas**. Mantenerlas dinámicas:
+     ```powershell
+     php artisan route:clear
+     php artisan view:cache   # Precompilar solo vistas Blade para rendimiento
+     ```
+   - El script `deploy.js` (`npm run deploy`) ya implementa este flujo seguro de forma automática.
 
 ---
 

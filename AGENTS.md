@@ -4,16 +4,15 @@
 
 ---
 
-## 1. PROTOCOLO OBLIGATORIO DE CONSULTA DE SKILLS
+## 1. PROTOCOLO ÁGIL DE CONSULTA DE SKILLS Y CONOCIMIENTO
 
-**ANTES de escribir, modificar o eliminar cualquier línea de código**, el agente debe:
-1. **Identificar la skill aplicable** en el catálogo de abajo.
-2. **Consultar el archivo `.md` respectivo** en `skills/` usando `view_file` para extraer directivas, helpers y convenciones específicas.
-3. **Cero improvisación:** Si la skill define un patrón (transacciones, nombrado de clases, helpers, estructura Blade, etc.), aplícalo al 100%.
-4. **Verificación post-edición obligatoria:**
+El agente conoce la arquitectura, directivas y patrones de desarrollo de Project Saavedra consolidados en este documento y en las skills (`skills/`).
+1. **Consulta bajo demanda (Cero bloqueos innecesarios):** Solo se consultará un archivo `.md` en `skills/` ante flujos complejos, nuevas arquitecturas, flujos de reproceso (`_R1`) o cuando exista duda específica sobre un estándar. Para tareas cotidianas, fixes, ajustes de vistas o endpoints, **aplica directamente los patrones establecidos sin lecturas redundantes previas**.
+2. **Cero improvisación:** Aplica siempre los patrones oficiales (transacciones `DB::beginTransaction()`, respuestas JSON estandarizadas, `@csrf`, `gisToast`, `gisConfirm`, etc.).
+3. **Verificación post-edición obligatoria:**
    - Archivos PHP modificados: Verificar sintaxis con `php -l ruta/al/archivo.php`.
    - Archivos JavaScript modificados: Verificar sintaxis con `node --check ruta/al/archivo.js`.
-5. **Documentar lo nuevo:** Si deduces una solución no documentada, regístrala en la skill correspondiente.
+4. **Documentar lo nuevo:** Si deduces una solución no documentada, regístrala en la skill correspondiente.
 
 ---
 
@@ -48,9 +47,12 @@
 
 ---
 
-## 3. MAPA EXPRESS DE ARQUITECTURA (UBICACIÓN RÁPIDA)
+## 3. MAPA EXPRESS DE ARQUITECTURA Y BÚSQUEDA RÁPIDA
 
-Usa este mapa para ubicar archivos inmediatamente **sin realizar búsquedas recursivas**:
+Para localizar código al instante y responder a velocidad luz:
+1. **Paso 1 (Mapa Directo):** Usa esta tabla para ir directo al archivo sin realizar búsquedas.
+2. **Paso 2 (CLI Rápido si no está en el mapa):** Ejecuta `.\tools\agent.bat tags -s <Simbolo>` para funciones/clases o `.\tools\agent.bat rg "<texto>"` para búsquedas ultrarrápidas con Rust.
+3. **PROHIBIDO:** Realizar búsquedas recursivas lentas con PowerShell (`Get-ChildItem -Recurse`).
 
 | Módulo del Sistema | Controlador Principal (`app/Http/Controllers/`) | Vistas Blade (`resources/views/`) | JS (`resources/js/`) | CSS (`resources/css/`) |
 |---|---|---|---|---|
@@ -153,6 +155,32 @@ El sistema utiliza perfiles numéricos en la tabla de usuarios (`perfil`). Cada 
    - "Liberación de piezas" (con acento en *Liberación*).
    - "Órdenes de Trabajo" (con acento en *Órdenes*).
 
+### E. Diccionario Visual y Design System GIS (Cero Ambigüedades)
+Usa los componentes ya existentes en `global.css` y `components/*.css`. No reinventes clases:
+1. **Botones Oficiales (`.btns`):**
+   - **Verde Principal (Guardar, Confirmar, Crear):** `<button class="btns">` (`var(--gis-green)`).
+   - **Azul Secundario (Ver, Info, Detalle, Descargar):** `<button class="btns blue">` (`var(--gis-blue)`).
+   - **Rojo Peligro (Eliminar, Cancelar, Desactivar):** `<button class="btns danger">` (`var(--gis-red)`).
+   - **Deshabilitado:** atributo `disabled` (reduce opacidad al 55% y cancela hover/animación).
+2. **Contenedores y Paneles (Glassmorphism Líquido):**
+   - **Panel Principal Blanco:** `<div class="glass-panel">` (o `.wrapper`, `.table-container`). Fondo cristal translúcido, borde blanco 1.5px, radio 24px, backdrop blur 24px.
+   - **Panel Azul Destacado:** `<div class="glass-panel-blue">` (o `.glass-panel.glass-blue`).
+   - **Fichas / Cards Individuales:** `.dibujos-file-card` o `.card-actividad` (tarjetas blancas compactas con sombra 3D y hover interactivo).
+   - **Overlay / Modal Backdrop:** `<div class="overlay-bg">` con backdrop blur 5px.
+3. **Barras de Filtros y Búsqueda:**
+   - **Barra Blanca Cristal:** `<div class="filters-bar">` con grupos `<div class="filter-group"><label>Texto</label><select class="filter-select">...</div>`.
+   - **Barra Azul Oscuro Glass:** `<div class="toolbar">` para barras superiores destacadas.
+4. **Tablas Estandarizadas GIS:**
+   - **Cabecera de Tarjeta:** `<div class="table-card-header"><h2>TÍTULO</h2><span class="table-results-badge">X Resultados</span></div>`.
+   - **Tabla:** `<table class="gis-table">` (o `.alm-table`) con encabezados `<th>` en gradiente azul suave y filas `tr:hover` interactivas.
+5. **Paleta de Colores Centralizada (Variables CSS):**
+   - Verde GIS: `var(--gis-green)` (`#0a8504`)
+   - Azul GIS: `var(--gis-blue)` (`#033966`)
+   - Rojo GIS: `var(--gis-red)` (`#9c0303`)
+   - Gris Texto: `var(--gis-gray)` (`#404040`)
+   - Fondo Cristal: `var(--glass-bg-white)`, `var(--glass-bg-blue)`
+   - Sombras de Botón: `var(--shadow-green)`, `var(--shadow-blue)`, `var(--shadow-red)`
+
 ---
 
 ## 6. FILOSOFÍA ANTI-SOBREINGENIERÍA (YAGNI)
@@ -160,3 +188,42 @@ El sistema utiliza perfiles numéricos en la tabla de usuarios (`perfil`). Cada 
 1. **Reutilizar antes de crear:** Verifica scopes existentes, helpers en `app/helpers.php` y controladores previos antes de añadir clases nuevas.
 2. **No wrappers innecesarios:** Si un método en el controlador o un scope en el modelo resuelve el requerimiento de forma legible, no crees Service Providers, Repositorios o clases intermedias redundantes.
 3. **Cambios quirúrgicos:** Modifica únicamente las líneas pertinentes respetando el estilo y formato del archivo original.
+
+---
+
+## 7. PREFERENCIAS DEL DESARROLLADOR Y FLUJO DE TRABAJO (MEMORIA PERMANENTE)
+
+> Esta sección almacena directivas fijas del desarrollador para evitar repeticiones en las conversaciones y garantizar ejecuciones ultrarrápidas:
+
+1. **Estilo de Respuesta y Cero Tiempos Muertos:**
+   - Respuestas directas, concisas y orientadas a la acción técnica sin rodeos ni explicaciones genéricas innecesarias.
+   - En peticiones de cambios estéticos o fixes puntuales, **ejecutar la solución en un solo paso quirúrgico** sin realizar lecturas o exploraciones innecesarias de archivos que ya conocemos.
+2. **Comprensión Visual Inmediata (Design System Nativo):**
+   - Cuando el desarrollador solicite un cambio visual o estético ("botón verde", "botón azul", "panel tipo cristal", "tabla", "filtros"), mapear de inmediato a las clases de la **Sección 5.E** (`.btns`, `.btns.blue`, `.btns.danger`, `.glass-panel`, `.gis-table`, `.filters-bar`).
+   - Prohibido inventar CSS custom en línea o clases arbitrarias de Tailwind cuando ya existen las clases corporativas en `global.css`.
+3. **Preservación de Código Existente:**
+   - Nunca alterar comentarios funcionales, variables de entorno ni estilos existentes que no formen parte del requerimiento explícito.
+4. **Validación Automática Silenciosa:**
+   - Toda edición se valida de inmediato con `php -l` o `node --check` antes de responder, reportando únicamente confirmación limpia.
+5. **Ciclo de Aprendizaje Automático (`tools\agent.bat learn`):**
+   - Cuando se resuelva un bug complejo o se descubra un nuevo estándar, el agente registrará la lección en `skills/aprendizajes_temp.md`.
+   - Periódicamente, o tras ejecutar `.\tools\agent.bat learn`, el agente consolidará los aprendizajes en la skill pertinente y vaciará el buffer temporal.
+
+---
+
+## 8. GLOSARIO DE DOMINIO INDUSTRIAL E INDUCCIÓN EXPRESS (PARA DEVS Y AGENTES)
+
+> Este glosario permite a cualquier nuevo programador o agente de IA comprender al instante los procesos industriales de la planta:
+
+| Término / Sigla | Concepto en Planta Saavedra | Impacto en Base de Datos / Código |
+|---|---|---|
+| **O.T. (Orden de Trabajo)** | Documento maestro que autoriza la producción de un lote de piezas para un cliente. | Modelo `Orden_trabajo`, tablas `ordenes_trabajo`, `remisiones_ot`, `parcialidades_ot`. |
+| **Clases de Pieza** | Tipos de piezas maquinadas de moldura: `MOLDE`, `FONDO`, `BOMBILLO`, `CORONA`, `OBTURADOR`, `PLATO`, `EMBUDO`. | Modelo `Clase`, normalizado vía `config/global_classes.php`. Cada clase tiene su propia secuencia de procesos. |
+| **Fundición** | Recepción, pesaje, inspección y liberación de piezas de hierro en bruto antes de entrar a tornos/fresadoras. | Modelos `PreOrdenFundicion`, `FundicionHistory`, `LiberacionModeloFundicion`. Controlador `AlmacenFundicionController`. |
+| **Maquinados** | Procesos de remoción de metal: cepillado, desbaste exterior, barrenos, cavidades, copiado, calificado, acabado. | Modelos `Pza_*`, `Procesos`, controladores `ProcessProductionController`, `ProgresoProcesosController`. |
+| **PTA (Plasma Transferred Arc)** | Procedimiento de soldadura especializada para recubrir zonas de desgaste extremo de moldes con aleaciones duras. | Modelos `SoldaduraPTA`, `SoldaduraPTA_pza`. Controladores `PtaResultsController`, `SoldaduraPTAController`. |
+| **Soldadura & Tracking** | Rastreabilidad por código QR de botes y lotes de polvo de soldadura desde almacén hasta la máquina. | Modelos `SoldaduraBote`, `SoldaduraLote`. Controladores `GenerarQRIndividualController`, `TrackingSoldaduraController`. |
+| **SCAR / Rechazo** | *Supplier Corrective Action Request*. Reporte formal de defecto y no-conformidad dimensional o visual. | Modelos `ScarModelo`, `RechazoLog`. Controlador `CalidadFundicionController`. |
+| **`_R1` (Reproceso)** | Sufijo que identifica piezas que fallaron calidad pero fueron autorizadas para un segundo ciclo de rectificado/maquinado. | Manejado con sufijo en tablas y vistas según `skills/rework_cycle_skill.md`. |
+| **Planta Tecámac** | Módulo de control de inventario de herramientas de corte, insertos y consumibles de la planta Tecámac. | Modelos `HerramientaTecamac`, `HerramientaImagen`. Controlador `HerramientasTecamacController`. |
+

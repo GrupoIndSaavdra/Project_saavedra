@@ -351,3 +351,38 @@ Cuando un usuario desea "Reemplazar" archivos de ingeniería en el sistema, pero
 
 El código debe separar la lógica de **reinicio** (que borra estados y base de datos) de la lógica de **reemplazo** (que solo sincroniza archivos en disco usando `copyToAlmacen` con `$resetFlags = false` y actualiza los Hashes).
 
+---
+
+## 14. Protección de Configuraciones Hijas en Ediciones Parciales
+
+Al editar modelos padres que tienen configuraciones hijas críticas (ej: `Clase` y su registro hijo en `Procesos` con 24 columnas de máquinas y tiempos de maquinado):
+
+1. **Discriminar el contexto de la edición:**
+   - Formularios parciales (ej. Almacén cambiando cantidad de piezas, fechas o material) deben enviar un flag explicito como `partial_edit = 1` o `from_almacen = 1`.
+   - Vistas de programación completa deben enviar `from_programming = 1` y el array de operaciones seleccionadas.
+   - Si la edición es parcial y no trae `operations`, el controlador principal **NO debe invocar el método de guardado de procesos**.
+
+2. **Salvaguarda defensiva en métodos de asignación (`storeProcess`):**
+   - Si el método recibe `$dataProcess === null` y el registro hijo ya existe en la base de datos (`$child->exists`), **DEBE retornar de inmediato**:
+     ```php
+     // Proteger configuración existente si la petición no incluye operaciones
+     if ($dataProcess === null && $process->exists) {
+         return;
+     }
+     ```
+   - Nunca iterar columnas para ponerlas a `0` a menos que sea un reinicio explícito o una deselección intencional desde la pantalla de configuración.
+
+3. **Mapeo robusto de máquinas asociativas:**
+   - El frontend puede enviar `machines[cepillado] => 2` o un array numérico `machines[0] => 2`.
+   - Leer siempre con prioridad asociativa por nombre de proceso y fallback defensivo al índice:
+     ```php
+     $machineVal = 1;
+     if (is_array($machines)) {
+         if (isset($machines[$procName]) && (int)$machines[$procName] > 0) {
+             $machineVal = (int)$machines[$procName];
+         } elseif (isset($machines[$counter]) && (int)$machines[$counter] > 0) {
+             $machineVal = (int)$machines[$counter];
+         }
+     }
+     ```
+
