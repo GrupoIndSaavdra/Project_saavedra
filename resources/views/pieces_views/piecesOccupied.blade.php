@@ -110,12 +110,11 @@
             </div>
 
             <div class="filter">
-                <select id="select-operador">
+                <select id="select-operador" title="Filtrar por operador">
                     <option value="">Todos los Operadores</option>
                     @if (isset($operatorsList))
                         @foreach ($operatorsList as $op)
-                            <option value="{{ $op['matricula'] }}">{{ $op['nombre'] }} (Mat: {{ $op['matricula'] }})
-                            </option>
+                            <option value="{{ $op['matricula'] }}">{{ $op['nombre'] }}</option>
                         @endforeach
                     @endif
                 </select>

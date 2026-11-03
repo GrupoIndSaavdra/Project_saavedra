@@ -237,18 +237,27 @@ class PiecesOccupiedController extends Controller
         natcasesort($classesList);
         $classesList = array_values($classesList);
 
-        // Operadores registrados en el sistema
-        $operatorsList = User::query()
-            ->select(['matricula', 'nombre', 'a_paterno'])
-            ->whereNotNull('nombre')
-            ->orderBy('nombre', 'asc')
-            ->get()
-            ->map(function ($u) {
-                return [
-                    'matricula' => $u->matricula,
-                    'nombre' => trim("{$u->nombre} {$u->a_paterno}"),
+        // Operadores con piezas ocupadas para pre-poblar el filtro inicial
+        $initialOccupied = $this->fetchOccupiedPiecesList();
+
+        $initialOperatorsMap = [];
+        foreach ($initialOccupied as $p) {
+            $mat = $p['operador_matricula'] ?? null;
+            $nom = trim((string) ($p['operador_nombre'] ?? ''));
+            if ($mat && !empty($nom) && $nom !== 'Desconocido') {
+                $initialOperatorsMap[(string) $mat] = [
+                    'matricula' => (string) $mat,
+                    'nombre' => "{$nom} (Mat: {$mat})",
+                    'clean_name' => $nom,
                 ];
-            });
+            }
+        }
+
+        uasort($initialOperatorsMap, fn($a, $b) => strcasecmp($a['clean_name'], $b['clean_name']));
+        $operatorsList = array_values(array_map(fn($op) => [
+            'matricula' => $op['matricula'],
+            'nombre' => $op['nombre'],
+        ], $initialOperatorsMap));
 
         return view('pieces_views.piecesOccupied', compact('workOrders', 'processesList', 'classesList', 'operatorsList'));
     }
@@ -291,8 +300,8 @@ class PiecesOccupiedController extends Controller
     }
 
     /**
-     * Devuelve los números de pieza disponibles para una combinación de OT, Clase y Proceso.
-     * Engloba mitades Macho y Hembra en un solo número identificador unificado.
+     * Devuelve los números de pieza y operadores disponibles según la combinación de OT, Clase y Proceso.
+     * Reduce dinámicamente las opciones sin requerir obligatoriamente los 3 campos.
      */
     public function getPiecesByContext(Request $request)
     {
@@ -300,80 +309,18 @@ class PiecesOccupiedController extends Controller
         $targetClase = $request->input('clase_id');
         $targetProcess = $request->input('proceso');
 
-        if (empty($targetOt) || empty($targetClase) || empty($targetProcess)) {
-            return response()->json([
-                'success' => true,
-                'pieces' => [],
-            ]);
-        }
+        // Consultar piezas ocupadas para este contexto
+        $contextPieces = $this->fetchOccupiedPiecesList($targetOt, $targetClase, $targetProcess);
 
-        // Resolver IDs de clase para la OT
-        $claseIds = [];
-        $targetClaseObj = is_numeric($targetClase) ? Clase::find((int) $targetClase) : null;
-        $cleanTargetName = trim(preg_replace('/^\d+\s*-\s*/', '', mb_strtolower($targetClaseObj ? $targetClaseObj->nombre : (string) $targetClase, 'UTF-8')));
-
-        $allOtClasses = Clase::query()->where('id_ot', '=', $targetOt, 'and')->get();
-        foreach ($allOtClasses as $c) {
-            $cleanC = trim(preg_replace('/^\d+\s*-\s*/', '', mb_strtolower($c->nombre, 'UTF-8')));
-            if ($cleanC === $cleanTargetName || (string) $c->id === (string) $targetClase) {
-                $claseIds[] = $c->id;
-            }
-        }
-        if (empty($claseIds) && is_numeric($targetClase)) {
-            $claseIds[] = (int) $targetClase;
-        }
-
-        $rawPieceStrings = [];
-
-        // 1. Consultar tabla 'piezas'
-        $piezasQuery = Pieza::query()
-            ->where('id_ot', '=', $targetOt, 'and')
-            ->where('proceso', '=', $targetProcess, 'and');
-        if (!empty($claseIds)) {
-            $piezasQuery->whereIn('id_clase', $claseIds, 'and', false);
-        }
-        $rawPieceStrings = array_merge($rawPieceStrings, $piezasQuery->pluck('n_pieza')->toArray());
-
-        // 2. Consultar modelo del proceso si existe
-        if (isset(self::$processConfig[$targetProcess])) {
-            $cfg = self::$processConfig[$targetProcess];
-            $pieceModel = $cfg['piece_model'];
-            $parentModel = $cfg['parent_model'];
-
-            if (class_exists($pieceModel)) {
-                $metaQuery = Metas::query()->where('id_ot', '=', $targetOt, 'and');
-                if (!empty($claseIds)) {
-                    $metaQuery->whereIn('id_clase', $claseIds, 'and', false);
-                }
-                $metaIds = $metaQuery->pluck('id')->toArray();
-
-                $procPiecesQuery = $pieceModel::query();
-                if (!empty($metaIds)) {
-                    $procPiecesQuery->whereIn('id_meta', $metaIds, 'and', false);
-                } elseif (class_exists($parentModel)) {
-                    $parentIds = $parentModel::query()->where('id_ot', '=', $targetOt, 'and')->pluck('id')->toArray();
-                    if (!empty($parentIds)) {
-                        $procPiecesQuery->whereIn('id_proceso', $parentIds, 'and', false);
-                    }
-                }
-
-                $procPieces = $procPiecesQuery->get(['n_pieza', 'n_juego']);
-                $rawPieceStrings = array_merge(
-                    $rawPieceStrings,
-                    $procPieces->pluck('n_pieza')->filter()->toArray(),
-                    $procPieces->pluck('n_juego')->filter()->toArray()
-                );
-            }
-        }
-
-        // 3. Extraer únicamente los números base (englobando macho y hembra en uno solo)
+        // Extraer números de pieza únicos
         $numbersMap = [];
-        foreach ($rawPieceStrings as $str) {
-            $str = trim((string) $str);
-            if (preg_match('/\d+/', $str, $matches)) {
-                $num = (int) $matches[0];
-                if ($num > 0) {
-                    $numbersMap[$num] = true;
+        foreach ($contextPieces as $p) {
+            foreach ([$p['n_pieza'], $p['n_juego']] as $str) {
+                if ($str && preg_match('/\d+/', (string) $str, $matches)) {
+                    $num = (int) $matches[0];
+                    if ($num > 0) {
+                        $numbersMap[$num] = true;
+                    }
                 }
             }
         }
@@ -388,15 +335,42 @@ class PiecesOccupiedController extends Controller
             ];
         }, $sortedNumbers);
 
+        // Extraer operadores únicos asociados al contexto de piezas ocupadas
+        $operatorsMap = [];
+        foreach ($contextPieces as $p) {
+            $mat = $p['operador_matricula'] ?? null;
+            $nom = trim((string) ($p['operador_nombre'] ?? ''));
+            if ($mat && !empty($nom) && $nom !== 'Desconocido') {
+                $operatorsMap[(string) $mat] = [
+                    'matricula' => (string) $mat,
+                    'nombre' => "{$nom} (Mat: {$mat})",
+                    'clean_name' => $nom,
+                ];
+            }
+        }
+
+        uasort($operatorsMap, function ($a, $b) {
+            return strcasecmp($a['clean_name'], $b['clean_name']);
+        });
+
+        $operatorsList = array_values(array_map(function ($op) {
+            return [
+                'matricula' => $op['matricula'],
+                'nombre' => $op['nombre'],
+            ];
+        }, $operatorsMap));
+
         return response()->json([
             'success' => true,
             'pieces' => $piecesList,
+            'operators' => $operatorsList,
         ]);
     }
 
     /**
      * Consulta AJAX de piezas ocupadas filtradas por OT, Clase y Proceso.
      * Detecta piezas retenidas (estado 1), registros desvinculados sin máquina y juegos incompletos (mitad faltante).
+     * Devuelve en una sola respuesta las piezas, KPIs y filtros dependientes para máxima fluidez.
      */
     public function getOccupiedPieces(Request $request)
     {
@@ -406,15 +380,125 @@ class PiecesOccupiedController extends Controller
         $targetPieza = trim((string) $request->input('pieza', ''));
         $targetOperador = trim((string) $request->input('operador', ''));
 
+        // 1. Obtener las piezas ocupadas para el contexto de OT, Clase y Proceso
+        $contextPieces = $this->fetchOccupiedPiecesList($targetOt, $targetClaseId, $targetProcess);
+
+        // Operadores disponibles en este contexto (se reducen dinámicamente)
+        $operatorsMap = [];
+        foreach ($contextPieces as $p) {
+            $mat = $p['operador_matricula'] ?? null;
+            $nom = trim((string) ($p['operador_nombre'] ?? ''));
+            if ($mat && !empty($nom) && $nom !== 'Desconocido') {
+                $operatorsMap[(string) $mat] = [
+                    'matricula' => (string) $mat,
+                    'nombre' => "{$nom} (Mat: {$mat})",
+                    'clean_name' => $nom,
+                ];
+            }
+        }
+        uasort($operatorsMap, fn($a, $b) => strcasecmp($a['clean_name'], $b['clean_name']));
+        $availableOperators = array_values(array_map(fn($op) => [
+            'matricula' => $op['matricula'],
+            'nombre' => $op['nombre'],
+        ], $operatorsMap));
+
+        // Números de pieza: solo se activan y calculan si OT, Clase y Proceso están los 3 seleccionados
+        $allThreeSelected = !empty($targetOt) && !empty($targetClaseId) && !empty($targetProcess);
+        $availablePieces = [];
+
+        if ($allThreeSelected) {
+            $numbersMap = [];
+            foreach ($contextPieces as $p) {
+                foreach ([$p['n_pieza'], $p['n_juego']] as $str) {
+                    if ($str && preg_match('/\d+/', (string) $str, $matches)) {
+                        $num = (int) $matches[0];
+                        if ($num > 0) {
+                            $numbersMap[$num] = true;
+                        }
+                    }
+                }
+            }
+            $sortedNumbers = array_keys($numbersMap);
+            sort($sortedNumbers, SORT_NUMERIC);
+            $availablePieces = array_map(fn($num) => [
+                'id' => (string) $num,
+                'label' => "Pieza #{$num}",
+            ], $sortedNumbers);
+        }
+
+        // 2. Filtrar para la tabla por Pieza u Operador si fueron seleccionados
+        $tablePieces = $contextPieces;
+
+        if (!empty($targetPieza)) {
+            preg_match('/\d+/', $targetPieza, $targetDigits);
+            $targetNum = $targetDigits[0] ?? $targetPieza;
+
+            $tablePieces = array_values(array_filter($tablePieces, function ($piece) use ($targetPieza, $targetNum) {
+                $pNum = trim((string) ($piece['n_pieza'] ?? ''));
+                $jNum = trim((string) ($piece['n_juego'] ?? ''));
+                preg_match('/\d+/', $pNum, $pDigits);
+                $pNumDigits = $pDigits[0] ?? '';
+                preg_match('/\d+/', $jNum, $jDigits);
+                $jNumDigits = $jDigits[0] ?? '';
+
+                return ($pNumDigits !== '' && $pNumDigits === $targetNum) ||
+                    ($jNumDigits !== '' && $jNumDigits === $targetNum) ||
+                    stripos($pNum, $targetPieza) !== false ||
+                    stripos($jNum, $targetPieza) !== false;
+            }));
+        }
+
+        if (!empty($targetOperador)) {
+            $tablePieces = array_values(array_filter($tablePieces, function ($piece) use ($targetOperador) {
+                $mat = $piece['operador_matricula'] ?? null;
+                $nom = $piece['operador_nombre'] ?? null;
+                return ($mat && (string) $mat === (string) $targetOperador) ||
+                    ($nom && stripos($nom, $targetOperador) !== false);
+            }));
+        }
+
+        $totalOrphans = 0;
+        $totalIncompletes = 0;
+        $affectedOts = [];
+
+        foreach ($tablePieces as $item) {
+            if (!empty($item['is_orphan'])) {
+                $totalOrphans++;
+            }
+            if (!empty($item['is_incomplete'])) {
+                $totalIncompletes++;
+            }
+            if (!empty($item['id_ot']) && $item['id_ot'] !== 'N/A') {
+                $affectedOts[$item['id_ot']] = true;
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'summary' => [
+                'total_occupied' => count($tablePieces),
+                'total_orphans' => $totalOrphans,
+                'total_incompletes' => $totalIncompletes,
+                'affected_ots' => count($affectedOts),
+            ],
+            'pieces' => $tablePieces,
+            'available_operators' => $availableOperators,
+            'available_pieces' => $availablePieces,
+            'all_three_selected' => $allThreeSelected,
+        ]);
+    }
+
+    /**
+     * Obtiene la lista completa de piezas ocupadas según los filtros especificados.
+     */
+    public function fetchOccupiedPiecesList($targetOt = null, $targetClaseId = null, $targetProcess = null, $targetPieza = null, $targetOperador = null): array
+    {
         $processesToScan = self::$processConfig;
         if (!empty($targetProcess) && isset(self::$processConfig[$targetProcess])) {
             $processesToScan = [$targetProcess => self::$processConfig[$targetProcess]];
         }
 
         $occupiedPieces = [];
-        $totalOrphans = 0;
-        $totalIncompletes = 0;
-        $affectedOts = [];
 
         // Pre-cargar usuarios para mapear matricula -> nombre de operador sin N+1
         $usersMap = User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])->get()->keyBy('matricula');
@@ -476,20 +560,21 @@ class PiecesOccupiedController extends Controller
             $rawIncompletePieces = collect();
 
             if ($isTwoHalf) {
-                $allProcPieces = $pieceModel::query()->whereIn('estado', [1, 2], 'and')->get();
-                if ($allProcPieces->isNotEmpty()) {
-                    $byGame = $allProcPieces->groupBy(function ($item) {
-                        return ($item->id_proceso ?? '0') . '_' . ($item->n_juego ?? $item->n_pieza ?? '0');
-                    });
+                $incompleteIds = $pieceModel::query()
+                    ->select(DB::raw('MAX(id) as id'))
+                    ->whereIn('estado', [1, 2], 'and')
+                    ->whereNotNull('n_juego')
+                    ->groupBy('id_proceso', 'n_juego')
+                    ->havingRaw('COUNT(*) = 1')
+                    ->pluck('id');
 
-                    foreach ($byGame as $gameKey => $group) {
-                        if ($group->count() === 1) {
-                            $singlePiece = $group->first();
-                            $pName = (string) ($singlePiece->n_pieza ?? '');
-                            $lastChar = strtoupper(substr($pName, -1));
-                            if ($lastChar === 'H' || $lastChar === 'M') {
-                                $rawIncompletePieces->push($singlePiece);
-                            }
+                if ($incompleteIds->isNotEmpty()) {
+                    $candidates = $pieceModel::query()->whereIn('id', $incompleteIds, 'and', false)->get();
+                    foreach ($candidates as $cand) {
+                        $pName = (string) ($cand->n_pieza ?? '');
+                        $lastChar = strtoupper(substr($pName, -1));
+                        if ($lastChar === 'H' || $lastChar === 'M') {
+                            $rawIncompletePieces->push($cand);
                         }
                     }
                 }
@@ -559,9 +644,9 @@ class PiecesOccupiedController extends Controller
                     $jNumDigits = $jDigits[0] ?? '';
 
                     $matchesPiece = ($pNumDigits !== '' && $pNumDigits === $targetNum) ||
-                                    ($jNumDigits !== '' && $jNumDigits === $targetNum) ||
-                                    stripos($pNum, $targetPieza) !== false ||
-                                    stripos($jNum, $targetPieza) !== false;
+                        ($jNumDigits !== '' && $jNumDigits === $targetNum) ||
+                        stripos($pNum, $targetPieza) !== false ||
+                        stripos($jNum, $targetPieza) !== false;
 
                     if (!$matchesPiece) {
                         continue;
@@ -596,14 +681,7 @@ class PiecesOccupiedController extends Controller
                 if (!$isIncomplete) {
                     if (!$meta || !in_array($meta->id, $activeMachineMetaIds)) {
                         $isOrphan = true;
-                        $totalOrphans++;
                     }
-                } else {
-                    $totalIncompletes++;
-                }
-
-                if ($ot) {
-                    $affectedOts[$ot] = true;
                 }
 
                 $occupiedPieces[] = [
@@ -680,11 +758,6 @@ class PiecesOccupiedController extends Controller
                 $opUser = $gp->id_operador ? $usersMap->get($gp->id_operador) : null;
                 $opName = $opUser ? "{$opUser->nombre} {$opUser->a_paterno}" : ($gp->id_operador ?: 'Desconocido');
 
-                if ($gp->id_ot) {
-                    $affectedOts[$gp->id_ot] = true;
-                }
-                $totalIncompletes++;
-
                 $occupiedPieces[] = [
                     'id' => $gp->id,
                     'proceso_key' => $procKey,
@@ -711,16 +784,7 @@ class PiecesOccupiedController extends Controller
             }
         }
 
-        return response()->json([
-            'success' => true,
-            'summary' => [
-                'total_occupied' => count($occupiedPieces),
-                'total_orphans' => $totalOrphans,
-                'total_incompletes' => $totalIncompletes,
-                'affected_ots' => count($affectedOts),
-            ],
-            'pieces' => $occupiedPieces,
-        ]);
+        return $occupiedPieces;
     }
 
     /**
@@ -839,6 +903,7 @@ class PiecesOccupiedController extends Controller
 
                 $generalPiece->delete();
                 $actionDetail = "Se eliminó el registro de la pieza '{$nPieza}' en el proceso '{$proceso}' (OT: {$ot}).";
+                $metaClaseId = $meta->id_clase ?? null;
             }
 
             SystemLog::create([
@@ -847,6 +912,7 @@ class PiecesOccupiedController extends Controller
                 'details' => $actionDetail,
                 'ot' => ($ot && $ot !== 'N/A') ? $ot : null,
                 'id_ot' => ($ot && $ot !== 'N/A') ? $ot : null,
+                'id_clase' => $metaClaseId ?? null,
                 'clase' => $claseNombre,
                 'proceso' => $proceso,
                 'n_pieza' => $nPieza,
@@ -1123,20 +1189,64 @@ class PiecesOccupiedController extends Controller
                     'users.a_paterno as user_paterno',
                 ])
                 ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
-                ->whereIn('system_logs.action', [
-                    'Liberación de Pieza Ocupada',
-                    'Liberación Masiva de Piezas',
-                    'Modificación de Pieza Ocupada',
-                    'Eliminación de Pieza Ocupada',
-                ]);
+                ->where(function ($q) {
+                    $q->whereIn('system_logs.action', [
+                        'Liberación de Pieza Ocupada',
+                        'Liberación de Pieza Ocupada / Incompleta',
+                        'Liberación Masiva de Piezas',
+                        'Modificación de Pieza Ocupada',
+                        'Eliminación de Pieza Ocupada',
+                    ])
+                    ->orWhere('system_logs.action', 'LIKE', '%Pieza Ocupada%')
+                    ->orWhere('system_logs.action', 'LIKE', '%Piezas Ocupadas%')
+                    ->orWhere('system_logs.action', 'LIKE', '%Liberación Masiva%');
+                });
 
             if ($request->filled('ot')) {
                 $baseOt = preg_match('/^(\d+)/', $request->input('ot'), $matches) ? $matches[1] : $request->input('ot');
-                $query->where('system_logs.ot', 'LIKE', $baseOt . '%');
+                $query->where(function ($q) use ($baseOt) {
+                    $q->where('system_logs.ot', 'LIKE', $baseOt . '%')
+                        ->orWhere('system_logs.id_ot', '=', $baseOt)
+                        ->orWhere('system_logs.details', 'LIKE', "%OT: {$baseOt}%")
+                        ->orWhere('system_logs.details', 'LIKE', "%(OT: {$baseOt})%");
+                });
+            }
+
+            if ($request->filled('clase_id')) {
+                $claseInput = $request->input('clase_id');
+                $claseObj = is_numeric($claseInput) ? Clase::find((int) $claseInput) : null;
+                $claseName = $claseObj ? $claseObj->nombre : (string) $claseInput;
+                $cleanName = trim(preg_replace('/^\d+\s*-\s*/', '', mb_strtolower($claseName, 'UTF-8')));
+
+                $query->where(function ($q) use ($claseName, $cleanName, $claseInput) {
+                    $q->where('system_logs.clase', 'LIKE', "%{$cleanName}%")
+                        ->orWhere('system_logs.clase', 'LIKE', "%{$claseName}%")
+                        ->orWhere('system_logs.id_clase', '=', $claseInput);
+                });
             }
 
             if ($request->filled('proceso')) {
                 $query->where('system_logs.proceso', '=', $request->input('proceso'), 'and');
+            }
+
+            if ($request->filled('pieza')) {
+                $p = $request->input('pieza');
+                $query->where(function ($q) use ($p) {
+                    $q->where('system_logs.n_pieza', 'LIKE', "%{$p}%")
+                        ->orWhere('system_logs.details', 'LIKE', "%'{$p}%")
+                        ->orWhere('system_logs.details', 'LIKE', "%pieza #{$p}%")
+                        ->orWhere('system_logs.details', 'LIKE', "%pieza {$p}%");
+                });
+            }
+
+            if ($request->filled('operador')) {
+                $op = $request->input('operador');
+                $query->where(function ($q) use ($op) {
+                    $q->where('system_logs.user_matricula', '=', $op)
+                        ->orWhere('users.nombre', 'LIKE', "%{$op}%")
+                        ->orWhere('users.a_paterno', 'LIKE', "%{$op}%")
+                        ->orWhere('system_logs.details', 'LIKE', "%{$op}%");
+                });
             }
 
             $logs = $query->orderBy('system_logs.created_at', 'desc')

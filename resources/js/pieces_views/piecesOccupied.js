@@ -126,74 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Sincroniza el estado del filtro de Número de Pieza:
-     * Solo se activa si los 3 primeros filtros (OT, Clase, Proceso) están seleccionados.
-     * Carga las piezas específicas de ese contexto englobando macho y hembra en un solo número.
-     */
-    async function syncPieceFilterState() {
-        if (!selectPieza) return;
-
-        const ot = selectOt ? selectOt.value : '';
-        const clase = selectClase ? selectClase.value : '';
-        const proceso = selectProceso ? selectProceso.value : '';
-
-        const allThreeSelected = Boolean(ot && clase && proceso);
-
-        if (!allThreeSelected) {
-            selectPieza.disabled = true;
-            selectPieza.innerHTML = '<option value="">Todas las Piezas</option>';
-            selectPieza.value = '';
-            selectPieza.title = 'Selecciona primero OT, Clase y Proceso para activar este filtro';
-            return;
-        }
-
-        // Si los 3 están seleccionados, habilitar y cargar opciones
-        selectPieza.disabled = true;
-        selectPieza.innerHTML = '<option value="">Cargando piezas...</option>';
-        selectPieza.title = 'Selecciona un número de pieza';
-
-        try {
-            const res = await fetch(window.routes.getPiecesByContext, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': csrfToken,
-                    'Accept': 'application/json',
-                },
-                body: JSON.stringify({
-                    ot,
-                    clase_id: clase,
-                    proceso,
-                }),
-            });
-
-            const data = await res.json();
-            const pieces = data.pieces || [];
-
-            selectPieza.innerHTML = '<option value="">Todas las Piezas</option>';
-
-            if (pieces.length > 0) {
-                pieces.forEach(p => {
-                    const opt = document.createElement('option');
-                    opt.value = p.id;
-                    opt.textContent = p.label;
-                    selectPieza.appendChild(opt);
-                });
-            } else {
-                const optNone = document.createElement('option');
-                optNone.value = '';
-                optNone.textContent = 'Sin piezas registradas';
-                selectPieza.appendChild(optNone);
-            }
-            selectPieza.disabled = false;
-        } catch (err) {
-            console.error('Error al cargar piezas por contexto:', err);
-            selectPieza.innerHTML = '<option value="">Todas las Piezas</option>';
-            selectPieza.disabled = false;
-        }
-    }
-
-    /**
      * Abre el modal de confirmación nativo GIS con animación ultra-fluida.
      */
     function openConfirmDialog({
@@ -261,14 +193,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
-     * Carga y renderiza las piezas ocupadas desde el servidor.
-     * @param {boolean} isSilent - Si es true, refresca datos sin colapsar la tabla con spinner.
+     * Carga y renderiza las piezas ocupadas desde el servidor con sincronización reactiva integrada.
+     * @param {boolean} isSilent - Si es true, refresca datos con atenuación suave sin salto de layout.
      */
-    async function loadOccupiedPieces(isSilent = false) {
+    async function loadOccupiedPieces(isSilent = true) {
         if (btnRefresh) btnRefresh.disabled = true;
         updateClearButtonState();
 
-        if (!isSilent) {
+        const hasExistingRows = tableBody && tableBody.children.length > 0 && !tableBody.querySelector('.loading-gif');
+
+        if (!hasExistingRows && !isSilent) {
             tableBody.innerHTML = `
                 <tr>
                     <td colspan="9" class="empty-state">
@@ -278,7 +212,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </tr>
             `;
         } else {
-            tableBody.style.transition = 'opacity 0.2s ease';
+            tableBody.style.transition = 'opacity 0.15s ease';
             tableBody.style.opacity = '0.5';
         }
 
@@ -312,8 +246,67 @@ document.addEventListener('DOMContentLoaded', () => {
             if (statTotalIncompletes) statTotalIncompletes.textContent = data.summary?.total_incompletes ?? 0;
             if (statAffectedOts) statAffectedOts.textContent = data.summary?.affected_ots ?? 0;
 
-            // Reiniciar a la primera página ante nueva consulta
-            currentPage = 1;
+            // 1. Sincronizar filtro de OPERADOR (se va reduciendo dinámicamente)
+            if (selectOperador && data.available_operators) {
+                const currentOpVal = selectOperador.value;
+                selectOperador.innerHTML = '<option value="">Todos los Operadores</option>';
+                let opStillValid = false;
+
+                data.available_operators.forEach(op => {
+                    const opt = document.createElement('option');
+                    opt.value = op.matricula;
+                    opt.textContent = op.nombre;
+                    if (String(op.matricula) === String(currentOpVal)) {
+                        opt.selected = true;
+                        opStillValid = true;
+                    }
+                    selectOperador.appendChild(opt);
+                });
+
+                if (opStillValid) {
+                    selectOperador.value = currentOpVal;
+                } else if (currentOpVal !== '') {
+                    selectOperador.value = '';
+                }
+            }
+
+            // 2. Sincronizar filtro de NÚMERO DE PIEZA (solo activo si OT, Clase y Proceso están seleccionados)
+            if (selectPieza) {
+                if (data.all_three_selected) {
+                    selectPieza.disabled = false;
+                    selectPieza.removeAttribute('disabled');
+                    selectPieza.title = 'Filtrar por número de pieza';
+
+                    const currentPieceVal = selectPieza.value;
+                    selectPieza.innerHTML = '<option value="">Todas las Piezas</option>';
+                    let pieceStillValid = false;
+
+                    if (data.available_pieces && data.available_pieces.length > 0) {
+                        data.available_pieces.forEach(p => {
+                            const opt = document.createElement('option');
+                            opt.value = p.id;
+                            opt.textContent = p.label;
+                            if (String(p.id) === String(currentPieceVal)) {
+                                opt.selected = true;
+                                pieceStillValid = true;
+                            }
+                            selectPieza.appendChild(opt);
+                        });
+                    }
+
+                    if (pieceStillValid) {
+                        selectPieza.value = currentPieceVal;
+                    } else if (currentPieceVal !== '') {
+                        selectPieza.value = '';
+                    }
+                } else {
+                    selectPieza.disabled = true;
+                    selectPieza.setAttribute('disabled', 'disabled');
+                    selectPieza.title = 'Selecciona primero OT, Clase y Proceso para activar este filtro';
+                    selectPieza.innerHTML = '<option value="">Todas las Piezas</option>';
+                    selectPieza.value = '';
+                }
+            }
 
             // Renderizar tabla con paginación
             renderTable(currentPiecesData);
@@ -332,6 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             tableBody.style.opacity = '1';
             if (btnRefresh) btnRefresh.disabled = false;
+            updateClearButtonState();
         }
     }
 
@@ -925,7 +919,9 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadAdminLogs(isSilent = false) {
         if (!logsTableBody) return;
 
-        if (!isSilent) {
+        const hasExistingRows = logsTableBody && logsTableBody.children.length > 0 && !logsTableBody.querySelector('.loading-gif');
+
+        if (!hasExistingRows && !isSilent) {
             logsTableBody.innerHTML = `
                 <tr>
                     <td colspan="8" class="empty-state">
@@ -934,6 +930,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                 </tr>
             `;
+        } else if (hasExistingRows) {
+            logsTableBody.style.transition = 'opacity 0.15s ease';
+            logsTableBody.style.opacity = '0.5';
         }
 
         try {
@@ -946,6 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 },
                 body: JSON.stringify({
                     ot: selectOt ? selectOt.value : '',
+                    clase_id: selectClase ? selectClase.value : '',
                     proceso: selectProceso ? selectProceso.value : '',
                     pieza: selectPieza ? selectPieza.value : '',
                     operador: selectOperador ? selectOperador.value : '',
@@ -977,6 +977,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     </tr>
                 `;
             }
+        } finally {
+            if (logsTableBody) logsTableBody.style.opacity = '1';
         }
     }
 
@@ -1057,6 +1059,19 @@ document.addEventListener('DOMContentLoaded', () => {
         logsTableBody.innerHTML = html;
     }
 
+    /**
+     * Refresca la vista activa y actualiza en segundo plano los datos/badge de la otra pestaña.
+     */
+    function refreshCurrentView(isSilent = true) {
+        if (activeTab === 'pieces') {
+            loadOccupiedPieces(isSilent);
+            loadAdminLogs(true);
+        } else {
+            loadAdminLogs(isSilent);
+            loadOccupiedPieces(true);
+        }
+    }
+
     // Cambio de OT -> Actualizar dropdown de Clases, sincronizar piezas y recargar
     if (selectOt) {
         selectOt.addEventListener('change', async () => {
@@ -1079,68 +1094,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error al cargar clases:', err);
             }
 
-            await syncPieceFilterState();
-            updateClearButtonState();
             currentPage = 1;
-
-            if (activeTab === 'pieces') {
-                loadOccupiedPieces();
-                loadAdminLogs(true);
-            } else {
-                loadAdminLogs();
-            }
+            refreshCurrentView(true);
         });
     }
 
-    // Filtros de Clase y Proceso -> Sincronizan el filtro dependiente de Número de Pieza
+    // Filtros de Clase y Proceso
     if (selectClase) {
-        selectClase.addEventListener('change', async () => {
-            await syncPieceFilterState();
-            updateClearButtonState();
+        selectClase.addEventListener('change', () => {
             currentPage = 1;
-            if (activeTab === 'pieces') loadOccupiedPieces();
+            refreshCurrentView(true);
         });
     }
 
     if (selectProceso) {
-        selectProceso.addEventListener('change', async () => {
-            await syncPieceFilterState();
-            updateClearButtonState();
+        selectProceso.addEventListener('change', () => {
             currentPage = 1;
-            if (activeTab === 'pieces') {
-                loadOccupiedPieces();
-                loadAdminLogs(true);
-            } else {
-                loadAdminLogs();
-            }
+            refreshCurrentView(true);
         });
     }
 
-    // Filtro de Número de Pieza (activo solo con los 3 primeros filtros seleccionados)
+    // Filtro de Número de Pieza
     if (selectPieza) {
         selectPieza.addEventListener('change', () => {
-            updateClearButtonState();
             currentPage = 1;
-            if (activeTab === 'pieces') {
-                loadOccupiedPieces();
-                loadAdminLogs(true);
-            } else {
-                loadAdminLogs();
-            }
+            refreshCurrentView(true);
         });
     }
 
     // Filtro de Operador
     if (selectOperador) {
         selectOperador.addEventListener('change', () => {
-            updateClearButtonState();
             currentPage = 1;
-            if (activeTab === 'pieces') {
-                loadOccupiedPieces();
-                loadAdminLogs(true);
-            } else {
-                loadAdminLogs();
-            }
+            refreshCurrentView(true);
         });
     }
 
@@ -1150,10 +1136,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (selectOt) selectOt.value = '';
             if (selectClase) selectClase.value = '';
             if (selectProceso) selectProceso.value = '';
-            if (selectPieza) selectPieza.value = '';
+            if (selectPieza) {
+                selectPieza.value = '';
+                selectPieza.disabled = true;
+                selectPieza.setAttribute('disabled', 'disabled');
+                selectPieza.title = 'Selecciona primero OT, Clase y Proceso para activar este filtro';
+                selectPieza.innerHTML = '<option value="">Todas las Piezas</option>';
+            }
             if (selectOperador) selectOperador.value = '';
-
-            await syncPieceFilterState();
 
             // Restaurar catálogo general de clases en el dropdown
             if (selectClase && window.routes?.getClasses) {
@@ -1174,33 +1164,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            updateClearButtonState();
             currentPage = 1;
-
-            if (activeTab === 'pieces') {
-                loadOccupiedPieces();
-                loadAdminLogs(true);
-            } else {
-                loadAdminLogs();
-            }
+            refreshCurrentView(true);
         });
     }
 
     if (btnRefresh) {
         btnRefresh.addEventListener('click', () => {
-            if (activeTab === 'pieces') {
-                loadOccupiedPieces();
-                loadAdminLogs(true);
-            } else {
-                loadAdminLogs();
-                loadOccupiedPieces(true);
-            }
+            refreshCurrentView(false);
         });
     }
 
-    // Inicialización de estado y primera carga
-    syncPieceFilterState();
+    // Inicialización de estado y primera carga ultra-fluida
     updateClearButtonState();
-    loadOccupiedPieces();
+    loadOccupiedPieces(false);
     loadAdminLogs(true);
 });
