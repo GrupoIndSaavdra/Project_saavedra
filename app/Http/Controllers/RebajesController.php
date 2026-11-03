@@ -10,18 +10,20 @@ class RebajesController extends Controller
     {
         $this->middleware('auth');
     }
-        /**
-     * @param mixed $request
-     * @param mixed $cNominal
-     * @param mixed $tolerance
-     * @param int $index
+
+    /**
+     * @param  mixed  $request
+     * @param  mixed  $cNominal
+     * @param  mixed  $tolerance
+     * @param  int  $index
      */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = Rebajes_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
@@ -36,7 +38,7 @@ class RebajesController extends Controller
                 'observaciones',
             ];
 
-            $data = array();
+            $data = [];
             foreach ($fields as $field) {
                 $data[$field] = $request->$field[$index] ?? null;
             }
@@ -44,8 +46,9 @@ class RebajesController extends Controller
             $error = $request->error[$index] ?? 'Ninguno';
         } else {
             $pieceId = $request->piece;
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = Rebajes_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
@@ -64,10 +67,10 @@ class RebajesController extends Controller
 
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
-        if ($correct == 0 && $error == "Ninguno") {
+        if ($correct == 0 && $error == 'Ninguno') {
             $piece->error = 'Maquinado';
             $piece->correcto = 0;
-        } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
+        } elseif (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
             $piece->error = $error;
             $piece->correcto = 0;
         } else {
@@ -76,16 +79,18 @@ class RebajesController extends Controller
         }
         $piece->save();
     }
-        /**
-     * @param mixed $pieza
-     * @param mixed $cNominal
-     * @param mixed $tolerancia
+
+    /**
+     * @param  mixed  $pieza
+     * @param  mixed  $cNominal
+     * @param  mixed  $tolerancia
      */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         if ($pieza->rebaje1 > ($cNominal->rebaje1 + $tolerancia->rebaje1) || $pieza->rebaje1 < ($cNominal->rebaje1 - $tolerancia->rebaje1) || $pieza->rebaje2 > ($cNominal->rebaje2 + $tolerancia->rebaje2) || $pieza->rebaje2 < ($cNominal->rebaje2 - $tolerancia->rebaje2) || $pieza->rebaje3 > ($cNominal->rebaje3 + $tolerancia->rebaje3) || $pieza->rebaje3 < ($cNominal->rebaje3 - $tolerancia->rebaje3) || $pieza->profundidad_bordonio > ($cNominal->profundidad_bordonio + $tolerancia->profundidad_bordonio) || $pieza->profundidad_bordonio < ($cNominal->profundidad_bordonio - $tolerancia->profundidad_bordonio) || $pieza->vena1 > ($cNominal->vena1 + $tolerancia->vena1) || $pieza->vena1 < ($cNominal->vena1 - $tolerancia->vena1) || $pieza->vena2 > ($cNominal->vena2 + $tolerancia->vena2) || $pieza->vena2 < ($cNominal->vena2 - $tolerancia->vena2) || $pieza->simetria > ($cNominal->simetria + $tolerancia->simetria) || $pieza->simetria < ($cNominal->simetria - $tolerancia->simetria)) {
             return 0; //Retorno de datos. //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
         }
+
         return 1;
     }
 }

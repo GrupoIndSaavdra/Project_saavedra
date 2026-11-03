@@ -35,7 +35,7 @@ class CalidadMaquinadosController extends Controller
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
-        if (!$user || !in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)) {
+        if (! $user || ! in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)) {
             abort(403, 'Acceso restringido. Solo Calidad y Administradores pueden ver esta sección.');
         }
     }
@@ -55,19 +55,19 @@ class CalidadMaquinadosController extends Controller
         $this->verificarAcceso();
 
         // ── Parámetros de filtro ──────────────────────────────────────────────
-        $filtroOt     = trim($request->query('ot', ''));
-        $filtroClase  = trim($request->query('clase', ''));
+        $filtroOt = trim($request->query('ot', ''));
+        $filtroClase = trim($request->query('clase', ''));
         $filtroProceso = trim($request->query('proceso', ''));
-        $desde        = $request->query('desde', '');
-        $hasta        = $request->query('hasta', '');
+        $desde = $request->query('desde', '');
+        $hasta = $request->query('hasta', '');
 
         // ── Query base con filtros compartidos ───────────────────────────────
         $queryBase = CalidadMaquinadoDoc::query()
-            ->when($filtroOt !== '', fn($q) => $q->where('ot', $filtroOt))
-            ->when($filtroClase !== '', fn($q) => $q->where('clase', $filtroClase))
-            ->when($filtroProceso !== '', fn($q) => $q->where('proceso', $filtroProceso))
-            ->when($desde !== '', fn($q) => $q->whereDate('fecha_archivo', '>=', $desde))
-            ->when($hasta !== '', fn($q) => $q->whereDate('fecha_archivo', '<=', $hasta));
+            ->when($filtroOt !== '', fn ($q) => $q->where('ot', $filtroOt))
+            ->when($filtroClase !== '', fn ($q) => $q->where('clase', $filtroClase))
+            ->when($filtroProceso !== '', fn ($q) => $q->where('proceso', $filtroProceso))
+            ->when($desde !== '', fn ($q) => $q->whereDate('fecha_archivo', '>=', $desde))
+            ->when($hasta !== '', fn ($q) => $q->whereDate('fecha_archivo', '<=', $hasta));
 
         // ── Tabla 1: Dibujos activos ─────────────────────────────────────────
         $dibujos = (clone $queryBase)
@@ -95,13 +95,13 @@ class CalidadMaquinadosController extends Controller
         // OT:     solo de Dibujos (las Ayudas no tienen OT)
         // Clase:  de ambos tipos
         // Proceso: solo de Ayudas (los Dibujos pueden no tenerlo)
-        $listaOts      = CalidadMaquinadoDoc::query()->where('estado', 'activo')->where('tipo', 'dibujo')->distinct()->orderBy('ot')->pluck('ot')->filter()->values();
-        $listaClases   = CalidadMaquinadoDoc::query()->where('estado', 'activo')->distinct()->orderBy('clase')->pluck('clase')->filter()->values();
+        $listaOts = CalidadMaquinadoDoc::query()->where('estado', 'activo')->where('tipo', 'dibujo')->distinct()->orderBy('ot')->pluck('ot')->filter()->values();
+        $listaClases = CalidadMaquinadoDoc::query()->where('estado', 'activo')->distinct()->orderBy('clase')->pluck('clase')->filter()->values();
         $listaProcesos = CalidadMaquinadoDoc::query()->where('estado', 'activo')->where('tipo', 'ayuda')->distinct()->orderBy('proceso')->pluck('proceso')->filter()->values();
 
         // ── Stats globales (sin filtros) ──────────────────────────────────────
-        $totalDibujos   = CalidadMaquinadoDoc::query()->where('tipo', 'dibujo')->where('estado', 'activo')->count();
-        $totalAyudas    = CalidadMaquinadoDoc::query()->where('tipo', 'ayuda')->where('estado', 'activo')->count();
+        $totalDibujos = CalidadMaquinadoDoc::query()->where('tipo', 'dibujo')->where('estado', 'activo')->count();
+        $totalAyudas = CalidadMaquinadoDoc::query()->where('tipo', 'ayuda')->where('estado', 'activo')->count();
         $totalInactivos = CalidadMaquinadoDoc::query()->where('estado', 'inactivo')->count();
 
         return view('calidad.maquinados_index', compact(
@@ -143,33 +143,33 @@ class CalidadMaquinadosController extends Controller
         /** @var CalidadMaquinadoDoc|null $doc */
         $doc = CalidadMaquinadoDoc::query()->find($id);
 
-        if (!$doc) {
+        if (! $doc) {
             abort(404, 'Documento no encontrado en el índice.');
         }
 
-        if (!Storage::disk('local')->exists($doc->ruta_storage)) {
+        if (! Storage::disk('local')->exists($doc->ruta_storage)) {
             abort(404, 'El archivo físico de respaldo no se encontró.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk     = Storage::disk('local');
+        $disk = Storage::disk('local');
         $fullPath = $disk->path($doc->ruta_storage);
-        $ext      = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION));
+        $ext = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION));
 
         $mimeMap = [
-            'pdf'  => 'application/pdf',
-            'png'  => 'image/png',
-            'jpg'  => 'image/jpeg',
+            'pdf' => 'application/pdf',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
             'jpeg' => 'image/jpeg',
-            'dwg'  => 'application/octet-stream',
-            'dxf'  => 'application/octet-stream',
+            'dwg' => 'application/octet-stream',
+            'dxf' => 'application/octet-stream',
         ];
 
         $mime = $mimeMap[$ext] ?? 'application/octet-stream';
 
         return response()->file($fullPath, [
-            'Content-Type'        => $mime,
-            'Content-Disposition' => 'inline; filename="' . $doc->nombre_archivo . '"',
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="'.$doc->nombre_archivo.'"',
         ]);
     }
 
@@ -185,26 +185,26 @@ class CalidadMaquinadosController extends Controller
     {
         $this->verificarAcceso();
 
-        $filtroOt      = trim($request->query('ot', ''));
-        $filtroClase   = trim($request->query('clase', ''));
+        $filtroOt = trim($request->query('ot', ''));
+        $filtroClase = trim($request->query('clase', ''));
         $filtroProceso = trim($request->query('proceso', ''));
-        $desde         = $request->query('desde', '');
-        $hasta         = $request->query('hasta', '');
+        $desde = $request->query('desde', '');
+        $hasta = $request->query('hasta', '');
 
         $query = CalidadMaquinadoDoc::query()
-            ->when($filtroOt !== '', fn($q) => $q->where('ot', $filtroOt))
-            ->when($filtroClase !== '', fn($q) => $q->where('clase', $filtroClase))
-            ->when($filtroProceso !== '', fn($q) => $q->where('proceso', $filtroProceso))
-            ->when($desde !== '', fn($q) => $q->whereDate('fecha_archivo', '>=', $desde))
-            ->when($hasta !== '', fn($q) => $q->whereDate('fecha_archivo', '<=', $hasta));
+            ->when($filtroOt !== '', fn ($q) => $q->where('ot', $filtroOt))
+            ->when($filtroClase !== '', fn ($q) => $q->where('clase', $filtroClase))
+            ->when($filtroProceso !== '', fn ($q) => $q->where('proceso', $filtroProceso))
+            ->when($desde !== '', fn ($q) => $q->whereDate('fecha_archivo', '>=', $desde))
+            ->when($hasta !== '', fn ($q) => $q->whereDate('fecha_archivo', '<=', $hasta));
 
-        $dibujos   = (clone $query)->where('tipo', 'dibujo')->where('estado', 'activo')->orderBy('ot')->get();
-        $ayudas    = (clone $query)->where('tipo', 'ayuda')->where('estado', 'activo')->orderBy('ot')->get();
+        $dibujos = (clone $query)->where('tipo', 'dibujo')->where('estado', 'activo')->orderBy('ot')->get();
+        $ayudas = (clone $query)->where('tipo', 'ayuda')->where('estado', 'activo')->orderBy('ot')->get();
         $inactivos = (clone $query)->where('estado', 'inactivo')->orderByDesc('updated_at')->get();
 
         return response()->json([
-            'dibujos'   => $dibujos,
-            'ayudas'    => $ayudas,
+            'dibujos' => $dibujos,
+            'ayudas' => $ayudas,
             'inactivos' => $inactivos,
         ]);
     }

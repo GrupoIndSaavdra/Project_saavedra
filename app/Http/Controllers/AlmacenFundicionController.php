@@ -2,22 +2,25 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Clase;
 use App\Models\FundicionHistory;
 use App\Models\LiberacionModeloFundicion;
 use App\Models\Orden_trabajo;
-use App\Models\Clase;
 use App\Models\PreOrdenFundicion;
 use App\Models\PreOrdenLog;
 use App\Models\RechazoLog;
 use App\Models\ScarModelo;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
-use Normalizer;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Mail;
+use App\Models\User;
 use App\Services\FundicionPaths;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Normalizer;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AlmacenFundicionController extends Controller
@@ -47,7 +50,7 @@ class AlmacenFundicionController extends Controller
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
-        if (!$user || !in_array($user->perfil, self::PERFILES_PERMITIDOS, true)) {
+        if (! $user || ! in_array($user->perfil, self::PERFILES_PERMITIDOS, true)) {
             abort(403, 'Acceso restringido. Solo Almacén y Calidad pueden ver esta sección.');
         }
     }
@@ -59,8 +62,6 @@ class AlmacenFundicionController extends Controller
     /**
      * Muestra la tabla con todos los registros históricos de Almacén,
      * incluyendo su estado Activa/Inactiva.
-     *
-     * @param Request $request
      */
     public function index(Request $request)
     {
@@ -140,7 +141,6 @@ class AlmacenFundicionController extends Controller
      * La lista proviene del snapshot en BD (almacen_archivos) y se verifica
      * físicamente para filtrar archivos que puedan haberse eliminado.
      *
-     * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function getFiles(Request $request)
@@ -157,13 +157,13 @@ class AlmacenFundicionController extends Controller
 
         /** @var FundicionHistory|null $history */
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
-        if (!$history) {
+        if (! $history) {
             $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
         }
 
         // Check by base OT if not found directly
         $baseOt = FundicionPaths::cleanOtRevision($ot);
-        if (!$history) {
+        if (! $history) {
             $history = FundicionHistory::where('ot', '=', $baseOt, 'and')->first();
         }
 
@@ -176,11 +176,11 @@ class AlmacenFundicionController extends Controller
             $allOtNames = [$ot];
         } else {
             $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
-                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
-                ->where('ot', 'LIKE', $baseOt . '_%_R%', 'or')
+                ->where('ot', 'LIKE', $baseOt.'_R%', 'or')
+                ->where('ot', 'LIKE', $baseOt.'_%_R%', 'or')
                 ->pluck('ot')
                 ->toArray();
-            if (!in_array($ot, $allOtNames)) {
+            if (! in_array($ot, $allOtNames)) {
                 $allOtNames[] = $ot;
             }
         }
@@ -195,11 +195,11 @@ class AlmacenFundicionController extends Controller
 
         $activeClasses = [];
         $reqTipoModelo = $request->query('tipo_modelo', '');
-        if (!empty($reqTipoModelo)) {
+        if (! empty($reqTipoModelo)) {
             $activeClasses = array_map('strtolower', array_unique(array_filter(array_map('trim', explode(',', $reqTipoModelo)))));
         }
 
-        if (empty($activeClasses) && $modelPreOrden && !$todo && $tipoPeticion !== 'modelo') {
+        if (empty($activeClasses) && $modelPreOrden && ! $todo && $tipoPeticion !== 'modelo') {
             $filas = $modelPreOrden->filas;
             while (is_string($filas)) {
                 $filas = json_decode($filas, true);
@@ -217,7 +217,7 @@ class AlmacenFundicionController extends Controller
                         foreach ($parts as $p) {
                             $trimmed = trim($p);
                             $trimmed = preg_replace('/^(modelo|casting)\s+/i', '', $trimmed);
-                            if (!empty($trimmed) && !in_array($trimmed, $activeClasses)) {
+                            if (! empty($trimmed) && ! in_array($trimmed, $activeClasses)) {
                                 $activeClasses[] = $trimmed;
                             }
                         }
@@ -228,11 +228,11 @@ class AlmacenFundicionController extends Controller
 
         $isReproceso = (bool) preg_match('/_R\d+$/i', $ot);
 
-        if ($isReproceso && empty($activeClasses) && !$todo && $tipoPeticion !== 'modelo') {
+        if ($isReproceso && empty($activeClasses) && ! $todo && $tipoPeticion !== 'modelo') {
             $historyRepro = FundicionHistory::where('ot', '=', $ot, 'and')->first();
-            if ($historyRepro && !empty($historyRepro->ayudas_config)) {
+            if ($historyRepro && ! empty($historyRepro->ayudas_config)) {
                 $config = is_string($historyRepro->ayudas_config) ? json_decode($historyRepro->ayudas_config, true) : $historyRepro->ayudas_config;
-                if (is_array($config) && !empty($config)) {
+                if (is_array($config) && ! empty($config)) {
                     $activeClasses = array_map('strtolower', $config);
                 }
             }
@@ -254,15 +254,15 @@ class AlmacenFundicionController extends Controller
                         'Fondo',
                         'Pistones',
                         'Guías',
-                        'Guias'
+                        'Guias',
                     ]
                 );
-                $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
+                $baseOtPath = self::ALMACEN_DIR.'/'.$folderName;
                 if (\Storage::disk('local')->exists($baseOtPath)) {
                     $dirs = \Storage::disk('local')->directories($baseOtPath);
                     foreach ($dirs as $dir) {
                         $basename = strtolower(basename($dir));
-                        if (!in_array($basename, ['escaneados', 'ayudas_visuales']) && !in_array($basename, $defaultClasses)) {
+                        if (! in_array($basename, ['escaneados', 'ayudas_visuales']) && ! in_array($basename, $defaultClasses)) {
                             $defaultClasses[] = $basename;
                         }
                     }
@@ -274,7 +274,8 @@ class AlmacenFundicionController extends Controller
                     // Para un reproceso, solo mostramos las clases que fueron RECHAZADAS en el ciclo anterior
                     $prevOt = preg_replace_callback('/_R(\d+)$/i', function ($m) {
                         $num = intval($m[1]) - 1;
-                        return $num > 0 ? '_R' . $num : '';
+
+                        return $num > 0 ? '_R'.$num : '';
                     }, $ot);
 
                     $rechazados = LiberacionModeloFundicion::where('ot', '=', $prevOt, 'and')
@@ -289,7 +290,7 @@ class AlmacenFundicionController extends Controller
                             $validClasses[] = $c;
                         }
                     }
-                    if (!empty($validClasses)) {
+                    if (! empty($validClasses)) {
                         $activeClasses = $validClasses;
                     }
                 } else {
@@ -308,7 +309,7 @@ class AlmacenFundicionController extends Controller
                                 $validClasses[] = $c;
                             }
                         }
-                        if (!empty($validClasses)) {
+                        if (! empty($validClasses)) {
                             $activeClasses = $validClasses;
                         } else {
                             $activeClasses = [];
@@ -331,15 +332,15 @@ class AlmacenFundicionController extends Controller
                             'Fondo',
                             'Pistones',
                             'Guías',
-                            'Guias'
+                            'Guias',
                         ]
                     );
-                    $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
+                    $baseOtPath = self::ALMACEN_DIR.'/'.$folderName;
                     if (\Storage::disk('local')->exists($baseOtPath)) {
                         $dirs = \Storage::disk('local')->directories($baseOtPath);
                         foreach ($dirs as $dir) {
                             $basename = strtolower(basename($dir));
-                            if (!in_array($basename, ['escaneados', 'ayudas_visuales']) && !in_array($basename, $defaultClasses)) {
+                            if (! in_array($basename, ['escaneados', 'ayudas_visuales']) && ! in_array($basename, $defaultClasses)) {
                                 $defaultClasses[] = $basename;
                             }
                         }
@@ -362,19 +363,19 @@ class AlmacenFundicionController extends Controller
             $relFolder = $this->sanitizePath($this->normalizeOTName($relatedOt));
 
             // Dibujos y Ayudas Visuales (no pre-ordenes) son cargados por Admin y compartidos.
-            $sharedDir = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder);
-            $sharedAyudasDir = $this->resolveCaseInsensitivePath($sharedDir . '/ayudas_visuales');
+            $sharedDir = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR.'/'.$relFolder);
+            $sharedAyudasDir = $this->resolveCaseInsensitivePath($sharedDir.'/ayudas_visuales');
 
-            if (!$soloPreorden) {
+            if (! $soloPreorden) {
                 // 1a. Dibujos — nueva ruta: {Clase}/Dibujos/ (con fallback a raíz de clase)
                 foreach ($activeClasses as $claseDir) {
-                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR . '/' . $relFolder, $claseDir);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR.'/'.$relFolder, $claseDir);
 
                     foreach ($classFolders as $claseDirMapped) {
                         // Nueva ruta primero
-                        $newDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::DIBUJOS);
+                        $newDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR.'/'.$relFolder.'/'.$claseDirMapped.'/'.FundicionPaths::DIBUJOS);
                         // Legacy: dibujos en raíz de carpeta de clase
-                        $legacyDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped);
+                        $legacyDibjPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR.'/'.$relFolder.'/'.$claseDirMapped);
 
                         $scanFiles = [];
                         if ($newDibjPath && (Storage::disk('local')->directoryExists($newDibjPath) || Storage::disk('local')->exists($newDibjPath))) {
@@ -383,18 +384,20 @@ class AlmacenFundicionController extends Controller
                             $scanFiles = Storage::disk('local')->files($legacyDibjPath);
                         }
 
-                        if (!empty($scanFiles)) {
+                        if (! empty($scanFiles)) {
                             $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
                             $relatedDibujos = collect($scanFiles)
-                                ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
+                                ->filter(fn ($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
                                 ->filter(function ($f) {
                                     $nameLower = strtolower(basename($f));
-                                    return !str_contains($nameLower, 'f_ccl_') && !str_contains($nameLower, 'f-ccl-') && !str_contains($nameLower, 'scar') && !str_contains($nameLower, 'fdrdm') && !str_contains($nameLower, 'fdldm') && !str_contains($nameLower, 'rdm') && !str_contains($nameLower, '_anterior_n') && !str_contains($nameLower, '_anterior_');
+
+                                    return ! str_contains($nameLower, 'f_ccl_') && ! str_contains($nameLower, 'f-ccl-') && ! str_contains($nameLower, 'scar') && ! str_contains($nameLower, 'fdrdm') && ! str_contains($nameLower, 'fdldm') && ! str_contains($nameLower, 'rdm') && ! str_contains($nameLower, '_anterior_n') && ! str_contains($nameLower, '_anterior_');
                                 })
                                 ->map(function ($f) use ($relatedOt, $relFolder) {
-                                    $otBaseDirNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $relFolder);
-                                    $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
+                                    $otBaseDirNorm = str_replace('\\', '/', self::ALMACEN_DIR.'/'.$relFolder);
+                                    $relName = ltrim(str_replace($otBaseDirNorm.'/', '', str_replace('\\', '/', $f)), '/');
                                     $utf8RelName = $this->toUtf8($relName);
+
                                     return [
                                         'nombre' => $utf8RelName,
                                         'tipo' => 'dibujo',
@@ -412,11 +415,11 @@ class AlmacenFundicionController extends Controller
 
                 // 2a. Ayudas Visuales — nueva ruta: {Clase}/Ayudas_Visuales/ (con fallback legacy)
                 foreach ($activeClasses as $claseDir) {
-                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR . '/' . $relFolder, $claseDir);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR.'/'.$relFolder, $claseDir);
 
                     foreach ($classFolders as $claseDirMapped) {
-                        $newAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseDirMapped . '/' . FundicionPaths::AYUDAS_VISUALES);
-                        $legacyAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $claseDirMapped);
+                        $newAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR.'/'.$relFolder.'/'.$claseDirMapped.'/'.FundicionPaths::AYUDAS_VISUALES);
+                        $legacyAyPath = $this->resolveCaseInsensitivePath(self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/'.$claseDirMapped);
 
                         $scanFiles = [];
                         if ($newAyPath && (Storage::disk('local')->directoryExists($newAyPath) || Storage::disk('local')->exists($newAyPath))) {
@@ -425,18 +428,20 @@ class AlmacenFundicionController extends Controller
                             $scanFiles = Storage::disk('local')->files($legacyAyPath);
                         }
 
-                        if (!empty($scanFiles)) {
+                        if (! empty($scanFiles)) {
                             $allowedExts = ['pdf', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'dwg'];
                             $relatedAyudas = collect($scanFiles)
-                                ->filter(fn($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
+                                ->filter(fn ($f) => in_array(strtolower(pathinfo($f, PATHINFO_EXTENSION)), $allowedExts))
                                 ->filter(function ($f) {
                                     $nameLower = strtolower(basename($f));
-                                    return !str_contains($nameLower, 'f_ccl_') && !str_contains($nameLower, 'f-ccl-') && !str_contains($nameLower, 'scar') && !str_contains($nameLower, 'fdrdm') && !str_contains($nameLower, 'fdldm') && !str_contains($nameLower, '_anterior_n') && !str_contains($nameLower, '_anterior_');
+
+                                    return ! str_contains($nameLower, 'f_ccl_') && ! str_contains($nameLower, 'f-ccl-') && ! str_contains($nameLower, 'scar') && ! str_contains($nameLower, 'fdrdm') && ! str_contains($nameLower, 'fdldm') && ! str_contains($nameLower, '_anterior_n') && ! str_contains($nameLower, '_anterior_');
                                 })
                                 ->map(function ($f) use ($relatedOt, $relFolder) {
-                                    $otBaseDirNorm = str_replace('\\', '/', self::ALMACEN_DIR . '/' . $relFolder);
-                                    $relName = ltrim(str_replace($otBaseDirNorm . '/', '', str_replace('\\', '/', $f)), '/');
+                                    $otBaseDirNorm = str_replace('\\', '/', self::ALMACEN_DIR.'/'.$relFolder);
+                                    $relName = ltrim(str_replace($otBaseDirNorm.'/', '', str_replace('\\', '/', $f)), '/');
                                     $utf8RelName = $this->toUtf8($relName);
+
                                     return [
                                         'nombre' => $utf8RelName,
                                         'tipo' => 'ayuda',
@@ -460,63 +465,63 @@ class AlmacenFundicionController extends Controller
 
                 // --- RUTAS EXCLUSIVAMENTE ESPECÍFICAS DE CADA CLASE ---
                 foreach ($activeClasses as $clase) {
-                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR . '/' . $relFolder, $clase);
+                    $classFolders = FundicionPaths::getClassFoldersForOt(self::ALMACEN_DIR.'/'.$relFolder, $clase);
 
                     foreach ($classFolders as $claseClean) {
                         // Almacen dirs
-                        $classAlmacenBase = self::ALMACEN_DIR . '/' . $relFolder . '/' . $claseClean;
+                        $classAlmacenBase = self::ALMACEN_DIR.'/'.$relFolder.'/'.$claseClean;
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::PREORDENES),
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase.'/'.FundicionPaths::PREORDENES),
                             'origin' => 'aprobado',
-                            'prefix' => $claseClean . '/' . FundicionPaths::PREORDENES . '/'
+                            'prefix' => $claseClean.'/'.FundicionPaths::PREORDENES.'/',
                         ];
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::FORMATOS_LIBERACION),
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase.'/'.FundicionPaths::FORMATOS_LIBERACION),
                             'origin' => 'aprobado',
-                            'prefix' => $claseClean . '/' . FundicionPaths::FORMATOS_LIBERACION . '/'
+                            'prefix' => $claseClean.'/'.FundicionPaths::FORMATOS_LIBERACION.'/',
                         ];
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS),
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase.'/'.FundicionPaths::DOCUMENTOS_APROBADOS),
                             'origin' => 'aprobado',
-                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
+                            'prefix' => $claseClean.'/'.FundicionPaths::DOCUMENTOS_APROBADOS.'/',
                         ];
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/ESCANEADOS'),
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase.'/ESCANEADOS'),
                             'origin' => 'aprobado',
-                            'prefix' => $claseClean . '/ESCANEADOS/'
+                            'prefix' => $claseClean.'/ESCANEADOS/',
                         ];
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
+                            'path' => $this->resolveCaseInsensitivePath($classAlmacenBase.'/'.FundicionPaths::DOCUMENTOS_RECHAZADOS),
                             'origin' => 'rechazado',
-                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
+                            'prefix' => $claseClean.'/'.FundicionPaths::DOCUMENTOS_RECHAZADOS.'/',
                         ];
 
                         // Calidad dirs
-                        $classCalidadBase = self::CALIDAD_DIR . '/' . $relFolder . '/' . $claseClean;
+                        $classCalidadBase = self::CALIDAD_DIR.'/'.$relFolder.'/'.$claseClean;
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::PREORDENES),
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase.'/'.FundicionPaths::PREORDENES),
                             'origin' => 'aprobado',
-                            'prefix' => $claseClean . '/' . FundicionPaths::PREORDENES . '/'
+                            'prefix' => $claseClean.'/'.FundicionPaths::PREORDENES.'/',
                         ];
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::FORMATOS_LIBERACION),
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase.'/'.FundicionPaths::FORMATOS_LIBERACION),
                             'origin' => 'aprobado',
-                            'prefix' => $claseClean . '/' . FundicionPaths::FORMATOS_LIBERACION . '/'
+                            'prefix' => $claseClean.'/'.FundicionPaths::FORMATOS_LIBERACION.'/',
                         ];
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS),
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase.'/'.FundicionPaths::DOCUMENTOS_APROBADOS),
                             'origin' => 'aprobado',
-                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS . '/'
+                            'prefix' => $claseClean.'/'.FundicionPaths::DOCUMENTOS_APROBADOS.'/',
                         ];
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/ESCANEADOS'),
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase.'/ESCANEADOS'),
                             'origin' => 'aprobado',
-                            'prefix' => $claseClean . '/ESCANEADOS/'
+                            'prefix' => $claseClean.'/ESCANEADOS/',
                         ];
                         $dirsToScan[] = [
-                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS),
+                            'path' => $this->resolveCaseInsensitivePath($classCalidadBase.'/'.FundicionPaths::DOCUMENTOS_RECHAZADOS),
                             'origin' => 'rechazado',
-                            'prefix' => $claseClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS . '/'
+                            'prefix' => $claseClean.'/'.FundicionPaths::DOCUMENTOS_RECHAZADOS.'/',
                         ];
                     }
                 }
@@ -530,8 +535,9 @@ class AlmacenFundicionController extends Controller
                             ->filter(function ($f) use ($relatedOt, $ot, $activeClasses, $scanPath) {
                                 $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
                                 $isDoc = in_array($ext, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'dwg']);
-                                if (!$isDoc)
+                                if (! $isDoc) {
                                     return false;
+                                }
 
                                 $fNameLower = strtolower(basename($f));
                                 if (str_contains($fNameLower, '_anterior_n') || str_contains($fNameLower, '_anterior_')) {
@@ -553,7 +559,7 @@ class AlmacenFundicionController extends Controller
                                     return false;
                                 }
 
-                                if ($isPreOrdenFile && !$isPreOrdenDir) {
+                                if ($isPreOrdenFile && ! $isPreOrdenDir) {
                                     return false;
                                 }
 
@@ -575,7 +581,7 @@ class AlmacenFundicionController extends Controller
                                         'Fondo',
                                         'Pistones',
                                         'Guías',
-                                        'Guias'
+                                        'Guias',
                                     ]
                                 );
                                 $hasKnownClass = false;
@@ -600,13 +606,15 @@ class AlmacenFundicionController extends Controller
                                             break;
                                         }
                                     }
-                                    if (!$matchesActive)
+                                    if (! $matchesActive) {
                                         return false;
+                                    }
                                 } else {
                                     if ($relatedOt !== $ot) {
                                         return false;
                                     }
                                 }
+
                                 return true;
                             })
                             ->map(function ($f) use ($scanPath, $relatedOt, $origin, $prefix) {
@@ -615,7 +623,7 @@ class AlmacenFundicionController extends Controller
                                 $relName = ltrim(str_replace($dirNorm, '', $fNorm), '/');
                                 $utf8RelName = $this->toUtf8($relName);
 
-                                $fullName = $prefix . $utf8RelName;
+                                $fullName = $prefix.$utf8RelName;
 
                                 return [
                                     'nombre' => $fullName,
@@ -644,6 +652,7 @@ class AlmacenFundicionController extends Controller
             // Filtrar solo las pre-órdenes (PDFs que empiezan con 'Pre-Orden' o 'PreOrden')
             $ayudas = $generatedFiles->filter(function ($f) {
                 $base = basename($f['nombre']);
+
                 return str_starts_with($base, 'Pre-Orden') || str_starts_with($base, 'PreOrden');
             });
             $allFiles = $ayudas->values();
@@ -651,7 +660,7 @@ class AlmacenFundicionController extends Controller
             $allFiles = $dibujos->merge($ayudas)->merge($generatedFiles)->values();
         }
 
-        $historyLatest = FundicionHistory::where('ot', '=', $ot, 'and')->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt . '%', 'and')->orderBy('id', 'desc')->first();
+        $historyLatest = FundicionHistory::where('ot', '=', $ot, 'and')->first() ?: FundicionHistory::where('ot', 'LIKE', $baseOt.'%', 'and')->orderBy('id', 'desc')->first();
         $preOrden = ($historyLatest && $historyLatest->ot) ? PreOrdenFundicion::where('ot', '=', $historyLatest->ot, 'and')->first() : null;
         $fechaEntrega = $preOrden && $preOrden->fecha_entrega
             ? ($preOrden->fecha_entrega instanceof \DateTimeInterface
@@ -679,8 +688,6 @@ class AlmacenFundicionController extends Controller
 
     /**
      * Sirve un PDF desde el directorio aislado FUNDICION_ALMACEN/.
-     *
-     * @param Request $request
      */
     public function serveFile(Request $request): BinaryFileResponse
     {
@@ -728,10 +735,10 @@ class AlmacenFundicionController extends Controller
         $user = Auth::user();
         if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2, 3 = Admin/Master (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
-            if (!$history) {
+            if (! $history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
             }
-            if (!$history) {
+            if (! $history) {
                 abort(404, 'Historial de OT no encontrado.');
             }
 
@@ -748,7 +755,7 @@ class AlmacenFundicionController extends Controller
                     str_contains(strtolower($archivo), 'casting') ||
                     str_contains($archivo, 'F-CCL-LDM') ||
                     str_contains($archivo, 'SCAR');
-                if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
+                if ($isPreorden && ! $isAllowedBeforeAlert && ! $history->pre_orden_email_sent) {
                     abort(403, 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.');
                 }
             } elseif ($user->perfil == 5) { // Almacén
@@ -758,14 +765,14 @@ class AlmacenFundicionController extends Controller
                     str_contains($archivo, 'F-CCL-SCAR') ||
                     str_contains($archivo, 'SCAR'));
                 $isPreordenFlowDoc = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados');
-                if ($isCalidadDoc && !$isPreordenFlowDoc) {
+                if ($isCalidadDoc && ! $isPreordenFlowDoc) {
                     $status = $history->calidad_revision_status;
                     $calidadAlertaEnviada = (
                         in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']) ||
                         ScarModelo::where('ot', '=', $ot, 'and')->where('estatus', '=', 'alertado', 'and')->exists() ||
                         ScarModelo::where('ot', '=', $folderName, 'and')->where('estatus', '=', 'alertado', 'and')->exists()
                     );
-                    if (!$calidadAlertaEnviada) {
+                    if (! $calidadAlertaEnviada) {
                         abort(403, 'Acceso denegado. Calidad no ha enviado la alerta de rechazo o aprobación.');
                     }
                 }
@@ -778,7 +785,7 @@ class AlmacenFundicionController extends Controller
             if ($tipo === 'ayuda' || $tipo === 'otro') {
                 // Archivos en Documentos_Aprobados / Documentos_Rechazados viven en el root de la OT
                 if ($origin === 'aprobado' || $origin === 'rechazado') {
-                    $baseDir = self::ALMACEN_DIR . '/' . $folderName;
+                    $baseDir = self::ALMACEN_DIR.'/'.$folderName;
                 } elseif (
                     str_contains(strtolower($archivo), 'ayudas_visuales') && (
                         str_starts_with(strtolower($archivo), 'bombillo/') ||
@@ -789,33 +796,33 @@ class AlmacenFundicionController extends Controller
                 ) {
                     // Nueva estructura: ayudas_visuales vive en el root de la OT bajo la carpeta de la clase
                     $baseDir = ($origin === 'calidad' || ($user->perfil == 4 && empty($origin)))
-                        ? self::CALIDAD_DIR . '/' . $folderName
-                        : self::ALMACEN_DIR . '/' . $folderName;
+                        ? self::CALIDAD_DIR.'/'.$folderName
+                        : self::ALMACEN_DIR.'/'.$folderName;
                 } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
-                    $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
+                    $baseDir = self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales';
                 } else {
-                    $baseDir = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales';
+                    $baseDir = self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales';
                 }
             } else {
-                $baseDir = self::ALMACEN_DIR . '/' . $folderName;
+                $baseDir = self::ALMACEN_DIR.'/'.$folderName;
             }
         }
 
         $baseDir = $this->resolveCaseInsensitivePath($baseDir);
 
         // Si el directorio principal no existe, intentar fallback cross-OT (base ↔ _R1/_R2)
-        if (!Storage::disk('local')->exists($baseDir)) {
+        if (! Storage::disk('local')->exists($baseDir)) {
             $baseOtRaw = preg_replace('/_R\d+$/', '', $ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $altDirs = [
-                self::ALMACEN_DIR . '/' . $baseFolder,
-                self::CALIDAD_DIR . '/' . $baseFolder,
-                self::ALMACEN_DIR . '/' . $folderName,
-                self::CALIDAD_DIR . '/' . $folderName,
-                self::ALMACEN_DIR . '/' . $baseFolder . '/ayudas_visuales',
-                self::CALIDAD_DIR . '/' . $baseFolder . '/ayudas_visuales',
-                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales',
-                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales',
+                self::ALMACEN_DIR.'/'.$baseFolder,
+                self::CALIDAD_DIR.'/'.$baseFolder,
+                self::ALMACEN_DIR.'/'.$folderName,
+                self::CALIDAD_DIR.'/'.$folderName,
+                self::ALMACEN_DIR.'/'.$baseFolder.'/ayudas_visuales',
+                self::CALIDAD_DIR.'/'.$baseFolder.'/ayudas_visuales',
+                self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales',
+                self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales',
             ];
             $found = false;
             foreach ($altDirs as $altDir) {
@@ -826,7 +833,7 @@ class AlmacenFundicionController extends Controller
                     break;
                 }
             }
-            if (!$found) {
+            if (! $found) {
                 Log::warning("Directorio no encontrado en Almacén (serveFile). OT: {$ot}, Archivo buscado: {$archivo}. Buscado en múltiples alternativas cross-OT.");
                 abort(404, 'Directorio no encontrado.');
             }
@@ -846,8 +853,9 @@ class AlmacenFundicionController extends Controller
             $utf8RelNameNorm = Normalizer::normalize(mb_strtolower($utf8RelName, 'UTF-8'), Normalizer::FORM_C);
 
             if ($utf8RelNameNorm === $archivoNorm || mb_strtolower(basename($f), 'UTF-8') === $archivoBaseLower) {
-                if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0)
+                if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0) {
                     continue;
+                }
 
                 $foundFile = $f;
                 break;
@@ -855,26 +863,28 @@ class AlmacenFundicionController extends Controller
         }
 
         // FALLBACK ampliado: buscar en todas las carpetas relacionadas de la OT (base + reprocesos + public/liberaciones_pdf)
-        if (!$foundFile) {
+        if (! $foundFile) {
             $baseOtRaw = preg_replace('/_R\d+$/', '', $ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $possibleDirs = [
-                self::ALMACEN_DIR . '/' . $baseFolder,
-                self::ALMACEN_DIR . '/' . $folderName,
-                self::CALIDAD_DIR . '/' . $baseFolder,
-                self::CALIDAD_DIR . '/' . $folderName,
-                self::ALMACEN_DIR . '/' . $baseFolder . '/ayudas_visuales',
-                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales',
-                self::CALIDAD_DIR . '/' . $baseFolder . '/ayudas_visuales',
-                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales',
+                self::ALMACEN_DIR.'/'.$baseFolder,
+                self::ALMACEN_DIR.'/'.$folderName,
+                self::CALIDAD_DIR.'/'.$baseFolder,
+                self::CALIDAD_DIR.'/'.$folderName,
+                self::ALMACEN_DIR.'/'.$baseFolder.'/ayudas_visuales',
+                self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales',
+                self::CALIDAD_DIR.'/'.$baseFolder.'/ayudas_visuales',
+                self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales',
                 'public/liberaciones_pdf',
             ];
             foreach ($possibleDirs as $possibleDir) {
                 $resolvedPossibleDir = $this->resolveCaseInsensitivePath($possibleDir);
-                if ($resolvedPossibleDir === $baseDir)
+                if ($resolvedPossibleDir === $baseDir) {
                     continue;
-                if (!Storage::disk('local')->exists($resolvedPossibleDir))
+                }
+                if (! Storage::disk('local')->exists($resolvedPossibleDir)) {
                     continue;
+                }
 
                 $pFiles = Storage::disk('local')->allFiles($resolvedPossibleDir);
                 foreach ($pFiles as $f) {
@@ -893,7 +903,7 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        if (!$foundFile) {
+        if (! $foundFile) {
             Log::warning("Archivo no encontrado en Almacén (serveFile). OT: {$ot}, Archivo buscado: {$archivo}, Directorio Final: {$baseDir}");
             abort(404, 'Archivo no encontrado.');
         }
@@ -915,14 +925,12 @@ class AlmacenFundicionController extends Controller
 
         return response()->file($fullPath, [
             'Content-Type' => $mimeType,
-            'Content-Disposition' => 'inline; filename="' . basename($archivo) . '"',
+            'Content-Disposition' => 'inline; filename="'.basename($archivo).'"',
         ]);
     }
 
     /**
      * Elimina un archivo PDF de Otros documentos o preordenes.
-     *
-     * @param Request $request
      */
     public function deleteFile(Request $request)
     {
@@ -970,10 +978,10 @@ class AlmacenFundicionController extends Controller
         $user = Auth::user();
         if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2, 3 = Admin/Master (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
-            if (!$history) {
+            if (! $history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
             }
-            if (!$history) {
+            if (! $history) {
                 return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
             }
 
@@ -990,7 +998,7 @@ class AlmacenFundicionController extends Controller
                     str_contains(strtolower($archivo), 'casting') ||
                     str_contains($archivo, 'F-CCL-LDM') ||
                     str_contains($archivo, 'SCAR');
-                if ($isPreorden && !$isAllowedBeforeAlert && !$history->pre_orden_email_sent) {
+                if ($isPreorden && ! $isAllowedBeforeAlert && ! $history->pre_orden_email_sent) {
                     return response()->json(['success' => false, 'error' => 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.'], 403);
                 }
             } elseif ($user->perfil == 5) { // Almacén
@@ -1000,14 +1008,14 @@ class AlmacenFundicionController extends Controller
                     str_contains($archivo, 'F-CCL-SCAR') ||
                     str_contains($archivo, 'SCAR'));
                 $isPreordenFlowDoc = str_contains(strtolower($archivo), 'documentos_aprobados') || str_contains(strtolower($archivo), 'documentos_rechazados');
-                if ($isCalidadDoc && !$isPreordenFlowDoc) {
+                if ($isCalidadDoc && ! $isPreordenFlowDoc) {
                     $status = $history->calidad_revision_status;
                     $calidadAlertaEnviada = (
                         in_array($status, ['calidad_aprobado', 'calidad_rechazado', 'calidad_mixto', 'calidad_parcial', 'casting_aprobado']) ||
                         ScarModelo::where('ot', '=', $ot, 'and')->where('estatus', '=', 'alertado', 'and')->exists() ||
                         ScarModelo::where('ot', '=', $folderName, 'and')->where('estatus', '=', 'alertado', 'and')->exists()
                     );
-                    if (!$calidadAlertaEnviada) {
+                    if (! $calidadAlertaEnviada) {
                         return response()->json(['success' => false, 'error' => 'Acceso denegado. Calidad no ha enviado la alerta de rechazo o aprobación.'], 403);
                     }
                 }
@@ -1020,32 +1028,32 @@ class AlmacenFundicionController extends Controller
             if ($tipo === 'ayuda' || $tipo === 'otro') {
                 // Archivos en Documentos_Aprobados / Documentos_Rechazados viven en el root de la OT
                 if ($origin === 'aprobado' || $origin === 'rechazado') {
-                    $baseDir = self::ALMACEN_DIR . '/' . $folderName;
+                    $baseDir = self::ALMACEN_DIR.'/'.$folderName;
                 } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
-                    $baseDir = self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales';
+                    $baseDir = self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales';
                 } else {
-                    $baseDir = self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales';
+                    $baseDir = self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales';
                 }
             } else {
-                $baseDir = self::ALMACEN_DIR . '/' . $folderName;
+                $baseDir = self::ALMACEN_DIR.'/'.$folderName;
             }
         }
 
         $baseDir = $this->resolveCaseInsensitivePath($baseDir);
 
-        if (!Storage::disk('local')->exists($baseDir)) {
+        if (! Storage::disk('local')->exists($baseDir)) {
             // Fallback ampliado incluyendo la OT base para reprocesos
             $baseOtRaw = preg_replace('/_R\d+$/', '', $ot);
             $baseFolder = $this->sanitizePath($this->normalizeOTName($baseOtRaw));
             $altDirs = [
-                self::ALMACEN_DIR . '/' . $baseFolder,
-                self::CALIDAD_DIR . '/' . $baseFolder,
-                self::ALMACEN_DIR . '/' . $folderName,
-                self::CALIDAD_DIR . '/' . $folderName,
-                self::ALMACEN_DIR . '/' . $baseFolder . '/ayudas_visuales',
-                self::CALIDAD_DIR . '/' . $baseFolder . '/ayudas_visuales',
-                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales',
-                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales',
+                self::ALMACEN_DIR.'/'.$baseFolder,
+                self::CALIDAD_DIR.'/'.$baseFolder,
+                self::ALMACEN_DIR.'/'.$folderName,
+                self::CALIDAD_DIR.'/'.$folderName,
+                self::ALMACEN_DIR.'/'.$baseFolder.'/ayudas_visuales',
+                self::CALIDAD_DIR.'/'.$baseFolder.'/ayudas_visuales',
+                self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales',
+                self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales',
             ];
             $found = false;
             foreach ($altDirs as $altDir) {
@@ -1056,7 +1064,7 @@ class AlmacenFundicionController extends Controller
                     break;
                 }
             }
-            if (!$found) {
+            if (! $found) {
                 return response()->json(['success' => false, 'error' => 'Directorio no encontrado.'], 404);
             }
         }
@@ -1070,8 +1078,9 @@ class AlmacenFundicionController extends Controller
 
             $utf8RelName = $this->toUtf8($relName);
             if (mb_strtolower($utf8RelName, 'UTF-8') === mb_strtolower($archivo, 'UTF-8')) {
-                if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0)
+                if ($tipo === 'dibujo' && strpos($relName, 'ayudas_visuales/') === 0) {
                     continue;
+                }
 
                 $foundFile = $f;
                 break;
@@ -1079,19 +1088,21 @@ class AlmacenFundicionController extends Controller
         }
 
         // FALLBACK: Si no se encuentra en el directorio calculado, buscamos en los otros directorios válidos para esta OT
-        if (!$foundFile) {
+        if (! $foundFile) {
             $possibleDirs = [
-                self::ALMACEN_DIR . '/' . $folderName,
-                self::CALIDAD_DIR . '/' . $folderName,
-                self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales',
-                self::CALIDAD_DIR . '/' . $folderName . '/ayudas_visuales',
+                self::ALMACEN_DIR.'/'.$folderName,
+                self::CALIDAD_DIR.'/'.$folderName,
+                self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales',
+                self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales',
             ];
             foreach ($possibleDirs as $possibleDir) {
                 $resolvedPossibleDir = $this->resolveCaseInsensitivePath($possibleDir);
-                if ($resolvedPossibleDir === $baseDir)
+                if ($resolvedPossibleDir === $baseDir) {
                     continue;
-                if (!Storage::disk('local')->exists($resolvedPossibleDir))
+                }
+                if (! Storage::disk('local')->exists($resolvedPossibleDir)) {
                     continue;
+                }
 
                 $pFiles = Storage::disk('local')->allFiles($resolvedPossibleDir);
                 foreach ($pFiles as $f) {
@@ -1108,7 +1119,7 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        if (!$foundFile) {
+        if (! $foundFile) {
             return response()->json(['success' => false, 'error' => 'Archivo no encontrado.'], 404);
         }
 
@@ -1138,7 +1149,7 @@ class AlmacenFundicionController extends Controller
 
         // Verificar el estado de la alerta
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
-        if (!$history) {
+        if (! $history) {
             $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
         }
 
@@ -1185,8 +1196,8 @@ class AlmacenFundicionController extends Controller
         if (str_contains($fileNameOnly, 'F-CCL-LDM') || str_contains($fileNameOnly, 'F-CCL-SCAR') || str_contains($fileNameOnly, 'SCAR')) {
             if (str_contains($fNorm, 'public/liberaciones_pdf/')) {
                 $otClean = $folderName;
-                $almacenPath = self::ALMACEN_DIR . '/' . $otClean . '/ayudas_visuales';
-                $calidadPath = self::CALIDAD_DIR . '/' . $otClean . '/ayudas_visuales';
+                $almacenPath = self::ALMACEN_DIR.'/'.$otClean.'/ayudas_visuales';
+                $calidadPath = self::CALIDAD_DIR.'/'.$otClean.'/ayudas_visuales';
 
                 if (Storage::disk('local')->exists($almacenPath)) {
                     foreach (Storage::disk('local')->allFiles($almacenPath) as $f) {
@@ -1203,13 +1214,13 @@ class AlmacenFundicionController extends Controller
                     }
                 }
             } else {
-                $publicFile = 'public/liberaciones_pdf/' . $fileNameOnly;
+                $publicFile = 'public/liberaciones_pdf/'.$fileNameOnly;
                 if (Storage::disk('local')->exists($publicFile)) {
                     Storage::disk('local')->delete($publicFile);
                 }
 
                 $otherDir = str_contains($fNorm, 'DOCUMENTACION_GIS/ALMACEN_FUNDICION/') ? self::CALIDAD_DIR : self::ALMACEN_DIR;
-                $otherPathSearch = $otherDir . '/' . $folderName . '/ayudas_visuales';
+                $otherPathSearch = $otherDir.'/'.$folderName.'/ayudas_visuales';
                 if (Storage::disk('local')->exists($otherPathSearch)) {
                     foreach (Storage::disk('local')->allFiles($otherPathSearch) as $f) {
                         if (basename($f) === $fileNameOnly) {
@@ -1236,7 +1247,7 @@ class AlmacenFundicionController extends Controller
         // Sincronizar el JSON de almacen_archivos
         if ($history) {
             $archivos = $history->almacen_archivos ?? [];
-            if (!empty($archivos)) {
+            if (! empty($archivos)) {
                 $newArchivos = array_filter($archivos, function ($path) use ($fileNameOnly) {
                     return basename($path) !== $fileNameOnly;
                 });
@@ -1263,19 +1274,22 @@ class AlmacenFundicionController extends Controller
         $resolved = '';
 
         foreach ($parts as $part) {
-            if ($part === '')
-                continue;
-
-            $currentSearch = $resolved ? $resolved : '.';
-
-            $exactPath = $resolved ? $resolved . '/' . $part : $part;
-            if (Storage::disk('local')->exists($exactPath) || Storage::disk('local')->directoryExists($exactPath)) {
-                $resolved = $exactPath;
+            if ($part === '') {
                 continue;
             }
 
-            if (!Storage::disk('local')->exists($currentSearch) && !Storage::disk('local')->directoryExists($currentSearch)) {
+            $currentSearch = $resolved ? $resolved : '.';
+
+            $exactPath = $resolved ? $resolved.'/'.$part : $part;
+            if (Storage::disk('local')->exists($exactPath) || Storage::disk('local')->directoryExists($exactPath)) {
                 $resolved = $exactPath;
+
+                continue;
+            }
+
+            if (! Storage::disk('local')->exists($currentSearch) && ! Storage::disk('local')->directoryExists($currentSearch)) {
+                $resolved = $exactPath;
+
                 continue;
             }
 
@@ -1295,13 +1309,13 @@ class AlmacenFundicionController extends Controller
                 $baseNorm = trim($baseNorm);
 
                 if ($baseNorm === $partNorm || FundicionPaths::isSameClass($base, $part)) {
-                    $resolved = $resolved ? $resolved . '/' . $base : $base;
+                    $resolved = $resolved ? $resolved.'/'.$base : $base;
                     $found = true;
                     break;
                 }
             }
 
-            if (!$found) {
+            if (! $found) {
                 // Si no se encuentra en las subcarpetas, intentar buscar en archivos (si es el segmento final)
                 $files = Storage::disk('local')->files($currentSearch);
                 foreach ($files as $file) {
@@ -1312,15 +1326,15 @@ class AlmacenFundicionController extends Controller
                     $baseNorm = trim($baseNorm);
 
                     if ($baseNorm === $partNorm) {
-                        $resolved = $resolved ? $resolved . '/' . $base : $base;
+                        $resolved = $resolved ? $resolved.'/'.$base : $base;
                         $found = true;
                         break;
                     }
                 }
             }
 
-            if (!$found) {
-                $resolved = $resolved ? $resolved . '/' . $part : $part;
+            if (! $found) {
+                $resolved = $resolved ? $resolved.'/'.$part : $part;
             }
         }
 
@@ -1331,19 +1345,22 @@ class AlmacenFundicionController extends Controller
     {
         $path = preg_replace('/\.\.+/', '', $path);
         $path = preg_replace('/[\/\\\\]/', '', $path);
+
         return trim($path);
     }
 
     private function normalizeOTName(?string $name): string
     {
-        if (!$name)
+        if (! $name) {
             return '';
+        }
         // Reemplazar guiones especiales y espacios de no ruptura
         $name = str_replace(['—', '–', "\xc2\xa0"], '-', $name);
         // Todo a mayúsculas para evitar problemas de case-sensitivity
         $name = mb_strtoupper($name, 'UTF-8');
         // Eliminar espacios múltiples
         $name = preg_replace('/\s+/', ' ', $name);
+
         return trim($name);
     }
 
@@ -1354,6 +1371,7 @@ class AlmacenFundicionController extends Controller
         $name = preg_replace('/\.\.+/', '', $name);
         // Quitamos el preg_replace agresivo para permitir símbolos como () - _ etc.
         $name = str_replace('\\', '/', $name);
+
         return trim($name);
     }
 
@@ -1362,14 +1380,16 @@ class AlmacenFundicionController extends Controller
         // Evitar path traversal
         $name = preg_replace('/[\/\\\\]/', '', $name);
         $name = preg_replace('/\.\.+/', '', $name);
+
         return trim($name) ?: 'archivo.pdf';
     }
 
     private function toUtf8(string $string): string
     {
-        if (!mb_check_encoding($string, 'UTF-8')) {
+        if (! mb_check_encoding($string, 'UTF-8')) {
             return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
         }
+
         return $string;
     }
 
@@ -1390,14 +1410,14 @@ class AlmacenFundicionController extends Controller
         $destinatarioCalidad = $request->input('destinatario_calidad');
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
 
-        if (!$history) {
+        if (! $history) {
             return response()->json(['success' => false, 'message' => 'Registro no encontrado.'], 404);
         }
 
         $clasesSeleccionadas = $request->input('clases_seleccionadas', []);
 
         // Determinar si se seleccionaron todas las clases activas de la OT para el nombre del archivo
-        $clasesSuffix = "";
+        $clasesSuffix = '';
         if (is_array($clasesSeleccionadas) && count($clasesSeleccionadas) > 0) {
             $baseOt = preg_replace('/_R\d+$/i', '', $ot);
             preg_match('/OT\s*(\d+)/', $baseOt, $matches);
@@ -1418,31 +1438,32 @@ class AlmacenFundicionController extends Controller
                 $nombres = [];
                 foreach ($clasesSeleccionadas as $c) {
                     $l = strtolower($c);
-                    if (strpos($l, 'candado obturador') !== false)
+                    if (strpos($l, 'candado obturador') !== false) {
                         $nombres[] = 'Candado obturador';
-                    elseif (strpos($l, 'cabeza de soplo') !== false)
+                    } elseif (strpos($l, 'cabeza de soplo') !== false) {
                         $nombres[] = 'Cabeza de soplo';
-                    elseif (strpos($l, 'embudo') !== false)
+                    } elseif (strpos($l, 'embudo') !== false) {
                         $nombres[] = 'Embudo';
-                    elseif (strpos($l, 'corona') !== false)
+                    } elseif (strpos($l, 'corona') !== false) {
                         $nombres[] = 'Corona';
-                    elseif (strpos($l, 'plato') !== false)
+                    } elseif (strpos($l, 'plato') !== false) {
                         $nombres[] = 'Plato';
-                    elseif (strpos($l, 'fondo') !== false)
+                    } elseif (strpos($l, 'fondo') !== false) {
                         $nombres[] = 'Fondo';
-                    elseif (strpos($l, 'obturador') !== false)
+                    } elseif (strpos($l, 'obturador') !== false) {
                         $nombres[] = 'Obturador';
-                    elseif (strpos($l, 'molde') !== false)
+                    } elseif (strpos($l, 'molde') !== false) {
                         $nombres[] = 'Molde';
-                    elseif (strpos($l, 'bombillo') !== false)
+                    } elseif (strpos($l, 'bombillo') !== false) {
                         $nombres[] = 'Bombillo';
-                    elseif (strpos($l, 'pistones') !== false)
+                    } elseif (strpos($l, 'pistones') !== false) {
                         $nombres[] = 'Pistones';
-                    elseif (strpos($l, 'guías') !== false || strpos($l, 'guias') !== false)
+                    } elseif (strpos($l, 'guías') !== false || strpos($l, 'guias') !== false) {
                         $nombres[] = 'Guías';
+                    }
                 }
                 if (count($nombres) > 0) {
-                    $clasesSuffix = "_" . implode("_", $nombres);
+                    $clasesSuffix = '_'.implode('_', $nombres);
                 }
             }
         }
@@ -1483,7 +1504,7 @@ class AlmacenFundicionController extends Controller
         }
         $clasesSeleccionadasNorm = array_values(array_unique($clasesSeleccionadasNorm));
 
-        $esReinicioTotal = (!empty($clasesActivasNorm) && count(array_diff($clasesActivasNorm, $clasesSeleccionadasNorm)) === 0);
+        $esReinicioTotal = (! empty($clasesActivasNorm) && count(array_diff($clasesActivasNorm, $clasesSeleccionadasNorm)) === 0);
 
         if ($esReinicioTotal) {
             // Si es reinicio total (todas las clases activas se confirman de nuevo), reseteamos todo en Storage y BD
@@ -1519,14 +1540,15 @@ class AlmacenFundicionController extends Controller
 
                     if (file_exists($liberacionesPath)) {
                         foreach (scandir($liberacionesPath) ?: [] as $fileName) {
-                            if ($fileName === '.' || $fileName === '..')
+                            if ($fileName === '.' || $fileName === '..') {
                                 continue;
+                            }
                             $fileNameLower = strtolower($fileName);
                             $matchesClase = str_contains($fileNameLower, $claseNorm);
                             $matchesOt = str_contains($fileNameLower, $otSanitizada);
                             $isPdf = str_ends_with($fileNameLower, '.pdf');
                             if ($isPdf && $matchesClase && $matchesOt) {
-                                @unlink($liberacionesPath . DIRECTORY_SEPARATOR . $fileName);
+                                @unlink($liberacionesPath.DIRECTORY_SEPARATOR.$fileName);
                             }
                         }
                     }
@@ -1554,12 +1576,12 @@ class AlmacenFundicionController extends Controller
                     foreach ($roots as $r) {
                         if (Storage::disk('local')->exists($r)) {
                             $subFoldersToClean = [
-                                $r . '/Documentos_Aprobados/' . $classSubFolder,
-                                $r . '/Documentos_Rechazados/' . $classSubFolder,
-                                $r . '/Documentos_Rechazados/SCAR/' . $classSubFolder,
-                                $r . '/Documentos_Rechazados/FDRDM/' . $classSubFolder,
-                                $r . '/' . FundicionPaths::FDRDM . '/' . $classSubFolder,
-                                $r . '/' . FundicionPaths::SCAR . '/' . $classSubFolder,
+                                $r.'/Documentos_Aprobados/'.$classSubFolder,
+                                $r.'/Documentos_Rechazados/'.$classSubFolder,
+                                $r.'/Documentos_Rechazados/SCAR/'.$classSubFolder,
+                                $r.'/Documentos_Rechazados/FDRDM/'.$classSubFolder,
+                                $r.'/'.FundicionPaths::FDRDM.'/'.$classSubFolder,
+                                $r.'/'.FundicionPaths::SCAR.'/'.$classSubFolder,
                             ];
                             foreach ($subFoldersToClean as $sfc) {
                                 if (Storage::disk('local')->exists($sfc)) {
@@ -1567,7 +1589,7 @@ class AlmacenFundicionController extends Controller
                                 }
                             }
                             foreach (['/Documentos_Rechazados', '/Documentos_Aprobados', '/ayudas_visuales/preordenes/documentos_aprobados'] as $sub) {
-                                $targetSub = $r . $sub;
+                                $targetSub = $r.$sub;
                                 if (Storage::disk('local')->exists($targetSub)) {
                                     foreach (Storage::disk('local')->allFiles($targetSub) as $f) {
                                         if (str_contains(strtolower(basename($f)), $claseNorm)) {
@@ -1577,11 +1599,9 @@ class AlmacenFundicionController extends Controller
                                 }
                             }
 
-
-
                             // 4c. Limpiar archivos sueltos de la clase en carpeta FDLDM (LDM con espacios).
                             //     Ej: Documentos_Aprobados/FDLDM/F-CCL-LDM_BOMBILLO_OT 8643 ..._APROBADO.pdf
-                            $fdldmDir = $r . '/Documentos_Aprobados/FDLDM';
+                            $fdldmDir = $r.'/Documentos_Aprobados/FDLDM';
                             if (Storage::disk('local')->exists($fdldmDir)) {
                                 foreach (Storage::disk('local')->files($fdldmDir) as $f) {
                                     if (str_contains(strtolower(basename($f)), $claseNorm)) {
@@ -1592,7 +1612,7 @@ class AlmacenFundicionController extends Controller
 
                             // 4d. Limpiar preórdenes duplicadas en raíz de la OT (carpeta preordenes/ suelta).
                             //     La copia canónica está en Documentos_Aprobados/preordenes/, esta es duplicado.
-                            $preordenesRaizDir = $r . '/preordenes';
+                            $preordenesRaizDir = $r.'/preordenes';
                             if (Storage::disk('local')->exists($preordenesRaizDir)) {
                                 foreach (Storage::disk('local')->allFiles($preordenesRaizDir) as $f) {
                                     Storage::disk('local')->delete($f);
@@ -1617,11 +1637,12 @@ class AlmacenFundicionController extends Controller
             if (is_array($clasesSeleccionadas)) {
                 foreach ($clasesSeleccionadas as $cs) {
                     $cRaw = trim($cs);
-                    if (is_numeric($cRaw))
+                    if (is_numeric($cRaw)) {
                         continue;
+                    }
                     $cClean = trim(preg_replace('/^modelo\s+/i', '', $cRaw));
                     $cVal = ucfirst($cClean);
-                    if (!empty($cVal) && !is_numeric($cVal) && !in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
+                    if (! empty($cVal) && ! is_numeric($cVal) && ! in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
                         $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
                     }
                 }
@@ -1640,33 +1661,33 @@ class AlmacenFundicionController extends Controller
                 }
 
                 $claseCleanAlm = FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::ALMACEN_DIR);
-                $destDirAlm = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseCleanAlm . '/ESCANEADOS';
+                $destDirAlm = self::ALMACEN_DIR.'/'.$folderName.'/'.$claseCleanAlm.'/ESCANEADOS';
 
                 $claseCleanCal = FundicionPaths::crearEstructuraClase($folderName, $claseClean, self::CALIDAD_DIR);
-                $destDirCal = self::CALIDAD_DIR . '/' . $folderName . '/' . $claseCleanCal . '/ESCANEADOS';
+                $destDirCal = self::CALIDAD_DIR.'/'.$folderName.'/'.$claseCleanCal.'/ESCANEADOS';
 
-                if (!Storage::disk('local')->exists($destDirAlm)) {
+                if (! Storage::disk('local')->exists($destDirAlm)) {
                     Storage::disk('local')->makeDirectory($destDirAlm);
                 }
-                if (!Storage::disk('local')->exists($destDirCal)) {
+                if (! Storage::disk('local')->exists($destDirCal)) {
                     Storage::disk('local')->makeDirectory($destDirCal);
                 }
 
                 foreach ($filesUploaded as $idx => $file) {
                     $ext = $file->getClientOriginalExtension();
-                    $fileSuffix = $multiFile ? "_" . ($idx + 1) : "";
+                    $fileSuffix = $multiFile ? '_'.($idx + 1) : '';
                     $fileName = "F_ALM_CFM_{$clasesTag}{$fileSuffix}.{$ext}";
                     $fileContent = file_get_contents($file->getRealPath());
 
-                    Storage::disk('local')->put($destDirAlm . '/' . $fileName, $fileContent);
-                    Storage::disk('local')->put($destDirCal . '/' . $fileName, $fileContent);
+                    Storage::disk('local')->put($destDirAlm.'/'.$fileName, $fileContent);
+                    Storage::disk('local')->put($destDirCal.'/'.$fileName, $fileContent);
 
                     $attachmentKey = $fileName;
-                    if (!isset($attachments[$attachmentKey])) {
+                    if (! isset($attachments[$attachmentKey])) {
                         $attachments[$attachmentKey] = [
-                            'path' => storage_path('app/' . $destDirAlm . '/' . $fileName),
+                            'path' => storage_path('app/'.$destDirAlm.'/'.$fileName),
                             'name' => $fileName,
-                            'mime' => strtolower($ext) === 'dwg' ? 'application/acad' : (strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/' . strtolower($ext))
+                            'mime' => strtolower($ext) === 'dwg' ? 'application/acad' : (strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/'.strtolower($ext)),
                         ];
                     }
                 }
@@ -1709,12 +1730,12 @@ class AlmacenFundicionController extends Controller
                     LiberacionModeloFundicion::updateOrCreate(
                         [
                             'ot' => $ot,
-                            'tipo_modelo' => $tipo
+                            'tipo_modelo' => $tipo,
                         ],
                         [
                             'estado' => 'pendiente',
                             'tipo_origen' => 'con_modelo',
-                            'fecha_revision' => $fecha ? date('Y-m-d H:i:s', strtotime($fecha)) : now()
+                            'fecha_revision' => $fecha ? date('Y-m-d H:i:s', strtotime($fecha)) : now(),
                         ]
                     );
                 }
@@ -1726,7 +1747,7 @@ class AlmacenFundicionController extends Controller
                 [
                     'estado' => 'pendiente',
                     'tipo_origen' => 'con_modelo',
-                    'fecha_revision' => $fecha ? date('Y-m-d H:i:s', strtotime($fecha)) : now()
+                    'fecha_revision' => $fecha ? date('Y-m-d H:i:s', strtotime($fecha)) : now(),
                 ]
             );
         }
@@ -1748,32 +1769,33 @@ class AlmacenFundicionController extends Controller
             foreach ($clasesActivas as $clName) {
                 $tipo = null;
                 $clLow = strtolower($clName);
-                if (strpos($clLow, 'candado obturador') !== false)
+                if (strpos($clLow, 'candado obturador') !== false) {
                     $tipo = 'Candado obturador';
-                elseif (strpos($clLow, 'cabeza de soplo') !== false)
+                } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                     $tipo = 'Cabeza de soplo';
-                elseif (strpos($clLow, 'embudo') !== false)
+                } elseif (strpos($clLow, 'embudo') !== false) {
                     $tipo = 'Embudo';
-                elseif (strpos($clLow, 'corona') !== false)
+                } elseif (strpos($clLow, 'corona') !== false) {
                     $tipo = 'Corona';
-                elseif (strpos($clLow, 'plato') !== false)
+                } elseif (strpos($clLow, 'plato') !== false) {
                     $tipo = 'Plato';
-                elseif (strpos($clLow, 'fondo') !== false)
+                } elseif (strpos($clLow, 'fondo') !== false) {
                     $tipo = 'Fondo';
-                elseif (strpos($clLow, 'obturador') !== false)
+                } elseif (strpos($clLow, 'obturador') !== false) {
                     $tipo = 'Obturador';
-                elseif (strpos($clLow, 'molde') !== false)
+                } elseif (strpos($clLow, 'molde') !== false) {
                     $tipo = 'Molde';
-                elseif (strpos($clLow, 'bombillo') !== false)
+                } elseif (strpos($clLow, 'bombillo') !== false) {
                     $tipo = 'Bombillo';
-                elseif (strpos($clLow, 'pistones') !== false)
+                } elseif (strpos($clLow, 'pistones') !== false) {
                     $tipo = 'Pistones';
-                elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+                } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                     $tipo = 'Guías';
+                }
 
                 if ($tipo) {
                     $hasData = LiberacionModeloFundicion::query()->where('ot', '=', $ot)->where('tipo_modelo', '=', $tipo)->exists();
-                    if (!$hasData) {
+                    if (! $hasData) {
                         $clasesFaltantes++;
                     }
                 }
@@ -1839,10 +1861,10 @@ class AlmacenFundicionController extends Controller
             </div>
         </div>";
 
-            $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : config('services.fundicion.calidad', 'inspecciontec@grupoindsaavedra.com');
+            $destCalidadStr = ! empty($destinatarioCalidad) ? $destinatarioCalidad : config('services.fundicion.calidad', 'inspecciontec@grupoindsaavedra.com');
             $destCalidad = array_filter(array_map('trim', explode(',', $destCalidadStr)));
 
-            $destProveedorStr = !empty($destinatario) ? $destinatario : config('services.fundicion.proveedor_modelos', 'produccion@ssmetalf.mx');
+            $destProveedorStr = ! empty($destinatario) ? $destinatario : config('services.fundicion.proveedor_modelos', 'produccion@ssmetalf.mx');
             $destProveedor = array_filter(array_map('trim', explode(',', $destProveedorStr)));
 
             // Buscar dibujos y ayudas visuales para adjuntar a Calidad
@@ -1852,10 +1874,10 @@ class AlmacenFundicionController extends Controller
             if (is_array($archivosSeleccionados)) {
                 $baseOt = preg_replace('/_R\d+$/i', '', $ot);
                 $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
-                    ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+                    ->where('ot', 'LIKE', $baseOt.'_R%', 'or')
                     ->pluck('ot')
                     ->toArray();
-                if (!in_array($ot, $allOtNames)) {
+                if (! in_array($ot, $allOtNames)) {
                     $allOtNames[] = $ot;
                 }
 
@@ -1870,38 +1892,38 @@ class AlmacenFundicionController extends Controller
                         $posPaths = [];
                         if (str_starts_with($archivoSanitized, 'Documentos_Aprobados/')) {
                             $subPath = str_replace('Documentos_Aprobados/', '', $archivoSanitized);
-                            $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados/' . $subPath;
-                            $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados/' . $subPath;
+                            $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/Documentos_Aprobados/'.$subPath;
+                            $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/Documentos_Aprobados/'.$subPath;
                         }
                         if (str_starts_with($archivoSanitized, 'Documentos_Rechazados/')) {
                             $subPath = str_replace('Documentos_Rechazados/', '', $archivoSanitized);
-                            $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Rechazados/' . $subPath;
-                            $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados/' . $subPath;
+                            $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/Documentos_Rechazados/'.$subPath;
+                            $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/Documentos_Rechazados/'.$subPath;
                         }
                         if (str_starts_with($archivoSanitized, 'preordenes/documentos_aprobados/')) {
                             $subPath = str_replace('preordenes/documentos_aprobados/', '', $archivoSanitized);
-                            $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados/' . $subPath;
-                            $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_aprobados/' . $subPath;
-                            $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_aprobados/' . $subPath;
+                            $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/preordenes/documentos_aprobados/'.$subPath;
+                            $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/documentos_aprobados/'.$subPath;
+                            $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/documentos_aprobados/'.$subPath;
                         }
                         if (str_starts_with($archivoSanitized, 'preordenes/documentos_rechazados/')) {
                             $subPath = str_replace('preordenes/documentos_rechazados/', '', $archivoSanitized);
-                            $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_rechazados/' . $subPath;
-                            $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_rechazados/' . $subPath;
-                            $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_rechazados/' . $subPath;
+                            $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/preordenes/documentos_rechazados/'.$subPath;
+                            $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/documentos_rechazados/'.$subPath;
+                            $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/documentos_rechazados/'.$subPath;
                         }
                         if (str_starts_with($archivoSanitized, 'preordenes/')) {
                             $subPath = str_replace('preordenes/', '', $archivoSanitized);
-                            $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/' . $subPath;
-                            $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/' . $subPath;
-                            $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/' . $subPath;
+                            $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/'.$subPath;
+                            $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/preordenes/'.$subPath;
+                            $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/'.$subPath;
                         }
 
                         // Fallbacks generales
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $archivoSanitized;
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $archivoSanitized;
-                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/' . $archivoSanitized;
-                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $archivoSanitized;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/'.$archivoSanitized;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/'.$archivoSanitized;
+                        $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/ayudas_visuales/'.$archivoSanitized;
+                        $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/'.$archivoSanitized;
 
                         $found = false;
                         foreach ($posPaths as $path) {
@@ -1914,12 +1936,12 @@ class AlmacenFundicionController extends Controller
                                         break;
                                     }
                                 }
-                                if (!$yaExiste) {
+                                if (! $yaExiste) {
                                     $calidadAttachments[] = [
-                                        'path' => storage_path('app/' . $path),
+                                        'path' => storage_path('app/'.$path),
                                         'name' => basename($archivoSanitized),
                                         'mime' => strtolower(pathinfo(basename($archivoSanitized), PATHINFO_EXTENSION)) === 'dwg' ? 'application/acad' : 'application/pdf',
-                                        'tipo' => 'dibujo_ayuda'
+                                        'tipo' => 'dibujo_ayuda',
                                     ];
                                 }
                                 $found = true;
@@ -1933,22 +1955,22 @@ class AlmacenFundicionController extends Controller
                 }
             }
 
-            if (!empty($destCalidad)) {
+            if (! empty($destCalidad)) {
                 Mail::send([], [], function ($message) use ($destCalidad, $asunto, $cuerpo, $calidadAttachments) {
                     $message->to($destCalidad)->subject($asunto)->html($cuerpo);
                     foreach ($calidadAttachments as $att) {
-                        if (!empty($att['path']) && file_exists($att['path'])) {
+                        if (! empty($att['path']) && file_exists($att['path'])) {
                             $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
                         }
                     }
                 });
             }
 
-            if (!empty($destProveedor)) {
+            if (! empty($destProveedor)) {
                 Mail::send([], [], function ($message) use ($destProveedor, $asunto, $cuerpo, $attachments) {
                     $message->to($destProveedor)->subject($asunto)->html($cuerpo);
                     foreach ($attachments as $att) {
-                        if (!empty($att['path']) && file_exists($att['path'])) {
+                        if (! empty($att['path']) && file_exists($att['path'])) {
                             $message->attach($att['path'], ['as' => $att['name'], 'mime' => $att['mime']]);
                         }
                     }
@@ -1958,7 +1980,7 @@ class AlmacenFundicionController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => "Se ha registrado que la OT {$ot} ya cuenta con modelo. Calidad debe revisar."
+            'message' => "Se ha registrado que la OT {$ot} ya cuenta con modelo. Calidad debe revisar.",
         ]);
     }
 
@@ -1970,14 +1992,14 @@ class AlmacenFundicionController extends Controller
         $this->verificarAcceso();
 
         $otFull = $request->query('ot', '');
-        Log::info("getOtData: Consultando OT = " . $otFull);
+        Log::info('getOtData: Consultando OT = '.$otFull);
         // Extraer el número de OT (ej: de "OT 6473 - ..." extraer 6473)
         preg_match('/OT\s*(\d+)/', $otFull, $matches);
         $otId = isset($matches[1]) ? (int) $matches[1] : 0;
 
         $ot = Orden_trabajo::with(['moldura', 'clases'])->find($otId);
 
-        if (!$ot) {
+        if (! $ot) {
             return response()->json(['success' => false, 'message' => 'OT no encontrada.'], 404);
         }
 
@@ -2020,30 +2042,31 @@ class AlmacenFundicionController extends Controller
         $isClassAprobada = function ($claseNombre) use ($baseOt, $otFull, $activeClasses) {
             $tipo = null;
             $clLow = strtolower($claseNombre);
-            if (strpos($clLow, 'candado obturador') !== false)
+            if (strpos($clLow, 'candado obturador') !== false) {
                 $tipo = 'Candado obturador';
-            elseif (strpos($clLow, 'cabeza de soplo') !== false)
+            } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                 $tipo = 'Cabeza de soplo';
-            elseif (strpos($clLow, 'embudo') !== false)
+            } elseif (strpos($clLow, 'embudo') !== false) {
                 $tipo = 'Embudo';
-            elseif (strpos($clLow, 'corona') !== false)
+            } elseif (strpos($clLow, 'corona') !== false) {
                 $tipo = 'Corona';
-            elseif (strpos($clLow, 'plato') !== false)
+            } elseif (strpos($clLow, 'plato') !== false) {
                 $tipo = 'Plato';
-            elseif (strpos($clLow, 'fondo') !== false)
+            } elseif (strpos($clLow, 'fondo') !== false) {
                 $tipo = 'Fondo';
-            elseif (strpos($clLow, 'obturador') !== false)
+            } elseif (strpos($clLow, 'obturador') !== false) {
                 $tipo = 'Obturador';
-            elseif (strpos($clLow, 'molde') !== false)
+            } elseif (strpos($clLow, 'molde') !== false) {
                 $tipo = 'Molde';
-            elseif (strpos($clLow, 'bombillo') !== false)
+            } elseif (strpos($clLow, 'bombillo') !== false) {
                 $tipo = 'Bombillo';
-            elseif (strpos($clLow, 'pistones') !== false)
+            } elseif (strpos($clLow, 'pistones') !== false) {
                 $tipo = 'Pistones';
-            elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                 $tipo = 'Guías';
+            }
 
-            if (!$tipo) {
+            if (! $tipo) {
                 return false;
             }
 
@@ -2075,11 +2098,11 @@ class AlmacenFundicionController extends Controller
 
             // 2. Filesystem check (FDLDM directory)
             $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
-                ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
-                ->where('ot', 'LIKE', $baseOt . '_%_R%', 'or')
+                ->where('ot', 'LIKE', $baseOt.'_R%', 'or')
+                ->where('ot', 'LIKE', $baseOt.'_%_R%', 'or')
                 ->pluck('ot')
                 ->toArray();
-            if (!in_array($otFull, $allOtNames)) {
+            if (! in_array($otFull, $allOtNames)) {
                 $allOtNames[] = $otFull;
             }
 
@@ -2087,32 +2110,32 @@ class AlmacenFundicionController extends Controller
             foreach ($allOtNames as $relOt) {
                 $folders = [
                     trim($relOt),
-                    preg_replace('/[\s]+/', '_', trim(preg_replace('/[^A-Za-z0-9\-]/', '_', $relOt)))
+                    preg_replace('/[\s]+/', '_', trim(preg_replace('/[^A-Za-z0-9\-]/', '_', $relOt))),
                 ];
                 $folders = array_unique($folders);
 
                 foreach ($folders as $relFolder) {
-                    $calDir = self::CALIDAD_DIR . '/' . $relFolder;
-                    $almDir = self::ALMACEN_DIR . '/' . $relFolder;
+                    $calDir = self::CALIDAD_DIR.'/'.$relFolder;
+                    $almDir = self::ALMACEN_DIR.'/'.$relFolder;
                     $pathsToCheck = [];
 
                     if (\Storage::disk('local')->exists($calDir)) {
-                        $pathsToCheck[] = $calDir . '/Documentos_Aprobados/FDLDM';
+                        $pathsToCheck[] = $calDir.'/Documentos_Aprobados/FDLDM';
                         $classFolders = FundicionPaths::getClassFoldersForOt($calDir, $tipo);
                         foreach ($classFolders as $cf) {
-                            $pathsToCheck[] = $calDir . '/' . $cf . '/DOCUMENTOS_APROBADOS/FDLDM';
-                            $pathsToCheck[] = $calDir . '/' . $cf . '/DOCUMENTOS_APROBADOS';
-                            $pathsToCheck[] = $calDir . '/' . $cf . '/FORMATOS_LIBERACION';
+                            $pathsToCheck[] = $calDir.'/'.$cf.'/DOCUMENTOS_APROBADOS/FDLDM';
+                            $pathsToCheck[] = $calDir.'/'.$cf.'/DOCUMENTOS_APROBADOS';
+                            $pathsToCheck[] = $calDir.'/'.$cf.'/FORMATOS_LIBERACION';
                         }
                     }
 
                     if (\Storage::disk('local')->exists($almDir)) {
-                        $pathsToCheck[] = $almDir . '/Documentos_Aprobados/FDLDM';
+                        $pathsToCheck[] = $almDir.'/Documentos_Aprobados/FDLDM';
                         $classFoldersAlm = FundicionPaths::getClassFoldersForOt($almDir, $tipo);
                         foreach ($classFoldersAlm as $cf) {
-                            $pathsToCheck[] = $almDir . '/' . $cf . '/DOCUMENTOS_APROBADOS/FDLDM';
-                            $pathsToCheck[] = $almDir . '/' . $cf . '/DOCUMENTOS_APROBADOS';
-                            $pathsToCheck[] = $almDir . '/' . $cf . '/FORMATOS_LIBERACION';
+                            $pathsToCheck[] = $almDir.'/'.$cf.'/DOCUMENTOS_APROBADOS/FDLDM';
+                            $pathsToCheck[] = $almDir.'/'.$cf.'/DOCUMENTOS_APROBADOS';
+                            $pathsToCheck[] = $almDir.'/'.$cf.'/FORMATOS_LIBERACION';
                         }
                     }
 
@@ -2133,33 +2156,34 @@ class AlmacenFundicionController extends Controller
             return false;
         };
 
-        $isClassRechazada = function ($claseNombre) use ($baseOt, $otFull) {
+        $isClassRechazada = function ($claseNombre) use ($otFull) {
             $tipo = null;
             $clLow = strtolower($claseNombre);
-            if (strpos($clLow, 'candado obturador') !== false)
+            if (strpos($clLow, 'candado obturador') !== false) {
                 $tipo = 'Candado obturador';
-            elseif (strpos($clLow, 'cabeza de soplo') !== false)
+            } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                 $tipo = 'Cabeza de soplo';
-            elseif (strpos($clLow, 'embudo') !== false)
+            } elseif (strpos($clLow, 'embudo') !== false) {
                 $tipo = 'Embudo';
-            elseif (strpos($clLow, 'corona') !== false)
+            } elseif (strpos($clLow, 'corona') !== false) {
                 $tipo = 'Corona';
-            elseif (strpos($clLow, 'plato') !== false)
+            } elseif (strpos($clLow, 'plato') !== false) {
                 $tipo = 'Plato';
-            elseif (strpos($clLow, 'fondo') !== false)
+            } elseif (strpos($clLow, 'fondo') !== false) {
                 $tipo = 'Fondo';
-            elseif (strpos($clLow, 'obturador') !== false)
+            } elseif (strpos($clLow, 'obturador') !== false) {
                 $tipo = 'Obturador';
-            elseif (strpos($clLow, 'molde') !== false)
+            } elseif (strpos($clLow, 'molde') !== false) {
                 $tipo = 'Molde';
-            elseif (strpos($clLow, 'bombillo') !== false)
+            } elseif (strpos($clLow, 'bombillo') !== false) {
                 $tipo = 'Bombillo';
-            elseif (strpos($clLow, 'pistones') !== false)
+            } elseif (strpos($clLow, 'pistones') !== false) {
                 $tipo = 'Pistones';
-            elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                 $tipo = 'Guías';
+            }
 
-            if (!$tipo) {
+            if (! $tipo) {
                 return false;
             }
 
@@ -2184,30 +2208,30 @@ class AlmacenFundicionController extends Controller
             $foldersToCheck = [
                 $folderExact,
                 trim($otFull),
-                preg_replace('/[\s]+/', '_', trim(preg_replace('/[^A-Za-z0-9\-]/', '_', $otFull)))
+                preg_replace('/[\s]+/', '_', trim(preg_replace('/[^A-Za-z0-9\-]/', '_', $otFull))),
             ];
             $foldersToCheck = array_unique(array_filter($foldersToCheck));
 
             foreach ($foldersToCheck as $relFolder) {
-                $calDir = self::CALIDAD_DIR . '/' . $relFolder;
-                $almDir = self::ALMACEN_DIR . '/' . $relFolder;
+                $calDir = self::CALIDAD_DIR.'/'.$relFolder;
+                $almDir = self::ALMACEN_DIR.'/'.$relFolder;
                 $pathsToCheck = [];
 
                 if (\Storage::disk('local')->exists($calDir)) {
-                    $pathsToCheck[] = $calDir . '/Documentos_Rechazados/FDRDM';
+                    $pathsToCheck[] = $calDir.'/Documentos_Rechazados/FDRDM';
                     $classFolders = FundicionPaths::getClassFoldersForOt($calDir, $tipo);
                     foreach ($classFolders as $cf) {
-                        $pathsToCheck[] = $calDir . '/' . $cf . '/DOCUMENTOS_RECHAZADOS/FDRDM';
-                        $pathsToCheck[] = $calDir . '/' . $cf . '/DOCUMENTOS_RECHAZADOS';
+                        $pathsToCheck[] = $calDir.'/'.$cf.'/DOCUMENTOS_RECHAZADOS/FDRDM';
+                        $pathsToCheck[] = $calDir.'/'.$cf.'/DOCUMENTOS_RECHAZADOS';
                     }
                 }
 
                 if (\Storage::disk('local')->exists($almDir)) {
-                    $pathsToCheck[] = $almDir . '/Documentos_Rechazados/FDRDM';
+                    $pathsToCheck[] = $almDir.'/Documentos_Rechazados/FDRDM';
                     $classFoldersAlm = FundicionPaths::getClassFoldersForOt($almDir, $tipo);
                     foreach ($classFoldersAlm as $cf) {
-                        $pathsToCheck[] = $almDir . '/' . $cf . '/DOCUMENTOS_RECHAZADOS/FDRDM';
-                        $pathsToCheck[] = $almDir . '/' . $cf . '/DOCUMENTOS_RECHAZADOS';
+                        $pathsToCheck[] = $almDir.'/'.$cf.'/DOCUMENTOS_RECHAZADOS/FDRDM';
+                        $pathsToCheck[] = $almDir.'/'.$cf.'/DOCUMENTOS_RECHAZADOS';
                     }
                 }
 
@@ -2227,46 +2251,45 @@ class AlmacenFundicionController extends Controller
             return false;
         };
 
-
-
-        $clasesOrig = $ot->clases->map(fn($c) => [
+        $clasesOrig = $ot->clases->map(fn ($c) => [
             'id' => $c->id,
             'nombre' => $c->nombre,
             'pedido' => $c->pedido,
             'proveedor' => $c->proveedor,
-            'material' => $c->material
+            'material' => $c->material,
         ])->values();
 
         // Detectar si es OT de reproceso (_R1, _R2, etc.)
         $esReproceso = (bool) preg_match('/_R\d+$/i', $otFull);
 
         // Obtener TODAS las clases para esta OT y filtrarlas por aprobados en liberación
-        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $baseOt, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
+        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
 
             $clLow = strtolower($c['nombre']);
             $tipo = null;
-            if (strpos($clLow, 'candado obturador') !== false)
+            if (strpos($clLow, 'candado obturador') !== false) {
                 $tipo = 'Candado obturador';
-            elseif (strpos($clLow, 'cabeza de soplo') !== false)
+            } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                 $tipo = 'Cabeza de soplo';
-            elseif (strpos($clLow, 'embudo') !== false)
+            } elseif (strpos($clLow, 'embudo') !== false) {
                 $tipo = 'Embudo';
-            elseif (strpos($clLow, 'corona') !== false)
+            } elseif (strpos($clLow, 'corona') !== false) {
                 $tipo = 'Corona';
-            elseif (strpos($clLow, 'plato') !== false)
+            } elseif (strpos($clLow, 'plato') !== false) {
                 $tipo = 'Plato';
-            elseif (strpos($clLow, 'fondo') !== false)
+            } elseif (strpos($clLow, 'fondo') !== false) {
                 $tipo = 'Fondo';
-            elseif (strpos($clLow, 'obturador') !== false)
+            } elseif (strpos($clLow, 'obturador') !== false) {
                 $tipo = 'Obturador';
-            elseif (strpos($clLow, 'molde') !== false)
+            } elseif (strpos($clLow, 'molde') !== false) {
                 $tipo = 'Molde';
-            elseif (strpos($clLow, 'bombillo') !== false)
+            } elseif (strpos($clLow, 'bombillo') !== false) {
                 $tipo = 'Bombillo';
-            elseif (strpos($clLow, 'pistones') !== false)
+            } elseif (strpos($clLow, 'pistones') !== false) {
                 $tipo = 'Pistones';
-            elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                 $tipo = 'Guías';
+            }
 
             if ($tipo) {
                 if ($type === 'casting') {
@@ -2286,12 +2309,14 @@ class AlmacenFundicionController extends Controller
                             return true;
                         }
                     }
+
                     return false;
                 } else {
                     // Para pre-orden de modelo normal, queremos los que no están aprobados ni rechazados
-                    return !$isClassAprobada($c['nombre']) && !$isClassRechazada($c['nombre']);
+                    return ! $isClassAprobada($c['nombre']) && ! $isClassRechazada($c['nombre']);
                 }
             }
+
             return $type !== 'casting'; // Si no es casting, dejamos los otros. Si es casting, los quitamos
         })->values();
 
@@ -2300,32 +2325,33 @@ class AlmacenFundicionController extends Controller
         $clasesVinculadas = $history ? ($history->ayudas_config ?? []) : [];
         $globalClases = config('global_classes.clases', []);
 
-        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $baseOt, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
+        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
 
             $clLow = strtolower($claseNombre);
             $tipo = null;
-            if (strpos($clLow, 'candado obturador') !== false)
+            if (strpos($clLow, 'candado obturador') !== false) {
                 $tipo = 'Candado obturador';
-            elseif (strpos($clLow, 'cabeza de soplo') !== false)
+            } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                 $tipo = 'Cabeza de soplo';
-            elseif (strpos($clLow, 'embudo') !== false)
+            } elseif (strpos($clLow, 'embudo') !== false) {
                 $tipo = 'Embudo';
-            elseif (strpos($clLow, 'corona') !== false)
+            } elseif (strpos($clLow, 'corona') !== false) {
                 $tipo = 'Corona';
-            elseif (strpos($clLow, 'plato') !== false)
+            } elseif (strpos($clLow, 'plato') !== false) {
                 $tipo = 'Plato';
-            elseif (strpos($clLow, 'fondo') !== false)
+            } elseif (strpos($clLow, 'fondo') !== false) {
                 $tipo = 'Fondo';
-            elseif (strpos($clLow, 'obturador') !== false)
+            } elseif (strpos($clLow, 'obturador') !== false) {
                 $tipo = 'Obturador';
-            elseif (strpos($clLow, 'molde') !== false)
+            } elseif (strpos($clLow, 'molde') !== false) {
                 $tipo = 'Molde';
-            elseif (strpos($clLow, 'bombillo') !== false)
+            } elseif (strpos($clLow, 'bombillo') !== false) {
                 $tipo = 'Bombillo';
-            elseif (strpos($clLow, 'pistones') !== false)
+            } elseif (strpos($clLow, 'pistones') !== false) {
                 $tipo = 'Pistones';
-            elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+            } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                 $tipo = 'Guías';
+            }
 
             if ($tipo) {
                 if ($type === 'casting') {
@@ -2338,9 +2364,10 @@ class AlmacenFundicionController extends Controller
                     // Para reprocesos, todas las clases vinculadas del historial son válidas
                     return true;
                 } else {
-                    return !$isClassAprobada($claseNombre) && !$isClassRechazada($claseNombre);
+                    return ! $isClassAprobada($claseNombre) && ! $isClassRechazada($claseNombre);
                 }
             }
+
             return $type !== 'casting';
         })->map(function ($claseNombre) use ($clasesOrig) {
             $nombreNorm = FundicionPaths::normalizeClass($claseNombre);
@@ -2350,16 +2377,17 @@ class AlmacenFundicionController extends Controller
                 $coNorm = FundicionPaths::normalizeClass($co['nombre']);
                 if (strtolower(trim($co['nombre'])) === strtolower(trim($claseNombre)) || strtolower(trim($coNorm)) === strtolower(trim($nombreNorm))) {
                     $prov = $co['proveedor'];
-                    if (!empty($co['material'])) {
+                    if (! empty($co['material'])) {
                         $mat = $co['material'];
                     }
                     break;
                 }
             }
+
             return [
                 'nombre' => $nombreNorm,
                 'proveedor' => $prov,
-                'material' => $mat
+                'material' => $mat,
             ];
         })->values()->toArray();
 
@@ -2388,20 +2416,22 @@ class AlmacenFundicionController extends Controller
                 }
 
                 $year = date('Y');
-                $folioStr = "PFC-{$year}-" . str_pad($currentFolio, 4, '0', STR_PAD_LEFT);
+                $folioStr = "PFC-{$year}-".str_pad($currentFolio, 4, '0', STR_PAD_LEFT);
             } else {
                 // Si hay alguna orden, tomar su folio. Si es standard, tomar folio casting si existe, o generar
                 $castingPo = $preOrdenes->first(function ($po) {
-                    if (!empty($po->filas)) {
+                    if (! empty($po->filas)) {
                         $firstFila = $po->filas[0] ?? [];
+
                         return isset($firstFila['cant_fabricar']);
                     }
+
                     return false;
                 });
-                if ($castingPo && !empty($castingPo->folio)) {
+                if ($castingPo && ! empty($castingPo->folio)) {
                     $folioStr = $castingPo->folio;
                     if (str_starts_with($folioStr, 'MOD-')) {
-                        $folioStr = 'PFC-' . substr($folioStr, 4);
+                        $folioStr = 'PFC-'.substr($folioStr, 4);
                     }
                 } else {
                     $folioPath = 'DOCUMENTACION_GIS/folio_casting_config.json';
@@ -2411,7 +2441,7 @@ class AlmacenFundicionController extends Controller
                         $currentFolio = $config['next_folio'] ?? 47;
                     }
                     $year = date('Y');
-                    $folioStr = "PFC-{$year}-" . str_pad($currentFolio, 4, '0', STR_PAD_LEFT);
+                    $folioStr = "PFC-{$year}-".str_pad($currentFolio, 4, '0', STR_PAD_LEFT);
                 }
             }
 
@@ -2441,12 +2471,12 @@ class AlmacenFundicionController extends Controller
             // Pre-orden existente: recuperar folio y datos para prellenar el formulario
             $folioStr = $preOrdenDB->folio;
             if (str_starts_with($folioStr, 'MOD-')) {
-                $folioStr = 'PFM-' . substr($folioStr, 4);
+                $folioStr = 'PFM-'.substr($folioStr, 4);
             }
 
             // Filtrar las filas ya guardadas de la pre-orden para remover clases aprobadas
             $filasFiltradas = [];
-            if (!empty($preOrdenDB->filas)) {
+            if (! empty($preOrdenDB->filas)) {
                 foreach ($preOrdenDB->filas as $fila) {
                     $claseNombre = $fila['clase_nombre'] ?? $fila['clase'] ?? '';
                     if (is_numeric($claseNombre)) {
@@ -2457,30 +2487,31 @@ class AlmacenFundicionController extends Controller
                     }
                     $clLow = strtolower($claseNombre);
                     $tipo = null;
-                    if (strpos($clLow, 'candado obturador') !== false)
+                    if (strpos($clLow, 'candado obturador') !== false) {
                         $tipo = 'Candado obturador';
-                    elseif (strpos($clLow, 'cabeza de soplo') !== false)
+                    } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                         $tipo = 'Cabeza de soplo';
-                    elseif (strpos($clLow, 'embudo') !== false)
+                    } elseif (strpos($clLow, 'embudo') !== false) {
                         $tipo = 'Embudo';
-                    elseif (strpos($clLow, 'corona') !== false)
+                    } elseif (strpos($clLow, 'corona') !== false) {
                         $tipo = 'Corona';
-                    elseif (strpos($clLow, 'plato') !== false)
+                    } elseif (strpos($clLow, 'plato') !== false) {
                         $tipo = 'Plato';
-                    elseif (strpos($clLow, 'fondo') !== false)
+                    } elseif (strpos($clLow, 'fondo') !== false) {
                         $tipo = 'Fondo';
-                    elseif (strpos($clLow, 'obturador') !== false)
+                    } elseif (strpos($clLow, 'obturador') !== false) {
                         $tipo = 'Obturador';
-                    elseif (strpos($clLow, 'molde') !== false)
+                    } elseif (strpos($clLow, 'molde') !== false) {
                         $tipo = 'Molde';
-                    elseif (strpos($clLow, 'bombillo') !== false)
+                    } elseif (strpos($clLow, 'bombillo') !== false) {
                         $tipo = 'Bombillo';
-                    elseif (strpos($clLow, 'pistones') !== false)
+                    } elseif (strpos($clLow, 'pistones') !== false) {
                         $tipo = 'Pistones';
-                    elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+                    } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                         $tipo = 'Guías';
+                    }
 
-                    if ($tipo && !$esReproceso) {
+                    if ($tipo && ! $esReproceso) {
                         if ($isClassAprobada($claseNombre) || $isClassRechazada($claseNombre)) {
                             continue;
                         }
@@ -2500,7 +2531,7 @@ class AlmacenFundicionController extends Controller
             }
 
             $preordenData = [
-                'folio' => str_starts_with($preOrdenDB->folio, 'MOD-') ? 'PFM-' . substr($preOrdenDB->folio, 4) : $preOrdenDB->folio,
+                'folio' => str_starts_with($preOrdenDB->folio, 'MOD-') ? 'PFM-'.substr($preOrdenDB->folio, 4) : $preOrdenDB->folio,
                 'proveedor' => $preOrdenDB->proveedor,
                 'fecha_creacion' => $preOrdenDB->fecha_creacion ? ($preOrdenDB->fecha_creacion instanceof \DateTimeInterface ? $preOrdenDB->fecha_creacion->format('Y-m-d') : substr((string) $preOrdenDB->fecha_creacion, 0, 10)) : null,
                 'fecha_entrega' => $preOrdenDB->fecha_entrega ? ($preOrdenDB->fecha_entrega instanceof \DateTimeInterface ? $preOrdenDB->fecha_entrega->format('Y-m-d') : substr((string) $preOrdenDB->fecha_entrega, 0, 10)) : null,
@@ -2528,7 +2559,7 @@ class AlmacenFundicionController extends Controller
             }
 
             $year = date('Y');
-            $folioStr = "PFM-{$year}-" . str_pad($currentFolio, 4, '0', STR_PAD_LEFT);
+            $folioStr = "PFM-{$year}-".str_pad($currentFolio, 4, '0', STR_PAD_LEFT);
         }
 
         return response()->json([
@@ -2558,7 +2589,7 @@ class AlmacenFundicionController extends Controller
             if (empty($pagesData) || empty($pagesData[0]['ot_raw']) || empty($pagesData[0]['filas'])) {
                 // Fallback to legacy structure if pages array not found
                 $p1Data = $request->input('page1') ?? $data;
-                if (empty($p1Data['ot_raw']) && !empty($p1Data['ot'])) {
+                if (empty($p1Data['ot_raw']) && ! empty($p1Data['ot'])) {
                     $p1Data['ot_raw'] = $p1Data['ot'];
                 }
                 if (empty($p1Data) || empty($p1Data['ot_raw']) || empty($p1Data['filas'])) {
@@ -2567,8 +2598,9 @@ class AlmacenFundicionController extends Controller
                 $pagesData = [$p1Data];
                 if ($request->input('has_page2', false)) {
                     $p2Data = $request->input('page2');
-                    if (!empty($p2Data))
+                    if (! empty($p2Data)) {
                         $pagesData[] = $p2Data;
+                    }
                 }
             }
 
@@ -2576,16 +2608,16 @@ class AlmacenFundicionController extends Controller
 
             // VALIDACIÓN ESTRICTA: No generar pre-orden de casting si faltan formatos LDM (si el registro existe)
             $history = FundicionHistory::where('ot', '=', $otRaw, 'and')->first();
-            if ($history && !$history->casting_pdf_generated && !app()->runningUnitTests()) {
+            if ($history && ! $history->casting_pdf_generated && ! app()->runningUnitTests()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No se puede generar la Pre-orden de Casting. Debe subir los Formatos LDM firmados obligatoriamente.'
+                    'message' => 'No se puede generar la Pre-orden de Casting. Debe subir los Formatos LDM firmados obligatoriamente.',
                 ], 422);
             }
 
             $keepSuppliers = [];
             foreach ($pagesData as $pData) {
-                if (!empty($pData['proveedor'])) {
+                if (! empty($pData['proveedor'])) {
                     $keepSuppliers[] = $pData['proveedor'];
                 }
             }
@@ -2597,17 +2629,18 @@ class AlmacenFundicionController extends Controller
 
             // Guardar cambios en proveedores de clases en la BD
             foreach ($pagesData as $pData) {
-                if (empty($pData['proveedor']))
+                if (empty($pData['proveedor'])) {
                     continue;
+                }
                 $proveedorTab = $pData['proveedor'];
-                if (!empty($pData['filas'])) {
+                if (! empty($pData['filas'])) {
                     foreach ($pData['filas'] as $f) {
-                        if (!empty($f['id_clase']) && is_numeric($f['id_clase'])) {
+                        if (! empty($f['id_clase']) && is_numeric($f['id_clase'])) {
                             $updateData = ['proveedor' => $proveedorTab];
-                            if (!empty($f['material'])) {
+                            if (! empty($f['material'])) {
                                 $updateData['material'] = $f['material'];
                             }
-                            if (!empty($f['fecha_entrega'])) {
+                            if (! empty($f['fecha_entrega'])) {
                                 $updateData['fecha_entrega_fundicion'] = $f['fecha_entrega'];
                             }
                             Clase::where('id', $f['id_clase'])->update($updateData);
@@ -2632,17 +2665,17 @@ class AlmacenFundicionController extends Controller
                 $pdfs[] = [
                     'url' => route('almacen.fundicion.serve', [
                         'ot' => $otRaw,
-                        'archivo' => 'preordenes/documentos_aprobados/' . $saved['pdf_filename'],
-                        'tipo' => 'otro'
+                        'archivo' => 'preordenes/documentos_aprobados/'.$saved['pdf_filename'],
+                        'tipo' => 'otro',
                     ]),
-                    'filename' => $saved['pdf_filename']
+                    'filename' => $saved['pdf_filename'],
                 ];
             }
 
             return response()->json([
                 'success' => true,
                 'message' => 'Pre-Orden de Casting guardada correctamente.',
-                'pdfs' => $pdfs
+                'pdfs' => $pdfs,
             ]);
         }
 
@@ -2652,20 +2685,20 @@ class AlmacenFundicionController extends Controller
         }
 
         // OT completa para búsquedas
-        $otRaw = !empty($data['ot_raw']) ? $data['ot_raw'] : ($data['ot'] ?? null);
+        $otRaw = ! empty($data['ot_raw']) ? $data['ot_raw'] : ($data['ot'] ?? null);
         $otClean = preg_replace('/[^A-Za-z0-9\-]/', '_', $data['ot'] ?? '');
 
-        if (!empty($otRaw)) {
+        if (! empty($otRaw)) {
             $exactHist = FundicionHistory::where('ot', '=', $otRaw)->first();
             if ($exactHist) {
                 $otRaw = $exactHist->ot;
             } else {
-                $history = FundicionHistory::where('ot', 'LIKE', '%OT ' . $otClean . '%', 'and')->first();
-                $otRaw = $history ? $history->ot : ('OT ' . $otClean);
+                $history = FundicionHistory::where('ot', 'LIKE', '%OT '.$otClean.'%', 'and')->first();
+                $otRaw = $history ? $history->ot : ('OT '.$otClean);
             }
         } else {
-            $history = FundicionHistory::where('ot', 'LIKE', '%OT ' . $otClean . '%', 'and')->first();
-            $otRaw = $history ? $history->ot : ('OT ' . $otClean);
+            $history = FundicionHistory::where('ot', 'LIKE', '%OT '.$otClean.'%', 'and')->first();
+            $otRaw = $history ? $history->ot : ('OT '.$otClean);
         }
 
         // Evitar error de clave duplicada con pre-órdenes archivadas en BD
@@ -2673,8 +2706,8 @@ class AlmacenFundicionController extends Controller
             ->where('pdf_filename', 'LIKE', '%_Anterior_N%')
             ->get();
         foreach ($archivedPOs as $arc) {
-            if (!str_contains($arc->ot, '_Anterior_')) {
-                $arc->ot = $arc->ot . '_Anterior_' . $arc->id;
+            if (! str_contains($arc->ot, '_Anterior_')) {
+                $arc->ot = $arc->ot.'_Anterior_'.$arc->id;
                 $arc->save();
             }
         }
@@ -2687,49 +2720,50 @@ class AlmacenFundicionController extends Controller
             $scarExists = ScarModelo::where('ot', '=', $baseOt, 'and')
                 ->orWhere('ot', '=', $otRaw, 'or')
                 ->exists();
-            if (!$scarExists) {
+            if (! $scarExists) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No se puede generar la Pre-orden de Modelo de Reproceso. Calidad debe emitir y firmar el formato de Rechazo y el SCAR primero.'
+                    'message' => 'No se puede generar la Pre-orden de Modelo de Reproceso. Calidad debe emitir y firmar el formato de Rechazo y el SCAR primero.',
                 ], 422);
             }
         }
         // Filtrar filas para no guardar ni imprimir las clases ya aprobadas
         $filasFiltradas = [];
-        if (!empty($data['filas'])) {
+        if (! empty($data['filas'])) {
             foreach ($data['filas'] as $fila) {
                 $claseNombre = $fila['clase_nombre'] ?? $fila['clase'] ?? '';
                 $clLow = strtolower($claseNombre);
                 $tipo = null;
-                if (strpos($clLow, 'candado obturador') !== false)
+                if (strpos($clLow, 'candado obturador') !== false) {
                     $tipo = 'Candado obturador';
-                elseif (strpos($clLow, 'cabeza de soplo') !== false)
+                } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                     $tipo = 'Cabeza de soplo';
-                elseif (strpos($clLow, 'embudo') !== false)
+                } elseif (strpos($clLow, 'embudo') !== false) {
                     $tipo = 'Embudo';
-                elseif (strpos($clLow, 'corona') !== false)
+                } elseif (strpos($clLow, 'corona') !== false) {
                     $tipo = 'Corona';
-                elseif (strpos($clLow, 'plato') !== false)
+                } elseif (strpos($clLow, 'plato') !== false) {
                     $tipo = 'Plato';
-                elseif (strpos($clLow, 'fondo') !== false)
+                } elseif (strpos($clLow, 'fondo') !== false) {
                     $tipo = 'Fondo';
-                elseif (strpos($clLow, 'obturador') !== false)
+                } elseif (strpos($clLow, 'obturador') !== false) {
                     $tipo = 'Obturador';
-                elseif (strpos($clLow, 'molde') !== false)
+                } elseif (strpos($clLow, 'molde') !== false) {
                     $tipo = 'Molde';
-                elseif (strpos($clLow, 'bombillo') !== false)
+                } elseif (strpos($clLow, 'bombillo') !== false) {
                     $tipo = 'Bombillo';
-                elseif (strpos($clLow, 'pistones') !== false)
+                } elseif (strpos($clLow, 'pistones') !== false) {
                     $tipo = 'Pistones';
-                elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+                } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                     $tipo = 'Guías';
+                }
 
                 if ($tipo) {
                     $isAprobado = LiberacionModeloFundicion::query()
                         ->where(function ($q) use ($otRaw, $baseOt) {
                             $q->where('ot', '=', $otRaw)
                                 ->orWhere('ot', '=', $baseOt)
-                                ->orWhere('ot', 'LIKE', $baseOt . '_R%');
+                                ->orWhere('ot', 'LIKE', $baseOt.'_R%');
                         })
                         ->where('tipo_modelo', '=', $tipo)
                         ->where('estado', '=', 'aprobado')
@@ -2765,23 +2799,24 @@ class AlmacenFundicionController extends Controller
         ini_set('memory_limit', '2048M');
         $pdf = Pdf::loadView('pdf.pre_orden', [
             'data' => $data,
-            'user' => $user
+            'user' => $user,
         ])->setPaper('a4', 'landscape');
 
         // 4. Definir nombre del archivo y ruta de guardado conforme al formato PreOrden_FDM_[Clases]_[OT]_[Fecha].pdf
         $clasesInvolucradas = [];
         $filasLista = $filasFiltradas ?? ($data['filas'] ?? []);
-        if (!empty($filasLista)) {
+        if (! empty($filasLista)) {
             foreach ($filasLista as $f) {
                 $cRaw = trim($f['descripcion'] ?? $f['clase_nombre'] ?? $f['clase'] ?? $f['nombre'] ?? '');
                 if (empty($cRaw) || is_numeric($cRaw)) {
                     $cRaw = trim($f['id_clase'] ?? '');
-                    if (is_numeric($cRaw))
+                    if (is_numeric($cRaw)) {
                         $cRaw = '';
+                    }
                 }
                 $cClean = trim(preg_replace('/^modelo\s+/i', '', $cRaw));
                 $cVal = ucfirst($cClean);
-                if (!empty($cVal) && !is_numeric($cVal) && !in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
+                if (! empty($cVal) && ! is_numeric($cVal) && ! in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
                     $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
                 }
             }
@@ -2795,7 +2830,7 @@ class AlmacenFundicionController extends Controller
 
         $reprocesoMatch = [];
         preg_match('/_R\d+$/i', $otRaw, $reprocesoMatch);
-        $suffixReproceso = !empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
+        $suffixReproceso = ! empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
         $fileName = "F_ALM_PFM_{$clasesStr}{$suffixReproceso}.pdf";
 
         $folderName = $this->sanitizePath($this->normalizeOTName($otRaw));
@@ -2804,19 +2839,19 @@ class AlmacenFundicionController extends Controller
         $clasesParaGuardar = empty($clasesInvolucradas) ? ['GENERAL'] : $clasesInvolucradas;
         $savedPathForUrl = null;
 
-        $baseOtPath = self::ALMACEN_DIR . '/' . $folderName;
+        $baseOtPath = self::ALMACEN_DIR.'/'.$folderName;
 
         foreach ($clasesParaGuardar as $claseParaGuardar) {
             $claseFolder = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
-            $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseFolder . '/PREORDENES';
-            $savePath = $otPath . '/' . $fileName;
+            $otPath = self::ALMACEN_DIR.'/'.$folderName.'/'.$claseFolder.'/PREORDENES';
+            $savePath = $otPath.'/'.$fileName;
 
-            if (!Storage::disk('local')->exists($otPath)) {
+            if (! Storage::disk('local')->exists($otPath)) {
                 Storage::disk('local')->makeDirectory($otPath);
             } else {
                 // Eliminar versión borrador anterior activa (no archivada como _Anterior_N)
-                if ($preOrdenDB && $preOrdenDB->pdf_filename && !str_contains($preOrdenDB->pdf_filename, '_Anterior_N')) {
-                    $oldPath = $otPath . '/' . $preOrdenDB->pdf_filename;
+                if ($preOrdenDB && $preOrdenDB->pdf_filename && ! str_contains($preOrdenDB->pdf_filename, '_Anterior_N')) {
+                    $oldPath = $otPath.'/'.$preOrdenDB->pdf_filename;
                     if (Storage::disk('local')->exists($oldPath)) {
                         Storage::disk('local')->delete($oldPath);
                     }
@@ -2824,14 +2859,14 @@ class AlmacenFundicionController extends Controller
                 $existingFiles = Storage::disk('local')->files($otPath);
                 foreach ($existingFiles as $file) {
                     $base = basename($file);
-                    if ((str_starts_with($base, 'PreOrden_') || str_starts_with($base, 'Pre-Orden_') || str_starts_with($base, 'F_ALM_PFM_')) && !str_contains($base, '_Anterior_N')) {
+                    if ((str_starts_with($base, 'PreOrden_') || str_starts_with($base, 'Pre-Orden_') || str_starts_with($base, 'F_ALM_PFM_')) && ! str_contains($base, '_Anterior_N')) {
                         Storage::disk('local')->delete($file);
                     }
                 }
             }
 
             // Limpiar duplicados accidentales de Pre-órdenes en DOCUMENTOS_APROBADOS
-            $docAprobPath = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseFolder . '/DOCUMENTOS_APROBADOS';
+            $docAprobPath = self::ALMACEN_DIR.'/'.$folderName.'/'.$claseFolder.'/DOCUMENTOS_APROBADOS';
             if (Storage::disk('local')->exists($docAprobPath)) {
                 foreach (Storage::disk('local')->files($docAprobPath) as $docFile) {
                     $baseDoc = strtolower(basename($docFile));
@@ -2844,8 +2879,8 @@ class AlmacenFundicionController extends Controller
             // 5. Guardar PDF físicamente en servidor (exclusivamente en PREORDENES)
             Storage::disk('local')->put($savePath, $pdfOutput);
 
-            if (!$savedPathForUrl) {
-                $savedPathForUrl = $claseFolder . '/PREORDENES/' . $fileName;
+            if (! $savedPathForUrl) {
+                $savedPathForUrl = $claseFolder.'/PREORDENES/'.$fileName;
             }
         }
 
@@ -2855,7 +2890,7 @@ class AlmacenFundicionController extends Controller
             ->where('pdf_filename', 'NOT LIKE', '%_Anterior_N%')
             ->first();
 
-        if (!$activePo) {
+        if (! $activePo) {
             $activePo = PreOrdenFundicion::where('ot', '=', $otRaw)
                 ->where('proveedor', '=', $data['proveedor'])
                 ->first();
@@ -2898,7 +2933,7 @@ class AlmacenFundicionController extends Controller
         ]);
 
         // 8. Incrementar Folio global SOLO si es una pre-orden completamente nueva
-        if (!$existeEnBD) {
+        if (! $existeEnBD) {
             try {
                 $folioPath = 'DOCUMENTACION_GIS/folio_config.json';
                 if (Storage::disk('local')->exists($folioPath)) {
@@ -2908,7 +2943,7 @@ class AlmacenFundicionController extends Controller
                     Storage::disk('local')->put($folioPath, json_encode($config));
                 }
             } catch (\Exception $e) {
-                Log::error("Error incrementando Folio: " . $e->getMessage());
+                Log::error('Error incrementando Folio: '.$e->getMessage());
             }
         }
 
@@ -2923,56 +2958,57 @@ class AlmacenFundicionController extends Controller
                 'user_nombre' => $user ? $user->name : null,
             ]);
         } catch (\Exception $e) {
-            Log::warning('Error al registrar log de pre-orden: ' . $e->getMessage());
+            Log::warning('Error al registrar log de pre-orden: '.$e->getMessage());
         }
 
         // 10. Retornar el PDF para descarga automática en el navegador
         return response($pdf->output(), 200)
             ->header('Content-Type', 'application/pdf')
-            ->header('Content-Disposition', 'attachment; filename="' . $fileName . '"');
+            ->header('Content-Disposition', 'attachment; filename="'.$fileName.'"');
     }
 
     /**
      * Helper para guardar las pre-órdenes de Casting dinámicamente con N proveedores.
      *
-     * @param array $pagesData Array of page data objects
-     * @param \App\Models\User|null $user
-     * @return array
+     * @param  array  $pagesData  Array of page data objects
+     * @param  \App\Models\User|null  $user
      */
     private function saveCastingPreOrdenesDynamic(array $pagesData, $user): array
     {
         $otRaw = $pagesData[0]['ot_raw'] ?? null;
-        if (!$otRaw)
+        if (! $otRaw) {
             return [];
+        }
 
         // Forzar fecha actual y filtrar filas vacías en cada página
         $fechaActual = date('Y-m-d');
         $validPages = [];
         foreach ($pagesData as $pData) {
             $pData['filas'] = array_values(array_filter($pData['filas'] ?? [], function ($fila) {
-                return !empty($fila['id_clase']);
+                return ! empty($fila['id_clase']);
             }));
-            if (!empty($pData['filas'])) {
+            if (! empty($pData['filas'])) {
                 $pData['fecha_creacion'] = $fechaActual;
                 $validPages[] = $pData;
             }
         }
 
-        if (empty($validPages))
+        if (empty($validPages)) {
             return [];
+        }
 
         // Generar PDF combinado
         ini_set('memory_limit', '2048M');
 
         $pdf = Pdf::loadView('almacen.pdf.casting_preorder_pdf', [
             'pages' => $validPages,
-            'user' => $user
+            'user' => $user,
         ])->setPaper('a4', 'landscape');
 
         $clasesInvolucradas = [];
         $todasFilas = [];
         foreach ($validPages as $p) {
-            if (!empty($p['filas']) && is_array($p['filas'])) {
+            if (! empty($p['filas']) && is_array($p['filas'])) {
                 $todasFilas = array_merge($todasFilas, $p['filas']);
             }
         }
@@ -2980,12 +3016,13 @@ class AlmacenFundicionController extends Controller
             $cRaw = trim($f['descripcion'] ?? $f['clase_nombre'] ?? $f['clase'] ?? $f['nombre'] ?? '');
             if (empty($cRaw) || is_numeric($cRaw)) {
                 $cRaw = trim($f['id_clase'] ?? '');
-                if (is_numeric($cRaw))
+                if (is_numeric($cRaw)) {
                     $cRaw = '';
+                }
             }
             $cClean = trim(preg_replace('/^modelo\s+/i', '', $cRaw));
             $cVal = ucfirst($cClean);
-            if (!empty($cVal) && !is_numeric($cVal) && !in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
+            if (! empty($cVal) && ! is_numeric($cVal) && ! in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
                 $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
             }
         }
@@ -2994,7 +3031,7 @@ class AlmacenFundicionController extends Controller
 
         $reprocesoMatch = [];
         preg_match('/_R\d+$/i', $otRaw, $reprocesoMatch);
-        $suffixReproceso = !empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
+        $suffixReproceso = ! empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
         $fileName = "F_ALM_PFC_{$clasesStr}{$suffixReproceso}.pdf";
         $folderName = $this->sanitizePath($this->normalizeOTName($otRaw));
         $pdfOutput = $pdf->output();
@@ -3004,16 +3041,16 @@ class AlmacenFundicionController extends Controller
 
         foreach ($clasesParaGuardar as $claseParaGuardar) {
             $claseParaGuardar = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
-            $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
-            $savePath = $otPath . '/' . $fileName;
+            $otPath = self::ALMACEN_DIR.'/'.$folderName.'/'.strtoupper($claseParaGuardar).'/PREORDENES';
+            $savePath = $otPath.'/'.$fileName;
 
-            if (!Storage::disk('local')->exists($otPath)) {
+            if (! Storage::disk('local')->exists($otPath)) {
                 Storage::disk('local')->makeDirectory($otPath);
             } else {
                 // Eliminar PDFs viejos de la base de datos si existen para esta OT
                 $oldPdfs = PreOrdenFundicion::where('ot', '=', $otRaw, 'and')->pluck('pdf_filename')->filter()->unique();
                 foreach ($oldPdfs as $oldFile) {
-                    $oldPath = $otPath . '/' . $oldFile;
+                    $oldPath = $otPath.'/'.$oldFile;
                     if (Storage::disk('local')->exists($oldPath)) {
                         Storage::disk('local')->delete($oldPath);
                     }
@@ -3021,7 +3058,7 @@ class AlmacenFundicionController extends Controller
             }
 
             // Limpieza de duplicados en DOCUMENTOS_APROBADOS
-            $docAprobPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/DOCUMENTOS_APROBADOS';
+            $docAprobPath = self::ALMACEN_DIR.'/'.$folderName.'/'.strtoupper($claseParaGuardar).'/DOCUMENTOS_APROBADOS';
             if (Storage::disk('local')->exists($docAprobPath)) {
                 foreach (Storage::disk('local')->files($docAprobPath) as $docFile) {
                     $baseDoc = strtolower(basename($docFile));
@@ -3034,15 +3071,15 @@ class AlmacenFundicionController extends Controller
             // Guardar PDF en disco (exclusivamente en PREORDENES)
             Storage::disk('local')->put($savePath, $pdfOutput);
 
-            if (!$savedPathForUrl) {
-                $savedPathForUrl = strtoupper($claseParaGuardar) . '/PREORDENES/' . $fileName;
+            if (! $savedPathForUrl) {
+                $savedPathForUrl = strtoupper($claseParaGuardar).'/PREORDENES/'.$fileName;
             }
         }
 
         // Limpieza legacy: remover pdfs viejos de la raíz si existían
         $oldPdfsLegacy = PreOrdenFundicion::where('ot', '=', $otRaw, 'and')->pluck('pdf_filename')->filter()->unique();
         foreach ($oldPdfsLegacy as $oldFileLegacy) {
-            $legacyPath = self::ALMACEN_DIR . '/' . $folderName . '/preordenes/' . $oldFileLegacy;
+            $legacyPath = self::ALMACEN_DIR.'/'.$folderName.'/preordenes/'.$oldFileLegacy;
             if (Storage::disk('local')->exists($legacyPath)) {
                 Storage::disk('local')->delete($legacyPath);
             }
@@ -3066,7 +3103,7 @@ class AlmacenFundicionController extends Controller
                 $preDB->update([
                     'folio' => $pData['folio'],
                     'fecha_creacion' => $fechaActual,
-                    'fecha_entrega' => !empty($pData['fecha_entrega']) ? $pData['fecha_entrega'] : null,
+                    'fecha_entrega' => ! empty($pData['fecha_entrega']) ? $pData['fecha_entrega'] : null,
                     'moldura' => $pData['moldura'] ?? null,
                     'observaciones' => $pData['observaciones'] ?? null,
                     'filas' => $pData['filas'],
@@ -3082,7 +3119,7 @@ class AlmacenFundicionController extends Controller
                     'folio' => $pData['folio'],
                     'proveedor' => $pData['proveedor'],
                     'fecha_creacion' => $fechaActual,
-                    'fecha_entrega' => !empty($pData['fecha_entrega']) ? $pData['fecha_entrega'] : null,
+                    'fecha_entrega' => ! empty($pData['fecha_entrega']) ? $pData['fecha_entrega'] : null,
                     'moldura' => $pData['moldura'] ?? null,
                     'observaciones' => $pData['observaciones'] ?? null,
                     'filas' => $pData['filas'],
@@ -3095,13 +3132,13 @@ class AlmacenFundicionController extends Controller
             }
         }
 
-        if (!$preCastingExistente) {
+        if (! $preCastingExistente) {
             $this->incrementarFolioCasting();
         }
 
         return [
             'pdf_filename' => $fileName,
-            'pdf_path' => $savedPathForUrl
+            'pdf_path' => $savedPathForUrl,
         ];
     }
 
@@ -3122,12 +3159,13 @@ class AlmacenFundicionController extends Controller
                 Storage::disk('local')->put($folioPath, json_encode(['next_folio' => 48]));
             }
         } catch (\Exception $e) {
-            Log::error('Error incrementando folio casting: ' . $e->getMessage());
+            Log::error('Error incrementando folio casting: '.$e->getMessage());
         }
     }
 
     /**
      * Envía la pre-orden y los adjuntos seleccionados por correo electrónico (Fase 2).
+     *
      * @return \Illuminate\Http\JsonResponse
      */
     public function sendEmailPreOrden(Request $request)
@@ -3142,7 +3180,7 @@ class AlmacenFundicionController extends Controller
             if (empty($ot) || empty($destinatarioCalidad) || empty($request->input('fecha_entrega'))) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'La OT, Notificar a Calidad y la Fecha de Entrega son requeridos.'
+                    'message' => 'La OT, Notificar a Calidad y la Fecha de Entrega son requeridos.',
                 ], 422);
             }
         } else {
@@ -3151,23 +3189,23 @@ class AlmacenFundicionController extends Controller
             if (empty($ot) || empty($destinatario)) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'La OT y el Destinatario son requeridos.'
+                    'message' => 'La OT y el Destinatario son requeridos.',
                 ], 422);
             }
 
-            if (!$isCasting && empty($request->input('fecha_entrega'))) {
+            if (! $isCasting && empty($request->input('fecha_entrega'))) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'La OT, el Destinatario y la Fecha de Entrega son requeridos.'
+                    'message' => 'La OT, el Destinatario y la Fecha de Entrega son requeridos.',
                 ], 422);
             }
 
             $destinatariosArray = array_map('trim', explode(',', $destinatario));
             foreach ($destinatariosArray as $email) {
-                if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                if (! empty($email) && ! filter_var($email, FILTER_VALIDATE_EMAIL)) {
                     return response()->json([
                         'success' => false,
-                        'message' => "El correo electrónico proporcionado no es válido: $email"
+                        'message' => "El correo electrónico proporcionado no es válido: $email",
                     ], 422);
                 }
             }
@@ -3175,13 +3213,13 @@ class AlmacenFundicionController extends Controller
 
         // Obtener la OT
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
-        if (!$history) {
+        if (! $history) {
             return response()->json(['success' => false, 'message' => 'Historial de la OT no encontrado.'], 404);
         }
 
         $folderName = $this->sanitizePath($this->normalizeOTName($ot));
-        $dirPath = self::ALMACEN_DIR . '/' . $folderName;
-        $ayudasDirPath = $dirPath . '/ayudas_visuales';
+        $dirPath = self::ALMACEN_DIR.'/'.$folderName;
+        $ayudasDirPath = $dirPath.'/ayudas_visuales';
 
         // Obtener datos guardados de la pre-orden desde la base de datos (filtrados por tipo de envío)
         $query = PreOrdenFundicion::query()->where('ot', $ot);
@@ -3201,7 +3239,7 @@ class AlmacenFundicionController extends Controller
         }
 
         $preOrdenIdsRaw = $request->input('pre_orden_ids');
-        if (!empty($preOrdenIdsRaw) && is_array($preOrdenIdsRaw)) {
+        if (! empty($preOrdenIdsRaw) && is_array($preOrdenIdsRaw)) {
             $preOrdenIds = [];
             foreach ($preOrdenIdsRaw as $idGroup) {
                 $parts = explode(',', $idGroup);
@@ -3211,7 +3249,7 @@ class AlmacenFundicionController extends Controller
                     }
                 }
             }
-            if (!empty($preOrdenIds)) {
+            if (! empty($preOrdenIds)) {
                 $query->whereIn('id', $preOrdenIds);
             }
         }
@@ -3248,7 +3286,7 @@ class AlmacenFundicionController extends Controller
             } elseif ($request->input('tipo') === 'modelo') {
                 $isCastingPo = false;
             } else {
-                $isCastingPo = $hasCastingPo && !$hasModeloPo;
+                $isCastingPo = $hasCastingPo && ! $hasModeloPo;
             }
 
             if ($isCastingPo) {
@@ -3266,16 +3304,16 @@ class AlmacenFundicionController extends Controller
                         'moldura' => $preOrden->moldura,
                         'ot' => $ot,
                         'observaciones' => $preOrden->observaciones,
-                        'filas' => $preOrden->filas
+                        'filas' => $preOrden->filas,
                     ];
                 }
 
                 $firstPo = $preOrdenes->first();
-                $creator = \App\Models\User::where('id', '=', $firstPo->user_id, 'and')->first() ?: Auth::user();
+                $creator = User::where('id', '=', $firstPo->user_id, 'and')->first() ?: Auth::user();
 
                 $pdf = Pdf::loadView('almacen.pdf.casting_preorder_pdf', [
                     'pages' => $pages,
-                    'user' => $creator
+                    'user' => $creator,
                 ])->setPaper('a4', 'landscape');
 
                 $folderName = $this->sanitizePath($this->normalizeOTName($ot));
@@ -3286,12 +3324,13 @@ class AlmacenFundicionController extends Controller
                         $cRaw = trim($f['descripcion'] ?? $f['clase_nombre'] ?? $f['clase'] ?? $f['nombre'] ?? '');
                         if (empty($cRaw) || is_numeric($cRaw)) {
                             $cRaw = trim($f['id_clase'] ?? '');
-                            if (is_numeric($cRaw))
+                            if (is_numeric($cRaw)) {
                                 $cRaw = '';
+                            }
                         }
                         $cClean = trim(preg_replace('/^modelo\s+/i', '', $cRaw));
                         $cVal = ucfirst($cClean);
-                        if (!empty($cVal) && !is_numeric($cVal) && !in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
+                        if (! empty($cVal) && ! is_numeric($cVal) && ! in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
                             $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
                         }
                     }
@@ -3301,14 +3340,14 @@ class AlmacenFundicionController extends Controller
 
                 foreach ($clasesParaGuardar as $claseParaGuardar) {
                     $claseParaGuardar = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
-                    $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
+                    $otPath = self::ALMACEN_DIR.'/'.$folderName.'/'.strtoupper($claseParaGuardar).'/PREORDENES';
 
-                    if (!Storage::disk('local')->exists($otPath)) {
+                    if (! Storage::disk('local')->exists($otPath)) {
                         Storage::disk('local')->makeDirectory($otPath);
                     }
 
                     // Limpieza de duplicados en DOCUMENTOS_APROBADOS
-                    $docAprobPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/DOCUMENTOS_APROBADOS';
+                    $docAprobPath = self::ALMACEN_DIR.'/'.$folderName.'/'.strtoupper($claseParaGuardar).'/DOCUMENTOS_APROBADOS';
                     if (Storage::disk('local')->exists($docAprobPath)) {
                         foreach (Storage::disk('local')->files($docAprobPath) as $docFile) {
                             $baseDoc = strtolower(basename($docFile));
@@ -3318,7 +3357,7 @@ class AlmacenFundicionController extends Controller
                         }
                     }
 
-                    Storage::disk('local')->put($otPath . '/' . $firstPo->pdf_filename, $pdf->output());
+                    Storage::disk('local')->put($otPath.'/'.$firstPo->pdf_filename, $pdf->output());
                 }
             } else {
                 // Modelo Pre-orden flow
@@ -3334,14 +3373,14 @@ class AlmacenFundicionController extends Controller
                         'moldura' => $preOrden->moldura,
                         'ot' => $ot,
                         'observaciones' => $preOrden->observaciones,
-                        'filas' => $preOrden->filas
+                        'filas' => $preOrden->filas,
                     ];
 
-                    $creator = \App\Models\User::where('id', '=', $preOrden->user_id, 'and')->first() ?: Auth::user();
+                    $creator = User::where('id', '=', $preOrden->user_id, 'and')->first() ?: Auth::user();
 
                     $pdf = Pdf::loadView('pdf.pre_orden', [
                         'data' => $data,
-                        'user' => $creator
+                        'user' => $creator,
                     ])->setPaper('a4', 'landscape');
 
                     $folderName = $this->sanitizePath($this->normalizeOTName($ot));
@@ -3351,12 +3390,13 @@ class AlmacenFundicionController extends Controller
                         $cRaw = trim($f['descripcion'] ?? $f['clase_nombre'] ?? $f['clase'] ?? $f['nombre'] ?? '');
                         if (empty($cRaw) || is_numeric($cRaw)) {
                             $cRaw = trim($f['id_clase'] ?? '');
-                            if (is_numeric($cRaw))
+                            if (is_numeric($cRaw)) {
                                 $cRaw = '';
+                            }
                         }
                         $cClean = trim(preg_replace('/^modelo\s+/i', '', $cRaw));
                         $cVal = ucfirst($cClean);
-                        if (!empty($cVal) && !is_numeric($cVal) && !in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
+                        if (! empty($cVal) && ! is_numeric($cVal) && ! in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
                             $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
                         }
                     }
@@ -3365,14 +3405,14 @@ class AlmacenFundicionController extends Controller
 
                     foreach ($clasesParaGuardar as $claseParaGuardar) {
                         $claseParaGuardar = FundicionPaths::crearEstructuraClase($folderName, $claseParaGuardar, self::ALMACEN_DIR);
-                        $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/PREORDENES';
+                        $otPath = self::ALMACEN_DIR.'/'.$folderName.'/'.strtoupper($claseParaGuardar).'/PREORDENES';
 
-                        if (!Storage::disk('local')->exists($otPath)) {
+                        if (! Storage::disk('local')->exists($otPath)) {
                             Storage::disk('local')->makeDirectory($otPath);
                         }
 
                         // Limpieza de duplicados en DOCUMENTOS_APROBADOS
-                        $docAprobPath = self::ALMACEN_DIR . '/' . $folderName . '/' . strtoupper($claseParaGuardar) . '/DOCUMENTOS_APROBADOS';
+                        $docAprobPath = self::ALMACEN_DIR.'/'.$folderName.'/'.strtoupper($claseParaGuardar).'/DOCUMENTOS_APROBADOS';
                         if (Storage::disk('local')->exists($docAprobPath)) {
                             foreach (Storage::disk('local')->files($docAprobPath) as $docFile) {
                                 $baseDoc = strtolower(basename($docFile));
@@ -3382,7 +3422,7 @@ class AlmacenFundicionController extends Controller
                             }
                         }
 
-                        Storage::disk('local')->put($otPath . '/' . $preOrden->pdf_filename, $pdf->output());
+                        Storage::disk('local')->put($otPath.'/'.$preOrden->pdf_filename, $pdf->output());
                     }
                 }
             }
@@ -3419,7 +3459,7 @@ class AlmacenFundicionController extends Controller
         } elseif ($request->input('tipo') === 'modelo') {
             $isCastingPo = false;
         } else {
-            $isCastingPo = $hasCastingPo && !$hasModeloPo;
+            $isCastingPo = $hasCastingPo && ! $hasModeloPo;
         }
 
         $tipoOrdenStr = $isCastingPo ? 'Pre-Orden de Fabricación de Casting' : 'Pre-Orden de Fabricación de Modelos';
@@ -3433,7 +3473,7 @@ class AlmacenFundicionController extends Controller
             </div>
             <div style='padding: 25px; background-color: #ffffff;'>
                 <p>Estimado Proveedor (<strong>{$proveedorVal}</strong>),</p>
-                <p>Se ha generado una solicitud de " . ($isCastingPo ? 'fabricación de casting' : 'fabricación de modelos') . " para la Orden de Trabajo <strong>{$otCleaned}</strong>. A continuación se presentan los detalles clave de la pre-orden:</p>
+                <p>Se ha generado una solicitud de ".($isCastingPo ? 'fabricación de casting' : 'fabricación de modelos')." para la Orden de Trabajo <strong>{$otCleaned}</strong>. A continuación se presentan los detalles clave de la pre-orden:</p>
 
                 <table style='width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 0.95em;'>
                     <tr>
@@ -3483,11 +3523,11 @@ class AlmacenFundicionController extends Controller
             // Buscar pre-órdenes en rutas nuevas y legadas
             $candidates = [];
             if ($isCasting) {
-                $candidates[] = self::ALMACEN_DIR . '/' . $folderName . '/Documentos_Aprobados/Preorden_Casting/' . $preOrden->pdf_filename;
-                $candidates[] = $ayudasDirPath . '/preordenes/documentos_aprobados/' . $preOrden->pdf_filename;
+                $candidates[] = self::ALMACEN_DIR.'/'.$folderName.'/Documentos_Aprobados/Preorden_Casting/'.$preOrden->pdf_filename;
+                $candidates[] = $ayudasDirPath.'/preordenes/documentos_aprobados/'.$preOrden->pdf_filename;
             } else {
-                $candidates[] = self::ALMACEN_DIR . '/' . $folderName . '/Documentos_Aprobados/preordenes/' . $preOrden->pdf_filename;
-                $candidates[] = $ayudasDirPath . '/preordenes/' . $preOrden->pdf_filename;
+                $candidates[] = self::ALMACEN_DIR.'/'.$folderName.'/Documentos_Aprobados/preordenes/'.$preOrden->pdf_filename;
+                $candidates[] = $ayudasDirPath.'/preordenes/'.$preOrden->pdf_filename;
             }
 
             $foundPreOrdenPath = null;
@@ -3498,7 +3538,7 @@ class AlmacenFundicionController extends Controller
                 }
             }
 
-            if (!$foundPreOrdenPath) {
+            if (! $foundPreOrdenPath) {
                 continue;
             }
 
@@ -3508,10 +3548,10 @@ class AlmacenFundicionController extends Controller
             $attachedPaths[] = $foundPreOrdenPath;
 
             $attachments[] = [
-                'path' => storage_path('app/' . $foundPreOrdenPath),
+                'path' => storage_path('app/'.$foundPreOrdenPath),
                 'name' => basename($preOrden->pdf_filename),
                 'mime' => strtolower(pathinfo(basename($preOrden->pdf_filename), PATHINFO_EXTENSION)) === 'dwg' ? 'application/acad' : 'application/pdf',
-                'tipo' => 'preorden'
+                'tipo' => 'preorden',
             ];
         }
 
@@ -3533,10 +3573,10 @@ class AlmacenFundicionController extends Controller
                 // Buscar el archivo en cualquiera de las carpetas de OTs relacionadas (base y reprocesos)
                 $baseOt = preg_replace('/_R\d+$/i', '', $ot);
                 $allOtNames = FundicionHistory::where('ot', '=', $baseOt, 'or')
-                    ->where('ot', 'LIKE', $baseOt . '_R%', 'or')
+                    ->where('ot', 'LIKE', $baseOt.'_R%', 'or')
                     ->pluck('ot')
                     ->toArray();
-                if (!in_array($ot, $allOtNames)) {
+                if (! in_array($ot, $allOtNames)) {
                     $allOtNames[] = $ot;
                 }
 
@@ -3547,47 +3587,47 @@ class AlmacenFundicionController extends Controller
                     $posPaths = [];
                     if (str_starts_with($archivoSanitized, 'Documentos_Aprobados/')) {
                         $subPath = str_replace('Documentos_Aprobados/', '', $archivoSanitized);
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Aprobados/' . $subPath;
-                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Aprobados/' . $subPath;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/Documentos_Aprobados/'.$subPath;
+                        $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/Documentos_Aprobados/'.$subPath;
                     }
                     if (str_starts_with($archivoSanitized, 'Documentos_Rechazados/')) {
                         $subPath = str_replace('Documentos_Rechazados/', '', $archivoSanitized);
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/Documentos_Rechazados/' . $subPath;
-                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/Documentos_Rechazados/' . $subPath;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/Documentos_Rechazados/'.$subPath;
+                        $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/Documentos_Rechazados/'.$subPath;
                     }
                     if (str_starts_with($archivoSanitized, 'preordenes/documentos_aprobados/')) {
                         $subPath = str_replace('preordenes/documentos_aprobados/', '', $archivoSanitized);
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_aprobados/' . $subPath;
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_aprobados/' . $subPath;
-                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_aprobados/' . $subPath;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/preordenes/documentos_aprobados/'.$subPath;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/documentos_aprobados/'.$subPath;
+                        $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/documentos_aprobados/'.$subPath;
                     }
                     if (str_starts_with($archivoSanitized, 'preordenes/documentos_rechazados/')) {
                         $subPath = str_replace('preordenes/documentos_rechazados/', '', $archivoSanitized);
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/documentos_rechazados/' . $subPath;
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_rechazados/' . $subPath;
-                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/documentos_rechazados/' . $subPath;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/preordenes/documentos_rechazados/'.$subPath;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/documentos_rechazados/'.$subPath;
+                        $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/documentos_rechazados/'.$subPath;
                     }
                     if (str_starts_with($archivoSanitized, 'preordenes/')) {
                         $subPath = str_replace('preordenes/', '', $archivoSanitized);
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/' . $subPath;
-                        $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/preordenes/' . $subPath;
-                        $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/preordenes/' . $subPath;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/'.$subPath;
+                        $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/preordenes/'.$subPath;
+                        $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/ayudas_visuales/preordenes/'.$subPath;
                     }
 
                     // Fallbacks generales
-                    $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/ayudas_visuales/' . $archivoSanitized;
-                    $posPaths[] = self::ALMACEN_DIR . '/' . $relFolder . '/' . $archivoSanitized;
-                    $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/ayudas_visuales/' . $archivoSanitized;
-                    $posPaths[] = self::CALIDAD_DIR . '/' . $relFolder . '/' . $archivoSanitized;
+                    $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/ayudas_visuales/'.$archivoSanitized;
+                    $posPaths[] = self::ALMACEN_DIR.'/'.$relFolder.'/'.$archivoSanitized;
+                    $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/ayudas_visuales/'.$archivoSanitized;
+                    $posPaths[] = self::CALIDAD_DIR.'/'.$relFolder.'/'.$archivoSanitized;
 
                     $found = false;
                     foreach ($posPaths as $path) {
                         if (Storage::disk('local')->exists($path)) {
                             $attachments[] = [
-                                'path' => storage_path('app/' . $path),
+                                'path' => storage_path('app/'.$path),
                                 'name' => basename($archivoSanitized),
                                 'mime' => strtolower(pathinfo(basename($archivoSanitized), PATHINFO_EXTENSION)) === 'dwg' ? 'application/acad' : 'application/pdf',
-                                'tipo' => 'dibujo_ayuda' // Se considera Dibujo/Ayuda por venir del panel superior
+                                'tipo' => 'dibujo_ayuda', // Se considera Dibujo/Ayuda por venir del panel superior
                             ];
                             $found = true;
                             break;
@@ -3613,12 +3653,13 @@ class AlmacenFundicionController extends Controller
                         $claseNombre = trim($fila['descripcion'] ?? $fila['clase_nombre'] ?? $fila['clase'] ?? $fila['nombre'] ?? '');
                         if (empty($claseNombre) || is_numeric($claseNombre)) {
                             $claseNombre = trim($fila['id_clase'] ?? '');
-                            if (is_numeric($claseNombre))
+                            if (is_numeric($claseNombre)) {
                                 $claseNombre = '';
+                            }
                         }
                         $cClean = trim(preg_replace('/^modelo\s+/i', '', $claseNombre));
                         $cVal = ucfirst($cClean);
-                        if (!empty($cVal) && !is_numeric($cVal) && !in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
+                        if (! empty($cVal) && ! is_numeric($cVal) && ! in_array(strtolower($cVal), ['placa', 'suelto', 'templadera', 'múltiple', 'multiple'])) {
                             $clasesNombres[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
                         }
                     }
@@ -3643,10 +3684,10 @@ class AlmacenFundicionController extends Controller
                     $name = $cleanOrig;
                 } else {
                     $prefix = $isCastingPo ? 'F_ALM_EFC' : 'F_ALM_EFM';
-                    $suffix = count($filesArray) > 1 ? '_' . ($index + 1) : '';
+                    $suffix = count($filesArray) > 1 ? '_'.($index + 1) : '';
                     $reprocesoMatch = [];
                     preg_match('/_R\d+$/i', $otSanitizada, $reprocesoMatch);
-                    $suffixReproceso = !empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
+                    $suffixReproceso = ! empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
                     $name = "{$prefix}_{$clasesStr}{$suffixReproceso}{$suffix}.{$ext}";
                 }
 
@@ -3656,25 +3697,25 @@ class AlmacenFundicionController extends Controller
                 foreach ($clasesParaGuardar as $clase) {
                     $claseUpper = strtoupper($clase);
                     $claseUpper = FundicionPaths::crearEstructuraClase($folderName, $claseUpper, self::ALMACEN_DIR);
-                    $destDir = self::ALMACEN_DIR . '/' . $folderName . '/' . $claseUpper . '/ESCANEADOS';
+                    $destDir = self::ALMACEN_DIR.'/'.$folderName.'/'.$claseUpper.'/ESCANEADOS';
 
-                    if (!Storage::disk('local')->exists($destDir)) {
+                    if (! Storage::disk('local')->exists($destDir)) {
                         Storage::disk('local')->makeDirectory($destDir);
                     }
 
-                    $fullPath = $destDir . '/' . $name;
+                    $fullPath = $destDir.'/'.$name;
                     Storage::disk('local')->put($fullPath, $fileContents);
 
-                    if (!$savedPathForUrl) {
+                    if (! $savedPathForUrl) {
                         $savedPathForUrl = $fullPath;
                     }
                 }
 
                 $attachments[] = [
-                    'path' => storage_path('app/' . $savedPathForUrl),
+                    'path' => storage_path('app/'.$savedPathForUrl),
                     'name' => $name,
                     'mime' => $file->getClientMimeType(),
-                    'tipo' => 'escaneado'
+                    'tipo' => 'escaneado',
                 ];
             }
         }
@@ -3684,17 +3725,17 @@ class AlmacenFundicionController extends Controller
         // Enviar Email
         try {
             // ── AUTO-ADJUNTOS: Si es re-proceso (_R1, _R2...), adjuntar docs de toda la historia (Omitir si es pre-orden de casting)
-            if (!$isCastingPo && preg_match('/^(.+?)(_[rR](\d+))$/', $ot, $match)) {
+            if (! $isCastingPo && preg_match('/^(.+?)(_[rR](\d+))$/', $ot, $match)) {
                 $otBase = $match[1];
                 $currentIteration = (int) $match[3];
 
                 $extPermitidas = ['pdf', 'jpg', 'jpeg', 'png'];
 
                 for ($i = 0; $i <= $currentIteration; $i++) {
-                    $otName = $i === 0 ? $otBase : $otBase . '_R' . $i;
+                    $otName = $i === 0 ? $otBase : $otBase.'_R'.$i;
                     $folder = $this->sanitizePath($this->normalizeOTName($otName));
-                    $dir = self::ALMACEN_DIR . '/' . $folder;
-                    $ayudas = $dir . '/ayudas_visuales';
+                    $dir = self::ALMACEN_DIR.'/'.$folder;
+                    $ayudas = $dir.'/ayudas_visuales';
 
                     $carpetas = [];
                     if ($i === 0) {
@@ -3704,41 +3745,46 @@ class AlmacenFundicionController extends Controller
                     }
                     // Para la OT base y todas las iteraciones escaneamos aprobados y rechazados
                     if ($i === $currentIteration) {
-                        $carpetas[$dir . '/preordenes/documentos_aprobados'] = 'DocAprobado';
-                        $carpetas[$dir . '/Documentos_Aprobados'] = 'DocAprobado';
+                        $carpetas[$dir.'/preordenes/documentos_aprobados'] = 'DocAprobado';
+                        $carpetas[$dir.'/Documentos_Aprobados'] = 'DocAprobado';
                     }
-                    $carpetas[$dir . '/preordenes/documentos_rechazados'] = 'DocRechazado';
-                    $carpetas[$dir . '/Documentos_Rechazados'] = 'DocRechazado';
+                    $carpetas[$dir.'/preordenes/documentos_rechazados'] = 'DocRechazado';
+                    $carpetas[$dir.'/Documentos_Rechazados'] = 'DocRechazado';
 
                     foreach ($carpetas as $carpeta => $etiqueta) {
-                        if (!Storage::disk('local')->exists($carpeta))
+                        if (! Storage::disk('local')->exists($carpeta)) {
                             continue;
+                        }
 
                         $archivos = Storage::disk('local')->allFiles($carpeta);
                         foreach ($archivos as $archivoPath) {
                             $ext = strtolower(pathinfo($archivoPath, PATHINFO_EXTENSION));
-                            if (!in_array($ext, $extPermitidas, true))
+                            if (! in_array($ext, $extPermitidas, true)) {
                                 continue;
+                            }
 
-                            $absPath = storage_path('app/' . $archivoPath);
+                            $absPath = storage_path('app/'.$archivoPath);
                             // Evitar duplicados
-                            if (collect($attachments)->contains(fn($a) => $a['path'] === $absPath))
+                            if (collect($attachments)->contains(fn ($a) => $a['path'] === $absPath)) {
                                 continue;
+                            }
 
                             // Ignorar dibujos que estén en subcarpetas para la ruta raíz
-                            if ($etiqueta === 'Dibujo' && str_contains($archivoPath, '/ayudas_visuales/'))
+                            if ($etiqueta === 'Dibujo' && str_contains($archivoPath, '/ayudas_visuales/')) {
                                 continue;
-                            if ($etiqueta === 'Dibujo' && str_contains($archivoPath, '/preordenes/'))
+                            }
+                            if ($etiqueta === 'Dibujo' && str_contains($archivoPath, '/preordenes/')) {
                                 continue;
+                            }
 
-                            $iterationLabel = $i === 0 ? 'OT_Base' : 'R' . $i;
+                            $iterationLabel = $i === 0 ? 'OT_Base' : 'R'.$i;
                             $tipoCat = ($etiqueta === 'Dibujo' || $etiqueta === 'AyudaVisual') ? 'dibujo_ayuda' : 'otro';
 
                             $attachments[] = [
                                 'path' => $absPath,
-                                'name' => '[' . $etiqueta . ' ' . $iterationLabel . '] ' . basename($archivoPath),
-                                'mime' => strtolower($ext) === 'dwg' ? 'application/acad' : (strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/' . $ext),
-                                'tipo' => $tipoCat
+                                'name' => '['.$etiqueta.' '.$iterationLabel.'] '.basename($archivoPath),
+                                'mime' => strtolower($ext) === 'dwg' ? 'application/acad' : (strtolower($ext) === 'pdf' ? 'application/pdf' : 'image/'.$ext),
+                                'tipo' => $tipoCat,
                             ];
                         }
                     }
@@ -3762,7 +3808,7 @@ class AlmacenFundicionController extends Controller
                     : config('services.fundicion.produccion_ss', 'produccion@ssmetalf.mx');
 
                 // Para Casting: enviar a Proveedores de Casting y CC General
-                $destinosStr = !empty($destinatario) ? $destinatario : $defaultEmail . ',' . config('services.fundicion.cc_general', 'alejandross@grupoindsaavedra.com');
+                $destinosStr = ! empty($destinatario) ? $destinatario : $defaultEmail.','.config('services.fundicion.cc_general', 'alejandross@grupoindsaavedra.com');
                 $destinatarios = array_values(array_unique(array_filter(array_map('trim', explode(',', $destinosStr)))));
 
                 Mail::send([], [], function ($message) use ($destinatarios, $asunto, $cuerpo, $attachments) {
@@ -3771,10 +3817,10 @@ class AlmacenFundicionController extends Controller
                         ->html($cuerpo);
 
                     foreach ($attachments as $att) {
-                        if (!empty($att['path']) && file_exists($att['path'])) {
+                        if (! empty($att['path']) && file_exists($att['path'])) {
                             $message->attach($att['path'], [
                                 'as' => $att['name'],
-                                'mime' => $att['mime']
+                                'mime' => $att['mime'],
                             ]);
                         }
                     }
@@ -3782,7 +3828,7 @@ class AlmacenFundicionController extends Controller
 
                 // Enviar también a compras si la variable de entorno está definida y hay adjuntos escaneados
                 $destinatarioCompras = config('services.fundicion.compras', 'analilia@grupoindsaavedra.com');
-                if (!empty($destinatarioCompras)) {
+                if (! empty($destinatarioCompras)) {
                     $destinatariosCompras = array_values(array_unique(array_filter(array_map('trim', explode(',', $destinatarioCompras)))));
 
                     // Filtrar los adjuntos que son escaneados (por tipo o nombre: anterior o nuevo estándar)
@@ -3807,17 +3853,17 @@ class AlmacenFundicionController extends Controller
                         return $isScanned;
                     });
 
-                    if (!empty($destinatariosCompras) && !empty($attachmentsCompras)) {
+                    if (! empty($destinatariosCompras) && ! empty($attachmentsCompras)) {
                         Mail::send([], [], function ($message) use ($destinatariosCompras, $asunto, $cuerpo, $attachmentsCompras) {
                             $message->to($destinatariosCompras)
                                 ->subject($asunto)
                                 ->html($cuerpo);
 
                             foreach ($attachmentsCompras as $att) {
-                                if (!empty($att['path']) && file_exists($att['path'])) {
+                                if (! empty($att['path']) && file_exists($att['path'])) {
                                     $message->attach($att['path'], [
                                         'as' => $att['name'],
-                                        'mime' => $att['mime']
+                                        'mime' => $att['mime'],
                                     ]);
                                 }
                             }
@@ -3826,21 +3872,21 @@ class AlmacenFundicionController extends Controller
                 }
             } else {
                 // Para Modelo: Enviar correo completo a Calidad SOLAMENTE
-                $destCalidadStr = !empty($destinatarioCalidad) ? $destinatarioCalidad : config('services.fundicion.calidad', 'inspecciontec@grupoindsaavedra.com');
+                $destCalidadStr = ! empty($destinatarioCalidad) ? $destinatarioCalidad : config('services.fundicion.calidad', 'inspecciontec@grupoindsaavedra.com');
                 $destCalidad = array_filter(array_map('trim', explode(',', $destCalidadStr)));
 
                 // Enviar a Calidad con TODOS los adjuntos
-                if (!empty($destCalidad)) {
+                if (! empty($destCalidad)) {
                     Mail::send([], [], function ($message) use ($destCalidad, $asunto, $cuerpo, $attachments) {
                         $message->to($destCalidad)
                             ->subject($asunto)
                             ->html($cuerpo);
 
                         foreach ($attachments as $att) {
-                            if (!empty($att['path']) && file_exists($att['path'])) {
+                            if (! empty($att['path']) && file_exists($att['path'])) {
                                 $message->attach($att['path'], [
                                     'as' => $att['name'],
-                                    'mime' => $att['mime']
+                                    'mime' => $att['mime'],
                                 ]);
                             }
                         }
@@ -3878,7 +3924,7 @@ class AlmacenFundicionController extends Controller
                     'user_nombre' => $sendUser ? $sendUser->name : null,
                 ]);
             } catch (\Exception $logEx) {
-                Log::warning('Error al registrar log de envío pre-orden: ' . $logEx->getMessage());
+                Log::warning('Error al registrar log de envío pre-orden: '.$logEx->getMessage());
             }
 
             foreach ($preOrdenes as $po) {
@@ -3886,44 +3932,45 @@ class AlmacenFundicionController extends Controller
                 $po->save();
 
                 // Crear o actualizar registro de liberacion con origen pre_orden para cada clase confirmada enviada
-                if (!empty($po->filas)) {
+                if (! empty($po->filas)) {
                     foreach ($po->filas as $fila) {
                         $claseNombre = $fila['clase'] ?? $fila['clase_nombre'] ?? $fila['tipo_modelo'] ?? $fila['nombre'] ?? '';
                         $clLow = strtolower($claseNombre);
                         $tipo = null;
-                        if (strpos($clLow, 'candado obturador') !== false)
+                        if (strpos($clLow, 'candado obturador') !== false) {
                             $tipo = 'Candado obturador';
-                        elseif (strpos($clLow, 'cabeza de soplo') !== false)
+                        } elseif (strpos($clLow, 'cabeza de soplo') !== false) {
                             $tipo = 'Cabeza de soplo';
-                        elseif (strpos($clLow, 'embudo') !== false)
+                        } elseif (strpos($clLow, 'embudo') !== false) {
                             $tipo = 'Embudo';
-                        elseif (strpos($clLow, 'corona') !== false)
+                        } elseif (strpos($clLow, 'corona') !== false) {
                             $tipo = 'Corona';
-                        elseif (strpos($clLow, 'plato') !== false)
+                        } elseif (strpos($clLow, 'plato') !== false) {
                             $tipo = 'Plato';
-                        elseif (strpos($clLow, 'fondo') !== false)
+                        } elseif (strpos($clLow, 'fondo') !== false) {
                             $tipo = 'Fondo';
-                        elseif (strpos($clLow, 'obturador') !== false)
+                        } elseif (strpos($clLow, 'obturador') !== false) {
                             $tipo = 'Obturador';
-                        elseif (strpos($clLow, 'molde') !== false)
+                        } elseif (strpos($clLow, 'molde') !== false) {
                             $tipo = 'Molde';
-                        elseif (strpos($clLow, 'bombillo') !== false)
+                        } elseif (strpos($clLow, 'bombillo') !== false) {
                             $tipo = 'Bombillo';
-                        elseif (strpos($clLow, 'pistones') !== false)
+                        } elseif (strpos($clLow, 'pistones') !== false) {
                             $tipo = 'Pistones';
-                        elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false)
+                        } elseif (strpos($clLow, 'guías') !== false || strpos($clLow, 'guias') !== false) {
                             $tipo = 'Guías';
+                        }
 
                         if ($tipo) {
                             LiberacionModeloFundicion::updateOrCreate(
                                 [
                                     'ot' => $ot,
-                                    'tipo_modelo' => $tipo
+                                    'tipo_modelo' => $tipo,
                                 ],
                                 [
                                     'estado' => 'pendiente',
                                     'tipo_origen' => 'pre_orden',
-                                    'fecha_revision' => now()
+                                    'fecha_revision' => now(),
                                 ]
                             );
                         }
@@ -3938,18 +3985,17 @@ class AlmacenFundicionController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'El correo electrónico de la pre-orden con sus adjuntos ha sido enviado con éxito.'
+                'message' => 'El correo electrónico de la pre-orden con sus adjuntos ha sido enviado con éxito.',
             ]);
         } catch (\Exception $e) {
-            Log::error("Error al enviar pre-orden con adjuntos: " . $e->getMessage());
+            Log::error('Error al enviar pre-orden con adjuntos: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error al enviar el correo: ' . $e->getMessage()
+                'message' => 'Error al enviar el correo: '.$e->getMessage(),
             ], 500);
         }
     }
-
-
 
     /**
      * Confirma la recepción de la información de rechazo por parte de Almacén.
@@ -3969,7 +4015,7 @@ class AlmacenFundicionController extends Controller
             'pre_orden_sent' => false,
             'pre_orden_email_sent' => false,
             'tiene_modelo' => false,
-            'calidad_revision_status' => null
+            'calidad_revision_status' => null,
         ]);
 
         // Cambiar el estado de las liberaciones rechazadas a historico_rechazado
@@ -3995,23 +4041,21 @@ class AlmacenFundicionController extends Controller
                 ]);
             }
         } catch (\Exception $logEx) {
-            Log::warning('Error al registrar log de rechazo: ' . $logEx->getMessage());
+            Log::warning('Error al registrar log de rechazo: '.$logEx->getMessage());
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Recepción confirmada y ciclo reiniciado con éxito.'
+            'message' => 'Recepción confirmada y ciclo reiniciado con éxito.',
         ]);
     }
-
-
 
     /**
      * Copia recursivamente todos los archivos de un directorio a otro en el Storage 'local'.
      */
     private function copyDirectoryRecursive(string $src, string $dst): void
     {
-        if (!Storage::disk('local')->exists($src)) {
+        if (! Storage::disk('local')->exists($src)) {
             return;
         }
 
@@ -4019,11 +4063,11 @@ class AlmacenFundicionController extends Controller
         foreach ($files as $file) {
             // Reemplazar la ruta origen por la de destino
             $relPath = ltrim(substr($file, strlen($src)), '/');
-            $targetPath = $dst . '/' . $relPath;
+            $targetPath = $dst.'/'.$relPath;
 
             // Asegurar directorio destino
             $targetDir = dirname($targetPath);
-            if (!Storage::disk('local')->exists($targetDir)) {
+            if (! Storage::disk('local')->exists($targetDir)) {
                 Storage::disk('local')->makeDirectory($targetDir);
             }
 
@@ -4037,10 +4081,10 @@ class AlmacenFundicionController extends Controller
      */
     private function syncAlmacenToCalidad(string $folderName, array $clasesToSync = []): void
     {
-        $almacenDir = self::ALMACEN_DIR . '/' . $folderName;
-        $calidadDir = self::CALIDAD_DIR . '/' . $folderName;
+        $almacenDir = self::ALMACEN_DIR.'/'.$folderName;
+        $calidadDir = self::CALIDAD_DIR.'/'.$folderName;
 
-        if (!Storage::disk('local')->exists($almacenDir)) {
+        if (! Storage::disk('local')->exists($almacenDir)) {
             return;
         }
 
@@ -4060,7 +4104,7 @@ class AlmacenFundicionController extends Controller
             $almacenDirNorm = str_replace('\\', '/', $almacenDir);
             $relPath = ltrim(substr($srcNorm, strlen($almacenDirNorm)), '/');
 
-            if (!empty($clasesNormToSync)) {
+            if (! empty($clasesNormToSync)) {
                 $pathParts = explode('/', str_replace('\\', '/', $relPath));
                 $rootFolder = strtolower($pathParts[0] ?? '');
 
@@ -4081,15 +4125,15 @@ class AlmacenFundicionController extends Controller
                     preg_match('/^modelo\s*/i', $rootFolder) ||
                     in_array($rootFolder, array_map('strtolower', array_keys(FundicionPaths::getStandardMap()))));
 
-                if (!$matchesClass && $isClassFolder) {
+                if (! $matchesClass && $isClassFolder) {
                     continue; // No copiar esta clase porque no fue enviada
                 }
             }
 
-            $targetPath = $calidadDir . '/' . $relPath;
+            $targetPath = $calidadDir.'/'.$relPath;
             $targetDir = dirname($targetPath);
 
-            if (!Storage::disk('local')->exists($targetDir)) {
+            if (! Storage::disk('local')->exists($targetDir)) {
                 Storage::disk('local')->makeDirectory($targetDir);
             }
 
@@ -4106,11 +4150,11 @@ class AlmacenFundicionController extends Controller
         $folderName = $this->sanitizePath($this->normalizeOTName($ot));
 
         $paths = [
-            self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_aprobados',
-            self::ALMACEN_DIR . '/' . $folderName . '/ayudas_visuales/preordenes/documentos_rechazados',
-            self::CALIDAD_DIR . '/' . $folderName . '/' . FundicionPaths::FDLDM . '/' . FundicionPaths::ESCANEADOS,
-            self::CALIDAD_DIR . '/' . $folderName . '/' . FundicionPaths::FDRDM . '/' . FundicionPaths::ESCANEADOS,
-            self::CALIDAD_DIR . '/' . $folderName . '/' . FundicionPaths::SCAR . '/' . FundicionPaths::ESCANEADOS,
+            self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales/preordenes/documentos_aprobados',
+            self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales/preordenes/documentos_rechazados',
+            self::CALIDAD_DIR.'/'.$folderName.'/'.FundicionPaths::FDLDM.'/'.FundicionPaths::ESCANEADOS,
+            self::CALIDAD_DIR.'/'.$folderName.'/'.FundicionPaths::FDRDM.'/'.FundicionPaths::ESCANEADOS,
+            self::CALIDAD_DIR.'/'.$folderName.'/'.FundicionPaths::SCAR.'/'.FundicionPaths::ESCANEADOS,
         ];
 
         foreach ($paths as $path) {
@@ -4157,12 +4201,13 @@ class AlmacenFundicionController extends Controller
                 $claseClean = ucfirst(trim(preg_replace('/^modelo\s+/i', '', $clase)));
 
                 $classSubFolder = strtoupper(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $claseClean));
-                if (empty($classSubFolder))
+                if (empty($classSubFolder)) {
                     $classSubFolder = 'GENERAL';
+                }
 
                 $classSubFolder = FundicionPaths::crearEstructuraClase($folderName, $classSubFolder, self::ALMACEN_DIR);
-                $otPath = self::ALMACEN_DIR . '/' . $folderName . '/' . $classSubFolder . '/' . FundicionPaths::ESCANEADOS;
-                if (!Storage::disk('local')->exists($otPath)) {
+                $otPath = self::ALMACEN_DIR.'/'.$folderName.'/'.$classSubFolder.'/'.FundicionPaths::ESCANEADOS;
+                if (! Storage::disk('local')->exists($otPath)) {
                     Storage::disk('local')->makeDirectory($otPath);
                 }
 
@@ -4174,8 +4219,9 @@ class AlmacenFundicionController extends Controller
                 $clasesSubidas[] = $classSubFolder;
             }
         }
-        if (empty($clasesSubidas))
+        if (empty($clasesSubidas)) {
             $clasesSubidas[] = 'GENERAL';
+        }
 
         if ($request->hasFile('archivos_adicionales')) {
             $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $otRaw)));
@@ -4183,16 +4229,16 @@ class AlmacenFundicionController extends Controller
                 if ($addFile->isValid()) {
                     $originalName = $addFile->getClientOriginalName();
                     $ext = $addFile->getClientOriginalExtension();
-                    $addName = "evidencia_adicional_" . date('Ymd_His') . "_{$idx}_{$otSanitizada}.{$ext}";
+                    $addName = 'evidencia_adicional_'.date('Ymd_His')."_{$idx}_{$otSanitizada}.{$ext}";
                     $fileContents = file_get_contents($addFile->getRealPath());
 
                     foreach ($clasesSubidas as $cs) {
                         $cs = FundicionPaths::crearEstructuraClase($folderName, $cs, self::ALMACEN_DIR);
-                        $ayudasPath = self::ALMACEN_DIR . '/' . $folderName . '/' . $cs . '/' . FundicionPaths::ESCANEADOS;
-                        if (!Storage::disk('local')->exists($ayudasPath)) {
+                        $ayudasPath = self::ALMACEN_DIR.'/'.$folderName.'/'.$cs.'/'.FundicionPaths::ESCANEADOS;
+                        if (! Storage::disk('local')->exists($ayudasPath)) {
                             Storage::disk('local')->makeDirectory($ayudasPath);
                         }
-                        Storage::disk('local')->put($ayudasPath . '/' . $addName, $fileContents);
+                        Storage::disk('local')->put($ayudasPath.'/'.$addName, $fileContents);
                     }
                     $filesSaved++;
                 }
@@ -4204,7 +4250,7 @@ class AlmacenFundicionController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Formatos LDM subidos con éxito. Ya puedes generar la Pre-Orden de Casting.'
+            'message' => 'Formatos LDM subidos con éxito. Ya puedes generar la Pre-Orden de Casting.',
         ]);
     }
 
@@ -4231,7 +4277,7 @@ class AlmacenFundicionController extends Controller
         // Guardar archivos en el OT original para trazabilidad
         $folderNameOriginal = $this->sanitizePath($this->normalizeOTName($otRaw));
         foreach ($request->allFiles() as $key => $file) {
-            if (!$file->isValid()) {
+            if (! $file->isValid()) {
                 continue;
             }
             $originalName = $file->getClientOriginalName();
@@ -4240,13 +4286,15 @@ class AlmacenFundicionController extends Controller
                 $claseRaw = str_replace('rechazo_', '', $key);
                 $cClean = ucfirst(trim(preg_replace('/^modelo\s+/i', '', $claseRaw)));
                 $classSubFolder = strtoupper(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $cClean));
-                if (empty($classSubFolder))
+                if (empty($classSubFolder)) {
                     $classSubFolder = 'GENERAL';
+                }
 
                 $classSubFolder = FundicionPaths::crearEstructuraClase($folderNameOriginal, $classSubFolder, self::ALMACEN_DIR);
-                $docRechazadosPathOriginal = self::ALMACEN_DIR . '/' . $folderNameOriginal . '/' . $classSubFolder . '/' . FundicionPaths::ESCANEADOS;
-                if (!Storage::disk('local')->exists($docRechazadosPathOriginal))
+                $docRechazadosPathOriginal = self::ALMACEN_DIR.'/'.$folderNameOriginal.'/'.$classSubFolder.'/'.FundicionPaths::ESCANEADOS;
+                if (! Storage::disk('local')->exists($docRechazadosPathOriginal)) {
                     Storage::disk('local')->makeDirectory($docRechazadosPathOriginal);
+                }
 
                 $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $otRaw)));
                 $filename = "{$otSanitizada}_RDM_E_{$cClean}.{$ext}";
@@ -4255,13 +4303,15 @@ class AlmacenFundicionController extends Controller
                 $claseRaw = str_replace('scar_', '', $key);
                 $cClean = ucfirst(trim(preg_replace('/^modelo\s+/i', '', $claseRaw)));
                 $classSubFolder = strtoupper(preg_replace('/[^a-zA-Z0-9_\-]/', '_', $cClean));
-                if (empty($classSubFolder))
+                if (empty($classSubFolder)) {
                     $classSubFolder = 'GENERAL';
+                }
 
                 $classSubFolder = FundicionPaths::crearEstructuraClase($folderNameOriginal, $classSubFolder, self::ALMACEN_DIR);
-                $docRechazadosPathOriginal = self::ALMACEN_DIR . '/' . $folderNameOriginal . '/' . $classSubFolder . '/' . FundicionPaths::ESCANEADOS;
-                if (!Storage::disk('local')->exists($docRechazadosPathOriginal))
+                $docRechazadosPathOriginal = self::ALMACEN_DIR.'/'.$folderNameOriginal.'/'.$classSubFolder.'/'.FundicionPaths::ESCANEADOS;
+                if (! Storage::disk('local')->exists($docRechazadosPathOriginal)) {
                     Storage::disk('local')->makeDirectory($docRechazadosPathOriginal);
+                }
 
                 $otSanitizada = preg_replace('/[\s]+/', '_', trim(preg_replace('/[^\w\s\-]/', '', $otRaw)));
                 $filename = "{$otSanitizada}_SCAR_E_{$cClean}.{$ext}";
@@ -4276,13 +4326,13 @@ class AlmacenFundicionController extends Controller
         }, $clases));
 
         $existingHistories = FundicionHistory::where(function ($q) use ($baseOtClean) {
-            $q->where('ot', 'LIKE', $baseOtClean . '_%_R%')
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%');
+            $q->where('ot', 'LIKE', $baseOtClean.'_%_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_R%');
         })->count();
 
         $nextNum = $existingHistories + 1;
-        $newOt = $this->normalizeOTName($baseOtClean . '_' . $clasesSuffix . '_R' . $nextNum);
-        $newSuffix = '_R' . $nextNum;
+        $newOt = $this->normalizeOTName($baseOtClean.'_'.$clasesSuffix.'_R'.$nextNum);
+        $newSuffix = '_R'.$nextNum;
 
         $newHistory = new FundicionHistory();
         $newHistory->ot = $newOt;
@@ -4320,7 +4370,7 @@ class AlmacenFundicionController extends Controller
                     $fnSegments = explode('_', $normFilename);
                     foreach ($fnSegments as $fnSeg) {
                         $coreFnSeg = rtrim($fnSeg, 's');
-                        if (!empty($coreFnSeg) && ($coreClase === $coreFnSeg || str_contains($coreFnSeg, $coreClase) || str_contains($coreClase, $coreFnSeg))) {
+                        if (! empty($coreFnSeg) && ($coreClase === $coreFnSeg || str_contains($coreFnSeg, $coreClase) || str_contains($coreClase, $coreFnSeg))) {
                             $belongsToRejectedClass = true;
                             break 2;
                         }
@@ -4330,14 +4380,14 @@ class AlmacenFundicionController extends Controller
                     $filteredArchivos[] = $archivoPath;
 
                     // Physical copy of the file for the new Reproceso directory
-                    $srcPath = self::ALMACEN_DIR . '/' . $folderNameOriginal . '/' . $archivoPath;
-                    $destPath = self::ALMACEN_DIR . '/' . $this->sanitizePath($this->normalizeOTName($newOt)) . '/' . $archivoPath;
+                    $srcPath = self::ALMACEN_DIR.'/'.$folderNameOriginal.'/'.$archivoPath;
+                    $destPath = self::ALMACEN_DIR.'/'.$this->sanitizePath($this->normalizeOTName($newOt)).'/'.$archivoPath;
 
                     $destDir = dirname($destPath);
-                    if (!Storage::disk('local')->exists($destDir)) {
+                    if (! Storage::disk('local')->exists($destDir)) {
                         Storage::disk('local')->makeDirectory($destDir);
                     }
-                    if (Storage::disk('local')->exists($srcPath) && !Storage::disk('local')->exists($destPath)) {
+                    if (Storage::disk('local')->exists($srcPath) && ! Storage::disk('local')->exists($destPath)) {
                         Storage::disk('local')->copy($srcPath, $destPath);
                     }
                 }
@@ -4372,14 +4422,14 @@ class AlmacenFundicionController extends Controller
                 ini_set('memory_limit', '2048M');
                 $pdf = Pdf::loadView('pdf.pre_orden', [
                     'data' => $newPoData,
-                    'user' => Auth::user()
+                    'user' => Auth::user(),
                 ])->setPaper('a4', 'landscape');
 
                 $clasesInvolucradas = [];
-                if (!empty($newFilas)) {
+                if (! empty($newFilas)) {
                     foreach ($newFilas as $f) {
                         $cVal = ucfirst(trim($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? ''));
-                        if (!empty($cVal)) {
+                        if (! empty($cVal)) {
                             $clasesInvolucradas[] = preg_replace('/[^A-Za-z0-9]/', '', $cVal);
                         }
                     }
@@ -4392,7 +4442,7 @@ class AlmacenFundicionController extends Controller
                 $fechaStamp = date('d_m_Y_H_i');
                 $reprocesoMatch = [];
                 preg_match('/_R\d+$/i', $newOt, $reprocesoMatch);
-                $suffixReproceso = !empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
+                $suffixReproceso = ! empty($reprocesoMatch) ? strtoupper($reprocesoMatch[0]) : '';
                 $fileName = "F_ALM_PFM_{$clasesStr}{$suffixReproceso}.pdf";
 
                 $folderNameNew = $this->sanitizePath($this->normalizeOTName($newOt));
@@ -4408,18 +4458,18 @@ class AlmacenFundicionController extends Controller
 
                 foreach ($clasesParaGuardar as $claseParaGuardar) {
                     $claseFolder = FundicionPaths::crearEstructuraClase($folderNameNew, $claseParaGuardar, self::ALMACEN_DIR);
-                    $otPathNew = self::ALMACEN_DIR . '/' . $folderNameNew . '/' . $claseFolder . '/PREORDENES';
-                    $savePathNew = $otPathNew . '/' . $fileName;
+                    $otPathNew = self::ALMACEN_DIR.'/'.$folderNameNew.'/'.$claseFolder.'/PREORDENES';
+                    $savePathNew = $otPathNew.'/'.$fileName;
 
-                    if (!Storage::disk('local')->exists($otPathNew)) {
+                    if (! Storage::disk('local')->exists($otPathNew)) {
                         Storage::disk('local')->makeDirectory($otPathNew);
                     }
 
                     Storage::disk('local')->put($savePathNew, $pdfOutput);
                     $newHistoryArchivos[] = $savePathNew;
 
-                    if (!$savedPathForUrl) {
-                        $savedPathForUrl = $claseFolder . '/PREORDENES/' . $fileName;
+                    if (! $savedPathForUrl) {
+                        $savedPathForUrl = $claseFolder.'/PREORDENES/'.$fileName;
                     }
                 }
 
@@ -4430,7 +4480,7 @@ class AlmacenFundicionController extends Controller
                 $newPo->fecha_creacion = now();
                 $newPo->fecha_entrega = $oldPo->fecha_entrega;
                 $newPo->moldura = $oldPo->moldura;
-                $newPo->observaciones = 'RECHAZO: ' . ($oldPo->observaciones ?? '');
+                $newPo->observaciones = 'RECHAZO: '.($oldPo->observaciones ?? '');
                 $newPo->filas = $newFilas;
                 $newPo->user_id = Auth::id();
                 $newPo->user_nombre = Auth::user()->nombre ?? 'Sistema';
@@ -4440,9 +4490,9 @@ class AlmacenFundicionController extends Controller
 
                 $generatedPdfUrl = route('almacen.fundicion.serve', [
                     'ot' => $newOt,
-                    'archivo' => $savedPathForUrl ?? 'preordenes/' . $fileName,
+                    'archivo' => $savedPathForUrl ?? 'preordenes/'.$fileName,
                     'tipo' => 'otro',
-                    'origin' => 'aprobado'
+                    'origin' => 'aprobado',
                 ]);
 
             }
@@ -4450,32 +4500,32 @@ class AlmacenFundicionController extends Controller
 
         // ── 1. ASEGURAR ESTRUCTURA FÍSICA SEPARADA PARA LA OT DE REPROCESO ──
         $folderNameNew = $this->sanitizePath($this->normalizeOTName($newOt));
-        $newBaseDir = self::ALMACEN_DIR . '/' . $folderNameNew;
+        $newBaseDir = self::ALMACEN_DIR.'/'.$folderNameNew;
 
         foreach ($clases as $clase) {
             FundicionPaths::crearEstructuraClase($folderNameNew, $clase, self::ALMACEN_DIR);
         }
 
         // ── 2. COPIAR SÓLO DIBUJOS Y AYUDAS VISUALES DE LAS CLASES RECHAZADAS ──
-        $originalBaseDir = self::ALMACEN_DIR . '/' . $folderNameOriginal;
-        $ingenieriaBaseDir = DibujosFundicionPdfController::BASE_DIR . '/' . $folderNameOriginal;
+        $originalBaseDir = self::ALMACEN_DIR.'/'.$folderNameOriginal;
+        $ingenieriaBaseDir = DibujosFundicionPdfController::BASE_DIR.'/'.$folderNameOriginal;
 
         $sourcesToScan = [$originalBaseDir, $ingenieriaBaseDir];
 
         foreach ($sourcesToScan as $srcFolder) {
             $resolvedSrc = $this->resolveCaseInsensitivePath($srcFolder);
-            if (!empty($resolvedSrc) && Storage::disk('local')->exists($resolvedSrc)) {
+            if (! empty($resolvedSrc) && Storage::disk('local')->exists($resolvedSrc)) {
                 $srcDirNorm = str_replace('\\', '/', $resolvedSrc);
                 $allFiles = Storage::disk('local')->allFiles($resolvedSrc);
 
                 foreach ($allFiles as $file) {
                     $fileNorm = str_replace('\\', '/', $file);
-                    $relPath = str_replace($srcDirNorm . '/', '', $fileNorm);
+                    $relPath = str_replace($srcDirNorm.'/', '', $fileNorm);
                     $pathLower = strtolower($relPath);
                     $filename = basename($fileNorm);
 
                     $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-                    if (!in_array($ext, ['pdf', 'dwg'])) {
+                    if (! in_array($ext, ['pdf', 'dwg'])) {
                         continue;
                     }
 
@@ -4507,20 +4557,20 @@ class AlmacenFundicionController extends Controller
                         if ($claseTarget) {
                             if ($isDrawing) {
                                 if ($ext === 'dwg') {
-                                    $targetPath = $newBaseDir . '/' . $claseTarget . '/DIBUJOS_FUNDICION/DWG_FUNDICION/' . $filename;
+                                    $targetPath = $newBaseDir.'/'.$claseTarget.'/DIBUJOS_FUNDICION/DWG_FUNDICION/'.$filename;
                                 } else {
-                                    $targetPath = $newBaseDir . '/' . $claseTarget . '/DIBUJOS_FUNDICION/' . $filename;
+                                    $targetPath = $newBaseDir.'/'.$claseTarget.'/DIBUJOS_FUNDICION/'.$filename;
                                 }
                                 $newHistoryArchivos[] = $targetPath;
                             } else {
-                                $targetPath = $newBaseDir . '/' . $claseTarget . '/AYUDAS_VISUALES_FUNDICION/' . $filename;
+                                $targetPath = $newBaseDir.'/'.$claseTarget.'/AYUDAS_VISUALES_FUNDICION/'.$filename;
                             }
 
                             $targetDir = dirname($targetPath);
-                            if (!Storage::disk('local')->exists($targetDir)) {
+                            if (! Storage::disk('local')->exists($targetDir)) {
                                 Storage::disk('local')->makeDirectory($targetDir);
                             }
-                            if (!Storage::disk('local')->exists($targetPath)) {
+                            if (! Storage::disk('local')->exists($targetPath)) {
                                 Storage::disk('local')->copy($file, $targetPath);
                             }
                         }
@@ -4538,7 +4588,7 @@ class AlmacenFundicionController extends Controller
             'success' => true,
             'message' => "Rechazos procesados correctamente. Se generó la $newOt.",
             'pdf_url' => $generatedPdfUrl,
-            'new_ot' => $newOt
+            'new_ot' => $newOt,
         ]);
     }
 
@@ -4548,7 +4598,7 @@ class AlmacenFundicionController extends Controller
             $ot = $request->input('ot');
             $tipo = $request->input('tipo', 'modelo');
 
-            if (!$ot) {
+            if (! $ot) {
                 return response()->json(['success' => false, 'message' => 'Falta OT']);
             }
 
@@ -4593,29 +4643,29 @@ class AlmacenFundicionController extends Controller
                             $allClases[] = trim($c);
 
                             $fechaEntrega = null;
-                            if (!empty($f['id_clase'])) {
-                                $claseDb = \DB::table('clases')->where('id', $f['id_clase'])->first();
-                                if ($claseDb && !empty($claseDb->fecha_entrega_fundicion)) {
+                            if (! empty($f['id_clase'])) {
+                                $claseDb = DB::table('clases')->where('id', $f['id_clase'])->first();
+                                if ($claseDb && ! empty($claseDb->fecha_entrega_fundicion)) {
                                     $fechaEntrega = $claseDb->fecha_entrega_fundicion;
                                 }
                             }
 
                             // Fallback: buscar por nombre si no se encontró por ID
-                            if (!$fechaEntrega && $otReal) {
-                                $claseDb = \DB::table('clases')
+                            if (! $fechaEntrega && $otReal) {
+                                $claseDb = DB::table('clases')
                                     ->where('id_ot', $otReal->id)
-                                    ->where('nombre', 'LIKE', '%' . trim(preg_replace('/^\d+\s*-\s*/', '', $c)) . '%')
+                                    ->where('nombre', 'LIKE', '%'.trim(preg_replace('/^\d+\s*-\s*/', '', $c)).'%')
                                     ->first();
-                                if ($claseDb && !empty($claseDb->fecha_entrega_fundicion)) {
+                                if ($claseDb && ! empty($claseDb->fecha_entrega_fundicion)) {
                                     $fechaEntrega = $claseDb->fecha_entrega_fundicion;
                                 }
                             }
 
-                            if (!$fechaEntrega) {
+                            if (! $fechaEntrega) {
                                 $fechaEntrega = $fechaFallback;
                             }
 
-                            $clasesConFechas[trim($c)] = $fechaEntrega ? \Carbon\Carbon::parse($fechaEntrega)->format('d/m/Y') : 'Sin fecha';
+                            $clasesConFechas[trim($c)] = $fechaEntrega ? Carbon::parse($fechaEntrega)->format('d/m/Y') : 'Sin fecha';
                         }
                     }
                 }
@@ -4627,17 +4677,18 @@ class AlmacenFundicionController extends Controller
                     'clases_fechas' => $clasesConFechas,
                     'pdf_filename' => $first->pdf_filename,
                     'proveedor' => $first->proveedor,
-                    'fecha_creacion' => \Carbon\Carbon::parse($first->created_at)->format('d/m/Y H:i'),
+                    'fecha_creacion' => Carbon::parse($first->created_at)->format('d/m/Y H:i'),
                 ];
             }
 
             return response()->json([
                 'success' => true,
-                'pending' => $pendingData
+                'pending' => $pendingData,
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error en getPendingPreOrdenes: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Error interno: ' . $e->getMessage()]);
+            Log::error('Error en getPendingPreOrdenes: '.$e->getMessage());
+
+            return response()->json(['success' => false, 'message' => 'Error interno: '.$e->getMessage()]);
         }
     }
 
@@ -4645,12 +4696,14 @@ class AlmacenFundicionController extends Controller
     {
         $this->verificarAcceso();
         $ot = $request->input('ot');
-        if (!$ot)
+        if (! $ot) {
             return response()->json(['success' => false, 'message' => 'Falta OT']);
+        }
 
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
-        if (!$history)
+        if (! $history) {
             return response()->json(['success' => false, 'message' => 'No se encontró historial para la OT']);
+        }
 
         $pending = is_array($history->pending_almacen_changes) ? $history->pending_almacen_changes : [];
         if (empty($pending)) {
@@ -4664,6 +4717,7 @@ class AlmacenFundicionController extends Controller
         $isPreorder = function (string $filePath) {
             $lower = strtolower(basename($filePath));
             $lowerPath = strtolower(str_replace('\\', '/', $filePath));
+
             return str_contains($lower, 'pre-orden') ||
                 str_contains($lower, 'preorden') ||
                 str_contains($lowerPath, '/preordenes/');
@@ -4701,7 +4755,7 @@ class AlmacenFundicionController extends Controller
                 'nuevos' => [],
                 'agregados' => [],
                 'afectados' => [],
-                'es_adicion' => false
+                'es_adicion' => false,
             ];
 
             $viejosList = [];
@@ -4716,20 +4770,20 @@ class AlmacenFundicionController extends Controller
                 $clase
             );
             $seenViejos = [];
-            Log::debug('[checkPendingChanges] Clase: ' . $clase . ' | folderName: ' . $folderName . ' | Candidatos: ' . json_encode(array_values($almacenDibujosCandidatos)));
+            Log::debug('[checkPendingChanges] Clase: '.$clase.' | folderName: '.$folderName.' | Candidatos: '.json_encode(array_values($almacenDibujosCandidatos)));
             foreach ($almacenDibujosCandidatos as $candidato) {
                 $resolvedCandidato = $this->resolveCaseInsensitivePath($candidato);
                 $existsDir = Storage::disk('local')->directoryExists($resolvedCandidato);
                 $existsFile = Storage::disk('local')->exists($resolvedCandidato);
-                Log::debug('[checkPendingChanges]  -> candidato: ' . $candidato . ' | resolved: ' . $resolvedCandidato . ' | existsDir: ' . ($existsDir ? 'YES' : 'NO') . ' | existsFile: ' . ($existsFile ? 'YES' : 'NO'));
-                if (!$resolvedCandidato || (!$existsDir && !$existsFile)) {
+                Log::debug('[checkPendingChanges]  -> candidato: '.$candidato.' | resolved: '.$resolvedCandidato.' | existsDir: '.($existsDir ? 'YES' : 'NO').' | existsFile: '.($existsFile ? 'YES' : 'NO'));
+                if (! $resolvedCandidato || (! $existsDir && ! $existsFile)) {
                     continue;
                 }
                 $allAlmacenFiles = Storage::disk('local')->allFiles($resolvedCandidato);
-                Log::debug('[checkPendingChanges]  -> files found: ' . count($allAlmacenFiles));
+                Log::debug('[checkPendingChanges]  -> files found: '.count($allAlmacenFiles));
                 foreach ($allAlmacenFiles as $f) {
                     $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                    if (!in_array($ext, ['pdf', 'dwg'])) {
+                    if (! in_array($ext, ['pdf', 'dwg'])) {
                         continue;
                     }
                     $filename = basename($f);
@@ -4742,7 +4796,8 @@ class AlmacenFundicionController extends Controller
                         continue;
                     }
                     if ($isPreorder($f) || $isAffectedDoc($f)) {
-                        Log::debug('[checkPendingChanges]  -> SKIPPED by isPreorder/isAffectedDoc: ' . $f);
+                        Log::debug('[checkPendingChanges]  -> SKIPPED by isPreorder/isAffectedDoc: '.$f);
+
                         continue;
                     }
                     $seenViejos[] = strtolower($filename);
@@ -4752,10 +4807,10 @@ class AlmacenFundicionController extends Controller
                         'nombre' => $filename,
                         'url' => route('almacen.fundicion.serve', [
                             'ot' => $ot,
-                            'archivo' => $clase . '/DIBUJOS_FUNDICION/' . $relSubPath,
-                            'tipo' => 'dibujo'
+                            'archivo' => $clase.'/DIBUJOS_FUNDICION/'.$relSubPath,
+                            'tipo' => 'dibujo',
                         ]),
-                        'path' => $f
+                        'path' => $f,
                     ];
                 }
             }
@@ -4769,22 +4824,24 @@ class AlmacenFundicionController extends Controller
             $liberacionesPath = storage_path('app/public/liberaciones_pdf');
             if (file_exists($liberacionesPath)) {
                 foreach (scandir($liberacionesPath) ?: [] as $fileName) {
-                    if ($fileName === '.' || $fileName === '..')
+                    if ($fileName === '.' || $fileName === '..') {
                         continue;
+                    }
                     $fileNameLower = strtolower($fileName);
-                    if (str_contains($fileNameLower, '_anterior_n'))
+                    if (str_contains($fileNameLower, '_anterior_n')) {
                         continue;
+                    }
 
                     // FIX: Evitar que documentos de OTs de Reproceso (ej. _R1) se muestren en la OT original
                     $isReprocesoOT = (bool) preg_match('/_R\d+$/i', $ot);
-                    if (!$isReprocesoOT && preg_match('/_R\d+\.pdf$/i', $fileName)) {
+                    if (! $isReprocesoOT && preg_match('/_R\d+\.pdf$/i', $fileName)) {
                         continue; // Es un documento de un reproceso, omitir en la OT original
                     }
 
                     if (str_ends_with($fileNameLower, '.pdf') && str_contains($fileNameLower, $claseNorm) && (str_contains($fileNameLower, $otSanitizada) || str_contains($fileNameLower, strtolower($ot)))) {
                         $afectadosList[] = [
                             'nombre' => $fileName,
-                            'url' => asset('storage/liberaciones_pdf/' . $fileName)
+                            'url' => asset('storage/liberaciones_pdf/'.$fileName),
                         ];
                     }
                 }
@@ -4792,11 +4849,11 @@ class AlmacenFundicionController extends Controller
 
             // b) Escanear en carpetas de Documentos_Aprobados, Documentos_Rechazados y preordenes de Almacén y Calidad
             $scanCandidates = [
-                self::ALMACEN_DIR . '/' . $folderName . '/Documentos_Aprobados',
-                self::ALMACEN_DIR . '/' . $folderName . '/Documentos_Rechazados',
-                self::ALMACEN_DIR . '/' . $folderName . '/preordenes',
-                self::CALIDAD_DIR . '/' . $folderName . '/Documentos_Aprobados',
-                self::CALIDAD_DIR . '/' . $folderName . '/Documentos_Rechazados',
+                self::ALMACEN_DIR.'/'.$folderName.'/Documentos_Aprobados',
+                self::ALMACEN_DIR.'/'.$folderName.'/Documentos_Rechazados',
+                self::ALMACEN_DIR.'/'.$folderName.'/preordenes',
+                self::CALIDAD_DIR.'/'.$folderName.'/Documentos_Aprobados',
+                self::CALIDAD_DIR.'/'.$folderName.'/Documentos_Rechazados',
             ];
 
             foreach ($scanCandidates as $candDir) {
@@ -4805,17 +4862,19 @@ class AlmacenFundicionController extends Controller
                     $candFiles = Storage::disk('local')->allFiles($resolvedCand);
                     foreach ($candFiles as $cf) {
                         $cfNorm = str_replace('\\', '/', $cf);
-                        if (str_contains(strtolower($cfNorm), '/ayudas_visuales/'))
-                            continue; // Excluir ayudas visuales
+                        if (str_contains(strtolower($cfNorm), '/ayudas_visuales/')) {
+                            continue;
+                        } // Excluir ayudas visuales
 
                         $bName = basename($cf);
                         $bNameLow = strtolower($bName);
-                        if (str_contains($bNameLow, '_anterior_n'))
+                        if (str_contains($bNameLow, '_anterior_n')) {
                             continue;
+                        }
 
                         // FIX: Evitar que documentos de OTs de Reproceso (ej. _R1) se muestren en la OT original
                         $isReprocesoOT = (bool) preg_match('/_R\d+$/i', $ot);
-                        if (!$isReprocesoOT && preg_match('/_R\d+\.pdf$/i', $bName)) {
+                        if (! $isReprocesoOT && preg_match('/_R\d+\.pdf$/i', $bName)) {
                             continue; // Es un documento de un reproceso, omitir en la OT original
                         }
 
@@ -4828,9 +4887,9 @@ class AlmacenFundicionController extends Controller
                                 'nombre' => $bName,
                                 'url' => route('almacen.fundicion.serve', [
                                     'ot' => $ot,
-                                    'archivo' => $prefixPath . $relSubPath,
-                                    'tipo' => 'otro'
-                                ])
+                                    'archivo' => $prefixPath.$relSubPath,
+                                    'tipo' => 'otro',
+                                ]),
                             ];
                         }
                     }
@@ -4840,21 +4899,21 @@ class AlmacenFundicionController extends Controller
             $nuevosList = [];
             // Nuevos (Ingeniería) — buscar en raíz de la clase Y en la subcarpeta PDF si existe
             $ingBasePaths = [
-                \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR . '/' . $folderName . '/' . $clase,
-                \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR . '/' . strtoupper($folderName) . '/' . strtoupper($clase),
-                \App\Http\Controllers\DibujosFundicionPdfController::OLD_BASE_DIR . '/' . $folderName . '/' . $clase,
-                \App\Http\Controllers\DibujosFundicionPdfController::OLD_BASE_DIR . '/' . strtoupper($folderName) . '/' . strtoupper($clase),
+                \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR.'/'.$folderName.'/'.$clase,
+                \App\Http\Controllers\DibujosFundicionPdfController::BASE_DIR.'/'.strtoupper($folderName).'/'.strtoupper($clase),
+                \App\Http\Controllers\DibujosFundicionPdfController::OLD_BASE_DIR.'/'.$folderName.'/'.$clase,
+                \App\Http\Controllers\DibujosFundicionPdfController::OLD_BASE_DIR.'/'.strtoupper($folderName).'/'.strtoupper($clase),
             ];
             $seenNuevos = [];
             foreach ($ingBasePaths as $ingenieriaDir) {
                 $resolvedIng = $this->resolveCaseInsensitivePath($ingenieriaDir);
-                if (!$resolvedIng || !Storage::disk('local')->exists($resolvedIng)) {
+                if (! $resolvedIng || ! Storage::disk('local')->exists($resolvedIng)) {
                     continue;
                 }
                 $files = Storage::disk('local')->allFiles($resolvedIng);
                 foreach ($files as $f) {
                     $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
-                    if (!in_array($ext, ['pdf', 'dwg'])) {
+                    if (! in_array($ext, ['pdf', 'dwg'])) {
                         continue;
                     }
                     $filename = basename($f);
@@ -4871,7 +4930,7 @@ class AlmacenFundicionController extends Controller
                     $nuevosList[] = [
                         'nombre' => $filename,
                         'url' => route('fundicion.serve', ['ot' => $ot, 'clase' => $clase, 'archivo' => $relSubPath]),
-                        'path' => $f
+                        'path' => $f,
                     ];
                 }
             }
@@ -4887,8 +4946,8 @@ class AlmacenFundicionController extends Controller
                 $nNameLow = mb_strtolower($nItem['nombre'], 'UTF-8');
                 foreach ($viejos as $vItem) {
                     if (mb_strtolower($vItem['nombre'], 'UTF-8') === $nNameLow) {
-                        $nAbsPath = storage_path('app/' . $nItem['path']);
-                        $vAbsPath = storage_path('app/' . $vItem['path']);
+                        $nAbsPath = storage_path('app/'.$nItem['path']);
+                        $vAbsPath = storage_path('app/'.$vItem['path']);
                         if (file_exists($nAbsPath) && file_exists($vAbsPath)) {
                             if (filesize($nAbsPath) === filesize($vAbsPath) && md5_file($nAbsPath) === md5_file($vAbsPath)) {
                                 $identicalNames[] = $nNameLow;
@@ -4900,38 +4959,38 @@ class AlmacenFundicionController extends Controller
 
             // Filtrar los idénticos
             $viejos = array_filter($viejos, function ($v) use ($identicalNames) {
-                return !in_array(mb_strtolower($v['nombre'], 'UTF-8'), $identicalNames, true);
+                return ! in_array(mb_strtolower($v['nombre'], 'UTF-8'), $identicalNames, true);
             });
             $nuevos = array_filter($nuevos, function ($n) use ($identicalNames) {
-                return !in_array(mb_strtolower($n['nombre'], 'UTF-8'), $identicalNames, true);
+                return ! in_array(mb_strtolower($n['nombre'], 'UTF-8'), $identicalNames, true);
             });
 
             $viejos = array_values($viejos);
             $nuevos = array_values($nuevos);
 
-            $viejosNames = array_map(fn($v) => mb_strtolower($v['nombre'], 'UTF-8'), $viejos);
-            $nuevosNames = array_map(fn($n) => mb_strtolower($n['nombre'], 'UTF-8'), $nuevos);
+            $viejosNames = array_map(fn ($v) => mb_strtolower($v['nombre'], 'UTF-8'), $viejos);
+            $nuevosNames = array_map(fn ($n) => mb_strtolower($n['nombre'], 'UTF-8'), $nuevos);
 
             $agregados = [];
             foreach ($nuevos as $nItem) {
-                if (!in_array(mb_strtolower($nItem['nombre'], 'UTF-8'), $viejosNames, true)) {
+                if (! in_array(mb_strtolower($nItem['nombre'], 'UTF-8'), $viejosNames, true)) {
                     $agregados[] = $nItem;
                 }
             }
 
             $isAdicion = false;
-            if (!empty($nuevos)) {
+            if (! empty($nuevos)) {
                 if (empty($viejos)) {
                     $isAdicion = true;
                 } else {
                     $missingInNuevos = array_diff($viejosNames, $nuevosNames);
-                    if (empty($missingInNuevos) && !empty($agregados)) {
+                    if (empty($missingInNuevos) && ! empty($agregados)) {
                         $isAdicion = true;
                     }
                 }
             }
 
-            if (!$isAdicion) {
+            if (! $isAdicion) {
                 $isOverallAddition = false;
             }
             if (empty($viejos) && empty($nuevos)) {
@@ -4952,6 +5011,7 @@ class AlmacenFundicionController extends Controller
             // Auto-resolver los cambios ya que no hay diferencias reales
             $history->pending_almacen_changes = null;
             $history->save();
+
             return response()->json(['success' => true, 'has_pending' => false, 'message' => 'No se encontraron cambios reales.']);
         }
 
@@ -4967,7 +5027,7 @@ class AlmacenFundicionController extends Controller
             'es_total' => $esTotal,
             'total_clases_ot' => $totalClasesOt,
             'affected_clases_count' => $affectedCount,
-            'comparison' => $comparison
+            'comparison' => $comparison,
         ]);
     }
 
@@ -4977,15 +5037,16 @@ class AlmacenFundicionController extends Controller
         $ot = $this->sanitizePath($this->normalizeOTName($request->input('ot')));
         $action = $request->input('action'); // 'reiniciar_completo', 'reiniciar_parcial', 'reiniciar', 'mantener'
 
-        Log::info("RESOLVE_PENDING_CHANGES", ['ot' => $ot, 'action_recibido' => $action, 'clases_request' => $request->input('clases')]);
+        Log::info('RESOLVE_PENDING_CHANGES', ['ot' => $ot, 'action_recibido' => $action, 'clases_request' => $request->input('clases')]);
 
-        if (!$ot || !in_array($action, ['reiniciar_completo', 'reiniciar_parcial', 'reiniciar', 'mantener'])) {
+        if (! $ot || ! in_array($action, ['reiniciar_completo', 'reiniciar_parcial', 'reiniciar', 'mantener'])) {
             return response()->json(['success' => false, 'message' => 'Parámetros inválidos']);
         }
 
         $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
-        if (!$history)
+        if (! $history) {
             return response()->json(['success' => false, 'message' => 'No se encontró historial para la OT']);
+        }
 
         $pending = is_array($history->pending_almacen_changes) ? $history->pending_almacen_changes : [];
         if (empty($pending)) {
@@ -4993,7 +5054,7 @@ class AlmacenFundicionController extends Controller
         }
 
         $targetClases = $request->input('clases'); // Should be an array
-        if (!empty($targetClases) && is_array($targetClases)) {
+        if (! empty($targetClases) && is_array($targetClases)) {
             // Intersect with pending to ensure we only process valid pending classes
             $pending = array_values(array_intersect($pending, $targetClases));
         }
@@ -5019,41 +5080,41 @@ class AlmacenFundicionController extends Controller
 
         $baseOtClean = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $ot);
 
-        if ($action === 'reiniciar_completo' && !$esTotal) {
+        if ($action === 'reiniciar_completo' && ! $esTotal) {
             $action = 'reiniciar_parcial';
         }
 
         if ($action === 'reiniciar_completo' || ($action === 'reiniciar' && $esTotal)) {
             // Reiniciar proceso completo de TODA la OT y de sus reprocesos derivados
             PreOrdenFundicion::where('ot', '=', $ot)
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_%_R%')
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_%_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_R%')
                 ->delete();
 
             LiberacionModeloFundicion::where('ot', '=', $ot)
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_%_R%')
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_%_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_R%')
                 ->delete();
 
             ScarModelo::where('ot', '=', $ot)
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_%_R%')
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_%_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_R%')
                 ->delete();
 
             PreOrdenLog::where('ot', '=', $ot)
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_%_R%')
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_%_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_R%')
                 ->delete();
 
             RechazoLog::where('ot', '=', $ot)
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_%_R%')
-                ->orWhere('ot', 'LIKE', $baseOtClean . '_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_%_R%')
+                ->orWhere('ot', 'LIKE', $baseOtClean.'_R%')
                 ->delete();
 
             // Eliminar registros de historial de reprocesos derivados
             FundicionHistory::where(function ($q) use ($baseOtClean) {
-                $q->where('ot', 'LIKE', $baseOtClean . '_%_R%')
-                    ->orWhere('ot', 'LIKE', $baseOtClean . '_R%');
+                $q->where('ot', 'LIKE', $baseOtClean.'_%_R%')
+                    ->orWhere('ot', 'LIKE', $baseOtClean.'_R%');
             })->delete();
 
             // Resetear TODOS los flags de estado para que los controles se reactiven completamente
@@ -5067,7 +5128,7 @@ class AlmacenFundicionController extends Controller
             $history->save();
 
             \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, true);
-        } else if ($action === 'reiniciar_parcial' || $action === 'reiniciar') {
+        } elseif ($action === 'reiniciar_parcial' || $action === 'reiniciar') {
             // Reiniciar proceso únicamente para las clases afectadas
             $activeClasses = array_diff($allClassesInOt, $pending);
             $baseOtStr = preg_replace('/_R\d+$/i', '', $ot);
@@ -5088,24 +5149,24 @@ class AlmacenFundicionController extends Controller
                 LiberacionModeloFundicion::where(function ($q) use ($ot, $baseOtStr) {
                     $q->where('ot', '=', $ot)
                         ->orWhere('ot', '=', $baseOtStr)
-                        ->orWhere('ot', 'LIKE', $baseOtStr . '_%_R%')
-                        ->orWhere('ot', 'LIKE', $baseOtStr . '_R%');
+                        ->orWhere('ot', 'LIKE', $baseOtStr.'_%_R%')
+                        ->orWhere('ot', 'LIKE', $baseOtStr.'_R%');
                 })
                     ->where(function ($q) use ($claseNorm) {
                         $q->whereRaw('LOWER(tipo_modelo) = ?', [$claseNorm])
-                            ->orWhereRaw('LOWER(tipo_modelo) LIKE ?', ['%' . $claseNorm . '%']);
+                            ->orWhereRaw('LOWER(tipo_modelo) LIKE ?', ['%'.$claseNorm.'%']);
                     })
                     ->delete();
 
                 ScarModelo::where(function ($q) use ($ot, $baseOtStr) {
                     $q->where('ot', '=', $ot)
                         ->orWhere('ot', '=', $baseOtStr)
-                        ->orWhere('ot', 'LIKE', $baseOtStr . '_%_R%')
-                        ->orWhere('ot', 'LIKE', $baseOtStr . '_R%');
+                        ->orWhere('ot', 'LIKE', $baseOtStr.'_%_R%')
+                        ->orWhere('ot', 'LIKE', $baseOtStr.'_R%');
                 })
                     ->where(function ($q) use ($claseNorm) {
                         $q->whereRaw('LOWER(tipo_modelo) = ?', [$claseNorm])
-                            ->orWhereRaw('LOWER(tipo_modelo) LIKE ?', ['%' . $claseNorm . '%']);
+                            ->orWhereRaw('LOWER(tipo_modelo) LIKE ?', ['%'.$claseNorm.'%']);
                     })
                     ->delete();
 
@@ -5119,8 +5180,9 @@ class AlmacenFundicionController extends Controller
                     $classCleanSingular = rtrim($classCleanStr, 's');
 
                     foreach (scandir($liberacionesPath) ?: [] as $fileName) {
-                        if ($fileName === '.' || $fileName === '..')
+                        if ($fileName === '.' || $fileName === '..') {
                             continue;
+                        }
                         $fileNameLower = strtolower($fileName);
                         $matchesClase = str_contains($fileNameLower, $claseNorm) ||
                             str_contains($fileNameLower, $classCleanStr) ||
@@ -5128,7 +5190,7 @@ class AlmacenFundicionController extends Controller
                         $matchesOt = str_contains($fileNameLower, $otSanitizada) || str_contains($fileNameLower, strtolower($baseOtStr));
                         $isPdf = str_ends_with($fileNameLower, '.pdf');
                         if ($isPdf && $matchesClase && $matchesOt) {
-                            @unlink($liberacionesPath . DIRECTORY_SEPARATOR . $fileName);
+                            @unlink($liberacionesPath.DIRECTORY_SEPARATOR.$fileName);
                         }
                     }
                 }
@@ -5158,34 +5220,34 @@ class AlmacenFundicionController extends Controller
                 foreach ($roots as $r) {
                     if (Storage::disk('local')->exists($r) || Storage::disk('local')->directoryExists($r)) {
                         $subFoldersToClean = [
-                            $r . '/Documentos_Aprobados/' . $classSubFolder,
-                            $r . '/Documentos_Aprobados/' . $clase,
-                            $r . '/Documentos_Aprobados/' . $classClean,
-                            $r . '/Documentos_Rechazados/' . $classSubFolder,
-                            $r . '/Documentos_Rechazados/' . $clase,
-                            $r . '/Documentos_Rechazados/' . $classClean,
-                            $r . '/Documentos_Rechazados/SCAR/' . $classSubFolder,
-                            $r . '/Documentos_Rechazados/FDRDM/' . $classSubFolder,
-                            $r . '/' . FundicionPaths::FDRDM . '/' . $classSubFolder,
-                            $r . '/' . FundicionPaths::SCAR . '/' . $classSubFolder,
-                            $r . '/' . $clase . '/' . FundicionPaths::DOCUMENTOS_APROBADOS,
-                            $r . '/' . $clase . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS,
-                            $r . '/' . $clase . '/' . FundicionPaths::PREORDENES,
-                            $r . '/' . $clase . '/' . FundicionPaths::FORMATOS_LIBERACION,
-                            $r . '/' . $clase . '/' . FundicionPaths::ESCANEADOS,
-                            $r . '/' . $clase . '/' . FundicionPaths::FDRDM,
-                            $r . '/' . $clase . '/' . FundicionPaths::SCAR,
-                            $r . '/' . $classClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS,
-                            $r . '/' . $classClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS,
-                            $r . '/' . $classClean . '/' . FundicionPaths::PREORDENES,
-                            $r . '/' . $classClean . '/' . FundicionPaths::FORMATOS_LIBERACION,
-                            $r . '/' . $classClean . '/' . FundicionPaths::ESCANEADOS,
-                            $r . '/Documentos_Aprobados/' . $tipoClean,
-                            $r . '/Documentos_Rechazados/' . $tipoClean,
-                            $r . '/' . $tipoClean . '/' . FundicionPaths::DOCUMENTOS_APROBADOS,
-                            $r . '/' . $tipoClean . '/' . FundicionPaths::DOCUMENTOS_RECHAZADOS,
-                            $r . '/' . $tipoUpper . '/' . FundicionPaths::SCAR,
-                            $r . '/' . $tipoUpper . '/' . FundicionPaths::FDRDM,
+                            $r.'/Documentos_Aprobados/'.$classSubFolder,
+                            $r.'/Documentos_Aprobados/'.$clase,
+                            $r.'/Documentos_Aprobados/'.$classClean,
+                            $r.'/Documentos_Rechazados/'.$classSubFolder,
+                            $r.'/Documentos_Rechazados/'.$clase,
+                            $r.'/Documentos_Rechazados/'.$classClean,
+                            $r.'/Documentos_Rechazados/SCAR/'.$classSubFolder,
+                            $r.'/Documentos_Rechazados/FDRDM/'.$classSubFolder,
+                            $r.'/'.FundicionPaths::FDRDM.'/'.$classSubFolder,
+                            $r.'/'.FundicionPaths::SCAR.'/'.$classSubFolder,
+                            $r.'/'.$clase.'/'.FundicionPaths::DOCUMENTOS_APROBADOS,
+                            $r.'/'.$clase.'/'.FundicionPaths::DOCUMENTOS_RECHAZADOS,
+                            $r.'/'.$clase.'/'.FundicionPaths::PREORDENES,
+                            $r.'/'.$clase.'/'.FundicionPaths::FORMATOS_LIBERACION,
+                            $r.'/'.$clase.'/'.FundicionPaths::ESCANEADOS,
+                            $r.'/'.$clase.'/'.FundicionPaths::FDRDM,
+                            $r.'/'.$clase.'/'.FundicionPaths::SCAR,
+                            $r.'/'.$classClean.'/'.FundicionPaths::DOCUMENTOS_APROBADOS,
+                            $r.'/'.$classClean.'/'.FundicionPaths::DOCUMENTOS_RECHAZADOS,
+                            $r.'/'.$classClean.'/'.FundicionPaths::PREORDENES,
+                            $r.'/'.$classClean.'/'.FundicionPaths::FORMATOS_LIBERACION,
+                            $r.'/'.$classClean.'/'.FundicionPaths::ESCANEADOS,
+                            $r.'/Documentos_Aprobados/'.$tipoClean,
+                            $r.'/Documentos_Rechazados/'.$tipoClean,
+                            $r.'/'.$tipoClean.'/'.FundicionPaths::DOCUMENTOS_APROBADOS,
+                            $r.'/'.$tipoClean.'/'.FundicionPaths::DOCUMENTOS_RECHAZADOS,
+                            $r.'/'.$tipoUpper.'/'.FundicionPaths::SCAR,
+                            $r.'/'.$tipoUpper.'/'.FundicionPaths::FDRDM,
                         ];
                         foreach ($subFoldersToClean as $sfc) {
                             if (Storage::disk('local')->exists($sfc) || Storage::disk('local')->directoryExists($sfc)) {
@@ -5195,17 +5257,19 @@ class AlmacenFundicionController extends Controller
 
                         // Borrar archivos (en cualquier profundidad) que contengan el nombre de la clase
                         foreach (['/Documentos_Rechazados', '/Documentos_Aprobados', '/ayudas_visuales/preordenes/documentos_aprobados', '/preordenes', '/ESCANEADOS'] as $sub) {
-                            $targetSub = $r . $sub;
+                            $targetSub = $r.$sub;
                             if (Storage::disk('local')->exists($targetSub) || Storage::disk('local')->directoryExists($targetSub)) {
                                 $classCleanStr = strtolower(trim(preg_replace('/^\d+\s*-\s*/', '', $claseNorm)));
                                 $classCleanSingular = rtrim($classCleanStr, 's');
 
                                 foreach (Storage::disk('local')->allFiles($targetSub) as $f) {
                                     $fBaseLow = strtolower(basename($f));
-                                    if (str_contains($fBaseLow, '_anterior_n'))
+                                    if (str_contains($fBaseLow, '_anterior_n')) {
                                         continue;
-                                    if (str_contains($fBaseLow, 'confirmacion') || str_contains($fBaseLow, 'escaneado'))
+                                    }
+                                    if (str_contains($fBaseLow, 'confirmacion') || str_contains($fBaseLow, 'escaneado')) {
                                         continue;
+                                    }
 
                                     if (
                                         str_contains($fBaseLow, $claseNorm) ||
@@ -5225,8 +5289,8 @@ class AlmacenFundicionController extends Controller
             $posToProcess = PreOrdenFundicion::where(function ($q) use ($ot, $baseOtStr) {
                 $q->where('ot', '=', $ot)
                     ->orWhere('ot', '=', $baseOtStr)
-                    ->orWhere('ot', 'LIKE', $baseOtStr . '_%_R%')
-                    ->orWhere('ot', 'LIKE', $baseOtStr . '_R%');
+                    ->orWhere('ot', 'LIKE', $baseOtStr.'_%_R%')
+                    ->orWhere('ot', 'LIKE', $baseOtStr.'_R%');
             })
                 ->where('pdf_filename', 'NOT LIKE', '%_Anterior_N%')
                 ->where('ot', 'NOT LIKE', '%_Anterior_%')
@@ -5234,7 +5298,7 @@ class AlmacenFundicionController extends Controller
 
             foreach ($posToProcess as $po) {
                 $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                if (!is_array($filas)) {
+                if (! is_array($filas)) {
                     continue;
                 }
 
@@ -5262,13 +5326,13 @@ class AlmacenFundicionController extends Controller
                         $ext = pathinfo($po->pdf_filename ?? 'file.pdf', PATHINFO_EXTENSION);
                         $baseNoExt = pathinfo($po->pdf_filename ?? 'file', PATHINFO_FILENAME);
 
-                        $matchingCount = PreOrdenFundicion::where('ot', 'LIKE', $po->ot . '_Anterior_%')->count();
+                        $matchingCount = PreOrdenFundicion::where('ot', 'LIKE', $po->ot.'_Anterior_%')->count();
                         $nextN = $matchingCount + 1;
 
-                        $newArchivedName = "{$baseNoExt}_Anterior_N{$nextN}." . ($ext ?: 'pdf');
+                        $newArchivedName = "{$baseNoExt}_Anterior_N{$nextN}.".($ext ?: 'pdf');
                         $po->pdf_filename = $newArchivedName;
                         $po->is_sent = 1;
-                        $po->ot = $po->ot . '_Anterior_' . $po->id;
+                        $po->ot = $po->ot.'_Anterior_'.$po->id;
                         $po->save();
                     } else {
                         // La preorden tenia clases mixtas: conservar solo las clases no reiniciadas
@@ -5281,8 +5345,8 @@ class AlmacenFundicionController extends Controller
             // 3.6. Limpiar OTs de Reproceso generadas por estas clases
             $baseOtCleanRep = preg_replace('/_.*_R\d+$|_R\d+$/i', '', $ot);
             $reprocesos = FundicionHistory::where(function ($q) use ($baseOtCleanRep) {
-                $q->where('ot', 'LIKE', $baseOtCleanRep . '_%_R%')
-                    ->orWhere('ot', 'LIKE', $baseOtCleanRep . '_R%');
+                $q->where('ot', 'LIKE', $baseOtCleanRep.'_%_R%')
+                    ->orWhere('ot', 'LIKE', $baseOtCleanRep.'_R%');
             })->get();
 
             foreach ($reprocesos as $reproceso) {
@@ -5298,7 +5362,7 @@ class AlmacenFundicionController extends Controller
                             break;
                         }
                     }
-                    if (!$inPending) {
+                    if (! $inPending) {
                         $newAyudas[] = $a;
                     }
                 }
@@ -5310,14 +5374,14 @@ class AlmacenFundicionController extends Controller
                     $cNorm = strtolower(trim(Clase::normalizeClassName($clase) ?: $clase));
                     LiberacionModeloFundicion::where('ot', '=', $reprocesoOt)
                         ->where(function ($q) use ($cNorm, $clase) {
-                            $q->whereRaw('LOWER(tipo_modelo) LIKE ?', ['%' . $cNorm . '%'])
-                                ->orWhereRaw('LOWER(tipo_modelo) LIKE ?', ['%' . strtolower(trim($clase)) . '%']);
+                            $q->whereRaw('LOWER(tipo_modelo) LIKE ?', ['%'.$cNorm.'%'])
+                                ->orWhereRaw('LOWER(tipo_modelo) LIKE ?', ['%'.strtolower(trim($clase)).'%']);
                         })
                         ->delete();
                     ScarModelo::where('ot', '=', $reprocesoOt)
                         ->where(function ($q) use ($cNorm, $clase) {
-                            $q->whereRaw('LOWER(tipo_modelo) LIKE ?', ['%' . $cNorm . '%'])
-                                ->orWhereRaw('LOWER(tipo_modelo) LIKE ?', ['%' . strtolower(trim($clase)) . '%']);
+                            $q->whereRaw('LOWER(tipo_modelo) LIKE ?', ['%'.$cNorm.'%'])
+                                ->orWhereRaw('LOWER(tipo_modelo) LIKE ?', ['%'.strtolower(trim($clase)).'%']);
                         })
                         ->delete();
                 }
@@ -5360,16 +5424,18 @@ class AlmacenFundicionController extends Controller
                     $repPreOrdenes = PreOrdenFundicion::where('ot', '=', $reprocesoOt)->get();
                     foreach ($repPreOrdenes as $po) {
                         $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                        if (!is_array($filas))
+                        if (! is_array($filas)) {
                             continue;
+                        }
 
                         $poClasses = array_map(function ($f) {
                             return strtolower($f['clase'] ?? $f['clase_nombre'] ?? '');
                         }, $filas);
                         $allInPending = true;
                         foreach ($poClasses as $poc) {
-                            if (empty($poc))
+                            if (empty($poc)) {
                                 continue;
+                            }
                             $isInPending = false;
                             foreach ($pending as $p) {
                                 if (strtolower(trim($p)) === $poc) {
@@ -5377,7 +5443,7 @@ class AlmacenFundicionController extends Controller
                                     break;
                                 }
                             }
-                            if (!$isInPending) {
+                            if (! $isInPending) {
                                 $allInPending = false;
                                 break;
                             }
@@ -5389,8 +5455,6 @@ class AlmacenFundicionController extends Controller
                 }
             }
 
-
-
             // ── Resetear flags de BD según el estado residual de la OT ─────────────
             $quedanLiberaciones = LiberacionModeloFundicion::where(function ($q) use ($ot, $baseOtStr) {
                 $q->where('ot', '=', $ot)
@@ -5399,14 +5463,16 @@ class AlmacenFundicionController extends Controller
                 ->get()
                 ->filter(function ($lib) use ($pendingLower) {
                     $tm = strtolower(trim($lib->tipo_modelo ?? ''));
-                    if ($tm === '')
+                    if ($tm === '') {
                         return false;
+                    }
                     foreach (explode(',', $tm) as $c) {
                         $cTrim = strtolower(trim($c));
-                        if (!empty($cTrim) && !in_array($cTrim, $pendingLower)) {
+                        if (! empty($cTrim) && ! in_array($cTrim, $pendingLower)) {
                             return true;
                         }
                     }
+
                     return false;
                 })->count() > 0;
 
@@ -5419,14 +5485,16 @@ class AlmacenFundicionController extends Controller
                 ->get()
                 ->filter(function ($po) use ($pendingLower) {
                     $filas = is_string($po->filas) ? json_decode($po->filas, true) : $po->filas;
-                    if (!is_array($filas))
+                    if (! is_array($filas)) {
                         return false;
+                    }
                     foreach ($filas as $f) {
                         $c = strtolower(trim($f['clase'] ?? $f['clase_nombre'] ?? $f['tipo_modelo'] ?? $f['nombre'] ?? ''));
-                        if ($c !== '' && !in_array($c, $pendingLower)) {
+                        if ($c !== '' && ! in_array($c, $pendingLower)) {
                             return true;
                         }
                     }
+
                     return false;
                 })->count() > 0;
 
@@ -5437,10 +5505,11 @@ class AlmacenFundicionController extends Controller
                 ->get()
                 ->filter(function ($s) use ($pendingLower) {
                     $tm = strtolower(trim($s->tipo_modelo ?? ''));
-                    return $tm !== '' && !in_array($tm, $pendingLower);
+
+                    return $tm !== '' && ! in_array($tm, $pendingLower);
                 })->count() > 0;
 
-            if (!$quedanLiberaciones && !$quedanPreOrdenes) {
+            if (! $quedanLiberaciones && ! $quedanPreOrdenes) {
                 // Ninguna clase conserva avance: resetear todos los flags de estado
                 $history->tiene_modelo = 0;
                 $history->pre_orden_sent = 0;
@@ -5448,14 +5517,14 @@ class AlmacenFundicionController extends Controller
                 $history->calidad_revision_status = null;
                 $history->rechazos_procesados = 0;
                 $history->casting_pdf_generated = 0;
-            } elseif (!$quedanPreOrdenes) {
+            } elseif (! $quedanPreOrdenes) {
                 // Pre-órdenes eliminadas pero aún hay liberaciones de otras clases:
                 // solo limpiar los flags de pre-orden para que el botón reaparezca.
                 $history->pre_orden_sent = 0;
                 $history->pre_orden_email_sent = 0;
             }
 
-            if (!$quedanRechazos) {
+            if (! $quedanRechazos) {
                 $history->rechazos_procesados = 0;
             }
 
@@ -5468,9 +5537,9 @@ class AlmacenFundicionController extends Controller
 
             // 4.5. Borrar carpeta de Dibujos de las clases afectadas en Almacén
             //      para que copyToAlmacen no acumule archivos viejos sobre los nuevos. (Ayudas Visuales NO se borran)
-            $almacenOtDir = self::ALMACEN_DIR . '/' . $ot;
+            $almacenOtDir = self::ALMACEN_DIR.'/'.$ot;
             foreach ($pending as $clase) {
-                $dibujosDst = $almacenOtDir . '/' . $clase . '/' . FundicionPaths::DIBUJOS;
+                $dibujosDst = $almacenOtDir.'/'.$clase.'/'.FundicionPaths::DIBUJOS;
                 if (Storage::disk('local')->exists($dibujosDst) || Storage::disk('local')->directoryExists($dibujosDst)) {
                     Storage::disk('local')->deleteDirectory($dibujosDst);
                 }
@@ -5478,7 +5547,7 @@ class AlmacenFundicionController extends Controller
 
             \App\Http\Controllers\DibujosFundicionPdfController::copyToAlmacen($ot, false, $pending);
         } else {
-            Log::info("RESOLVE_PENDING_CHANGES_MANTENER", ['pending' => $pending]);
+            Log::info('RESOLVE_PENDING_CHANGES_MANTENER', ['pending' => $pending]);
             // Solo reemplazar archivos manteniendo el avance del proceso
             $currentPending = is_array($history->pending_almacen_changes) ? $history->pending_almacen_changes : [];
             $newPending = array_values(array_diff($currentPending, $pending));
@@ -5490,7 +5559,7 @@ class AlmacenFundicionController extends Controller
 
         return response()->json([
             'success' => true,
-            'message' => 'Cambios aplicados exitosamente'
+            'message' => 'Cambios aplicados exitosamente',
         ]);
     }
 }

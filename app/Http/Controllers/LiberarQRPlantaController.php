@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\SoldaduraBote;
-use App\Models\SoldaduraRecepcionPlanta;
 use App\Models\SoldaduraLiberacion;
+use App\Models\SoldaduraRecepcionPlanta;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +19,7 @@ class LiberarQRPlantaController extends Controller
      * Formato esperado JSON: {"tipo":"bote","id":2,"matricula":"1401261534ALLTBS-002","lote_id":1}
      */
     /**
-     * @param string $qrContent
+     * @param  string  $qrContent
      * @return array|null
      */
     private function parseQRContent($qrContent)
@@ -100,7 +100,7 @@ class LiberarQRPlantaController extends Controller
             $data['numero_bote'] = (int) $matches[1];
         }
 
-        return !empty($data) ? $data : null;
+        return ! empty($data) ? $data : null;
     }
 
     // ==========================================
@@ -117,9 +117,6 @@ class LiberarQRPlantaController extends Controller
         return view('trackingSoldadura_views.recepcionPlanta', compact('almacenistas', 'botesEnPlanta', 'currentUser'));
     }
 
-        /**
-     * @param Request $request
-     */
     public function escanearRecepcion(Request $request)
     {
         $request->validate([
@@ -129,14 +126,14 @@ class LiberarQRPlantaController extends Controller
         try {
             $qrData = $this->parseQRContent($request->qr_content);
 
-            if (!$qrData || !isset($qrData['tipo']) || $qrData['tipo'] !== 'bote') {
-                return back()->withErrors(['qr_content' => 'QR no válido o no es de un bote individual. Contenido recibido: ' . substr($request->qr_content, 0, 100)]);
+            if (! $qrData || ! isset($qrData['tipo']) || $qrData['tipo'] !== 'bote') {
+                return back()->withErrors(['qr_content' => 'QR no válido o no es de un bote individual. Contenido recibido: '.substr($request->qr_content, 0, 100)]);
             }
 
             $bote = SoldaduraBote::query()->with('lote')->find($qrData['id']);
 
-            if (!$bote) {
-                return back()->withErrors(['qr_content' => 'Bote no encontrado con ID: ' . $qrData['id']]);
+            if (! $bote) {
+                return back()->withErrors(['qr_content' => 'Bote no encontrado con ID: '.$qrData['id']]);
             }
 
             // Verificar estado - solo se puede recibir si está en tránsito
@@ -149,7 +146,7 @@ class LiberarQRPlantaController extends Controller
             }
 
             if ($bote->estado !== 'en_transito') {
-                return back()->withErrors(['qr_content' => 'Este bote no está en tránsito. Estado actual: ' . $bote->estado]);
+                return back()->withErrors(['qr_content' => 'Este bote no está en tránsito. Estado actual: '.$bote->estado]);
             }
 
             $almacenistas = User::query()->where('perfil', '5')->get();
@@ -159,13 +156,10 @@ class LiberarQRPlantaController extends Controller
             return view('trackingSoldadura_views.recepcionPlanta', compact('bote', 'almacenistas', 'botesEnPlanta', 'currentUser'));
 
         } catch (\Exception $e) {
-            return back()->withErrors(['qr_content' => 'Error al procesar el QR: ' . $e->getMessage()]);
+            return back()->withErrors(['qr_content' => 'Error al procesar el QR: '.$e->getMessage()]);
         }
     }
 
-        /**
-     * @param Request $request
-     */
     public function confirmarRecepcion(Request $request)
     {
         $request->validate([
@@ -197,7 +191,7 @@ class LiberarQRPlantaController extends Controller
         });
 
         return redirect()->route('soldadura.recepcionPlanta')
-            ->with('success', 'Bote recibido exitosamente en planta por ' . $recibidor->name);
+            ->with('success', 'Bote recibido exitosamente en planta por '.$recibidor->name);
     }
 
     // ==========================================
@@ -219,9 +213,6 @@ class LiberarQRPlantaController extends Controller
         return view('trackingSoldadura_views.liberarQRPlanta', compact('operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
     }
 
-        /**
-     * @param Request $request
-     */
     public function escanear(Request $request)
     {
         $request->validate([
@@ -231,14 +222,14 @@ class LiberarQRPlantaController extends Controller
         try {
             $qrData = $this->parseQRContent($request->qr_content);
 
-            if (!$qrData || !isset($qrData['tipo']) || $qrData['tipo'] !== 'bote') {
-                return back()->withErrors(['qr_content' => 'QR no válido o no es de un bote individual. Contenido recibido: ' . substr($request->qr_content, 0, 100)]);
+            if (! $qrData || ! isset($qrData['tipo']) || $qrData['tipo'] !== 'bote') {
+                return back()->withErrors(['qr_content' => 'QR no válido o no es de un bote individual. Contenido recibido: '.substr($request->qr_content, 0, 100)]);
             }
 
             $bote = SoldaduraBote::query()->with('lote')->find($qrData['id']);
 
-            if (!$bote) {
-                return back()->withErrors(['qr_content' => 'Bote no encontrado con ID: ' . $qrData['id']]);
+            if (! $bote) {
+                return back()->withErrors(['qr_content' => 'Bote no encontrado con ID: '.$qrData['id']]);
             }
 
             // Verificar estado
@@ -253,7 +244,7 @@ class LiberarQRPlantaController extends Controller
 
             // Solo se puede liberar si está en planta
             if ($bote->estado !== 'en_planta') {
-                return back()->withErrors(['qr_content' => 'Este bote no está disponible para liberación. Estado actual: ' . $bote->estado]);
+                return back()->withErrors(['qr_content' => 'Este bote no está disponible para liberación. Estado actual: '.$bote->estado]);
             }
 
             $usuarios = User::query()->whereIn('perfil', ['2', '5'], 'and', false)->get()->groupBy('perfil');
@@ -269,13 +260,10 @@ class LiberarQRPlantaController extends Controller
             return view('trackingSoldadura_views.liberarQRPlanta', compact('bote', 'operadores', 'almacenistas', 'botesEnPlanta', 'botesDisponibles', 'currentUser'));
 
         } catch (\Exception $e) {
-            return back()->withErrors(['qr_content' => 'Error al procesar el QR: ' . $e->getMessage()]);
+            return back()->withErrors(['qr_content' => 'Error al procesar el QR: '.$e->getMessage()]);
         }
     }
 
-        /**
-     * @param Request $request
-     */
     public function liberar(Request $request)
     {
         $request->validate([
@@ -316,6 +304,6 @@ class LiberarQRPlantaController extends Controller
         });
 
         return redirect()->route('soldadura.liberarQRPlanta')
-            ->with('success', 'Bote liberado exitosamente al operador ' . $operador->name);
+            ->with('success', 'Bote liberado exitosamente al operador '.$operador->name);
     }
 }

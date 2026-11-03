@@ -32,7 +32,6 @@ use App\Models\Palomas_pza;
 use App\Models\Pieza;
 use App\Models\PrimeraOpeSoldadura;
 use App\Models\PrimeraOpeSoldadura_pza;
-use App\Models\Procesos;
 use App\Models\PySOpeSoldadura;
 use App\Models\PySOpeSoldadura_pza;
 use App\Models\Pza_cepillado;
@@ -51,116 +50,119 @@ use App\Models\Soldadura_pza;
 use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
 use App\Models\User;
-use DateTime;
 use Illuminate\Http\Request;
-use Mockery\Undefined;
+use Illuminate\Support\Facades\Cache;
 
 class DatosProduccionController extends Controller
 {
-    /** @var \App\Http\Controllers\PzasLiberadasController */
-    protected $controladorPzas;
     public function __construct()
     {
-        $this->controladorPzas = new PzasLiberadasController();
         $this->middleware('auth');
     }
+
     /**
-     * @param mixed $operadores
-     * @param mixed $filtros
+     * @param  mixed  $operadores
+     * @param  mixed  $filtros
      */
     public function index($operadores = null, $filtros = null)
     {
-        //Obtener todas las ordenes de trabajo y sus respectivas clases
-        $datos = $this->obtenerDatos($this->obtenerOtArray());
+        // Obtener todas las ordenes de trabajo y sus respectivas clases (con caché de 60s para carga instantánea)
+        $datos = Cache::remember('production_data_catalog', 60, function () {
+            return $this->obtenerDatos($this->obtenerOtArray());
+        });
         if ($operadores == null) {
             return view('users_views.productionData', compact('datos'));
         } else {
             return view('users_views.productionData', compact('datos', 'operadores', 'filtros'));
         }
     }
-    /**
-     * @param Request $request
-     */
+
     public function show(Request $request)
     {
         $isAjax = $request->ajax() || $request->wantsJson() || $request->query('ajax') == 1 || $request->input('ajax') == 1;
 
         // Validar que se haya seleccionado una OT válida
-        if (!$request->ot || $request->ot == 0) {
+        if (! $request->ot || $request->ot == 0) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Por favor, selecciona una Orden de Trabajo.']);
             }
+
             return redirect()->route('showProduccion')->with('error', 'Por favor, selecciona una Orden de Trabajo.');
         }
 
         //Obtener la ot conforme a su ID
         $ot = Orden_trabajo::query()->find($request->ot);
-        if (!$ot) {
+        if (! $ot) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Orden de Trabajo no encontrada.']);
             }
+
             return redirect()->route('showProduccion')->with('error', 'Orden de Trabajo no encontrada.');
         }
 
         $moldura = Moldura::query()->find($ot->id_moldura);
-        if (!$moldura) {
+        if (! $moldura) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Moldura asociada no encontrada.']);
             }
+
             return redirect()->route('showProduccion')->with('error', 'Moldura asociada no encontrada.');
         }
 
         //Obtener la clase conforme a su ID
-        $clase = Clase::query()->where("id_ot", '=', $request->ot, 'and')->where("nombre", '=', $request->clases, 'and')->first();
-        if (!$clase) {
+        $clase = Clase::query()->where('id_ot', '=', $request->ot, 'and')->where('nombre', '=', $request->clases, 'and')->first();
+        if (! $clase) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Clase no encontrada.']);
             }
+
             return redirect()->route('showProduccion')->with('error', 'Clase no encontrada.');
         }
 
         //Obtener el nombre del operador
-        $operador = User::query()->where("matricula", '=', $request->operadores, 'and')->first();
-        if (!$operador) {
+        $operador = User::query()->where('matricula', '=', $request->operadores, 'and')->first();
+        if (! $operador) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Operador no encontrado.']);
             }
+
             return redirect()->route('showProduccion')->with('error', 'Operador no encontrado.');
         }
-        $operadorName = $operador->nombre . " " . $operador->a_paterno . " " . $operador->a_materno;
+        $operadorName = $operador->nombre.' '.$operador->a_paterno.' '.$operador->a_materno;
 
         //Obtener las piezas conforme a la OT, la clase, el operador y el proceso
         $piezas = Pieza::query()
             ->select(['id', 'id_ot', 'id_clase', 'id_operador', 'proceso', 'error', 'liberacion', 'n_pieza', 'created_at'])
-            ->where("id_ot", '=', $request->ot, 'and')
-            ->where("id_clase", '=', $clase->id, 'and')
-            ->where("id_operador", '=', $request->operadores, 'and')
-            ->where("proceso", '=', $request->procesos, 'and')
+            ->where('id_ot', '=', $request->ot, 'and')
+            ->where('id_clase', '=', $clase->id, 'and')
+            ->where('id_operador', '=', $request->operadores, 'and')
+            ->where('proceso', '=', $request->procesos, 'and')
             ->get();
 
         $operadores = $this->obtenerInformacionPiezas($piezas, $clase);
 
         //Guardar los datos buscados de los filtros en un arreglo
         $filtros = [
-            "ot" => $request->ot,
-            "moldura" => $moldura->nombre,
-            "clase" => $request->clases,
-            "pedido" => $clase->pedido,
-            "operador" => $operadorName,
-            "operador_matricula" => $request->operadores,
-            "proceso" => $request->procesos
+            'ot' => $request->ot,
+            'moldura' => $moldura->nombre,
+            'clase' => $request->clases,
+            'pedido' => $clase->pedido,
+            'operador' => $operadorName,
+            'operador_matricula' => $request->operadores,
+            'proceso' => $request->procesos,
         ];
 
         if ($isAjax) {
             return response()->json([
                 'success' => true,
                 'operadores' => $operadores,
-                'filtros' => $filtros
+                'filtros' => $filtros,
             ]);
         }
 
         return $this->index($operadores, $filtros);
     }
+
     public function obtenerOtArray()
     {
         // Eager loading de moldura para evitar N+1 en insertarMoldura()
@@ -168,7 +170,7 @@ class DatosProduccionController extends Controller
     }
 
     /**
-     * @param mixed $OTs
+     * @param  mixed  $OTs
      */
     public function obtenerDatos($OTs)
     {
@@ -180,18 +182,27 @@ class DatosProduccionController extends Controller
 
         // 1 query: solo las columnas necesarias de todas las piezas de todas las OTs activas.
         // CRÍTICO: sin ->select() se cargan TODOS los atributos de 76k+ modelos → memory exhausted.
-        $todasPiezas = Pieza::query()
+        $todasPiezasRaw = Pieza::query()
             ->select(['id_ot', 'id_clase', 'id_operador', 'proceso', 'error', 'liberacion', 'n_pieza', 'created_at'])
             ->whereIn('id_ot', $otIds, 'and', false)
-            ->get()
-            ->groupBy('id_ot');
+            ->get();
+
+        // Mapa en memoria de procesos únicos por clase + operador (evita miles de queries N+1)
+        $procesosPorClaseOperador = [];
+        foreach ($todasPiezasRaw as $p) {
+            if ($p->id_clase && $p->id_operador && $p->proceso) {
+                $procesosPorClaseOperador[$p->id_clase.'_'.$p->id_operador][$p->proceso] = true;
+            }
+        }
+
+        $todasPiezas = $todasPiezasRaw->groupBy('id_ot');
 
         $datos = [];
         foreach ($OTs as $ot) {
             $datos[$ot->id] = [];
             // Moldura ya cargada con eager loading (0 queries)
             $datos[$ot->id]['moldura'] = $ot->moldura ? $ot->moldura->nombre : '?';
-            $datos[$ot->id]['nombre'] = $ot->id . ' - ' . $datos[$ot->id]['moldura'];
+            $datos[$ot->id]['nombre'] = $ot->id.' - '.$datos[$ot->id]['moldura'];
 
             // Todas las clases de la OT (independiente del operador)
             $clasesDeOT = $clasesCache->where('id_ot', $ot->id);
@@ -207,23 +218,25 @@ class DatosProduccionController extends Controller
 
             foreach ($piezasDeOT as $pieza) {
                 $operator = $usersCache->get($pieza->id_operador);
-                if (!$operator)
+                if (! $operator) {
                     continue;
+                }
 
-                if (!array_key_exists($operator->matricula, $datos[$ot->id]['operadores'])) {
+                if (! array_key_exists($operator->matricula, $datos[$ot->id]['operadores'])) {
                     $datos[$ot->id]['operadores'][$operator->matricula] = [];
                     $datos[$ot->id]['operadores'][$operator->matricula]['nombre'] = "{$operator->nombre} {$operator->a_paterno} {$operator->a_materno}";
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'] = [];
                 }
 
                 $clase = $clasesCache->get($pieza->id_clase);
-                if (!$clase)
+                if (! $clase) {
                     continue;
+                }
 
-                if (!array_key_exists($clase->nombre, $datos[$ot->id]['operadores'][$operator->matricula]['clases'])) {
+                if (! array_key_exists($clase->nombre, $datos[$ot->id]['operadores'][$operator->matricula]['clases'])) {
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre] = [];
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['pedido'] = $clase->pedido;
-                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['procesos'] = $this->asignarProcesosOperador($clase->id, $operator->matricula);
+                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['procesos'] = $this->asignarProcesosOperador($clase->id, $operator->matricula, $procesosPorClaseOperador);
                 }
             }
         }
@@ -233,8 +246,8 @@ class DatosProduccionController extends Controller
 
     /** @deprecated Reemplazado por el pre-cargado en obtenerDatos() */
     /**
-     * @param Orden_trabajo $ot
-     * @param string &$array
+     * @param  Orden_trabajo  $ot
+     * @param  string  &$array
      */
     public function insertarMoldura($ot, &$array)
     {
@@ -248,11 +261,17 @@ class DatosProduccionController extends Controller
     }
 
     /**
-     * @param int|string $idClase
-     * @param mixed $operador
+     * @param  int|string  $idClase
+     * @param  mixed  $operador
      */
-    public function asignarProcesosOperador($idClase, $operador)
+    public function asignarProcesosOperador($idClase, $operador, ?array $procesosCache = null)
     {
+        if ($procesosCache !== null) {
+            $key = $idClase.'_'.$operador;
+
+            return isset($procesosCache[$key]) ? array_keys($procesosCache[$key]) : [];
+        }
+
         return Pieza::query()->where('id_clase', $idClase)
             ->where('id_operador', $operador)
             ->distinct()
@@ -261,8 +280,8 @@ class DatosProduccionController extends Controller
     }
 
     /**
-     * @param mixed $piezas
-     * @param mixed $clase
+     * @param  mixed  $piezas
+     * @param  mixed  $clase
      */
     public function obtenerInformacionPiezas($piezas, $clase)
     {
@@ -276,38 +295,39 @@ class DatosProduccionController extends Controller
 
             //Se obtiene la fecha en la que se trabajo la pieza
             $fecha = $pieza->created_at;
-            $fecha = $fecha->format("d/m/Y");
-            if (!array_key_exists($operadorName, $operadores)) {
+            $fecha = $fecha->format('d/m/Y');
+            if (! array_key_exists($operadorName, $operadores)) {
                 $operadores[$operadorName] = [];
                 $meta = $this->obtenerMeta($pieza, $clase->nombre);
-                $operadores[$operadorName][$fecha] = ["Piezas buenas" => 0, "Piezas malas" => 0, "meta" => $meta, "Productividad" => 0];
-            } else if (!array_key_exists($fecha, $operadores[$operadorName])) {
-                $operadores[$operadorName][$fecha] = ["Piezas buenas" => 0, "Piezas malas" => 0];
+                $operadores[$operadorName][$fecha] = ['Piezas buenas' => 0, 'Piezas malas' => 0, 'meta' => $meta, 'Productividad' => 0];
+            } elseif (! array_key_exists($fecha, $operadores[$operadorName])) {
+                $operadores[$operadorName][$fecha] = ['Piezas buenas' => 0, 'Piezas malas' => 0];
                 $meta = $this->obtenerMeta($pieza, $clase->nombre);
-                $operadores[$operadorName][$fecha] = ["Piezas buenas" => 0, "Piezas malas" => 0, "meta" => $meta, "Productividad" => 0];
+                $operadores[$operadorName][$fecha] = ['Piezas buenas' => 0, 'Piezas malas' => 0, 'meta' => $meta, 'Productividad' => 0];
             }
-            $processesAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado"];
+            $processesAssembly = ['Barreno Maniobra', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Barreno Profundidad', 'Palomas', 'Rebajes', 'Grabado'];
             $cantidad = in_array($pieza->proceso, $processesAssembly) ? 1 : 0.5;
-            if ($pieza->error != "Ninguno") {
+            if ($pieza->error != 'Ninguno') {
                 if ($pieza->liberacion == 1) {
-                    $operadores[$operadorName][$fecha]["Piezas buenas"] += $cantidad;
+                    $operadores[$operadorName][$fecha]['Piezas buenas'] += $cantidad;
                 } else {
-                    $operadores[$operadorName][$fecha]["Piezas malas"] += $cantidad;
+                    $operadores[$operadorName][$fecha]['Piezas malas'] += $cantidad;
                 }
             } else {
                 if ($pieza->liberacion != 2) {
-                    $operadores[$operadorName][$fecha]["Piezas buenas"] += $cantidad;
+                    $operadores[$operadorName][$fecha]['Piezas buenas'] += $cantidad;
                 } else {
-                    $operadores[$operadorName][$fecha]["Piezas malas"] += $cantidad;
+                    $operadores[$operadorName][$fecha]['Piezas malas'] += $cantidad;
                 }
             }
-            if ($operadores[$operadorName][$fecha]["meta"] != 0) {
-                $operadores[$operadorName][$fecha]["Productividad"] = ($operadores[$operadorName][$fecha]["Piezas buenas"] / $operadores[$operadorName][$fecha]["meta"]) * 100;
-                $operadores[$operadorName][$fecha]["Productividad"] = round($operadores[$operadorName][$fecha]["Productividad"], 2);
+            if ($operadores[$operadorName][$fecha]['meta'] != 0) {
+                $operadores[$operadorName][$fecha]['Productividad'] = ($operadores[$operadorName][$fecha]['Piezas buenas'] / $operadores[$operadorName][$fecha]['meta']) * 100;
+                $operadores[$operadorName][$fecha]['Productividad'] = round($operadores[$operadorName][$fecha]['Productividad'], 2);
             } else {
-                $operadores[$operadorName][$fecha]["Productividad"] = 0;
+                $operadores[$operadorName][$fecha]['Productividad'] = 0;
             }
         }
+
         // Imprimir los datos del arreglo
         // foreach ($operadores as $operador => $fechas) {
         //     echo $operador . "<br>";
@@ -322,190 +342,195 @@ class DatosProduccionController extends Controller
         // die();
         return $operadores;
     }
+
     /**
-     * @param mixed $proceso
+     * @param  mixed  $proceso
      */
     public function renombrarProceso($proceso)
     {
         $procesoName = match ($proceso) {
-            "Cepillado" => ["cepillado", null],
-            "Desbaste Exterior" => ["desbaste", null],
-            "Revision Laterales" => ["revLaterales", null],
-            "Primera Operacion" => ["primeraOpeSoldadura", null],
-            "Barreno Maniobra" => ["barrenoManiobra", null],
-            "Segunda Operacion" => ["segundaOpeSoldadura", null],
-            "Soldadura" => ["soldadura", null],
-            "Soldadura PTA" => ["soldaduraPTA", null],
-            "Rectificado" => ["rectificado", null],
-            "Asentado" => ["asentado", null],
-            "Calificado" => ["revCalificado", null],
-            "Acabado Bombillo" => ["acabadoBombillo", null],
-            "Acabado Molde" => ["acabadoMolde", null],
-            "Cavidades" => "cavidades",
-            "Barreno Profundidad" => ["barrenoProfundidad", null],
-            "Copiado" => ["copiado", null],
-            "Off Set" => ["offSet", null],
-            "Palomas" => ["palomas", null],
-            "Rebajes" => ["rebajes", null],
-            "Grabado" => ["grabado", null],
-            "Operacion Equipo_1" => ["pysOpeSoldadura", 1],
-            "Operacion Equipo_2" => ["pysOpeSoldadura", 2],
-            "embudoCm" => ["EmbudoCM", null],
+            'Cepillado' => ['cepillado', null],
+            'Desbaste Exterior' => ['desbaste', null],
+            'Revision Laterales' => ['revLaterales', null],
+            'Primera Operacion' => ['primeraOpeSoldadura', null],
+            'Barreno Maniobra' => ['barrenoManiobra', null],
+            'Segunda Operacion' => ['segundaOpeSoldadura', null],
+            'Soldadura' => ['soldadura', null],
+            'Soldadura PTA' => ['soldaduraPTA', null],
+            'Rectificado' => ['rectificado', null],
+            'Asentado' => ['asentado', null],
+            'Calificado' => ['revCalificado', null],
+            'Acabado Bombillo' => ['acabadoBombillo', null],
+            'Acabado Molde' => ['acabadoMolde', null],
+            'Cavidades' => 'cavidades',
+            'Barreno Profundidad' => ['barrenoProfundidad', null],
+            'Copiado' => ['copiado', null],
+            'Off Set' => ['offSet', null],
+            'Palomas' => ['palomas', null],
+            'Rebajes' => ['rebajes', null],
+            'Grabado' => ['grabado', null],
+            'Operacion Equipo_1' => ['pysOpeSoldadura', 1],
+            'Operacion Equipo_2' => ['pysOpeSoldadura', 2],
+            'embudoCm' => ['EmbudoCM', null],
         };
+
         return $procesoName;
     }
+
     /**
-     * @param mixed $pieza
-     * @param mixed $nameClass
+     * @param  mixed  $pieza
+     * @param  mixed  $nameClass
      */
     public function obtenerMeta($pieza, $nameClass)
     {
         //Obtener el id_proceso que esta asociado a la pieza
-        $processName = str_replace(" ", "_", $pieza->proceso);
-        $idString = $processName . "_" . $nameClass . "_" . $pieza->id_ot;
+        $processName = str_replace(' ', '_', $pieza->proceso);
+        $idString = $processName.'_'.$nameClass.'_'.$pieza->id_ot;
         $meta = $this->get_idMeta($idString, $pieza);
+
         return $meta ? $meta->meta : 0;
     }
 
     /**
-     * @param int|string $idString
-     * @param mixed $pieza
+     * @param  int|string  $idString
+     * @param  mixed  $pieza
      */
     public function get_idMeta($idString, Pieza $pieza)
     {
         $piezaFounded = null;
         switch ($pieza->proceso) {
-            case "Cepillado":
+            case 'Cepillado':
                 $id_proceso = Cepillado::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Pza_cepillado::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Pza_cepillado::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Desbaste Exterior":
+            case 'Desbaste Exterior':
                 $id_proceso = DesbasteExterior::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Desbaste_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Desbaste_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Revision Laterales":
+            case 'Revision Laterales':
                 $id_proceso = RevLaterales::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = RevLaterales_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = RevLaterales_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Primera Operacion":
+            case 'Primera Operacion':
                 $id_proceso = PrimeraOpeSoldadura::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = PrimeraOpeSoldadura_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = PrimeraOpeSoldadura_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Barreno Maniobra":
+            case 'Barreno Maniobra':
                 $id_proceso = BarrenoManiobra::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = BarrenoManiobra_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = BarrenoManiobra_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Segunda Operacion":
+            case 'Segunda Operacion':
                 $id_proceso = SegundaOpeSoldadura::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = SegundaOpeSoldadura_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = SegundaOpeSoldadura_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Soldadura":
+            case 'Soldadura':
                 $id_proceso = Soldadura::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Soldadura_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_juego", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Soldadura_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_juego', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Soldadura PTA":
+            case 'Soldadura PTA':
                 $id_proceso = SoldaduraPTA::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = SoldaduraPTA_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = SoldaduraPTA_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Rectificado":
+            case 'Rectificado':
                 $id_proceso = Rectificado::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Rectificado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_juego", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Rectificado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_juego', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Asentado":
+            case 'Asentado':
                 $id_proceso = Asentado::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Asentado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_juego", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Asentado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_juego', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Calificado":
+            case 'Calificado':
                 $id_proceso = revCalificado::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = revCalificado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = revCalificado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Acabado Bombillo":
+            case 'Acabado Bombillo':
                 $id_proceso = AcabadoBombilo::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = AcabadoBombilo_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = AcabadoBombilo_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Acabado Molde":
+            case 'Acabado Molde':
                 $id_proceso = AcabadoMolde::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = AcabadoMolde_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = AcabadoMolde_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Cavidades":
+            case 'Cavidades':
                 $id_proceso = Cavidades::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Cavidades_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Cavidades_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Barreno Profundidad":
+            case 'Barreno Profundidad':
                 $id_proceso = BarrenoProfundidad::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = BarrenoProfundidad_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = BarrenoProfundidad_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Copiado":
+            case 'Copiado':
                 $id_proceso = Copiado::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Copiado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Copiado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Off Set":
+            case 'Off Set':
                 $id_proceso = OffSet::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = OffSet_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = OffSet_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Palomas":
+            case 'Palomas':
                 $id_proceso = Palomas::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Palomas_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_juego", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Palomas_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_juego', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "Rebajes":
+            case 'Rebajes':
                 $id_proceso = Rebajes::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = Rebajes_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_juego", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = Rebajes_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_juego', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            // case "Grabado":
-            //     $id_proceso = Grabado::query()->where('id_proceso', '=', $idString, 'and')->first();
-            //     break;
-            case "Operacion Equipo_1 operacion":
-            case "Operacion Equipo_2 operacion":
+                // case "Grabado":
+                //     $id_proceso = Grabado::query()->where('id_proceso', '=', $idString, 'and')->first();
+                //     break;
+            case 'Operacion Equipo_1 operacion':
+            case 'Operacion Equipo_2 operacion':
                 $id_proceso = PySOpeSoldadura::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = PySOpeSoldadura_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_juego", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = PySOpeSoldadura_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_juego', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-            case "embudoCm":
+            case 'embudoCm':
                 $id_proceso = EmbudoCM::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = EmbudoCM_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where("n_pieza", '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = EmbudoCM_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
         }
+
         return $piezaFounded ? Metas::query()->find($piezaFounded->id_meta) : null;
     }
 }

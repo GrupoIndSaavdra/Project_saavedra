@@ -10,19 +10,21 @@ class CopiadoController extends Controller
     {
         $this->middleware('auth');
     }
-        /**
-     * @param mixed $request
-     * @param mixed $cNominal
-     * @param mixed $tolerance
-     * @param int $index
-     * @param mixed $arrayPieces
+
+    /**
+     * @param  mixed  $request
+     * @param  mixed  $cNominal
+     * @param  mixed  $tolerance
+     * @param  int  $index
+     * @param  mixed  $arrayPieces
      */
     public function storePiece($request, $cNominal, $tolerance, $index, $arrayPieces)
     {
         if ($index !== null) {
             $pieceId = ($arrayPieces ? $arrayPieces[$index] : ($request->piece[$index] ?? null));
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = Copiado_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
@@ -46,10 +48,10 @@ class CopiadoController extends Controller
                 'profundidad4',
                 'volumen',
                 'observaciones_cilindrado',
-                'observaciones_cavidades'
+                'observaciones_cavidades',
             ];
 
-            $data = array();
+            $data = [];
             foreach ($fields as $field) {
                 $data[$field] = $request->$field[$index] ?? null;
             }
@@ -59,10 +61,10 @@ class CopiadoController extends Controller
             $generalError = $request->error ?? 'Ninguno';
             foreach ($correctSubprocess as $key => $value) {
                 $subError = $request->$key[$index] ?? 'Ninguno';
-                if ($value == 0 && $generalError == "Ninguno") {
+                if ($value == 0 && $generalError == 'Ninguno') {
                     $piece->$key = 'Maquinado';
                     $piece->correcto = 0;
-                } else if (($value == 0 && $subError == 'Fundicion') || ($value == 1 && $subError == 'Fundicion')) {
+                } elseif (($value == 0 && $subError == 'Fundicion') || ($value == 1 && $subError == 'Fundicion')) {
                     $piece->$key = $subError;
                     $piece->correcto = 0;
                 } else {
@@ -72,8 +74,9 @@ class CopiadoController extends Controller
             }
         } else {
             $pieceId = $request->piece;
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = Copiado_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
@@ -96,17 +99,17 @@ class CopiadoController extends Controller
                 'profundidad4',
                 'volumen',
                 'observaciones_cilindrado',
-                'observaciones_cavidades'
+                'observaciones_cavidades',
             ]));
             //Verificar si las medidas de la pieza estan correctas
             $correctSubprocess = $this->comparePieceData($piece, $cNominal, $tolerance);
             $generalError = $request->error ?? 'Ninguno';
             foreach ($correctSubprocess as $key => $value) {
                 $subError = $request->$key ?? 'Ninguno';
-                if ($value == 0 && $generalError == "Ninguno") {
+                if ($value == 0 && $generalError == 'Ninguno') {
                     $piece->$key = 'Maquinado';
                     $piece->correcto = 0;
-                } else if (($value == 0 && $subError == 'Fundicion') || ($value == 1 && $subError == 'Fundicion')) {
+                } elseif (($value == 0 && $subError == 'Fundicion') || ($value == 1 && $subError == 'Fundicion')) {
                     $piece->$key = $subError;
                     $piece->correcto = 0;
                 } else {
@@ -118,24 +121,26 @@ class CopiadoController extends Controller
         $piece->estado = 2;
         $piece->save();
     }
-        /**
-     * @param mixed $pieza
-     * @param mixed $cNominal
-     * @param mixed $tolerancia
+
+    /**
+     * @param  mixed  $pieza
+     * @param  mixed  $cNominal
+     * @param  mixed  $tolerancia
      */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {
         $subprocesos = [
-            "error_cilindrado" => 1,
-            "error_cavidades" => 1
+            'error_cilindrado' => 1,
+            'error_cavidades' => 1,
         ];
         if ($pieza->diametro1_cilindrado > ($cNominal->diametro1_cilindrado + $tolerancia->diametro1_cilindrado) || $pieza->diametro1_cilindrado < ($cNominal->diametro1_cilindrado - $tolerancia->diametro1_cilindrado) || $pieza->profundidad1_cilindrado > ($cNominal->profundidad1_cilindrado + $tolerancia->profundidad1_cilindrado) || $pieza->profundidad1_cilindrado < ($cNominal->profundidad1_cilindrado - $tolerancia->profundidad1_cilindrado) || $pieza->diametro2_cilindrado > ($cNominal->diametro2_cilindrado + $tolerancia->diametro2_cilindrado) || $pieza->diametro2_cilindrado < ($cNominal->diametro2_cilindrado - $tolerancia->diametro2_cilindrado) || $pieza->profundidad2_cilindrado > ($cNominal->profundidad2_cilindrado + $tolerancia->profundidad2_cilindrado) || $pieza->profundidad2_cilindrado < ($cNominal->profundidad2_cilindrado - $tolerancia->profundidad2_cilindrado) || $pieza->diametro_sufridera > ($cNominal->diametro_sufridera + $tolerancia->diametro_sufridera) || $pieza->diametro_sufridera < ($cNominal->diametro_sufridera - $tolerancia->diametro_sufridera) || $pieza->diametro_ranura > ($cNominal->diametro_ranura + $tolerancia->diametro_ranura) || $pieza->diametro_ranura < ($cNominal->diametro_ranura - $tolerancia->diametro_ranura) || $pieza->profundidad_ranura > ($cNominal->profundidad_ranura + $tolerancia->profundidad_ranura) || $pieza->profundidad_ranura < ($cNominal->profundidad_ranura - $tolerancia->profundidad_ranura) || $pieza->profundidad_sufridera > ($cNominal->profundidad_sufridera + $tolerancia->profundidad_sufridera) || $pieza->profundidad_sufridera < ($cNominal->profundidad_sufridera - $tolerancia->profundidad_sufridera) || $pieza->altura_total > ($cNominal->altura_total + $tolerancia->altura_total) || $pieza->altura_total < ($cNominal->altura_total - $tolerancia->altura_total)) {
-            $subprocesos["error_cilindrado"] = 0; //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
+            $subprocesos['error_cilindrado'] = 0; //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
         }
 
         if ($pieza->diametro1_cavidades > ($cNominal->diametro1_cavidades + $tolerancia->diametro1_cavidades) || $pieza->diametro1_cavidades < ($cNominal->diametro1_cavidades - $tolerancia->diametro1_cavidades) || $pieza->profundidad1_cavidades > ($cNominal->profundidad1_cavidades + $tolerancia->profundidad1_cavidades) || $pieza->profundidad1_cavidades < ($cNominal->profundidad1_cavidades - $tolerancia->profundidad1_cavidades) || $pieza->diametro2_cavidades > ($cNominal->diametro2_cavidades + $tolerancia->diametro2_cavidades) || $pieza->diametro2_cavidades < ($cNominal->diametro2_cavidades - $tolerancia->diametro2_cavidades) || $pieza->profundidad2_cavidades > ($cNominal->profundidad2_cavidades + $tolerancia->profundidad2_cavidades) || $pieza->profundidad2_cavidades < ($cNominal->profundidad2_cavidades - $tolerancia->profundidad2_cavidades) || $pieza->diametro3 > ($cNominal->diametro3 + $tolerancia->diametro3) || $pieza->diametro3 < ($cNominal->diametro3 - $tolerancia->diametro3) || $pieza->profundidad3 > ($cNominal->profundidad3 + $tolerancia->profundidad3) || $pieza->profundidad3 < ($cNominal->profundidad3 - $tolerancia->profundidad3) || $pieza->diametro4 > ($cNominal->diametro4 + $tolerancia->diametro4) || $pieza->diametro4 < ($cNominal->diametro4 - $tolerancia->diametro4) || $pieza->profundidad4 > ($cNominal->profundidad4 + $tolerancia->profundidad4) || $pieza->profundidad4 < ($cNominal->profundidad4 - $tolerancia->profundidad4) || $pieza->volumen > ($cNominal->volumen + $tolerancia->volumen) || $pieza->volumen < ($cNominal->volumen - $tolerancia->volumen)) {
-            $subprocesos["error_cavidades"] = 0; //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
+            $subprocesos['error_cavidades'] = 0; //Si los datos de la pieza son diferentes a los nominales y de tolerancia, se retorna 0.
         }
+
         return $subprocesos; //Retorno de datos.
     }
 }

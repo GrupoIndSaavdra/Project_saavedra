@@ -22,7 +22,9 @@ class HerramientasTecamacController extends Controller
     use HasCursorPagination;
 
     private const PERFILES_PERMITIDOS = ['1', '3', '5', '6'];
+
     private const PERFILES_ALMACEN = ['1', '3', '5', '6'];   // CRUD completo + inactivar/reactivar
+
     private const PERFILES_STOCK = ['1', '3', '6'];   // Solo editar mínimo y máximo
 
     private const DIR_PUBLIC = 'herramientas_tecamac';
@@ -68,7 +70,7 @@ class HerramientasTecamacController extends Controller
     private function verificarAcceso(): void
     {
         $user = Auth::user();
-        if (!$user || !in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)) {
+        if (! $user || ! in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)) {
             abort(403, 'Acceso restringido.');
         }
     }
@@ -77,7 +79,7 @@ class HerramientasTecamacController extends Controller
     private function verificarAlmacen(): void
     {
         $user = Auth::user();
-        if (!$user || !in_array((string) $user->perfil, self::PERFILES_ALMACEN, true)) {
+        if (! $user || ! in_array((string) $user->perfil, self::PERFILES_ALMACEN, true)) {
             abort(403, 'Solo Almacén puede realizar esta operación.');
         }
     }
@@ -87,7 +89,7 @@ class HerramientasTecamacController extends Controller
     {
         $user = Auth::user();
         $permitidos = array_merge(self::PERFILES_ALMACEN, self::PERFILES_STOCK);
-        if (!$user || !in_array((string) $user->perfil, $permitidos, true)) {
+        if (! $user || ! in_array((string) $user->perfil, $permitidos, true)) {
             abort(403, 'Sin permiso para editar el stock.');
         }
     }
@@ -278,13 +280,14 @@ class HerramientasTecamacController extends Controller
         $h->update($camposBase);
 
         $deleteIds = $request->input('delete_img_ids', []);
-        if (!empty($deleteIds)) {
+        if (! empty($deleteIds)) {
             $toDelete = HerramientaImagen::whereIn('id', $deleteIds, 'and', false)
                 ->where('herramienta_id', '=', $h->id, 'and')->get();
             foreach ($toDelete as $img) {
                 $path = public_path($img->ruta);
-                if (file_exists($path))
+                if (file_exists($path)) {
                     @unlink($path);
+                }
                 $img->delete();
             }
         }
@@ -331,6 +334,7 @@ class HerramientasTecamacController extends Controller
     {
         $this->verificarAlmacen();
         HerramientaTecamac::findOrFail($id)->update(['activo' => false]);
+
         return response()->json(['ok' => true, 'message' => 'Herramienta desactivada.']);
     }
 
@@ -340,6 +344,7 @@ class HerramientasTecamacController extends Controller
     {
         $this->verificarAlmacen();
         HerramientaTecamac::findOrFail($id)->update(['activo' => true]);
+
         return response()->json(['ok' => true, 'message' => 'Herramienta reactivada correctamente.']);
     }
 
@@ -373,8 +378,9 @@ class HerramientasTecamacController extends Controller
 
         // Eliminar archivo anterior
         $oldPath = public_path($img->ruta);
-        if (file_exists($oldPath))
+        if (file_exists($oldPath)) {
             @unlink($oldPath);
+        }
 
         // Guardar nuevo archivo
         $img->update(['ruta' => $this->guardarImagen($request->file('imagen'))]);
@@ -388,7 +394,6 @@ class HerramientasTecamacController extends Controller
 
     // ── HELPERS ───────────────────────────────────────────────────────────────
 
-
     private function guardarImagenesMultiples(Request $request, HerramientaTecamac $h): void
     {
         $ordenBase = [];
@@ -398,18 +403,20 @@ class HerramientasTecamacController extends Controller
         }
 
         foreach (self::TIPOS_IMAGEN as $tipo) {
-            $fileKey = 'img_' . $tipo;
-            $nombreKey = 'nom_' . $tipo;
+            $fileKey = 'img_'.$tipo;
+            $nombreKey = 'nom_'.$tipo;
 
-            if (!$request->hasFile($fileKey))
+            if (! $request->hasFile($fileKey)) {
                 continue;
+            }
 
             $files = $request->file($fileKey);
             $nombres = $request->input($nombreKey, []);
 
             foreach ($files as $idx => $file) {
-                if (!$file || !$file->isValid())
+                if (! $file || ! $file->isValid()) {
                     continue;
+                }
                 $ordenBase[$tipo]++;
                 HerramientaImagen::create([
                     'herramienta_id' => $h->id,
@@ -423,16 +430,17 @@ class HerramientasTecamacController extends Controller
     }
 
     /**
-     * @param \Illuminate\Http\UploadedFile $file
-     * @return string
+     * @param  \Illuminate\Http\UploadedFile  $file
      */
     private function guardarImagen($file): string
     {
-        $nombre = time() . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
+        $nombre = time().'_'.Str::random(6).'.'.$file->getClientOriginalExtension();
         $destino = public_path(self::DIR_PUBLIC);
-        if (!is_dir($destino))
+        if (! is_dir($destino)) {
             mkdir($destino, 0755, true);
+        }
         $file->move($destino, $nombre);
-        return self::DIR_PUBLIC . '/' . $nombre;
+
+        return self::DIR_PUBLIC.'/'.$nombre;
     }
 }

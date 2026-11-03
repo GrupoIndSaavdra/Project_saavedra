@@ -10,18 +10,20 @@ class revCalificadoController extends Controller
     {
         $this->middleware('auth');
     }
-        /**
-     * @param mixed $request
-     * @param mixed $cNominal
-     * @param mixed $tolerance
-     * @param int $index
+
+    /**
+     * @param  mixed  $request
+     * @param  mixed  $cNominal
+     * @param  mixed  $tolerance
+     * @param  int  $index
      */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = RevCalificadoPza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
@@ -38,7 +40,7 @@ class revCalificadoController extends Controller
                 'observaciones',
             ];
 
-            $data = array();
+            $data = [];
             foreach ($fields as $field) {
                 $data[$field] = $request->$field[$index] ?? null;
             }
@@ -46,8 +48,9 @@ class revCalificadoController extends Controller
             $error = $request->error[$index] ?? 'Ninguno';
         } else {
             $pieceId = $request->piece;
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = RevCalificadoPza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
@@ -68,10 +71,10 @@ class revCalificadoController extends Controller
 
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
-        if ($correct == 0 && $error == "Ninguno") {
+        if ($correct == 0 && $error == 'Ninguno') {
             $piece->error = 'Maquinado';
             $piece->correcto = 0;
-        } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
+        } elseif (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
             $piece->error = $error;
             $piece->correcto = 0;
         } else {
@@ -80,10 +83,11 @@ class revCalificadoController extends Controller
         }
         $piece->save();
     }
-        /**
-     * @param mixed $pieza
-     * @param mixed $cNominal
-     * @param mixed $tolerancia
+
+    /**
+     * @param  mixed  $pieza
+     * @param  mixed  $cNominal
+     * @param  mixed  $tolerancia
      */
     public function comparePieceData($pieza, $cNominal, $tolerancia) //Función para comparar los datos de la pieza con los datos nominales y de tolerancia.
     {

@@ -10,18 +10,20 @@ class AcabadoBombilloController extends Controller
     {
         $this->middleware('auth');
     }
+
     /**
-     * @param \Illuminate\Http\Request $request
-     * @param mixed $cNominal
-     * @param mixed $tolerance
-     * @param int|null $index
+     * @param  \Illuminate\Http\Request  $request
+     * @param  mixed  $cNominal
+     * @param  mixed  $tolerance
+     * @param  int|null  $index
      */
     public function storePiece($request, $cNominal, $tolerance, $index)
     {
         if ($index !== null) {
             $pieceId = $request->input('piece')[$index] ?? null;
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = AcabadoBombilo_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
@@ -47,7 +49,7 @@ class AcabadoBombilloController extends Controller
                 'observaciones',
             ];
 
-            $data = array();
+            $data = [];
             foreach ($fields as $field) {
                 $data[$field] = $request->input($field)[$index] ?? null;
             }
@@ -55,8 +57,9 @@ class AcabadoBombilloController extends Controller
             $error = $request->input('error')[$index] ?? 'Ninguno';
         } else {
             $pieceId = $request->input('piece');
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = AcabadoBombilo_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
@@ -86,10 +89,10 @@ class AcabadoBombilloController extends Controller
 
         //Verificar si las medidas de la pieza estan correctas
         $correct = $this->comparePieceData($piece, $cNominal, $tolerance);
-        if ($correct == 0 && $error == "Ninguno") {
+        if ($correct == 0 && $error == 'Ninguno') {
             $piece->error = 'Maquinado';
             $piece->correcto = 0;
-        } else if (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
+        } elseif (($correct == 0 && $error == 'Fundicion') || ($correct == 1 && $error == 'Fundicion')) {
             $piece->error = $error;
             $piece->correcto = 0;
         } else {
@@ -98,10 +101,11 @@ class AcabadoBombilloController extends Controller
         }
         $piece->save();
     }
+
     /**
-     * @param AcabadoBombilo_pza $pieza
-     * @param mixed $cNominal
-     * @param mixed $tolerancia
+     * @param  AcabadoBombilo_pza  $pieza
+     * @param  mixed  $cNominal
+     * @param  mixed  $tolerancia
      * @return int
      */
     public function comparePieceData($pieza, $cNominal, $tolerancia)
@@ -120,7 +124,7 @@ class AcabadoBombilloController extends Controller
             'profundidad_corona',
             'angulo_30',
             'profundidad_caja_corona',
-            'simetria'
+            'simetria',
         ];
 
         $epsilon = 0.000001; // tolerancia mínima para errores de redondeo
@@ -128,8 +132,8 @@ class AcabadoBombilloController extends Controller
         foreach ($campos as $campo) {
             $valorPiece = (float) $pieza->$campo;
             $nominal = (float) $cNominal->$campo;
-            $tolPlus = (float) $tolerancia->{$campo . '1'};
-            $tolMinus = (float) $tolerancia->{$campo . '2'};
+            $tolPlus = (float) $tolerancia->{$campo.'1'};
+            $tolMinus = (float) $tolerancia->{$campo.'2'};
 
             $min = $nominal - $tolMinus;
             $max = $nominal + $tolPlus;

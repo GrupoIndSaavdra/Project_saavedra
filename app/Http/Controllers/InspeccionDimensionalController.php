@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Clase;
-use App\Models\Orden_trabajo;
 use App\Models\RDimensional;
 use App\Models\RDimensionalMedida;
 use App\Models\RDimensionalPdf;
@@ -34,7 +33,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function index(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -46,7 +45,7 @@ class InspeccionDimensionalController extends Controller
                 'ot.id as ot_id',
                 'm.nombre as nombre_moldura',
                 DB::raw("COALESCE(NULLIF(ot.cliente, ''), (SELECT ot2.cliente FROM orden_trabajo ot2 WHERE ot2.id_moldura = ot.id_moldura AND ot2.cliente IS NOT NULL AND ot2.cliente != '' LIMIT 1), 'Sin cliente') as cliente"),
-                DB::raw("COALESCE(NULLIF(ot.cantidad, 0), (SELECT CAST(SUM(cl2.piezas) AS UNSIGNED) FROM clases cl2 WHERE cl2.id_ot = ot.id), 0) as cantidad"),
+                DB::raw('COALESCE(NULLIF(ot.cantidad, 0), (SELECT CAST(SUM(cl2.piezas) AS UNSIGNED) FROM clases cl2 WHERE cl2.id_ot = ot.id), 0) as cantidad'),
                 'cl.id as clase_id',
                 'cl.nombre as clase_nombre',
                 'cl.piezas as clase_piezas',
@@ -69,7 +68,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function show(Request $request, string $ot, string $clase)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -81,7 +80,7 @@ class InspeccionDimensionalController extends Controller
             ->select('ot.*', 'm.nombre as nombre_moldura')
             ->first();
 
-        if (!$otData) {
+        if (! $otData) {
             return redirect()->route('calidad.inspeccion_dimensional.index')
                 ->with('error', "La Orden de Trabajo #{$ot} no existe.");
         }
@@ -91,7 +90,9 @@ class InspeccionDimensionalController extends Controller
 
         $pedido = $claseData ? (int) $claseData->pedido : (int) ($otData->cantidad ?? 0);
         $totalPiezas = $claseData ? (int) $claseData->piezas : $pedido;
-        if ($totalPiezas <= 0) $totalPiezas = $pedido;
+        if ($totalPiezas <= 0) {
+            $totalPiezas = $pedido;
+        }
         $consignacion = ($totalPiezas > $pedido) ? ($totalPiezas - $pedido) : 0;
 
         // Cliente fallback
@@ -184,8 +185,7 @@ class InspeccionDimensionalController extends Controller
      * Verificar si una fila de medidas tiene todos los campos obligatorios llenos
      * Cotas exactas: C1, C2, CUELLO ",500", E, D, F1, A. TOTAL, F, ALTURA, ALTURA 2, AL CUELLO
      *
-     * @param mixed $m
-     * @return bool
+     * @param  mixed  $m
      */
     public static function isMedidaCompleta($m): bool
     {
@@ -196,6 +196,7 @@ class InspeccionDimensionalController extends Controller
                 return false;
             }
         }
+
         return true;
     }
 
@@ -204,7 +205,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function autosaveMedida(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -226,7 +227,7 @@ class InspeccionDimensionalController extends Controller
                 'numero_pieza',
                 'c1', 'c2', 'cuello', 'e', 'd', 'f1', 'a_total', 'f', 'altura', 'altura_2', 'al_cuello',
                 'observaciones',
-                'c', 'altu_1', 'talon', 'b', 'k', 'l', 'f2', 'e2', 'a', 'volumen'
+                'c', 'altu_1', 'talon', 'b', 'k', 'l', 'f2', 'e2', 'a', 'volumen',
             ];
             if (in_array($campo, $camposValidos)) {
                 $medida->{$campo} = $valor;
@@ -241,7 +242,7 @@ class InspeccionDimensionalController extends Controller
             // Recalcular cuántas piezas están completamente llenas
             $reporte = RDimensional::findOrFail($request->reporte_id);
             $medidas = $reporte->medidas()->get();
-            $totalPiezas = max(1, (int)$reporte->cantidad_pedido + (int)$reporte->cantidad_consignacion);
+            $totalPiezas = max(1, (int) $reporte->cantidad_pedido + (int) $reporte->cantidad_consignacion);
 
             $piezasCompletas = $medidas->filter(function ($m) {
                 return self::isMedidaCompleta($m);
@@ -266,6 +267,7 @@ class InspeccionDimensionalController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('[RDimensional][autosaveMedida] Error.', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'Error al guardar la cota'], 500);
         }
     }
@@ -275,7 +277,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function updateNominalTolerancia(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -297,6 +299,7 @@ class InspeccionDimensionalController extends Controller
             return response()->json(['success' => true, 'message' => 'Especificación guardada']);
         } catch (\Throwable $e) {
             Log::error('[RDimensional][updateNominalTolerancia] Error.', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'Error al guardar especificación'], 500);
         }
     }
@@ -306,7 +309,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function addRow(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -321,26 +324,28 @@ class InspeccionDimensionalController extends Controller
             $otData = DB::table('orden_trabajo')->where('id', $reporte->ot_id)->first();
             $pedido = $claseData ? (int) $claseData->pedido : (int) ($otData->cantidad ?? 0);
             $totalPiezas = $claseData ? (int) $claseData->piezas : $pedido;
-            if ($totalPiezas <= 0) $totalPiezas = $pedido;
+            if ($totalPiezas <= 0) {
+                $totalPiezas = $pedido;
+            }
 
             $currentCount = $reporte->medidas()->count();
             if ($totalPiezas > 0 && $currentCount >= $totalPiezas) {
                 return response()->json([
                     'success' => false,
-                    'error' => "Se ha alcanzado el límite máximo de {$totalPiezas} piezas para este lote (incluyendo consignación)."
+                    'error' => "Se ha alcanzado el límite máximo de {$totalPiezas} piezas para este lote (incluyendo consignación).",
                 ], 422);
             }
 
-            $existingNumbers = $reporte->medidas()->pluck('numero_pieza')->map(fn($v) => (int)$v)->filter()->values()->toArray();
-            $requestedNum = $request->numero_pieza ? (int)$request->numero_pieza : null;
-            if ($requestedNum && !in_array($requestedNum, $existingNumbers)) {
-                $numeroPieza = (string)$requestedNum;
+            $existingNumbers = $reporte->medidas()->pluck('numero_pieza')->map(fn ($v) => (int) $v)->filter()->values()->toArray();
+            $requestedNum = $request->numero_pieza ? (int) $request->numero_pieza : null;
+            if ($requestedNum && ! in_array($requestedNum, $existingNumbers)) {
+                $numeroPieza = (string) $requestedNum;
             } else {
                 $next = 1;
                 while (in_array($next, $existingNumbers)) {
                     $next++;
                 }
-                $numeroPieza = (string)$next;
+                $numeroPieza = (string) $next;
             }
 
             $medida = RDimensionalMedida::create([
@@ -349,7 +354,7 @@ class InspeccionDimensionalController extends Controller
             ]);
 
             $medidas = $reporte->medidas()->get();
-            $totalPiezas = max(1, (int)$reporte->cantidad_pedido + (int)$reporte->cantidad_consignacion);
+            $totalPiezas = max(1, (int) $reporte->cantidad_pedido + (int) $reporte->cantidad_consignacion);
             $piezasCompletas = $medidas->filter(function ($m) {
                 return self::isMedidaCompleta($m);
             })->count();
@@ -369,6 +374,7 @@ class InspeccionDimensionalController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('[RDimensional][addRow] Error.', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'Error al agregar fila'], 500);
         }
     }
@@ -378,7 +384,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deleteRow(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -394,7 +400,7 @@ class InspeccionDimensionalController extends Controller
                 ->delete();
 
             $medidas = $reporte->medidas()->get();
-            $totalPiezas = max(1, (int)$reporte->cantidad_pedido + (int)$reporte->cantidad_consignacion);
+            $totalPiezas = max(1, (int) $reporte->cantidad_pedido + (int) $reporte->cantidad_consignacion);
             $piezasCompletas = $medidas->filter(function ($m) {
                 return self::isMedidaCompleta($m);
             })->count();
@@ -413,6 +419,7 @@ class InspeccionDimensionalController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('[RDimensional][deleteRow] Error.', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'Error al eliminar fila'], 500);
         }
     }
@@ -422,7 +429,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function uploadExcel(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -475,7 +482,7 @@ class InspeccionDimensionalController extends Controller
             $reporte->archivo_excel_nombre = json_encode(array_column($archivos, 'nombre'), JSON_UNESCAPED_UNICODE);
             $reporte->save();
 
-            $token = md5($reporte->id . '_' . config('app.key'));
+            $token = md5($reporte->id.'_'.config('app.key'));
             $archivosFormat = array_map(function ($a) use ($reporte, $token) {
                 $ext = strtolower(pathinfo($a['nombre'] ?? '', PATHINFO_EXTENSION));
                 $isExcel = in_array($ext, ['xlsx', 'xls', 'csv']);
@@ -501,6 +508,7 @@ class InspeccionDimensionalController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('[RDimensional][uploadExcel] Error.', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'Error al subir el archivo adjunto'], 500);
         }
     }
@@ -511,9 +519,9 @@ class InspeccionDimensionalController extends Controller
     public function openFile(Request $request, int $id)
     {
         $token = $request->query('token');
-        $expectedToken = md5($id . '_' . config('app.key'));
+        $expectedToken = md5($id.'_'.config('app.key'));
 
-        if (!$request->hasValidSignature() && !auth()->check() && $token !== $expectedToken) {
+        if (! $request->hasValidSignature() && ! auth()->check() && $token !== $expectedToken) {
             abort(403, 'Enlace no válido o expirado.');
         }
 
@@ -529,7 +537,7 @@ class InspeccionDimensionalController extends Controller
 
         if ($fileId !== null && $fileId !== '') {
             foreach ($archivos as $a) {
-                if ((string)$a['id'] === (string)$fileId) {
+                if ((string) $a['id'] === (string) $fileId) {
                     $archivoTarget = $a;
                     break;
                 }
@@ -538,7 +546,7 @@ class InspeccionDimensionalController extends Controller
             $archivoTarget = $archivos[0];
         }
 
-        if (!$archivoTarget || empty($archivoTarget['ruta']) || !Storage::disk('local')->exists($archivoTarget['ruta'])) {
+        if (! $archivoTarget || empty($archivoTarget['ruta']) || ! Storage::disk('local')->exists($archivoTarget['ruta'])) {
             abort(404, 'El archivo adjunto no existe en el servidor.');
         }
 
@@ -547,17 +555,17 @@ class InspeccionDimensionalController extends Controller
         $extension = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
 
         $mimeTypes = [
-            'pdf'  => 'application/pdf',
+            'pdf' => 'application/pdf',
             'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'xls'  => 'application/vnd.ms-excel',
-            'csv'  => 'text/csv',
-            'txt'  => 'text/plain',
+            'xls' => 'application/vnd.ms-excel',
+            'csv' => 'text/csv',
+            'txt' => 'text/plain',
         ];
         $contentType = $mimeTypes[$extension] ?? (Storage::disk('local')->mimeType($archivoTarget['ruta']) ?: 'application/octet-stream');
 
         return response()->file($fullPath, [
             'Content-Type' => $contentType,
-            'Content-Disposition' => 'inline; filename="' . $nombre . '"',
+            'Content-Disposition' => 'inline; filename="'.$nombre.'"',
             'Accept-Ranges' => 'bytes',
             'Cache-Control' => 'private, max-age=0, must-revalidate',
         ]);
@@ -568,7 +576,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function viewExcel(Request $request, int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -584,7 +592,7 @@ class InspeccionDimensionalController extends Controller
 
         if ($fileId !== null && $fileId !== '') {
             foreach ($archivos as $a) {
-                if ((string)$a['id'] === (string)$fileId) {
+                if ((string) $a['id'] === (string) $fileId) {
                     $archivoTarget = $a;
                     break;
                 }
@@ -593,7 +601,7 @@ class InspeccionDimensionalController extends Controller
             $archivoTarget = $archivos[0];
         }
 
-        if (!$archivoTarget || empty($archivoTarget['ruta']) || !Storage::disk('local')->exists($archivoTarget['ruta'])) {
+        if (! $archivoTarget || empty($archivoTarget['ruta']) || ! Storage::disk('local')->exists($archivoTarget['ruta'])) {
             abort(404, 'El archivo adjunto no existe en el servidor.');
         }
 
@@ -602,17 +610,17 @@ class InspeccionDimensionalController extends Controller
         $extension = strtolower(pathinfo($nombre, PATHINFO_EXTENSION));
 
         $mimeTypes = [
-            'pdf'  => 'application/pdf',
+            'pdf' => 'application/pdf',
             'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'xls'  => 'application/vnd.ms-excel',
-            'csv'  => 'text/csv',
-            'txt'  => 'text/plain',
+            'xls' => 'application/vnd.ms-excel',
+            'csv' => 'text/csv',
+            'txt' => 'text/plain',
         ];
         $contentType = $mimeTypes[$extension] ?? (Storage::disk('local')->mimeType($archivoTarget['ruta']) ?: 'application/octet-stream');
 
         return response()->file($fullPath, [
             'Content-Type' => $contentType,
-            'Content-Disposition' => 'inline; filename="' . $nombre . '"',
+            'Content-Disposition' => 'inline; filename="'.$nombre.'"',
         ]);
     }
 
@@ -621,7 +629,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function downloadExcel(Request $request, int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -637,7 +645,7 @@ class InspeccionDimensionalController extends Controller
 
         if ($fileId !== null && $fileId !== '') {
             foreach ($archivos as $a) {
-                if ((string)$a['id'] === (string)$fileId) {
+                if ((string) $a['id'] === (string) $fileId) {
                     $archivoTarget = $a;
                     break;
                 }
@@ -646,7 +654,7 @@ class InspeccionDimensionalController extends Controller
             $archivoTarget = $archivos[0];
         }
 
-        if (!$archivoTarget || empty($archivoTarget['ruta']) || !Storage::disk('local')->exists($archivoTarget['ruta'])) {
+        if (! $archivoTarget || empty($archivoTarget['ruta']) || ! Storage::disk('local')->exists($archivoTarget['ruta'])) {
             abort(404, 'El archivo adjunto no existe en el servidor.');
         }
 
@@ -658,7 +666,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deleteExcel(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -685,22 +693,22 @@ class InspeccionDimensionalController extends Controller
                 $nuevosArchivos = [];
                 $encontrado = false;
                 foreach ($archivos as $a) {
-                    if ((string)$a['id'] === (string)$fileId) {
+                    if ((string) $a['id'] === (string) $fileId) {
                         $encontrado = true;
-                        if (!empty($a['ruta']) && Storage::disk('local')->exists($a['ruta'])) {
+                        if (! empty($a['ruta']) && Storage::disk('local')->exists($a['ruta'])) {
                             Storage::disk('local')->delete($a['ruta']);
                         }
                     } else {
                         $nuevosArchivos[] = $a;
                     }
                 }
-                if (!$encontrado) {
+                if (! $encontrado) {
                     return response()->json(['error' => 'Archivo no encontrado'], 404);
                 }
                 $archivos = $nuevosArchivos;
             } else {
                 foreach ($archivos as $a) {
-                    if (!empty($a['ruta']) && Storage::disk('local')->exists($a['ruta'])) {
+                    if (! empty($a['ruta']) && Storage::disk('local')->exists($a['ruta'])) {
                         Storage::disk('local')->delete($a['ruta']);
                     }
                 }
@@ -725,6 +733,7 @@ class InspeccionDimensionalController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('[RDimensional][deleteExcel] Error.', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'Error al eliminar archivo'], 500);
         }
     }
@@ -734,7 +743,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function updateHeader(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -753,6 +762,7 @@ class InspeccionDimensionalController extends Controller
 
         } catch (\Throwable $e) {
             Log::error('[RDimensional][updateHeader] Error.', ['error' => $e->getMessage()]);
+
             return response()->json(['error' => 'Error al actualizar encabezado'], 500);
         }
     }
@@ -762,7 +772,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function generatePdf(Request $request, int|string $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -776,7 +786,9 @@ class InspeccionDimensionalController extends Controller
         $claseData = Clase::where('id_ot', $reporte->ot_id)->where('nombre', $reporte->clase)->first();
         $pedido = $claseData ? (int) $claseData->pedido : (int) ($otData->cantidad ?? 0);
         $totalPiezas = $claseData ? (int) $claseData->piezas : $pedido;
-        if ($totalPiezas <= 0) $totalPiezas = $pedido;
+        if ($totalPiezas <= 0) {
+            $totalPiezas = $pedido;
+        }
         $consignacion = ($totalPiezas > $pedido) ? ($totalPiezas - $pedido) : 0;
 
         $medidas = $reporte->medidas()->orderBy('numero_pieza')->get();
@@ -789,14 +801,14 @@ class InspeccionDimensionalController extends Controller
         $porcentajeActual = $totalPiezas > 0 ? round(($piezasCompletas / $totalPiezas) * 100, 1) : 0;
 
         $logoPath = public_path('images/logos/lg_saavedra.png');
-        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath)) : '';
+        $logoBase64 = file_exists($logoPath) ? 'data:image/png;base64,'.base64_encode(file_get_contents($logoPath)) : '';
 
         $claseUpper = strtoupper($reporte->clase);
         $esMolde = str_contains($claseUpper, 'MOLDE');
         $diagramaPath = $esMolde
             ? public_path('images/calidad/molde_reporte_dimensional.jpg')
             : public_path('images/calidad/BOMBILLO_REPORTEDIMENSIONAL.jpg');
-        $diagramaBase64 = file_exists($diagramaPath) ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($diagramaPath)) : '';
+        $diagramaBase64 = file_exists($diagramaPath) ? 'data:image/jpeg;base64,'.base64_encode(file_get_contents($diagramaPath)) : '';
 
         // Calcular versión incremental
         $siguienteVersion = RDimensionalPdf::where('r_dimensional_id', $id)->count() + 1;
@@ -812,7 +824,7 @@ class InspeccionDimensionalController extends Controller
 
         // Sanitizar nombres de archivo y carpetas para almacenamiento
         $fechaStr = \Carbon\Carbon::now()->format('Y-m-d');
-        $otNum = trim((string)$reporte->ot_id);
+        $otNum = trim((string) $reporte->ot_id);
         $otNombreOriginal = trim((string) ($otData->nombre_moldura ?? $otData->nombre_pieza ?? ''));
         $otNombreSeguro = preg_replace('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]/', '_', $otNombreOriginal);
         $claseSeguro = preg_replace('/[\\\\\\/\\:\\*\\?\\"\\<\\>\\|]/', '_', trim($reporte->clase));
@@ -841,7 +853,7 @@ class InspeccionDimensionalController extends Controller
             'creado_por' => auth()->id(),
         ]);
 
-        $creadorNombre = auth()->user() ? trim((auth()->user()->nombre ?? '') . ' ' . (auth()->user()->a_paterno ?? '')) : 'Sistema';
+        $creadorNombre = auth()->user() ? trim((auth()->user()->nombre ?? '').' '.(auth()->user()->a_paterno ?? '')) : 'Sistema';
 
         if ($request->wantsJson() || $request->ajax() || $request->header('Accept') === 'application/json') {
             return response()->json([
@@ -856,7 +868,7 @@ class InspeccionDimensionalController extends Controller
                     'view_url' => route('calidad.inspeccion_dimensional.pdf.view', [$id, $pdfRecord->id]),
                     'download_url' => route('calidad.inspeccion_dimensional.pdf.download', [$id, $pdfRecord->id]),
                 ],
-                'message' => 'PDF generado y guardado correctamente en el historial.'
+                'message' => 'PDF generado y guardado correctamente en el historial.',
             ]);
         }
 
@@ -868,13 +880,13 @@ class InspeccionDimensionalController extends Controller
      */
     public function downloadPdf(int|string $id, int|string $pdf_id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
         $pdfRecord = RDimensionalPdf::where('r_dimensional_id', $id)->findOrFail($pdf_id);
 
-        if (!Storage::disk('local')->exists($pdfRecord->ruta)) {
+        if (! Storage::disk('local')->exists($pdfRecord->ruta)) {
             abort(404, 'El archivo PDF no existe en el servidor.');
         }
 
@@ -886,20 +898,21 @@ class InspeccionDimensionalController extends Controller
      */
     public function viewPdf(int|string $id, int|string $pdf_id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
         $pdfRecord = RDimensionalPdf::where('r_dimensional_id', $id)->findOrFail($pdf_id);
 
-        if (!Storage::disk('local')->exists($pdfRecord->ruta)) {
+        if (! Storage::disk('local')->exists($pdfRecord->ruta)) {
             abort(404, 'El archivo PDF no existe en el servidor.');
         }
 
         $path = Storage::disk('local')->path($pdfRecord->ruta);
+
         return response()->file($path, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $pdfRecord->nombre_archivo . '"'
+            'Content-Disposition' => 'inline; filename="'.$pdfRecord->nombre_archivo.'"',
         ]);
     }
 
@@ -908,7 +921,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deletePdf(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -921,7 +934,7 @@ class InspeccionDimensionalController extends Controller
         if (trim($request->clave_maestra) !== 'CALIDAD2026') {
             return response()->json([
                 'success' => false,
-                'message' => 'Clave maestra incorrecta. No se tienen privilegios para eliminar este formato PDF.'
+                'message' => 'Clave maestra incorrecta. No se tienen privilegios para eliminar este formato PDF.',
             ], 403);
         }
 
@@ -937,13 +950,14 @@ class InspeccionDimensionalController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Formato PDF eliminado correctamente del historial.'
+                'message' => 'Formato PDF eliminado correctamente del historial.',
             ]);
         } catch (\Exception $e) {
-            Log::error('Error al eliminar PDF dimensional: ' . $e->getMessage());
+            Log::error('Error al eliminar PDF dimensional: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error al eliminar el archivo PDF: ' . $e->getMessage()
+                'message' => 'Error al eliminar el archivo PDF: '.$e->getMessage(),
             ], 500);
         }
     }

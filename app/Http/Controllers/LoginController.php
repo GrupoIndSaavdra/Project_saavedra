@@ -3,12 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Models\SystemLog;
 use App\Models\User;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use App\Models\SystemLog;
+use Illuminate\Support\Facades\Log;
 
 class LoginController extends Controller
 {
@@ -22,7 +22,7 @@ class LoginController extends Controller
                 if ($file !== '.' && $file !== '..') {
                     $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
                     if (in_array($ext, ['jpg', 'jpeg', 'png', 'webp'])) {
-                        $tecamacImages[] = asset('images/planta/' . $file);
+                        $tecamacImages[] = asset('images/planta/'.$file);
                     }
                 }
             }
@@ -37,38 +37,39 @@ class LoginController extends Controller
 
         return view('auth.login', compact('tecamacImages', 'randomInitialIndex', 'initialImage'));
     }
-        /**
-     * @param LoginRequest $request
-     */
+
     public function login(LoginRequest $request)
     {
         $user = User::query()->where('matricula', $request->matricula)->first();
 
-        if (!$user || !Hash::check($request->contrasena, $user->contrasena)) {
+        if (! $user || ! Hash::check($request->contrasena, $user->contrasena)) {
             SystemLog::create([
                 'user_matricula' => $request->matricula ?? 'DESCONOCIDO',
                 'action' => 'Intento de Login Fallido',
                 'details' => 'Intento de inicio de sesión fallido por matrícula o contraseña incorrecta.',
             ]);
+
             return redirect()->to('/login')->withErrors('Matrícula y/o contraseña incorrecta.');
         }
 
         // Bloquear acceso a usuarios inactivos
-        if (!$user->estatus) {
+        if (! $user->estatus) {
             SystemLog::create([
                 'user_matricula' => $user->matricula,
                 'action' => 'Intento de Login Bloqueado',
                 'details' => 'El usuario intentó iniciar sesión pero su cuenta está inactiva.',
             ]);
+
             return redirect()->to('/login')->withErrors('Tu cuenta está inactiva. Contacta al administrador del sistema.');
         }
 
         Auth::login($user);
+
         return $this->authenticated($request, $user);
     }
-        /**
-     * @param Request $request
-     * @param mixed $user
+
+    /**
+     * @param  mixed  $user
      */
     public function authenticated(Request $request, $user)
     {
@@ -79,7 +80,7 @@ class LoginController extends Controller
             $user->prod_locked_type = null;
             $user->save();
 
-            \Illuminate\Support\Facades\Log::channel('productivity')->info("[SESIÓN] Operador {$user->matricula} inició sesión. Cronómetro de productividad activo.");
+            Log::channel('productivity')->info("[SESIÓN] Operador {$user->matricula} inició sesión. Cronómetro de productividad activo.");
         }
 
         SystemLog::create([

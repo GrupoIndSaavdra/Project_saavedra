@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SoldaduraLote;
 use App\Models\SoldaduraBote;
+use App\Models\SoldaduraLote;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class RegenerarQRController extends Controller
 {
@@ -33,7 +33,7 @@ class RegenerarQRController extends Controller
             'password_admin' => 'required|string',
         ]);
 
-        if (!$this->validatePasswordAdmin($request->password_admin)) {
+        if (! $this->validatePasswordAdmin($request->password_admin)) {
             return back()->with('error', 'Contraseña de administrador incorrecta. Solo administradores pueden acceder a esta sección.');
         }
 
@@ -48,7 +48,7 @@ class RegenerarQRController extends Controller
      */
     public function listaLotes()
     {
-        if (!session('regenerar_qr_verificado')) {
+        if (! session('regenerar_qr_verificado')) {
             return redirect()->route('soldadura.regenerarQR')->with('error', 'Debes verificar tu contraseña de administrador primero.');
         }
 
@@ -62,7 +62,8 @@ class RegenerarQRController extends Controller
     /**
      * Valida la contraseña de administrador
      * Usa la misma lógica que ProcessProductionController
-     * @param string $passwordEntered
+     *
+     * @param  string  $passwordEntered
      */
     public function validatePasswordAdmin($passwordEntered)
     {
@@ -76,16 +77,18 @@ class RegenerarQRController extends Controller
                 }
             }
         }
+
         return false; // No se proporcionó contraseña o es incorrecta
     }
 
     /**
      * Regenera el QR del lote
-     * @param int|string $loteId
+     *
+     * @param  int|string  $loteId
      */
     public function regenerarQRLote($loteId)
     {
-        if (!session('regenerar_qr_verificado')) {
+        if (! session('regenerar_qr_verificado')) {
             return redirect()->route('soldadura.regenerarQR')->with('error', 'Sesión expirada. Verifica tu contraseña nuevamente.');
         }
 
@@ -96,11 +99,12 @@ class RegenerarQRController extends Controller
 
     /**
      * Regenera los QRs individuales de un lote
-     * @param int|string $loteId
+     *
+     * @param  int|string  $loteId
      */
     public function regenerarQRIndividuales($loteId)
     {
-        if (!session('regenerar_qr_verificado')) {
+        if (! session('regenerar_qr_verificado')) {
             return redirect()->route('soldadura.regenerarQR')->with('error', 'Sesión expirada. Verifica tu contraseña nuevamente.');
         }
 
@@ -120,12 +124,14 @@ class RegenerarQRController extends Controller
     public function cerrarSesion()
     {
         session()->forget('regenerar_qr_verificado');
+
         return redirect()->route('soldadura.regenerarQR')->with('success', 'Sesión cerrada correctamente.');
     }
 
     /**
      * Genera el PDF del QR de lote
-     * @param SoldaduraLote $lote
+     *
+     * @param  SoldaduraLote  $lote
      */
     private function generarPDFLote($lote)
     {
@@ -141,13 +147,14 @@ class RegenerarQRController extends Controller
 
         $pdf = Pdf::loadView('trackingSoldadura_views.qr_lote_pdf', compact('lote', 'qrContent'));
 
-        return $pdf->download('QR_Lote_' . $lote->matricula . '_REGENERADO.pdf');
+        return $pdf->download('QR_Lote_'.$lote->matricula.'_REGENERADO.pdf');
     }
 
     /**
      * Genera el PDF de los QRs individuales
-     * @param \Illuminate\Support\Collection $botes
-     * @param SoldaduraLote $lote
+     *
+     * @param  \Illuminate\Support\Collection  $botes
+     * @param  SoldaduraLote  $lote
      */
     private function generarPDFIndividuales($botes, $lote)
     {
@@ -164,12 +171,12 @@ class RegenerarQRController extends Controller
 
             $qrCodes[] = [
                 'bote' => $bote,
-                'qrContent' => $qrContent
+                'qrContent' => $qrContent,
             ];
         }
 
         $pdf = Pdf::loadView('trackingSoldadura_views.qr_individuales_pdf', compact('qrCodes', 'lote'));
 
-        return $pdf->download('QR_Botes_' . $lote->matricula . '_REGENERADO.pdf');
+        return $pdf->download('QR_Botes_'.$lote->matricula.'_REGENERADO.pdf');
     }
 }

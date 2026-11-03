@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class TrackingSoldaduraController extends Controller
@@ -12,9 +11,6 @@ class TrackingSoldaduraController extends Controller
         return view('trackingSoldadura_views.trackingSoldadura');
     }
 
-        /**
-     * @param \Illuminate\Http\Request Request $request
-     */
     public function store(Request $request)
     {
         return match ($request->accion) {

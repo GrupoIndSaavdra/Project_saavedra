@@ -688,7 +688,7 @@ td select {
     transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     -webkit-appearance: none;
     appearance: none;
-    background-image: var(--triangulo-abajo, url('/images/Color_Icons/Generales/triangulo_abajo.png'));
+    background-image: var(--triangulo-abajo);
     background-repeat: no-repeat;
     background-position: right 1rem center;
     background-size: 14px;

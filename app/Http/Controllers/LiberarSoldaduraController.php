@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\LiberacionSoldadura;
-use App\Models\RegistroSoldadura;
 use App\Models\QRGeneradoSoldadura;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\DB;
+use App\Models\RegistroSoldadura;
+use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class LiberarSoldaduraController extends Controller
 {
@@ -35,17 +35,17 @@ class LiberarSoldaduraController extends Controller
     }
 
     /**
-     * @param int|string $qrId
+     * @param  int|string  $qrId
      */
     public function validarQR($qrId)
     {
-        if (!is_numeric($qrId) || $qrId <= 0) {
+        if (! is_numeric($qrId) || $qrId <= 0) {
             throw new \Exception('ID de QR inválido');
         }
 
         $qrGenerado = QRGeneradoSoldadura::query()->find($qrId);
 
-        if (!$qrGenerado) {
+        if (! $qrGenerado) {
             throw new \Exception('QR no existe en el sistema');
         }
 
@@ -58,8 +58,8 @@ class LiberarSoldaduraController extends Controller
         }
 
         $estadoActual = $qrGenerado->estado;
-        if ($estadoActual !== QRGeneradoSoldadura::ESTADO_GENERADO && !empty($estadoActual)) {
-            throw new \Exception('QR en estado inválido: ' . ($estadoActual ?? 'null'));
+        if ($estadoActual !== QRGeneradoSoldadura::ESTADO_GENERADO && ! empty($estadoActual)) {
+            throw new \Exception('QR en estado inválido: '.($estadoActual ?? 'null'));
         }
 
         $fechaGeneracion = Carbon::parse($qrGenerado->fecha_generacion);
@@ -87,14 +87,14 @@ class LiberarSoldaduraController extends Controller
             Log::info('Iniciando liberación QR', [
                 'qr_id' => $qrId,
                 'user_id' => auth()->id(),
-                'timestamp' => now()->toISOString()
+                'timestamp' => now()->toISOString(),
             ]);
 
             $qrGenerado = $this->validarQR($qrId);
 
             Log::info('QR validado', [
                 'qr_id' => $qrGenerado->id,
-                'estado_actual' => $qrGenerado->estado
+                'estado_actual' => $qrGenerado->estado,
             ]);
 
             $inventarioDisponible = RegistroSoldadura::query()->where('nombre', $qrGenerado->nombre)
@@ -104,18 +104,19 @@ class LiberarSoldaduraController extends Controller
 
             Log::info('Inventario verificado', [
                 'disponible' => $inventarioDisponible,
-                'requerido' => $qrGenerado->kilos
+                'requerido' => $qrGenerado->kilos,
             ]);
 
             if ($inventarioDisponible < $qrGenerado->kilos) {
                 Log::warning('Inventario insuficiente', [
                     'qr_id' => $qrGenerado->id,
                     'disponible' => $inventarioDisponible,
-                    'requerido' => $qrGenerado->kilos
+                    'requerido' => $qrGenerado->kilos,
                 ]);
+
                 return response()->json([
                     'success' => false,
-                    'message' => "Inventario insuficiente. Disponible: {$inventarioDisponible} kg, Requerido: {$qrGenerado->kilos} kg"
+                    'message' => "Inventario insuficiente. Disponible: {$inventarioDisponible} kg, Requerido: {$qrGenerado->kilos} kg",
                 ], 200);
             }
 
@@ -128,7 +129,7 @@ class LiberarSoldaduraController extends Controller
                     'lote' => $qrGenerado->lote,
                     'cantidad' => $qrGenerado->kilos,
                     'qr_generado_id' => $qrGenerado->id,
-                    'estado' => 'liberado'
+                    'estado' => 'liberado',
                 ]);
 
                 $registros = RegistroSoldadura::query()->where('nombre', $qrGenerado->nombre)
@@ -139,8 +140,9 @@ class LiberarSoldaduraController extends Controller
 
                 $cantidadRestante = $qrGenerado->kilos;
                 foreach ($registros as $registro) {
-                    if ($cantidadRestante <= 0)
+                    if ($cantidadRestante <= 0) {
                         break;
+                    }
                     $descontar = min($cantidadRestante, $registro->kilos);
                     $registro->kilos -= $descontar;
                     $registro->save();
@@ -154,17 +156,18 @@ class LiberarSoldaduraController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => "QR liberado correctamente: {$qrGenerado->kilos} kg de {$qrGenerado->nombre} - Lote: {$qrGenerado->lote}"
+                'message' => "QR liberado correctamente: {$qrGenerado->kilos} kg de {$qrGenerado->nombre} - Lote: {$qrGenerado->lote}",
             ]);
 
         } catch (\Exception $e) {
             Log::error('Error liberando QR', [
                 'qr_id' => $request->qr_content ?? 'N/A',
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
+
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 422);
         }
     }
@@ -220,8 +223,9 @@ class LiberarSoldaduraController extends Controller
 
             $cantidadRestante = $request->cantidad;
             foreach ($registros as $registro) {
-                if ($cantidadRestante <= 0)
+                if ($cantidadRestante <= 0) {
                     break;
+                }
                 $descontar = min($cantidadRestante, $registro->kilos);
                 $registro->kilos -= $descontar;
                 $registro->save();

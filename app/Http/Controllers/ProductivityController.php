@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
+use App\Models\Maquinas;
+use App\Models\Metas;
+use App\Models\Pieza;
 use App\Models\SystemLog;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class ProductivityController extends Controller
 {
@@ -17,7 +19,7 @@ class ProductivityController extends Controller
     public function ping(Request $request)
     {
         $user = Auth::user();
-        if (!$user || $user->perfil != '2') {
+        if (! $user || $user->perfil != '2') {
             return response()->json(['locked' => null]);
         }
 
@@ -26,11 +28,11 @@ class ProductivityController extends Controller
         if ($user->prod_locked_type != null) {
             return response()->json([
                 'locked' => $user->prod_locked_type,
-                'standard_min' => $user->prod_standard_min
+                'standard_min' => $user->prod_standard_min,
             ]);
         }
 
-        $newStatus = $request->input('status', 'none'); 
+        $newStatus = $request->input('status', 'none');
         $standardMin = $request->input('standard_min', 0);
 
         // LÓGICA DE PROTECCIÓN ANTI-RESETEO:
@@ -49,9 +51,9 @@ class ProductivityController extends Controller
 
             // LOG TÉCNICO DE TRANSICIÓN
             if ($oldStatus == 'none') {
-                \Illuminate\Support\Facades\Log::channel('productivity')->info("[INGRESO] El operador {$user->matricula} ha iniciado su monitoreo de productividad.");
+                Log::channel('productivity')->info("[INGRESO] El operador {$user->matricula} ha iniciado su monitoreo de productividad.");
             } elseif ($newStatus != 'none' && $newStatus != 'welcome') {
-                \Illuminate\Support\Facades\Log::channel('productivity')->info("[FASE] Operador {$user->matricula} cambió a fase: {$newStatus}.");
+                Log::channel('productivity')->info("[FASE] Operador {$user->matricula} cambió a fase: {$newStatus}.");
             }
 
             $user->prod_status = $newStatus;
@@ -64,7 +66,7 @@ class ProductivityController extends Controller
 
         return response()->json([
             'locked' => $user->prod_locked_type,
-            'standard_min' => $user->prod_standard_min
+            'standard_min' => $user->prod_standard_min,
         ]);
     }
 
@@ -77,13 +79,13 @@ class ProductivityController extends Controller
         if ($user) {
             $faseAnterior = $user->prod_status;
             $lockedType = $user->prod_locked_type; // Capturar antes de limpiar
-            
+
             $user->prod_locked_type = null;
             $user->prod_start_at = now()->setSeconds(0);
             $user->save();
 
             // 1. Log técnico de archivo
-            \Illuminate\Support\Facades\Log::channel('productivity')->info("[RECUPERACIÓN] Operador {$user->matricula} aceptó la alerta y reanudó su actividad en fase: {$faseAnterior}.");
+            Log::channel('productivity')->info("[RECUPERACIÓN] Operador {$user->matricula} aceptó la alerta y reanudó su actividad en fase: {$faseAnterior}.");
 
             SystemLog::create([
                 'user_matricula' => $user->matricula,
@@ -99,18 +101,18 @@ class ProductivityController extends Controller
 
             if ($user->prod_status == 'machining') {
                 // Buscamos la máquina ocupada por este usuario (esto nos vincula a la meta)
-                $maquinaActiva = \App\Models\Maquinas::query()->where('id_usuario', $user->id)->first();
+                $maquinaActiva = Maquinas::query()->where('id_usuario', $user->id)->first();
                 if ($maquinaActiva && $maquinaActiva->id_meta) {
-                    $meta = \App\Models\Metas::query()->find($maquinaActiva->id_meta);
+                    $meta = Metas::query()->find($maquinaActiva->id_meta);
                     if ($meta) {
                         $activeOT = $meta->id_ot;
                         $activeClase = $meta->id_clase;
                         $activeProceso = $meta->proceso;
-                        
+
                         // Intentar buscar la pieza que está en estado "ocupada" (1) para este operador en esta meta
                         // Nota: El modelo de pieza varía según el proceso, pero podemos intentar buscar en la tabla general de Pieza
                         // o dejarlo como null si es muy complejo, pero al menos OT y Clase son seguros.
-                        $activeNPieza = \App\Models\Pieza::query()->where('id_clase', $activeClase)
+                        $activeNPieza = Pieza::query()->where('id_clase', $activeClase)
                             ->where('proceso', $activeProceso)
                             ->where('id_operador', $user->id)
                             ->orderBy('id', 'desc')

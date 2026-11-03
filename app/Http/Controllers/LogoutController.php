@@ -4,17 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Maquinas;
 use App\Models\Metas;
-use App\Models\Pza_cepillado;
 use App\Models\SystemLog;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Session;
 
 class LogoutController extends Controller
 {
-    public function logout(){
+    public function logout()
+    {
         $user = Auth::user();
-        
+
         if ($user) {
             // Eliminar las máquinas ocupadas por el usuario al cerrar sesión
             $userMetasIds = Metas::query()
@@ -29,7 +29,7 @@ class LogoutController extends Controller
             $user->update([
                 'prod_status' => 'none',
                 'prod_locked_type' => null,
-                'prod_start_at' => null
+                'prod_start_at' => null,
             ]);
 
             SystemLog::create([
@@ -39,11 +39,12 @@ class LogoutController extends Controller
             ]);
 
             // Registro en log técnico de productividad
-            \Illuminate\Support\Facades\Log::channel('productivity')->info("[SESIÓN] El operador {$user->matricula} ha cerrado su sesión de forma segura. Monitoreo de productividad terminado.");
+            Log::channel('productivity')->info("[SESIÓN] El operador {$user->matricula} ha cerrado su sesión de forma segura. Monitoreo de productividad terminado.");
         }
 
         Session::flush();
         Auth::logout();
+
         return redirect()->route('home')->with('success', 'Cerraste sesión correctamente.');
     }
-} 
+}

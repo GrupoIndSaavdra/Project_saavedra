@@ -11,9 +11,9 @@ use App\Models\PtaResultado;
 use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
 use App\Models\SystemLog;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Auth;
 
 class PtaResultsController extends Controller
@@ -27,9 +27,6 @@ class PtaResultsController extends Controller
     // SESIÓN TEMPORAL
     // ═══════════════════════════════════════════════════════════════════════
 
-        /**
-     * @param Request $request
-     */
     public function verifyTempPassword(Request $request)
     {
         $password = $request->input('password');
@@ -39,18 +36,18 @@ class PtaResultsController extends Controller
             session([
                 'pta_temp_auth' => true,
                 'pta_temp_ot_id' => $request->input('ot_id'),
-                'pta_return_url' => url()->previous()
+                'pta_return_url' => url()->previous(),
             ]);
 
             return response()->json([
                 'success' => true,
-                'redirect_url' => route('pta.results', ['ot_id' => $request->input('ot_id')])
+                'redirect_url' => route('pta.results', ['ot_id' => $request->input('ot_id')]),
             ]);
         }
 
         return response()->json([
             'success' => false,
-            'message' => 'Contraseña incorrecta'
+            'message' => 'Contraseña incorrecta',
         ], 403);
     }
 
@@ -91,12 +88,12 @@ class PtaResultsController extends Controller
             $query->where('error', 'Ninguno');
         }
 
-        if (!$incluirRechazados) {
+        if (! $incluirRechazados) {
             $query->where('liberacion', '!=', 2);
         }
 
         return $query->orderByRaw('CAST(n_pieza AS UNSIGNED) ASC')
-            ->orderByRaw("RIGHT(n_pieza, 1) DESC")
+            ->orderByRaw('RIGHT(n_pieza, 1) DESC')
             ->get();
     }
 
@@ -109,10 +106,10 @@ class PtaResultsController extends Controller
         $claseLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $claseNombre);
         $nPiezaLimpia = preg_replace('/[^A-Za-z0-9_\-]/', '_', $nPieza);
 
-        $relativePath = 'images/resultados_PTA/OT_' . $otId . '/' . $claseLimpia;
+        $relativePath = 'images/resultados_PTA/OT_'.$otId.'/'.$claseLimpia;
         $directorioDestino = public_path($relativePath);
 
-        if (!file_exists($directorioDestino)) {
+        if (! file_exists($directorioDestino)) {
             mkdir($directorioDestino, 0755, true);
         }
 
@@ -122,34 +119,49 @@ class PtaResultsController extends Controller
 
         $fechaHora = date('Y-m-d_H-i-s');
         $rutaTemporal = $file->getRealPath();
-        
+
         $infoImagen = @getimagesize($rutaTemporal);
         $tieneGD = extension_loaded('gd');
 
         if ($tieneGD && $infoImagen !== false && in_array($infoImagen[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG, IMAGETYPE_WEBP, IMAGETYPE_GIF])) {
-            $nombre = $otId . '_' . $claseLimpia . '_' . $nPiezaLimpia . '_' . $prefijo . '_' . $fechaHora . '.jpg';
-            $destinoFinal = $directorioDestino . DIRECTORY_SEPARATOR . $nombre;
+            $nombre = $otId.'_'.$claseLimpia.'_'.$nPiezaLimpia.'_'.$prefijo.'_'.$fechaHora.'.jpg';
+            $destinoFinal = $directorioDestino.DIRECTORY_SEPARATOR.$nombre;
 
             $tipoImagen = $infoImagen[2];
             $anchoOrig = $infoImagen[0];
             $altoOrig = $infoImagen[1];
 
             // Crear el recurso base
-            if ($tipoImagen === IMAGETYPE_JPEG) $origen = @imagecreatefromjpeg($rutaTemporal);
-            elseif ($tipoImagen === IMAGETYPE_PNG) $origen = @imagecreatefrompng($rutaTemporal);
-            elseif ($tipoImagen === IMAGETYPE_WEBP) $origen = @imagecreatefromwebp($rutaTemporal);
-            elseif ($tipoImagen === IMAGETYPE_GIF) $origen = @imagecreatefromgif($rutaTemporal);
-            else $origen = false;
+            if ($tipoImagen === IMAGETYPE_JPEG) {
+                $origen = @imagecreatefromjpeg($rutaTemporal);
+            } elseif ($tipoImagen === IMAGETYPE_PNG) {
+                $origen = @imagecreatefrompng($rutaTemporal);
+            } elseif ($tipoImagen === IMAGETYPE_WEBP) {
+                $origen = @imagecreatefromwebp($rutaTemporal);
+            } elseif ($tipoImagen === IMAGETYPE_GIF) {
+                $origen = @imagecreatefromgif($rutaTemporal);
+            } else {
+                $origen = false;
+            }
 
             if ($origen !== false) {
                 // Corregir orientación EXIF
                 if ($tipoImagen === IMAGETYPE_JPEG && function_exists('exif_read_data')) {
                     $exif = @exif_read_data($rutaTemporal);
-                    if (!empty($exif['Orientation'])) {
+                    if (! empty($exif['Orientation'])) {
                         switch ($exif['Orientation']) {
-                            case 3: $origen = imagerotate($origen, 180, 0); break;
-                            case 6: $origen = imagerotate($origen, -90, 0); $tmp = $anchoOrig; $anchoOrig = $altoOrig; $altoOrig = $tmp; break;
-                            case 8: $origen = imagerotate($origen, 90, 0);  $tmp = $anchoOrig; $anchoOrig = $altoOrig; $altoOrig = $tmp; break;
+                            case 3: $origen = imagerotate($origen, 180, 0);
+                                break;
+                            case 6: $origen = imagerotate($origen, -90, 0);
+                                $tmp = $anchoOrig;
+                                $anchoOrig = $altoOrig;
+                                $altoOrig = $tmp;
+                                break;
+                            case 8: $origen = imagerotate($origen, 90, 0);
+                                $tmp = $anchoOrig;
+                                $anchoOrig = $altoOrig;
+                                $altoOrig = $tmp;
+                                break;
                         }
                     }
                 }
@@ -174,15 +186,15 @@ class PtaResultsController extends Controller
                 imagecopyresampled($lienzo, $origen, 0, 0, 0, 0, $nuevoAncho, $nuevoAlto, $anchoOrig, $altoOrig);
 
                 imagejpeg($lienzo, $destinoFinal, 80);
-                
-                return $relativePath . '/' . $nombre;
+
+                return $relativePath.'/'.$nombre;
             }
         }
-        
-        $nombreFallback = $otId . '_' . $claseLimpia . '_' . $nPiezaLimpia . '_' . $prefijo . '_' . $fechaHora . '.' . $file->getClientOriginalExtension();
+
+        $nombreFallback = $otId.'_'.$claseLimpia.'_'.$nPiezaLimpia.'_'.$prefijo.'_'.$fechaHora.'.'.$file->getClientOriginalExtension();
         $file->move($directorioDestino, $nombreFallback);
-        
-        return $relativePath . '/' . $nombreFallback;
+
+        return $relativePath.'/'.$nombreFallback;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -207,13 +219,13 @@ class PtaResultsController extends Controller
             return redirect()->back()->with('error', 'Esta OT no pasó por el proceso de Soldadura PTA.');
         }
 
-        if (!$clase_id) {
+        if (! $clase_id) {
             $clase_id = $clasesConPTA->first()->id;
         }
 
         $claseSeleccionada = $clasesConPTA->firstWhere('id', $clase_id);
 
-        if (!$claseSeleccionada) {
+        if (! $claseSeleccionada) {
             return redirect()->back()->with('error', 'La clase seleccionada no tiene Soldadura PTA.');
         }
 
@@ -226,12 +238,12 @@ class PtaResultsController extends Controller
 
         // IDs de piezas que ya tienen resultado guardado (o liberado)
         $resultadosGuardados = PtaResultado::query()->where('ot_id', $ot_id)
-            ->whereHas('pieza', fn($q) => $q->where('id_clase', $clase_id))
+            ->whereHas('pieza', fn ($q) => $q->where('id_clase', $clase_id))
             ->pluck('pieza_id')
             ->flip();  // flip() para buscar en O(1)
 
         // Piezas que todavía no tienen resultado
-        $piezasPendientes = $piezas->filter(fn($p) => !isset($resultadosGuardados[$p->id]));
+        $piezasPendientes = $piezas->filter(fn ($p) => ! isset($resultadosGuardados[$p->id]));
 
         $piezaSeleccionadaId = $request->get('pieza_id');
         $piezaSeleccionada = $piezasPendientes->firstWhere('id', $piezaSeleccionadaId)
@@ -241,7 +253,7 @@ class PtaResultsController extends Controller
 
         // Todos los resultados de la OT para la tabla resumen (keyed by pieza_id)
         $todosResultados = PtaResultado::query()->where('ot_id', $ot_id)
-            ->whereHas('pieza', fn($q) => $q->where('id_clase', $clase_id))
+            ->whereHas('pieza', fn ($q) => $q->where('id_clase', $clase_id))
             ->get()->keyBy('pieza_id');
 
         // Lista de OTs con PTA para el selector de OT y clase
@@ -250,13 +262,13 @@ class PtaResultsController extends Controller
                 $q2->where('proceso', 'Soldadura PTA');
             });
         })->with([
-                    'moldura',
-                    'clases' => function ($q) {
-                        $q->whereHas('piezas', function ($q2) {
-                            $q2->where('proceso', 'Soldadura PTA');
-                        });
-                    }
-                ])->orderBy('id', 'desc')->get();
+            'moldura',
+            'clases' => function ($q) {
+                $q->whereHas('piezas', function ($q2) {
+                    $q2->where('proceso', 'Soldadura PTA');
+                });
+            },
+        ])->orderBy('id', 'desc')->get();
 
         // Resultado ya guardado para la pieza seleccionada (por si se edita)
         $resultado = PtaResultado::query()->where('ot_id', $ot_id)
@@ -278,16 +290,12 @@ class PtaResultsController extends Controller
         ));
     }
 
-        /**
-     * @param StorePtaResultadoRequest $request
-     * @param string $ot_id
-     */
     public function store(StorePtaResultadoRequest $request, string $ot_id)
     {
         $ot = Orden_trabajo::findOrFail($ot_id);
         $clase_id = $request->get('clase_id');
         $clase = Clase::query()->find($clase_id, ['*']);
-        $clase_nombre = $clase ? $clase->nombre : 'Clase_' . $clase_id;
+        $clase_nombre = $clase ? $clase->nombre : 'Clase_'.$clase_id;
 
         $resultado = PtaResultado::firstOrNew([
             'ot_id' => $ot_id,
@@ -302,6 +310,8 @@ class PtaResultsController extends Controller
         $resultado->resultado_perfilado_llenado = $request->input('resultado_perfilado_llenado');
         $resultado->resultado_perfilado_soldadura = $request->input('resultado_perfilado_soldadura');
 
+        $nPieza = (string) $request->input('n_pieza');
+
         // Subir imágenes si se enviaron
         if ($request->hasFile('imagen_pico_soldadura')) {
             $resultado->imagen_pico_soldadura = $this->subirImagen(
@@ -310,7 +320,7 @@ class PtaResultsController extends Controller
                 'pico_sold',
                 $ot_id,
                 $clase_nombre,
-                $request->n_pieza
+                $nPieza
             );
         }
         if ($request->hasFile('imagen_conexion_soldadura')) {
@@ -320,7 +330,7 @@ class PtaResultsController extends Controller
                 'conexion_sold',
                 $ot_id,
                 $clase_nombre,
-                $request->n_pieza
+                $nPieza
             );
         }
         if ($request->hasFile('imagen_perfilado_soldadura')) {
@@ -330,22 +340,24 @@ class PtaResultsController extends Controller
                 'perfilado_sold',
                 $ot_id,
                 $clase_nombre,
-                $request->n_pieza
+                $nPieza
             );
         }
 
         $resultado->save();
 
         // Registrar log de auditoría para PTA (Consolidado por Juego: Solo en Hembra)
-        $nPiezaRef = $request->input('n_pieza');
+        $nPiezaRef = $nPieza;
         if ($nPiezaRef && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
             $user = Auth::user();
-            if (!$user) return; // Omitir log si no hay sesión
+            if (! $user) {
+                return;
+            } // Omitir log si no hay sesión
 
             $meta = Metas::query()->where('id_ot', '=', $ot_id, 'and')->where('id_usuario', '=', $user->matricula, 'and')->orderBy('created_at', 'desc')->first();
             $clase = Clase::query()->find($clase_id, ['*']);
-            $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : $ot_id;
-            
+            $otFull = $clase ? ($clase->id_ot.' - '.$clase->tamanio) : $ot_id;
+
             $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
             $h_termino_log = now()->format('H:i:s');
 
@@ -365,8 +377,8 @@ class PtaResultsController extends Controller
             }
 
             $action = 'Captura Medida';
-            $details = "El operador completó el maquinado del juego {$baseNum} a las " . substr($h_termino_log, 0, 5);
-            
+            $details = "El operador completó el maquinado del juego {$baseNum} a las ".substr($h_termino_log, 0, 5);
+
             if ($isTimeSuspicious) {
                 $action = 'Captura Sospechosa';
                 $details .= "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
@@ -380,11 +392,11 @@ class PtaResultsController extends Controller
                 'clase' => $clase->nombre ?? 'N/A',
                 'proceso' => 'Soldadura PTA',
                 'maquina' => $meta->maquina ?? 'N/A',
-                'n_pieza' => $baseNum . 'J',
+                'n_pieza' => $baseNum.'J',
                 'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
                 'h_termino' => $h_termino_log,
                 'id_ot' => $ot_id,
-                'id_clase' => $clase_id
+                'id_clase' => $clase_id,
             ]);
         }
 
@@ -400,17 +412,17 @@ class PtaResultsController extends Controller
         $esJuegoCompleto = in_array(strtoupper($clase_nombre), ['OBTURADOR', 'FONDO']);
 
         if ($esJuegoCompleto && $prefix) {
-            $msg = 'Juego ' . $prefix . ' (Juego Completo) guardado y liberado.';
+            $msg = 'Juego '.$prefix.' (Juego Completo) guardado y liberado.';
         } elseif ($prefix) {
             $compañera = PtaResultado::query()->where('ot_id', $ot_id)
                 ->where('id', '!=', $resultado->id)
-                ->whereHas('pieza', fn($q) => $q->where('n_pieza', 'like', $prefix . '%'))
+                ->whereHas('pieza', fn ($q) => $q->where('n_pieza', 'like', $prefix.'%'))
                 ->first();
 
             if ($compañera && $compañera->liberado_por_admin) {
-                $msg = 'Juego ' . $prefix . ' completo — ambas piezas liberadas.';
+                $msg = 'Juego '.$prefix.' completo — ambas piezas liberadas.';
             } elseif ($compañera) {
-                $msg = 'Pieza guardada y liberada. Falta completar la pieza complementaria del juego ' . $prefix . '.';
+                $msg = 'Pieza guardada y liberada. Falta completar la pieza complementaria del juego '.$prefix.'.';
             }
         }
 
@@ -439,6 +451,7 @@ class PtaResultsController extends Controller
         $resultado->save();
 
         $msg = $liberar ? 'Pieza liberada correctamente.' : 'Liberación revocada correctamente.';
+
         return redirect()->back()->with('success', $msg);
     }
 
@@ -472,13 +485,13 @@ class PtaResultsController extends Controller
                 $q2->where('proceso', 'Soldadura PTA');
             });
         })->with([
-                    'moldura',
-                    'clases' => function ($q) {
-                        $q->whereHas('piezas', function ($q2) {
-                            $q2->where('proceso', 'Soldadura PTA');
-                        });
-                    }
-                ])->orderBy('id', 'desc')->get();
+            'moldura',
+            'clases' => function ($q) {
+                $q->whereHas('piezas', function ($q2) {
+                    $q2->where('proceso', 'Soldadura PTA');
+                });
+            },
+        ])->orderBy('id', 'desc')->get();
 
         $otSeleccionadaId = $request->get('ot_id');
         $claseSeleccionadaId = $request->get('clase_id');
@@ -496,7 +509,7 @@ class PtaResultsController extends Controller
 
             // Cargar resultados con relaciones para no hacer N+1
             $resultados = PtaResultado::query()->where('ot_id', $otSeleccionadaId)
-                ->whereHas('pieza', fn($q) => $q->where('id_clase', $claseSeleccionadaId))
+                ->whereHas('pieza', fn ($q) => $q->where('id_clase', $claseSeleccionadaId))
                 ->with(['pieza'])
                 ->get()
                 ->keyBy('pieza_id');
@@ -539,7 +552,7 @@ class PtaResultsController extends Controller
         $otId = $request->get('ot_id');
         $claseId = $request->get('clase_id');
 
-        if (!$otId || !$claseId) {
+        if (! $otId || ! $claseId) {
             return redirect()->back()->with('error', 'Debe seleccionar OT y Clase para generar el PDF.');
         }
 
@@ -551,7 +564,7 @@ class PtaResultsController extends Controller
 
         // 2. Cargar resultados
         $resultados = PtaResultado::query()->where('ot_id', $otId)
-            ->whereHas('pieza', fn($q) => $q->where('id_clase', $claseId))
+            ->whereHas('pieza', fn ($q) => $q->where('id_clase', $claseId))
             ->with(['pieza'])
             ->get()
             ->keyBy('pieza_id');
@@ -573,9 +586,9 @@ class PtaResultsController extends Controller
         $fecha = now()->format('d-m-Y');
         $fechaHora = now()->format('d-m-Y_h-i-s-A');
         $molduraNombre = $ot->moldura ? $ot->moldura->nombre : 'SinMoldura';
-        
+
         $filename = "OT_{$ot->id}_{$molduraNombre}_Clase_{$claseSeleccionada->nombre}_{$fechaHora}.pdf";
-        
+
         // Limpiar nombre de archivo (evitar espacios y caracteres problemáticos)
         $filename = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $filename);
 
@@ -609,11 +622,11 @@ class PtaResultsController extends Controller
     public function segPasadaIndex(Request $request)
     {
         $otsConPTA = Orden_trabajo::whereHas('clases', function ($q) {
-            $q->whereHas('piezas', fn($q2) => $q2->where('proceso', 'Soldadura PTA'));
+            $q->whereHas('piezas', fn ($q2) => $q2->where('proceso', 'Soldadura PTA'));
         })->with([
-                    'moldura',
-                    'clases' => fn($q) => $q->whereHas('piezas', fn($q2) => $q2->where('proceso', 'Soldadura PTA'))
-                ])->orderBy('id', 'desc')->get();
+            'moldura',
+            'clases' => fn ($q) => $q->whereHas('piezas', fn ($q2) => $q2->where('proceso', 'Soldadura PTA')),
+        ])->orderBy('id', 'desc')->get();
 
         $otSeleccionadaId = $request->get('ot_id');
         $claseSeleccionadaId = $request->get('clase_id');
@@ -644,7 +657,7 @@ class PtaResultsController extends Controller
                     ->whereNotNull('n_pieza')
                     ->distinct()
                     ->orderByRaw('CAST(n_pieza AS UNSIGNED) ASC')
-                    ->orderByRaw("RIGHT(n_pieza, 1) DESC")
+                    ->orderByRaw('RIGHT(n_pieza, 1) DESC')
                     ->pluck('n_pieza');
 
                 if ($nPiezaSel) {
@@ -678,7 +691,7 @@ class PtaResultsController extends Controller
      */
     public function segPasadaUpdate(Request $request)
     {
-        if (!session('pta_temp_auth')) {
+        if (! session('pta_temp_auth')) {
             return redirect()->route('pta.segunda_pasada', [
                 'ot_id' => $request->input('ot_id'),
                 'clase_id' => $request->input('clase_id'),
@@ -726,11 +739,11 @@ class PtaResultsController extends Controller
                 ->where('p2_activa', 1)
                 ->first();
 
-            if (!$p2Row) {
+            if (! $p2Row) {
                 $p2Row = new SoldaduraPTA_pza();
                 $p2Row->id_proceso = $idProceso;
                 // Sufijo para evitar error UNIQUE CONSTRAINT al crear esta 4ta fila
-                $p2Row->id_pza = $piezaBase->id_pza . '_P2';
+                $p2Row->id_pza = $piezaBase->id_pza.'_P2';
                 $p2Row->id_meta = $piezaBase->id_meta;
                 $p2Row->n_juego = $piezaBase->n_juego;
                 $p2Row->n_pieza = $nPieza;
@@ -794,9 +807,9 @@ class PtaResultsController extends Controller
                 'details' => "El operador registró una Segunda Pasada para el juego {$baseNum}.",
                 'ot' => $piezaBase->id_ot,
                 'clase' => $piezaBase->id_clase,
-                'n_pieza' => $baseNum . 'J',
+                'n_pieza' => $baseNum.'J',
                 'h_inicio' => now()->subMinute()->format('H:i:s'),
-                'h_termino' => now()->format('H:i:s')
+                'h_termino' => now()->format('H:i:s'),
             ]);
         }
 
@@ -804,7 +817,7 @@ class PtaResultsController extends Controller
             'ot_id' => $request->input('ot_id'),
             'clase_id' => $request->input('clase_id'),
             'n_pieza' => $request->input('n_pieza'),
-        ])->with('success', '2da pasada guardada correctamente para la pieza ' . $request->input('n_pieza') . '.');
+        ])->with('success', '2da pasada guardada correctamente para la pieza '.$request->input('n_pieza').'.');
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -825,6 +838,7 @@ class PtaResultsController extends Controller
                 $count += 0.5;
             }
         }
+
         return (float) $count;
     }
 
@@ -832,12 +846,14 @@ class PtaResultsController extends Controller
      * Construye los datos de la card PTA para una OT dada.
      * Devuelve null si la OT no pasó por PTA o no hay actividad relacionada.
      */
-    public static function buildCardData(string $otId, int $claseId): ?array
+    public static function buildCardData(string $otId, int $claseId, $piezasClase = null): ?array
     {
-        // 1. Obtener TODAS las piezas de esta clase en esta OT
-        $piezasClase = Pieza::query()->where('id_ot', $otId)
-            ->where('id_clase', $claseId)
-            ->get();
+        // 1. Obtener TODAS las piezas de esta clase en esta OT (reusar colección precargada si existe)
+        $piezasClase = ($piezasClase instanceof \Illuminate\Support\Collection)
+            ? $piezasClase
+            : Pieza::query()->where('id_ot', $otId)
+                ->where('id_clase', $claseId)
+                ->get();
 
         if ($piezasClase->isEmpty()) {
             return null;
@@ -853,7 +869,7 @@ class PtaResultsController extends Controller
             return str_contains($p->proceso, 'PTA');
         });
 
-        if (!$hayActividadPTA) {
+        if (! $hayActividadPTA) {
             return null;
         }
 
@@ -871,11 +887,13 @@ class PtaResultsController extends Controller
 
         $piezasLiberadas = $piezasViables->filter(function ($p) use ($resultados) {
             $res = $resultados->get($p->id);
+
             return $res && (int) $res->liberado_por_admin === 1;
         });
 
         $piezasSinLiberar = $piezasViables->reject(function ($p) use ($resultados) {
             $res = $resultados->get($p->id);
+
             return $res && (int) $res->liberado_por_admin === 1;
         });
 
@@ -895,4 +913,3 @@ class PtaResultsController extends Controller
         ];
     }
 }
-

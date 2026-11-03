@@ -8,10 +8,11 @@ use App\Models\Moldura;
 use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 
 class ReporteProduccionController extends Controller
 {
@@ -19,9 +20,10 @@ class ReporteProduccionController extends Controller
     {
         // Solo el perfil 1 (Administrador) y perfil 3 (Master) pueden ver y reenviar reportes
         $this->middleware(function ($request, $next) {
-            if (auth()->check() && !in_array(auth()->user()->perfil, [1, 3])) {
+            if (auth()->check() && ! in_array(auth()->user()->perfil, [1, 3])) {
                 abort(403, 'No tienes permiso para acceder a esta sección.');
             }
+
             return $next($request);
         });
     }
@@ -37,6 +39,7 @@ class ReporteProduccionController extends Controller
     public function showReenvio()
     {
         $backgroundImage = 'images/fondos/fondoadmin.png';
+
         return view('reportes.reenvio', compact('backgroundImage'));
     }
 
@@ -58,15 +61,15 @@ class ReporteProduccionController extends Controller
 
         $fecha = Carbon::parse($request->input('fecha'));
         $raw = $request->input('correos') ?: config('mail.report_recipients');
-        
+
         // 1. Limpiar comillas y espacios externos
         $raw = trim($raw, '"\' ');
-        
+
         // 2. Separar y limpiar cada correo de caracteres invisibles
-        $destinatarios = array_filter(array_map(function($correo) {
+        $destinatarios = array_filter(array_map(function ($correo) {
             return preg_replace('/[^a-zA-Z0-9@._+-]/', '', trim($correo));
         }, explode(',', $raw)));
-        \Illuminate\Support\Facades\Log::info("Reenviando reporte para {$fecha->toDateString()} a: " . implode(', ', $destinatarios));
+        Log::info("Reenviando reporte para {$fecha->toDateString()} a: ".implode(', ', $destinatarios));
 
         // Reutilizar la misma lógica del Command
         $piezas = $this->buscarConFiltros(new Request([
@@ -84,39 +87,38 @@ class ReporteProduccionController extends Controller
         $pdfPaths = [];
         $baseDir = storage_path('app/public/reportes');
         $folderPath = "{$baseDir}/General";
-        if (!file_exists($folderPath)) {
+        if (! file_exists($folderPath)) {
             mkdir($folderPath, 0755, true);
         }
         $fullPath = "{$folderPath}/{$fecha->toDateString()}.pdf";
 
         $pdf = FacadePdf::loadView('emails.reporte_diario_pdf', [
             'reporte' => $reporte,
-            'fecha' => $fecha
+            'fecha' => $fecha,
         ]);
         $pdf->setPaper('a4', 'portrait');
         $pdf->save($fullPath);
 
         $pdfPaths[] = $fullPath;
 
-
-        \Illuminate\Support\Facades\Log::info("PDFs generados (" . count($pdfPaths) . "): " . implode(', ', $pdfPaths));
+        Log::info('PDFs generados ('.count($pdfPaths).'): '.implode(', ', $pdfPaths));
 
         $enviados = 0;
         $errores = [];
         set_time_limit(0); // Evitar timeout en reportes grandes
-        
-        \Illuminate\Support\Facades\Log::info("Iniciando envío a " . count($destinatarios) . " destinatarios.");
+
+        Log::info('Iniciando envío a '.count($destinatarios).' destinatarios.');
 
         foreach ($destinatarios as $correo) {
             try {
                 Mail::to($correo)->send(new ReporteDiarioMail($reporte, $fecha, $pdfPaths));
-                \Illuminate\Support\Facades\Log::info("✓ Mail enviado exitosamente a: {$correo}");
+                Log::info("✓ Mail enviado exitosamente a: {$correo}");
                 $enviados++;
             } catch (\Throwable $e) {
-                \Illuminate\Support\Facades\Log::error("✗ Error enviando mail a {$correo}: " . $e->getMessage(), [
-                    'exception' => $e
+                Log::error("✗ Error enviando mail a {$correo}: ".$e->getMessage(), [
+                    'exception' => $e,
                 ]);
-                $errores[] = "{$correo}: " . $e->getMessage();
+                $errores[] = "{$correo}: ".$e->getMessage();
             }
         }
 
@@ -126,13 +128,14 @@ class ReporteProduccionController extends Controller
         }
 
         return redirect()->route('reportes.reenvio')
-            ->with('error', 'No se pudo enviar el correo: ' . implode(' | ', $errores));
+            ->with('error', 'No se pudo enviar el correo: '.implode(' | ', $errores));
     }
 
     /**
      * Genera y descarga el PDF del reporte para una fecha específica.
      * GET /reportes/descargar-pdf/{fecha}
-     * @param string $fechaStr
+     *
+     * @param  string  $fechaStr
      */
     public function descargarPDF($fechaStr)
     {
@@ -151,13 +154,14 @@ class ReporteProduccionController extends Controller
 
         $pdf = FacadePdf::loadView('emails.reporte_diario_pdf', [
             'reporte' => $reporte,
-            'fecha' => $fecha
+            'fecha' => $fecha,
         ]);
 
         // Configurar opciones de PDF para mejor visualización
         $pdf->setPaper('a4', 'portrait');
 
         $hora = now()->format('H-i');
+
         return $pdf->download("Reporte_Produccion_{$fecha->toDateString()}_{$hora}.pdf");
     }
 
@@ -208,7 +212,7 @@ class ReporteProduccionController extends Controller
     /**
      * Agrupa piezas en: OT → Clase → Proceso → [ filas de operadores ]
      * Idéntica a la lógica del Command (reutilizable desde ambos lugares).
-     * @param \Illuminate\Support\Collection $piezas
+     *
      * @return array<string, mixed>
      */
     private function agruparJerarquicamente(\Illuminate\Support\Collection $piezas): array
@@ -222,13 +226,13 @@ class ReporteProduccionController extends Controller
         $usuariosMap = [];
 
         $dt = new \App\Http\Controllers\DatosProduccionController();
-        $processesAssembly = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion"];
+        $processesAssembly = ['Barreno Maniobra', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Barreno Profundidad', 'Palomas', 'Rebajes', 'Grabado', 'Operacion Equipo', 'Operacion Equipo_1 operacion', 'Operacion Equipo_2 operacion'];
 
         // Índice global de mitades: para detectar H y M de operadores distintos
         $globalJuegoIndex = []; // [hash][numBase]['H'|'M'] => $pieza
         foreach ($piezas as $pz) {
             if (preg_match('/^(\d+)([HM])$/i', $pz->n_pieza, $gm)) {
-                $gh = $pz->id_ot . '_' . $pz->id_clase . '_' . ($pz->proceso ?? 'Sin Proceso');
+                $gh = $pz->id_ot.'_'.$pz->id_clase.'_'.($pz->proceso ?? 'Sin Proceso');
                 $globalJuegoIndex[$gh][$gm[1]][strtoupper($gm[2])] = $pz;
             }
         }
@@ -244,29 +248,29 @@ class ReporteProduccionController extends Controller
 
         foreach ($piezas as $pieza) {
             $mat = $pieza->id_operador;
-            if (!isset($usuariosMap[$mat])) {
+            if (! isset($usuariosMap[$mat])) {
                 $u = $usuariosPrecargados->get($mat);
                 $usuariosMap[$mat] = $u ? trim("{$u->nombre} {$u->a_paterno} {$u->a_materno}") : "Op #{$mat}";
             }
             $operador = $usuariosMap[$mat];
 
             $otId = $pieza->id_ot;
-            if (!isset($moldurasMap[$otId])) {
+            if (! isset($moldurasMap[$otId])) {
                 $ot = $otsPrecargadas->get($otId);
                 $mn = $ot && $ot->moldura ? $ot->moldura->nombre : '—';
                 $moldurasMap[$otId] = "OT #{$otId} — {$mn}";
             }
 
             $claseId = $pieza->id_clase;
-            if (!isset($clasesMap[$claseId])) {
+            if (! isset($clasesMap[$claseId])) {
                 $cls = $clasesPrecargadas->get($claseId);
-                $clasesMap[$claseId] = ['label' => $cls ? trim($cls->nombre . ' ' . $cls->tamanio) : "Clase #{$claseId}", 'nombre' => $cls->nombre ?? ''];
+                $clasesMap[$claseId] = ['label' => $cls ? trim($cls->nombre.' '.$cls->tamanio) : "Clase #{$claseId}", 'nombre' => $cls->nombre ?? ''];
             }
 
             $proceso = $pieza->proceso ?? 'Sin Proceso';
             $hashProceso = "{$otId}_{$claseId}_{$proceso}";
 
-            if (!isset($totales[$operador][$hashProceso])) {
+            if (! isset($totales[$operador][$hashProceso])) {
                 try {
                     $meta = $dt->obtenerMeta($pieza, $clasesMap[$claseId]['nombre']);
                 } catch (\Exception $e) {
@@ -277,7 +281,7 @@ class ReporteProduccionController extends Controller
                     'buenas' => 0,
                     'ot_label' => $moldurasMap[$otId],
                     'clase_label' => $clasesMap[$claseId]['label'],
-                    'proceso' => $proceso
+                    'proceso' => $proceso,
                 ];
             }
 
@@ -292,17 +296,19 @@ class ReporteProduccionController extends Controller
                 // PTA: only Fundicion blocks
                 if ($pieza->liberacion == 2) {
                     $isValid = false;
-                } elseif (in_array($pieza->error, ['Fundicion', 'Fundición']) && !in_array($pieza->liberacion, [1, 3])) {
+                } elseif (in_array($pieza->error, ['Fundicion', 'Fundición']) && ! in_array($pieza->liberacion, [1, 3])) {
                     $isValid = false;
                 } else {
                     $isValid = true;
                 }
-            } elseif ($pieza->error != "Ninguno" && !empty($pieza->error)) {
-                if ($pieza->liberacion == 1 || $pieza->liberacion == 3)
+            } elseif ($pieza->error != 'Ninguno' && ! empty($pieza->error)) {
+                if ($pieza->liberacion == 1 || $pieza->liberacion == 3) {
                     $isValid = true;
+                }
             } else {
-                if ($pieza->liberacion != 2)
+                if ($pieza->liberacion != 2) {
                     $isValid = true;
+                }
             }
             if ($isValid) {
                 $totales[$operador][$hashProceso]['buenas'] += $cantidad;
@@ -324,25 +330,28 @@ class ReporteProduccionController extends Controller
                 $sufijo = '';
             }
 
-            if (!isset($agrupacion[$proceso][$operador][$hashProceso])) {
+            if (! isset($agrupacion[$proceso][$operador][$hashProceso])) {
                 $agrupacion[$proceso][$operador][$hashProceso] = [];
             }
             $coleccion = &$agrupacion[$proceso][$operador][$hashProceso];
 
-            $keyDict = $esJuego ? "juego_{$nPiezaBase}" : "pieza_{$nPiezaRaw}_" . $pieza->id;
+            $keyDict = $esJuego ? "juego_{$nPiezaBase}" : "pieza_{$nPiezaRaw}_".$pieza->id;
 
             if ($esJuego) {
                 // ── Detectar juego compartido (distinto operador en H y M) ──
                 $partnerSuf = $sufijo === 'H' ? 'M' : 'H';
                 $partnerPza = $globalJuegoIndex[$hashProceso][$nPiezaBase][$partnerSuf] ?? null;
 
-                if (!$partnerPza) {
+                if (! $partnerPza) {
                     $partnerPza = Pieza::query()->where('id_ot', $pieza->id_ot)
                         ->where('id_clase', $pieza->id_clase)
                         ->where('n_pieza', "{$nPiezaBase}{$partnerSuf}")
-                        ->where(function($q) use ($pieza) {
-                            if ($pieza->proceso) { $q->where('proceso', $pieza->proceso); }
-                            else { $q->whereNull('proceso'); }
+                        ->where(function ($q) use ($pieza) {
+                            if ($pieza->proceso) {
+                                $q->where('proceso', $pieza->proceso);
+                            } else {
+                                $q->whereNull('proceso');
+                            }
                         })->orderBy('id', 'desc')->first();
                 }
 
@@ -350,48 +359,48 @@ class ReporteProduccionController extends Controller
 
                 if ($esCompartido) {
                     $mOpPartner = $partnerPza->id_operador;
-                    if (!isset($usuariosMap[$mOpPartner])) {
+                    if (! isset($usuariosMap[$mOpPartner])) {
                         $uOp = User::query()->where('matricula', $mOpPartner)->first();
                         $usuariosMap[$mOpPartner] = $uOp ? trim("{$uOp->nombre} {$uOp->a_paterno} {$uOp->a_materno}") : "Operador #{$mOpPartner}";
                     }
                     $opPartner = $usuariosMap[$mOpPartner];
 
-                    if (!isset($coleccion[$keyDict])) {
-                        $nota = '"Se realizó mitad de pieza junto con ' . $opPartner . '"';
-                        $obsCompleta = ($obsOperador !== '' && $obsOperador !== '—') ? $nota . ', ' . $obsOperador : $nota;
+                    if (! isset($coleccion[$keyDict])) {
+                        $nota = '"Se realizó mitad de pieza junto con '.$opPartner.'"';
+                        $obsCompleta = ($obsOperador !== '' && $obsOperador !== '—') ? $nota.', '.$obsOperador : $nota;
                         $coleccion[$keyDict] = [
-                            'n_piezas'        => "{$nPiezaBase}J",
-                            'hora_inicio'     => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
-                            'hora_fin'        => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
-                            'obs_operador'    => $obsCompleta,
-                            'obs_calidad'     => $obsCalidad,
-                            'bg_color'        => $colorFila,
-                            'is_juego'        => true,
-                            'es_compartido'   => true,
-                            'piezas_incluidas'=> ['H', 'M'],
-                            'maquina'         => $pieza->maquina ?? '—',
+                            'n_piezas' => "{$nPiezaBase}J",
+                            'hora_inicio' => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                            'hora_fin' => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
+                            'obs_operador' => $obsCompleta,
+                            'obs_calidad' => $obsCalidad,
+                            'bg_color' => $colorFila,
+                            'is_juego' => true,
+                            'es_compartido' => true,
+                            'piezas_incluidas' => ['H', 'M'],
+                            'maquina' => $pieza->maquina ?? '—',
                         ];
                     }
                 } else {
-                    if (!isset($coleccion[$keyDict])) {
+                    if (! isset($coleccion[$keyDict])) {
                         $coleccion[$keyDict] = [
-                            'n_piezas'        => "{$nPiezaBase}J",
-                            'hora_inicio'     => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
-                            'hora_fin'        => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
-                            'obs_operador'    => $obsOperador,
-                            'obs_calidad'     => $obsCalidad,
-                            'bg_color'        => $colorFila,
-                            'is_juego'        => true,
-                            'piezas_incluidas'=> [$sufijo],
-                            'maquina'         => $pieza->maquina ?? '—',
+                            'n_piezas' => "{$nPiezaBase}J",
+                            'hora_inicio' => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
+                            'hora_fin' => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
+                            'obs_operador' => $obsOperador,
+                            'obs_calidad' => $obsCalidad,
+                            'bg_color' => $colorFila,
+                            'is_juego' => true,
+                            'piezas_incluidas' => [$sufijo],
+                            'maquina' => $pieza->maquina ?? '—',
                         ];
                     } else {
-                        if (!in_array($sufijo, $coleccion[$keyDict]['piezas_incluidas'])) {
-                            if ($obsOperador !== '—' && !str_contains($coleccion[$keyDict]['obs_operador'], $obsOperador)) {
-                                $coleccion[$keyDict]['obs_operador'] = $coleccion[$keyDict]['obs_operador'] === '—' ? $obsOperador : $coleccion[$keyDict]['obs_operador'] . ' | ' . $obsOperador;
+                        if (! in_array($sufijo, $coleccion[$keyDict]['piezas_incluidas'])) {
+                            if ($obsOperador !== '—' && ! str_contains($coleccion[$keyDict]['obs_operador'], $obsOperador)) {
+                                $coleccion[$keyDict]['obs_operador'] = $coleccion[$keyDict]['obs_operador'] === '—' ? $obsOperador : $coleccion[$keyDict]['obs_operador'].' | '.$obsOperador;
                             }
-                            if ($obsCalidad !== '—' && !str_contains($coleccion[$keyDict]['obs_calidad'], $obsCalidad)) {
-                                $coleccion[$keyDict]['obs_calidad'] = $coleccion[$keyDict]['obs_calidad'] === '—' ? $obsCalidad : $coleccion[$keyDict]['obs_calidad'] . ' | ' . $obsCalidad;
+                            if ($obsCalidad !== '—' && ! str_contains($coleccion[$keyDict]['obs_calidad'], $obsCalidad)) {
+                                $coleccion[$keyDict]['obs_calidad'] = $coleccion[$keyDict]['obs_calidad'] === '—' ? $obsCalidad : $coleccion[$keyDict]['obs_calidad'].' | '.$obsCalidad;
                             }
                             $priority = ['#FF6B6B' => 5, '#DDA0DD' => 4, '#FFD700' => 3, '#90EE90' => 2, '#79BFED' => 1];
                             if (($priority[$colorFila] ?? 0) > ($priority[$coleccion[$keyDict]['bg_color']] ?? 0)) {
@@ -403,24 +412,24 @@ class ReporteProduccionController extends Controller
                 }
             } else {
                 $coleccion[$keyDict] = [
-                    'n_piezas'    => "{$nPiezaRaw}",
+                    'n_piezas' => "{$nPiezaRaw}",
                     'hora_inicio' => Carbon::parse($pieza->created_at)->format('d/m/Y H:i'),
-                    'hora_fin'    => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
-                    'obs_operador'=> $obsOperador,
+                    'hora_fin' => Carbon::parse($pieza->updated_at)->format('d/m/Y H:i'),
+                    'obs_operador' => $obsOperador,
                     'obs_calidad' => $obsCalidad,
-                    'bg_color'    => $colorFila,
-                    'is_juego'    => false,
-                    'maquina'     => $pieza->maquina ?? '—',
+                    'bg_color' => $colorFila,
+                    'is_juego' => false,
+                    'maquina' => $pieza->maquina ?? '—',
                 ];
             }
         }
 
         foreach ($agrupacion as $procesoKey => $operadoresData) {
-            if (!isset($reporteFinal[$procesoKey])) {
+            if (! isset($reporteFinal[$procesoKey])) {
                 $reporteFinal[$procesoKey] = [];
             }
             foreach ($operadoresData as $operador => $procesosData) {
-                if (!isset($reporteFinal[$procesoKey][$operador])) {
+                if (! isset($reporteFinal[$procesoKey][$operador])) {
                     $reporteFinal[$procesoKey][$operador] = [];
                 }
                 foreach ($procesosData as $hashProceso => $filas) {
@@ -432,7 +441,7 @@ class ReporteProduccionController extends Controller
                                 $numBase = str_replace('J', '', $fila['n_piezas']);
                                 $fila['n_piezas'] = "{$numBase}{$suf} (.5)"; // Mitad solitaria (aporta 0.5)
                             } elseif (isset($fila['es_compartido']) && $fila['es_compartido']) {
-                                $fila['n_piezas'] .= " (.5)"; // Juego compartido (aporta 0.5 a este op)
+                                $fila['n_piezas'] .= ' (.5)'; // Juego compartido (aporta 0.5 a este op)
                             }
                             unset($fila['is_juego']);
                             unset($fila['piezas_incluidas']);
@@ -481,6 +490,7 @@ class ReporteProduccionController extends Controller
         uksort($reporteFinal, function ($a, $b) use ($prioridadProcesos) {
             $pA = $prioridadProcesos[$a] ?? 99;
             $pB = $prioridadProcesos[$b] ?? 99;
+
             return $pA <=> $pB;
         });
 
@@ -490,12 +500,13 @@ class ReporteProduccionController extends Controller
     /**
      * Recupera las observaciones del operador desde las tablas específicas de cada proceso.
      * Lógica adaptada de PzasGeneralesController/ProcessProductionController.
-     * @param Pieza $pieza
+     *
+     * @param  Pieza  $pieza
      */
     private function getObservacionesOperador($pieza): string
     {
         // Si el modelo ya tiene el campo observacion_operador, lo usamos directamente
-        if (isset($pieza->observacion_operador) && !empty($pieza->observacion_operador) && $pieza->observacion_operador !== '—') {
+        if (isset($pieza->observacion_operador) && ! empty($pieza->observacion_operador) && $pieza->observacion_operador !== '—') {
             return $pieza->observacion_operador;
         }
 
@@ -503,130 +514,142 @@ class ReporteProduccionController extends Controller
         return '—';
     }
 
-        /**
-     * @param mixed $process
+    /**
+     * @param  mixed  $process
      */
     private function getModelProcess($process): ?string
     {
         $map = [
-            'Cepillado' => "Cepillado",
-            'Desbaste Exterior' => "DesbasteExterior",
-            'Revision Laterales' => "RevLaterales",
-            'Primera Operacion' => "PrimeraOpeSoldadura",
-            'Barreno Maniobra' => "BarrenoManiobra",
-            'Segunda Operacion' => "SegundaOpeSoldadura",
-            'Rectificado' => "Rectificado",
-            'Asentado' => "Asentado",
-            'Calificado' => "revCalificado",
-            'Acabado Bombillo' => "AcabadoBombilo",
-            'Acabado Molde' => "AcabadoMolde",
-            'Barreno Profundidad' => "BarrenoProfundidad",
-            'Cavidades' => "Cavidades",
-            'Copiado' => "Copiado",
-            'Off Set' => "OffSet",
-            'Palomas' => "Palomas",
-            'Rebajes' => "Rebajes",
-            'Operacion Equipo' => "PySOpeSoldadura",
-            'Embudo CM' => "EmbudoCM",
-            'Soldadura' => "Soldadura",
-            'Soldadura PTA' => "SoldaduraPTA",
-            'Primera Operacion Cabeza Soplo' => "PrimeraOperacionCabezaSoplo",
-            'Segunda Operacion Cabeza Soplo' => "SegundaOperacionCabezaSoplo",
+            'Cepillado' => 'Cepillado',
+            'Desbaste Exterior' => 'DesbasteExterior',
+            'Revision Laterales' => 'RevLaterales',
+            'Primera Operacion' => 'PrimeraOpeSoldadura',
+            'Barreno Maniobra' => 'BarrenoManiobra',
+            'Segunda Operacion' => 'SegundaOpeSoldadura',
+            'Rectificado' => 'Rectificado',
+            'Asentado' => 'Asentado',
+            'Calificado' => 'revCalificado',
+            'Acabado Bombillo' => 'AcabadoBombilo',
+            'Acabado Molde' => 'AcabadoMolde',
+            'Barreno Profundidad' => 'BarrenoProfundidad',
+            'Cavidades' => 'Cavidades',
+            'Copiado' => 'Copiado',
+            'Off Set' => 'OffSet',
+            'Palomas' => 'Palomas',
+            'Rebajes' => 'Rebajes',
+            'Operacion Equipo' => 'PySOpeSoldadura',
+            'Embudo CM' => 'EmbudoCM',
+            'Soldadura' => 'Soldadura',
+            'Soldadura PTA' => 'SoldaduraPTA',
+            'Primera Operacion Cabeza Soplo' => 'PrimeraOperacionCabezaSoplo',
+            'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo',
         ];
-        return isset($map[$process]) ? "App\\Models\\" . $map[$process] : null;
+
+        return isset($map[$process]) ? 'App\\Models\\'.$map[$process] : null;
     }
 
-        /**
-     * @param mixed $process
+    /**
+     * @param  mixed  $process
      */
     private function getModelProcessPieces($process): ?string
     {
         $map = [
-            'Cepillado' => "Pza_cepillado",
-            'Desbaste Exterior' => "Desbaste_pza",
-            'Revision Laterales' => "RevLaterales_pza",
-            'Primera Operacion' => "PrimeraOpeSoldadura_pza",
-            'Barreno Maniobra' => "BarrenoManiobra_pza",
-            'Segunda Operacion' => "SegundaOpeSoldadura_pza",
-            'Rectificado' => "Rectificado_pza",
-            'Asentado' => "Asentado_pza",
-            'Calificado' => "revCalificado_pza",
-            'Acabado Bombillo' => "AcabadoBombilo_pza",
-            'Acabado Molde' => "AcabadoMolde_pza",
-            'Barreno Profundidad' => "BarrenoProfundidad_pza",
-            'Cavidades' => "Cavidades_pza",
-            'Copiado' => "Copiado_pza",
-            'Off Set' => "OffSet_pza",
-            'Palomas' => "Palomas_pza",
-            'Rebajes' => "Rebajes_pza",
-            'Operacion Equipo' => "PySOpeSoldadura_pza",
-            'Embudo CM' => "EmbudoCM_pza",
-            'Soldadura' => "Soldadura_pza",
-            'Soldadura PTA' => "SoldaduraPTA_pza",
-            'Primera Operacion Cabeza Soplo' => "PrimeraOperacionCabezaSoplo_pza",
-            'Segunda Operacion Cabeza Soplo' => "SegundaOperacionCabezaSoplo_pza",
+            'Cepillado' => 'Pza_cepillado',
+            'Desbaste Exterior' => 'Desbaste_pza',
+            'Revision Laterales' => 'RevLaterales_pza',
+            'Primera Operacion' => 'PrimeraOpeSoldadura_pza',
+            'Barreno Maniobra' => 'BarrenoManiobra_pza',
+            'Segunda Operacion' => 'SegundaOpeSoldadura_pza',
+            'Rectificado' => 'Rectificado_pza',
+            'Asentado' => 'Asentado_pza',
+            'Calificado' => 'revCalificado_pza',
+            'Acabado Bombillo' => 'AcabadoBombilo_pza',
+            'Acabado Molde' => 'AcabadoMolde_pza',
+            'Barreno Profundidad' => 'BarrenoProfundidad_pza',
+            'Cavidades' => 'Cavidades_pza',
+            'Copiado' => 'Copiado_pza',
+            'Off Set' => 'OffSet_pza',
+            'Palomas' => 'Palomas_pza',
+            'Rebajes' => 'Rebajes_pza',
+            'Operacion Equipo' => 'PySOpeSoldadura_pza',
+            'Embudo CM' => 'EmbudoCM_pza',
+            'Soldadura' => 'Soldadura_pza',
+            'Soldadura PTA' => 'SoldaduraPTA_pza',
+            'Primera Operacion Cabeza Soplo' => 'PrimeraOperacionCabezaSoplo_pza',
+            'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo_pza',
         ];
-        return isset($map[$process]) ? "App\\Models\\" . $map[$process] : null;
+
+        return isset($map[$process]) ? 'App\\Models\\'.$map[$process] : null;
     }
 
-        /**
-     * @param mixed $piece
+    /**
+     * @param  mixed  $piece
      */
     private function verifyPiece($piece): bool
     {
-        if (!$piece)
+        if (! $piece) {
             return false;
+        }
 
         // PTA-specific: only Fundicion blocks
         if ($piece->proceso === 'Soldadura PTA') {
-            if (in_array($piece->liberacion, [2, 5]))
+            if (in_array($piece->liberacion, [2, 5])) {
                 return false;
-            if (in_array($piece->error, ['Fundicion', 'Fundición']) && !in_array($piece->liberacion, [1, 3]))
+            }
+            if (in_array($piece->error, ['Fundicion', 'Fundición']) && ! in_array($piece->liberacion, [1, 3])) {
                 return false;
+            }
+
             return true;
         }
 
-        if ($piece->liberacion == 1 || $piece->liberacion == 3)
+        if ($piece->liberacion == 1 || $piece->liberacion == 3) {
             return true;
-        if ($piece->liberacion == 0 && ($piece->error == 'Ninguno' || empty($piece->error)))
+        }
+        if ($piece->liberacion == 0 && ($piece->error == 'Ninguno' || empty($piece->error))) {
             return true;
+        }
+
         return false;
     }
 
     /**
      * Mapeamos el color en Hex de acuerdo con adminPieces.js
-     * @param int|string $status
-     * @param string|null $error
-     * @param string $process
+     *
+     * @param  int|string  $status
+     * @param  string|null  $error
+     * @param  string  $process
      */
     private function asignColorTr($status, $error, $process = '')
     {
         $status = (int) $status;
         switch ($status) {
             case 1:
-                return "#79BFED";
+                return '#79BFED';
             case 2:
-                return "#FF6B6B";
+                return '#FF6B6B';
             case 3:
-                return "#90EE90";
+                return '#90EE90';
             case 4:
                 // PTA: only Fundicion stays purple
-                if ($process === 'Soldadura PTA' && !str_contains((string) $error, 'Fundicion') && !str_contains((string) $error, 'Fundición')) {
-                    return "#90EE90";
+                if ($process === 'Soldadura PTA' && ! str_contains((string) $error, 'Fundicion') && ! str_contains((string) $error, 'Fundición')) {
+                    return '#90EE90';
                 }
-                return "#DDA0DD";
+
+                return '#DDA0DD';
             case 5:
-                return "#FFD700";
+                return '#FFD700';
             default:
-                if (str_contains((string) $error, "Incompleto"))
-                    return "#FFD700";
-                elseif ($error === "Ninguno" || empty($error))
-                    return "#90EE90";
-                else {
-                    if ($process === 'Soldadura PTA' && !str_contains((string) $error, 'Fundicion') && !str_contains((string) $error, 'Fundición')) {
-                        return "#90EE90";
+                if (str_contains((string) $error, 'Incompleto')) {
+                    return '#FFD700';
+                } elseif ($error === 'Ninguno' || empty($error)) {
+                    return '#90EE90';
+                } else {
+                    if ($process === 'Soldadura PTA' && ! str_contains((string) $error, 'Fundicion') && ! str_contains((string) $error, 'Fundición')) {
+                        return '#90EE90';
                     }
-                    return "#DDA0DD";
+
+                    return '#DDA0DD';
                 }
         }
     }

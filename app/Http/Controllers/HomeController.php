@@ -2,69 +2,69 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Clase;
-use App\Models\Pieza;
-use Illuminate\Http\Request;
+use App\Models\Orden_trabajo;
 
 class HomeController extends Controller
 {
     /** @var \App\Http\Controllers\PzasLiberadasController */
     protected $releasedPiecesController;
+
     public function __construct()
     {
         $this->middleware('auth');
         $this->releasedPiecesController = new PzasLiberadasController();
     }
+
     public function index()
     {
         $perfil = auth()->user()->perfil;
- 
+
         if ($perfil !== null) {
-            $backgroundImage = "images/fondos/fondoadmin.png";
+            $backgroundImage = 'images/fondos/fondoadmin.png';
             $objectiveT = 'Nuestro objetivo es producir moldes de alta calidad para botellas de vidrio que cumplan con las especificaciones de los clientes y sean eficientes en términos de costos de producción.';
             $pieces_Released = [];
             $info_Pieces = [];
-            $layout = "layouts.menu.appAdmin";
+            $layout = 'layouts.menu.appAdmin';
             $welcomeT = 'Bienvenido a Administración';
             switch ((int) auth()->user()->perfil) {
                 case 1:
-                    $layout = "layouts.menu.appAdmin";
+                    $layout = 'layouts.menu.appAdmin';
                     $welcomeT = 'Bienvenido a Administración';
                     break;
                 case 2:
-                    $layout = "layouts.menu.appProduction";
-                    $backgroundImage = "images/Color_Icons/Usuarios/operadores.png";
+                    $layout = 'layouts.menu.appProduction';
+                    $backgroundImage = 'images/Color_Icons/Usuarios/operadores.png';
                     $welcomeT = 'Bienvenido a Producción';
                     break;
                 case 3:
-                    $layout = "layouts.menu.appMaster";
-                    $backgroundImage = "images/fondos/fondo master.png";
+                    $layout = 'layouts.menu.appMaster';
+                    $backgroundImage = 'images/fondos/fondo master.png';
                     $welcomeT = 'Bienvenido Master';
                     break;
                 case 4:
-                    $layout = "layouts.menu.appQuality";
-                    $backgroundImage = "images/fondos/fondocalidad.png";
+                    $layout = 'layouts.menu.appQuality';
+                    $backgroundImage = 'images/fondos/fondocalidad.png';
                     $welcomeT = 'Bienvenido a Control de calidad';
                     $objectiveT = 'En nuestro perfil de calidad, cada milímetro importa. Nos comprometemos a inspeccionar con precisión cada pieza, asegurando medidas exactas y calidad impecable. En la búsqueda constante de la excelencia, nos destacamos por nuestra meticulosidad y compromiso con la perfección.';
                     [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
                     break;
                 case 5:
-                    $layout = "layouts.menu.appWarehouse";
-                    $backgroundImage = "images/fondos/fondoalmacen.png";
+                    $layout = 'layouts.menu.appWarehouse';
+                    $backgroundImage = 'images/fondos/fondoalmacen.png';
                     $welcomeT = 'Bienvenido a Almacen';
                     break;
                 case 6:
-                    $layout = "layouts.menu.appAdmin";
+                    $layout = 'layouts.menu.appAdmin';
                     $welcomeT = 'Bienvenido Supervisor';
                     break;
                 default:
-                    $layout = "layouts.menu.appAdmin";
+                    $layout = 'layouts.menu.appAdmin';
                     $welcomeT = 'Bienvenido a Administración';
                     break;
             }
 
             // Obtener el listado de prioridades activo
-            $workOrders = \App\Models\Orden_trabajo::query()
+            $workOrders = Orden_trabajo::query()
                 ->whereHas('clases', function ($q) {
                     $q->where('finalizada', 0);
                 })
@@ -74,7 +74,7 @@ class HomeController extends Controller
                     },
                     'moldura' => function ($q) {
                         $q->select('id', 'nombre');
-                    }
+                    },
                 ])
                 ->orderByRaw('prioridad IS NULL ASC')
                 ->orderBy('prioridad')
@@ -84,9 +84,9 @@ class HomeController extends Controller
 
             $otPriorities = $workOrders->map(function ($ot, $index) {
                 return [
-                    'ot_id'    => $ot->id,
-                    'moldura'  => $ot->moldura ? $ot->moldura->nombre : '—',
-                    'clases'   => $ot->clases->pluck('nombre')->toArray(),
+                    'ot_id' => $ot->id,
+                    'moldura' => $ot->moldura ? $ot->moldura->nombre : '—',
+                    'clases' => $ot->clases->pluck('nombre')->toArray(),
                     'prioridad' => $ot->prioridad ?? ($index + 1),
                 ];
             })->values()->toArray();

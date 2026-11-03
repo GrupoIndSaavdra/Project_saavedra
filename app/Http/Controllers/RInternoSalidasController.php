@@ -2,13 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Clase;
 use App\Models\Orden_trabajo;
 use App\Models\RInternoSalida;
-use App\Models\RInternoSalidaPieza;
 use App\Models\RInternoSalidaLog;
+use App\Models\RInternoSalidaPdf;
+use App\Models\RInternoSalidaPieza;
+use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Controlador para la vista "Salida de Molduras" (Calidad Fundición).
@@ -35,7 +41,7 @@ class RInternoSalidasController extends Controller
     public function index(Request $request)
     {
         // Solo perfiles autorizados
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -80,7 +86,7 @@ class RInternoSalidasController extends Controller
             $primero = $grupo->first();
 
             // Se asegura de que solo haya una clase de molde y una de bombillo
-            $clasesPorFormato = $grupo->unique('formato')->pluck('clase')->map(fn($c) => str_replace('+', ' ', $c))->toArray();
+            $clasesPorFormato = $grupo->unique('formato')->pluck('clase')->map(fn ($c) => str_replace('+', ' ', $c))->toArray();
 
             return (object) [
                 'ot_id' => $primero->ot_id,
@@ -106,7 +112,7 @@ class RInternoSalidasController extends Controller
 
     public function show(string $ot, string $clase)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -122,7 +128,7 @@ class RInternoSalidasController extends Controller
         $inspector = auth()->user();
 
         // Buscar la información real de pedido y piezas (consignación) de la tabla clases
-        $claseData = \App\Models\Clase::where('id_ot', $ot)->where('nombre', $clase)->first();
+        $claseData = Clase::where('id_ot', $ot)->where('nombre', $clase)->first();
 
         $pedido = $claseData ? (int) $claseData->pedido : (int) ($ordenTrabajo->cantidad ?? 0);
         $consignacion = $claseData ? (int) $claseData->piezas : 0;
@@ -216,12 +222,12 @@ class RInternoSalidasController extends Controller
                 ->where('campo_editado', '!=', 'seleccion_ot_clase')
                 ->latest('created_at')
                 ->first();
-            if (!$latestLog || $latestLog->created_at <= $latestPdf->created_at) {
+            if (! $latestLog || $latestLog->created_at <= $latestPdf->created_at) {
                 $hasChanges = false;
             }
         }
 
-        $siguienteVersion = \App\Models\RInternoSalidaPdf::where('r_interno_salida_id', $reporte->id)->count() + 1;
+        $siguienteVersion = RInternoSalidaPdf::where('r_interno_salida_id', $reporte->id)->count() + 1;
 
         return view('calidad.r_interno_salidas.form', compact(
             'reporte',
@@ -242,7 +248,7 @@ class RInternoSalidasController extends Controller
 
     public function autosave(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -303,6 +309,7 @@ class RInternoSalidasController extends Controller
                 'pieza' => $request->numero_pieza,
                 'error' => $e->getMessage(),
             ]);
+
             return response()->json(['error' => 'Error al guardar'], 500);
         }
     }
@@ -313,7 +320,7 @@ class RInternoSalidasController extends Controller
 
     public function updateObservaciones(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -354,6 +361,7 @@ class RInternoSalidasController extends Controller
                 'reporte_id' => $request->reporte_id,
                 'error' => $e->getMessage(),
             ]);
+
             return response()->json(['error' => 'Error al guardar observaciones'], 500);
         }
     }
@@ -364,7 +372,7 @@ class RInternoSalidasController extends Controller
 
     public function updateHeader(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -434,6 +442,7 @@ class RInternoSalidasController extends Controller
                 'reporte_id' => $request->reporte_id,
                 'error' => $e->getMessage(),
             ]);
+
             return response()->json(['error' => 'Error al actualizar encabezado'], 500);
         }
     }
@@ -444,7 +453,7 @@ class RInternoSalidasController extends Controller
 
     public function getLog(int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -453,7 +462,7 @@ class RInternoSalidasController extends Controller
             ->orderByDesc('created_at')
             ->limit(300)
             ->get()
-            ->map(fn($log) => [
+            ->map(fn ($log) => [
                 'id' => $log->id,
                 'r_interno_salida_id' => $log->r_interno_salida_id,
                 'ot_id' => $log->reporte?->ot_id ?? 'N/A',
@@ -477,7 +486,7 @@ class RInternoSalidasController extends Controller
 
     public function bulkUpdate(Request $request)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -545,37 +554,38 @@ class RInternoSalidasController extends Controller
                 'reporte_id' => $request->reporte_id,
                 'error' => $e->getMessage(),
             ]);
+
             return response()->json(['error' => 'Error al actualizar rango'], 500);
         }
     }
 
     public function generatePdf(int $id)
     {
-        if (!in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
         $reporte = clone RInternoSalida::findOrFail($id);
-        if (!$reporte->enviado) {
+        if (! $reporte->enviado) {
             $reporte->pdf_generado_count += 1;
             $reporte->save();
         }
 
         $ordenTrabajo = Orden_trabajo::find($reporte->ot_id);
-        $inspector = \App\Models\User::find($reporte->inspector_id);
+        $inspector = User::find($reporte->inspector_id);
         $totalPiezas = $reporte->total_piezas;
         $celdas = $reporte->piezas()->get()->keyBy('numero_pieza');
 
         // Calcular version
-        $siguienteVersion = \App\Models\RInternoSalidaPdf::where('r_interno_salida_id', $id)->count() + 1;
+        $siguienteVersion = RInternoSalidaPdf::where('r_interno_salida_id', $id)->count() + 1;
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('calidad.r_interno_salidas.pdf', compact('reporte', 'ordenTrabajo', 'inspector', 'totalPiezas', 'celdas', 'siguienteVersion'));
+        $pdf = Pdf::loadView('calidad.r_interno_salidas.pdf', compact('reporte', 'ordenTrabajo', 'inspector', 'totalPiezas', 'celdas', 'siguienteVersion'));
         $pdf->setOption('isRemoteEnabled', true);
         $pdf->setOption('isPhpEnabled', true);
         $pdf->setPaper('letter', 'portrait');
 
         // Nombrar el archivo
-        $fechaStr = \Carbon\Carbon::now()->format('Y-m-d');
+        $fechaStr = Carbon::now()->format('Y-m-d');
         $otNum = trim($ordenTrabajo->id);
 
         // Sanitizar nombres para Windows (eliminar caracteres inválidos y manejar vacíos)
@@ -597,9 +607,9 @@ class RInternoSalidasController extends Controller
         $baseFolder = "DOCUMENTACION_GIS/REPORTES_INTERNOS_SALIDAS/{$folderName}/{$claseSeguro}";
         $rutaCompleta = "{$baseFolder}/{$nombreArchivo}";
 
-        \Illuminate\Support\Facades\Storage::disk('local')->put($rutaCompleta, $pdf->output());
+        Storage::disk('local')->put($rutaCompleta, $pdf->output());
 
-        $pdfRecord = \App\Models\RInternoSalidaPdf::create([
+        $pdfRecord = RInternoSalidaPdf::create([
             'r_interno_salida_id' => $id,
             'version' => $siguienteVersion,
             'nombre_archivo' => $nombreArchivo,
@@ -610,20 +620,18 @@ class RInternoSalidasController extends Controller
         return response()->json([
             'success' => true,
             'pdf_id' => $pdfRecord->id,
-            'message' => 'PDF generado y guardado correctamente.'
+            'message' => 'PDF generado y guardado correctamente.',
         ]);
     }
 
     public function downloadPdf(int $id, int $pdf_id)
     {
-        $pdfRecord = \App\Models\RInternoSalidaPdf::where('r_interno_salida_id', $id)->findOrFail($pdf_id);
+        $pdfRecord = RInternoSalidaPdf::where('r_interno_salida_id', $id)->findOrFail($pdf_id);
 
-        if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($pdfRecord->ruta)) {
+        if (! Storage::disk('local')->exists($pdfRecord->ruta)) {
             abort(404, 'El archivo PDF no existe en el servidor.');
         }
 
-        return \Illuminate\Support\Facades\Storage::disk('local')->download($pdfRecord->ruta, $pdfRecord->nombre_archivo);
+        return Storage::disk('local')->download($pdfRecord->ruta, $pdfRecord->nombre_archivo);
     }
-
-
 }

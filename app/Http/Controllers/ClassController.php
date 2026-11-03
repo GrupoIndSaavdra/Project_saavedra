@@ -8,10 +8,10 @@ use App\Models\Metas;
 use App\Models\Orden_trabajo;
 use App\Models\Pieza;
 use App\Models\Procesos;
+use App\Models\SystemLog;
 use App\Models\tiempoproduccion;
 use Carbon\Carbon;
 use DateTime;
-use App\Models\SystemLog;
 use Illuminate\Http\Request;
 
 class ClassController extends Controller
@@ -23,16 +23,19 @@ class ClassController extends Controller
     {
         $this->userController = new UserController();
     }
-        /**
-     * @param mixed $workOrder
+
+    /**
+     * @param  mixed  $workOrder
      */
     public function getClasses($workOrder)
     {
         $classes = Clase::query()->where('id_ot', '=', $workOrder->id, 'and')->get();
+
         return $classes;
     }
-        /**
-     * @param mixed $classes
+
+    /**
+     * @param  mixed  $classes
      */
     public function getClassProcesses($classes)
     {
@@ -46,7 +49,7 @@ class ClassController extends Controller
                 if ($process) {
                     // Obtener los campos donde el valor es igual a 1
                     foreach ($process->getAttributes() as $campo => $valor) { //Se recorren los campos del registro.
-                        if ($campo != "id" && $campo != "id_clase") {
+                        if ($campo != 'id' && $campo != 'id_clase') {
                             if ($valor != 0) {
                                 $processes[$class->id][$campo] = $valor;
                             }
@@ -54,13 +57,13 @@ class ClassController extends Controller
                     }
                 }
             }
+
             return $processes;
         }
+
         return null;
     }
-        /**
-     * @param Request $request
-     */
+
     public function saveClass(Request $request)
     {
         if ($request->input('idClass') == null) {
@@ -69,22 +72,23 @@ class ClassController extends Controller
             return $this->edit($request->input('idClass'), $request);
         }
     }
-        /**
-     * @param mixed $request
+
+    /**
+     * @param  mixed  $request
      */
     public function store($request)
     {
         $composiciones = $request->input('composicion_quimica');
-        if (!is_array($composiciones)) {
+        if (! is_array($composiciones)) {
             $composiciones = $composiciones ? [$composiciones] : [];
         }
         $otro = $request->input('composicion_quimica_otro');
-        if (!empty($otro)) {
+        if (! empty($otro)) {
             $otros_array = array_filter(array_map('trim', explode(',', $otro)));
             $composiciones = array_merge($composiciones, $otros_array);
         }
 
-        $composicion = !empty($composiciones) ? implode('/', $composiciones) : null;
+        $composicion = ! empty($composiciones) ? implode('/', $composiciones) : null;
 
         // Verificar si la clase ya existe en esta OT
         $foundClass = Clase::query()
@@ -112,7 +116,7 @@ class ClassController extends Controller
         $class->id_ot = $request->input('workOrder');
         $class->nombre = $request->input('class');
         $class->material = $request->input('material');
-        $class->proveedor = (!empty($prov) && trim($prov) !== '') ? trim($prov) : null;
+        $class->proveedor = (! empty($prov) && trim($prov) !== '') ? trim($prov) : null;
         $class->pedido = $request->input('order');
         $class->piezas = $request->input('pieces') ?? $class->pedido;
         $class->fecha_inicio = $request->input('start_date') ?? now()->toDateString();
@@ -145,12 +149,12 @@ class ClassController extends Controller
             $redirectParams['from_master'] = 1;
         }
 
-        return redirect()->route('showWO', $redirectParams)->with('success', "¡La clase se ha registrado con éxito!");
+        return redirect()->route('showWO', $redirectParams)->with('success', '¡La clase se ha registrado con éxito!');
     }
 
     /**
-     * @param int|string $idClass
-     * @param mixed $request
+     * @param  int|string  $idClass
+     * @param  mixed  $request
      */
     public function edit($idClass, $request)
     {
@@ -158,7 +162,7 @@ class ClassController extends Controller
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
         $nameChanged = false;
-        if (!in_array(auth()->user()->perfil, [5]) && $request->input('from_almacen') != 1) {
+        if (! in_array(auth()->user()->perfil, [5]) && $request->input('from_almacen') != 1) {
             if ($request->has('class')) {
                 // Verificar si la nueva clase ya existe en la misma OT, para no tener duplicados
                 if ($class->nombre !== $request->input('class')) {
@@ -180,18 +184,18 @@ class ClassController extends Controller
             $class->fecha_inicio = $request->input('start_date') ?? $class->fecha_inicio;
             $class->hora_inicio = $request->input('start_time') ?? $class->hora_inicio;
             $class->tamanio = $request->input('size') ?? $class->tamanio;
-            
+
             $comp = $request->input('composicion_quimica');
-            if (!is_array($comp)) {
+            if (! is_array($comp)) {
                 $comp = $comp ? [$comp] : [];
             }
             $otro = $request->input('composicion_quimica_otro');
-            if (!empty($otro)) {
+            if (! empty($otro)) {
                 $otros_array = array_filter(array_map('trim', explode(',', $otro)));
                 $comp = array_merge($comp, $otros_array);
             }
 
-            if (!empty($comp)) {
+            if (! empty($comp)) {
                 $class->composicion_quimica = implode('/', $comp);
             }
 
@@ -205,7 +209,7 @@ class ClassController extends Controller
         }
         if ($request->has('proveedor_fundicion') || $request->has('proveedor_material')) {
             $prov = $request->input('proveedor_fundicion') ?? $request->input('proveedor_material');
-            $class->proveedor = (!empty($prov) && trim($prov) !== '') ? trim($prov) : null;
+            $class->proveedor = (! empty($prov) && trim($prov) !== '') ? trim($prov) : null;
         }
         $class->save(); //Guardo los cambios.
 
@@ -224,18 +228,18 @@ class ClassController extends Controller
 
         //Actualizar los procesos de la clase ÚNICAMENTE si no es edición de almacén, no es parcial_edit,
         // y la petición incluye payload de operaciones, proviene de programación o cambió el nombre
-        $isFromAlmacen = (int)$request->input('from_almacen') === 1;
+        $isFromAlmacen = (int) $request->input('from_almacen') === 1;
         $isPartialEdit = $request->has('partial_edit');
         $hasOperationsPayload = $request->has('operations') || $request->filled('from_programming');
 
-        if (!$isFromAlmacen && !$isPartialEdit && ($hasOperationsPayload || $nameChanged)) {
+        if (! $isFromAlmacen && ! $isPartialEdit && ($hasOperationsPayload || $nameChanged)) {
             $process = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();
-            if (!$process) {
+            if (! $process) {
                 $process = new Procesos();
             }
             $this->storeProcess($class, $request->input('operations'), $request->input('machines'), $process); //Verifico las casillas.
         }
-        
+
         SystemLog::create([
             'user_matricula' => auth()->user()->matricula,
             'action' => 'Modificación de OT',
@@ -247,7 +251,7 @@ class ClassController extends Controller
         ]);
 
         if ($request->input('from_almacen') == 1) {
-            return redirect()->back()->with("success", "¡La clase {$class->nombre} se ha editado con éxito!");
+            return redirect()->back()->with('success', "¡La clase {$class->nombre} se ha editado con éxito!");
         }
 
         $redirectParams = ['workOrder' => $request->input('workOrder')];
@@ -255,19 +259,18 @@ class ClassController extends Controller
             $redirectParams['from_master'] = 1;
         }
 
-        return redirect()->route('showWO', $redirectParams)->with("success", "¡La clase {$class->nombre} se ha editado con éxito!");
+        return redirect()->route('showWO', $redirectParams)->with('success', "¡La clase {$class->nombre} se ha editado con éxito!");
     }
 
-
-        /**
-     * @param int|string $idClass
-     * @param mixed $workOrderParam
+    /**
+     * @param  int|string  $idClass
+     * @param  mixed  $workOrderParam
      */
     public function destroy($idClass, $workOrderParam = null)
     {
         $class = Clase::query()->find($idClass, ['*']);
-        if (!$class) {
-            return redirect()->back()->with("error", "La clase que intentas eliminar no existe");
+        if (! $class) {
+            return redirect()->back()->with('error', 'La clase que intentas eliminar no existe');
         }
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']); //Busco la OT ingresada
 
@@ -277,7 +280,7 @@ class ClassController extends Controller
 
         if ($hasPieces || count($goals) > 0) {
             $text = "La clase {$class->nombre} no se puede eliminar porque ya tiene piezas o metas asociadas";
-            $param = "error";
+            $param = 'error';
         } else {
             $process = Procesos::query()->where('id_clase', $class->id)->first();
             //Si el proceso existe.
@@ -294,25 +297,27 @@ class ClassController extends Controller
             }
             Clase::destroy($class->id); //Elimino la clase
             $text = "La clase {$class->nombre} se elimino exitosamente";
-            $param = "success";
+            $param = 'success';
         }
         if ($workOrderParam == null) {
             $redirectParams = ['workOrder' => $workOrder->id];
             if (request('from_master') == 1) {
                 $redirectParams['from_master'] = 1;
             }
+
             return redirect()->route('showWO', $redirectParams)->with($param, $text); //Redirecciono a la vista de registro de la OT
         }
     }
-        /**
-     * @param mixed $class
-     * @param mixed $dataProcess
-     * @param mixed $machines
-     * @param mixed $process
+
+    /**
+     * @param  mixed  $class
+     * @param  mixed  $dataProcess
+     * @param  mixed  $machines
+     * @param  mixed  $process
      */
     public function storeProcess($class, $dataProcess, $machines, $process = null)
     {
-        if (!$process) {
+        if (! $process) {
             $process = Procesos::query()->where('id_clase', '=', $class->id)->first() ?? new Procesos();
         }
 
@@ -330,29 +335,29 @@ class ClassController extends Controller
         if ($baseType !== '') {
             switch ($baseType) {
                 case 'Bombillo':
-                    $processNames = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                    $processNames = ['cepillado', 'desbaste_exterior', 'revision_laterales', 'pOperacion', 'barreno_maniobra', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado', 'acabadoBombillo', 'barreno_profundidad', 'cavidades', 'copiado', 'offSet', 'palomas', 'rebajes', 'grabado'];
                     break;
                 case 'Molde':
-                    $processNames = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                    $processNames = ['cepillado', 'desbaste_exterior', 'revision_laterales', 'pOperacion', 'barreno_maniobra', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado', 'acabadoMolde', 'barreno_profundidad', 'cavidades', 'copiado', 'offSet', 'palomas', 'rebajes', 'grabado'];
                     break;
                 case 'Fondo':
                 case 'Obturador':
-                    $processNames = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                    $processNames = ['operacionEquipo', 'soldadura', 'soldaduraPTA'];
                     break;
                 case 'Corona':
-                    $processNames = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                    $processNames = ['cepillado', 'desbaste_exterior', 'pOperacion', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado'];
                     break;
                 case 'Plato':
-                    $processNames = ["barreno_maniobra", "operacionEquipo"];
+                    $processNames = ['barreno_maniobra', 'operacionEquipo'];
                     break;
                 case 'Embudo':
-                    $processNames = ["operacionEquipo", "embudoCM"];
+                    $processNames = ['operacionEquipo', 'embudoCM'];
                     break;
                 case 'Cabeza de Soplo':
-                    $processNames = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                    $processNames = ['primeraOperacionCabezaSoplo', 'segundaOperacionCabezaSoplo'];
                     break;
                 case 'Candado Obturador':
-                    $processNames = ["operacionEquipo"];
+                    $processNames = ['operacionEquipo'];
                     break;
             }
         }
@@ -361,29 +366,29 @@ class ClassController extends Controller
             $clLower = strtolower($class->nombre ?? '');
             $isExcluded = str_contains($clLower, 'base') || str_contains($clLower, 'tip') || str_contains($clLower, 'roll pin') || str_contains($clLower, 'porta') || str_contains($clLower, 'pastilla') || str_contains($clLower, 'canastilla');
 
-            if (!$isExcluded) {
+            if (! $isExcluded) {
                 if (str_contains($clLower, 'bombillo')) {
-                    $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
+                    $processNames = ['cepillado', 'desbaste_exterior', 'revision_laterales', 'pOperacion', 'barreno_maniobra', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado', 'acabadoBombillo', 'barreno_profundidad', 'cavidades', 'copiado', 'offSet', 'palomas', 'rebajes', 'grabado'];
                 } elseif (str_contains($clLower, 'molde')) {
-                    $processNames = array("cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado");
+                    $processNames = ['cepillado', 'desbaste_exterior', 'revision_laterales', 'pOperacion', 'barreno_maniobra', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado', 'acabadoMolde', 'barreno_profundidad', 'cavidades', 'copiado', 'offSet', 'palomas', 'rebajes', 'grabado'];
                 } elseif (str_contains($clLower, 'candado')) {
-                    $processNames = array("operacionEquipo");
+                    $processNames = ['operacionEquipo'];
                 } elseif (str_contains($clLower, 'fondo') || str_contains($clLower, 'obturador')) {
-                    $processNames = array("operacionEquipo", "soldadura", "soldaduraPTA");
+                    $processNames = ['operacionEquipo', 'soldadura', 'soldaduraPTA'];
                 } elseif (str_contains($clLower, 'corona')) {
-                    $processNames = array("cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado");
+                    $processNames = ['cepillado', 'desbaste_exterior', 'pOperacion', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado'];
                 } elseif (str_contains($clLower, 'plato')) {
-                    $processNames = array("barreno_maniobra", "operacionEquipo");
+                    $processNames = ['barreno_maniobra', 'operacionEquipo'];
                 } elseif (str_contains($clLower, 'embudo')) {
-                    $processNames = array("operacionEquipo", "embudoCM");
+                    $processNames = ['operacionEquipo', 'embudoCM'];
                 } elseif (str_contains($clLower, 'cabeza de soplo') || str_contains($clLower, 'soplo')) {
-                    $processNames = array("primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo");
+                    $processNames = ['primeraOperacionCabezaSoplo', 'segundaOperacionCabezaSoplo'];
                 }
             }
         }
 
         $process->id_clase = $class->id;
-        if (!in_array(auth()->user()->perfil, [5])) {
+        if (! in_array(auth()->user()->perfil, [5])) {
             //Inicializar los campos de los procesos en 0
             $fields = [
                 'cepillado',
@@ -409,7 +414,7 @@ class ClassController extends Controller
                 'operacionEquipo',
                 'embudoCM',
                 'primeraOperacionCabezaSoplo',
-                'segundaOperacionCabezaSoplo'
+                'segundaOperacionCabezaSoplo',
             ];
             foreach ($fields as $field) {
                 $process->$field = 0;
@@ -441,10 +446,10 @@ class ClassController extends Controller
                         //Asigno el valor de la máquina al campo correspondiente del proceso
                         $machineVal = 1;
                         if (is_array($machines)) {
-                            if (isset($machines[$string]) && (int)$machines[$string] > 0) {
-                                $machineVal = (int)$machines[$string];
-                            } elseif (isset($machines[$counterMachines]) && (int)$machines[$counterMachines] > 0) {
-                                $machineVal = (int)$machines[$counterMachines];
+                            if (isset($machines[$string]) && (int) $machines[$string] > 0) {
+                                $machineVal = (int) $machines[$string];
+                            } elseif (isset($machines[$counterMachines]) && (int) $machines[$counterMachines] > 0) {
+                                $machineVal = (int) $machines[$counterMachines];
                             }
                         }
                         $process->$string = $machineVal;
@@ -475,12 +480,12 @@ class ClassController extends Controller
         $class->save();
     }
 
-        /**
-     * @param mixed $class
-     * @param mixed $processes
-     * @param mixed $i
-     * @param mixed $noProcess
-     * @param mixed $machines
+    /**
+     * @param  mixed  $class
+     * @param  mixed  $processes
+     * @param  mixed  $i
+     * @param  mixed  $noProcess
+     * @param  mixed  $machines
      */
     public function registerProcessDates($class, $processes, $i, $noProcess, $machines)
     {
@@ -498,33 +503,35 @@ class ClassController extends Controller
         $newProcess->fecha_inicio = $fechaInicio;
         $newProcess->fecha_fin = $this->calculateEndDate($class, $processes, $i, $machines, $fechaInicio, $noProcess);
         $newProcess->save();
+
         // echo $newProcess . "<br>";
         return $newProcess;
     }
 
-        /**
-     * @param mixed $class
-     * @param mixed $processes
-     * @param mixed $i
-     * @param mixed $noProceso
+    /**
+     * @param  mixed  $class
+     * @param  mixed  $processes
+     * @param  mixed  $i
+     * @param  mixed  $noProceso
      */
     public function calculateStartDate($class, $processes, $i, $noProceso)
     {
-        $startDate = "";
-        $startDate = $class->fecha_inicio . " " . $class->hora_inicio;
+        $startDate = '';
+        $startDate = $class->fecha_inicio.' '.$class->hora_inicio;
         $startDate = new DateTime($startDate);
         if ($noProceso != 0) {
             //Obtener el anterior proceso
-            $startDate = $this->delayTime_start_end($processes, $i, $class, "start");
+            $startDate = $this->delayTime_start_end($processes, $i, $class, 'start');
         }
+
         return $startDate;
     }
 
-        /**
-     * @param mixed $processes
-     * @param mixed $i
-     * @param mixed $class
-     * @param mixed $phase
+    /**
+     * @param  mixed  $processes
+     * @param  mixed  $i
+     * @param  mixed  $class
+     * @param  mixed  $phase
      */
     public function delayTime_start_end($processes, $i, $class, $phase)
     {
@@ -538,7 +545,7 @@ class ClassController extends Controller
         $juegosMaqTurn = $this->pieces_machShift($i - $counter, $class);
         if ($juegosMaqTurn != 0) {
             //Si se desea calcular la fecha de inicio
-            if ($phase == "start") {
+            if ($phase == 'start') {
                 $date = new DateTime($previousProcess->fecha_inicio);
             } else { //Si se desea calcular la fecha de termmino
                 $date = new DateTime($previousProcess->fecha_fin);
@@ -548,36 +555,36 @@ class ClassController extends Controller
             $piecesProcesses = [];
             $baseType = $class->getBaseType();
             switch ($baseType) {
-                case "Bombillo":
-                    $piecesProcesses = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoBombillo", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes", "grabado"];
+                case 'Bombillo':
+                    $piecesProcesses = ['cepillado', 'desbaste', 'revLaterales', 'primeraOpeSoldadura', 'barrenoManiobra', 'segundaOpeSoldadura', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'revCalificado', 'acabadoBombillo', 'barrenoProfundidad', 'cavidades', 'copiado', 'offset', 'palomas', 'rebajes', 'grabado'];
                     break;
-                case "Molde":
-                    $piecesProcesses = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoMolde", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes", "grabado"];
+                case 'Molde':
+                    $piecesProcesses = ['cepillado', 'desbaste', 'revLaterales', 'primeraOpeSoldadura', 'barrenoManiobra', 'segundaOpeSoldadura', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'revCalificado', 'acabadoMolde', 'barrenoProfundidad', 'cavidades', 'copiado', 'offset', 'palomas', 'rebajes', 'grabado'];
                     break;
-                case "Fondo":
-                case "Obturador":
-                    $piecesProcesses = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                case 'Fondo':
+                case 'Obturador':
+                    $piecesProcesses = ['operacionEquipo', 'soldadura', 'soldaduraPTA'];
                     break;
-                case "Corona":
-                    $piecesProcesses = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
+                case 'Corona':
+                    $piecesProcesses = ['cepillado', 'desbaste', 'primeraOpeSoldadura', 'segundaOpeSoldadura', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'revCalificado'];
                     break;
-                case "Plato":
-                    $piecesProcesses = ["barrenoManiobra", "operacionEquipo"];
+                case 'Plato':
+                    $piecesProcesses = ['barrenoManiobra', 'operacionEquipo'];
                     break;
-                case "Embudo":
-                    $piecesProcesses = ["operacionEquipo", "embudoCM"];
+                case 'Embudo':
+                    $piecesProcesses = ['operacionEquipo', 'embudoCM'];
                     break;
-                case "Cabeza de Soplo":
-                    $piecesProcesses = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                case 'Cabeza de Soplo':
+                    $piecesProcesses = ['primeraOperacionCabezaSoplo', 'segundaOperacionCabezaSoplo'];
                     break;
-                case "Candado Obturador":
-                    $piecesProcesses = ["operacionEquipo"];
+                case 'Candado Obturador':
+                    $piecesProcesses = ['operacionEquipo'];
                     break;
             }
 
             $procKey = $i - $counter;
-            $delayTime = (isset($piecesProcesses[$procKey])) 
-                ? tiempoproduccion::query()->where('id_clase', '=', $class->id, 'and')->where('proceso', '=', $piecesProcesses[$procKey], 'and')->first() 
+            $delayTime = (isset($piecesProcesses[$procKey]))
+                ? tiempoproduccion::query()->where('id_clase', '=', $class->id, 'and')->where('proceso', '=', $piecesProcesses[$procKey], 'and')->first()
                 : null;
             if ($delayTime) {
                 //Agregar el factor de seguridad
@@ -591,11 +598,11 @@ class ClassController extends Controller
             $dateAux->modify("+{$delayTime} minutes");
 
             if ($dateAux->format('H') >= 22) {
-                $date->modify("+1 days");
+                $date->modify('+1 days');
                 $date->setTime(6, 0, 0);
                 $date->modify("+{$delayTime} minutes");
-            } else if ($dateAux->format('H') >= 19 && $dateAux->format('l') == "Saturday") {
-                $date->modify("+2 days");
+            } elseif ($dateAux->format('H') >= 19 && $dateAux->format('l') == 'Saturday') {
+                $date->modify('+2 days');
                 $date->setTime(6, 0, 0);
                 $date->modify("+{$delayTime} minutes");
             } else {
@@ -610,20 +617,21 @@ class ClassController extends Controller
             if ($previousProcess) {
                 $date = new DateTime($previousProcess->fecha_fin);
             } else {
-                $startDateStr = ($class->fecha_inicio ?? now()->toDateString()) . " " . ($class->hora_inicio ?? "06:00:00");
+                $startDateStr = ($class->fecha_inicio ?? now()->toDateString()).' '.($class->hora_inicio ?? '06:00:00');
                 $date = new DateTime($startDateStr);
             }
         }
+
         return $date;
     }
 
-        /**
-     * @param mixed $class
-     * @param mixed $process
-     * @param mixed $i
-     * @param mixed $machines
-     * @param mixed $date
-     * @param mixed $noProcess
+    /**
+     * @param  mixed  $class
+     * @param  mixed  $process
+     * @param  mixed  $i
+     * @param  mixed  $machines
+     * @param  mixed  $date
+     * @param  mixed  $noProcess
      */
     public function calculateEndDate($class, $process, $i, $machines, $date, $noProcess)
     {
@@ -645,7 +653,7 @@ class ClassController extends Controller
             $endDate = $this->addHrsMnts($startDate, $hours, $minutes); //Sumar horas y minutos
         } else {
             //Obtener la fecha de termino con el tiempo de retraso
-            $endDate = $this->delayTime_start_end($process, $i, $class, "end");
+            $endDate = $this->delayTime_start_end($process, $i, $class, 'end');
         }
 
         // echo "Horas: " . $horas . " Minutos: " . $minutos . "<br>";
@@ -655,11 +663,10 @@ class ClassController extends Controller
         return $endDate;
     }
 
-
-        /**
-     * @param mixed $processes
-     * @param mixed $i
-     * @param mixed $class
+    /**
+     * @param  mixed  $processes
+     * @param  mixed  $i
+     * @param  mixed  $class
      */
     public function calculatePreviousProcess($processes, $i, $class)
     {
@@ -675,12 +682,14 @@ class ClassController extends Controller
             }
             $counter++;
         }
+
         return [$previousProcess, $counter];
     }
-        /**
-     * @param mixed $class
-     * @param mixed $i
-     * @param mixed $machines
+
+    /**
+     * @param  mixed  $class
+     * @param  mixed  $i
+     * @param  mixed  $machines
      */
     public function calculateMachiningDays($class, $i, $machines)
     {
@@ -693,10 +702,12 @@ class ClassController extends Controller
         } else {
             $diasMaq = 0;
         }
+
         return $diasMaq;
     }
-        /**
-     * @param mixed $diasMaq
+
+    /**
+     * @param  mixed  $diasMaq
      */
     public function convertMachiningDaysToHours($diasMaq)
     {
@@ -707,12 +718,14 @@ class ClassController extends Controller
             $hrsMach++;
             $mntsMach -= 60;
         }
+
         return [$hrsMach, $mntsMach];
     }
-        /**
-     * @param mixed $date
-     * @param mixed $hours
-     * @param mixed $minutes
+
+    /**
+     * @param  mixed  $date
+     * @param  mixed  $hours
+     * @param  mixed  $minutes
      */
     public function addHrsMnts($date, $hours, $minutes)
     {
@@ -726,59 +739,61 @@ class ClassController extends Controller
                     $mntesLeft = 60 - $date->format('i');
                     $minutes += $mntesLeft;
                 }
-                $date->modify("+1 days");
+                $date->modify('+1 days');
                 $hours--;
                 $date->setTime(6, 0, 0);
-            } else if ($date->format('H') == 18 && $date->format('l') == "Saturday") {
+            } elseif ($date->format('H') == 18 && $date->format('l') == 'Saturday') {
                 if ($date->format('i') > 0) {
                     $mntesLeft = 60 - $date->format('i');
                     $minutes += $mntesLeft;
                 }
                 $hours--;
-                $date->modify("+2 days");
+                $date->modify('+2 days');
                 $date->setTime(6, 0, 0);
             } else {
                 $hours--;
-                $date->modify("+1 hours");
+                $date->modify('+1 hours');
             }
         }
         if ($minutes > 0) {
             $date->modify("+{$minutes} minutes");
         }
+
         return $date;
     }
-        /**
-     * @param mixed $i
-     * @param mixed $clase
+
+    /**
+     * @param  mixed  $i
+     * @param  mixed  $clase
      */
     public function pieces_machShift($i, $clase)
     {
         $baseType = $clase->getBaseType();
         switch ($baseType) {
-            case "Bombillo":
-                $procesos = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoBombillo", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes", "grabado"];
+            case 'Bombillo':
+                $procesos = ['cepillado', 'desbaste', 'revLaterales', 'primeraOpeSoldadura', 'barrenoManiobra', 'segundaOpeSoldadura', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'revCalificado', 'acabadoBombillo', 'barrenoProfundidad', 'cavidades', 'copiado', 'offset', 'palomas', 'rebajes', 'grabado'];
                 break;
-            case "Molde":
-                $procesos = ["cepillado", "desbaste", "revLaterales", "primeraOpeSoldadura", "barrenoManiobra", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado", "acabadoMolde", "barrenoProfundidad", "cavidades", "copiado", "offset", "palomas", "rebajes", "grabado"];
+            case 'Molde':
+                $procesos = ['cepillado', 'desbaste', 'revLaterales', 'primeraOpeSoldadura', 'barrenoManiobra', 'segundaOpeSoldadura', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'revCalificado', 'acabadoMolde', 'barrenoProfundidad', 'cavidades', 'copiado', 'offset', 'palomas', 'rebajes', 'grabado'];
                 break;
-            case "Fondo":
-            case "Obturador":
-                $procesos = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+            case 'Fondo':
+            case 'Obturador':
+                $procesos = ['operacionEquipo', 'soldadura', 'soldaduraPTA'];
                 break;
-            case "Corona":
-                $procesos = ["cepillado", "desbaste", "primeraOpeSoldadura", "segundaOpeSoldadura", "soldadura", "soldaduraPTA", "rectificado", "asentado", "revCalificado"];
+            case 'Corona':
+                $procesos = ['cepillado', 'desbaste', 'primeraOpeSoldadura', 'segundaOpeSoldadura', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'revCalificado'];
                 break;
-            case "Plato":
-                $procesos = ["barrenoManiobra", "operacionEquipo"];
+            case 'Plato':
+                $procesos = ['barrenoManiobra', 'operacionEquipo'];
                 break;
-            case "Embudo":
-                $procesos = ["operacionEquipo", "embudoCM"];
+            case 'Embudo':
+                $procesos = ['operacionEquipo', 'embudoCM'];
                 break;
-            case "Cabeza de Soplo":
-                $procesos = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+            case 'Cabeza de Soplo':
+                $procesos = ['primeraOperacionCabezaSoplo', 'segundaOperacionCabezaSoplo'];
                 break;
-            case "Candado Obturador":
-                $procesos = ["operacionEquipo"];
+            case 'Candado Obturador':
+                $procesos = ['operacionEquipo'];
                 break;
             default:
                 $procesos = [];
@@ -794,12 +809,13 @@ class ClassController extends Controller
                 $juegos = floor($juegos * 10) / 10;
             }
         }
+
         return $juegos;
     }
 
-        /**
-     * @param mixed $h_start
-     * @param mixed $h_end
+    /**
+     * @param  mixed  $h_start
+     * @param  mixed  $h_end
      */
     public function calculateHrs($h_start, $h_end) //Función para calcular las horas trabajadas.
     {
@@ -810,15 +826,16 @@ class ClassController extends Controller
 
         //Calcular la diferencia entre las horas en minutos
         $diference = $carbon1->diffInMinutes($carbon2) - 60; //Calculo de las horas trabajadas.
+
         return $diference; //Retorno las horas trabajadas.
     }
 
-        /**
-     * @param mixed $goal
-     * @param mixed $hrsWorked
-     * @param mixed $workOrder
-     * @param mixed $className
-     * @param mixed $process
+    /**
+     * @param  mixed  $goal
+     * @param  mixed  $hrsWorked
+     * @param  mixed  $workOrder
+     * @param  mixed  $className
+     * @param  mixed  $process
      */
     public function AsignMetaData($goal, $hrsWorked, $workOrder, $className, $process) //Función para asignar los datos de la meta.
     {
@@ -826,7 +843,7 @@ class ClassController extends Controller
         if ($goal->id_clase) {
             $class = Clase::query()->find($goal->id_clase);
         }
-        if (!$class) {
+        if (! $class) {
             $class = Clase::query()->where('id_ot', '=', $workOrder->id, 'and')->where('nombre', '=', $className, 'and')->first(); //Busco la clase.
         }
         $goal->id_clase = $class->id;
@@ -836,16 +853,19 @@ class ClassController extends Controller
         $goal->meta = $this->calculateGoal($goal->t_estandar, $hrsWorked) ?? 0; //Se calcula la meta.
 
         $goal->save();
+
         return $class; //Se retorna la clase.
     }
-        /**
-     * @param mixed $t_standard
-     * @param mixed $hrsWorked
+
+    /**
+     * @param  mixed  $t_standard
+     * @param  mixed  $hrsWorked
      */
     public function calculateGoal($t_standard, $hrsWorked) //Función para calcular la meta.
     {
         //Calculo de la meta.
         $time = $t_standard != 0 ? round(($hrsWorked / $t_standard)) : 0;
+
         return $time;
     }
 }

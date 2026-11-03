@@ -10,9 +10,10 @@ class SoldaduraController extends Controller
     {
         $this->middleware('auth');
     }
-        /**
-     * @param mixed $request
-     * @param int $index
+
+    /**
+     * @param  mixed  $request
+     * @param  int  $index
      */
     public function storePiece($request, $index)
     {
@@ -31,7 +32,7 @@ class SoldaduraController extends Controller
                 'observaciones',
             ];
 
-            $data = array();
+            $data = [];
             foreach ($fields as $field) {
                 $data[$field] = $request->$field[$index] ?? null;
             }
@@ -53,6 +54,4 @@ class SoldaduraController extends Controller
         $piece->estado = 2;
         $piece->save();
     }
-
-
 }

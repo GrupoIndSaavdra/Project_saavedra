@@ -2,32 +2,30 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-
-use App\Models\SystemLog;
 use App\Models\Clase;
-use App\Models\Metas;
-use App\Models\User;
 use App\Models\Orden_trabajo;
+use App\Models\SystemLog;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class SystemLogController extends Controller
 {
-        /**
-     * @param Request $request
-     */
     public function store(Request $request)
     {
         $action = $request->action;
 
         // 1. FILTRAR SPAM TRANSACCIONAL (TELEMETRÍA DE UI)
         $ignoredActions = [
-            'Carga de Formulario de Producción', 'Selección de OT', 'Selección de Clase', 
-            'Selección de Proceso', 'Selección de Pieza',
-            'Consulta Dibujos Técnicos', 'Consulta Documentación Técnica'
+            'Carga de Formulario de Producción',
+            'Selección de OT',
+            'Selección de Clase',
+            'Selección de Proceso',
+            'Selección de Pieza',
+            'Consulta Dibujos Técnicos',
+            'Consulta Documentación Técnica',
         ];
 
         if (in_array($action, $ignoredActions)) {
@@ -42,7 +40,7 @@ class SystemLogController extends Controller
 
         // 3. ESTANDARIZACIÓN DE NOMENCLATURA (Catálogo Maestro)
         $otString = $request->ot;
-        $idOtSanitized = is_numeric($request->id_ot) ? (int)$request->id_ot : null;
+        $idOtSanitized = is_numeric($request->id_ot) ? (int) $request->id_ot : null;
         if ($idOtSanitized) {
             $otModel = Orden_trabajo::query()->with('moldura')->where('id', $idOtSanitized)->first();
             if ($otModel && $otModel->moldura) {
@@ -51,14 +49,16 @@ class SystemLogController extends Controller
         }
 
         $claseString = $request->clase;
-        $idClaseSanitized = is_numeric($request->id_clase) ? (int)$request->id_clase : null;
+        $idClaseSanitized = is_numeric($request->id_clase) ? (int) $request->id_clase : null;
         if ($idClaseSanitized) {
             $claseModel = Clase::query()->where('id', $idClaseSanitized)->first();
             if ($claseModel) {
                 $claseString = $claseModel->nombre;
             }
         }
-        if (preg_match('/^\d+$/', $claseString)) $claseString = 'N/A';
+        if (preg_match('/^\d+$/', $claseString)) {
+            $claseString = 'N/A';
+        }
 
         // 4. LIMPIEZA DE MÁQUINAS (IDs Compuestos/Sucios)
         $maquina = $request->maquina;
@@ -67,10 +67,10 @@ class SystemLogController extends Controller
         }
 
         // 5. TRATAMIENTO DE EVENTOS DE RANGO Y AUDITORÍA
-        if (($action === 'Captura Medida' || $action === 'Captura Sospechosa' || $action === 'Captura Crítica') && (!$h_inicio || $h_inicio === 'N/A')) {
+        if (($action === 'Captura Medida' || $action === 'Captura Sospechosa' || $action === 'Captura Crítica') && (! $h_inicio || $h_inicio === 'N/A')) {
             $syncLog = SystemLog::query()->where('user_matricula', Auth::check() ? Auth::user()->matricula : null)
                 ->whereDate('created_at', now()->toDateString())
-                ->where(function($q) {
+                ->where(function ($q) {
                     $q->where('details', 'LIKE', '%sincronizó%')->orWhere('action', 'Proceso Correcto');
                 })
                 ->orderBy('created_at', 'desc')
@@ -98,30 +98,30 @@ class SystemLogController extends Controller
                 return response()->json([
                     'status' => 'success',
                     'message' => 'Log pausado para consolidación (Macho)',
-                    'action' => $action
+                    'action' => $action,
                 ]);
             }
 
             // 2. SI ES HEMBRA: Buscamos el inicio del Macho para consolidar el ciclo
             if ($isHembra) {
                 $baseNum = preg_replace('/[H]$/', '', $n_pieza);
-                $machoName = $baseNum . 'M';
+                $machoName = $baseNum.'M';
                 $modelName = $this->getModelForProcess($request->proceso, $request->id_clase);
-                
+
                 if ($modelName) {
                     $machoPiece = $modelName::query()->where('n_pieza', $machoName)
                         ->where('id_meta', $request->meta) // El JS envía el ID en el campo 'meta'
-                        ->orWhere(function($q) use ($machoName, $request) {
-                             $q->where('n_pieza', $machoName)
-                               ->where('id_proceso', 'LIKE', '%' . $request->id_ot . '%');
+                        ->orWhere(function ($q) use ($machoName, $request) {
+                            $q->where('n_pieza', $machoName)
+                                ->where('id_proceso', 'LIKE', '%'.$request->id_ot.'%');
                         })
                         ->orderBy('created_at', 'desc')
                         ->first();
-                    
+
                     if ($machoPiece && $machoPiece->h_inicio) {
                         $h_inicio = $machoPiece->h_inicio;
-                        $n_pieza = $baseNum . 'J';
-                        $details = "El operador completó el maquinado del juego {$baseNum} a las " . substr($h_termino, 0, 5);
+                        $n_pieza = $baseNum.'J';
+                        $details = "El operador completó el maquinado del juego {$baseNum} a las ".substr($h_termino, 0, 5);
                     }
                 }
             }
@@ -131,7 +131,9 @@ class SystemLogController extends Controller
             // Al alcanzar 3 capturas buenas consecutivas (Captura Medida), el contador se reinicia
             // por completo: si el operador vuelve a fallar, comienza desde Sospechosa otra vez.
             $user = Auth::user();
-            if (!$user) return response()->json(['success' => false, 'message' => 'Sesión expirada']);
+            if (! $user) {
+                return response()->json(['success' => false, 'message' => 'Sesión expirada']);
+            }
 
             $lastResetLog = SystemLog::query()->where('user_matricula', $user->matricula)
                 ->whereIn('action', ['Inicio de Reporte', 'Inicio de Sesión'], 'and', false)
@@ -141,19 +143,21 @@ class SystemLogController extends Controller
             $allCaptures = SystemLog::query()
                 ->where('user_matricula', $user->matricula)
                 ->whereIn('action', ['Captura Medida', 'Captura Sospechosa', 'Captura Crítica'], 'and', false)
-                ->when($lastResetLog, fn($q) => $q->where('created_at', '>', $lastResetLog->created_at))
-                ->when(!$lastResetLog, fn($q) => $q->whereDate('created_at', now()->toDateString()))
+                ->when($lastResetLog, fn ($q) => $q->where('created_at', '>', $lastResetLog->created_at))
+                ->when(! $lastResetLog, fn ($q) => $q->whereDate('created_at', now()->toDateString()))
                 ->orderBy('created_at', 'asc')
                 ->get(['action', 'created_at']);
 
             // Recorrer historial y calcular el estado efectivo actual (consecutivos)
             $consecutiveBadCount = 0;
-            $hasCriticalInStreak  = false;
+            $hasCriticalInStreak = false;
 
             foreach ($allCaptures as $cap) {
                 if (in_array($cap->action, ['Captura Sospechosa', 'Captura Crítica'])) {
                     $consecutiveBadCount++;
-                    if ($cap->action === 'Captura Crítica') $hasCriticalInStreak = true;
+                    if ($cap->action === 'Captura Crítica') {
+                        $hasCriticalInStreak = true;
+                    }
                 } else {
                     // Una sola pieza buena (Captura Medida) reinicia el contador totalmente
                     $consecutiveBadCount = 0;
@@ -185,9 +189,9 @@ class SystemLogController extends Controller
                     $action = 'Captura Sospechosa';
                     $alertMsg = "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
                 }
-                
+
                 // Evitar duplicar el mensaje si ya viene del frontend
-                if (!str_contains($details, trim($alertMsg))) {
+                if (! str_contains($details, trim($alertMsg))) {
                     $details .= $alertMsg;
                 }
             } else {
@@ -203,10 +207,7 @@ class SystemLogController extends Controller
 
         // ESCRITURA BLINDADA: DB::transaction + try-catch + Log::error fallback
         try {
-            DB::transaction(function () use (
-                $action, $details, $otString, $idOtSanitized, $claseString, $idClaseSanitized,
-                $maquina, $h_inicio, $h_termino, $request, $n_pieza
-            ) {
+            DB::transaction(function () use ($action, $details, $otString, $idOtSanitized, $claseString, $idClaseSanitized, $maquina, $h_inicio, $h_termino, $request, $n_pieza) {
                 SystemLog::create([
                     'user_matricula' => Auth::check() ? Auth::user()->matricula : null,
                     'action' => $action,
@@ -225,16 +226,16 @@ class SystemLogController extends Controller
         } catch (\Throwable $e) {
             // Nunca fallamos en silencio: registrar en el log del servidor
             Log::error('[SystemLog] Fallo al insertar registro de auditoría.', [
-                'action'        => $action,
-                'user'          => Auth::check() ? Auth::user()->matricula : 'guest',
-                'error'         => $e->getMessage(),
-                'trace'         => $e->getTraceAsString(),
+                'action' => $action,
+                'user' => Auth::check() ? Auth::user()->matricula : 'guest',
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
             ]);
             // No lanzamos el error al usuario para no romper el flujo de producción
         }
 
         // 4. REINICIAR CRONÓMETRO DE PRODUCTIVIDAD POR ACTIVIDAD TÉCNICA
-        // Solo reinicia en fases de espera (Menú/Formulario). 
+        // Solo reinicia en fases de espera (Menú/Formulario).
         // En MAQUINADO, el tiempo estándar debe respetarse y solo se reinicia al guardar la pieza.
         if ($action === 'Consulta Documentación Técnica') {
             $user = Auth::user();
@@ -246,9 +247,6 @@ class SystemLogController extends Controller
         return response()->json(['success' => true]);
     }
 
-        /**
-     * @param Request $request
-     */
     public function index(Request $request)
     {
         // 1. Obtener valores ÚNICOS para los filtros usando DB::table() en lugar de Eloquent.
@@ -262,11 +260,12 @@ class SystemLogController extends Controller
                 ->whereNotNull('system_logs.ot')
                 ->distinct()
                 ->get()
-                ->map(function($val) {
+                ->map(function ($val) {
                     $idBase = preg_match('/^(\d+)/', $val->ot, $m) ? $m[1] : $val->ot;
                     if ($val->moldura_nombre) {
                         return "{$idBase} - {$val->moldura_nombre}";
                     }
+
                     return $val->ot;
                 })
                 ->filter()
@@ -280,8 +279,11 @@ class SystemLogController extends Controller
                 ->whereNotNull('system_logs.clase')
                 ->distinct()
                 ->get()
-                ->map(function($val) {
-                    if ($val->clase_nombre) return $val->clase_nombre;
+                ->map(function ($val) {
+                    if ($val->clase_nombre) {
+                        return $val->clase_nombre;
+                    }
+
                     return preg_match('/^\d+$/', $val->clase) ? null : $val->clase;
                 })
                 ->filter()
@@ -339,13 +341,13 @@ class SystemLogController extends Controller
             ->select(['system_logs.user_matricula', 'users.nombre', 'users.a_paterno', 'users.perfil'])
             ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
             ->whereNotNull('system_logs.user_matricula')
-            ->when($request->filled('admin_only') && $request->admin_only == 1, fn($q) => $q->whereIn('users.perfil', [1, 3, 6]))
+            ->when($request->filled('admin_only') && $request->admin_only == 1, fn ($q) => $q->whereIn('users.perfil', [1, 3, 6]))
             ->distinct()
             ->get()
-            ->map(fn($o) => (object)[
+            ->map(fn ($o) => (object) [
                 'matricula' => $o->user_matricula,
                 'nombre' => $o->nombre,
-                'a_paterno' => $o->a_paterno
+                'a_paterno' => $o->a_paterno,
             ]);
 
         // Obtener N# Pieza (Juegos) simplificado — sin Eloquent para evitar hidratación de modelos
@@ -355,19 +357,22 @@ class SystemLogController extends Controller
             ->where('n_pieza', 'NOT LIKE', '%/%')
             ->orderBy('n_pieza')
             ->pluck('n_pieza')
-            ->map(function($p) {
-                $num = preg_replace('/[a-zA-Z]/', '', (string)$p);
-                return $num ? $num . "J" : null;
+            ->map(function ($p) {
+                $num = preg_replace('/[a-zA-Z]/', '', (string) $p);
+
+                return $num ? $num.'J' : null;
             })
             ->filter()->unique()->sort()->values();
 
         // 2. Preparar la consulta principal con paginación
         $query = SystemLog::query()->select([
-                'system_logs.*', 
-                'users.nombre as user_nombre', 'users.a_paterno', 'users.a_materno',
-                'molduras.nombre as moldura_nombre',
-                'clases.nombre as clase_real_nombre'
-            ])
+            'system_logs.*',
+            'users.nombre as user_nombre',
+            'users.a_paterno',
+            'users.a_materno',
+            'molduras.nombre as moldura_nombre',
+            'clases.nombre as clase_real_nombre',
+        ])
             ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
             ->leftJoin('orden_trabajo', 'system_logs.id_ot', '=', 'orden_trabajo.id')
             ->leftJoin('molduras', 'orden_trabajo.id_moldura', '=', 'molduras.id')
@@ -376,30 +381,42 @@ class SystemLogController extends Controller
         // --- APLICAR FILTROS ---
         if ($request->filled('ot') && $request->ot !== 'Todos') {
             $baseOt = preg_match('/^(\d+)/', $request->ot, $matches) ? $matches[1] : $request->ot;
-            $query->where('system_logs.ot', 'LIKE', $baseOt . '%');
+            $query->where('system_logs.ot', 'LIKE', $baseOt.'%');
         }
         if ($request->filled('clase') && $request->clase !== 'Todos') {
-            $query->where(function($q) use ($request) {
-                $q->where('system_logs.clase', 'LIKE', $request->clase . '%')
-                  ->orWhere('clases.nombre', 'LIKE', $request->clase . '%');
+            $query->where(function ($q) use ($request) {
+                $q->where('system_logs.clase', 'LIKE', $request->clase.'%')
+                    ->orWhere('clases.nombre', 'LIKE', $request->clase.'%');
             });
         }
-        if ($request->filled('proceso') && $request->proceso !== 'Todos') $query->where('proceso', $request->proceso);
-        if ($request->filled('maquina') && $request->maquina !== 'Todos') $query->where('maquina', $request->maquina);
-        if ($request->filled('action') && $request->action !== 'Todos') $query->where('action', $request->action);
-        if ($request->filled('operador') && $request->operador !== 'Todos') $query->where('user_matricula', $request->operador);
-        if ($request->filled('dateFrom')) $query->whereDate('system_logs.created_at', '>=', $request->dateFrom);
-        if ($request->filled('dateTo')) $query->whereDate('system_logs.created_at', '<=', $request->dateTo);
-        
+        if ($request->filled('proceso') && $request->proceso !== 'Todos') {
+            $query->where('proceso', $request->proceso);
+        }
+        if ($request->filled('maquina') && $request->maquina !== 'Todos') {
+            $query->where('maquina', $request->maquina);
+        }
+        if ($request->filled('action') && $request->action !== 'Todos') {
+            $query->where('action', $request->action);
+        }
+        if ($request->filled('operador') && $request->operador !== 'Todos') {
+            $query->where('user_matricula', $request->operador);
+        }
+        if ($request->filled('dateFrom')) {
+            $query->whereDate('system_logs.created_at', '>=', $request->dateFrom);
+        }
+        if ($request->filled('dateTo')) {
+            $query->whereDate('system_logs.created_at', '<=', $request->dateTo);
+        }
+
         if ($request->filled('n_pieza') && $request->n_pieza !== 'Todos') {
             $baseSearch = preg_replace('/[a-zA-Z]/', '', $request->n_pieza);
-            $query->where('n_pieza', 'REGEXP', '^' . $baseSearch . '[a-zA-Z]?$');
+            $query->where('n_pieza', 'REGEXP', '^'.$baseSearch.'[a-zA-Z]?$');
         }
 
         // --- FILTRO LOGS DE ADMINISTRADORES ---
         if ($request->filled('admin_only') && $request->admin_only == 1) {
             // Filtrar SOLO usuarios con perfil de administrador (perfil == 1)
-            $query->whereExists(function($subQ) {
+            $query->whereExists(function ($subQ) {
                 $subQ->select(DB::raw(1))
                     ->from('users')
                     ->whereColumn('users.matricula', 'system_logs.user_matricula')
@@ -466,6 +483,7 @@ class SystemLogController extends Controller
         // Orden determinista por ID descendente
         $limit = 500;
         $totalFound = $request->ajax() ? null : (clone $query)->count();
+        /** @var \Illuminate\Pagination\CursorPaginator $paginator */
         $paginator = $query->orderByDesc('system_logs.id')->cursorPaginate($limit)->withQueryString();
         $logsRaw = $paginator->items();
 
@@ -474,16 +492,27 @@ class SystemLogController extends Controller
         foreach ($logsRaw as $log) {
             // Lógica simplificada de sospecha (basada en el flag guardado o en cálculo de proximidad rápida)
             $isSuspicious = ($log->action === 'Captura Sospechosa' || $log->action === 'Captura Crítica');
-            
+
             // Definición de acciones con tiempo
             $rangeActions = [
-                'Captura Medida', 'Captura Sospechosa', 'Captura Crítica', 'Consulta Dibujos Técnicos', 
-                'Consulta Documentación Técnica', 'Autorización de Edición', 'Terminar Reporte', 
-                'Terminar jornada', 'Proceso Correcto', 'Exceso de Tiempo', 
-                'Abandono de Liberación', 'Exceso de Tiempo de Maquinado', 'Inicio de Reporte Pendiente', 'Inactividad en Bienvenida',
-                'Liberación por Calidad', 'Rechazo por Calidad'
+                'Captura Medida',
+                'Captura Sospechosa',
+                'Captura Crítica',
+                'Consulta Dibujos Técnicos',
+                'Consulta Documentación Técnica',
+                'Autorización de Edición',
+                'Terminar Reporte',
+                'Terminar jornada',
+                'Proceso Correcto',
+                'Exceso de Tiempo',
+                'Abandono de Liberación',
+                'Exceso de Tiempo de Maquinado',
+                'Inicio de Reporte Pendiente',
+                'Inactividad en Bienvenida',
+                'Liberación por Calidad',
+                'Rechazo por Calidad',
             ];
-            
+
             $showTimes = in_array($log->action, $rangeActions);
             $tiempoTotal = 'N/A';
 
@@ -495,8 +524,10 @@ class SystemLogController extends Controller
                         $start = \Carbon\Carbon::parse($h_inicio);
                         $end = \Carbon\Carbon::parse($h_termino);
                         $tiempoTotal = $start->diff($end)->format('%H:%I:%S');
-                    } catch (\Exception $e) { $tiempoTotal = '00:00:00'; }
-                } else if ($h_inicio === $h_termino) {
+                    } catch (\Exception $e) {
+                        $tiempoTotal = '00:00:00';
+                    }
+                } elseif ($h_inicio === $h_termino) {
                     $tiempoTotal = '00:00:00';
                 }
             }
@@ -515,7 +546,7 @@ class SystemLogController extends Controller
                 'hora_termino' => $log->h_termino ?? ($showTimes ? $log->created_at->format('H:i:s') : 'N/A'),
                 'tiempo_total' => $tiempoTotal,
                 'operador' => $log->user_matricula,
-                'operador_nombre' => ($log->user_nombre . ' ' . $log->a_paterno) ?: 'Sistema',
+                'operador_nombre' => ($log->user_nombre.' '.$log->a_paterno) ?: 'Sistema',
                 'action' => $log->action,
                 'details' => $log->details,
                 'ot' => $log->moldura_nombre ? (preg_match('/^(\d+)/', $log->ot, $m) ? "{$m[1]} - {$log->moldura_nombre}" : "{$log->ot} - {$log->moldura_nombre}") : ($log->ot ?? 'N/A'),
@@ -537,13 +568,13 @@ class SystemLogController extends Controller
                 'logsData' => $logsRender,
                 'next_page' => $paginator->nextPageUrl(),
                 'has_more' => $paginator->hasMorePages(),
-                'total_found' => $totalFound
+                'total_found' => $totalFound,
             ]);
         }
 
         if ($request->filled('generate_pdf')) {
             // Generar PDF con los mismos resultados filtrados (pero sin paginar para el PDF completo)
-            $pdfLogs = $query->get()->map(function($log) {
+            $pdfLogs = $query->get()->map(function ($log) {
                 // Mismo mapeo que arriba para consistencia en el PDF
                 return [
                     'date' => $log->created_at->format('Y-m-d'),
@@ -551,7 +582,7 @@ class SystemLogController extends Controller
                     'hora_inicio' => $log->h_inicio ?? 'N/A',
                     'hora_termino' => $log->h_termino ?? $log->created_at->format('H:i:s'),
                     'operador' => $log->user_matricula,
-                    'operador_nombre' => ($log->nombre . ' ' . $log->a_paterno) ?: 'Sistema',
+                    'operador_nombre' => ($log->nombre.' '.$log->a_paterno) ?: 'Sistema',
                     'action' => $log->action,
                     'details' => $log->details,
                     'ot' => $log->ot ?? 'N/A',
@@ -565,13 +596,14 @@ class SystemLogController extends Controller
             });
 
             $isAdminOnly = $request->filled('admin_only') && $request->admin_only == 1;
-            $reportType  = $isAdminOnly ? 'Logs de Administradores' : 'Logs de Sistema';
+            $reportType = $isAdminOnly ? 'Logs de Administradores' : 'Logs de Sistema';
 
             $pdf = Pdf::loadView('reports.systemLogsPdf', [
-                'logsRender'   => $pdfLogs,
+                'logsRender' => $pdfLogs,
                 'selectedItems' => $selectedItems,
-                'isAdminOnly'  => $isAdminOnly,
+                'isAdminOnly' => $isAdminOnly,
             ]);
+
             return $pdf->download($this->generatePdfFilename($selectedItems, $reportType));
         }
 
@@ -581,37 +613,32 @@ class SystemLogController extends Controller
             'selectedItems' => $selectedItems,
             'hasMore' => $paginator->hasMorePages(),
             'nextPage' => $paginator->nextPageUrl(),
-            'totalFound' => $totalFound
+            'totalFound' => $totalFound,
         ]);
     }
 
-
-        /**
-     * @param array $selectedItems
-     * @param string $reportType
-     */
     public function generatePdfFilename(array $selectedItems, string $reportType): string
     {
         $parts = [];
         $date = date('d-m-Y');
 
         if (isset($selectedItems['ot']) && $selectedItems['ot'] !== 'Todos') {
-            $parts[] = "OT " . $selectedItems['ot'];
+            $parts[] = 'OT '.$selectedItems['ot'];
         }
         if (isset($selectedItems['clase']) && $selectedItems['clase'] !== 'Todos') {
             $parts[] = $selectedItems['clase'];
         }
         if (isset($selectedItems['operador']) && $selectedItems['operador'] !== 'Todos') {
-            $parts[] = "Op " . $selectedItems['operador'];
+            $parts[] = 'Op '.$selectedItems['operador'];
         }
         if (isset($selectedItems['action']) && $selectedItems['action'] !== 'Todos') {
             $parts[] = $selectedItems['action'];
         }
 
         if (count($parts) > 0) {
-            return implode(' - ', $parts) . " - " . $date . ".pdf";
+            return implode(' - ', $parts).' - '.$date.'.pdf';
         } else {
-            return "Reporte de " . $reportType . " General - " . $date . ".pdf";
+            return 'Reporte de '.$reportType.' General - '.$date.'.pdf';
         }
     }
 
@@ -623,10 +650,10 @@ class SystemLogController extends Controller
         set_time_limit(0);
         try {
             // Solo administradores (perfil 1), Master (perfil 3) o Supervisor (perfil 6)
-            if (!in_array(Auth::user()->perfil, [1, 3, 6])) {
+            if (! in_array(Auth::user()->perfil, [1, 3, 6])) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'No tiene permisos para realizar esta acción.'
+                    'message' => 'No tiene permisos para realizar esta acción.',
                 ], 403);
             }
 
@@ -637,59 +664,61 @@ class SystemLogController extends Controller
             return response()->json([
                 'success' => true,
                 'message' => 'Depuración manual completada con éxito. Los logs han sido respaldados y la tabla se ha limpiado.',
-                'output' => $output
+                'output' => $output,
             ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al ejecutar la depuración: ' . $e->getMessage()
+                'message' => 'Error al ejecutar la depuración: '.$e->getMessage(),
             ], 500);
         }
     }
 
     /**
      * Obtiene el nombre del modelo de piezas para un proceso dado.
-     * 
-     * @param string|null $process
-     * @param int|null $id_clase
+     *
+     * @param  string|null  $process
+     * @param  int|null  $id_clase
      * @return string|null
      */
     private function getModelForProcess($process, $id_clase)
     {
-        if (!$process || !$id_clase) return null;
+        if (! $process || ! $id_clase) {
+            return null;
+        }
         $clase = Clase::query()->find($id_clase);
-        
+
         try {
             $modelName = match ($process) {
-                'Cepillado' => "Pza_cepillado",
-                'Desbaste Exterior' => "Desbaste_pza",
-                'Revision Laterales' => "RevLaterales_pza",
-                'Primera Operacion' => "PrimeraOpeSoldadura_pza",
-                'Barreno Maniobra' => "BarrenoManiobra_pza",
-                'Segunda Operacion' => "SegundaOpeSoldadura_pza",
-                'Rectificado' => "Rectificado_pza",
-                'Asentado' => "Asentado_pza",
-                'Calificado' => "revCalificado_pza",
-                'Acabado Bombillo' => "AcabadoBombilo_pza",
-                'Acabado Molde' => "AcabadoMolde_pza",
-                'Barreno Profundidad' => "BarrenoProfundidad_pza",
-                'Cavidades' => "Cavidades_pza",
-                'Copiado' => "Copiado_pza",
-                'Off Set' => "OffSet_pza",
-                'Palomas' => "Palomas_pza",
-                'Rebajes' => "Rebajes_pza",
-                'Operacion Equipo' => ($clase && $clase->nombre == 'Candado Obturador') ? "CandadoObturador_pza" : "PySOpeSoldadura_pza",
-                'Embudo CM' => "EmbudoCM_pza",
-                'Soldadura' => "Soldadura_pza",
-                'Soldadura PTA' => "SoldaduraPTA_pza",
-                'Primera Operacion Cabeza Soplo' => "PrimeraOperacionCabezaSoplo_pza",
-                'Segunda Operacion Cabeza Soplo' => "SegundaOperacionCabezaSoplo_pza",
-                'Candado Obturador' => "CandadoObturador_pza",
+                'Cepillado' => 'Pza_cepillado',
+                'Desbaste Exterior' => 'Desbaste_pza',
+                'Revision Laterales' => 'RevLaterales_pza',
+                'Primera Operacion' => 'PrimeraOpeSoldadura_pza',
+                'Barreno Maniobra' => 'BarrenoManiobra_pza',
+                'Segunda Operacion' => 'SegundaOpeSoldadura_pza',
+                'Rectificado' => 'Rectificado_pza',
+                'Asentado' => 'Asentado_pza',
+                'Calificado' => 'revCalificado_pza',
+                'Acabado Bombillo' => 'AcabadoBombilo_pza',
+                'Acabado Molde' => 'AcabadoMolde_pza',
+                'Barreno Profundidad' => 'BarrenoProfundidad_pza',
+                'Cavidades' => 'Cavidades_pza',
+                'Copiado' => 'Copiado_pza',
+                'Off Set' => 'OffSet_pza',
+                'Palomas' => 'Palomas_pza',
+                'Rebajes' => 'Rebajes_pza',
+                'Operacion Equipo' => ($clase && $clase->nombre == 'Candado Obturador') ? 'CandadoObturador_pza' : 'PySOpeSoldadura_pza',
+                'Embudo CM' => 'EmbudoCM_pza',
+                'Soldadura' => 'Soldadura_pza',
+                'Soldadura PTA' => 'SoldaduraPTA_pza',
+                'Primera Operacion Cabeza Soplo' => 'PrimeraOperacionCabezaSoplo_pza',
+                'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo_pza',
+                'Candado Obturador' => 'CandadoObturador_pza',
                 default => null,
             };
 
             if ($modelName) {
-                return "App\Models\\" . $modelName;
+                return "App\Models\\".$modelName;
             }
         } catch (\Exception $e) {
             return null;

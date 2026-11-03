@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\SoldaduraLote;
-use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 
 class GenerarQRLoteController extends Controller
 {
@@ -13,9 +13,6 @@ class GenerarQRLoteController extends Controller
         return view('trackingSoldadura_views.generarQRLote');
     }
 
-        /**
-     * @param Request $request
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -42,7 +39,7 @@ class GenerarQRLoteController extends Controller
     }
 
     /**
-     * @param SoldaduraLote $lote
+     * @param  SoldaduraLote  $lote
      */
     private function generarPDF($lote)
     {
@@ -57,7 +54,7 @@ class GenerarQRLoteController extends Controller
         ]);
 
         $pdf = Pdf::loadView('trackingSoldadura_views.qr_lote_pdf', compact('lote', 'qrContent'));
-        
-        return $pdf->download('QR_Lote_' . $lote->matricula . '.pdf');
+
+        return $pdf->download('QR_Lote_'.$lote->matricula.'.pdf');
     }
 }

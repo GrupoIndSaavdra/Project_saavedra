@@ -26,10 +26,12 @@ class AppServiceProvider extends ServiceProvider
             @ini_set('memory_limit', '512M');
         }
 
-        // Cargar todas las migraciones que estén dentro de subcarpetas en database/migrations/
-        $mainPath = database_path('migrations');
-        $directories = glob($mainPath . '/*' , GLOB_ONLYDIR);
-        $paths = array_merge([$mainPath], $directories);
-        $this->loadMigrationsFrom($paths);
+        // Cargar todas las migraciones que estén dentro de subcarpetas en database/migrations/ (solo en consola)
+        if ($this->app->runningInConsole()) {
+            $mainPath = database_path('migrations');
+            $directories = glob($mainPath . '/*' , GLOB_ONLYDIR);
+            $paths = array_merge([$mainPath], $directories ?: []);
+            $this->loadMigrationsFrom($paths);
+        }
     }
 }

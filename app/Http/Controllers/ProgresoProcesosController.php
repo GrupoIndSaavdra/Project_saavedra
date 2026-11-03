@@ -15,7 +15,6 @@ use App\Models\RevLaterales;
 use App\Models\RevLaterales_pza;
 use App\Models\SegundaOpeSoldadura;
 use App\Models\SegundaOpeSoldadura_pza;
-use Illuminate\Http\Request;
 
 class ProgresoProcesosController extends Controller
 {
@@ -25,176 +24,107 @@ class ProgresoProcesosController extends Controller
         if ($ot != 0) {
             return view('processesAdmin.verProcesos', ['ot' => $ot]);
         }
+
         return view('processesAdmin.verProcesos');
     }
+
+    /**
+     * @return array<int, array<int, mixed>>|int
+     */
     public function almacenarDatos()
     {
-        $clases = Clase::all();
-        if (count($clases) > 0) {
-            // ── OPTIMIZACIÓN: pre-cargar OTs y molduras en memoria ──
-            // Sin esto, el switch de 26 casos hacía Orden_trabajo::query()->where() en cada iteración
-            $ordenesMap = Orden_trabajo::all()->keyBy('id');
-            $moldurasMap = Moldura::all()->keyBy('id');
-
-            $ot = array();
-            $contador = 0;
-
-            // Renombrado de $clases a $clase para evitar shadowing con la colección externa
-            foreach ($clases as $clase) {
-                // Pre-calcular OT y moldura UNA SOLA VEZ por clase (no 26 veces)
-                $ordenT  = $ordenesMap->get($clase->id_ot);
-                $moldura = $ordenT ? $moldurasMap->get($ordenT->id_moldura) : null;
-
-                for ($i = 0; $i < 26; $i++) {
-                    switch ($i) {
-                        case 0:
-                            $ot[$contador][$i] = $ordenT ? $ordenT->id : null;
-                            break;
-                        case 1:
-                            $ot[$contador][$i] = $moldura ? $moldura->nombre : '?';
-                            break;
-                        case 2:
-                            $ot[$contador][$i] = $clase->nombre . " " . $clase->tamanio;
-                            break;
-                        case 3:
-                            $proceso = 'Cepillado_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $cepillado = Cepillado::query()->where('id_proceso', $proceso)->first();
-
-                            if ($cepillado != null) {
-                                $ot[$contador][$i] = count(Pza_cepillado::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $cepillado->id)->get()) / 2;
-                            } else {
-                                $ot[$contador][$i] = 0;
-                            }
-                            break;
-                        case 4:
-                            $proceso = 'desbaste_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $desbaste = DesbasteExterior::query()->where('id_proceso', $proceso)->first();
-
-                            if ($desbaste != null) {
-                                $pzasCorrectas = Desbaste_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $desbaste->id)->get();
-                                if (isset($pzasCorrectas)) {
-                                    $correctas = 0;
-                                    $juegosUtilizados = array();
-                                    for ($x = 0; $x < count($pzasCorrectas); $x++) {
-                                        for ($y = 0; $y < count($pzasCorrectas); $y++) {
-                                            if ($pzasCorrectas[$x]->n_juego === $pzasCorrectas[$y]->n_juego && $x != $y) {
-                                                if ($pzasCorrectas[$x]->correcto == 1 && $pzasCorrectas[$y]->correcto == 1) {
-                                                    if (array_search($pzasCorrectas[$x]->n_juego, $juegosUtilizados) === false) {
-                                                        array_push($juegosUtilizados, $pzasCorrectas[$x]->n_juego);
-                                                        $correctas++;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    $ot[$contador][$i] = $correctas;
-                                } else {
-                                    $ot[$contador][$i] = 0;
-                                }
-                            } else {
-                                $ot[$contador][$i] = 0;
-                            }
-                            break;
-                        case 5:
-                            $proceso = 'revLaterales_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $revLaterales = RevLaterales::query()->where('id_proceso', $proceso)->first();
-
-                            if ($revLaterales != null) {
-                                $pzasCorrectas = RevLaterales_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $revLaterales->id)->get();
-                                if (isset($pzasCorrectas)) {
-                                    $correctas = 0;
-                                    $juegosUtilizados = array();
-                                    for ($x = 0; $x < count($pzasCorrectas); $x++) {
-                                        for ($y = 0; $y < count($pzasCorrectas); $y++) {
-                                            if ($pzasCorrectas[$x]->n_juego === $pzasCorrectas[$y]->n_juego && $x != $y) {
-                                                if ($pzasCorrectas[$x]->correcto == 1 && $pzasCorrectas[$y]->correcto == 1) {
-                                                    if (array_search($pzasCorrectas[$x]->n_juego, $juegosUtilizados) === false) {
-                                                        array_push($juegosUtilizados, $pzasCorrectas[$x]->n_juego);
-                                                        $correctas++;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    $ot[$contador][$i] = $correctas;
-                                } else {
-                                    $ot[$contador][$i] = 0;
-                                }
-                            } else {
-                                $ot[$contador][$i] = 0;
-                            }
-                            break;
-                        case 6:
-                            $proceso = '1opeSoldadura_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $primeraOpeSoldadura = PrimeraOpeSoldadura::query()->where('id_proceso', $proceso)->first();
-
-                            if ($primeraOpeSoldadura != null) {
-                                $pzasCorrectas = PrimeraOpeSoldadura_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $primeraOpeSoldadura->id)->get();
-                                if (isset($pzasCorrectas)) {
-                                    $correctas = 0;
-                                    $juegosUtilizados = array();
-                                    for ($x = 0; $x < count($pzasCorrectas); $x++) {
-                                        for ($y = 0; $y < count($pzasCorrectas); $y++) {
-                                            if ($pzasCorrectas[$x]->n_juego === $pzasCorrectas[$y]->n_juego && $x != $y) {
-                                                if ($pzasCorrectas[$x]->correcto == 1 && $pzasCorrectas[$y]->correcto == 1) {
-                                                    if (array_search($pzasCorrectas[$x]->n_juego, $juegosUtilizados) === false) {
-                                                        array_push($juegosUtilizados, $pzasCorrectas[$x]->n_juego);
-                                                        $correctas++;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    $ot[$contador][$i] = $correctas;
-                                } else {
-                                    $ot[$contador][$i] = 0;
-                                }
-                            } else {
-                                $ot[$contador][$i] = 0;
-                            }
-                            break;
-                        case 7:
-                            $proceso = '2opeSoldadura_' . $clase->nombre . "_" . ($ordenT ? $ordenT->id : '');
-                            $segundaOpeSoldadura = SegundaOpeSoldadura::query()->where('id_proceso', $proceso)->first();
-
-                            if ($segundaOpeSoldadura != null) {
-                                $pzasCorrectas = SegundaOpeSoldadura_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $segundaOpeSoldadura->id)->get();
-                                if (isset($pzasCorrectas)) {
-                                    $correctas = 0;
-                                    $juegosUtilizados = array();
-                                    for ($x = 0; $x < count($pzasCorrectas); $x++) {
-                                        for ($y = 0; $y < count($pzasCorrectas); $y++) {
-                                            if ($pzasCorrectas[$x]->n_juego === $pzasCorrectas[$y]->n_juego && $x != $y) {
-                                                if ($pzasCorrectas[$x]->correcto == 1 && $pzasCorrectas[$y]->correcto == 1) {
-                                                    if (array_search($pzasCorrectas[$x]->n_juego, $juegosUtilizados) === false) {
-                                                        array_push($juegosUtilizados, $pzasCorrectas[$x]->n_juego);
-                                                        $correctas++;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                    $ot[$contador][$i] = $correctas;
-                                } else {
-                                    $ot[$contador][$i] = 0;
-                                }
-                            } else {
-                                $ot[$contador][$i] = 0;
-                            }
-                            break;
-                        default:
-                            if ($i === 25) {
-                                $ot[$contador][$i] = $clase->pedido;
-                            } else {
-                                $ot[$contador][$i] = 0;
-                            }
-                            break;
-                    }
-                }
-                $contador++;
-            }
-            return $ot;
+        $clases = Clase::query()->where('finalizada', '=', 0, 'and')->get();
+        if ($clases->isEmpty()) {
+            return 0;
         }
-        return 0;
+
+        $ordenesMap = Orden_trabajo::all()->keyBy('id');
+        $moldurasMap = Moldura::all()->keyBy('id');
+
+        $ot = [];
+
+        foreach ($clases as $clase) {
+            $ordenT = $ordenesMap->get($clase->id_ot);
+            $moldura = $ordenT ? $moldurasMap->get($ordenT->id_moldura) : null;
+            $otId = $ordenT ? $ordenT->id : '';
+
+            $fila = array_fill(0, 26, 0);
+            $fila[0] = $ordenT ? $ordenT->id : null;
+            $fila[1] = $moldura ? $moldura->nombre : '?';
+            $fila[2] = $clase->nombre.' '.$clase->tamanio;
+
+            // Cepillado
+            $procesoCep = 'Cepillado_'.$clase->nombre.'_'.$otId;
+            $cepillado = Cepillado::query()->where('id_proceso', $procesoCep)->first();
+            if ($cepillado != null) {
+                $countCep = Pza_cepillado::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $cepillado->id)->count();
+                $fila[3] = $countCep / 2;
+            }
+
+            // Desbaste Exterior
+            $procesoDes = 'desbaste_'.$clase->nombre.'_'.$otId;
+            $desbaste = DesbasteExterior::query()->where('id_proceso', $procesoDes)->first();
+            if ($desbaste != null) {
+                $pzas = Desbaste_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $desbaste->id)->get();
+                $fila[4] = $this->contarJuegosCorrectos($pzas);
+            }
+
+            // Revisión Laterales
+            $procesoRev = 'revLaterales_'.$clase->nombre.'_'.$otId;
+            $revLaterales = RevLaterales::query()->where('id_proceso', $procesoRev)->first();
+            if ($revLaterales != null) {
+                $pzas = RevLaterales_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $revLaterales->id)->get();
+                $fila[5] = $this->contarJuegosCorrectos($pzas);
+            }
+
+            // 1ª Operación Soldadura
+            $proceso1Op = '1opeSoldadura_'.$clase->nombre.'_'.$otId;
+            $primeraOpeSoldadura = PrimeraOpeSoldadura::query()->where('id_proceso', $proceso1Op)->first();
+            if ($primeraOpeSoldadura != null) {
+                $pzas = PrimeraOpeSoldadura_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $primeraOpeSoldadura->id)->get();
+                $fila[6] = $this->contarJuegosCorrectos($pzas);
+            }
+
+            // 2ª Operación Soldadura
+            $proceso2Op = '2opeSoldadura_'.$clase->nombre.'_'.$otId;
+            $segundaOpeSoldadura = SegundaOpeSoldadura::query()->where('id_proceso', $proceso2Op)->first();
+            if ($segundaOpeSoldadura != null) {
+                $pzas = SegundaOpeSoldadura_pza::query()->where('estado', 2)->where('correcto', 1)->where('id_proceso', $segundaOpeSoldadura->id)->get();
+                $fila[7] = $this->contarJuegosCorrectos($pzas);
+            }
+
+            $fila[25] = $clase->pedido;
+            $ot[] = $fila;
+        }
+
+        return ! empty($ot) ? $ot : 0;
+    }
+
+    /**
+     * Cuenta los juegos donde existen al menos dos piezas correctas.
+     *
+     * @param  \Illuminate\Support\Collection|null  $pzas
+     */
+    private function contarJuegosCorrectos($pzas): int
+    {
+        if (! $pzas || $pzas->isEmpty()) {
+            return 0;
+        }
+
+        $juegosCount = [];
+        foreach ($pzas as $pza) {
+            if ($pza->correcto == 1 && ! empty($pza->n_juego)) {
+                $juegosCount[$pza->n_juego] = ($juegosCount[$pza->n_juego] ?? 0) + 1;
+            }
+        }
+
+        $correctas = 0;
+        foreach ($juegosCount as $count) {
+            if ($count >= 2) {
+                $correctas++;
+            }
+        }
+
+        return $correctas;
     }
 }

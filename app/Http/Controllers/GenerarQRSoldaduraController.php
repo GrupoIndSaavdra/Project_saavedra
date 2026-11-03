@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\User;
-use App\Models\RegistroSoldadura;
 use App\Models\QRGeneradoSoldadura;
-use BaconQrCode\Renderer\ImageRenderer;
+use App\Models\RegistroSoldadura;
+use App\Models\User;
 use BaconQrCode\Renderer\Image\SvgImageBackEnd;
+use BaconQrCode\Renderer\ImageRenderer;
 use BaconQrCode\Renderer\RendererStyle\RendererStyle;
 use BaconQrCode\Writer;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
 
 class GenerarQRSoldaduraController extends Controller
 {
@@ -74,7 +74,7 @@ class GenerarQRSoldaduraController extends Controller
             'lote' => $lote,
             'kilos' => $request->cantidad,
             'qr_content' => '', // Se llenará después
-            'estado' => 'generado'
+            'estado' => 'generado',
         ]);
 
         // El QR solo contiene el ID
@@ -87,8 +87,8 @@ class GenerarQRSoldaduraController extends Controller
                 'content' => $qrContent,
                 'kilos' => $request->cantidad,
                 'numero' => 1,
-                'id' => $qrGenerado->id
-            ]
+                'id' => $qrGenerado->id,
+            ],
         ];
 
         // Generar QRs con imágenes
@@ -102,21 +102,21 @@ class GenerarQRSoldaduraController extends Controller
             $qrString = $writer->writeString($qr['content']);
 
             // Convertir SVG a base64
-            $qrBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrString);
+            $qrBase64 = 'data:image/svg+xml;base64,'.base64_encode($qrString);
 
             $qrsConImagenes[] = [
                 'content' => $qr['content'],
                 'kilos' => $qr['kilos'],
                 'numero' => $qr['numero'],
                 'id' => $qr['id'],
-                'qr_image' => $qrBase64
+                'qr_image' => $qrBase64,
             ];
         }
 
         // Obtener datos del operador
         $operador = User::query()->find($request->operador_id);
 
-        if (!$operador) {
+        if (! $operador) {
             return redirect()
                 ->back()
                 ->withErrors(['operador_id' => 'Operador no encontrado.'])
@@ -130,10 +130,10 @@ class GenerarQRSoldaduraController extends Controller
             'nombre' => $nombre,
             'lote' => $lote,
             'fecha' => $request->fecha_generacion,
-            'total_kilos' => $request->cantidad
+            'total_kilos' => $request->cantidad,
         ]);
 
-        $pdfFilename = "QR_Individual_Soldadura_{$nombre}_{$lote}_" . date('Y-m-d') . ".pdf";
+        $pdfFilename = "QR_Individual_Soldadura_{$nombre}_{$lote}_".date('Y-m-d').'.pdf';
 
         return redirect()
             ->route('soldadura.generarQRSoldadura')

@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ProgramaCncFileLog;
-use App\Models\Orden_trabajo;
 use App\Models\Clase;
+use App\Models\Orden_trabajo;
 use App\Models\Procesos;
+use App\Models\ProgramaCncFileLog;
 use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class ProgramasCncController extends Controller
@@ -64,13 +64,13 @@ class ProgramasCncController extends Controller
         try {
             $todasLasOTs = Orden_trabajo::query()->with([
                 'moldura',
-                'clases' => fn($q) => $q->where('finalizada', 0)->orderBy('nombre'),
+                'clases' => fn ($q) => $q->where('finalizada', 0)->orderBy('nombre'),
             ])
-                ->whereHas('clases', fn($q) => $q->where('finalizada', 0))
+                ->whereHas('clases', fn ($q) => $q->where('finalizada', 0))
                 ->orderBy('id', 'asc')
                 ->get();
         } catch (\Throwable $e) {
-            Log::warning('Error DB en ProgramasCncController@showManage: ' . $e->getMessage());
+            Log::warning('Error DB en ProgramasCncController@showManage: '.$e->getMessage());
             $todasLasOTs = collect();
         }
 
@@ -107,18 +107,20 @@ class ProgramasCncController extends Controller
     public function getProcesosForClase(Request $request)
     {
         $claseId = $request->query('clase_id');
-        if (!$claseId) {
+        if (! $claseId) {
             return response()->json(['procesos' => []]);
         }
 
         try {
             $clase = Clase::query()->find($claseId);
-            if (!$clase) {
+            if (! $clase) {
                 return response()->json(['procesos' => []]);
             }
+
             return response()->json(['procesos' => $this->getProcesosForClaseModel($clase)]);
         } catch (\Throwable $e) {
-            Log::warning('Error en ProgramasCncController@getProcesosForClase: ' . $e->getMessage());
+            Log::warning('Error en ProgramasCncController@getProcesosForClase: '.$e->getMessage());
+
             return response()->json(['procesos' => []]);
         }
     }
@@ -127,12 +129,12 @@ class ProgramasCncController extends Controller
      * Obtiene la lista de procesos activos para un modelo Clase.
      * Lee la fila de `procesos` y filtra las columnas que tienen valor != 0.
      *
-     * @return string[]  Lista de nombres de proceso legibles (ej. "Cepillado", "Copiado")
+     * @return string[] Lista de nombres de proceso legibles (ej. "Cepillado", "Copiado")
      */
     private function getProcesosForClaseModel(Clase $clase): array
     {
         $procesos = Procesos::query()->where('id_clase', $clase->id)->first();
-        if (!$procesos) {
+        if (! $procesos) {
             // Si no hay fila, devolver los procesos esperados del tipo de clase
             return $this->getFallbackProcesses($clase);
         }
@@ -236,17 +238,17 @@ class ProgramasCncController extends Controller
                     $otIdNumber = $otMatch[1];
                     $otModel = Orden_trabajo::query()->with('moldura')->find($otIdNumber);
                     if ($otModel) {
-                        $otLabel = 'OT ' . $otModel->id . ($otModel->moldura ? ' - ' . $otModel->moldura->nombre : '');
+                        $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
                         $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
                     }
                 } catch (\Throwable $e) {
-                    Log::warning('Error DB en ProgramasCncController@getFiles: ' . $e->getMessage());
+                    Log::warning('Error DB en ProgramasCncController@getFiles: '.$e->getMessage());
                 }
             }
 
             // Construir ruta: OT / Clase / Proceso
             $parts = array_filter([$ot, $clase, $proceso]);
-            $dirPath = self::BASE_DIR . '/' . implode('/', $parts);
+            $dirPath = self::BASE_DIR.'/'.implode('/', $parts);
             $resolvedDir = $this->resolveCaseInsensitivePath($dirPath);
 
             $files = [];
@@ -260,10 +262,10 @@ class ProgramasCncController extends Controller
                         $files[] = [
                             'nombre' => $utf8Name,
                             'url' => url('/programas/serve')
-                                . '?ot=' . urlencode($ot)
-                                . '&clase=' . urlencode($clase)
-                                . '&proceso=' . urlencode($proceso)
-                                . '&archivo=' . urlencode($utf8Name),
+                                .'?ot='.urlencode($ot)
+                                .'&clase='.urlencode($clase)
+                                .'&proceso='.urlencode($proceso)
+                                .'&archivo='.urlencode($utf8Name),
                             'extension' => strtoupper($ext),
                         ];
                     }
@@ -278,7 +280,8 @@ class ProgramasCncController extends Controller
                 'existe' => count($files) > 0,
             ]);
         } catch (\Throwable $e) {
-            Log::error('Error en ProgramasCncController@getFiles: ' . $e->getMessage());
+            Log::error('Error en ProgramasCncController@getFiles: '.$e->getMessage());
+
             return response()->json(['archivos' => [], 'existe' => false, 'error' => $e->getMessage()], 200);
         }
     }
@@ -299,11 +302,11 @@ class ProgramasCncController extends Controller
             try {
                 $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
                 if ($otModel) {
-                    $otLabel = 'OT ' . $otModel->id . ($otModel->moldura ? ' - ' . $otModel->moldura->nombre : '');
+                    $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
                     $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
                 }
             } catch (\Throwable $e) {
-                Log::warning('Error DB en ProgramasCncController@serveFile: ' . $e->getMessage());
+                Log::warning('Error DB en ProgramasCncController@serveFile: '.$e->getMessage());
             }
         }
 
@@ -312,7 +315,7 @@ class ProgramasCncController extends Controller
         }
 
         $parts = array_filter([$ot, $clase, $proceso]);
-        $dirPath = self::BASE_DIR . '/' . implode('/', $parts);
+        $dirPath = self::BASE_DIR.'/'.implode('/', $parts);
         $resolvedDir = $this->resolveCaseInsensitivePath($dirPath);
 
         $foundFile = null;
@@ -331,7 +334,7 @@ class ProgramasCncController extends Controller
             }
         }
 
-        if (!$foundFile) {
+        if (! $foundFile) {
             abort(404, 'Archivo no encontrado.');
         }
 
@@ -342,7 +345,7 @@ class ProgramasCncController extends Controller
         // Forzar descarga en lugar de visualización inline
         return response()->file($fullPath, [
             'Content-Type' => 'application/octet-stream',
-            'Content-Disposition' => 'attachment; filename="' . $archivo . '"',
+            'Content-Disposition' => 'attachment; filename="'.$archivo.'"',
         ]);
     }
 
@@ -369,20 +372,20 @@ class ProgramasCncController extends Controller
             $proceso = $this->sanitizePath($request->input('proceso'));
 
             $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
-            $otFolderName = 'OT ' . $otModel->id . ($otModel->moldura ? ' - ' . $otModel->moldura->nombre : '');
+            $otFolderName = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
             $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
             $claseModel = Clase::query()->findOrFail($claseId);
             $claseFolder = $this->sanitizePath($claseModel->nombre);
 
-            $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $claseFolder . '/' . $proceso;
+            $dirPath = self::BASE_DIR.'/'.$otFolderName.'/'.$claseFolder.'/'.$proceso;
 
             if (Storage::disk('local')->exists($dirPath)) {
                 return response()->json(['success' => false, 'message' => 'La carpeta ya existe.'], 409);
             }
 
             Storage::disk('local')->makeDirectory($dirPath);
-            $this->logAction('crear_carpeta', $otFolderName . '/' . $claseFolder . '/' . $proceso, null);
+            $this->logAction('crear_carpeta', $otFolderName.'/'.$claseFolder.'/'.$proceso, null);
 
             return response()->json([
                 'success' => true,
@@ -392,7 +395,8 @@ class ProgramasCncController extends Controller
                 'proceso' => $proceso,
             ]);
         } catch (\Exception $e) {
-            Log::error('Error en ProgramasCncController@createFolder: ' . $e->getMessage());
+            Log::error('Error en ProgramasCncController@createFolder: '.$e->getMessage());
+
             return response()->json(['success' => false, 'message' => 'Ocurrió un error al crear la carpeta.', 'error' => $e->getMessage()], 500);
         }
     }
@@ -414,7 +418,7 @@ class ProgramasCncController extends Controller
         $file = $request->file('programa');
         $ext = strtolower($file->getClientOriginalExtension());
 
-        if (!in_array($ext, self::ALLOWED_EXTENSIONS)) {
+        if (! in_array($ext, self::ALLOWED_EXTENSIONS)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Solo se permiten archivos con extensión .NC o .CNC.',
@@ -425,19 +429,19 @@ class ProgramasCncController extends Controller
         $claseModel = Clase::query()->findOrFail($request->input('clase_id'));
         $proceso = $this->sanitizePath($request->input('proceso'));
 
-        $otFolderName = 'OT ' . $otModel->id . ($otModel->moldura ? ' - ' . $otModel->moldura->nombre : '');
+        $otFolderName = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
         $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
         $claseFolder = $this->sanitizePath($claseModel->nombre);
 
-        $dirPath = self::BASE_DIR . '/' . $otFolderName . '/' . $claseFolder . '/' . $proceso;
+        $dirPath = self::BASE_DIR.'/'.$otFolderName.'/'.$claseFolder.'/'.$proceso;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        if (! Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
         }
 
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
 
-        if (Storage::disk('local')->exists($dirPath . '/' . $originalName)) {
+        if (Storage::disk('local')->exists($dirPath.'/'.$originalName)) {
             return response()->json([
                 'success' => false,
                 'message' => "Ya existe un archivo con el nombre '{$originalName}'. Use la función de Reemplazar.",
@@ -445,17 +449,17 @@ class ProgramasCncController extends Controller
         }
 
         $file->storeAs($dirPath, $originalName, 'local');
-        $this->logAction('subir_programa', $otFolderName . '/' . $claseFolder . '/' . $proceso, $originalName);
+        $this->logAction('subir_programa', $otFolderName.'/'.$claseFolder.'/'.$proceso, $originalName);
 
         return response()->json([
             'success' => true,
             'message' => "Programa '{$originalName}' subido correctamente.",
             'nombre' => $originalName,
             'url' => url('/programas/serve')
-                . '?ot=' . urlencode($otFolderName)
-                . '&clase=' . urlencode($claseFolder)
-                . '&proceso=' . urlencode($proceso)
-                . '&archivo=' . urlencode($originalName),
+                .'?ot='.urlencode($otFolderName)
+                .'&clase='.urlencode($claseFolder)
+                .'&proceso='.urlencode($proceso)
+                .'&archivo='.urlencode($originalName),
         ]);
     }
 
@@ -478,7 +482,7 @@ class ProgramasCncController extends Controller
         $proceso = $this->sanitizePath($request->input('proceso'));
         $archivo = $this->sanitizeFileName($request->input('archivo'));
 
-        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $proceso;
+        $dirPath = self::BASE_DIR.'/'.$ot.'/'.$clase.'/'.$proceso;
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
 
         $foundFile = null;
@@ -491,12 +495,12 @@ class ProgramasCncController extends Controller
             }
         }
 
-        if (!$foundFile) {
+        if (! $foundFile) {
             return response()->json(['success' => false, 'message' => 'El archivo no existe.'], 404);
         }
 
         Storage::disk('local')->delete($foundFile);
-        $this->logAction('eliminar_programa', $ot . '/' . $clase . '/' . $proceso, $archivo);
+        $this->logAction('eliminar_programa', $ot.'/'.$clase.'/'.$proceso, $archivo);
 
         return response()->json(['success' => true, 'message' => "Archivo '{$archivo}' eliminado correctamente."]);
     }
@@ -517,9 +521,9 @@ class ProgramasCncController extends Controller
         $ot = $this->sanitizePath($request->input('ot'));
         $clase = $this->sanitizePath($request->input('clase'));
         $proceso = $this->sanitizePath($request->input('proceso'));
-        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase . '/' . $proceso;
+        $dirPath = self::BASE_DIR.'/'.$ot.'/'.$clase.'/'.$proceso;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        if (! Storage::disk('local')->exists($dirPath)) {
             return response()->json(['success' => false, 'message' => 'La carpeta no existe.'], 404);
         }
 
@@ -528,7 +532,7 @@ class ProgramasCncController extends Controller
             Storage::disk('local')->delete($files);
         }
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_programa', $ot . '/' . $clase . '/' . $proceso, null);
+        $this->logAction('eliminar_programa', $ot.'/'.$clase.'/'.$proceso, null);
 
         return response()->json([
             'success' => true,
@@ -550,9 +554,9 @@ class ProgramasCncController extends Controller
 
         $ot = $this->sanitizePath($request->input('ot'));
         $clase = $this->sanitizePath($request->input('clase'));
-        $dirPath = self::BASE_DIR . '/' . $ot . '/' . $clase;
+        $dirPath = self::BASE_DIR.'/'.$ot.'/'.$clase;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        if (! Storage::disk('local')->exists($dirPath)) {
             return response()->json(['success' => false, 'message' => 'La carpeta no existe.'], 404);
         }
 
@@ -567,7 +571,7 @@ class ProgramasCncController extends Controller
         }
 
         Storage::disk('local')->deleteDirectory($dirPath);
-        $this->logAction('eliminar_programa', $ot . '/' . $clase, null);
+        $this->logAction('eliminar_programa', $ot.'/'.$clase, null);
 
         return response()->json(['success' => true, 'message' => "Carpeta de clase '{$clase}' (OT: {$ot}) eliminada correctamente."]);
     }
@@ -586,21 +590,21 @@ class ProgramasCncController extends Controller
         $estructura = [];
         $basePath = Storage::disk('local')->path(self::BASE_DIR);
 
-        if (!is_dir($basePath)) {
+        if (! is_dir($basePath)) {
             return $estructura;
         }
 
-        $otDirs = glob($basePath . '/*', GLOB_ONLYDIR) ?: [];
+        $otDirs = glob($basePath.'/*', GLOB_ONLYDIR) ?: [];
         foreach ($otDirs as $otDir) {
             $otName = $this->toUtf8($this->normalizeOTName(basename($otDir)));
             $clases = [];
 
-            $claseDirs = glob($otDir . '/*', GLOB_ONLYDIR) ?: [];
+            $claseDirs = glob($otDir.'/*', GLOB_ONLYDIR) ?: [];
             foreach ($claseDirs as $claseDir) {
                 $claseName = $this->toUtf8(basename($claseDir));
                 $procesos = [];
 
-                $procesoDirs = glob($claseDir . '/*', GLOB_ONLYDIR) ?: [];
+                $procesoDirs = glob($claseDir.'/*', GLOB_ONLYDIR) ?: [];
                 foreach ($procesoDirs as $procesoDir) {
                     $procesos[] = $this->toUtf8(basename($procesoDir));
                 }
@@ -612,6 +616,7 @@ class ProgramasCncController extends Controller
         }
 
         ksort($estructura, SORT_NATURAL);
+
         return $estructura;
     }
 
@@ -625,9 +630,9 @@ class ProgramasCncController extends Controller
 
         if ($user) {
             $userName = trim(
-                ($user->matricula ?? '') . ' - ' .
-                ($user->nombre ?? '') . ' ' .
-                ($user->a_paterno ?? '') . ' ' .
+                ($user->matricula ?? '').' - '.
+                ($user->nombre ?? '').' '.
+                ($user->a_paterno ?? '').' '.
                 ($user->a_materno ?? '')
             );
         }
@@ -651,7 +656,7 @@ class ProgramasCncController extends Controller
             SystemLog::create([
                 'user_matricula' => $user->matricula,
                 'action' => $systemAction,
-                'details' => "El administrador realizó la acción '{$action}' en {$ruta}" . ($archivo ? " (archivo: {$archivo})" : '') . '.',
+                'details' => "El administrador realizó la acción '{$action}' en {$ruta}".($archivo ? " (archivo: {$archivo})" : '').'.',
             ]);
         }
     }
@@ -660,6 +665,7 @@ class ProgramasCncController extends Controller
     {
         $path = preg_replace('/\.\.+/', '', $path);
         $path = preg_replace('/[\/\\\\]/', '', $path);
+
         return trim($path);
     }
 
@@ -667,24 +673,28 @@ class ProgramasCncController extends Controller
     {
         $name = preg_replace('/\.\.+/', '', $name);
         $name = str_replace('\\', '/', $name);
+
         return trim($name) ?: 'programa.nc';
     }
 
     private function toUtf8(string $string): string
     {
-        if (!mb_check_encoding($string, 'UTF-8')) {
+        if (! mb_check_encoding($string, 'UTF-8')) {
             return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
         }
+
         return $string;
     }
 
     private function normalizeOTName(?string $name): string
     {
-        if (!$name)
+        if (! $name) {
             return '';
+        }
         $name = str_replace(['—', '–', "\xc2\xa0"], '-', $name);
         $name = mb_strtoupper($name, 'UTF-8');
         $name = preg_replace('/\s+/', ' ', $name);
+
         return trim($name);
     }
 
@@ -698,15 +708,17 @@ class ProgramasCncController extends Controller
         $resolved = '';
 
         foreach ($parts as $part) {
-            if ($part === '')
+            if ($part === '') {
                 continue;
-            $candidate = $resolved === '' ? $part : $resolved . '/' . $part;
+            }
+            $candidate = $resolved === '' ? $part : $resolved.'/'.$part;
             if (Storage::disk('local')->exists($candidate)) {
                 $resolved = $candidate;
+
                 continue;
             }
 
-            $sanitize = fn($str) => mb_strtolower(trim(preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', (string) $str))), 'UTF-8');
+            $sanitize = fn ($str) => mb_strtolower(trim(preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', (string) $str))), 'UTF-8');
             $partClean = $sanitize($part);
             $partNoDigits = trim(preg_replace('/^\d+\s*-\s*/', '', $partClean));
 
@@ -728,7 +740,7 @@ class ProgramasCncController extends Controller
             }
 
             // 2. Coincidencia por número de OT
-            if (!$found && $partNum) {
+            if (! $found && $partNum) {
                 foreach ($allEntries as $entry) {
                     $bName = basename($entry);
                     preg_match('/(\d+)/', $bName, $entryNumMatch);
@@ -741,7 +753,7 @@ class ProgramasCncController extends Controller
             }
 
             // 3. Coincidencia por Clase (ej. "Molde" vs "1 - MOLDES")
-            if (!$found && !empty($partNoDigits)) {
+            if (! $found && ! empty($partNoDigits)) {
                 $normPart = Clase::normalizeClassName($part);
 
                 foreach ($allEntries as $entry) {
@@ -764,7 +776,7 @@ class ProgramasCncController extends Controller
                 }
             }
 
-            if (!$found) {
+            if (! $found) {
                 $resolved = $candidate;
             }
         }

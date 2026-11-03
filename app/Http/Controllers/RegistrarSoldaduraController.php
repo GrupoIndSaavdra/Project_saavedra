@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\RegistroSoldadura;
-use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class RegistrarSoldaduraController extends Controller
 {
@@ -19,9 +19,6 @@ class RegistrarSoldaduraController extends Controller
         return view('trackingSoldadura_views.registrar');
     }
 
-        /**
-     * @param Request $request
-     */
     public function store(Request $request)
     {
         $request->validate([
@@ -40,8 +37,8 @@ class RegistrarSoldaduraController extends Controller
         ]);
 
         // Generar QR con nombre y lote usando la API externa (consistente con el resto del proyecto)
-        $textoQR = $request->nombre . "\n" . $request->lote;
-        $qrBase64 = "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" . urlencode($textoQR);
+        $textoQR = $request->nombre."\n".$request->lote;
+        $qrBase64 = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data='.urlencode($textoQR);
 
         // Generar PDF con la plantilla original
         $pdf = Pdf::loadView('trackingSoldadura_views.qr_soldadura_pdf', [
@@ -50,14 +47,14 @@ class RegistrarSoldaduraController extends Controller
                 'nombre' => $request->nombre,
                 'lote' => $request->lote,
                 'fecha_ingreso' => $request->fecha_ingreso,
-                'kilos' => $request->kilos
-            ]
+                'kilos' => $request->kilos,
+            ],
         ]);
 
-        $pdfFilename = 'QR_Lote_Soldadura_' . $request->nombre . '_' . $request->lote . '_' . date('Y-m-d') . '.pdf';
+        $pdfFilename = 'QR_Lote_Soldadura_'.$request->nombre.'_'.$request->lote.'_'.date('Y-m-d').'.pdf';
 
         // Guardar PDF temporalmente para descarga
-        $pdfPath = 'temp/' . $pdfFilename;
+        $pdfPath = 'temp/'.$pdfFilename;
         Storage::disk('public')->put($pdfPath, $pdf->output());
 
         // Mensaje de éxito con enlace de descarga

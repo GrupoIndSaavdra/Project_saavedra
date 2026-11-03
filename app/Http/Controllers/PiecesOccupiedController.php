@@ -231,29 +231,39 @@ class PiecesOccupiedController extends Controller
                 }
             }
         }
+
         return array_values(array_unique(array_filter($occupiedOtIds)));
     }
+
+    /** Cache en memoria de OTs activas para evitar escanear la tabla piezas múltiples veces */
+    protected ?array $cachedActiveOtIds = null;
 
     /**
      * Obtiene los IDs de las OTs activas que tienen piezas en maquinado/producción actualmente
      * (idéntico a la lógica de Liberación de Piezas / Reporte de Piezas).
      */
-    protected function getActiveOtIds(): array
+    public function getActiveOtIds(): array
     {
-        $finishedClassIds = Clase::query()
-            ->where('finalizada', '!=', 0, 'and')
+        if ($this->cachedActiveOtIds !== null) {
+            return $this->cachedActiveOtIds;
+        }
+
+        $activeClassIds = Clase::query()
+            ->where('finalizada', '=', 0, 'and')
             ->pluck('id')
             ->toArray();
 
-        return Pieza::query()
-            ->whereNotIn('id_clase', $finishedClassIds, 'and', true)
+        $this->cachedActiveOtIds = Pieza::query()
+            ->whereIn('id_clase', $activeClassIds, 'and', false)
             ->distinct()
             ->pluck('id_ot')
             ->filter()
-            ->map(fn($id) => (string) $id)
+            ->map(fn ($id) => (string) $id)
             ->unique()
             ->values()
             ->toArray();
+
+        return $this->cachedActiveOtIds;
     }
 
     /**
@@ -261,8 +271,8 @@ class PiecesOccupiedController extends Controller
      */
     protected function getActiveClasses(?string $otId = null): array
     {
-        $finishedClassIds = Clase::query()
-            ->where('finalizada', '!=', 0, 'and')
+        $activeClassIds = Clase::query()
+            ->where('finalizada', '=', 0, 'and')
             ->pluck('id')
             ->toArray();
 
@@ -271,9 +281,9 @@ class PiecesOccupiedController extends Controller
         $query = Clase::query()
             ->distinct()
             ->whereNotNull('nombre', 'and')
-            ->whereNotIn('id', $finishedClassIds, 'and', true);
+            ->whereIn('id', $activeClassIds, 'and', false);
 
-        if (!empty($otId)) {
+        if (! empty($otId)) {
             $query->where('id_ot', '=', $otId, 'and');
         } else {
             $query->whereIn('id_ot', $activeOtIds, 'and', false);
@@ -285,12 +295,13 @@ class PiecesOccupiedController extends Controller
         foreach ($dbClasses as $dbClass) {
             $clean = trim(preg_replace('/^\d+\s*-\s*/', '', (string) $dbClass));
             $lower = mb_strtolower($clean, 'UTF-8');
-            if ($clean !== '' && !isset($seen[$lower])) {
+            if ($clean !== '' && ! isset($seen[$lower])) {
                 $seen[$lower] = true;
                 $classesList[] = mb_convert_case($clean, MB_CASE_TITLE, 'UTF-8');
             }
         }
         natcasesort($classesList);
+
         return array_values($classesList);
     }
 
@@ -299,19 +310,19 @@ class PiecesOccupiedController extends Controller
      */
     protected function getActiveProcesses(?string $otId = null, ?string $claseId = null): array
     {
-        $finishedClassIds = Clase::query()
-            ->where('finalizada', '!=', 0, 'and')
+        $activeClassIds = Clase::query()
+            ->where('finalizada', '=', 0, 'and')
             ->pluck('id')
             ->toArray();
 
         $activeOtIds = $this->getActiveOtIds();
 
         $claseQuery = Clase::query()
-            ->whereNotIn('id', $finishedClassIds, 'and', true);
+            ->whereIn('id', $activeClassIds, 'and', false);
 
-        if (!empty($otId)) {
+        if (! empty($otId)) {
             $claseQuery->where('id_ot', '=', $otId, 'and');
-            if (!empty($claseId)) {
+            if (! empty($claseId)) {
                 if (is_numeric($claseId)) {
                     $claseQuery->where('id', '=', (int) $claseId, 'and');
                 } else {
@@ -329,11 +340,11 @@ class PiecesOccupiedController extends Controller
         $activeClassIds = $claseQuery->pluck('id')->toArray();
 
         $activeProcessKeys = [];
-        if (!empty($activeClassIds)) {
+        if (! empty($activeClassIds)) {
             $procesosRows = \App\Models\Procesos::query()->whereIn('id_clase', $activeClassIds, 'and', false)->get();
             foreach ($procesosRows as $pRow) {
                 foreach (self::$processColumnMap as $col => $procKey) {
-                    if (!empty($pRow->{$col})) {
+                    if (! empty($pRow->{$col})) {
                         $activeProcessKeys[$procKey] = true;
                     }
                 }
@@ -341,8 +352,8 @@ class PiecesOccupiedController extends Controller
         }
 
         // Además, incluir cualquier proceso con piezas activas registradas en Pieza para este contexto
-        $piezaQuery = Pieza::query()->whereNotIn('id_clase', $finishedClassIds, 'and', true);
-        if (!empty($otId)) {
+        $piezaQuery = Pieza::query()->whereIn('id_clase', $activeClassIds, 'and', false);
+        if (! empty($otId)) {
             $piezaQuery->where('id_ot', '=', $otId, 'and');
         } else {
             $piezaQuery->whereIn('id_ot', $activeOtIds, 'and', false);
@@ -404,7 +415,7 @@ class PiecesOccupiedController extends Controller
         foreach ($occupiedPieces as $p) {
             $mat = $p['operador_matricula'] ?? null;
             $nom = trim((string) ($p['operador_nombre'] ?? ''));
-            if ($mat && !empty($nom) && $nom !== 'Desconocido' && !isset($operatorsMap[(string) $mat])) {
+            if ($mat && ! empty($nom) && $nom !== 'Desconocido' && ! isset($operatorsMap[(string) $mat])) {
                 $operatorsMap[(string) $mat] = [
                     'matricula' => (string) $mat,
                     'nombre' => "{$nom} (Mat: {$mat})",
@@ -413,8 +424,9 @@ class PiecesOccupiedController extends Controller
             }
         }
 
-        uasort($operatorsMap, fn($a, $b) => strcasecmp($a['clean_name'], $b['clean_name']));
-        return array_values(array_map(fn($op) => [
+        uasort($operatorsMap, fn ($a, $b) => strcasecmp($a['clean_name'], $b['clean_name']));
+
+        return array_values(array_map(fn ($op) => [
             'matricula' => $op['matricula'],
             'nombre' => $op['nombre'],
         ], $operatorsMap));
@@ -440,8 +452,7 @@ class PiecesOccupiedController extends Controller
         $classesList = $this->getActiveClasses();
 
         // Operadores activos en el sistema (perfil 2 y estatus 1)
-        $initialOccupied = $this->fetchOccupiedPiecesList();
-        $operatorsList = $this->getActiveOperators($initialOccupied);
+        $operatorsList = $this->getActiveOperators([]);
 
         return view('pieces_views.piecesOccupied', compact('workOrders', 'processesList', 'classesList', 'operatorsList'));
     }
@@ -454,7 +465,7 @@ class PiecesOccupiedController extends Controller
         $otId = $request->query('ot');
         $claseId = $request->query('clase_id');
 
-        if (!$otId) {
+        if (! $otId) {
             // Si no se especifica OT, devolver las clases activas normalizadas en el sistema
             $classesList = $this->getActiveClasses();
             $classes = array_map(function ($cName) {
@@ -465,15 +476,10 @@ class PiecesOccupiedController extends Controller
                 ];
             }, $classesList);
         } else {
-            $finishedClassIds = Clase::query()
-                ->where('finalizada', '!=', 0, 'and')
-                ->pluck('id')
-                ->toArray();
-
             $classes = Clase::query()
                 ->select(['id', 'id_ot', 'nombre', 'piezas', 'finalizada'])
                 ->where('id_ot', '=', $otId, 'and')
-                ->whereNotIn('id', $finishedClassIds, 'and', true)
+                ->where('finalizada', '=', 0, 'and')
                 ->orderBy('nombre')
                 ->get();
         }
@@ -528,7 +534,7 @@ class PiecesOccupiedController extends Controller
         foreach ($contextPieces as $p) {
             $mat = $p['operador_matricula'] ?? null;
             $nom = trim((string) ($p['operador_nombre'] ?? ''));
-            if ($mat && !empty($nom) && $nom !== 'Desconocido') {
+            if ($mat && ! empty($nom) && $nom !== 'Desconocido') {
                 $operatorsMap[(string) $mat] = [
                     'matricula' => (string) $mat,
                     'nombre' => "{$nom} (Mat: {$mat})",
@@ -575,7 +581,7 @@ class PiecesOccupiedController extends Controller
         $availableOperators = $this->getActiveOperators($contextPieces);
 
         // Números de pieza: solo se activan y calculan si OT, Clase y Proceso están los 3 seleccionados
-        $allThreeSelected = !empty($targetOt) && !empty($targetClaseId) && !empty($targetProcess);
+        $allThreeSelected = ! empty($targetOt) && ! empty($targetClaseId) && ! empty($targetProcess);
         $availablePieces = [];
 
         if ($allThreeSelected) {
@@ -592,7 +598,7 @@ class PiecesOccupiedController extends Controller
             }
             $sortedNumbers = array_keys($numbersMap);
             sort($sortedNumbers, SORT_NUMERIC);
-            $availablePieces = array_map(fn($num) => [
+            $availablePieces = array_map(fn ($num) => [
                 'id' => (string) $num,
                 'label' => "Pieza #{$num}",
             ], $sortedNumbers);
@@ -601,7 +607,7 @@ class PiecesOccupiedController extends Controller
         // 2. Filtrar para la tabla por Pieza u Operador si fueron seleccionados
         $tablePieces = $contextPieces;
 
-        if (!empty($targetPieza)) {
+        if (! empty($targetPieza)) {
             preg_match('/\d+/', $targetPieza, $targetDigits);
             $targetNum = $targetDigits[0] ?? $targetPieza;
 
@@ -620,10 +626,11 @@ class PiecesOccupiedController extends Controller
             }));
         }
 
-        if (!empty($targetOperador)) {
+        if (! empty($targetOperador)) {
             $tablePieces = array_values(array_filter($tablePieces, function ($piece) use ($targetOperador) {
                 $mat = $piece['operador_matricula'] ?? null;
                 $nom = $piece['operador_nombre'] ?? null;
+
                 return ($mat && (string) $mat === (string) $targetOperador) ||
                     ($nom && stripos($nom, $targetOperador) !== false);
             }));
@@ -634,13 +641,13 @@ class PiecesOccupiedController extends Controller
         $affectedOts = [];
 
         foreach ($tablePieces as $item) {
-            if (!empty($item['is_orphan'])) {
+            if (! empty($item['is_orphan'])) {
                 $totalOrphans++;
             }
-            if (!empty($item['is_incomplete'])) {
+            if (! empty($item['is_incomplete'])) {
                 $totalIncompletes++;
             }
-            if (!empty($item['id_ot']) && $item['id_ot'] !== 'N/A') {
+            if (! empty($item['id_ot']) && $item['id_ot'] !== 'N/A') {
                 $affectedOts[$item['id_ot']] = true;
             }
         }
@@ -666,15 +673,16 @@ class PiecesOccupiedController extends Controller
     public function fetchOccupiedPiecesList($targetOt = null, $targetClaseId = null, $targetProcess = null, $targetPieza = null, $targetOperador = null): array
     {
         $processesToScan = self::$processConfig;
-        if (!empty($targetProcess) && isset(self::$processConfig[$targetProcess])) {
+        if (! empty($targetProcess) && isset(self::$processConfig[$targetProcess])) {
             $processesToScan = [$targetProcess => self::$processConfig[$targetProcess]];
         }
 
         $occupiedPieces = [];
         $activeMachiningOtIds = $this->getActiveOtIds();
-        $finishedClassIds = Clase::query()
-            ->where('finalizada', '!=', 0, 'and')
+        $activeClassIds = Clase::query()
+            ->where('finalizada', '=', 0, 'and')
             ->pluck('id')
+            ->flip()
             ->toArray();
 
         // Pre-cargar catálogo de clases para mapeo rápido sin N+1
@@ -685,7 +693,7 @@ class PiecesOccupiedController extends Controller
         $activeMachineMetaIds = Maquinas::query()->pluck('id_meta')->filter()->toArray();
 
         // Normalización de Clase para comparación tolerante
-        $targetClaseObj = (!empty($targetClaseId) && is_numeric($targetClaseId)) ? Clase::find((int) $targetClaseId) : null;
+        $targetClaseObj = (! empty($targetClaseId) && is_numeric($targetClaseId)) ? Clase::find((int) $targetClaseId) : null;
         $targetClaseNombre = $targetClaseObj ? $targetClaseObj->nombre : (string) $targetClaseId;
         $cleanTargetClase = trim(preg_replace('/^\d+\s*-\s*/', '', mb_strtolower($targetClaseNombre, 'UTF-8')));
 
@@ -706,6 +714,7 @@ class PiecesOccupiedController extends Controller
             if (strcasecmp((string) $claseNombre, (string) $targetClaseNombre) === 0) {
                 return true;
             }
+
             return false;
         };
 
@@ -726,7 +735,7 @@ class PiecesOccupiedController extends Controller
             $pieceModel = $cfg['piece_model'];
             $parentModel = $cfg['parent_model'];
 
-            if (!class_exists($pieceModel)) {
+            if (! class_exists($pieceModel)) {
                 continue;
             }
 
@@ -779,18 +788,18 @@ class PiecesOccupiedController extends Controller
 
                 // Determinar OT
                 $ot = $meta->id_ot ?? $parent->id_ot ?? null;
-                if (!$ot && $parent && isset($parent->id_proceso)) {
+                if (! $ot && $parent && isset($parent->id_proceso)) {
                     $parts = explode('_', $parent->id_proceso);
                     $ot = end($parts);
                 }
 
                 // Filtrar por OT si fue especificada; si no, asegurar que pertenezca a las OTs activas en maquinado
-                if (!empty($targetOt)) {
+                if (! empty($targetOt)) {
                     if ((string) $ot !== (string) $targetOt) {
                         continue;
                     }
                 } else {
-                    if (!$ot || !in_array((string) $ot, $activeMachiningOtIds)) {
+                    if (! $ot || ! in_array((string) $ot, $activeMachiningOtIds)) {
                         continue;
                     }
                 }
@@ -810,17 +819,17 @@ class PiecesOccupiedController extends Controller
                 }
 
                 // Descartar piezas pertenecientes a clases ya finalizadas
-                if ($claseId && in_array($claseId, $finishedClassIds)) {
+                if ($claseId && ! isset($activeClassIds[$claseId])) {
                     continue;
                 }
 
                 // Filtrar por Clase si fue especificada
-                if (!$matchesTargetClass($claseId, $claseNombre)) {
+                if (! $matchesTargetClass($claseId, $claseNombre)) {
                     continue;
                 }
 
                 // Filtrar por Pieza / Juego si fue especificada (engloba macho y hembra guiadas por el número)
-                if (!empty($targetPieza)) {
+                if (! empty($targetPieza)) {
                     $pNum = trim((string) ($piece->n_pieza ?? ''));
                     $jNum = trim((string) ($piece->n_juego ?? ''));
 
@@ -838,7 +847,7 @@ class PiecesOccupiedController extends Controller
                         stripos($pNum, $targetPieza) !== false ||
                         stripos($jNum, $targetPieza) !== false;
 
-                    if (!$matchesPiece) {
+                    if (! $matchesPiece) {
                         continue;
                     }
                 }
@@ -852,14 +861,14 @@ class PiecesOccupiedController extends Controller
                 }
 
                 // Filtrar por Operador si fue especificado
-                if (!empty($targetOperador)) {
+                if (! empty($targetOperador)) {
                     $matchesOp = false;
                     if ($operadorMatricula && (string) $operadorMatricula === (string) $targetOperador) {
                         $matchesOp = true;
                     } elseif ($operadorNombre && stripos($operadorNombre, $targetOperador) !== false) {
                         $matchesOp = true;
                     }
-                    if (!$matchesOp) {
+                    if (! $matchesOp) {
                         continue;
                     }
                 }
@@ -868,8 +877,8 @@ class PiecesOccupiedController extends Controller
                 $isIncomplete = $rawIncompletePieces->contains('id', $piece->id);
                 $isOrphan = false;
 
-                if (!$isIncomplete) {
-                    if (!$meta || !in_array($meta->id, $activeMachineMetaIds)) {
+                if (! $isIncomplete) {
+                    if (! $meta || ! in_array($meta->id, $activeMachineMetaIds)) {
                         $isOrphan = true;
                     }
                 }
@@ -904,20 +913,20 @@ class PiecesOccupiedController extends Controller
             ->where('error', 'LIKE', '%Incompleto%')
             ->where('liberacion', '=', 0, 'and');
 
-        if (!empty($targetOt)) {
+        if (! empty($targetOt)) {
             $incompleteGeneralQuery->where('id_ot', '=', $targetOt, 'and');
         } else {
             $incompleteGeneralQuery->whereIn('id_ot', $activeMachiningOtIds, 'and', false);
         }
 
-        if (!empty($finishedClassIds)) {
-            $incompleteGeneralQuery->whereNotIn('id_clase', $finishedClassIds, 'and', true);
+        if (! empty($activeClassIds)) {
+            $incompleteGeneralQuery->whereIn('id_clase', array_keys($activeClassIds), 'and', false);
         }
 
-        if (!empty($targetProcess)) {
+        if (! empty($targetProcess)) {
             $incompleteGeneralQuery->where('proceso', '=', $targetProcess, 'and');
         }
-        if (!empty($targetPieza)) {
+        if (! empty($targetPieza)) {
             preg_match('/\d+/', $targetPieza, $targetDigits);
             $targetNum = $targetDigits[0] ?? $targetPieza;
             $incompleteGeneralQuery->where(function ($q) use ($targetPieza, $targetNum) {
@@ -926,7 +935,7 @@ class PiecesOccupiedController extends Controller
                     ->orWhere('n_pieza', 'LIKE', "%{$targetPieza}%");
             });
         }
-        if (!empty($targetOperador)) {
+        if (! empty($targetOperador)) {
             $incompleteGeneralQuery->where('id_operador', '=', $targetOperador, 'and');
         }
 
@@ -935,7 +944,7 @@ class PiecesOccupiedController extends Controller
             $claseObj = $gp->id_clase ? $classesMap->get($gp->id_clase) : null;
             $claseNombre = $claseObj ? $claseObj->nombre : 'N/A';
 
-            if (!$matchesTargetClass($gp->id_clase, $claseNombre)) {
+            if (! $matchesTargetClass($gp->id_clase, $claseNombre)) {
                 continue;
             }
 
@@ -951,7 +960,7 @@ class PiecesOccupiedController extends Controller
                     ($item['n_pieza'] === $gp->n_pieza || $item['n_juego'] === $gp->n_pieza);
             });
 
-            if (!$alreadyIncluded) {
+            if (! $alreadyIncluded) {
                 $opUser = $gp->id_operador ? $usersMap->get($gp->id_operador) : null;
                 $opName = $opUser ? "{$opUser->nombre} {$opUser->a_paterno}" : ($gp->id_operador ?: 'Desconocido');
 
@@ -961,7 +970,7 @@ class PiecesOccupiedController extends Controller
                     'proceso_label' => $procLabel,
                     'is_initial' => $isInitial,
                     'n_pieza' => $gp->n_pieza,
-                    'n_juego' => rtrim($gp->n_pieza, 'HM') . 'J',
+                    'n_juego' => rtrim($gp->n_pieza, 'HM').'J',
                     'estado' => 1,
                     'id_ot' => $gp->id_ot,
                     'id_clase' => $gp->id_clase,
@@ -998,7 +1007,7 @@ class PiecesOccupiedController extends Controller
         $proceso = $request->input('proceso');
         $pieceId = $request->input('piece_id');
 
-        if (!isset(self::$processConfig[$proceso])) {
+        if (! isset(self::$processConfig[$proceso])) {
             return response()->json(['success' => false, 'message' => 'Proceso no reconocido.'], 400);
         }
 
@@ -1011,11 +1020,12 @@ class PiecesOccupiedController extends Controller
             $piece = $pieceModel::query()->find($pieceId);
             $generalPiece = null;
 
-            if (!$piece) {
+            if (! $piece) {
                 // Si no se encuentra en el modelo del proceso, verificar si es un ID de la tabla general 'piezas'
                 $generalPiece = Pieza::query()->find($pieceId);
-                if (!$generalPiece) {
+                if (! $generalPiece) {
                     DB::rollBack();
+
                     return response()->json(['success' => false, 'message' => 'Pieza no encontrada.'], 404);
                 }
             }
@@ -1031,7 +1041,7 @@ class PiecesOccupiedController extends Controller
 
                 if ($ot === 'N/A' && $parent) {
                     $ot = $parent->id_ot ?? null;
-                    if (!$ot && isset($parent->id_proceso)) {
+                    if (! $ot && isset($parent->id_proceso)) {
                         $parts = explode('_', $parent->id_proceso);
                         $ot = end($parts);
                     }
@@ -1052,27 +1062,27 @@ class PiecesOccupiedController extends Controller
                 // Eliminar el registro desbloquea el juego de inmediato para volver a maquinar
                 if ($isInitial || $piece->estado == 2) {
                     $piece->delete();
-                    $actionDetail = "Se liberó y eliminó el registro de la pieza '{$nPieza}' en el proceso '{$proceso}'" . ($ot && $ot !== 'N/A' ? " (OT: {$ot})" : '') . " para restablecer la disponibilidad completa del juego.";
+                    $actionDetail = "Se liberó y eliminó el registro de la pieza '{$nPieza}' en el proceso '{$proceso}'".($ot && $ot !== 'N/A' ? " (OT: {$ot})" : '').' para restablecer la disponibilidad completa del juego.';
                 } else {
                     // En otros procesos con estado 1, pasar a 0 para que otro operador pueda tomarlo
                     $piece->estado = 0;
                     $piece->id_meta = null;
                     $piece->save();
-                    $actionDetail = "Se cambió el estado de la pieza '{$nPieza}' a 0 (desocupada) en el proceso '{$proceso}'" . ($ot && $ot !== 'N/A' ? " (OT: {$ot})" : '') . ".";
+                    $actionDetail = "Se cambió el estado de la pieza '{$nPieza}' a 0 (desocupada) en el proceso '{$proceso}'".($ot && $ot !== 'N/A' ? " (OT: {$ot})" : '').'.';
                 }
 
                 // Limpiar también cualquier registro incompleto o pendiente en la tabla general 'piezas'
                 if ($ot && $ot !== 'N/A') {
                     $numJuego = preg_replace('/[^0-9]/', '', (string) ($nJuego ?: $nPieza));
-                    if (!empty($numJuego)) {
+                    if (! empty($numJuego)) {
                         Pieza::query()
                             ->where('id_ot', '=', $ot, 'and')
                             ->where('proceso', '=', $proceso, 'and')
                             ->where(function ($q) use ($numJuego, $nPieza) {
                                 $q->where('n_pieza', '=', $nPieza, 'and')
-                                    ->orWhere('n_pieza', '=', $numJuego . 'H', 'and')
-                                    ->orWhere('n_pieza', '=', $numJuego . 'M', 'and')
-                                    ->orWhere('n_pieza', '=', $numJuego . 'J', 'and');
+                                    ->orWhere('n_pieza', '=', $numJuego.'H', 'and')
+                                    ->orWhere('n_pieza', '=', $numJuego.'M', 'and')
+                                    ->orWhere('n_pieza', '=', $numJuego.'J', 'and');
                             })
                             ->where('liberacion', '=', 0, 'and')
                             ->delete();
@@ -1087,13 +1097,13 @@ class PiecesOccupiedController extends Controller
                 $numJuego = preg_replace('/[^0-9]/', '', (string) $nPieza);
 
                 // Buscar y eliminar en la tabla del proceso correspondiente si existe
-                if (class_exists($pieceModel) && !empty($numJuego)) {
+                if (class_exists($pieceModel) && ! empty($numJuego)) {
                     $pieceModel::query()
                         ->where(function ($q) use ($numJuego, $nPieza) {
                             $q->where('n_pieza', '=', $nPieza, 'and')
-                                ->orWhere('n_pieza', '=', $numJuego . 'H', 'and')
-                                ->orWhere('n_pieza', '=', $numJuego . 'M', 'and')
-                                ->orWhere('n_juego', '=', $numJuego . 'J', 'and');
+                                ->orWhere('n_pieza', '=', $numJuego.'H', 'and')
+                                ->orWhere('n_pieza', '=', $numJuego.'M', 'and')
+                                ->orWhere('n_juego', '=', $numJuego.'J', 'and');
                         })
                         ->delete();
                 }
@@ -1130,6 +1140,7 @@ class PiecesOccupiedController extends Controller
                 'error' => $e->getMessage(),
                 'user' => Auth::check() ? Auth::user()->matricula : 'guest',
             ]);
+
             return response()->json(['success' => false, 'message' => 'Ocurrió un error interno al intentar liberar la pieza.'], 500);
         }
     }
@@ -1155,7 +1166,7 @@ class PiecesOccupiedController extends Controller
                 $proceso = $item['proceso'];
                 $pieceId = $item['piece_id'];
 
-                if (!isset(self::$processConfig[$proceso])) {
+                if (! isset(self::$processConfig[$proceso])) {
                     continue;
                 }
 
@@ -1163,7 +1174,7 @@ class PiecesOccupiedController extends Controller
                 $isInitial = self::$processConfig[$proceso]['is_initial'];
 
                 $piece = $pieceModel::query()->find($pieceId);
-                if (!$piece) {
+                if (! $piece) {
                     continue;
                 }
 
@@ -1195,6 +1206,7 @@ class PiecesOccupiedController extends Controller
                 'error' => $e->getMessage(),
                 'user' => Auth::check() ? Auth::user()->matricula : 'guest',
             ]);
+
             return response()->json(['success' => false, 'message' => 'Error interno al liberar piezas en lote.'], 500);
         }
     }
@@ -1216,7 +1228,7 @@ class PiecesOccupiedController extends Controller
         $proceso = $request->input('proceso');
         $pieceId = $request->input('piece_id');
 
-        if (!isset(self::$processConfig[$proceso])) {
+        if (! isset(self::$processConfig[$proceso])) {
             return response()->json(['success' => false, 'message' => 'Proceso no reconocido.'], 400);
         }
 
@@ -1226,8 +1238,9 @@ class PiecesOccupiedController extends Controller
             DB::beginTransaction();
 
             $piece = $pieceModel::query()->find($pieceId);
-            if (!$piece) {
+            if (! $piece) {
                 DB::rollBack();
+
                 return response()->json(['success' => false, 'message' => 'Pieza no encontrada.'], 404);
             }
 
@@ -1250,7 +1263,7 @@ class PiecesOccupiedController extends Controller
             $parentModel = self::$processConfig[$proceso]['parent_model'] ?? null;
             $parent = ($parentModel && isset($piece->id_proceso)) ? $parentModel::find($piece->id_proceso) : null;
             $ot = $meta->id_ot ?? $parent->id_ot ?? null;
-            if (!$ot && $parent && isset($parent->id_proceso)) {
+            if (! $ot && $parent && isset($parent->id_proceso)) {
                 $parts = explode('_', $parent->id_proceso);
                 $ot = end($parts);
             }
@@ -1268,7 +1281,7 @@ class PiecesOccupiedController extends Controller
             SystemLog::create([
                 'user_matricula' => Auth::check() ? Auth::user()->matricula : null,
                 'action' => 'Modificación de Pieza Ocupada',
-                'details' => "El administrador modificó la pieza #{$pieceId} ({$piece->n_pieza}) del proceso {$proceso}." . ($ot ? " OT: {$ot}." : '') . " Estado anterior: {$oldEstado}, Nuevo estado: {$piece->estado}.",
+                'details' => "El administrador modificó la pieza #{$pieceId} ({$piece->n_pieza}) del proceso {$proceso}.".($ot ? " OT: {$ot}." : '')." Estado anterior: {$oldEstado}, Nuevo estado: {$piece->estado}.",
                 'ot' => $ot,
                 'id_ot' => $ot,
                 'clase' => $claseNombre,
@@ -1290,6 +1303,7 @@ class PiecesOccupiedController extends Controller
                 'error' => $e->getMessage(),
                 'user' => Auth::check() ? Auth::user()->matricula : 'guest',
             ]);
+
             return response()->json(['success' => false, 'message' => 'Error interno al actualizar la pieza.'], 500);
         }
     }
@@ -1307,7 +1321,7 @@ class PiecesOccupiedController extends Controller
         $proceso = $request->input('proceso');
         $pieceId = $request->input('piece_id');
 
-        if (!isset(self::$processConfig[$proceso])) {
+        if (! isset(self::$processConfig[$proceso])) {
             return response()->json(['success' => false, 'message' => 'Proceso no reconocido.'], 400);
         }
 
@@ -1317,8 +1331,9 @@ class PiecesOccupiedController extends Controller
             DB::beginTransaction();
 
             $piece = $pieceModel::query()->find($pieceId);
-            if (!$piece) {
+            if (! $piece) {
                 DB::rollBack();
+
                 return response()->json(['success' => false, 'message' => 'Pieza no encontrada.'], 404);
             }
 
@@ -1328,7 +1343,7 @@ class PiecesOccupiedController extends Controller
             $parentModel = self::$processConfig[$proceso]['parent_model'] ?? null;
             $parent = ($parentModel && isset($piece->id_proceso)) ? $parentModel::find($piece->id_proceso) : null;
             $ot = $meta->id_ot ?? $parent->id_ot ?? null;
-            if (!$ot && $parent && isset($parent->id_proceso)) {
+            if (! $ot && $parent && isset($parent->id_proceso)) {
                 $parts = explode('_', $parent->id_proceso);
                 $ot = end($parts);
             }
@@ -1348,7 +1363,7 @@ class PiecesOccupiedController extends Controller
             SystemLog::create([
                 'user_matricula' => Auth::check() ? Auth::user()->matricula : null,
                 'action' => 'Eliminación de Pieza Ocupada',
-                'details' => "El administrador eliminó el registro de la pieza {$nPieza} en el proceso {$proceso}." . ($ot ? " OT: {$ot}." : ''),
+                'details' => "El administrador eliminó el registro de la pieza {$nPieza} en el proceso {$proceso}.".($ot ? " OT: {$ot}." : ''),
                 'ot' => $ot,
                 'id_ot' => $ot,
                 'clase' => $claseNombre,
@@ -1369,6 +1384,7 @@ class PiecesOccupiedController extends Controller
                 'piece_id' => $pieceId,
                 'error' => $e->getMessage(),
             ]);
+
             return response()->json(['success' => false, 'message' => 'Error interno al eliminar la pieza.'], 500);
         }
     }
@@ -1394,15 +1410,15 @@ class PiecesOccupiedController extends Controller
                         'Modificación de Pieza Ocupada',
                         'Eliminación de Pieza Ocupada',
                     ])
-                    ->orWhere('system_logs.action', 'LIKE', '%Pieza Ocupada%')
-                    ->orWhere('system_logs.action', 'LIKE', '%Piezas Ocupadas%')
-                    ->orWhere('system_logs.action', 'LIKE', '%Liberación Masiva%');
+                        ->orWhere('system_logs.action', 'LIKE', '%Pieza Ocupada%')
+                        ->orWhere('system_logs.action', 'LIKE', '%Piezas Ocupadas%')
+                        ->orWhere('system_logs.action', 'LIKE', '%Liberación Masiva%');
                 });
 
             if ($request->filled('ot')) {
                 $baseOt = preg_match('/^(\d+)/', $request->input('ot'), $matches) ? $matches[1] : $request->input('ot');
                 $query->where(function ($q) use ($baseOt) {
-                    $q->where('system_logs.ot', 'LIKE', $baseOt . '%')
+                    $q->where('system_logs.ot', 'LIKE', $baseOt.'%')
                         ->orWhere('system_logs.id_ot', '=', $baseOt)
                         ->orWhere('system_logs.details', 'LIKE', "%OT: {$baseOt}%")
                         ->orWhere('system_logs.details', 'LIKE', "%(OT: {$baseOt})%");
@@ -1450,20 +1466,20 @@ class PiecesOccupiedController extends Controller
                 ->limit(100)
                 ->get()
                 ->map(function ($log) {
-                    $fullName = trim(($log->user_nombre ?? '') . ' ' . ($log->user_paterno ?? ''));
+                    $fullName = trim(($log->user_nombre ?? '').' '.($log->user_paterno ?? ''));
                     $details = (string) $log->details;
 
                     // Fallbacks para registros antiguos que no guardaron pieza/OT/clase
                     $pieza = $log->n_pieza;
-                    if (!$pieza && preg_match("/pieza\\s+'?([^'\\s(]+)'?/u", $details, $m)) {
+                    if (! $pieza && preg_match("/pieza\\s+'?([^'\\s(]+)'?/u", $details, $m)) {
                         $pieza = $m[1];
                     }
                     $ot = $log->ot ?? $log->id_ot;
-                    if (!$ot && preg_match('/OT:\\s*(\\d+)/', $details, $m)) {
+                    if (! $ot && preg_match('/OT:\\s*(\\d+)/', $details, $m)) {
                         $ot = $m[1];
                     }
                     $clase = $log->clase;
-                    if (!$clase && preg_match('/Meta:\\s*(\\d+)/', $details, $m)) {
+                    if (! $clase && preg_match('/Meta:\\s*(\\d+)/', $details, $m)) {
                         $metaLog = Metas::find((int) $m[1]);
                         if ($metaLog && $metaLog->id_clase) {
                             $clase = Clase::find($metaLog->id_clase)?->nombre;
@@ -1491,7 +1507,8 @@ class PiecesOccupiedController extends Controller
                 'total' => $logs->count(),
             ]);
         } catch (\Throwable $e) {
-            Log::error('Error al obtener logs de piezas ocupadas: ' . $e->getMessage());
+            Log::error('Error al obtener logs de piezas ocupadas: '.$e->getMessage());
+
             return response()->json(['success' => false, 'message' => 'Error al cargar historial de auditoría.'], 500);
         }
     }

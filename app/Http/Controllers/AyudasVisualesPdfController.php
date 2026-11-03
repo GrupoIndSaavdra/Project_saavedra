@@ -4,14 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\AyudaVisualFileLog;
 use App\Models\AyudaVisualHistory;
-use App\Models\Procesos;
-use App\Models\Clase;
-use App\Models\Fecha_proceso;
 use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class AyudasVisualesPdfController extends Controller
@@ -35,16 +32,34 @@ class AyudasVisualesPdfController extends Controller
         $estructura = $this->buildStructure();
 
         // 1. Catálogo de Clases Únicas
-                        $procesoSeleccionadoId = $request->query('proceso_id');
+        $procesoSeleccionadoId = $request->query('proceso_id');
 
         // 2. Catálogo de Procesos Estándar (Completo)
         $nombresProcesos = [
-            'Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion',
-            'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA',
-            'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Acabado Molde',
-            'Barreno Profundidad', 'Cavidades', 'Copiado', 'Off Set', 'Palomas',
-            'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM',
-            'Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'
+            'Cepillado',
+            'Desbaste Exterior',
+            'Revision Laterales',
+            'Primera Operacion',
+            'Barreno Maniobra',
+            'Segunda Operacion',
+            'Soldadura',
+            'Soldadura PTA',
+            'Rectificado',
+            'Asentado',
+            'Calificado',
+            'Acabado Bombillo',
+            'Acabado Molde',
+            'Barreno Profundidad',
+            'Cavidades',
+            'Copiado',
+            'Off Set',
+            'Palomas',
+            'Rebajes',
+            'Grabado',
+            'Operacion Equipo',
+            'Embudo CM',
+            'Primera Operacion Cabeza Soplo',
+            'Segunda Operacion Cabeza Soplo',
         ];
 
         // Sólo agregamos al catálogo los directorios del disco cuyo nombre
@@ -56,25 +71,25 @@ class AyudasVisualesPdfController extends Controller
         });
         $nombresProcesos = array_unique(array_merge($nombresProcesos, $procesosEnDisco));
 
-        $todosLosProcesos = collect($nombresProcesos)->map(function($nombre) {
-            return (object)[ 'id' => $nombre, 'nombre' => $nombre ];
+        $todosLosProcesos = collect($nombresProcesos)->map(function ($nombre) {
+            return (object) ['id' => $nombre, 'nombre' => $nombre];
         })->sortBy('nombre')->values();
 
-                $procesoActivo = $procesoSeleccionadoId ? $todosLosProcesos->firstWhere('id', $procesoSeleccionadoId) : null;
+        $procesoActivo = $procesoSeleccionadoId ? $todosLosProcesos->firstWhere('id', $procesoSeleccionadoId) : null;
 
         return view('wo_views.manage_ayudas', array_merge(compact(
             'estructura',
             'todosLosProcesos',
-                        'procesoSeleccionadoId',
-                        'procesoActivo',
-                    ), [
+            'procesoSeleccionadoId',
+            'procesoActivo',
+        ), [
             'moduleType' => 'ayudas',
             'modulePrefix' => 'ayudas',
             'pageTitle' => 'Ayudas Visuales de Maquinados',
             'directoryName' => 'DOCUMENTACION_GIS / AYUDAS_MAQUINADOS',
             'moduleMetadata' => [
-                'description' => 'Selecciona el proceso.'
-            ]
+                'description' => 'Selecciona el proceso.',
+            ],
         ]));
     }
 
@@ -87,10 +102,10 @@ class AyudasVisualesPdfController extends Controller
             ->map(function ($log) {
                 return [
                     'created_at' => $log->created_at->format('d/m/Y H:i:s'),
-                    'user_name'  => $log->user_name,
-                    'action'     => $log->action,
-                    'ruta'       => $log->ruta,
-                    'archivo'    => $log->archivo,
+                    'user_name' => $log->user_name,
+                    'action' => $log->action,
+                    'ruta' => $log->ruta,
+                    'archivo' => $log->archivo,
                 ];
             });
 
@@ -106,23 +121,20 @@ class AyudasVisualesPdfController extends Controller
         // El usuario solicitó utilizar una matriz estática exacta que relaciona Clases con sus respectivos Procesos,
         // descartando el uso de "General" y el historial dinámico anterior de la BD para esta vista.
         $estructuraPorClase = [
-            'Bombillo'          => ['Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Barreno Profundidad', 'Cavidades', 'Off Set', 'Palomas', 'Rebajes', 'Grabado'],
-            'Molde'             => ['Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Barreno Profundidad', 'Cavidades', 'Off Set', 'Palomas', 'Rebajes', 'Grabado'],
-            'Obturador'         => ['Soldadura', 'Soldadura PTA', 'Operacion Equipo'],
-            'Fondo'             => ['Soldadura', 'Soldadura PTA', 'Operacion Equipo'],
-            'Corona'            => ['Cepillado', 'Desbaste Exterior', 'Primera Operacion', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado'],
-            'Plato'             => ['Barreno Profundidad', 'Operacion Equipo'],
-            'Embudo'            => ['Operacion Equipo', 'Embudo CM'],
-            'Cabeza de Soplo'   => ['Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'],
-            'Candado Obturador' => ['Operacion Equipo']
+            'Bombillo' => ['Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Barreno Profundidad', 'Cavidades', 'Off Set', 'Palomas', 'Rebajes', 'Grabado'],
+            'Molde' => ['Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Barreno Profundidad', 'Cavidades', 'Off Set', 'Palomas', 'Rebajes', 'Grabado'],
+            'Obturador' => ['Soldadura', 'Soldadura PTA', 'Operacion Equipo'],
+            'Fondo' => ['Soldadura', 'Soldadura PTA', 'Operacion Equipo'],
+            'Corona' => ['Cepillado', 'Desbaste Exterior', 'Primera Operacion', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado'],
+            'Plato' => ['Barreno Profundidad', 'Operacion Equipo'],
+            'Embudo' => ['Operacion Equipo', 'Embudo CM'],
+            'Cabeza de Soplo' => ['Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'],
+            'Candado Obturador' => ['Operacion Equipo'],
         ];
-        
+
         return response()->json($estructuraPorClase);
     }
 
-    /**
-     * @param Request $request
-     */
     public function getFiles(Request $request)
     {
         try {
@@ -132,19 +144,20 @@ class AyudasVisualesPdfController extends Controller
                 return response()->json(['error' => 'Parámetro Proceso es requerido.'], 422);
             }
 
-            $newDirPath = Storage::disk('local')->path(self::BASE_DIR . '/' . $proceso);
-            $oldDirPath = Storage::disk('local')->path(self::OLD_BASE_DIR . '/' . $proceso);
+            $newDirPath = Storage::disk('local')->path(self::BASE_DIR.'/'.$proceso);
+            $oldDirPath = Storage::disk('local')->path(self::OLD_BASE_DIR.'/'.$proceso);
 
-            $newFiles = glob($newDirPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
-            $oldFiles = glob($oldDirPath . '/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $newFiles = glob($newDirPath.'/*.{pdf,PDF}', GLOB_BRACE) ?: [];
+            $oldFiles = glob($oldDirPath.'/*.{pdf,PDF}', GLOB_BRACE) ?: [];
 
             $allFiles = collect(array_merge($newFiles, $oldFiles))
-                ->map(function($f) use ($proceso) {
+                ->map(function ($f) use ($proceso) {
                     $rawName = basename($f);
                     $utf8Name = $this->toUtf8($rawName);
+
                     return [
                         'nombre' => $utf8Name,
-                        'url'    => url('/ayudas/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($utf8Name),
+                        'url' => url('/ayudas/serve').'?proceso='.urlencode($proceso).'&archivo='.urlencode($utf8Name),
                     ];
                 })
                 ->unique('nombre')
@@ -152,26 +165,24 @@ class AyudasVisualesPdfController extends Controller
 
             return response()->json([
                 'archivos' => $allFiles,
-                'proceso'  => $proceso,
-                'existe'   => (count($allFiles) > 0),
+                'proceso' => $proceso,
+                'existe' => (count($allFiles) > 0),
             ]);
         } catch (\Throwable $e) {
             $errorMsg = $e->getMessage();
             if (function_exists('mb_convert_encoding')) {
                 $errorMsg = @mb_convert_encoding($errorMsg, 'UTF-8', 'UTF-8');
             }
+
             return response()->json([
                 'success' => false,
                 'error' => $errorMsg,
                 'archivos' => [],
-                'existe' => false
+                'existe' => false,
             ], 200);
         }
     }
 
-        /**
-     * @param Request $request
-     */
     public function serveFile(Request $request): BinaryFileResponse
     {
         $proceso = $this->sanitizePath($request->query('proceso', ''));
@@ -181,14 +192,14 @@ class AyudasVisualesPdfController extends Controller
             abort(422, 'Parámetros inválidos.');
         }
 
-        $dirPath = self::BASE_DIR . '/' . $proceso;
+        $dirPath = self::BASE_DIR.'/'.$proceso;
 
         // Fallback
-        if (!Storage::disk('local')->exists($dirPath)) {
-            $dirPath = self::OLD_BASE_DIR . '/' . $proceso;
+        if (! Storage::disk('local')->exists($dirPath)) {
+            $dirPath = self::OLD_BASE_DIR.'/'.$proceso;
         }
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        if (! Storage::disk('local')->exists($dirPath)) {
             abort(404, 'Archivo no encontrado.');
         }
 
@@ -205,17 +216,17 @@ class AyudasVisualesPdfController extends Controller
             }
         }
 
-        if (!$foundFile) {
+        if (! $foundFile) {
             abort(404, 'Archivo no encontrado.');
         }
 
         /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk     = Storage::disk('local');
+        $disk = Storage::disk('local');
         $fullPath = $disk->path($foundFile);
 
         return response()->file($fullPath, [
-            'Content-Type'        => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . $archivo . '"',
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="'.$archivo.'"',
         ]);
     }
 
@@ -223,20 +234,17 @@ class AyudasVisualesPdfController extends Controller
     // CRUD ADMINISTRADOR
     // =========================================================================
 
-        /**
-     * @param Request $request
-     */
     public function createFolder(Request $request)
     {
         try {
             $request->validate([
                 'proceso' => 'required|string|max:100',
-                
+
             ]);
 
             $proceso = $this->sanitizePath($request->input('proceso'));
-            
-            $dirPath = self::BASE_DIR . '/' . $proceso;
+
+            $dirPath = self::BASE_DIR.'/'.$proceso;
 
             if (Storage::disk('local')->exists($dirPath)) {
                 return response()->json([
@@ -248,7 +256,7 @@ class AyudasVisualesPdfController extends Controller
             Storage::disk('local')->makeDirectory($dirPath);
 
             $history = AyudaVisualHistory::query()->where('proceso', $proceso)->first();
-            if (!$history) {
+            if (! $history) {
                 $history = new AyudaVisualHistory();
                 $history->proceso = $proceso;
                 $history->clase = 'N/A';
@@ -260,36 +268,34 @@ class AyudasVisualesPdfController extends Controller
                 'success' => true,
                 'message' => "Carpeta del proceso '{$proceso}' creada correctamente.",
                 'proceso' => $proceso,
-                
+
             ]);
         } catch (\Exception $e) {
-            Log::error("Error en AyudasVisualesPdfController@createFolder: " . $e->getMessage());
+            Log::error('Error en AyudasVisualesPdfController@createFolder: '.$e->getMessage());
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error interno al crear la carpeta: ' . $e->getMessage(),
+                'message' => 'Error interno al crear la carpeta: '.$e->getMessage(),
             ], 500);
         }
     }
 
-        /**
-     * @param Request $request
-     */
     public function uploadPdf(Request $request)
     {
         $request->validate([
             'proceso' => 'required|string|max:100',
-            
-            'pdf'     => 'required|file|mimes:pdf',
+
+            'pdf' => 'required|file|mimes:pdf',
         ]);
 
         $proceso = $this->sanitizePath($request->input('proceso'));
-        
-        $dirPath = self::BASE_DIR . '/' . $proceso;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        $dirPath = self::BASE_DIR.'/'.$proceso;
+
+        if (! Storage::disk('local')->exists($dirPath)) {
             Storage::disk('local')->makeDirectory($dirPath);
             $history = AyudaVisualHistory::query()->where('proceso', $proceso)->first();
-            if (!$history) {
+            if (! $history) {
                 $history = new AyudaVisualHistory();
                 $history->proceso = $proceso;
                 $history->clase = 'N/A';
@@ -297,13 +303,13 @@ class AyudasVisualesPdfController extends Controller
             }
         }
 
-        $file         = $request->file('pdf');
+        $file = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
-        
-        $prefix = $proceso . ' - ';
-        $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix . $originalName;
 
-        if (Storage::disk('local')->exists($dirPath . '/' . $finalName)) {
+        $prefix = $proceso.' - ';
+        $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix.$originalName;
+
+        if (Storage::disk('local')->exists($dirPath.'/'.$finalName)) {
             return response()->json([
                 'success' => false,
                 'message' => "Ya existe un archivo con el nombre '{$finalName}'. Use la función de Reemplazar.",
@@ -315,32 +321,29 @@ class AyudasVisualesPdfController extends Controller
         $this->logAction('subir_pdf', $proceso, $finalName);
 
         return response()->json([
-            'success'  => true,
-            'message'  => "PDF '{$finalName}' subido correctamente.",
-            'nombre'   => $finalName,
-            'url'      => url('/ayudas/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($finalName),
-            'proceso'  => $proceso,
+            'success' => true,
+            'message' => "PDF '{$finalName}' subido correctamente.",
+            'nombre' => $finalName,
+            'url' => url('/ayudas/serve').'?proceso='.urlencode($proceso).'&archivo='.urlencode($finalName),
+            'proceso' => $proceso,
         ]);
     }
 
-        /**
-     * @param Request $request
-     */
     public function deletePdf(Request $request)
     {
         $request->validate([
             'proceso' => 'required|string|max:100',
-            
+
             'archivo' => 'required|string|max:300',
         ]);
 
-        $proceso  = $this->sanitizePath($request->input('proceso'));
-        
-        $archivo  = $this->sanitizeFileName($request->input('archivo'));
-        
-        $dirPath = self::BASE_DIR . '/' . $proceso;
+        $proceso = $this->sanitizePath($request->input('proceso'));
+
+        $archivo = $this->sanitizeFileName($request->input('archivo'));
+
+        $dirPath = self::BASE_DIR.'/'.$proceso;
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
-        
+
         $foundFile = null;
         $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
         foreach ($files as $f) {
@@ -353,9 +356,9 @@ class AyudasVisualesPdfController extends Controller
             }
         }
 
-        if (!$foundFile) {
+        if (! $foundFile) {
             // Fallback for read-only error
-            $oldDirPath = self::OLD_BASE_DIR . '/' . $proceso;
+            $oldDirPath = self::OLD_BASE_DIR.'/'.$proceso;
             $oldFiles = Storage::disk('local')->exists($oldDirPath) ? Storage::disk('local')->files($oldDirPath) : [];
             $archivoNorm = \Normalizer::normalize(mb_strtolower($archivo, 'UTF-8'), \Normalizer::FORM_C);
             foreach ($oldFiles as $f) {
@@ -396,14 +399,14 @@ class AyudasVisualesPdfController extends Controller
     {
         $request->validate([
             'proceso' => 'required|string|max:100',
-            
+
         ]);
 
         $proceso = $this->sanitizePath($request->input('proceso'));
-        
-        $dirPath = self::BASE_DIR . '/' . $proceso;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        $dirPath = self::BASE_DIR.'/'.$proceso;
+
+        if (! Storage::disk('local')->exists($dirPath)) {
             return response()->json([
                 'success' => false,
                 'message' => 'La carpeta no existe.',
@@ -414,9 +417,10 @@ class AyudasVisualesPdfController extends Controller
         if (count($files) > 0) {
             Storage::disk('local')->delete($files);
             $this->logAction('vaciar_carpeta', $proceso, null);
+
             return response()->json([
                 'success' => true,
-                'message' => "Se eliminaron " . count($files) . " archivos del proceso '{$proceso}'.",
+                'message' => 'Se eliminaron '.count($files)." archivos del proceso '{$proceso}'.",
                 'proceso' => $proceso,
                 'vaciada' => true,
             ]);
@@ -444,10 +448,10 @@ class AyudasVisualesPdfController extends Controller
             'proceso' => 'required|string|max:200',
         ]);
 
-        $clase   = $this->sanitizePath($request->input('proceso')); // En el swap, el padre es la Clase
-        $dirPath = self::BASE_DIR . '/' . $clase;
+        $clase = $this->sanitizePath($request->input('proceso')); // En el swap, el padre es la Clase
+        $dirPath = self::BASE_DIR.'/'.$clase;
 
-        if (!Storage::disk('local')->exists($dirPath)) {
+        if (! Storage::disk('local')->exists($dirPath)) {
             return response()->json([
                 'success' => false,
                 'message' => 'La carpeta del proceso no existe.',
@@ -482,23 +486,20 @@ class AyudasVisualesPdfController extends Controller
         ]);
     }
 
-        /**
-     * @param Request $request
-     */
     public function replacePdf(Request $request)
     {
         $request->validate([
-            'proceso'         => 'required|string|max:100',
-            
-            'archivo_anterior'=> 'required|string|max:300',
-            'pdf'             => 'required|file|mimes:pdf',
+            'proceso' => 'required|string|max:100',
+
+            'archivo_anterior' => 'required|string|max:300',
+            'pdf' => 'required|file|mimes:pdf',
         ]);
 
-        $proceso         = $this->sanitizePath($request->input('proceso'));
-        
+        $proceso = $this->sanitizePath($request->input('proceso'));
+
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
-        $dirPath         = self::BASE_DIR . '/' . $proceso;
-        
+        $dirPath = self::BASE_DIR.'/'.$proceso;
+
         $files = Storage::disk('local')->exists($dirPath) ? Storage::disk('local')->files($dirPath) : [];
         $foundFile = null;
         $archivoAnteriorNorm = \Normalizer::normalize(mb_strtolower($archivoAnterior, 'UTF-8'), \Normalizer::FORM_C);
@@ -516,22 +517,22 @@ class AyudasVisualesPdfController extends Controller
             Storage::disk('local')->delete($foundFile);
         }
 
-        $file         = $request->file('pdf');
+        $file = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
-        
-        $prefix = $proceso . ' - ';
-        $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix . $originalName;
+
+        $prefix = $proceso.' - ';
+        $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix.$originalName;
 
         $file->storeAs($dirPath, $finalName, 'local');
 
         $this->logAction('reemplazar_pdf', $proceso, "{$archivoAnterior} → {$finalName}");
 
         return response()->json([
-            'success'  => true,
-            'message'  => "Archivo reemplazado: '{$archivoAnterior}' → '{$finalName}'.",
-            'nombre'   => $finalName,
-            'url'      => url('/ayudas/serve') . '?proceso=' . urlencode($proceso) . '&archivo=' . urlencode($finalName),
-            'proceso'  => $proceso,
+            'success' => true,
+            'message' => "Archivo reemplazado: '{$archivoAnterior}' → '{$finalName}'.",
+            'nombre' => $finalName,
+            'url' => url('/ayudas/serve').'?proceso='.urlencode($proceso).'&archivo='.urlencode($finalName),
+            'proceso' => $proceso,
         ]);
     }
 
@@ -539,7 +540,6 @@ class AyudasVisualesPdfController extends Controller
     // HELPERS PRIVADOS
     // =========================================================================
 
-    
     private function buildStructure(): array
     {
         $estructura = [];
@@ -547,7 +547,7 @@ class AyudasVisualesPdfController extends Controller
         // 1. Escaneo del directorio Nuevo
         $basePath = Storage::disk('local')->path(self::BASE_DIR);
         if (is_dir($basePath)) {
-            $dirs = glob($basePath . '/*', GLOB_ONLYDIR);
+            $dirs = glob($basePath.'/*', GLOB_ONLYDIR);
             if ($dirs) {
                 foreach ($dirs as $dirPath) {
                     $estructura[] = $this->toUtf8(basename($dirPath));
@@ -558,11 +558,11 @@ class AyudasVisualesPdfController extends Controller
         // 2. Escaneo del directorio Viejo (Fallback)
         $oldBasePath = Storage::disk('local')->path(self::OLD_BASE_DIR);
         if (is_dir($oldBasePath)) {
-            $oldDirs = glob($oldBasePath . '/*', GLOB_ONLYDIR);
+            $oldDirs = glob($oldBasePath.'/*', GLOB_ONLYDIR);
             if ($oldDirs) {
                 foreach ($oldDirs as $oldDirPath) {
                     $pName = $this->toUtf8(basename($oldDirPath));
-                    if (!in_array($pName, $estructura)) {
+                    if (! in_array($pName, $estructura)) {
                         $estructura[] = $pName;
                     }
                 }
@@ -570,66 +570,60 @@ class AyudasVisualesPdfController extends Controller
         }
 
         sort($estructura, SORT_NATURAL);
+
         return $estructura;
     }
 
-
-
-    /**
-     * @param string $action
-     * @param string $ruta
-     * @param string|null $archivo
-     */
     private function logAction(string $action, string $ruta, ?string $archivo): void
     {
-        $user     = Auth::user();
+        $user = Auth::user();
         $userName = null;
 
         if ($user) {
             $userName = trim(
-                ($user->matricula ?? '') . ' - ' .
-                ($user->nombre ?? '') . ' ' .
-                ($user->a_paterno ?? '') . ' ' .
+                ($user->matricula ?? '').' - '.
+                ($user->nombre ?? '').' '.
+                ($user->a_paterno ?? '').' '.
                 ($user->a_materno ?? '')
             );
         }
 
         AyudaVisualFileLog::create([
-            'user_id'   => $user?->id,
+            'user_id' => $user?->id,
             'user_name' => $userName,
-            'action'    => $action,
-            'ruta'      => $ruta,
-            'archivo'   => $archivo,
+            'action' => $action,
+            'ruta' => $ruta,
+            'archivo' => $archivo,
         ]);
 
         // Mapeo de acciones técnicas a acciones legibles para system_logs
         $actionMap = [
-            'subir_pdf'        => 'Subida de Ayuda Visual',
-            'eliminar_pdf'     => 'Eliminación de Ayuda Visual',
-            'reemplazar_pdf'   => 'Reemplazo de Ayuda Visual',
-            'crear_carpeta'    => 'Creación de Carpeta',
-            'vaciar_carpeta'   => 'Eliminación de Ayuda Visual',
+            'subir_pdf' => 'Subida de Ayuda Visual',
+            'eliminar_pdf' => 'Eliminación de Ayuda Visual',
+            'reemplazar_pdf' => 'Reemplazo de Ayuda Visual',
+            'crear_carpeta' => 'Creación de Carpeta',
+            'vaciar_carpeta' => 'Eliminación de Ayuda Visual',
             'eliminar_carpeta' => 'Eliminación de Ayuda Visual',
         ];
         $systemAction = $actionMap[$action] ?? null;
         if ($systemAction && $user) {
             $detailsMap = [
-                'subir_pdf'        => "El administrador subió la ayuda visual '{$archivo}' en la ruta {$ruta}.",
-                'eliminar_pdf'     => "El administrador eliminó la ayuda visual '{$archivo}' de la ruta {$ruta}.",
-                'reemplazar_pdf'   => "El administrador reemplazó la ayuda visual en {$ruta}: {$archivo}.",
-                'crear_carpeta'    => "El administrador creó la carpeta de ayudas visuales: {$ruta}.",
-                'vaciar_carpeta'   => "El administrador vació la carpeta de ayudas visuales: {$ruta}.",
+                'subir_pdf' => "El administrador subió la ayuda visual '{$archivo}' en la ruta {$ruta}.",
+                'eliminar_pdf' => "El administrador eliminó la ayuda visual '{$archivo}' de la ruta {$ruta}.",
+                'reemplazar_pdf' => "El administrador reemplazó la ayuda visual en {$ruta}: {$archivo}.",
+                'crear_carpeta' => "El administrador creó la carpeta de ayudas visuales: {$ruta}.",
+                'vaciar_carpeta' => "El administrador vació la carpeta de ayudas visuales: {$ruta}.",
                 'eliminar_carpeta' => "El administrador eliminó la carpeta de ayudas visuales: {$ruta}.",
             ];
             SystemLog::create([
                 'user_matricula' => $user->matricula,
-                'action'         => $systemAction,
-                'details'        => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
+                'action' => $systemAction,
+                'details' => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
             ]);
         }
     }
 
-        /**
+    /**
      * @param mixed string $path
      */
     private function sanitizePath(string $path): string
@@ -637,10 +631,11 @@ class AyudasVisualesPdfController extends Controller
         $path = preg_replace('/\.\.+/', '', $path);
         $path = preg_replace('/[\/\\\\]/', '', $path);
         $path = trim($path);
+
         return $path;
     }
 
-        /**
+    /**
      * @param mixed string $name
      */
     private function sanitizeFileName(string $name): string
@@ -649,14 +644,16 @@ class AyudasVisualesPdfController extends Controller
         $name = preg_replace('/\.\.+/', '', $name);
         // Normalizar slashes
         $name = str_replace('\\', '/', $name);
+
         return trim($name) ?: 'archivo.pdf';
     }
 
     private function toUtf8(string $string): string
     {
-        if (!mb_check_encoding($string, 'UTF-8')) {
+        if (! mb_check_encoding($string, 'UTF-8')) {
             return mb_convert_encoding($string, 'UTF-8', 'Windows-1252');
         }
+
         return $string;
     }
 }

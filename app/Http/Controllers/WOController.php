@@ -5,32 +5,29 @@ namespace App\Http\Controllers;
 use App\Http\Requests\OTRequest;
 use App\Models\Clase;
 use App\Models\Fecha_proceso;
+use App\Models\FundicionHistory;
+use App\Models\LiberacionModeloFundicion;
 use App\Models\Metas;
 use App\Models\Moldura;
 use App\Models\Orden_trabajo;
+use App\Models\ParcialidadOt;
 use App\Models\Pieza;
+use App\Models\PreOrdenFundicion;
 use App\Models\Procesos;
+use App\Models\RemisionOt;
+use App\Models\ScarModelo;
 use App\Models\SystemLog;
+use App\Models\TratamientoTermico;
 use App\Models\User;
-use App\Http\Controllers\PtaResultsController;
+use App\Services\FundicionPaths;
 use Barryvdh\DomPDF\Facade\Pdf as FacadePdf;
 use DateTime;
 use Illuminate\Http\Request;
-use App\Models\FundicionHistory;
-use App\Models\LiberacionModeloFundicion;
-use App\Models\ScarModelo;
-use App\Models\PreOrdenFundicion;
-use App\Models\RemisionOt;
-use App\Models\ParcialidadOt;
-use App\Models\TratamientoTermico;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\File;
 use ZipArchive;
-use App\Http\Controllers\DibujosFundicionPdfController;
-use App\Services\FundicionPaths;
-use App\Http\Controllers\PzasGeneralesController;
 
 /**
  * @noinspection PhpUndefinedFieldInspection
@@ -41,17 +38,18 @@ class WOController extends Controller
 {
     /** @var \App\Http\Controllers\ClassController */
     protected $classController;
-    /** @var \App\Http\Controllers\ProcessesController */
-    protected $processesController;
-    /** @var \App\Http\Controllers\PzasLiberadasController */
-    protected $releasedPiecesController;
+
+    /** @var array<string, \Illuminate\Database\Eloquent\Collection> */
+    protected static array $fundicionHistoriesCache = [];
+
+    protected static array $fundicionPreOrdenListCache = [];
+
+    protected static array $fundicionCastingListCache = [];
 
     public function __construct()
     {
         $this->middleware('auth');
         $this->classController = new ClassController();
-        $this->processesController = new ProcessesController();
-        $this->releasedPiecesController = new PzasLiberadasController();
     }
 
     //Mostrar la vista para seleccionar o crear una Orden de Trabajo
@@ -76,12 +74,14 @@ class WOController extends Controller
             foreach ($workOrdersAll as $workOrder) {
                 $clases = $workOrder->clases;
                 if ($isAlmacen) {
-                    if ($clases->count() == 0)
+                    if ($clases->count() == 0) {
                         continue;
+                    }
                 } else {
                     $clases = $clases->where('finalizada', '=', 0, 'and');
-                    if ($clases->count() == 0)
+                    if ($clases->count() == 0) {
                         continue;
+                    }
                 }
 
                 // Evaluar si la OT en programación está completa (tamaño, tipo_soldadura si aplica, fecha_inicio, hora_inicio y procesos si los requiere)
@@ -112,7 +112,7 @@ class WOController extends Controller
 
                         // Verificar procesos únicamente si la clase los requiere
                         if (Clase::normalizeClassName($cl->nombre) !== '') {
-                            if (!$cl->procesos) {
+                            if (! $cl->procesos) {
                                 $isProgrammingComplete = false;
                                 break;
                             }
@@ -139,7 +139,7 @@ class WOController extends Controller
                                 'rebajes',
                                 'grabado',
                                 'operacionEquipo',
-                                'embudoCM'
+                                'embudoCM',
                             ];
                             $hasAnyProc = false;
                             foreach ($procCols as $col) {
@@ -148,7 +148,7 @@ class WOController extends Controller
                                     break;
                                 }
                             }
-                            if (!$hasAnyProc) {
+                            if (! $hasAnyProc) {
                                 $isProgrammingComplete = false;
                                 break;
                             }
@@ -163,12 +163,10 @@ class WOController extends Controller
                 $counter++;
             }
         }
+
         return view('wo_views.manage_wo', compact('moldings', 'workOrders'));
     }
 
-    /**
-     * @param OTRequest $request
-     */
     public function store(OTRequest $request) //Funcion para registrar una OT.
     {
         if (isset($request->workOrderAdded)) {
@@ -268,8 +266,9 @@ class WOController extends Controller
         $molding = Moldura::find($request->input('moldingSelected'));
 
         $fixDate = function ($dateStr) {
-            if (!$dateStr)
+            if (! $dateStr) {
                 return null;
+            }
             if (preg_match('/(\d{4}-\d{2}-\d{2})$/', $dateStr, $matches)) {
                 return $matches[1];
             }
@@ -331,8 +330,9 @@ class WOController extends Controller
         ]);
 
         $fixDate = function ($dateStr) {
-            if (!$dateStr)
+            if (! $dateStr) {
                 return null;
+            }
             if (preg_match('/(\d{4}-\d{2}-\d{2})$/', $dateStr, $matches)) {
                 return $matches[1];
             }
@@ -436,7 +436,7 @@ class WOController extends Controller
                 if ($nombre && $cantidad > 0) {
                     // Check if class already exists
                     $exists = Clase::where('id_ot', $ot->id)->where('nombre', $nombre)->exists();
-                    if (!$exists) {
+                    if (! $exists) {
                         $class = new Clase();
                         $class->id_ot = $ot->id;
                         $class->nombre = $nombre;
@@ -470,19 +470,22 @@ class WOController extends Controller
 
         $successMsg = "¡La Orden de Trabajo {$ot->id} fue procesada exitosamente!";
         $details = [];
-        if ($hasUpdates)
-            $details[] = "Se actualizaron los datos generales/composiciones/cantidades.";
-        if ($addedClassesCount > 0)
+        if ($hasUpdates) {
+            $details[] = 'Se actualizaron los datos generales/composiciones/cantidades.';
+        }
+        if ($addedClassesCount > 0) {
             $details[] = "Se agregaron $addedClassesCount nuevas clases.";
-        if ($deletedClassesCount > 0)
+        }
+        if ($deletedClassesCount > 0) {
             $details[] = "Se eliminaron $deletedClassesCount clases.";
+        }
 
-        $finalMsg = $successMsg . " " . implode(" ", $details);
+        $finalMsg = $successMsg.' '.implode(' ', $details);
 
         $redirect = redirect()->route('createMasterWO', ['mode' => 'modify', 'ot_id' => $ot->id])->with('success', $finalMsg);
 
         if (count($failedDeletes) > 0) {
-            $redirect->with('error', "No se pudieron eliminar las siguientes clases porque ya tienen piezas o metas registradas: " . implode(", ", $failedDeletes));
+            $redirect->with('error', 'No se pudieron eliminar las siguientes clases porque ya tienen piezas o metas registradas: '.implode(', ', $failedDeletes));
         }
 
         return $redirect;
@@ -505,7 +508,7 @@ class WOController extends Controller
                 $q->where('finalizada', 0);
             });
 
-        if (!empty($otId)) {
+        if (! empty($otId)) {
             $query->where('id', $otId);
         }
 
@@ -520,17 +523,19 @@ class WOController extends Controller
         foreach ($workOrders as $wo) {
             $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
 
-            if (empty($semanaRaw) && (!empty($startWeek) || !empty($endWeek))) {
+            if (empty($semanaRaw) && (! empty($startWeek) || ! empty($endWeek))) {
                 continue;
             }
 
-            if (!empty($startWeek) && !empty($semanaRaw)) {
-                if ((int) $semanaRaw < (int) $startWeek)
+            if (! empty($startWeek) && ! empty($semanaRaw)) {
+                if ((int) $semanaRaw < (int) $startWeek) {
                     continue;
+                }
             }
-            if (!empty($endWeek) && !empty($semanaRaw)) {
-                if ((int) $semanaRaw > (int) $endWeek)
+            if (! empty($endWeek) && ! empty($semanaRaw)) {
+                if ((int) $semanaRaw > (int) $endWeek) {
                     continue;
+                }
             }
 
             $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
@@ -539,10 +544,13 @@ class WOController extends Controller
 
         // Ordenar estrictamente las semanas de menor a mayor (ascendente)
         uksort($groupedWOs, function ($a, $b) {
-            if ($a === 'Sin Semana')
+            if ($a === 'Sin Semana') {
                 return 1;
-            if ($b === 'Sin Semana')
+            }
+            if ($b === 'Sin Semana') {
                 return -1;
+            }
+
             return (int) $a - (int) $b;
         });
 
@@ -554,6 +562,7 @@ class WOController extends Controller
                 if ($timeA === $timeB) {
                     return (int) $b->id <=> (int) $a->id;
                 }
+
                 return $timeB <=> $timeA;
             });
         }
@@ -569,20 +578,12 @@ class WOController extends Controller
             ->orderBy('id', 'desc')
             ->get();
 
-        // Obtener lista de semanas únicas para los selects (solo de OTs activas)
-        $allWeeksRaw = Orden_trabajo::select('semana_entrega_cliente')
-            ->whereDoesntHave('clases', function ($q) {
-                $q->where('finalizada', 2);
-            })
-            ->whereHas('clases', function ($q) {
-                $q->where('finalizada', 0);
-            })
-            ->whereNotNull('semana_entrega_cliente')
-            ->where('semana_entrega_cliente', '!=', '')
-            ->distinct()
-            ->get()
-            ->map(function ($ot) {
-                return (int) preg_replace('/[^0-9]/', '', $ot->semana_entrega_cliente);
+        // Obtener lista de semanas únicas para los selects (derivada en memoria de $allOts, 0 queries)
+        $allWeeksRaw = $allOts
+            ->pluck('semana_entrega_cliente')
+            ->filter()
+            ->map(function ($semana) {
+                return (int) preg_replace('/[^0-9]/', '', $semana);
             })
             ->filter(function ($week) {
                 return $week > 0;
@@ -606,7 +607,7 @@ class WOController extends Controller
         if ($userProfile !== '3') {
             return response()->json([
                 'success' => false,
-                'message' => 'No tienes permisos de Master para desactivar Órdenes de Trabajo.'
+                'message' => 'No tienes permisos de Master para desactivar Órdenes de Trabajo.',
             ], 403);
         }
 
@@ -626,20 +627,20 @@ class WOController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => count($otIds) . ' Órden(es) de Trabajo desactivada(s) correctamente.',
+                'message' => count($otIds).' Órden(es) de Trabajo desactivada(s) correctamente.',
                 'deactivated_ots' => $otIds,
                 'affected_classes' => $affectedClasses,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al desactivar OTs en prioridades: ' . $e->getMessage(), [
+            Log::error('Error al desactivar OTs en prioridades: '.$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'ot_ids' => $otIds,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocurrió un error al desactivar las OTs seleccionadas: ' . $e->getMessage()
+                'message' => 'Ocurrió un error al desactivar las OTs seleccionadas: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -663,7 +664,7 @@ class WOController extends Controller
                 $q->where('finalizada', 2);
             });
 
-        if (!empty($otId)) {
+        if (! empty($otId)) {
             $query->where('id', $otId);
         }
 
@@ -677,17 +678,19 @@ class WOController extends Controller
         foreach ($workOrders as $wo) {
             $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
 
-            if (empty($semanaRaw) && (!empty($startWeek) || !empty($endWeek))) {
+            if (empty($semanaRaw) && (! empty($startWeek) || ! empty($endWeek))) {
                 continue;
             }
 
-            if (!empty($startWeek) && !empty($semanaRaw)) {
-                if ((int) $semanaRaw < (int) $startWeek)
+            if (! empty($startWeek) && ! empty($semanaRaw)) {
+                if ((int) $semanaRaw < (int) $startWeek) {
                     continue;
+                }
             }
-            if (!empty($endWeek) && !empty($semanaRaw)) {
-                if ((int) $semanaRaw > (int) $endWeek)
+            if (! empty($endWeek) && ! empty($semanaRaw)) {
+                if ((int) $semanaRaw > (int) $endWeek) {
                     continue;
+                }
             }
 
             $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
@@ -695,10 +698,13 @@ class WOController extends Controller
         }
 
         uksort($groupedWOs, function ($a, $b) {
-            if ($a === 'Sin Semana')
+            if ($a === 'Sin Semana') {
                 return 1;
-            if ($b === 'Sin Semana')
+            }
+            if ($b === 'Sin Semana') {
                 return -1;
+            }
+
             return (int) $a - (int) $b;
         });
 
@@ -709,6 +715,7 @@ class WOController extends Controller
                 if ($timeA === $timeB) {
                     return (int) $b->id <=> (int) $a->id;
                 }
+
                 return $timeB <=> $timeA;
             });
         }
@@ -761,7 +768,7 @@ class WOController extends Controller
                 $q->where('finalizada', 2);
             });
 
-        if (!empty($otId)) {
+        if (! empty($otId)) {
             $query->where('id', $otId);
         }
 
@@ -775,17 +782,19 @@ class WOController extends Controller
         foreach ($workOrders as $wo) {
             $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
 
-            if (empty($semanaRaw) && (!empty($startWeek) || !empty($endWeek))) {
+            if (empty($semanaRaw) && (! empty($startWeek) || ! empty($endWeek))) {
                 continue;
             }
 
-            if (!empty($startWeek) && !empty($semanaRaw)) {
-                if ((int) $semanaRaw < (int) $startWeek)
+            if (! empty($startWeek) && ! empty($semanaRaw)) {
+                if ((int) $semanaRaw < (int) $startWeek) {
                     continue;
+                }
             }
-            if (!empty($endWeek) && !empty($semanaRaw)) {
-                if ((int) $semanaRaw > (int) $endWeek)
+            if (! empty($endWeek) && ! empty($semanaRaw)) {
+                if ((int) $semanaRaw > (int) $endWeek) {
                     continue;
+                }
             }
 
             $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
@@ -793,10 +802,13 @@ class WOController extends Controller
         }
 
         uksort($groupedWOs, function ($a, $b) {
-            if ($a === 'Sin Semana')
+            if ($a === 'Sin Semana') {
                 return 1;
-            if ($b === 'Sin Semana')
+            }
+            if ($b === 'Sin Semana') {
                 return -1;
+            }
+
             return (int) $a - (int) $b;
         });
 
@@ -807,6 +819,7 @@ class WOController extends Controller
                 if ($timeA === $timeB) {
                     return (int) $b->id <=> (int) $a->id;
                 }
+
                 return $timeB <=> $timeA;
             });
         }
@@ -831,7 +844,7 @@ class WOController extends Controller
         if ($userProfile !== '3') {
             return response()->json([
                 'success' => false,
-                'message' => 'No tienes permisos de Master para reactivar Órdenes de Trabajo.'
+                'message' => 'No tienes permisos de Master para reactivar Órdenes de Trabajo.',
             ], 403);
         }
 
@@ -853,20 +866,20 @@ class WOController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => count($otIds) . ' Órden(es) de Trabajo reactivada(s) con éxito. Ya están disponibles en todas las vistas.',
+                'message' => count($otIds).' Órden(es) de Trabajo reactivada(s) con éxito. Ya están disponibles en todas las vistas.',
                 'reactivated_ots' => $otIds,
                 'affected_classes' => $affectedClasses,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Error al reactivar OTs: ' . $e->getMessage(), [
+            Log::error('Error al reactivar OTs: '.$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'ot_ids' => $otIds,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocurrió un error al reactivar las OTs seleccionadas: ' . $e->getMessage()
+                'message' => 'Ocurrió un error al reactivar las OTs seleccionadas: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -885,7 +898,7 @@ class WOController extends Controller
         if ($userProfile !== '3') {
             return response()->json([
                 'success' => false,
-                'message' => 'No tienes permisos de Master para eliminar u ocultar Órdenes de Trabajo.'
+                'message' => 'No tienes permisos de Master para eliminar u ocultar Órdenes de Trabajo.',
             ], 403);
         }
 
@@ -901,7 +914,7 @@ class WOController extends Controller
         @set_time_limit(600);
 
         $baseBackupPath = storage_path('app/RESPALDO_PRIORIDADES');
-        if (!file_exists($baseBackupPath)) {
+        if (! file_exists($baseBackupPath)) {
             mkdir($baseBackupPath, 0755, true);
         }
         $baseDocGis = storage_path('app/DOCUMENTACION_GIS');
@@ -915,7 +928,7 @@ class WOController extends Controller
         try {
             foreach ($otIds as $idWOrder) {
                 $ot = Orden_trabajo::with(['moldura', 'clases'])->find($idWOrder);
-                if (!$ot) {
+                if (! $ot) {
                     continue;
                 }
 
@@ -923,9 +936,9 @@ class WOController extends Controller
                 $cleanProduct = $this->sanitizePathSegment($productName);
 
                 // Carpeta temporal de trabajo para compilar PDFs y clonar archivos antes de comprimir
-                $tempFolderName = 'tmp_OT_' . $ot->id . '_' . uniqid();
-                $otBackupPath = $baseBackupPath . DIRECTORY_SEPARATOR . $tempFolderName;
-                if (!file_exists($otBackupPath)) {
+                $tempFolderName = 'tmp_OT_'.$ot->id.'_'.uniqid();
+                $otBackupPath = $baseBackupPath.DIRECTORY_SEPARATOR.$tempFolderName;
+                if (! file_exists($otBackupPath)) {
                     mkdir($otBackupPath, 0755, true);
                 }
 
@@ -963,22 +976,22 @@ class WOController extends Controller
                             $piecesData = [
                                 'workOrder' => (string) $ot->id,
                                 'class' => $clase->nombre,
-                                'action' => 'pdf'
+                                'action' => 'pdf',
                             ];
                             $pieces = $pzasController->buscarPiezas($piecesData, $selectedItems, true, true, true);
                             if (is_array($pieces) && count($pieces) > 0) {
                                 $pzasController->saveInfoPzas($infoPieces, $pieces);
                                 $pdfPiezas = FacadePdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
-                                $classDir = $otBackupPath . DIRECTORY_SEPARATOR . 'Reportes_Piezas' . DIRECTORY_SEPARATOR . $cleanClase;
-                                if (!file_exists($classDir)) {
+                                $classDir = $otBackupPath.DIRECTORY_SEPARATOR.'Reportes_Piezas'.DIRECTORY_SEPARATOR.$cleanClase;
+                                if (! file_exists($classDir)) {
                                     mkdir($classDir, 0755, true);
                                 }
                                 $piezasFile = "OT_{$ot->id}_{$cleanClase}_General_Reporte_Piezas.pdf";
-                                file_put_contents($classDir . DIRECTORY_SEPARATOR . $piezasFile, $pdfPiezas->output());
+                                file_put_contents($classDir.DIRECTORY_SEPARATOR.$piezasFile, $pdfPiezas->output());
                                 $piecesReportCount++;
                             }
                         } catch (\Throwable $e) {
-                            Log::warning("No se pudo generar Reporte de Piezas general para clase {$clase->nombre} de OT {$ot->id}: " . $e->getMessage());
+                            Log::warning("No se pudo generar Reporte de Piezas general para clase {$clase->nombre} de OT {$ot->id}: ".$e->getMessage());
                         }
                     } else {
                         foreach ($distinctProcesses as $proc) {
@@ -990,7 +1003,7 @@ class WOController extends Controller
                                     'workOrder' => (string) $ot->id,
                                     'class' => $clase->nombre,
                                     'process' => $proc,
-                                    'action' => 'pdf'
+                                    'action' => 'pdf',
                                 ];
                                 $pieces = $pzasController->buscarPiezas($piecesData, $selectedItems, true, true, true);
                                 if (is_array($pieces) && count($pieces) > 0) {
@@ -998,16 +1011,16 @@ class WOController extends Controller
                                     $pdfPiezas = FacadePdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
 
                                     $cleanProc = $this->sanitizePathSegment($proc);
-                                    $classDir = $otBackupPath . DIRECTORY_SEPARATOR . 'Reportes_Piezas' . DIRECTORY_SEPARATOR . $cleanClase;
-                                    if (!file_exists($classDir)) {
+                                    $classDir = $otBackupPath.DIRECTORY_SEPARATOR.'Reportes_Piezas'.DIRECTORY_SEPARATOR.$cleanClase;
+                                    if (! file_exists($classDir)) {
                                         mkdir($classDir, 0755, true);
                                     }
                                     $piezasFile = "OT_{$ot->id}_{$cleanClase}_{$cleanProc}_Reporte_Piezas.pdf";
-                                    file_put_contents($classDir . DIRECTORY_SEPARATOR . $piezasFile, $pdfPiezas->output());
+                                    file_put_contents($classDir.DIRECTORY_SEPARATOR.$piezasFile, $pdfPiezas->output());
                                     $piecesReportCount++;
                                 }
                             } catch (\Throwable $e) {
-                                Log::warning("No se pudo generar Reporte de Piezas para clase {$clase->nombre} proceso {$proc} de OT {$ot->id}: " . $e->getMessage());
+                                Log::warning("No se pudo generar Reporte de Piezas para clase {$clase->nombre} proceso {$proc} de OT {$ot->id}: ".$e->getMessage());
                             }
                         }
                     }
@@ -1029,11 +1042,11 @@ class WOController extends Controller
                         $respSold = $pzasController->downloadSoldaduraExtraInfoPDF($reqSold);
                         if ($respSold instanceof \Illuminate\Http\Response) {
                             $soldFile = "OT_{$ot->id}_{$cleanProduct}_Reporte_Soldadura.pdf";
-                            file_put_contents($otBackupPath . DIRECTORY_SEPARATOR . $soldFile, $respSold->getContent());
+                            file_put_contents($otBackupPath.DIRECTORY_SEPARATOR.$soldFile, $respSold->getContent());
                             $reportNames[] = 'Reporte de Soldadura';
                         }
                     } catch (\Throwable $e) {
-                        Log::warning("No se pudo generar Reporte de Soldadura para respaldo de OT {$ot->id}: " . $e->getMessage());
+                        Log::warning("No se pudo generar Reporte de Soldadura para respaldo de OT {$ot->id}: ".$e->getMessage());
                     }
                 }
 
@@ -1049,11 +1062,11 @@ class WOController extends Controller
                         $respPta = $pzasController->downloadSoldaduraExtraInfoPDF($reqPta);
                         if ($respPta instanceof \Illuminate\Http\Response) {
                             $ptaFile = "OT_{$ot->id}_{$cleanProduct}_Reporte_Soldadura_PTA.pdf";
-                            file_put_contents($otBackupPath . DIRECTORY_SEPARATOR . $ptaFile, $respPta->getContent());
+                            file_put_contents($otBackupPath.DIRECTORY_SEPARATOR.$ptaFile, $respPta->getContent());
                             $reportNames[] = 'Reporte de Soldadura PTA';
                         }
                     } catch (\Throwable $e) {
-                        Log::warning("No se pudo generar Reporte de Soldadura PTA para respaldo de OT {$ot->id}: " . $e->getMessage());
+                        Log::warning("No se pudo generar Reporte de Soldadura PTA para respaldo de OT {$ot->id}: ".$e->getMessage());
                     }
                 }
 
@@ -1065,20 +1078,21 @@ class WOController extends Controller
                         if ($cat === '.' || $cat === '..' || strtoupper($cat) === 'INACTIVAS') {
                             continue;
                         }
-                        $catPath = $baseDocGis . DIRECTORY_SEPARATOR . $cat;
-                        if (!is_dir($catPath)) {
+                        $catPath = $baseDocGis.DIRECTORY_SEPARATOR.$cat;
+                        if (! is_dir($catPath)) {
                             continue;
                         }
 
                         // Caso A: Si la categoría misma es la carpeta de la OT (ej: DOCUMENTACION_GIS/OT 6844)
-                        if (preg_match('/^OT[ _-]?' . preg_quote((string) $ot->id, '/') . '(\b|[^0-9])/i', $cat)) {
+                        if (preg_match('/^OT[ _-]?'.preg_quote((string) $ot->id, '/').'(\b|[^0-9])/i', $cat)) {
                             $fileCount = $this->countFilesInDirectory($catPath);
                             if ($fileCount > 0) {
-                                $targetDir = $otBackupPath . DIRECTORY_SEPARATOR . 'DOCUMENTACION_GIS' . DIRECTORY_SEPARATOR . $cat;
+                                $targetDir = $otBackupPath.DIRECTORY_SEPARATOR.'DOCUMENTACION_GIS'.DIRECTORY_SEPARATOR.$cat;
                                 File::copyDirectory($catPath, $targetDir);
                                 $reportNames[] = "Documentación GIS ({$cat})";
                                 $clonedDocCount++;
                             }
+
                             continue;
                         }
 
@@ -1088,14 +1102,14 @@ class WOController extends Controller
                             if ($sub === '.' || $sub === '..') {
                                 continue;
                             }
-                            $subPath = $catPath . DIRECTORY_SEPARATOR . $sub;
-                            if (!is_dir($subPath)) {
+                            $subPath = $catPath.DIRECTORY_SEPARATOR.$sub;
+                            if (! is_dir($subPath)) {
                                 continue;
                             }
-                            if (preg_match('/^OT[ _-]?' . preg_quote((string) $ot->id, '/') . '(\b|[^0-9])/i', $sub)) {
+                            if (preg_match('/^OT[ _-]?'.preg_quote((string) $ot->id, '/').'(\b|[^0-9])/i', $sub)) {
                                 $fileCount = $this->countFilesInDirectory($subPath);
                                 if ($fileCount > 0) {
-                                    $targetDir = $otBackupPath . DIRECTORY_SEPARATOR . 'DOCUMENTACION_GIS' . DIRECTORY_SEPARATOR . $cat . DIRECTORY_SEPARATOR . $sub;
+                                    $targetDir = $otBackupPath.DIRECTORY_SEPARATOR.'DOCUMENTACION_GIS'.DIRECTORY_SEPARATOR.$cat.DIRECTORY_SEPARATOR.$sub;
                                     File::copyDirectory($subPath, $targetDir);
                                     $reportNames[] = "Documentación GIS ({$cat}/{$sub})";
                                     $clonedDocCount++;
@@ -1108,7 +1122,7 @@ class WOController extends Controller
                 // Si no se generaron reportes ni documentos, crear ficha mínima de información
                 if (empty($reportNames)) {
                     file_put_contents(
-                        $otBackupPath . DIRECTORY_SEPARATOR . "OT_{$ot->id}_Info.txt",
+                        $otBackupPath.DIRECTORY_SEPARATOR."OT_{$ot->id}_Info.txt",
                         "Respaldo de Orden de Trabajo {$ot->id} - {$productName}\nFecha: {$fecha}\nSin piezas ni documentación adicional registrada."
                     );
                     $reportNames[] = 'Ficha de Información';
@@ -1116,7 +1130,7 @@ class WOController extends Controller
 
                 // 5. Crear el archivo ZIP en storage/app/RESPALDO_PRIORIDADES/
                 $zipFileName = "Reportes OT {$ot->id} - {$cleanProduct} - {$fecha}.zip";
-                $zipFilePath = $baseBackupPath . DIRECTORY_SEPARATOR . $zipFileName;
+                $zipFilePath = $baseBackupPath.DIRECTORY_SEPARATOR.$zipFileName;
 
                 $zip = new ZipArchive();
                 if ($zip->open($zipFilePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
@@ -1141,7 +1155,7 @@ class WOController extends Controller
                 SystemLog::create([
                     'user_matricula' => auth()->user()->matricula ?? 'MASTER',
                     'action' => 'Eliminación y Respaldo de OT',
-                    'details' => "El usuario Master eliminó/ocultó la OT {$ot->id} y generó el respaldo comprimido ({$zipFileName}) con " . implode(', ', $reportNames) . " en storage/app/RESPALDO_PRIORIDADES/.",
+                    'details' => "El usuario Master eliminó/ocultó la OT {$ot->id} y generó el respaldo comprimido ({$zipFileName}) con ".implode(', ', $reportNames).' en storage/app/RESPALDO_PRIORIDADES/.',
                     'ot' => $ot->id,
                     'id_ot' => $ot->id,
                 ]);
@@ -1163,7 +1177,7 @@ class WOController extends Controller
                 $downloadFileName = $generatedZipFiles[0]['file_name'];
             } elseif (count($generatedZipFiles) > 1) {
                 $downloadFileName = "Reportes OTs - {$fecha}.zip";
-                $bundlePath = $baseBackupPath . DIRECTORY_SEPARATOR . $downloadFileName;
+                $bundlePath = $baseBackupPath.DIRECTORY_SEPARATOR.$downloadFileName;
                 $bundleZip = new ZipArchive();
                 if ($bundleZip->open($bundlePath, ZipArchive::CREATE | ZipArchive::OVERWRITE) === true) {
                     foreach ($generatedZipFiles as $gz) {
@@ -1173,7 +1187,7 @@ class WOController extends Controller
                 }
             }
 
-            Log::info("Master [user " . auth()->id() . "] ocultó y respaldó " . count($processedOts) . " OTs en formato ZIP.", [
+            Log::info('Master [user '.auth()->id().'] ocultó y respaldó '.count($processedOts).' OTs en formato ZIP.', [
                 'ot_ids' => $otIds,
                 'zip_file' => $downloadFileName,
                 'backup_folder' => 'storage/app/RESPALDO_PRIORIDADES',
@@ -1181,7 +1195,7 @@ class WOController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => count($processedOts) . ' Órden(es) de Trabajo eliminada(s) y respaldada(s) en formato ZIP con éxito.',
+                'message' => count($processedOts).' Órden(es) de Trabajo eliminada(s) y respaldada(s) en formato ZIP con éxito.',
                 'deleted_ots' => $otIds,
                 'backup_dir' => 'storage/app/RESPALDO_PRIORIDADES',
                 'zip_file' => $downloadFileName,
@@ -1190,14 +1204,14 @@ class WOController extends Controller
             ]);
         } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Error al ocultar y respaldar OTs desde prioridades desactivadas: ' . $e->getMessage(), [
+            Log::error('Error al ocultar y respaldar OTs desde prioridades desactivadas: '.$e->getMessage(), [
                 'trace' => $e->getTraceAsString(),
                 'ot_ids' => $otIds,
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocurrió un error al procesar el respaldo y eliminación de las OTs: ' . $e->getMessage()
+                'message' => 'Ocurrió un error al procesar el respaldo y eliminación de las OTs: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -1213,12 +1227,12 @@ class WOController extends Controller
         }
 
         $fileName = basename((string) $request->query('file'));
-        if (empty($fileName) || !str_ends_with(strtolower($fileName), '.zip')) {
+        if (empty($fileName) || ! str_ends_with(strtolower($fileName), '.zip')) {
             abort(400, 'Nombre de archivo de respaldo no válido.');
         }
 
-        $filePath = storage_path('app/RESPALDO_PRIORIDADES' . DIRECTORY_SEPARATOR . $fileName);
-        if (!file_exists($filePath)) {
+        $filePath = storage_path('app/RESPALDO_PRIORIDADES'.DIRECTORY_SEPARATOR.$fileName);
+        if (! file_exists($filePath)) {
             abort(404, 'El archivo de respaldo solicitado no existe en storage/app/RESPALDO_PRIORIDADES.');
         }
 
@@ -1232,7 +1246,7 @@ class WOController extends Controller
      */
     private function addDirectoryToZip(ZipArchive $zip, string $sourcePath, string $zipSubPath = ''): void
     {
-        if (!is_dir($sourcePath)) {
+        if (! is_dir($sourcePath)) {
             return;
         }
 
@@ -1246,8 +1260,8 @@ class WOController extends Controller
                 continue;
             }
 
-            $realItemPath = $sourcePath . DIRECTORY_SEPARATOR . $item;
-            $inZipPath = $zipSubPath !== '' ? $zipSubPath . '/' . $item : $item;
+            $realItemPath = $sourcePath.DIRECTORY_SEPARATOR.$item;
+            $inZipPath = $zipSubPath !== '' ? $zipSubPath.'/'.$item : $item;
 
             if (is_dir($realItemPath)) {
                 $zip->addEmptyDir($inZipPath);
@@ -1264,6 +1278,7 @@ class WOController extends Controller
     private function sanitizePathSegment(string $name): string
     {
         $clean = preg_replace('/[\\\\\/:\*\?"<>\|]/', '_', $name);
+
         return trim(preg_replace('/\s+/', ' ', $clean));
     }
 
@@ -1272,7 +1287,7 @@ class WOController extends Controller
      */
     private function countFilesInDirectory(string $dir): int
     {
-        if (!is_dir($dir)) {
+        if (! is_dir($dir)) {
             return 0;
         }
 
@@ -1286,7 +1301,7 @@ class WOController extends Controller
             if ($item === '.' || $item === '..') {
                 continue;
             }
-            $fullPath = $dir . DIRECTORY_SEPARATOR . $item;
+            $fullPath = $dir.DIRECTORY_SEPARATOR.$item;
             if (is_file($fullPath)) {
                 $count++;
             } elseif (is_dir($fullPath)) {
@@ -1314,7 +1329,7 @@ class WOController extends Controller
                 $q->where('finalizada', 0);
             });
 
-        if (!empty($otId)) {
+        if (! empty($otId)) {
             $query->where('id', $otId);
         }
 
@@ -1328,17 +1343,19 @@ class WOController extends Controller
         foreach ($workOrders as $wo) {
             $semanaRaw = preg_replace('/[^0-9]/', '', $wo->semana_entrega_cliente ?? '');
 
-            if (empty($semanaRaw) && (!empty($startWeek) || !empty($endWeek))) {
+            if (empty($semanaRaw) && (! empty($startWeek) || ! empty($endWeek))) {
                 continue;
             }
 
-            if (!empty($startWeek) && !empty($semanaRaw)) {
-                if ((int) $semanaRaw < (int) $startWeek)
+            if (! empty($startWeek) && ! empty($semanaRaw)) {
+                if ((int) $semanaRaw < (int) $startWeek) {
                     continue;
+                }
             }
-            if (!empty($endWeek) && !empty($semanaRaw)) {
-                if ((int) $semanaRaw > (int) $endWeek)
+            if (! empty($endWeek) && ! empty($semanaRaw)) {
+                if ((int) $semanaRaw > (int) $endWeek) {
                     continue;
+                }
             }
 
             $semana = empty($semanaRaw) ? 'Sin Semana' : $semanaRaw;
@@ -1347,10 +1364,13 @@ class WOController extends Controller
 
         // Ordenar estrictamente las semanas de menor a mayor (ascendente)
         uksort($groupedWOs, function ($a, $b) {
-            if ($a === 'Sin Semana')
+            if ($a === 'Sin Semana') {
                 return 1;
-            if ($b === 'Sin Semana')
+            }
+            if ($b === 'Sin Semana') {
                 return -1;
+            }
+
             return (int) $a - (int) $b;
         });
 
@@ -1362,6 +1382,7 @@ class WOController extends Controller
                 if ($timeA === $timeB) {
                     return (int) $b->id <=> (int) $a->id;
                 }
+
                 return $timeB <=> $timeA;
             });
         }
@@ -1388,7 +1409,7 @@ class WOController extends Controller
             'ot_id' => 'required|exists:orden_trabajo,id',
             'clase_id' => 'nullable|exists:clases,id',
             'field' => 'required|string',
-            'value' => 'nullable|string'
+            'value' => 'nullable|string',
         ]);
 
         $allowedFields = [
@@ -1399,7 +1420,7 @@ class WOController extends Controller
             'fecha_entrega_fundicion',
             'semana_entrega_cliente',
             'proveedor',
-            'proveedor_material'
+            'proveedor_material',
         ];
 
         $field = (string) $request->input('field');
@@ -1407,11 +1428,11 @@ class WOController extends Controller
         $otId = $request->input('ot_id');
         $claseId = $request->input('clase_id');
 
-        if (!in_array($field, $allowedFields)) {
+        if (! in_array($field, $allowedFields)) {
             return response()->json(['success' => false, 'message' => 'Campo no permitido.'], 403);
         }
 
-        if ($field === 'fecha_entrega_fundicion' && !empty($value)) {
+        if ($field === 'fecha_entrega_fundicion' && ! empty($value)) {
             try {
                 // Replace slashes with dashes to help Carbon parse DD/MM/YYYY better
                 $cleanValue = str_replace('/', '-', $value);
@@ -1428,12 +1449,14 @@ class WOController extends Controller
                     $wo->{$field} = $value;
                     $wo->save();
                     Clase::where('id_ot', '=', $wo->id, 'and')->update([$field => $value]);
+
                     return response()->json(['success' => true]);
                 }
                 if (in_array($field, ['proveedor', 'proveedor_material'])) {
                     $wo->proveedor_material = $value;
                     $wo->save();
                     Clase::where('id_ot', '=', $wo->id, 'and')->update(['proveedor' => $value]);
+
                     return response()->json(['success' => true]);
                 }
             }
@@ -1444,7 +1467,7 @@ class WOController extends Controller
             if (in_array($field, ['fecha_entrega_fundicion', 'entrega_tecamac', 'fecha_real'])) {
                 foreach ($batchDates as $item) {
                     if (isset($item['clase_id'])) {
-                        $val = !empty($item['fecha']) ? str_replace('/', '-', $item['fecha']) : null;
+                        $val = ! empty($item['fecha']) ? str_replace('/', '-', $item['fecha']) : null;
                         if ($val) {
                             try {
                                 $val = \Carbon\Carbon::parse($val)->format('Y-m-d');
@@ -1455,6 +1478,7 @@ class WOController extends Controller
                         Clase::where('id', '=', $item['clase_id'], 'and')->update([$field => $val]);
                     }
                 }
+
                 return response()->json(['success' => true]);
             }
         }
@@ -1471,27 +1495,30 @@ class WOController extends Controller
                     }
                 }
             }
-            if (!empty($otId)) {
+            if (! empty($otId)) {
                 $wo = Orden_trabajo::find($otId);
                 if ($wo && $firstSupplier !== null) {
                     $wo->proveedor_material = $firstSupplier;
                     $wo->save();
                 }
             }
+
             return response()->json(['success' => true]);
         }
 
-        if (!empty($claseId)) {
+        if (! empty($claseId)) {
             $clase = Clase::find($claseId);
             if ($clase) {
                 if (in_array($field, ['fecha_entrega_fundicion', 'entrega_tecamac', 'fecha_real'])) {
                     $clase->{$field} = $value;
                     $clase->save();
+
                     return response()->json(['success' => true]);
                 }
                 if (in_array($field, ['proveedor', 'proveedor_material'])) {
                     $clase->proveedor = $value;
                     $clase->save();
+
                     return response()->json(['success' => true]);
                 }
             }
@@ -1502,10 +1529,12 @@ class WOController extends Controller
             if ($field === 'proveedor' || $field === 'proveedor_material') {
                 $wo->proveedor_material = $value;
                 $wo->save();
+
                 return response()->json(['success' => true]);
             }
             $wo->{$field} = $value;
             $wo->save();
+
             return response()->json(['success' => true]);
         }
 
@@ -1513,7 +1542,7 @@ class WOController extends Controller
     }
 
     /**
-     * @param mixed $workOrder
+     * @param  mixed  $workOrder
      */
     public function show($workOrder)
     {
@@ -1545,6 +1574,7 @@ class WOController extends Controller
 
         // Vista de Programación de O.T. (Admin / Perfil 1): procesos, fechas, máquinas.
         $allWorkOrders = Orden_trabajo::with(['moldura', 'clases.procesos'])->orderByRaw('CAST(id AS UNSIGNED) ASC')->get();
+
         return view('wo_views.show_wo_programacion', compact('workOrder', 'molding', 'classes', 'processes', 'allWorkOrders'));
     }
 
@@ -1552,7 +1582,7 @@ class WOController extends Controller
     {
         $hasPieces = Pieza::query()->where('id_ot', '=', $idWOrder, 'and')->exists(); //Busco si hay piezas de la OT
         $hasGoals = Metas::query()->where('id_ot', '=', $idWOrder, 'and')->exists();
-        if (!$hasPieces && !$hasGoals) { //Si la OT no tiene piezas ni metas asociadas entonces
+        if (! $hasPieces && ! $hasGoals) { //Si la OT no tiene piezas ni metas asociadas entonces
             $classes = Clase::query()->where('id_ot', '=', $idWOrder)->get(); //Busco todas las clases que pertenecen a la OT
             foreach ($classes as $class) { //Recorro las clases de la OT
                 $this->classController->destroy($class->id, $idWOrder); //Elimino las clases
@@ -1561,7 +1591,7 @@ class WOController extends Controller
             $workOrder = Orden_trabajo::query()->find($idWOrder, ['*']);
             if ($workOrder) {
                 // Desactivar en FundicionHistory (bandeja de Almacén/Calidad) para mantener históricos
-                $isOriginal = !preg_match('/_R\d+$/i', $idWOrder);
+                $isOriginal = ! preg_match('/_R\d+$/i', $idWOrder);
                 if ($isOriginal) {
                     $histories = FundicionHistory::query()
                         ->where('ot', 'LIKE', "OT {$idWOrder}%", 'and')
@@ -1569,7 +1599,7 @@ class WOController extends Controller
                         ->where('status', '!=', 'inactiva')
                         ->get();
                     foreach ($histories as $history) {
-                        $pattern = '/^OT\s*' . preg_quote($idWOrder, '/') . '(?:\b|_R\d+|$)/i';
+                        $pattern = '/^OT\s*'.preg_quote($idWOrder, '/').'(?:\b|_R\d+|$)/i';
                         if (preg_match($pattern, $history->ot)) {
                             // Sincronizar y copiar dibujos a la carpeta protegida de Almacén antes de inactivar
                             DibujosFundicionPdfController::copyToAlmacen($history->ot);
@@ -1587,7 +1617,7 @@ class WOController extends Controller
                     foreach ($histories as $history) {
                         preg_match('/_R\d+$/i', $idWOrder, $suffixMatch);
                         $suffix = $suffixMatch[0] ?? '';
-                        if (!empty($suffix) && str_contains($history->ot, $suffix)) {
+                        if (! empty($suffix) && str_contains($history->ot, $suffix)) {
                             // Sincronizar y copiar dibujos a la carpeta protegida de Almacén antes de inactivar
                             DibujosFundicionPdfController::copyToAlmacen($history->ot);
                             // Archivar físicamente e inactivar registros en BD
@@ -1598,14 +1628,17 @@ class WOController extends Controller
 
                 $workOrder->delete(); //Eliminar OT
             }
+
             return redirect()->route('manageWO')->with('success', '¡Orden de trabajo eliminada con éxito!'); //Redirecciono a la vista de registro de la OT
         }
+
         return redirect()->route('showWO', ['workOrder' => $idWOrder])->with('error', '¡La orden de trabajo no se puede eliminar porque tiene piezas o metas asociadas!');
     }
+
     public function generatePDF(string $idWOrder)
     {
         $workOrder = Orden_trabajo::query()->find($idWOrder, ['*']);
-        if (!$workOrder) {
+        if (! $workOrder) {
             return redirect()->back()->with('error', 'Orden de trabajo no encontrada');
         }
         $molding = Moldura::query()->find($workOrder->id_moldura, ['*']);
@@ -1645,7 +1678,8 @@ class WOController extends Controller
 
         $pdf = FacadePdf::loadView($viewName, compact('workOrder', 'molding', 'classes', 'processes'));
         $pdf->setPaper('letter', 'landscape');
-        return $pdf->download('Orden_de_trabajo_' . $workOrder->id . '.pdf');
+
+        return $pdf->download('Orden_de_trabajo_'.$workOrder->id.'.pdf');
     }
 
     public function show_panelWO()
@@ -1654,29 +1688,30 @@ class WOController extends Controller
     }
 
     /**
-     * @param mixed $moldingId
+     * @param  mixed  $moldingId
      */
     public function getMolding($moldingId)
     {
         $molding = Moldura::query()->find($moldingId, ['*']);
+
         return $molding ? $molding->nombre : null;
     }
 
     /**
-     * @param array $array
-     * @param mixed $class
+     * @param  array  $array
+     * @param  mixed  $class
      */
-    public function insertClassesData(&$array, $class)
+    public function insertClassesData(&$array, $class, ?array $entregadasMap = null, ?array $tratadasMap = null, ?array $cotasLogsMap = null)
     {
-        $array[$class->nombre] = array();
-        $array[$class->nombre]["id"] = $class->id;
-        $array[$class->nombre]["pieces"] = $class->piezas;
-        $array[$class->nombre]["order"] = $class->pedido;
-        $array[$class->nombre]["startDate"] = $this->getStringDate($class->fecha_inicio, $class->hora_inicio);
-        $array[$class->nombre]["endDate"] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : "-";
-        $array[$class->nombre]["entregadas"] = ParcialidadOt::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
-        $array[$class->nombre]["tratadas"] = TratamientoTermico::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
-        $array[$class->nombre]["processes"] = $this->insertProcessesData($class);
+        $array[$class->nombre] = [];
+        $array[$class->nombre]['id'] = $class->id;
+        $array[$class->nombre]['pieces'] = $class->piezas;
+        $array[$class->nombre]['order'] = $class->pedido;
+        $array[$class->nombre]['startDate'] = $this->getStringDate($class->fecha_inicio, $class->hora_inicio);
+        $array[$class->nombre]['endDate'] = $class->fecha_termino ? $this->getStringDate($class->fecha_termino, $class->hora_termino) : '-';
+        $array[$class->nombre]['entregadas'] = $entregadasMap !== null ? ($entregadasMap[$class->id] ?? 0) : ParcialidadOt::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
+        $array[$class->nombre]['tratadas'] = $tratadasMap !== null ? ($tratadasMap[$class->id] ?? 0) : TratamientoTermico::query()->where('id_clase', '=', $class->id, 'and')->sum('cantidad');
+        $array[$class->nombre]['processes'] = $this->insertProcessesData($class, $cotasLogsMap);
 
         // Flag para indicar si la clase lleva el proceso Soldadura PTA activo.
         // Se usa en el frontend para decidir si montar la PTACardComponent.
@@ -1684,43 +1719,43 @@ class WOController extends Controller
         if ($class->procesos && $class->procesos->soldaduraPTA != 0) {
             $hasPTA = true;
         }
-        $array[$class->nombre]["hasPTA"] = $hasPTA;
+        $array[$class->nombre]['hasPTA'] = $hasPTA;
     }
 
     /**
-     * @param mixed $class
+     * @param  mixed  $class
      */
-    public function insertProcessesData($class)
+    public function insertProcessesData($class, ?array $cotasLogsMap = null)
     {
-        $processes = array();
+        $processes = [];
         $processesFounded = $class->procesos;
 
         //Establecer el orden de los procesos
-        $processesInOrder = array();
+        $processesInOrder = [];
         $baseType = $class->getBaseType();
         switch ($baseType) {
-            case "Bombillo":
-            case "Molde":
-                $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+            case 'Bombillo':
+            case 'Molde':
+                $processesInOrder = ['cepillado', 'desbaste_exterior', 'revision_laterales', 'pOperacion', 'barreno_maniobra', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado', 'acabadoBombillo', 'acabadoMolde', 'barreno_profundidad', 'cavidades', 'copiado', 'offSet', 'palomas', 'rebajes', 'grabado'];
                 break;
             case 'Corona':
-                $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                $processesInOrder = ['cepillado', 'desbaste_exterior', 'pOperacion', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado'];
                 break;
-            case "Obturador":
-            case "Fondo":
-                $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+            case 'Obturador':
+            case 'Fondo':
+                $processesInOrder = ['operacionEquipo', 'soldadura', 'soldaduraPTA'];
                 break;
-            case "Candado Obturador":
-                $processesInOrder = ["operacionEquipo"];
+            case 'Candado Obturador':
+                $processesInOrder = ['operacionEquipo'];
                 break;
-            case "Plato":
-                $processesInOrder = ["barreno_maniobra", "operacionEquipo"];
+            case 'Plato':
+                $processesInOrder = ['barreno_maniobra', 'operacionEquipo'];
                 break;
-            case "Embudo":
-                $processesInOrder = ["operacionEquipo", "embudoCM"];
+            case 'Embudo':
+                $processesInOrder = ['operacionEquipo', 'embudoCM'];
                 break;
-            case "Cabeza de Soplo":
-                $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+            case 'Cabeza de Soplo':
+                $processesInOrder = ['primeraOperacionCabezaSoplo', 'segundaOperacionCabezaSoplo'];
                 break;
             default:
                 $processesInOrder = [];
@@ -1740,20 +1775,20 @@ class WOController extends Controller
             }
 
             foreach ($processesInOrder as $process) {
-                $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
+                $field = $process == 'operacionEquipo' ? ['1 operacion', '2 operacion'] : [$process];
                 foreach ($field as $processField) {
                     //Asignar el nombre del proceso
                     if (count($field) > 1) {
-                        $processName = "Operacion Equipo_" . $processField;
+                        $processName = 'Operacion Equipo_'.$processField;
                     } else {
-                        if (str_contains($processField, "soldadura")) {
-                            $processName = "Soldadura y Soldadura PTA";
+                        if (str_contains($processField, 'soldadura')) {
+                            $processName = 'Soldadura y Soldadura PTA';
                         } else {
                             $processName = $this->nombreProceso($processField);
                         }
                     }
 
-                    $piecesBadData = array();
+                    $piecesBadData = [];
                     $pieces = $this->getPieces($class, $processName, $piecesBadData);
 
                     // Decidir si está activo:
@@ -1763,12 +1798,12 @@ class WOController extends Controller
                     $isActive = $anyActive ? $dbActive : ($pieces['total'] > 0);
 
                     if ($isActive) {
-                        if (str_contains($process, "soldadura") && $soldaduraBand) { // Verificar si soldadura o soldadura PTA ya fueron insertadas
+                        if (str_contains($process, 'soldadura') && $soldaduraBand) { // Verificar si soldadura o soldadura PTA ya fueron insertadas
                             continue;
                         }
-                        $soldaduraBand = str_contains($process, "soldadura") ? true : false;
+                        $soldaduraBand = str_contains($process, 'soldadura') ? true : false;
 
-                        $processes[$processName] = array();
+                        $processes[$processName] = [];
                         $processes[$processName]['pieces'] = $pieces;
                         $processes[$processName]['piecesBadData'] = $piecesBadData; //Informacion de las piezas malas
                         $processes[$processName]['endDate'] = $this->getDateEndFromProcess($field, $class); //Fecha de termino del proceso
@@ -1781,11 +1816,15 @@ class WOController extends Controller
                         $hasCotas = false;
                         $requiresCotas = ($searchProcess !== 'none');
                         if ($requiresCotas) {
-                            $hasCotas = SystemLog::query()->where('id_ot', '=', $class->id_ot, 'and')
-                                ->where('clase', '=', $class->nombre, 'and')
-                                ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
-                                ->where('proceso', '=', $searchProcess, 'and')
-                                ->exists();
+                            if ($cotasLogsMap !== null) {
+                                $hasCotas = isset($cotasLogsMap[$class->id_ot.'_'.$class->nombre.'_'.$searchProcess]);
+                            } else {
+                                $hasCotas = SystemLog::query()->where('id_ot', '=', $class->id_ot, 'and')
+                                    ->where('clase', '=', $class->nombre, 'and')
+                                    ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
+                                    ->where('proceso', '=', $searchProcess, 'and')
+                                    ->exists();
+                            }
                         }
                         $processes[$processName]['requiresCotas'] = $requiresCotas;
                         $processes[$processName]['hasCotas'] = $hasCotas;
@@ -1793,12 +1832,14 @@ class WOController extends Controller
                 }
             }
         }
+
         return $processes;
 
     }
+
     /**
-     * @param mixed $process
-     * @param mixed $class
+     * @param  mixed  $process
+     * @param  mixed  $class
      */
     public function getDateEndFromProcess($process, $class)
     {
@@ -1817,6 +1858,7 @@ class WOController extends Controller
 
             $formattedTime = new DateTime($dateEnd->fecha_fin);
             $formattedTime = $formattedTime->format('H:i:s');
+
             return $this->getStringDate($formattedDate, $formattedTime);
         }
     }
@@ -1826,16 +1868,20 @@ class WOController extends Controller
      */
     private function buildFundicionChecklistForOt(string $otId, ?string $className = null): ?array
     {
-        $histories = FundicionHistory::query()
-            ->where(function ($q) use ($otId) {
-                $q->where('ot', 'LIKE', "OT {$otId} - %")
-                    ->orWhere('ot', 'LIKE', "OT {$otId}_R% - %")
-                    ->orWhere('ot', '=', "OT {$otId}")
-                    ->orWhere('ot', 'LIKE', "OT {$otId}_R%");
-            })
-            ->where('status', '!=', 'inactiva')
-            ->orderBy('id', 'asc')
-            ->get();
+        if (! array_key_exists($otId, self::$fundicionHistoriesCache)) {
+            self::$fundicionHistoriesCache[$otId] = FundicionHistory::query()
+                ->where(function ($q) use ($otId) {
+                    $q->where('ot', 'LIKE', "OT {$otId} - %")
+                        ->orWhere('ot', 'LIKE', "OT {$otId}_R% - %")
+                        ->orWhere('ot', '=', "OT {$otId}")
+                        ->orWhere('ot', 'LIKE', "OT {$otId}_R%");
+                })
+                ->where('status', '!=', 'inactiva')
+                ->orderBy('id', 'asc')
+                ->get();
+        }
+
+        $histories = self::$fundicionHistoriesCache[$otId];
 
         if ($histories->isEmpty()) {
             return null;
@@ -1856,7 +1902,7 @@ class WOController extends Controller
                     ->where('tipo_modelo', $className)
                     ->exists();
 
-                if (!$hasScar) {
+                if (! $hasScar) {
                     // Si no tiene SCAR, su flujo de revisión se detuvo en este nivel (aprobada o pendiente).
                     break;
                 }
@@ -1876,17 +1922,19 @@ class WOController extends Controller
         $scar = $scarQ->orderByDesc('created_at')->first();
 
         $esReprocesoRegistro = (bool) preg_match('/_R\d+$/i', $otKey);
-        $preOrdenReprocesoQ = PreOrdenFundicion::query()->orderByDesc('created_at');
-        if ($esReprocesoRegistro) {
-            $preOrdenReprocesoQ->where('ot', '=', $otKey);
-        } else {
-            $preOrdenReprocesoQ->where('ot', 'LIKE', "{$otKey}_R%");
+        if (! isset(self::$fundicionPreOrdenListCache[$otKey])) {
+            $preOrdenReprocesoQ = PreOrdenFundicion::query()->orderByDesc('created_at');
+            if ($esReprocesoRegistro) {
+                $preOrdenReprocesoQ->where('ot', '=', $otKey);
+            } else {
+                $preOrdenReprocesoQ->where('ot', 'LIKE', "{$otKey}_R%");
+            }
+            self::$fundicionPreOrdenListCache[$otKey] = $preOrdenReprocesoQ->get();
         }
-
-        $preOrdenList = $preOrdenReprocesoQ->get();
+        $preOrdenList = self::$fundicionPreOrdenListCache[$otKey];
         $preOrdenReproceso = null;
         foreach ($preOrdenList as $po) {
-            if (!$className) {
+            if (! $className) {
                 $preOrdenReproceso = $po;
                 break;
             }
@@ -1912,7 +1960,7 @@ class WOController extends Controller
                 if ($esReproceso) {
                     $iteration++;
                 }
-            } else if ($esReproceso) {
+            } elseif ($esReproceso) {
                 $iteration = 1;
             }
             $ordinales = [1 => '1er', 2 => '2do', 3 => '3er', 4 => '4to', 5 => '5to', 6 => '6to', 7 => '7mo', 8 => '8vo', 9 => '9no', 10 => '10mo'];
@@ -1923,7 +1971,7 @@ class WOController extends Controller
         $pasos = [];
 
         // --- Banderas individuales ---
-        $tieneArchivos = !empty($history->almacen_archivos) || $history->alert_sent_at !== null;
+        $tieneArchivos = ! empty($history->almacen_archivos) || $history->alert_sent_at !== null;
         $alertaAlmacen = $history->alert_sent_at !== null;
         $vistosAlmacen = $history->dibujos_vistos_almacen;
 
@@ -1940,18 +1988,21 @@ class WOController extends Controller
         $vistosAlmacen2 = $history->documentos_vistos_almacen_2;
         $firmadosCargados = $history->documentos_firmados_cargados;
         $castingPreordenExists = false;
-        $castingList = PreOrdenFundicion::query()
-            ->where('ot', '=', $otKey)
-            ->where(function ($q) {
-                $q->where('pdf_filename', 'LIKE', '%casting%')
-                    ->orWhere('pdf_filename', 'LIKE', '%Casting%')
-                    ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
-                    ->orWhere('pdf_filename', 'LIKE', '%PFC%');
-            })
-            ->get();
+        if (! isset(self::$fundicionCastingListCache[$otKey])) {
+            self::$fundicionCastingListCache[$otKey] = PreOrdenFundicion::query()
+                ->where('ot', '=', $otKey)
+                ->where(function ($q) {
+                    $q->where('pdf_filename', 'LIKE', '%casting%')
+                        ->orWhere('pdf_filename', 'LIKE', '%Casting%')
+                        ->orWhere('pdf_filename', 'LIKE', '%F_ALM_PFC_%')
+                        ->orWhere('pdf_filename', 'LIKE', '%PFC%');
+                })
+                ->get();
+        }
+        $castingList = self::$fundicionCastingListCache[$otKey];
 
         foreach ($castingList as $po) {
-            if (!$className) {
+            if (! $className) {
                 $castingPreordenExists = true;
                 break;
             }
@@ -2005,7 +2056,7 @@ class WOController extends Controller
         // Si Calidad ya fue alertada o hay actividad posterior, Fase 2 debió completarse
         if ($alertaCalidad || $revisadosCalidad || $tieneLiberacion || $alertaAlmacen2 || $firmadosCargados || $pasoFinalGenerado) {
             $almacenProceso = true;
-            if (!$history->tiene_modelo) {
+            if (! $history->tiene_modelo) {
                 $preordenAutorizada = true;
             }
         }
@@ -2024,10 +2075,10 @@ class WOController extends Controller
         // --- FASE 0: Administración (Programación) ---
         $estado0 = 'Incompleto';
         $label0 = 'Administración: Dibujos y Ayudas Visuales de Fundición Completadas';
-        if (!$tieneArchivos) {
+        if (! $tieneArchivos) {
             $estado0 = 'En Espera';
             $label0 = 'Administración: Programación (Esperando Dibujos)';
-        } elseif (!$alertaAlmacen) {
+        } elseif (! $alertaAlmacen) {
             $estado0 = 'En Espera';
             $label0 = 'Administración: Programación (Falta Alerta a Almacén)';
         } else {
@@ -2049,7 +2100,7 @@ class WOController extends Controller
         $label1 = 'Almacén: Revisión de Dibujos';
         if ($estado0 !== 'Completado') {
             $estado1 = 'Incompleto';
-        } elseif (!$vistosAlmacen) {
+        } elseif (! $vistosAlmacen) {
             $estado1 = 'Revisando';
             $label1 = 'Almacén: Alerta Enviada (Esperando Revisión)';
         } else {
@@ -2066,19 +2117,18 @@ class WOController extends Controller
             ],
         ];
 
-
         // --- FASE 2: Almacén (Modelo) — DOS CAMINOS POSIBLES ---
         $estado2 = 'Incompleto';
         $label2 = 'Almacén: Gestión de Modelo';
 
         if ($estado1 !== 'Completado') {
             $estado2 = 'Incompleto';
-        } elseif (!$almacenProceso) {
+        } elseif (! $almacenProceso) {
             $estado2 = 'En Espera';
             $label2 = 'Almacén: Esperando Evaluación de Modelo';
         } elseif ($history->tiene_modelo) {
             // CAMINO A: tiene modelo físico → sólo escaneo
-            if (!$alertaCalidad) {
+            if (! $alertaCalidad) {
                 $estado2 = 'Revisando';
                 $label2 = 'Almacén: Escaneado de Modelo Existente (Falta Enviar a Calidad)';
             } else {
@@ -2087,7 +2137,7 @@ class WOController extends Controller
             }
         } else {
             // CAMINO B: no tiene modelo → preorden + escaneo firmado
-            if (!$preordenAutorizada) {
+            if (! $preordenAutorizada) {
                 $estado2 = 'Revisando';
                 $label2 = 'Almacén: Preorden Generada (Falta Subir Escaneo Firmado)';
             } else {
@@ -2121,7 +2171,6 @@ class WOController extends Controller
             'subPasos' => $subPasosFase2,
         ];
 
-
         // --- FASE 3: Calidad (Liberación de modelo) ---
         $labelFormatoFinal = $cicloRechazado ? 'Calidad: Formato de Rechazo (FDRM) y SCAR' : 'Calidad: Formato de Liberación (FDLM)';
 
@@ -2130,13 +2179,13 @@ class WOController extends Controller
 
         if ($estado2 !== 'Completado') {
             $estado3 = 'Incompleto';
-        } elseif (!$alertaCalidad) {
+        } elseif (! $alertaCalidad) {
             $estado3 = 'En Espera';
             $label3 = 'Calidad: Esperando Alerta de Almacén';
-        } elseif (!$revisadosCalidad) {
+        } elseif (! $revisadosCalidad) {
             $estado3 = 'Revisando';
             $label3 = 'Calidad: Alerta Recibida (Esperando Evaluación)';
-        } elseif (!$formatoCompletado) {
+        } elseif (! $formatoCompletado) {
             $estado3 = 'Revisando';
             $label3 = 'Calidad: Documentos Revisados (Falta Generar Formato)';
         } else {
@@ -2165,7 +2214,6 @@ class WOController extends Controller
             ],
         ];
 
-
         // --- FASE 4: Almacén (Casting si aprobado / Reproceso si rechazado) ---
         $esCaminoReproceso = $cicloRechazado; // El camino lo define la decisión de Calidad, no el ciclo estructural
         $labelPasoFinal = $esCaminoReproceso ? 'Almacén: Ciclo de Reproceso Iniciado' : 'Almacén: Enviado a Proveedor (Casting)';
@@ -2177,19 +2225,19 @@ class WOController extends Controller
 
         if ($estado3 !== 'Completado') {
             $estado4 = 'Incompleto';
-        } elseif (!$alertaAlmacen2) {
+        } elseif (! $alertaAlmacen2) {
             $estado4 = 'En Espera';
             $label4 = 'Almacén: Esperando Alerta de Calidad';
-        } elseif (!$vistosAlmacen2) {
+        } elseif (! $vistosAlmacen2) {
             $estado4 = 'Revisando';
             $label4 = 'Almacén: Alerta Recibida (Esperando Revisión)';
-        } elseif (!$firmadosCargados) {
+        } elseif (! $firmadosCargados) {
             $estado4 = 'En Espera';
             $label4 = 'Almacén: Falta Subir Formatos Firmados de Calidad';
-        } elseif (!$pasoFinalGenerado) {
+        } elseif (! $pasoFinalGenerado) {
             $estado4 = 'En Espera';
             $label4 = $esCaminoReproceso ? 'Almacén: Iniciando Ciclo de Reproceso...' : 'Almacén: Falta Generar Preorden de Casting';
-        } elseif (!$esCaminoReproceso && !$castingEnviado) {
+        } elseif (! $esCaminoReproceso && ! $castingEnviado) {
             $estado4 = 'Revisando';
             $label4 = 'Almacén: Falta Enviar Preorden a Proveedor';
         } else {
@@ -2203,7 +2251,7 @@ class WOController extends Controller
             ['label' => $labelStepFinal, 'estado' => $pasoFinalGenerado ? 'Completado' : ($firmadosCargados ? 'En Espera' : 'Incompleto')],
         ];
 
-        if (!$esCaminoReproceso) {
+        if (! $esCaminoReproceso) {
             $subPasos4[] = ['label' => 'Envío de Preorden a Proveedor', 'estado' => $castingEnviado ? 'Completado' : ($pasoFinalGenerado ? 'En Espera' : 'Incompleto')];
         }
 
@@ -2222,7 +2270,6 @@ class WOController extends Controller
         ];
     }
 
-
     public function showViewPiecesInProgress(Request $request)
     {
         $perPage = 6;
@@ -2237,7 +2284,7 @@ class WOController extends Controller
         $totalWOs = (clone $baseQuery)->count();
 
         // ── OPTIMIZACIÓN: eager loading paginado evita saturación de memoria RAM y CPU ──
-        $wOInProgress = array();
+        $wOInProgress = [];
         $workOrders = (clone $baseQuery)
             ->with([
                 'clases' => function ($q) {
@@ -2246,7 +2293,7 @@ class WOController extends Controller
                 'clases.procesos',
                 'clases.fechasProcesos',
                 'clases.piezas',
-                'moldura'
+                'moldura',
             ])
             // Ordenar por prioridad ascendente; las OTs sin prioridad (NULL)
             // se ubican al final gracias al NULLS LAST implícito en MySQL.
@@ -2257,18 +2304,48 @@ class WOController extends Controller
             ->take($perPage)
             ->get();
 
+        // Pre-cargar totales de entregadas y tratadas en 2 consultas globales (evita N+1 en bucle)
+        $allClassIds = $workOrders->pluck('clases')->flatten()->pluck('id')->filter()->unique()->toArray();
+        $entregadasMap = empty($allClassIds) ? [] : ParcialidadOt::query()
+            ->selectRaw('id_clase, SUM(cantidad) as total')
+            ->whereIn('id_clase', $allClassIds, 'and', false)
+            ->groupBy('id_clase')
+            ->pluck('total', 'id_clase')
+            ->toArray();
+
+        $tratadasMap = empty($allClassIds) ? [] : TratamientoTermico::query()
+            ->selectRaw('id_clase, SUM(cantidad) as total')
+            ->whereIn('id_clase', $allClassIds, 'and', false)
+            ->groupBy('id_clase')
+            ->pluck('total', 'id_clase')
+            ->toArray();
+
+        $targetOtIds = $workOrders->pluck('id')->toArray();
+        $cotasLogs = empty($targetOtIds) ? collect() : SystemLog::query()
+            ->select(['id_ot', 'clase', 'proceso'])
+            ->whereIn('id_ot', $targetOtIds, 'and', false)
+            ->where('action', '=', 'Cargo/Modificación Cotas Nominales', 'and')
+            ->get();
+
+        $cotasLogsMap = [];
+        foreach ($cotasLogs as $cl) {
+            $cotasLogsMap[$cl->id_ot.'_'.$cl->clase.'_'.$cl->proceso] = true;
+        }
+
+        $clasesById = [];
         foreach ($workOrders as $workOrder) {
             $classes = $workOrder->clases; // Ya están filtradas en la query del database
             if ($classes->count() > 0) {
                 foreach ($classes as $index => $class) {
+                    $clasesById[$class->id] = $class;
                     $process = $class->procesos;
                     if ($process) {
                         if ($index === $classes->keys()->first()) {
-                            $wOInProgress[$workOrder->id] = array();
+                            $wOInProgress[$workOrder->id] = [];
                             $wOInProgress[$workOrder->id]['molding'] = $workOrder->moldura ? $workOrder->moldura->nombre : '?';
-                            $wOInProgress[$workOrder->id]['classes'] = array();
+                            $wOInProgress[$workOrder->id]['classes'] = [];
                         }
-                        $this->insertClassesData($wOInProgress[$workOrder->id]['classes'], $class);
+                        $this->insertClassesData($wOInProgress[$workOrder->id]['classes'], $class, $entregadasMap, $tratadasMap, $cotasLogsMap);
                     }
                 }
             }
@@ -2279,12 +2356,14 @@ class WOController extends Controller
         $ptaCardsData = [];
         foreach (array_keys($wOInProgress) as $otId) {
             foreach ($wOInProgress[$otId]['classes'] as $className => $classData) {
-                if (!isset($classData['id']))
+                if (! isset($classData['id']) || empty($classData['hasPTA'])) {
                     continue;
+                }
                 $claseId = $classData['id'];
-                $cardData = PtaResultsController::buildCardData((string) $otId, $claseId);
+                $piezasPreload = isset($clasesById[$claseId]) && $clasesById[$claseId]->relationLoaded('piezas') ? $clasesById[$claseId]->getRelation('piezas') : null;
+                $cardData = PtaResultsController::buildCardData((string) $otId, $claseId, $piezasPreload);
                 if ($cardData !== null) {
-                    if (!isset($ptaCardsData[$otId])) {
+                    if (! isset($ptaCardsData[$otId])) {
                         $ptaCardsData[$otId] = [];
                     }
                     $ptaCardsData[$otId][$claseId] = $cardData;
@@ -2330,13 +2409,8 @@ class WOController extends Controller
             ]);
         }
 
-        $userProfile = (int) (auth()->user()->perfil ?? 0);
-        if ($userProfile === 4) {
-            [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
-        } else {
-            $pieces_Released = [];
-            $info_Pieces = [];
-        }
+        $pieces_Released = [];
+        $info_Pieces = [];
 
         return view('pieces_views.piecesInProgress_view', compact(
             'wOInProgress',
@@ -2366,7 +2440,7 @@ class WOController extends Controller
     {
         // Guard de perfil: solo Master (1) y Admin/Gerencia (3)
         $userProfile = auth()->user()->perfil ?? null;
-        if (!in_array($userProfile, ['1', '3', '6'])) {
+        if (! in_array($userProfile, ['1', '3', '6'])) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
@@ -2381,7 +2455,7 @@ class WOController extends Controller
                 },
                 'moldura' => function ($q) {
                     $q->select('id', 'nombre');
-                }
+                },
             ])
             ->get();
 
@@ -2395,10 +2469,13 @@ class WOController extends Controller
 
         // Ordenar semanas de menor a mayor (ascendente)
         uksort($groupedWOs, function ($a, $b) {
-            if ($a === 'Sin Semana')
+            if ($a === 'Sin Semana') {
                 return 1;
-            if ($b === 'Sin Semana')
+            }
+            if ($b === 'Sin Semana') {
                 return -1;
+            }
+
             return (int) $a - (int) $b;
         });
 
@@ -2411,6 +2488,7 @@ class WOController extends Controller
                 if ($pA === $pB) {
                     return strcmp((string) $a->id, (string) $b->id);
                 }
+
                 return $pA <=> $pB;
             });
             foreach ($sortedWeekWOs as $wo) {
@@ -2447,7 +2525,7 @@ class WOController extends Controller
         }
 
         $priorities = $request->input('priorities');
-        if (!is_array($priorities) || count($priorities) === 0) {
+        if (! is_array($priorities) || count($priorities) === 0) {
             return response()->json(['success' => false, 'message' => 'Payload inválido.'], 422);
         }
 
@@ -2470,6 +2548,7 @@ class WOController extends Controller
                 'error' => $e->getMessage(),
                 'payload' => $priorities,
             ]);
+
             return response()->json(['success' => false, 'message' => 'Error al guardar prioridades.'], 500);
         }
     }
@@ -2484,6 +2563,7 @@ class WOController extends Controller
         if ($data === null) {
             return response()->json(['error' => 'No PTA data'], 200);
         }
+
         return response()->json($data);
     }
 
@@ -2494,7 +2574,7 @@ class WOController extends Controller
      * Retorna 404 si la OT no tiene flujo de fundición activo.
      * Usado por el polling de 30s del componente FundicionChecklistCard en el frontend.
      *
-     * @param  string $otId  Número de OT (ej. "6748" o "6748_R1")
+     * @param  string  $otId  Número de OT (ej. "6748" o "6748_R1")
      */
     public function getFundicionChecklist(string $otId, ?string $className = null)
     {
@@ -2502,6 +2582,7 @@ class WOController extends Controller
         if ($data === null) {
             return response()->json(['error' => 'No fundicion data'], 200);
         }
+
         return response()->json($data);
     }
 
@@ -2513,7 +2594,7 @@ class WOController extends Controller
     {
         $otIdClean = explode('_', $otId)[0];
         $ot = Orden_trabajo::with('clases')->find($otIdClean);
-        if (!$ot) {
+        if (! $ot) {
             return response()->json([]);
         }
 
@@ -2523,7 +2604,7 @@ class WOController extends Controller
                 $tratadas = TratamientoTermico::where('id_clase', '=', $clase->id, 'and')->sum('cantidad');
                 $termicoData[$clase->nombre] = [
                     'tratadas' => (int) $tratadas,
-                    'pieces' => (int) $clase->piezas
+                    'pieces' => (int) $clase->piezas,
                 ];
             }
         }
@@ -2539,7 +2620,7 @@ class WOController extends Controller
     {
         $otIdClean = explode('_', $otId)[0];
         $ot = Orden_trabajo::with('clases')->find($otIdClean);
-        if (!$ot) {
+        if (! $ot) {
             return response()->json([]);
         }
 
@@ -2548,7 +2629,7 @@ class WOController extends Controller
             $classesData[] = [
                 'id' => $clase->id,
                 'pedido' => (int) $clase->pedido,
-                'piezas' => (int) $clase->piezas
+                'piezas' => (int) $clase->piezas,
             ];
         }
 
@@ -2563,25 +2644,26 @@ class WOController extends Controller
     {
         $otIdClean = explode('_', $otId)[0];
         $ot = Orden_trabajo::with('clases')->find($otIdClean);
-        if (!$ot) {
+        if (! $ot) {
             return response()->json([]);
         }
 
-        $baseOtStr = "OT " . $ot->id . ($ot->moldura ? " - " . $ot->moldura->nombre : "");
+        $baseOtStr = 'OT '.$ot->id.($ot->moldura ? ' - '.$ot->moldura->nombre : '');
 
         $baseOtClean = str_replace(['—', '–', "\xc2\xa0"], '-', $baseOtStr);
         $baseOtClean = mb_strtoupper($baseOtClean, 'UTF-8');
         $baseOtClean = preg_replace('/\s+/', ' ', $baseOtClean);
         $baseOtClean = trim(preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', $baseOtClean)));
 
-        $dibujosDir = 'DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS/' . $baseOtClean;
-        $oldDibujosDir = 'DIBUJOS_GIS/' . $baseOtClean;
+        $dibujosDir = 'DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS/'.$baseOtClean;
+        $oldDibujosDir = 'DIBUJOS_GIS/'.$baseOtClean;
 
         $checklist = [];
 
         foreach ($ot->clases as $clase) {
-            if ($clase->finalizada)
+            if ($clase->finalizada) {
                 continue;
+            }
 
             $claseNameClean = trim(preg_replace('/[\/\\\\]/', '', preg_replace('/\.\.+/', '', $clase->nombre)));
 
@@ -2594,28 +2676,28 @@ class WOController extends Controller
             $processesInOrder = [];
             $baseType = $clase->getBaseType();
             switch ($baseType) {
-                case "Bombillo":
-                case "Molde":
-                    $processesInOrder = ["cepillado", "desbaste_exterior", "revision_laterales", "pOperacion", "barreno_maniobra", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado", "acabadoBombillo", "acabadoMolde", "barreno_profundidad", "cavidades", "copiado", "offSet", "palomas", "rebajes", "grabado"];
+                case 'Bombillo':
+                case 'Molde':
+                    $processesInOrder = ['cepillado', 'desbaste_exterior', 'revision_laterales', 'pOperacion', 'barreno_maniobra', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado', 'acabadoBombillo', 'acabadoMolde', 'barreno_profundidad', 'cavidades', 'copiado', 'offSet', 'palomas', 'rebajes', 'grabado'];
                     break;
                 case 'Corona':
-                    $processesInOrder = ["cepillado", "desbaste_exterior", "pOperacion", "sOperacion", "soldadura", "soldaduraPTA", "rectificado", "asentado", "calificado"];
+                    $processesInOrder = ['cepillado', 'desbaste_exterior', 'pOperacion', 'sOperacion', 'soldadura', 'soldaduraPTA', 'rectificado', 'asentado', 'calificado'];
                     break;
-                case "Obturador":
-                case "Fondo":
-                    $processesInOrder = ["operacionEquipo", "soldadura", "soldaduraPTA"];
+                case 'Obturador':
+                case 'Fondo':
+                    $processesInOrder = ['operacionEquipo', 'soldadura', 'soldaduraPTA'];
                     break;
-                case "Candado Obturador":
-                    $processesInOrder = ["operacionEquipo"];
+                case 'Candado Obturador':
+                    $processesInOrder = ['operacionEquipo'];
                     break;
-                case "Plato":
-                    $processesInOrder = ["barreno_maniobra", "operacionEquipo"];
+                case 'Plato':
+                    $processesInOrder = ['barreno_maniobra', 'operacionEquipo'];
                     break;
-                case "Embudo":
-                    $processesInOrder = ["operacionEquipo", "embudoCM"];
+                case 'Embudo':
+                    $processesInOrder = ['operacionEquipo', 'embudoCM'];
                     break;
-                case "Cabeza de Soplo":
-                    $processesInOrder = ["primeraOperacionCabezaSoplo", "segundaOperacionCabezaSoplo"];
+                case 'Cabeza de Soplo':
+                    $processesInOrder = ['primeraOperacionCabezaSoplo', 'segundaOperacionCabezaSoplo'];
                     break;
                 default:
                     $processesInOrder = [];
@@ -2635,27 +2717,27 @@ class WOController extends Controller
                 foreach ($processesInOrder as $process) {
                     $isActive = $anyActive ? ($procesosFounded[$process] != 0) : true;
                     if ($isActive) {
-                        if (str_contains($process, "soldadura") && $soldaduraBand) {
+                        if (str_contains($process, 'soldadura') && $soldaduraBand) {
                             continue;
                         }
-                        $soldaduraBand = str_contains($process, "soldadura") ? true : false;
-                        $field = $process == "operacionEquipo" ? ["1 operacion", "2 operacion"] : [$process];
+                        $soldaduraBand = str_contains($process, 'soldadura') ? true : false;
+                        $field = $process == 'operacionEquipo' ? ['1 operacion', '2 operacion'] : [$process];
 
                         foreach ($field as $processField) {
                             $procesosTotalesAsignados++;
 
-                            $processName = "";
+                            $processName = '';
                             if (count($field) > 1) {
-                                $processName = "Operacion Equipo_" . $processField;
+                                $processName = 'Operacion Equipo_'.$processField;
                             } else {
-                                if (str_contains($processField, "soldadura")) {
-                                    $processName = "Soldadura y Soldadura PTA";
+                                if (str_contains($processField, 'soldadura')) {
+                                    $processName = 'Soldadura y Soldadura PTA';
                                 } else {
                                     $processName = $this->nombreProceso($processField);
                                 }
                             }
 
-                            if (!in_array($processName, ['Soldadura y Soldadura PTA', 'Asentado', 'Rectificado'])) {
+                            if (! in_array($processName, ['Soldadura y Soldadura PTA', 'Asentado', 'Rectificado'])) {
                                 $procesosActivosParaCotas++;
 
                                 $searchProcess = explode('_', $processName)[0];
@@ -2674,16 +2756,16 @@ class WOController extends Controller
             }
             // 1. Dibujos de maquinados subidos
             $dibujosSubidosCount = 0;
-            $newPath = $dibujosDir . '/' . $claseNameClean;
-            $oldPath = $oldDibujosDir . '/' . $claseNameClean;
+            $newPath = $dibujosDir.'/'.$claseNameClean;
+            $oldPath = $oldDibujosDir.'/'.$claseNameClean;
 
             if (Storage::disk('local')->exists($newPath)) {
                 $files = Storage::disk('local')->files($newPath);
-                $dibujosSubidosCount = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf'));
+                $dibujosSubidosCount = count(array_filter($files, fn ($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf'));
             }
             if ($dibujosSubidosCount === 0 && Storage::disk('local')->exists($oldPath)) {
                 $files = Storage::disk('local')->files($oldPath);
-                $dibujosSubidosCount = count(array_filter($files, fn($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf'));
+                $dibujosSubidosCount = count(array_filter($files, fn ($f) => strtolower(pathinfo($f, PATHINFO_EXTENSION)) === 'pdf'));
             }
             $hasDibujos = $dibujosSubidosCount > 0;
 
@@ -2721,7 +2803,7 @@ class WOController extends Controller
             $cotasVaPrimero = false;
             if ($fechaPrimeraCota && $fechaPrimerDibujo) {
                 $cotasVaPrimero = $fechaPrimeraCota->lt($fechaPrimerDibujo);
-            } elseif ($fechaPrimeraCota && !$fechaPrimerDibujo) {
+            } elseif ($fechaPrimeraCota && ! $fechaPrimerDibujo) {
                 $cotasVaPrimero = true;
             }
 
@@ -2735,7 +2817,7 @@ class WOController extends Controller
             // Paso 1
             $pasos['fase1'] = [
                 'label' => "Procesos de Producción ({$procesosTotalesAsignados})",
-                'estado' => $hasProceso ? 'completado' : 'pendiente'
+                'estado' => $hasProceso ? 'completado' : 'pendiente',
             ];
 
             $pasoDibujos = [
@@ -2743,7 +2825,7 @@ class WOController extends Controller
             ];
 
             $pasoCotas = [
-                'label' => $procesosActivosParaCotas > 0 ? "Cotas de OT/Clase subidas (Admin) ({$cotasGuardadas}/{$procesosActivosParaCotas})" : "Cotas de OT/Clase subidas (Admin) (N/A)",
+                'label' => $procesosActivosParaCotas > 0 ? "Cotas de OT/Clase subidas (Admin) ({$cotasGuardadas}/{$procesosActivosParaCotas})" : 'Cotas de OT/Clase subidas (Admin) (N/A)',
             ];
 
             if ($cotasVaPrimero) {
@@ -2794,7 +2876,7 @@ class WOController extends Controller
             ->orderByDesc('updated_at')
             ->first();
 
-        if (!$history) {
+        if (! $history) {
             return response()->json(['success' => false, 'message' => 'No se encontró el flujo de fundición para esta OT.']);
         }
 
@@ -2805,20 +2887,22 @@ class WOController extends Controller
             'documentos_revisados_calidad',
             'alerta_almacen_2_sent',
             'documentos_vistos_almacen_2',
-            'documentos_firmados_cargados'
+            'documentos_firmados_cargados',
         ];
 
         if (in_array($flag, $allowedFlags)) {
             $history->$flag = true;
             $history->save();
+
             return response()->json(['success' => true]);
         }
 
         return response()->json(['success' => false, 'message' => 'Flag no válido.']);
     }
+
     /**
-     * @param string $date
-     * @param string $time
+     * @param  string  $date
+     * @param  string  $time
      */
     public function getStringDate($date, $time)
     {
@@ -2830,91 +2914,93 @@ class WOController extends Controller
         $dayName = $dayName->format('l');
 
         switch ($dayName) {
-            case "Monday":
-                $dayName = "Lunes";
+            case 'Monday':
+                $dayName = 'Lunes';
                 break;
-            case "Tuesday":
-                $dayName = "Martes";
+            case 'Tuesday':
+                $dayName = 'Martes';
                 break;
-            case "Wednesday":
-                $dayName = "Miercoles";
+            case 'Wednesday':
+                $dayName = 'Miercoles';
                 break;
-            case "Thursday":
-                $dayName = "Jueves";
+            case 'Thursday':
+                $dayName = 'Jueves';
                 break;
-            case "Friday":
-                $dayName = "Viernes";
+            case 'Friday':
+                $dayName = 'Viernes';
                 break;
-            case "Saturday":
-                $dayName = "Sabado";
+            case 'Saturday':
+                $dayName = 'Sabado';
                 break;
-            case "Sunday":
-                $dayName = "Domingo";
+            case 'Sunday':
+                $dayName = 'Domingo';
                 break;
         }
 
         $formattedTime = new DateTime($time);
         $formattedTime = $formattedTime->format('H:i:s A');
 
-        return $dayName . " " . $formattedDate . " " . $formattedTime;
+        return $dayName.' '.$formattedDate.' '.$formattedTime;
     }
+
     /**
-     * @param string $proceso
+     * @param  string  $proceso
      */
     public function nombreProceso($proceso)
     {
         switch ($proceso) {
-            case "cepillado":
-                return "Cepillado";
-            case "desbaste_exterior":
-                return "Desbaste Exterior";
-            case "revision_laterales":
-                return "Revision Laterales";
-            case "pOperacion":
-                return "Primera Operacion";
-            case "barreno_maniobra":
-                return "Barreno Maniobra";
-            case "sOperacion":
-                return "Segunda Operacion";
-            case "soldadura":
-                return "Soldadura";
-            case "soldaduraPTA":
-                return "Soldadura PTA";
-            case "rectificado":
-                return "Rectificado";
-            case "asentado":
-                return "Asentado";
-            case "calificado":
-                return "Calificado";
-            case "acabadoBombillo":
-                return "Acabado Bombillo";
-            case "acabadoMolde":
-                return "Acabado Molde";
-            case "cavidades":
-                return "Cavidades";
-            case "barreno_profundidad":
-                return "Barreno Profundidad";
-            case "copiado":
-                return "Copiado";
-            case "offSet":
-                return "Off Set";
-            case "palomas":
-                return "Palomas";
-            case "rebajes":
-                return "Rebajes";
-            case "grabado":
-                return "Grabado";
-            case "operacionEquipo":
-                return "Operación Equipo";
-            case "embudoCM":
-                return "Embudo CM";
-            case "primeraOperacionCabezaSoplo":
-                return "Primera Operacion Cabeza Soplo";
-            case "segundaOperacionCabezaSoplo":
-                return "Segunda Operacion Cabeza Soplo";
+            case 'cepillado':
+                return 'Cepillado';
+            case 'desbaste_exterior':
+                return 'Desbaste Exterior';
+            case 'revision_laterales':
+                return 'Revision Laterales';
+            case 'pOperacion':
+                return 'Primera Operacion';
+            case 'barreno_maniobra':
+                return 'Barreno Maniobra';
+            case 'sOperacion':
+                return 'Segunda Operacion';
+            case 'soldadura':
+                return 'Soldadura';
+            case 'soldaduraPTA':
+                return 'Soldadura PTA';
+            case 'rectificado':
+                return 'Rectificado';
+            case 'asentado':
+                return 'Asentado';
+            case 'calificado':
+                return 'Calificado';
+            case 'acabadoBombillo':
+                return 'Acabado Bombillo';
+            case 'acabadoMolde':
+                return 'Acabado Molde';
+            case 'cavidades':
+                return 'Cavidades';
+            case 'barreno_profundidad':
+                return 'Barreno Profundidad';
+            case 'copiado':
+                return 'Copiado';
+            case 'offSet':
+                return 'Off Set';
+            case 'palomas':
+                return 'Palomas';
+            case 'rebajes':
+                return 'Rebajes';
+            case 'grabado':
+                return 'Grabado';
+            case 'operacionEquipo':
+                return 'Operación Equipo';
+            case 'embudoCM':
+                return 'Embudo CM';
+            case 'primeraOperacionCabezaSoplo':
+                return 'Primera Operacion Cabeza Soplo';
+            case 'segundaOperacionCabezaSoplo':
+                return 'Segunda Operacion Cabeza Soplo';
         }
     }
-    function finishOrder(Request $request, $wOrderName = null, $className = null)
+
+    public function finishOrder(Request $request, $wOrderName = null, $className = null)
     {
         $wOrderName = $wOrderName ?? $request->route('wOrderName') ?? $request->input('wOrderName');
         $className = $className ?? $request->route('className') ?? $request->input('className');
@@ -2925,64 +3011,66 @@ class WOController extends Controller
             ->where('nombre', '=', $className, 'and')
             ->first();
 
-        if (!$class) {
+        if (! $class) {
             $errorMsg = "No se localizó la clase especificada ({$className}) para la orden de trabajo {$wOrderName}.";
-            $finishOrder = ["error", $errorMsg];
+            $finishOrder = ['error', $errorMsg];
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => $errorMsg,
                     0 => 'error',
-                    1 => $errorMsg
+                    1 => $errorMsg,
                 ], 404);
             }
+
             return redirect()->back()->with('finishOrder', $finishOrder);
         }
 
         $arrayProcesses = $this->insertProcessesData($class);
 
         $counterRejected = 0;
-        $text = "";
+        $text = '';
         $bandSold = false;
         foreach ($arrayProcesses as $key => $process) {
-            $text = "No se puede finalizar el pedido porque las piezas no se han completado en " . $key;
+            $text = 'No se puede finalizar el pedido porque las piezas no se han completado en '.$key;
             $total = 0;
             // Sumar las piezas rechazadas de soldadura y soldadura pta
-            if (str_contains($key, "Soldadura")) {
-                if (!$bandSold) {
+            if (str_contains($key, 'Soldadura')) {
+                if (! $bandSold) {
                     $bandSold = true;
-                    foreach (["Soldadura", "Soldadura PTA"] as $processSold) {
-                        $counterRejected += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]["pieces"]["bad"] : 0;
+                    foreach (['Soldadura', 'Soldadura PTA'] as $processSold) {
+                        $counterRejected += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]['pieces']['bad'] : 0;
                     }
                 }
             } else { // Sumar las piezas rechazadas del proceso actual
-                $counterRejected += $process["pieces"]["bad"];
+                $counterRejected += $process['pieces']['bad'];
             }
 
             //Sumar las piezas buenas de los procesos
-            if (($key == "Soldadura" || $key == "Soldadura PTA")) {
-                if (array_key_exists("Soldadura", $arrayProcesses) && array_key_exists("Soldadura PTA", $arrayProcesses)) {
-                    foreach (["Soldadura", "Soldadura PTA"] as $processSold) {
-                        $total += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]["pieces"]["good"] : 0;
+            if (($key == 'Soldadura' || $key == 'Soldadura PTA')) {
+                if (array_key_exists('Soldadura', $arrayProcesses) && array_key_exists('Soldadura PTA', $arrayProcesses)) {
+                    foreach (['Soldadura', 'Soldadura PTA'] as $processSold) {
+                        $total += array_key_exists($processSold, $arrayProcesses) ? $arrayProcesses[$processSold]['pieces']['good'] : 0;
                     }
                 }
-                $text = "No se puede finalizar el pedido porque las piezas no se han completado en las soldaduras";
+                $text = 'No se puede finalizar el pedido porque las piezas no se han completado en las soldaduras';
             } else {
-                $total = $process["pieces"]["good"];
+                $total = $process['pieces']['good'];
             }
 
             $total += $counterRejected; // Sumar las piezas rechazadas de los anteriores procesos con las piezas buenas del proceso
 
             if ($total < $class->piezas) {
-                $finishOrder = ["error", $text];
+                $finishOrder = ['error', $text];
                 if ($request->wantsJson() || $request->ajax()) {
                     return response()->json([
                         'status' => 'error',
                         'message' => $text,
                         0 => 'error',
-                        1 => $text
+                        1 => $text,
                     ], 422);
                 }
+
                 return redirect()->back()->with('finishOrder', $finishOrder);
             }
         }
@@ -2993,16 +3081,17 @@ class WOController extends Controller
             $class->save();
             DB::commit();
 
-            $successMsg = "Se ha finalizado el pedido correctamente";
-            $finishOrder = ["success", $successMsg];
+            $successMsg = 'Se ha finalizado el pedido correctamente';
+            $finishOrder = ['success', $successMsg];
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'status' => 'success',
                     'message' => $successMsg,
                     0 => 'success',
-                    1 => $successMsg
+                    1 => $successMsg,
                 ]);
             }
+
             return redirect()->route('showPiecesInProgress')->with('finishOrder', $finishOrder);
         } catch (\Throwable $e) {
             DB::rollBack();
@@ -3010,29 +3099,31 @@ class WOController extends Controller
                 'user_id' => auth()->id(),
                 'wOrder' => $wOrderName,
                 'class' => $className,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
             ]);
-            $errorMsg = "Ocurrió un error inesperado al finalizar el pedido.";
-            $finishOrder = ["error", $errorMsg];
+            $errorMsg = 'Ocurrió un error inesperado al finalizar el pedido.';
+            $finishOrder = ['error', $errorMsg];
             if ($request->wantsJson() || $request->ajax()) {
                 return response()->json([
                     'status' => 'error',
                     'message' => $errorMsg,
                     0 => 'error',
-                    1 => $errorMsg
+                    1 => $errorMsg,
                 ], 500);
             }
+
             return redirect()->back()->with('finishOrder', $finishOrder);
         }
     }
+
     /**
-     * @param mixed $class
-     * @param string $processName
-     * @param array $piecesBadData
+     * @param  mixed  $class
+     * @param  string  $processName
+     * @param  array  $piecesBadData
      */
-    function getPieces($class, $processName, &$piecesBadData)
+    public function getPieces($class, $processName, &$piecesBadData)
     {
-        $setStoredParts = array();
+        $setStoredParts = [];
         $piecesArray = ['good' => [], 'bad' => [], 'total' => 0];
         $processNamesArray = $processName === 'Soldadura y Soldadura PTA'
             ? ['Soldadura', 'Soldadura PTA']
@@ -3054,8 +3145,9 @@ class WOController extends Controller
                 : $class->piezas()->get();
             $pieces = $piezasRelation->where('proceso', $pName);
 
-            if ($pieces->isEmpty())
+            if ($pieces->isEmpty()) {
                 continue;
+            }
 
             // ── Mapa n_pieza → pieza para buscar H/M sin queries adicionales ──
             $piecesMap = $pieces->keyBy('n_pieza');
@@ -3066,12 +3158,12 @@ class WOController extends Controller
                     preg_match('/^\d+/', $piece->n_pieza, $noSet);
                     $noSet = $noSet[0];
 
-                    if (!in_array($noSet, $setStoredParts)) {
+                    if (! in_array($noSet, $setStoredParts)) {
                         $setStoredParts[] = $noSet;
 
                         // ── 0 queries: buscar H/M desde el mapa en memoria ──
-                        $pFemale = $piecesMap->get($noSet . 'H');
-                        $pMale = $piecesMap->get($noSet . 'M');
+                        $pFemale = $piecesMap->get($noSet.'H');
+                        $pMale = $piecesMap->get($noSet.'M');
 
                         if ($pFemale && $pMale) {
                             if ($pFemale->liberacion == 0) {
@@ -3081,19 +3173,23 @@ class WOController extends Controller
                                     if ($processName === 'Soldadura PTA') {
                                         if (in_array($pFemale->error, ['Fundicion', 'Fundición']) || in_array($pMale->error, ['Fundicion', 'Fundición'])) {
                                             array_push($piecesArray['bad'], $pFemale, $pMale);
-                                            if (in_array($pFemale->error, ['Fundicion', 'Fundición']))
+                                            if (in_array($pFemale->error, ['Fundicion', 'Fundición'])) {
                                                 array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
-                                            if (in_array($pMale->error, ['Fundicion', 'Fundición']))
+                                            }
+                                            if (in_array($pMale->error, ['Fundicion', 'Fundición'])) {
                                                 array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
+                                            }
                                         } else {
                                             array_push($piecesArray['good'], $pFemale, $pMale);
                                         }
                                     } else {
                                         array_push($piecesArray['bad'], $pFemale, $pMale);
-                                        if ($pFemale->error !== 'Ninguno')
+                                        if ($pFemale->error !== 'Ninguno') {
                                             array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
-                                        if ($pMale->error !== 'Ninguno')
+                                        }
+                                        if ($pMale->error !== 'Ninguno') {
                                             array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
+                                        }
                                     }
                                 }
                             } elseif ($pFemale->liberacion == 1) {
@@ -3156,18 +3252,19 @@ class WOController extends Controller
             $piecesArray['bad'] = 0;
             $piecesArray['total'] = 0;
         }
+
         return $piecesArray;
     }
 
     /**
-     * @param Pieza $piece
-     * @param mixed $rechazada
-     * @param string $operation
-     * @param mixed $usersCache
+     * @param  Pieza  $piece
+     * @param  mixed  $rechazada
+     * @param  string  $operation
+     * @param  mixed  $usersCache
      */
-    function getBadPiecesData($piece, $rechazada = null, $operation = '- - - ', $usersCache = null)
+    public function getBadPiecesData($piece, $rechazada = null, $operation = '- - - ', $usersCache = null)
     {
-        $array = array();
+        $array = [];
         // ── Usa cache si está disponible; si no, hace la query ──
         $operador = $usersCache
             ? $usersCache->get($piece->id_operador)
@@ -3178,11 +3275,12 @@ class WOController extends Controller
 
         $array['piece'] = $piece->n_pieza;
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);
-        $array['setNumber'] = $n_juego[0] . 'J';
+        $array['setNumber'] = $n_juego[0].'J';
         $array['operator'] = $operador ? "{$operador->nombre} {$operador->a_paterno} {$operador->a_materno}" : '(desconocido)';
         $array['process'] = $piece->proceso;
         $array['operation'] = $operation;
         $array['error'] = $rechazada ?? $piece->error;
+
         return $array;
     }
 }

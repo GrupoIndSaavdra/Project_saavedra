@@ -74,27 +74,29 @@ class SoldaduraPTAController extends Controller
         // Esto asegura que los logs se guarden en el orden lógico H -> M
         $sortedIds = [];
         foreach ($pieceIds as $key => $pid) {
-            if (!$pid) continue;
+            if (! $pid) {
+                continue;
+            }
             $row = SoldaduraPTA_pza::query()->find($pid, ['n_pieza']);
             if ($row) {
                 $sortedIds[] = [
                     'key' => $key,
                     'pid' => $pid,
-                    'n_pieza' => $row->n_pieza
+                    'n_pieza' => $row->n_pieza,
                 ];
             }
         }
 
-        usort($sortedIds, function($a, $b) {
+        usort($sortedIds, function ($a, $b) {
             return strcmp($a['n_pieza'], $b['n_pieza']); // H < M alfabéticamente si el número es igual
         });
 
         foreach ($sortedIds as $item) {
             $key = $item['key'];
             $pieceId = $item['pid'];
-            
+
             $piece = SoldaduraPTA_pza::query()->find($pieceId, ['*']);
-            if (!$piece) {
+            if (! $piece) {
                 continue;
             }
 
@@ -137,12 +139,12 @@ class SoldaduraPTAController extends Controller
             $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
             $meta = Metas::query()->where('id', '=', $piece->id_meta, 'and')->first();
             $clase = Clase::query()->where('id', '=', $meta->id_clase, 'and')->first();
-            $otFull = $clase ? ($clase->id_ot . ' - ' . $clase->tamanio) : ($meta->id_ot ?? 'N/A');
+            $otFull = $clase ? ($clase->id_ot.' - '.$clase->tamanio) : ($meta->id_ot ?? 'N/A');
 
             if ($tipo === 'D_Conexion_pico' && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
                 $baseNum = preg_replace('/[HMJ]$/i', '', $nPiezaRef);
                 $h_termino_log = now()->format('H:i:s');
-                
+
                 // ── LÓGICA DE AUDITORÍA (RESTRICTIVA) ──
                 // Replicamos la lógica de SystemLogController para detectar tiempos sospechosos
                 $lastLog = SystemLog::query()->where('user_matricula', '=', Auth::user()->matricula, 'and')
@@ -161,8 +163,8 @@ class SoldaduraPTAController extends Controller
                 }
 
                 $action = 'Captura Medida';
-                $details = "El operador completó el maquinado del juego {$baseNum} a las " . substr($h_termino_log, 0, 5);
-                
+                $details = "El operador completó el maquinado del juego {$baseNum} a las ".substr($h_termino_log, 0, 5);
+
                 if ($isTimeSuspicious) {
                     $action = 'Captura Sospechosa';
                     $details .= "\nALERTA: Tiempo insuficiente entre juegos diferentes ({$diffMins} min)";
@@ -176,11 +178,11 @@ class SoldaduraPTAController extends Controller
                     'clase' => $clase->nombre ?? 'N/A',
                     'proceso' => 'Soldadura PTA',
                     'maquina' => $meta->maquina ?? 'N/A',
-                    'n_pieza' => $baseNum . 'J',
+                    'n_pieza' => $baseNum.'J',
                     'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
                     'h_termino' => $h_termino_log,
                     'id_ot' => $meta->id_ot,
-                    'id_clase' => $meta->id_clase
+                    'id_clase' => $meta->id_clase,
                 ]);
             }
 
@@ -197,11 +199,11 @@ class SoldaduraPTAController extends Controller
                     ->where('p2_activa', '=', 1, 'and')
                     ->first();
 
-                if (!$p2Row) {
+                if (! $p2Row) {
                     $p2Row = new SoldaduraPTA_pza();
                     $p2Row->id_proceso = $piece->id_proceso;
                     // Sufijo para evitar error UNIQUE CONSTRAINT al crear esta 4ta fila
-                    $p2Row->id_pza = $piece->id_pza . '_P2';
+                    $p2Row->id_pza = $piece->id_pza.'_P2';
                     $p2Row->id_meta = $piece->id_meta;
                     $p2Row->n_juego = $piece->n_juego;
                     $p2Row->n_pieza = $nPiezaRef;
@@ -272,13 +274,13 @@ class SoldaduraPTAController extends Controller
                     'clase' => $clase->nombre ?? 'N/A',
                     'proceso' => 'Soldadura PTA',
                     'maquina' => $meta->maquina ?? 'N/A',
-                    'n_pieza' => $baseNum . 'J',
+                    'n_pieza' => $baseNum.'J',
                     'h_inicio' => $request->input('h_inicio_solicitud') ?? now()->subMinute()->format('H:i:s'),
                     'h_termino' => now()->format('H:i:s'),
                     'id_ot' => $meta->id_ot,
-                    'id_clase' => $meta->id_clase
+                    'id_clase' => $meta->id_clase,
                 ]);
-            } elseif ($tipo === 'D_Conexion_pico' && !$p2Activa && $nPiezaRef) {
+            } elseif ($tipo === 'D_Conexion_pico' && ! $p2Activa && $nPiezaRef) {
                 // Si el checkbox se desmarca, se puede borrar la fila de 2da pasada si existía
                 SoldaduraPTA_pza::query()->where('id_proceso', '=', $piece->id_proceso, 'and')
                     ->where('n_pieza', '=', $nPiezaRef, 'and')
@@ -301,8 +303,7 @@ class SoldaduraPTAController extends Controller
      * buildPiezasGroup — Construye la colección agrupada para pasar al partial Blade.
      * Solo retorna filas con estado = 2 (completadas).
      *
-     * @param  int  $idProceso
-     * @return \Illuminate\Support\Collection  agrupada por n_pieza
+     * @return \Illuminate\Support\Collection agrupada por n_pieza
      */
     public function buildPiezasGroup(int $idProceso)
     {
@@ -312,7 +313,7 @@ class SoldaduraPTAController extends Controller
         return SoldaduraPTA_pza::query()->where('id_proceso', '=', $idProceso, 'and')
             ->where('estado', '=', 2, 'and')
             ->orderByRaw('CAST(n_pieza AS UNSIGNED) ASC') // Ordena por el número: '1M' y '1H' serán ambos 1
-            ->orderByRaw("RIGHT(n_pieza, 1) DESC")        // Letra final: 'M' (Macho) antes que 'H' (Hembra) porque M > H lexicográficamente en DESC
+            ->orderByRaw('RIGHT(n_pieza, 1) DESC')        // Letra final: 'M' (Macho) antes que 'H' (Hembra) porque M > H lexicográficamente en DESC
             ->orderByRaw("FIELD(tipo_medida, 'D_Conexion_pico', 'D_Conexion_obt', 'Perfilado')")
             ->get()
             ->groupBy('n_pieza');
@@ -347,7 +348,7 @@ class SoldaduraPTAController extends Controller
 
         foreach (self::TIPOS_MEDIDA as $tipo) {
             $piece = $rows[$tipo] ?? null;
-            if (!$piece) {
+            if (! $piece) {
                 continue;
             }
 
@@ -384,4 +385,3 @@ class SoldaduraPTAController extends Controller
         }
     }
 }
-

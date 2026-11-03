@@ -743,14 +743,21 @@ createFilters();
 // ============================================
 // FUNCIONALIDAD: Filtros en Cascada (OT, Clase, Procesos)
 // ============================================
+// FUNCIONALIDAD: Filtros en Cascada (OT, Clase, Procesos, Operadores, Máquinas)
+// ============================================
 function setupCascadingFilters() {
     const otSelect = document.querySelector('select[name="workOrder"]');
     const classSelect = document.querySelector('select[name="class"]');
     const processSelect = document.querySelector('select[name="process"]');
+    const operatorSelect = document.querySelector('select[name="operator"]');
+    const machineSelect = document.querySelector('select[name="machine"]');
 
     if (!otSelect || !classSelect || !processSelect) return;
 
+    const normClass = (s) => String(s || '').trim().replace(/^\d+\s*-\s*/, '').toLowerCase();
+
     function extractOptions(select) {
+        if (!select) return [];
         let opts = [];
         let seen = new Set();
         Array.from(select.options).forEach(o => {
@@ -765,84 +772,200 @@ function setupCascadingFilters() {
     const originalOTOptions = extractOptions(otSelect);
     const originalClassOptions = extractOptions(classSelect);
     const originalProcessOptions = extractOptions(processSelect);
+    const originalOperatorOptions = extractOptions(operatorSelect);
+    const originalMachineOptions = extractOptions(machineSelect);
 
     function updateCascadingFilters() {
         if (!window.pieces || window.pieces.length === 0) return;
 
         let anySelectionChanged = false;
 
-        function refreshSelect(selectEl, originalOptions, activeSet, isOT) {
+        function refreshSelect(selectEl, originalOptions, activeSet, type) {
+            if (!selectEl) return;
             const currentVal = selectEl.value;
             while (selectEl.options.length > 0) selectEl.remove(0);
 
             let hasCurrentVal = false;
+            let matchedOptionValue = null;
+            let seenValues = new Set();
 
+            // Opción Todos siempre al inicio
+            let optTodos = document.createElement("option");
+            optTodos.value = "Todos";
+            optTodos.textContent = "Todos";
+            selectEl.appendChild(optTodos);
+            seenValues.add("Todos");
+            if (currentVal === "Todos") {
+                hasCurrentVal = true;
+                matchedOptionValue = "Todos";
+            }
+
+            // Filtrar opciones originales
             originalOptions.forEach(opt => {
-                if (opt.value === "Todos") {
-                    let o = document.createElement("option");
-                    o.value = opt.value;
-                    o.textContent = opt.text;
-                    selectEl.appendChild(o);
-                    if (currentVal === "Todos") hasCurrentVal = true;
-                    return;
-                }
+                if (opt.value === "Todos" || seenValues.has(opt.value)) return;
 
                 let isActive = false;
-                if (isOT) {
-                    let optId = String(opt.value).split(" - ")[0].trim();
-                    isActive = activeSet.has(optId);
+                if (type === 'class') {
+                    let optNorm = normClass(opt.value);
+                    isActive = activeSet.has(opt.value) || Array.from(activeSet).some(ac => normClass(ac) === optNorm);
+                } else if (type === 'process') {
+                    isActive = activeSet.has(opt.value) || activeSet.has(opt.text);
+                } else if (type === 'operator') {
+                    let optName = String(opt.text || '').trim().toLowerCase();
+                    isActive = (activeSet.ids && activeSet.ids.has(String(opt.value).trim())) ||
+                               (activeSet.names && activeSet.names.has(optName));
+                } else if (type === 'machine') {
+                    let val = String(opt.value).trim();
+                    if (val.includes("_")) {
+                        let parts = val.split("_");
+                        isActive = parts.some(p => activeSet.has(p)) || activeSet.has(val);
+                    } else {
+                        isActive = activeSet.has(val);
+                    }
                 } else {
                     isActive = activeSet.has(opt.value);
                 }
 
                 if (isActive) {
+                    seenValues.add(opt.value);
                     let o = document.createElement("option");
                     o.value = opt.value;
                     o.textContent = opt.text;
                     selectEl.appendChild(o);
-                    if (currentVal === opt.value) hasCurrentVal = true;
+
+                    if (currentVal === opt.value) {
+                        hasCurrentVal = true;
+                        matchedOptionValue = opt.value;
+                    } else if (type === 'class' && !hasCurrentVal && normClass(currentVal) === normClass(opt.value)) {
+                        hasCurrentVal = true;
+                        matchedOptionValue = opt.value;
+                    }
                 }
             });
 
-            if (hasCurrentVal) {
-                selectEl.value = currentVal;
+            // Para clases: asegurar que todas las clases activas presentes en las piezas estén en el select
+            if (type === 'class') {
+                activeSet.forEach(ac => {
+                    let raw = String(ac).trim();
+                    if (!raw || seenValues.has(raw)) return;
+
+                    let rawNorm = normClass(raw);
+                    let alreadyRepresented = Array.from(seenValues).some(v => normClass(v) === rawNorm);
+                    if (!alreadyRepresented) {
+                        seenValues.add(raw);
+                        let o = document.createElement("option");
+                        o.value = raw;
+                        o.textContent = raw;
+                        selectEl.appendChild(o);
+
+                        if (currentVal === raw || normClass(currentVal) === rawNorm) {
+                            hasCurrentVal = true;
+                            matchedOptionValue = raw;
+                        }
+                    }
+                });
+            }
+
+            if (hasCurrentVal && matchedOptionValue !== null) {
+                selectEl.value = matchedOptionValue;
             } else {
                 selectEl.value = "Todos";
                 anySelectionChanged = true;
             }
         }
 
-        // 1. OT activas globales - Filtrar solo las OTs que tienen registros en la tabla actual
-        let activeOTIds = new Set();
-        window.pieces.forEach(p => activeOTIds.add(String(p[0]).trim()));
-        refreshSelect(otSelect, originalOTOptions, activeOTIds, true);
-        // 2. Clases activas para OT
+        // 1. Filtrar piezas activas por OT
         const finalOT = otSelect.value;
+        const finalOTId = finalOT === "Todos" ? null : String(finalOT).split(" - ")[0].trim();
+
+        let activePiecesForOT = [];
         let activeClasses = new Set();
         window.pieces.forEach(p => {
             let pieceOT = String(p[0]).trim();
-            let matchOT = finalOT === "Todos" ? true : (pieceOT === String(finalOT).split(" - ")[0].trim());
-            if (matchOT) {
-                activeClasses.add(String(p.className).trim());
+            if (!finalOTId || pieceOT === finalOTId) {
+                activePiecesForOT.push(p);
+                if (p.className) activeClasses.add(String(p.className).trim());
             }
         });
-        refreshSelect(classSelect, originalClassOptions, activeClasses, false);
 
-        // 3. Procesos activos para OT y Clase
+        if (activeClasses.size > 0) {
+            refreshSelect(classSelect, originalClassOptions, activeClasses, 'class');
+        } else if (finalOT !== "Todos") {
+            const otIdOnly = String(finalOT).split(" - ")[0].trim();
+            if (otIdOnly && window.baseUrl) {
+                fetch(`${window.baseUrl}/piecesOccupied/classes?ot=${encodeURIComponent(otIdOnly)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data && data.classes && data.classes.length > 0) {
+                            let otClasses = new Set(data.classes.map(c => c.nombre));
+                            refreshSelect(classSelect, originalClassOptions, otClasses, 'class');
+                        }
+                    })
+                    .catch(e => console.error("Error al actualizar clases de OT:", e));
+            }
+        } else {
+            refreshSelect(classSelect, originalClassOptions, new Set(originalClassOptions.map(o => o.value)), 'class');
+        }
+
+        // 2. Filtrar piezas activas por OT + Clase
         const finalClass = classSelect.value;
+        let activePiecesForClass = [];
         let activeProcesses = new Set();
-        window.pieces.forEach(p => {
-            let pieceOT = String(p[0]).trim();
-            let pieceClass = String(p.className).trim();
-
-            let matchOT = finalOT === "Todos" ? true : (pieceOT === String(finalOT).split(" - ")[0].trim());
-            let matchClass = finalClass === "Todos" ? true : (pieceClass === finalClass);
-
-            if (matchOT && matchClass) {
-                activeProcesses.add(String(p[4]).trim());
+        activePiecesForOT.forEach(p => {
+            let pieceClass = String(p.className || '').trim();
+            let matchClass = finalClass === "Todos" ? true : (pieceClass === finalClass || normClass(pieceClass) === normClass(finalClass));
+            if (matchClass) {
+                activePiecesForClass.push(p);
+                if (p[4]) activeProcesses.add(String(p[4]).trim());
             }
         });
-        refreshSelect(processSelect, originalProcessOptions, activeProcesses, false);
+
+        refreshSelect(processSelect, originalProcessOptions, activeProcesses, 'process');
+
+        // 3. Filtrar operadores y máquinas por OT + Clase + Proceso
+        const finalProcess = processSelect.value;
+        let activeOperators = new Set();
+        let activeOperatorNames = new Set();
+        let activePiecesForProcess = [];
+
+        activePiecesForClass.forEach(p => {
+            let pieceProcess = String(p[4] || '').trim();
+            let matchProcess = finalProcess === "Todos" ? true : (pieceProcess === finalProcess);
+            if (matchProcess) {
+                activePiecesForProcess.push(p);
+                if (p[2]) {
+                    String(p[2]).split('/').forEach(name => {
+                        let cleanName = name.trim().toLowerCase();
+                        if (cleanName) activeOperatorNames.add(cleanName);
+                    });
+                }
+                if (p[13]) activeOperators.add(String(p[13]).trim());
+            }
+        });
+
+        if (operatorSelect) {
+            refreshSelect(operatorSelect, originalOperatorOptions, { ids: activeOperators, names: activeOperatorNames }, 'operator');
+        }
+
+        // 4. Filtrar máquinas por OT + Clase + Proceso + Operador (si hay operador seleccionado)
+        const finalOperator = operatorSelect ? operatorSelect.value : "Todos";
+        let activeMachines = new Set();
+        activePiecesForProcess.forEach(p => {
+            let matchOperator = true;
+            if (finalOperator !== "Todos" && operatorSelect) {
+                let opName = (operatorSelect.options[operatorSelect.selectedIndex]?.textContent || '').trim().toLowerCase();
+                let rowOps = String(p[2] || '').split('/').map(n => n.trim().toLowerCase());
+                let pIdUser = String(p[13] || '').trim();
+                matchOperator = (pIdUser === finalOperator || rowOps.includes(opName));
+            }
+            if (matchOperator && p[3]) {
+                activeMachines.add(String(p[3]).trim());
+            }
+        });
+
+        if (machineSelect) {
+            refreshSelect(machineSelect, originalMachineOptions, activeMachines, 'machine');
+        }
 
         if (anySelectionChanged && typeof applyAllFilters === 'function') {
             applyAllFilters();
@@ -855,6 +978,8 @@ function setupCascadingFilters() {
     // Event listeners
     otSelect.addEventListener('change', updateCascadingFilters);
     classSelect.addEventListener('change', updateCascadingFilters);
+    processSelect.addEventListener('change', updateCascadingFilters);
+    if (operatorSelect) operatorSelect.addEventListener('change', updateCascadingFilters);
 }
 
 setupCascadingFilters();

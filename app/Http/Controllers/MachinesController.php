@@ -13,6 +13,7 @@ class MachinesController extends Controller
 {
     /** @var \App\Http\Controllers\ProcessProductionController */
     protected $processProductionController;
+
     public function __construct()
     {
         $this->middleware('auth');
@@ -22,13 +23,14 @@ class MachinesController extends Controller
     public function show()
     {
         $machines = $this->machinesOccupied();
+
         return view('machines_views.machinesOccupied', compact('machines'));
     }
 
     public function machinesOccupied()
     {
         $machines = Maquinas::all();
-        $occupiedMachines = array();
+        $occupiedMachines = [];
 
         // Obtener las metas relacionadas para identificar al operador asignado
         $metaIds = $machines->pluck('id_meta')->filter()->unique();
@@ -43,7 +45,7 @@ class MachinesController extends Controller
             $operatorName = 'Sin asignar';
             $operatorMatricula = '';
 
-            if ($meta && !empty($meta->id_usuario)) {
+            if ($meta && ! empty($meta->id_usuario)) {
                 $user = $users->get($meta->id_usuario);
                 if ($user) {
                     $fullName = trim("{$user->nombre} {$user->a_paterno} {$user->a_materno}");
@@ -55,7 +57,7 @@ class MachinesController extends Controller
                 }
             }
 
-            $occupiedMachines[$key] = array(
+            $occupiedMachines[$key] = [
                 'id' => $machine->id,
                 'process' => $machine->proceso,
                 'machine' => (string) $machine->maquina,
@@ -64,8 +66,9 @@ class MachinesController extends Controller
                 'operator' => $operatorName,
                 'operator_matricula' => $operatorMatricula,
                 'id_meta' => $machine->id_meta,
-            );
+            ];
         }
+
         return $occupiedMachines;
     }
 
@@ -73,17 +76,15 @@ class MachinesController extends Controller
     {
         return response()->json(array_values($this->machinesOccupied()));
     }
-        /**
-     * @param Request $request
-     */
+
     public function freeUp(Request $request)
     {
         $machine = Maquinas::query()->find($request->idMachine);
         if ($machine) {
             // Guardar datos para el log antes de eliminar
-            $machineName   = $machine->maquina;
+            $machineName = $machine->maquina;
             $machineProcess = $machine->proceso;
-            $metaId        = $machine->id_meta;
+            $metaId = $machine->id_meta;
 
             // Desocupar la maquina
             $machine->delete();
@@ -92,7 +93,7 @@ class MachinesController extends Controller
             $modelProcessPieces = $this->processProductionController->get_ModelProcessPieces($meta->proceso);
             $occupiedPieces = $modelProcessPieces::query()->where('id_meta', $meta->id)->where('estado', 1)->get();
             if (count($occupiedPieces) > 0) {
-                $processesAssemblies = ["Barreno Maniobra", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Barreno Profundidad", "Palomas", "Rebajes", "Grabado", "Operacion Equipo", "Embudo CM"];
+                $processesAssemblies = ['Barreno Maniobra', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Barreno Profundidad', 'Palomas', 'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM'];
                 if (in_array($meta->proceso, $processesAssemblies)) {
                     foreach ($occupiedPieces as $piece) { // Si es un juego marcar como desocupado
                         $piece->delete();
@@ -114,16 +115,17 @@ class MachinesController extends Controller
             // Registrar auditoría de desocupación
             SystemLog::create([
                 'user_matricula' => Auth::check() ? Auth::user()->matricula : null,
-                'action'         => 'Desocupación de Máquina',
-                'details'        => "El administrador desocupó la máquina '{$machineName}' del proceso '{$machineProcess}' (Meta ID: {$metaId}).",
-                'maquina'        => $machineName,
-                'proceso'        => $machineProcess,
-                'id_ot'          => $meta->id_ot ?? null,
-                'ot'             => $meta->id_ot ?? null,
+                'action' => 'Desocupación de Máquina',
+                'details' => "El administrador desocupó la máquina '{$machineName}' del proceso '{$machineProcess}' (Meta ID: {$metaId}).",
+                'maquina' => $machineName,
+                'proceso' => $machineProcess,
+                'id_ot' => $meta->id_ot ?? null,
+                'ot' => $meta->id_ot ?? null,
             ]);
 
             return redirect()->route('machinesOccupied')->with(['success' => 'La máquina ha sido desocupada correctamente.']);
         }
+
         return redirect()->route('machinesOccupied')->with(['error' => 'La máquina no está ocupada.']);
     }
 }

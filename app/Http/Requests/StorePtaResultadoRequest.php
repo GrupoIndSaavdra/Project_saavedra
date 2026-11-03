@@ -4,6 +4,19 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * @property int $pieza_id
+ * @property string $n_pieza
+ * @property string|null $resultado_pico_llenado
+ * @property string|null $resultado_pico_soldadura
+ * @property string|null $resultado_conexion_llenado
+ * @property string|null $resultado_conexion_soldadura
+ * @property string|null $resultado_perfilado_llenado
+ * @property string|null $resultado_perfilado_soldadura
+ * @property \Illuminate\Http\UploadedFile|null $imagen_pico_soldadura
+ * @property \Illuminate\Http\UploadedFile|null $imagen_conexion_soldadura
+ * @property \Illuminate\Http\UploadedFile|null $imagen_perfilado_soldadura
+ */
 class StorePtaResultadoRequest extends FormRequest
 {
     public function authorize(): bool

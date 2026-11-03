@@ -10,16 +10,18 @@ class AsentadoController extends Controller
     {
         $this->middleware('auth');
     }
-        /**
-     * @param mixed $request
-     * @param int $index
+
+    /**
+     * @param  mixed  $request
+     * @param  int  $index
      */
     public function storePiece($request, $index)
     {
         if ($index !== null) {
             $pieceId = $request->piece[$index] ?? null;
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = Asentado_pza::query()->find($pieceId);
 
             // Crear arreglo de datos por índice
@@ -29,7 +31,7 @@ class AsentadoController extends Controller
                 'observaciones',
             ];
 
-            $data = array();
+            $data = [];
             foreach ($fields as $field) {
                 $data[$field] = $request->$field[$index] ?? null;
             }
@@ -40,19 +42,20 @@ class AsentadoController extends Controller
             $sinJuegoInput = $request->sin_juego[$index] ?? null;
             $sinLuzInput = $request->sin_luz[$index] ?? null;
 
-            if ($errInput == "Fundicion") {
+            if ($errInput == 'Fundicion') {
                 $piece->error = $errInput;
             } else {
-                if ($sinJuegoInput == "X" || $sinLuzInput == "X") {
-                    $piece->error = "Maquinado";
+                if ($sinJuegoInput == 'X' || $sinLuzInput == 'X') {
+                    $piece->error = 'Maquinado';
                 } else {
                     $piece->error = $errInput;
                 }
             }
         } else {
             $pieceId = $request->piece;
-            if (!$pieceId)
+            if (! $pieceId) {
                 return;
+            }
             $piece = Asentado_pza::query()->find($pieceId);
             //Guardar los datos de la pieza
             $piece->fill($request->only([
@@ -66,11 +69,11 @@ class AsentadoController extends Controller
             $sinJuegoInput = $request->sin_juego ?? null;
             $sinLuzInput = $request->sin_luz ?? null;
 
-            if ($errInput == "Fundicion") {
+            if ($errInput == 'Fundicion') {
                 $piece->error = $errInput;
             } else {
-                if ($sinJuegoInput == "X" || $sinLuzInput == "X") {
-                    $piece->error = "Maquinado";
+                if ($sinJuegoInput == 'X' || $sinLuzInput == 'X') {
+                    $piece->error = 'Maquinado';
                 } else {
                     $piece->error = $errInput;
                 }

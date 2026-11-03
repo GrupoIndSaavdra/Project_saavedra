@@ -12,10 +12,6 @@ use App\Models\AcabadoMolde_pza;
 use App\Models\AcabadoMolde_tolerancia;
 use App\Models\Asentado;
 use App\Models\Asentado_pza;
-use App\Models\CandadoObturador;
-use App\Models\CandadoObturador_cnominal;
-use App\Models\CandadoObturador_pza;
-use App\Models\CandadoObturador_tolerancia;
 use App\Models\BarrenoManiobra;
 use App\Models\BarrenoManiobra_cnominal;
 use App\Models\BarrenoManiobra_pza;
@@ -24,6 +20,10 @@ use App\Models\BarrenoProfundidad;
 use App\Models\BarrenoProfundidad_cnominal;
 use App\Models\BarrenoProfundidad_pza;
 use App\Models\BarrenoProfundidad_tolerancia;
+use App\Models\CandadoObturador;
+use App\Models\CandadoObturador_cnominal;
+use App\Models\CandadoObturador_pza;
+use App\Models\CandadoObturador_tolerancia;
 use App\Models\Cavidades;
 use App\Models\Cavidades_cnominal;
 use App\Models\Cavidades_pza;
@@ -56,14 +56,14 @@ use App\Models\Palomas_cnominal;
 use App\Models\Palomas_pza;
 use App\Models\Palomas_tolerancia;
 use App\Models\Pieza;
-use App\Models\PrimeraOpeSoldadura;
-use App\Models\PrimeraOpeSoldadura_cnominal;
-use App\Models\PrimeraOpeSoldadura_pza;
-use App\Models\PrimeraOpeSoldadura_tolerancia;
 use App\Models\PrimeraOperacionCabezaSoplo;
 use App\Models\PrimeraOperacionCabezaSoplo_cnominal;
 use App\Models\PrimeraOperacionCabezaSoplo_pza;
 use App\Models\PrimeraOperacionCabezaSoplo_tolerancia;
+use App\Models\PrimeraOpeSoldadura;
+use App\Models\PrimeraOpeSoldadura_cnominal;
+use App\Models\PrimeraOpeSoldadura_pza;
+use App\Models\PrimeraOpeSoldadura_tolerancia;
 use App\Models\Procesos;
 use App\Models\PySOpeSoldadura;
 use App\Models\PySOpeSoldadura_cnominal;
@@ -76,29 +76,32 @@ use App\Models\Rebajes_pza;
 use App\Models\Rebajes_tolerancia;
 use App\Models\Rectificado;
 use App\Models\Rectificado_pza;
-use App\Models\revCalificado;
-use App\Models\revCalificado_cnominal;
-use App\Models\revCalificado_pza;
-use App\Models\revCalificado_tolerancia;
+use App\Models\revCalificado as RevCalificado;
+use App\Models\revCalificado_cnominal as RevCalificadoCnominal;
+use App\Models\revCalificado_pza as RevCalificadoPza;
+use App\Models\revCalificado_tolerancia as RevCalificadoTolerancia;
 use App\Models\RevLaterales;
 use App\Models\RevLaterales_cnominal;
 use App\Models\RevLaterales_pza;
 use App\Models\RevLaterales_tolerancia;
-use App\Models\SegundaOpeSoldadura;
-use App\Models\SegundaOpeSoldadura_cnominal;
-use App\Models\SegundaOpeSoldadura_pza;
-use App\Models\SegundaOpeSoldadura_tolerancia;
 use App\Models\SegundaOperacionCabezaSoplo;
 use App\Models\SegundaOperacionCabezaSoplo_cnominal;
 use App\Models\SegundaOperacionCabezaSoplo_pza;
 use App\Models\SegundaOperacionCabezaSoplo_tolerancia;
+use App\Models\SegundaOpeSoldadura;
+use App\Models\SegundaOpeSoldadura_cnominal;
+use App\Models\SegundaOpeSoldadura_pza;
+use App\Models\SegundaOpeSoldadura_tolerancia;
 use App\Models\Soldadura;
 use App\Models\Soldadura_pza;
 use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
+use App\Models\SystemLog;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
 //Clase para el control de las piezas generales
@@ -111,44 +114,47 @@ class PzasGeneralesController extends Controller
     {
         $this->middleware('auth');
     }
+
     public function showPiecesReport_view()
     {
         return $this->getPiecesRequest(new Request());
     }
+
     /**
-     * @param mixed $workOrder
-     * @param int $index
-     * @param mixed $classes
-     * @param mixed &$array
+     * @param  mixed  $workOrder
+     * @param  int  $index
+     * @param  mixed  $classes
+     * @param  mixed  &$array
      */
     public function getDataWO($workOrder, $index, $classes, &$array)
     {
         //Insertar la ot en el arreglo
-        $array[$index] = array();
+        $array[$index] = [];
         $array[$index][0] = $workOrder->id;
 
         foreach ($classes as $indexClass => $class) {
             //Insertar la clase en el arreglo
-            $array[$index][1][$indexClass] = array();
+            $array[$index][1][$indexClass] = [];
             $array[$index][1][$indexClass][0] = $class->id;
-            $array[$index][1][$indexClass][1] = $class->nombre . " " . $class->tamanio;
+            $array[$index][1][$indexClass][1] = $class->nombre.' '.$class->tamanio;
         }
     }
+
     /**
-     * @param mixed $piecesData
-     * @param mixed $profile
+     * @param  mixed  $piecesData
+     * @param  mixed  $profile
      */
     public function search($piecesData, $profile = null)
     {
-        $selectedItems = array();
-        $infoPieces = array();
+        $selectedItems = [];
+        $infoPieces = [];
         $filtersData = $this->getFiltersInfo();
 
         // Siempre cargar observaciones: los índices de BD hacen las queries eficientes
-        $isPdf = ($piecesData["action"] ?? '') === 'pdf';
+        $isPdf = ($piecesData['action'] ?? '') === 'pdf';
         $pieces = $this->buscarPiezas($piecesData, $selectedItems, true, $isPdf);
 
-        $pieces = $pieces == null ? array() : $pieces;
+        $pieces = $pieces == null ? [] : $pieces;
 
         if (isset($piecesData['status']) && $piecesData['status'] !== 'Todos' && $piecesData['status'] !== null) {
             $selectedItems['status'] = $piecesData['status'];
@@ -172,7 +178,7 @@ class PzasGeneralesController extends Controller
                         } elseif ($errVal === 'Ninguno') {
                             $colorColumn = '#90EE90';
                         } else {
-                            if ($procName === 'Soldadura PTA' && !str_contains(strtolower($errVal), 'fundicion') && !str_contains(strtolower($errVal), 'fundición')) {
+                            if ($procName === 'Soldadura PTA' && ! str_contains(strtolower($errVal), 'fundicion') && ! str_contains(strtolower($errVal), 'fundición')) {
                                 $colorColumn = '#90EE90';
                             } else {
                                 $colorColumn = '#DDA0DD';
@@ -192,17 +198,18 @@ class PzasGeneralesController extends Controller
         $this->saveInfoPzas($infoPieces, $pieces);
 
         if ($profile == 'admin' && ($piecesData['action'] ?? null) !== null) {
-            \App\Models\SystemLog::create([
+            SystemLog::create([
                 'user_matricula' => auth()->user()->matricula,
                 'action' => 'Consulta Reporte de OT',
-                'details' => 'El administrador consultó el reporte de piezas generales con filtros: OT (' . ($selectedItems['workOrder'] ?? 'Todos') . '), Clase (' . ($selectedItems['class'] ?? 'Todos') . '), Proceso (' . ($selectedItems['process'] ?? 'Todos') . ').',
+                'details' => 'El administrador consultó el reporte de piezas generales con filtros: OT ('.($selectedItems['workOrder'] ?? 'Todos').'), Clase ('.($selectedItems['class'] ?? 'Todos').'), Proceso ('.($selectedItems['process'] ?? 'Todos').').',
             ]);
         }
 
-        if (!$isPdf) {
+        if (! $isPdf) {
             if ($profile == 'quality') {
                 return [true, $pieces, $piecesData, $infoPieces, $selectedItems, $filtersData];
             }
+
             return view('pieces_views.piecesReport.adminPieces', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
         } else {
             if ($profile == 'quality') {
@@ -215,14 +222,15 @@ class PzasGeneralesController extends Controller
             @set_time_limit(300);
 
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
-            $filename = $this->generatePdfFilename($selectedItems, "Piezas");
+            $filename = $this->generatePdfFilename($selectedItems, 'Piezas');
+
             return $pdf->download($filename);
         }
     }
 
     /**
-     * @param mixed $selectedItems
-     * @param mixed $reportType
+     * @param  mixed  $selectedItems
+     * @param  mixed  $reportType
      */
     public function generatePdfFilename($selectedItems, $reportType)
     {
@@ -240,26 +248,30 @@ class PzasGeneralesController extends Controller
         }
 
         if (count($parts) > 0) {
-            return implode(' - ', $parts) . " - " . $date . ".pdf";
+            return implode(' - ', $parts).' - '.$date.'.pdf';
         } else {
-            return "Reporte de " . $reportType . " General - " . $date . ".pdf";
+            return 'Reporte de '.$reportType.' General - '.$date.'.pdf';
         }
     }
+
     public function getFiltersInfo()
     {
         // 1 minuto de cache local: reduce carga en base de datos para la generación de filtros
-        $molduras = \Illuminate\Support\Facades\Cache::remember('molduras_all', 60, function () {
+        $molduras = Cache::remember('molduras_all', 60, function () {
             return Moldura::query()->select(['id', 'nombre'])->get()->keyBy('id');
         });
-        $orders = \Illuminate\Support\Facades\Cache::remember('ot_all', 60, function () {
-            return Orden_trabajo::query()->select(['id', 'id_moldura'])->get();
+        $orders = Cache::remember('ot_active_machined', 60, function () {
+            $activeClassIds = Clase::query()->where('finalizada', '=', 0, 'and')->pluck('id')->toArray();
+            $activeOtIds = Pieza::query()->whereIn('id_clase', $activeClassIds, 'and', false)->distinct()->pluck('id_ot')->filter()->toArray();
+
+            return Orden_trabajo::query()->select(['id', 'id_moldura'])->whereIn('id', $activeOtIds, 'and', false)->orderBy('id', 'desc')->get();
         });
-        $users = \Illuminate\Support\Facades\Cache::remember('users_all', 60, function () {
+        $users = Cache::remember('users_all', 60, function () {
             return User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno', 'perfil'])->get();
         });
 
-        $dbClasses = \Illuminate\Support\Facades\Cache::remember('clases_distinct_nombres', 60, function () {
-            return Clase::query()->distinct()->whereNotNull('nombre', 'and')->pluck('nombre')->toArray();
+        $dbClasses = Cache::remember('clases_active_distinct_nombres', 60, function () {
+            return Clase::query()->distinct()->where('finalizada', '=', 0, 'and')->whereNotNull('nombre', 'and')->pluck('nombre')->toArray();
         });
 
         $seen = [];
@@ -267,7 +279,7 @@ class PzasGeneralesController extends Controller
         foreach ($dbClasses as $dbClass) {
             $clean = trim(preg_replace('/^\d+\s*-\s*/', '', (string) $dbClass));
             $lower = mb_strtolower($clean, 'UTF-8');
-            if ($clean !== '' && !isset($seen[$lower])) {
+            if ($clean !== '' && ! isset($seen[$lower])) {
                 $seen[$lower] = true;
                 $classList[] = mb_convert_case($clean, MB_CASE_TITLE, 'UTF-8');
             }
@@ -275,77 +287,82 @@ class PzasGeneralesController extends Controller
         natcasesort($classList);
         $classList = array_values($classList);
 
-        $filtersData = array(
-            "workOrder" => $this->objectToArrayFromDB($orders, "workOrder", $molduras),
-            "class" => $classList,
-            "operator" => $this->objectToArrayFromDB($users, "operator"),
-            "machine" => [1, 2, 3, 4, 5, 6, 7],
-            "process" => ["Cepillado", "Desbaste Exterior", "Revision Laterales", "Primera Operacion", "Barreno Maniobra", "Segunda Operacion", "Soldadura", "Soldadura PTA", "Rectificado", "Asentado", "Calificado", "Acabado Bombillo", "Acabado Molde", "Barreno Profundidad", "Cavidades", "Copiado", "Off Set", "Palomas", "Rebajes", "Operacion Equipo_1 operacion", "Operacion Equipo_2 operacion", "Embudo CM", "Primera Operacion Cabeza Soplo", "Segunda Operacion Cabeza Soplo"],
-            "error" => ["Ninguno", "Maquinado", "Fundicion"],
-        );
+        $filtersData = [
+            'workOrder' => $this->objectToArrayFromDB($orders, 'workOrder', $molduras),
+            'class' => $classList,
+            'operator' => $this->objectToArrayFromDB($users, 'operator'),
+            'machine' => [1, 2, 3, 4, 5, 6, 7],
+            'process' => ['Cepillado', 'Desbaste Exterior', 'Revision Laterales', 'Primera Operacion', 'Barreno Maniobra', 'Segunda Operacion', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Calificado', 'Acabado Bombillo', 'Acabado Molde', 'Barreno Profundidad', 'Cavidades', 'Copiado', 'Off Set', 'Palomas', 'Rebajes', 'Operacion Equipo_1 operacion', 'Operacion Equipo_2 operacion', 'Embudo CM', 'Primera Operacion Cabeza Soplo', 'Segunda Operacion Cabeza Soplo'],
+            'error' => ['Ninguno', 'Maquinado', 'Fundicion'],
+        ];
+
         return $filtersData;
     }
+
     /**
-     * @param mixed $object
-     * @param mixed $param
-     * @param mixed $molduras
+     * @param  mixed  $object
+     * @param  mixed  $param
+     * @param  mixed  $molduras
      */
     public function objectToArrayFromDB($object, $param, $molduras = null)
     {
-        $array = array();
+        $array = [];
         foreach ($object as $item) {
-            if (($param == "operator" && $item->perfil == 2)) {
+            if (($param == 'operator' && $item->perfil == 2)) {
                 array_push($array, $item);
-            } else if ($param == "workOrder") {
+            } elseif ($param == 'workOrder') {
                 // Usa cache de molduras si está disponible (0 queries), si no hace 1 query
                 $molding = $molduras ? $molduras->get($item->id_moldura) : Moldura::query()->where('id', $item->id_moldura)->first();
-                $text = $item->id . " - " . ($molding ? $molding->nombre : '?');
+                $text = $item->id.' - '.($molding ? $molding->nombre : '?');
                 array_push($array, $text);
             }
         }
+
         return $array;
     }
-    /**
-     * @param Request $request
-     */
+
     public function getPiecesRequest(Request $request)
     {
-        $datosPiezas = array(
-            "workOrder" => $request->workOrder,
-            "class" => $request->class,
-            "operator" => $request->operator,
-            "machine" => $request->machine,
-            "process" => $request->process,
-            "error" => $request->error,
-            "dateFrom" => $request->dateFrom,
-            "dateTo" => $request->dateTo,
-            "n_juego" => $request->n_juego,
-            "status" => $request->status,
-            "order" => $request->input("order", "desc"),
-            "action" => $request->input("action"),
-        );
+        $datosPiezas = [
+            'workOrder' => $request->input('workOrder'),
+            'class' => $request->input('class'),
+            'operator' => $request->input('operator'),
+            'machine' => $request->input('machine'),
+            'process' => $request->input('process'),
+            'error' => $request->input('error'),
+            'dateFrom' => $request->input('dateFrom'),
+            'dateTo' => $request->input('dateTo'),
+            'n_juego' => $request->input('n_juego'),
+            'status' => $request->input('status'),
+            'order' => $request->input('order', 'desc'),
+            'action' => $request->input('action'),
+        ];
+
         return $this->search($datosPiezas, 'admin');
     }
+
     /**
-     * @param mixed $piecesData
-     * @param mixed &$itemElegidos
+     * @param  mixed  $piecesData
+     * @param  mixed  &$itemElegidos
      * @param mixed bool $includeObservations
      */
     public function buscarPiezas($piecesData, &$itemElegidos, bool $includeObservations = false, bool $isPdf = false, bool $includeFinished = false)
     {
-        // ── OPTIMIZACIÓN: filtrar directamente en SQL en lugar de cargar Pieza::all() ──
-        $finishedClassIds = Clase::query()->where('finalizada', '!=', 0, 'and')->pluck('id')->toArray();
+        // ── OPTIMIZACIÓN: filtrar directamente en SQL con clases activas (whereIn en lugar de whereNotIn) ──
+        $activeClassIds = Clase::query()->where('finalizada', '=', 0, 'and')->pluck('id')->toArray();
         $query = Pieza::query();
-        if (!empty($finishedClassIds) && !$includeFinished) {
-            $query->whereNotIn('id_clase', $finishedClassIds, 'and', true);
+        if (! $includeFinished) {
+            $query->whereIn('id_clase', $activeClassIds, 'and', false);
         }
 
         foreach ($piecesData as $key => $value) {
-            if ($key === 'action')
+            if ($key === 'action') {
                 continue;
+            }
 
             if ($value === null || $value === 'Todos' || $value === '') {
                 $itemElegidos[$key] = 'Todos';
+
                 continue;
             }
 
@@ -356,7 +373,7 @@ class PzasGeneralesController extends Controller
                     $workOrderId = explode(' - ', $value)[0];
                     $workOrder = Orden_trabajo::query()->find($workOrderId);
                     $molding = Moldura::query()->find($workOrder->id_moldura);
-                    $itemElegidos[$key] = $workOrder->id . ' - ' . ($molding ? $molding->nombre : '?');
+                    $itemElegidos[$key] = $workOrder->id.' - '.($molding ? $molding->nombre : '?');
                     $query->where('id_ot', '=', $workOrderId, 'and');
                     break;
                 case 'class':
@@ -364,7 +381,7 @@ class PzasGeneralesController extends Controller
                     $claseIds = Clase::query()
                         ->where('nombre', '=', $value, 'and')
                         ->orWhere('nombre', '=', $cleanClass)
-                        ->orWhere('nombre', 'LIKE', '% - ' . $cleanClass)
+                        ->orWhere('nombre', 'LIKE', '% - '.$cleanClass)
                         ->pluck('id');
                     $query->whereIn('id_clase', $claseIds, 'and', false);
                     break;
@@ -384,17 +401,17 @@ class PzasGeneralesController extends Controller
                     $query->where('error', '=', $value, 'and');
                     break;
                 case 'dateFrom':
-                    $query->where('created_at', '>=', $value . ' 00:00:00', 'and');
+                    $query->where('created_at', '>=', $value.' 00:00:00', 'and');
                     break;
                 case 'dateTo':
-                    $query->where('created_at', '<=', $value . ' 23:59:59', 'and');
+                    $query->where('created_at', '<=', $value.' 23:59:59', 'and');
                     break;
                 case 'n_juego':
                     $numJuego = rtrim($value, 'J'); // "3J" → "3"
                     $query->where(function ($q) use ($numJuego) {
-                        $q->where('n_pieza', '=', $numJuego . 'J', 'and')
-                            ->orWhere('n_pieza', '=', $numJuego . 'H', 'and')
-                            ->orWhere('n_pieza', '=', $numJuego . 'M', 'and');
+                        $q->where('n_pieza', '=', $numJuego.'J', 'and')
+                            ->orWhere('n_pieza', '=', $numJuego.'H', 'and')
+                            ->orWhere('n_pieza', '=', $numJuego.'M', 'and');
                     });
                     break;
             }
@@ -406,36 +423,40 @@ class PzasGeneralesController extends Controller
             ->orderBy('id', $orderDir);
 
         $piezas = $query->get();
+
         return $piezas->isEmpty() ? [] : $this->saveInArray($piezas, $includeObservations, $includeFinished);
     }
+
     //Obtener los procesos por los que pasa una clase
     /**
-     * @param mixed $clase
+     * @param  mixed  $clase
      */
     public function procesosClase($clase)
     {
-        $procesos = array();
+        $procesos = [];
         $procesosClase = Procesos::query()->where('id_clase', $clase->id)->first();
         $procesosClase = $procesosClase->toArray();
         $campos = array_filter($procesosClase, function ($valor) {
             return $valor != 0;
         });
-        $procesos = array();
+        $procesos = [];
         foreach (array_keys($campos) as $nombreCampo) {
             array_push($procesos, $this->nombreProceso($nombreCampo));
         }
         array_splice($procesos, 0, 2);
+
         return $procesos;
     }
+
     /**
-     * @param mixed $arrayP
-     * @param mixed $posicion
-     * @param mixed $elemento
+     * @param  mixed  $arrayP
+     * @param  mixed  $posicion
+     * @param  mixed  $elemento
      */
     public function buscarElemento($arrayP, $posicion, $elemento)
     {
         //Busca un elemento en un arreglo de arreglos y regresa un arreglo con los arreglos que contienen el elemento
-        $array = array();
+        $array = [];
         for ($i = 0; $i < count($arrayP); $i++) {
             $elementoArray = $arrayP[$i][$posicion];
             if (is_numeric($arrayP[$i][$posicion]) && $posicion == 5) {
@@ -451,7 +472,7 @@ class PzasGeneralesController extends Controller
                     $cumpleHasta = is_null($fechaHasta) || $elementoArray <= $fechaHasta;
 
                     if ($cumpleDesde && $cumpleHasta) {
-                        if ($elemento == "Soldadura") {
+                        if ($elemento == 'Soldadura') {
                             if ($arrayP[$i][$posicion] === $elemento) {
                                 array_push($array, $arrayP[$i]);
                             }
@@ -460,13 +481,13 @@ class PzasGeneralesController extends Controller
                         }
                     }
                     break;
-                case ($posicion == 1): // Filtrado exacto para n_juego
+                case $posicion == 1: // Filtrado exacto para n_juego
                     if ($elementoArray == $elemento) {
                         array_push($array, $arrayP[$i]);
                     }
                     break;
                 case strpos($elementoArray, $elemento) !== false: // Si el campo de la pieza coincide con el elemento filtrado
-                    if ($elemento == "Soldadura") {
+                    if ($elemento == 'Soldadura') {
                         if ($arrayP[$i][$posicion] === $elemento) {
                             array_push($array, $arrayP[$i]);
                         }
@@ -476,16 +497,19 @@ class PzasGeneralesController extends Controller
                     break;
             }
         }
+
         return $array;
     }
+
     /**
-     * @param mixed $arrayP
+     * @param  mixed  $arrayP
      * @param mixed bool $includeObservations
      */
     public function saveInArray($arrayP, bool $includeObservations = false, bool $includeFinished = false)
     {
         // ── OPTIMIZACIÓN: pre-cargar todo en memoria para eliminar N+1 queries ──
-        $finishedClassIds = Clase::query()->where('finalizada', '!=', 0)->pluck('id')->toArray();
+        $activeClassIds = Clase::query()->where('finalizada', '=', 0, 'and')->pluck('id')->toArray();
+        $activeClassMap = array_flip($activeClassIds);
         // Solo columnas necesarias — sin SELECT * sobre tablas grandes
         $usersCache = User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])->get()->keyBy('matricula');
         $clasesCache = Clase::query()->select(['id', 'id_ot', 'nombre', 'pedido', 'tamanio'])->get()->keyBy('id');
@@ -493,7 +517,8 @@ class PzasGeneralesController extends Controller
         // Índice en memoria: '{id_clase}_{proceso}_{numJuego}' → colección de piezas
         $piezasIndex = collect($arrayP)->groupBy(function ($pza) {
             $num = $this->getPiezaNumber($pza->n_pieza);
-            return $pza->id_clase . '_' . $pza->proceso . '_' . $num;
+
+            return $pza->id_clase.'_'.$pza->proceso.'_'.$num;
         });
 
         // Instanciar controller de proceso una sola vez fuera del loop
@@ -514,21 +539,21 @@ class PzasGeneralesController extends Controller
                     foreach ($piezasDelProceso as $pz) {
                         $clsObj = $clasesCache->get($pz->id_clase);
                         if ($clsObj) {
-                            $id_process = str_replace(' ', '_', $pz->proceso) . '_' . $clsObj->nombre . '_' . $pz->id_ot;
+                            $id_process = str_replace(' ', '_', $pz->proceso).'_'.$clsObj->nombre.'_'.$pz->id_ot;
                             $idProcesos[] = $id_process;
                         }
                     }
                     $idProcesos = array_unique($idProcesos);
 
-                    $procesosDB = $modelClass::query()->whereIn('id_proceso', $idProcesos)->get()->keyBy('id_proceso');
+                    $procesosDB = $modelClass::query()->select(['id', 'id_proceso'])->whereIn('id_proceso', $idProcesos, 'and', false)->get()->keyBy('id_proceso');
                     $procesosDBMap[$nombreProceso] = $procesosDB;
 
                     $parentDbIds = $procesosDB->pluck('id')->toArray();
-                    if (!empty($parentDbIds)) {
-                        $childPieces = $modelPiecesClass::query()->whereIn('id_proceso', $parentDbIds)->get();
+                    if (! empty($parentDbIds)) {
+                        $childPieces = $modelPiecesClass::query()->select(['id', 'id_proceso', 'n_juego', 'observaciones'])->whereIn('id_proceso', $parentDbIds, 'and', false)->get();
                         foreach ($childPieces as $cp) {
-                            $key = $cp->id_proceso . '_' . $cp->n_juego;
-                            if (!isset($observacionesMap[$nombreProceso][$key])) {
+                            $key = $cp->id_proceso.'_'.$cp->n_juego;
+                            if (! isset($observacionesMap[$nombreProceso][$key])) {
                                 $observacionesMap[$nombreProceso][$key] = [];
                             }
                             if ($cp->observaciones) {
@@ -541,8 +566,8 @@ class PzasGeneralesController extends Controller
             }
         }
 
-        $array = array();
-        $juegosGuardados = array();
+        $array = [];
+        $juegosGuardados = [];
         $contador = 0;
         $mitad = false;
 
@@ -550,21 +575,22 @@ class PzasGeneralesController extends Controller
         $otsArray = collect($arrayP)->pluck('id_ot')->unique();
         $clasesArray = collect($arrayP)->pluck('id_clase')->unique();
 
-        $metasDB = Metas::query()->whereIn('id_ot', $otsArray, 'and', false)
+        $metasDB = Metas::query()->select(['id', 'id_ot', 'id_clase', 'proceso', 'fecha', 'id_usuario', 'maquina', 'h_inicio', 'h_termino'])
+            ->whereIn('id_ot', $otsArray, 'and', false)
             ->whereIn('id_clase', $clasesArray, 'and', false)
             ->get();
 
         $metasCruzadas = collect($metasDB)->groupBy(function ($m) {
-            return $m->id_ot . '_' . $m->id_clase . '_' . $m->proceso . '_' . $m->fecha;
+            return $m->id_ot.'_'.$m->id_clase.'_'.$m->proceso.'_'.$m->fecha;
         });
 
         // ── FALLBACK: Metas por Operador si las fechas no coinciden ──
         $metasPorOperador = collect($metasDB)->sortByDesc('fecha')->groupBy(function ($m) {
-            return $m->id_ot . '_' . $m->id_clase . '_' . $m->proceso . '_' . $m->id_usuario;
+            return $m->id_ot.'_'.$m->id_clase.'_'.$m->proceso.'_'.$m->id_usuario;
         });
 
         foreach ($arrayP as $item) {
-            if (!$includeFinished && in_array($item->id_clase, $finishedClassIds)) {
+            if (! $includeFinished && ! isset($activeClassMap[$item->id_clase])) {
                 continue;
             }
 
@@ -573,42 +599,42 @@ class PzasGeneralesController extends Controller
 
             if (substr($item->n_pieza, -1) !== 'J') { // Es mitad (H o M)
                 $mitad = true;
-                $juegoKey = $numJuego . 'J_' . $item->proceso . '_' . $item->id_clase . '_' . $item->id_ot;
+                $juegoKey = $numJuego.'J_'.$item->proceso.'_'.$item->id_clase.'_'.$item->id_ot;
 
-                if (!in_array($juegoKey, $juegosGuardados)) {
+                if (! isset($juegosGuardados[$juegoKey])) {
                     $band = true;
-                    $array[$contador][1] = $numJuego . 'J';
-                    $juegosGuardados[] = $juegoKey;
+                    $array[$contador][1] = $numJuego.'J';
+                    $juegosGuardados[$juegoKey] = true;
 
                     // ── Buscar mitades desde índice en memoria (0 queries) ──
-                    $indexKey = $item->id_clase . '_' . $item->proceso . '_' . $numJuego;
+                    $indexKey = $item->id_clase.'_'.$item->proceso.'_'.$numJuego;
                     $group = $piezasIndex->get($indexKey, collect());
-                    $pzaH = $group->firstWhere('n_pieza', $numJuego . 'H');
-                    $pzaM = $group->firstWhere('n_pieza', $numJuego . 'M');
+                    $pzaH = $group->firstWhere('n_pieza', $numJuego.'H');
+                    $pzaM = $group->firstWhere('n_pieza', $numJuego.'M');
 
                     // ── Si no se encontró alguna mitad en el índice en memoria,
                     //    puede ser que esté filtrada (ej. filtro por operador).
                     //    Buscarla en BD antes de declarar el juego incompleto. ──
-                    if (!$pzaH) {
-                        $pzaH = Pieza::query()->where('n_pieza', $numJuego . 'H')
+                    if (! $pzaH) {
+                        $pzaH = Pieza::query()->where('n_pieza', $numJuego.'H')
                             ->where('id_clase', $item->id_clase)
                             ->where('proceso', $item->proceso)
                             ->where('id_ot', $item->id_ot)
                             ->first();
                     }
-                    if (!$pzaM) {
-                        $pzaM = Pieza::query()->where('n_pieza', $numJuego . 'M')
+                    if (! $pzaM) {
+                        $pzaM = Pieza::query()->where('n_pieza', $numJuego.'M')
                             ->where('id_clase', $item->id_clase)
                             ->where('proceso', $item->proceso)
                             ->where('id_ot', $item->id_ot)
                             ->first();
                     }
 
-                    if (!$pzaH || !$pzaM) { // Realmente incompleto: una mitad no existe en BD
+                    if (! $pzaH || ! $pzaM) { // Realmente incompleto: una mitad no existe en BD
                         $existing = $pzaH ?? $pzaM;
                         $op = $usersCache->get($existing->id_operador);
                         $array[$contador][2] = $op ? "{$op->nombre} {$op->a_paterno} {$op->a_materno}" : '(desconocido)';
-                        $error = $existing->error !== 'Ninguno' ? $existing->error . ' / Incompleto' : 'Incompleto';
+                        $error = $existing->error !== 'Ninguno' ? $existing->error.' / Incompleto' : 'Incompleto';
                         // Siempre en [5] — [6] se usa para created_at y no debe pisarse
                         $array[$contador][5] = $error;
                     } else {
@@ -616,24 +642,26 @@ class PzasGeneralesController extends Controller
                         $opH = $usersCache->get($pzaH->id_operador);
                         $opM = $usersCache->get($pzaM->id_operador);
                         // Si el operador H no está en caché (es de otro operador filtrado), ir a BD
-                        if (!$opH)
+                        if (! $opH) {
                             $opH = User::query()->where('matricula', $pzaH->id_operador)->first();
-                        if (!$opM)
+                        }
+                        if (! $opM) {
                             $opM = User::query()->where('matricula', $pzaM->id_operador)->first();
+                        }
                         $nombreH = $opH ? "{$opH->nombre} {$opH->a_paterno} {$opH->a_materno}" : '(desconocido)';
                         $nombreM = $opM ? "{$opM->nombre} {$opM->a_paterno} {$opM->a_materno}" : '(desconocido)';
 
                         if ($pzaH->id_operador === $pzaM->id_operador) {
                             $array[$contador][2] = $nombreH;
                         } else {
-                            $array[$contador][2] = $nombreH . ' / ' . $nombreM;
+                            $array[$contador][2] = $nombreH.' / '.$nombreM;
                         }
 
                         // Errores — siempre en [5], independientemente del tipo de proceso
                         if ($pzaH->error === $pzaM->error) {
                             $array[$contador][5] = $pzaH->error;
                         } else {
-                            $array[$contador][5] = $pzaH->error . ' / ' . $pzaM->error;
+                            $array[$contador][5] = $pzaH->error.' / '.$pzaM->error;
                         }
 
                         // Liberación combinada: usar el peor estado entre ambas mitades
@@ -666,12 +694,12 @@ class PzasGeneralesController extends Controller
 
                 $array[$contador]['observations'] = '';
                 if ($includeObservations && $className) {
-                    $id_process = str_replace(' ', '_', $item->proceso) . '_' . $className->nombre . '_' . $item->id_ot;
+                    $id_process = str_replace(' ', '_', $item->proceso).'_'.$className->nombre.'_'.$item->id_ot;
 
                     if (isset($procesosDBMap[$item->proceso][$id_process])) {
                         $pDbId = $procesosDBMap[$item->proceso][$id_process]->id;
-                        $mapKey = $pDbId . '_' . $numJuego . 'J';
-                        if (isset($observacionesMap[$item->proceso][$mapKey]) && !empty($observacionesMap[$item->proceso][$mapKey])) {
+                        $mapKey = $pDbId.'_'.$numJuego.'J';
+                        if (isset($observacionesMap[$item->proceso][$mapKey]) && ! empty($observacionesMap[$item->proceso][$mapKey])) {
                             $array[$contador]['observations'] = implode(' / ', $observacionesMap[$item->proceso][$mapKey]);
                         }
                     }
@@ -681,13 +709,13 @@ class PzasGeneralesController extends Controller
                 $date = new \DateTime($item->created_at);
                 $array[$contador][6] = $date->format('Y-m-d H:i:s');
 
-                $metaKey = $item->id_ot . '_' . $item->id_clase . '_' . $item->proceso . '_' . $date->format('Y-m-d');
+                $metaKey = $item->id_ot.'_'.$item->id_clase.'_'.$item->proceso.'_'.$date->format('Y-m-d');
                 $mMatchGroup = $metasCruzadas->get($metaKey, collect());
                 $mMatch = $mMatchGroup->first(); // Tomar primera coincidencia de la meta por turno/proceso
 
                 // Si no coincide por fecha exacta (ej. pieza creada días después de la meta)
-                if (!$mMatch) {
-                    $metaOpKey = $item->id_ot . '_' . $item->id_clase . '_' . $item->proceso . '_' . $item->id_operador;
+                if (! $mMatch) {
+                    $metaOpKey = $item->id_ot.'_'.$item->id_clase.'_'.$item->proceso.'_'.$item->id_operador;
                     $mMatchOpGroup = $metasPorOperador->get($metaOpKey, collect());
                     $mMatch = $mMatchOpGroup->first(); // Tomar la más reciente de ese operador
                 }
@@ -708,7 +736,6 @@ class PzasGeneralesController extends Controller
                 $array[$contador][7] = $item->fecha_liberacion ?? 'No liberado';
                 $array[$contador][8] = $userLib ? "{$userLib->nombre} {$userLib->a_paterno} {$userLib->a_materno}" : null;
 
-
                 // Si es un juego de dos mitades con estados diferentes, usar el estado combinado
                 $liberacionFinal = isset($liberacionCombinada) ? $liberacionCombinada : $item->liberacion;
                 array_push($array[$contador], $liberacionFinal);
@@ -718,11 +745,13 @@ class PzasGeneralesController extends Controller
                 $contador++;
             }
         }
+
         return $array;
     }
+
     /**
-     * @param mixed &$infoPiezas
-     * @param mixed $piezas
+     * @param  mixed  &$infoPiezas
+     * @param  mixed  $piezas
      */
     public function saveInfoPzas(&$infoPiezas, $piezas)
     {
@@ -737,7 +766,7 @@ class PzasGeneralesController extends Controller
         // Pre-gather all process strings to fetch in bulk
         $processLookups = [];
         foreach ($piezas as $p) {
-            $claseObj = $clasesCache->get($p["id_clase"]);
+            $claseObj = $clasesCache->get($p['id_clase']);
             $claseName = $claseObj ? $claseObj->nombre : null;
             $procName = $p[4];
             $otId = $p[0];
@@ -746,99 +775,99 @@ class PzasGeneralesController extends Controller
             $lookupKey = null;
             switch ($procName) {
                 case 'Operacion Equipo_1 operacion':
-                    $lookupKey = 'Operacion_Equipo_1_operacion_' . $claseName . "_" . $otId;
+                    $lookupKey = 'Operacion_Equipo_1_operacion_'.$claseName.'_'.$otId;
                     $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
                 case 'Operacion Equipo_2 operacion':
-                    $lookupKey = 'Operacion_Equipo_2_operacion_' . $claseName . "_" . $otId;
+                    $lookupKey = 'Operacion_Equipo_2_operacion_'.$claseName.'_'.$otId;
                     $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
                 case 'Cepillado':
-                    $lookupKey = 'Cepillado_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Cepillado_'.$claseName.'_'.$otId;
                     $model = Cepillado::class;
                     break;
                 case 'Desbaste Exterior':
-                    $lookupKey = 'Desbaste_Exterior_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Desbaste_Exterior_'.$claseName.'_'.$otId;
                     $model = DesbasteExterior::class;
                     break;
                 case 'Revision Laterales':
-                    $lookupKey = 'Revision_Laterales_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Revision_Laterales_'.$claseName.'_'.$otId;
                     $model = RevLaterales::class;
                     break;
                 case 'Primera Operacion':
-                    $lookupKey = 'Primera_Operacion_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Primera_Operacion_'.$claseName.'_'.$otId;
                     $model = PrimeraOpeSoldadura::class;
                     break;
                 case 'Barreno Maniobra':
-                    $lookupKey = 'Barreno_Maniobra_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Barreno_Maniobra_'.$claseName.'_'.$otId;
                     $model = BarrenoManiobra::class;
                     break;
                 case 'Segunda Operacion':
-                    $lookupKey = 'Segunda_Operacion_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Segunda_Operacion_'.$claseName.'_'.$otId;
                     $model = SegundaOpeSoldadura::class;
                     break;
                 case 'Soldadura':
-                    $lookupKey = 'Soldadura_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Soldadura_'.$claseName.'_'.$otId;
                     $model = Soldadura::class;
                     break;
                 case 'Soldadura PTA':
-                    $lookupKey = 'Soldadura_PTA_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Soldadura_PTA_'.$claseName.'_'.$otId;
                     $model = SoldaduraPTA::class;
                     break;
                 case 'Rectificado':
-                    $lookupKey = 'Rectificado_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Rectificado_'.$claseName.'_'.$otId;
                     $model = Rectificado::class;
                     break;
                 case 'Asentado':
-                    $lookupKey = 'Asentado_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Asentado_'.$claseName.'_'.$otId;
                     $model = Asentado::class;
                     break;
                 case 'Calificado':
-                    $lookupKey = 'Calificado_' . $claseName . '_' . $otId;
-                    $model = revCalificado::class;
+                    $lookupKey = 'Calificado_'.$claseName.'_'.$otId;
+                    $model = RevCalificado::class;
                     break;
                 case 'Acabado Bombillo':
-                    $lookupKey = 'Acabado_Bombillo_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Acabado_Bombillo_'.$claseName.'_'.$otId;
                     $model = AcabadoBombilo::class;
                     break;
                 case 'Acabado Molde':
-                    $lookupKey = 'Acabado_Molde_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Acabado_Molde_'.$claseName.'_'.$otId;
                     $model = AcabadoMolde::class;
                     break;
                 case 'Barreno Profundidad':
-                    $lookupKey = 'Barreno_Profundidad_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Barreno_Profundidad_'.$claseName.'_'.$otId;
                     $model = BarrenoProfundidad::class;
                     break;
                 case 'Cavidades':
-                    $lookupKey = 'Cavidades_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Cavidades_'.$claseName.'_'.$otId;
                     $model = Cavidades::class;
                     break;
                 case 'Copiado':
-                    $lookupKey = 'Copiado_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Copiado_'.$claseName.'_'.$otId;
                     $model = Copiado::class;
                     break;
                 case 'Off Set':
-                    $lookupKey = 'Off_Set_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Off_Set_'.$claseName.'_'.$otId;
                     $model = OffSet::class;
                     break;
                 case 'Palomas':
-                    $lookupKey = 'Palomas_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Palomas_'.$claseName.'_'.$otId;
                     $model = Palomas::class;
                     break;
                 case 'Rebajes':
-                    $lookupKey = 'Rebajes_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Rebajes_'.$claseName.'_'.$otId;
                     $model = Rebajes::class;
                     break;
                 case 'Embudo CM':
-                    $lookupKey = 'Embudo_CM_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Embudo_CM_'.$claseName.'_'.$otId;
                     $model = EmbudoCM::class;
                     break;
                 case 'Primera Operacion Cabeza Soplo':
-                    $lookupKey = 'Primera_Operacion_Cabeza_Soplo_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Primera_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId;
                     $model = PrimeraOperacionCabezaSoplo::class;
                     break;
                 case 'Segunda Operacion Cabeza Soplo':
-                    $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId;
                     $model = SegundaOperacionCabezaSoplo::class;
                     break;
             }
@@ -850,7 +879,7 @@ class PzasGeneralesController extends Controller
 
         // Bulk fetch all needed process records
         foreach ($processLookups as $model => $keys) {
-            $records = $model::query()->whereIn('id_proceso', array_keys($keys), 'and', false)->get();
+            $records = $model::query()->select(['id', 'id_proceso'])->whereIn('id_proceso', array_keys($keys), 'and', false)->get();
             foreach ($records as $r) {
                 $processLookups[$model][$r->id_proceso] = $r;
             }
@@ -858,7 +887,7 @@ class PzasGeneralesController extends Controller
 
         $contador = 0;
         foreach ($piezas as $pieza) {
-            $claseObj = $clasesCache->get($pieza["id_clase"]);
+            $claseObj = $clasesCache->get($pieza['id_clase']);
             $claseName = $claseObj ? $claseObj->nombre : null;
             $procName = $pieza[4];
             $otId = $pieza[0];
@@ -867,99 +896,99 @@ class PzasGeneralesController extends Controller
             $lookupKey = null;
             switch ($procName) {
                 case 'Operacion Equipo_1 operacion':
-                    $lookupKey = 'Operacion_Equipo_1_operacion_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Operacion_Equipo_1_operacion_'.$claseName.'_'.$otId;
                     $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
                 case 'Operacion Equipo_2 operacion':
-                    $lookupKey = 'Operacion_Equipo_2_operacion_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Operacion_Equipo_2_operacion_'.$claseName.'_'.$otId;
                     $model = ($claseName == 'Candado Obturador') ? CandadoObturador::class : PySOpeSoldadura::class;
                     break;
                 case 'Cepillado':
-                    $lookupKey = 'Cepillado_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Cepillado_'.$claseName.'_'.$otId;
                     $model = Cepillado::class;
                     break;
                 case 'Desbaste Exterior':
-                    $lookupKey = 'Desbaste_Exterior_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Desbaste_Exterior_'.$claseName.'_'.$otId;
                     $model = DesbasteExterior::class;
                     break;
                 case 'Revision Laterales':
-                    $lookupKey = 'Revision_Laterales_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Revision_Laterales_'.$claseName.'_'.$otId;
                     $model = RevLaterales::class;
                     break;
                 case 'Primera Operacion':
-                    $lookupKey = 'Primera_Operacion_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Primera_Operacion_'.$claseName.'_'.$otId;
                     $model = PrimeraOpeSoldadura::class;
                     break;
                 case 'Barreno Maniobra':
-                    $lookupKey = 'Barreno_Maniobra_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Barreno_Maniobra_'.$claseName.'_'.$otId;
                     $model = BarrenoManiobra::class;
                     break;
                 case 'Segunda Operacion':
-                    $lookupKey = 'Segunda_Operacion_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Segunda_Operacion_'.$claseName.'_'.$otId;
                     $model = SegundaOpeSoldadura::class;
                     break;
                 case 'Soldadura':
-                    $lookupKey = 'Soldadura_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Soldadura_'.$claseName.'_'.$otId;
                     $model = Soldadura::class;
                     break;
                 case 'Soldadura PTA':
-                    $lookupKey = 'Soldadura_PTA_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Soldadura_PTA_'.$claseName.'_'.$otId;
                     $model = SoldaduraPTA::class;
                     break;
                 case 'Rectificado':
-                    $lookupKey = 'Rectificado_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Rectificado_'.$claseName.'_'.$otId;
                     $model = Rectificado::class;
                     break;
                 case 'Asentado':
-                    $lookupKey = 'Asentado_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Asentado_'.$claseName.'_'.$otId;
                     $model = Asentado::class;
                     break;
                 case 'Calificado':
-                    $lookupKey = 'Calificado_' . $claseName . '_' . $otId;
-                    $model = revCalificado::class;
+                    $lookupKey = 'Calificado_'.$claseName.'_'.$otId;
+                    $model = RevCalificado::class;
                     break;
                 case 'Acabado Bombillo':
-                    $lookupKey = 'Acabado_Bombillo_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Acabado_Bombillo_'.$claseName.'_'.$otId;
                     $model = AcabadoBombilo::class;
                     break;
                 case 'Acabado Molde':
-                    $lookupKey = 'Acabado_Molde_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Acabado_Molde_'.$claseName.'_'.$otId;
                     $model = AcabadoMolde::class;
                     break;
                 case 'Barreno Profundidad':
-                    $lookupKey = 'Barreno_Profundidad_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Barreno_Profundidad_'.$claseName.'_'.$otId;
                     $model = BarrenoProfundidad::class;
                     break;
                 case 'Cavidades':
-                    $lookupKey = 'Cavidades_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Cavidades_'.$claseName.'_'.$otId;
                     $model = Cavidades::class;
                     break;
                 case 'Copiado':
-                    $lookupKey = 'Copiado_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Copiado_'.$claseName.'_'.$otId;
                     $model = Copiado::class;
                     break;
                 case 'Off Set':
-                    $lookupKey = 'Off_Set_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Off_Set_'.$claseName.'_'.$otId;
                     $model = OffSet::class;
                     break;
                 case 'Palomas':
-                    $lookupKey = 'Palomas_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Palomas_'.$claseName.'_'.$otId;
                     $model = Palomas::class;
                     break;
                 case 'Rebajes':
-                    $lookupKey = 'Rebajes_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Rebajes_'.$claseName.'_'.$otId;
                     $model = Rebajes::class;
                     break;
                 case 'Embudo CM':
-                    $lookupKey = 'Embudo_CM_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Embudo_CM_'.$claseName.'_'.$otId;
                     $model = EmbudoCM::class;
                     break;
                 case 'Primera Operacion Cabeza Soplo':
-                    $lookupKey = 'Primera_Operacion_Cabeza_Soplo_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Primera_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId;
                     $model = PrimeraOperacionCabezaSoplo::class;
                     break;
                 case 'Segunda Operacion Cabeza Soplo':
-                    $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_' . $claseName . '_' . $otId;
+                    $lookupKey = 'Segunda_Operacion_Cabeza_Soplo_'.$claseName.'_'.$otId;
                     $model = SegundaOperacionCabezaSoplo::class;
                     break;
             }
@@ -968,24 +997,22 @@ class PzasGeneralesController extends Controller
             $infoPiezas[$contador][1] = $procName;
 
             if ($id_proceso) {
-                if (end($pieza) == "mitad") {
+                if (end($pieza) == 'mitad') {
                     $numero = $this->getPiezaNumber($pieza[1]);
-                    $infoPiezas[$contador][0][0] = $numero . "H" . $id_proceso->id;
-                    $infoPiezas[$contador][0][1] = $numero . "M" . $id_proceso->id;
+                    $infoPiezas[$contador][0][0] = $numero.'H'.$id_proceso->id;
+                    $infoPiezas[$contador][0][1] = $numero.'M'.$id_proceso->id;
                 } else {
-                    $infoPiezas[$contador][0][0] = $pieza[1] . $id_proceso->id;
+                    $infoPiezas[$contador][0][0] = $pieza[1].$id_proceso->id;
                 }
             } else {
-                $infoPiezas[$contador][0][0] = $pieza[1] . "??";
+                $infoPiezas[$contador][0][0] = $pieza[1].'??';
             }
 
             $infoPiezas[$contador][2] = $pieza[5];
             $contador++;
         }
     }
-    /**
-     * @param Request $request
-     */
+
     public function getGamesFromOT(Request $request)
     {
         $otStr = $request->input('ot');
@@ -1005,20 +1032,20 @@ class PzasGeneralesController extends Controller
             ->where(function ($q) use ($className, $cleanClass) {
                 $q->where('nombre', '=', $className, 'and')
                     ->orWhere('nombre', '=', $cleanClass)
-                    ->orWhere('nombre', 'LIKE', '% - ' . $cleanClass);
+                    ->orWhere('nombre', 'LIKE', '% - '.$cleanClass);
             })
             ->first();
         // Fallback: search by nombre only if not found with id_ot
-        if (!$clase) {
+        if (! $clase) {
             $clase = Clase::query()
                 ->where(function ($q) use ($className, $cleanClass) {
                     $q->where('nombre', '=', $className, 'and')
                         ->orWhere('nombre', '=', $cleanClass)
-                        ->orWhere('nombre', 'LIKE', '% - ' . $cleanClass);
+                        ->orWhere('nombre', 'LIKE', '% - '.$cleanClass);
                 })
                 ->first();
         }
-        if (!$clase) {
+        if (! $clase) {
             return response()->json([]);
         }
 
@@ -1039,7 +1066,7 @@ class PzasGeneralesController extends Controller
                 } elseif ($lastChar === 'H' || $lastChar === 'M') {
                     // Half piece - convert to game number (e.g. "1H" -> "1J")
                     $numero = $this->getPiezaNumber($pza->n_pieza);
-                    $games[] = $numero . 'J';
+                    $games[] = $numero.'J';
                 }
             }
         }
@@ -1052,15 +1079,12 @@ class PzasGeneralesController extends Controller
     }
 
     /**
-     * @param string $pieces
-     * @param string $process
-     * @param string $profile
      * @return mixed
      */
     public function showPiece(string $pieces, string $process, string $profile)
     {
         /** @var array<int, mixed> $pieceInfo */
-        $pieceInfo = array();
+        $pieceInfo = [];
         /** @var string $processName */
         $processName = '';
         /** @var mixed $cNominal */
@@ -1070,8 +1094,8 @@ class PzasGeneralesController extends Controller
 
         switch ($process) {
             case 'Cepillado':
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     $pza = Pza_cepillado::query()->where('id_pza', $piece)->first();
                     if ($pza) {
@@ -1092,8 +1116,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Desbaste Exterior':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, Desbaste_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1108,8 +1132,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Revision Laterales':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, RevLaterales_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1123,8 +1147,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Primera Operacion':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, PrimeraOpeSoldadura_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1136,8 +1160,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Barreno Maniobra':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, BarrenoManiobra_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1149,8 +1173,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Segunda Operacion':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, SegundaOpeSoldadura_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1162,16 +1186,17 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Soldadura':
                 //Obtener informacion de la pieza elegida
-                $piecesArray = explode(",", $pieces);
-                $pieceInfo = array();
+                $piecesArray = explode(',', $pieces);
+                $pieceInfo = [];
                 foreach ($piecesArray as $pza) {
                     $p = Soldadura_pza::query()->where('id_pza', $pza)->first();
                     if ($p) {
                         array_push($pieceInfo, $p);
                     }
                 }
-                if (count($pieceInfo) == 0)
+                if (count($pieceInfo) == 0) {
                     return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+                }
                 //Obtener Cotas nominales y tolerancias
                 $id_process = Soldadura::query()->find($pieceInfo[0]->id_proceso);
                 $cNominal = 0;
@@ -1180,7 +1205,7 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Soldadura PTA':
                 // Obtener la primera pieza para localizar el proceso padre
-                $piecesArray = explode(",", $pieces);
+                $piecesArray = explode(',', $pieces);
                 $unaPieza = null;
                 $n_piezas_solicitadas = [];
                 foreach ($piecesArray as $pza) {
@@ -1189,20 +1214,21 @@ class PzasGeneralesController extends Controller
                         $n_pieza = $matches[1];
                         $id_proceso = $matches[2];
                         $n_piezas_solicitadas[] = $n_pieza;
-                        if (!$unaPieza) {
+                        if (! $unaPieza) {
                             $unaPieza = SoldaduraPTA_pza::query()->where('n_pieza', $n_pieza)->where('id_proceso', $id_proceso)->first();
                         }
                     } else {
                         $p = SoldaduraPTA_pza::query()->where('id_pza', $pza)->first();
                         if ($p) {
                             $n_piezas_solicitadas[] = $p->n_pieza;
-                            if (!$unaPieza)
+                            if (! $unaPieza) {
                                 $unaPieza = $p;
+                            }
                         }
                     }
                 }
 
-                if (!$unaPieza) {
+                if (! $unaPieza) {
                     return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
                 }
 
@@ -1222,16 +1248,17 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Rectificado':
                 //Obtener informacion de la pieza elegida
-                $piecesArray = explode(",", $pieces);
-                $pieceInfo = array();
+                $piecesArray = explode(',', $pieces);
+                $pieceInfo = [];
                 foreach ($piecesArray as $pza) {
                     $p = Rectificado_pza::query()->where('id_pza', $pza)->first();
                     if ($p) {
                         array_push($pieceInfo, $p);
                     }
                 }
-                if (count($pieceInfo) == 0)
+                if (count($pieceInfo) == 0) {
                     return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+                }
                 //Obtener Cotas nominales y tolerancias
                 $id_process = Rectificado::query()->find($pieceInfo[0]->id_proceso);
                 $cNominal = 0;
@@ -1240,16 +1267,17 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Asentado':
                 //Obtener informacion de la pieza elegida
-                $piecesArray = explode(",", $pieces);
-                $pieceInfo = array();
+                $piecesArray = explode(',', $pieces);
+                $pieceInfo = [];
                 foreach ($piecesArray as $pza) {
                     $p = Asentado_pza::query()->where('id_pza', $pza)->first();
                     if ($p) {
                         array_push($pieceInfo, $p);
                     }
                 }
-                if (count($pieceInfo) == 0)
+                if (count($pieceInfo) == 0) {
                     return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+                }
                 //Obtener Cotas nominales y tolerancias
                 $id_process = Asentado::query()->find($pieceInfo[0]->id_proceso);
                 $cNominal = 0;
@@ -1259,21 +1287,21 @@ class PzasGeneralesController extends Controller
 
             case 'Calificado':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
-                    array_push($pieceInfo, revCalificado_pza::query()->where('id_pza', $piece)->first());
+                    array_push($pieceInfo, RevCalificadoPza::query()->where('id_pza', $piece)->first());
                 }
                 //Obtener Cotas nominales y tolerancias
-                $id_process = revCalificado::query()->find($pieceInfo[0]->id_proceso);
-                $cNominal = revCalificado_cnominal::query()->where('id_proceso', $id_process->id_proceso)->first()->toArray();
-                $tolerance = revCalificado_tolerancia::query()->where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $id_process = RevCalificado::query()->find($pieceInfo[0]->id_proceso);
+                $cNominal = RevCalificadoCnominal::query()->where('id_proceso', $id_process->id_proceso)->first()->toArray();
+                $tolerance = RevCalificadoTolerancia::query()->where('id_proceso', $id_process->id_proceso)->first()->toArray();
                 $process = 'Calificado';
                 break;
             case 'Acabado Bombillo':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, AcabadoBombilo_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1285,8 +1313,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Acabado Molde':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, AcabadoMolde_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1307,8 +1335,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Cavidades':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, Cavidades_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1320,8 +1348,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Copiado':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, Copiado_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1333,8 +1361,8 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Off Set':
                 //Obtener informacion de la pieza elegida
-                $pieceInfo = array();
-                $pieces = explode(",", $pieces);
+                $pieceInfo = [];
+                $pieces = explode(',', $pieces);
                 foreach ($pieces as $piece) {
                     array_push($pieceInfo, OffSet_pza::query()->where('id_pza', $piece)->first());
                 }
@@ -1365,16 +1393,17 @@ class PzasGeneralesController extends Controller
             case 'Operacion Equipo_1 operacion':
             case 'Operacion Equipo_2 operacion':
                 // Auto-detect class: try CandadoObturador_pza first, fall back to PySOpeSoldadura_pza
-                $pieceInfo = array();
-                $piece = explode(",", $pieces);
+                $pieceInfo = [];
+                $piece = explode(',', $pieces);
                 foreach ($piece as $pza) {
                     $p = CandadoObturador_pza::query()->where('id_pza', $pza)->first();
                     if ($p) {
                         array_push($pieceInfo, $p);
                     } else {
                         $p = PySOpeSoldadura_pza::query()->where('id_pza', $pza)->first();
-                        if ($p)
+                        if ($p) {
                             array_push($pieceInfo, $p);
+                        }
                     }
                 }
                 if (empty($pieceInfo)) {
@@ -1405,16 +1434,17 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Primera Operacion Cabeza Soplo':
                 //Obtener informacion de la pieza elegida
-                $piecesArray = explode(",", $pieces);
-                $pieceInfo = array();
+                $piecesArray = explode(',', $pieces);
+                $pieceInfo = [];
                 foreach ($piecesArray as $pza) {
                     $p = PrimeraOperacionCabezaSoplo_pza::query()->where('id_pza', $pza)->first();
                     if ($p) {
                         array_push($pieceInfo, $p);
                     }
                 }
-                if (count($pieceInfo) == 0)
+                if (count($pieceInfo) == 0) {
                     return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+                }
 
                 //Obtener Cotas nominales y tolerancias
                 $id_process = PrimeraOperacionCabezaSoplo::query()->find($pieceInfo[0]->id_proceso);
@@ -1435,16 +1465,17 @@ class PzasGeneralesController extends Controller
                 break;
             case 'Segunda Operacion Cabeza Soplo':
                 //Obtener informacion de la pieza elegida
-                $piecesArray = explode(",", $pieces);
-                $pieceInfo = array();
+                $piecesArray = explode(',', $pieces);
+                $pieceInfo = [];
                 foreach ($piecesArray as $pza) {
                     $p = SegundaOperacionCabezaSoplo_pza::query()->where('id_pza', $pza)->first();
                     if ($p) {
                         array_push($pieceInfo, $p);
                     }
                 }
-                if (count($pieceInfo) == 0)
+                if (count($pieceInfo) == 0) {
                     return redirect()->back()->with('error', 'No se encontraron las piezas solicitadas.');
+                }
 
                 //Obtener Cotas nominales y tolerancias
                 $id_process = SegundaOperacionCabezaSoplo::query()->find($pieceInfo[0]->id_proceso);
@@ -1472,9 +1503,9 @@ class PzasGeneralesController extends Controller
         }
         $ot = $meta->id_ot;
         $clase = Clase::query()->find($meta->id_clase);
-        $clase = $clase->nombre . " " . $clase->tamanio;
+        $clase = $clase->nombre.' '.$clase->tamanio;
         if ($process != 'Asentado') {
-            $piecesInfo = array();
+            $piecesInfo = [];
             //Si el juego es mitad
             if (is_array($pieceInfo) || $pieceInfo instanceof \Illuminate\Support\Collection) {
                 $contador = 0;
@@ -1490,22 +1521,22 @@ class PzasGeneralesController extends Controller
         }
 
         //Obtener el nombre del operador
-        $operadores = array();
-        $vistos = array(); // Para evitar duplicados por pieza + operador
+        $operadores = [];
+        $vistos = []; // Para evitar duplicados por pieza + operador
         if (is_array($piecesInfo)) {
             $contador = 0;
             foreach ($piecesInfo as $pza) {
                 //Obtener la meta para obtener el id del operador
                 $meta = Metas::query()->find($pza['id_meta']);
                 $nombreOp = $this->getNameOperador($meta->id_usuario);
-                $nPieza = is_array($pza) ? ($pza["n_pieza"] ?? $pza["n_juego"]) : ($pza->n_pieza ?? $pza->n_juego);
+                $nPieza = is_array($pza) ? ($pza['n_pieza'] ?? $pza['n_juego']) : ($pza->n_pieza ?? $pza->n_juego);
 
                 // Identificador único para este par pieza-operador
-                $hash = $nPieza . '|' . $nombreOp;
+                $hash = $nPieza.'|'.$nombreOp;
 
-                if (!in_array($hash, $vistos)) {
+                if (! in_array($hash, $vistos)) {
                     //Guardar el nombre del operador
-                    $operadores[$contador] = array($nPieza, $nombreOp);
+                    $operadores[$contador] = [$nPieza, $nombreOp];
                     $vistos[] = $hash;
                     $contador++;
                 }
@@ -1514,18 +1545,19 @@ class PzasGeneralesController extends Controller
             $meta = Metas::query()->find($piecesInfo->id_meta);
             $nPieza = $pieceInfo->n_juego;
             $nombreOp = $this->getNameOperador($meta->id_usuario);
-            $operadores[0] = array($nPieza, $nombreOp);
+            $operadores[0] = [$nPieza, $nombreOp];
         }
         $piezasGroup = $piezasGroup ?? null;
+
         return view('pieces_views.piecesReport.chosenPiece', compact('process', 'piecesInfo', 'cNominal', 'tolerance', 'ot', 'clase', 'profile', 'operadores', 'piezasGroup'));
     }
 
     /**
-     * @param mixed $ot
+     * @param  mixed  $ot
      */
     public function getOperadores($ot)
     {
-        $operadores = \Illuminate\Support\Facades\DB::table('piezas')
+        $operadores = DB::table('piezas')
             ->where('id_ot', '=', $ot, 'and')
             ->distinct()
             ->pluck('id_operador')
@@ -1533,30 +1565,36 @@ class PzasGeneralesController extends Controller
         for ($i = 0; $i < count($operadores); $i++) {
             $operadores[$i] = User::query()->where('matricula', '=', $operadores[$i], 'and')->first();
         }
+
         return $operadores;
     }
+
     /**
-     * @param mixed $matricula
+     * @param  mixed  $matricula
      */
     public function getNameOperador($matricula)
     {
         // Memoización: solo va a BD la primera vez que se pide esta matrícula
-        if (!isset($this->usersCache[$matricula])) {
+        if (! isset($this->usersCache[$matricula])) {
             $this->usersCache[$matricula] = User::query()->where('matricula', $matricula)->first();
         }
         $op = $this->usersCache[$matricula];
+
         return $op ? "{$op->nombre} {$op->a_paterno} {$op->a_materno}" : '(desconocido)';
     }
+
     /**
-     * @param int|string $id
+     * @param  int|string  $id
      */
     public function getNameClase($id)
     {
         $clase = Clase::query()->find($id);
-        return $clase->nombre . " " . $clase->tamanio;
+
+        return $clase->nombre.' '.$clase->tamanio;
     }
+
     /**
-     * @param mixed $pieza
+     * @param  mixed  $pieza
      */
     public function getPiezaNumber($pieza)
     {
@@ -1574,8 +1612,9 @@ class PzasGeneralesController extends Controller
      * Combina los estados de liberación de dos mitades (H y M) de un juego,
      * devolviendo el peor estado entre ambas para que el color del juego sea correcto.
      * Prioridad (mayor = peor): 2(Rechazado) > 4(Mala) > 5(Incompleto) > 0(Sin lib) > 3(Buena) > 1(Liberado)
-     * @param int|string $libH
-     * @param int|string $libM
+     *
+     * @param  int|string  $libH
+     * @param  int|string  $libM
      */
     private function combinarLiberacion($libH, $libM): int
     {
@@ -1589,23 +1628,24 @@ class PzasGeneralesController extends Controller
         ];
         $pH = $priority[(int) $libH] ?? 0;
         $pM = $priority[(int) $libM] ?? 0;
+
         return $pH >= $pM ? (int) $libH : (int) $libM;
     }
 
     //Funciones para el control de la vista de piezas por maquina
 
-
     public function showVistaMaquina()
     {
         if ($this->retornarOTs() != 0) {
             $arregloOT = $this->retornarOTs();
+
             return view('machines_views.maquinas', compact('arregloOT'));
         } else {
             return view('machines_views.maquinas');
         }
     }
+
     /**
-     * @param Request $request
      * @return mixed
      */
     public function showMachinesProcess(Request $request)
@@ -1613,7 +1653,7 @@ class PzasGeneralesController extends Controller
         /** @var mixed $ot */
         $ot = Orden_trabajo::query()->find($request->ot);
         $clase = Clase::query()->find($request->clase);
-        $procesos = array();
+        $procesos = [];
 
         $proceso = Procesos::query()->where('id_clase', $clase->id)->first();
         $proceso = $proceso->toArray();
@@ -1625,10 +1665,10 @@ class PzasGeneralesController extends Controller
 
         foreach (array_keys($camposNoCero) as $nombreCampo) {
             if ($contador != 0 || $contador != 1) {
-                $procesos[$indice] = array();
+                $procesos[$indice] = [];
                 $procesos[$indice][0] = $this->nombreProceso($nombreCampo);
                 switch ($nombreCampo) {
-                    case "cepillado":
+                    case 'cepillado':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1639,9 +1679,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1649,13 +1689,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "desbaste_exterior":
+                    case 'desbaste_exterior':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1666,9 +1706,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1676,13 +1716,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "revision_laterales":
+                    case 'revision_laterales':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1693,9 +1733,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1703,13 +1743,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "pOperacion":
+                    case 'pOperacion':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1720,9 +1760,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1730,13 +1770,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "barreno_maniobra":
+                    case 'barreno_maniobra':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1747,9 +1787,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1757,13 +1797,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "sOperacion":
+                    case 'sOperacion':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1774,9 +1814,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_pieza, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1784,13 +1824,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "soldadura":
+                    case 'soldadura':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1801,9 +1841,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1811,13 +1851,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "soldaduraPTA":
+                    case 'soldaduraPTA':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1828,9 +1868,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1838,13 +1878,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "rectificado":
+                    case 'rectificado':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1855,9 +1895,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1865,13 +1905,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "asentado":
+                    case 'asentado':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1882,9 +1922,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1892,26 +1932,26 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "calificado":
+                    case 'calificado':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
                             foreach ($metas as $meta) {
-                                $piezas = revCalificado_pza::query()->where('id_meta', $meta->id)->get();
+                                $piezas = RevCalificadoPza::query()->where('id_meta', $meta->id)->get();
                                 if (count($piezas) > 0) {
                                     foreach ($piezas as $pieza) {
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1919,13 +1959,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "acabadoBombillo":
+                    case 'acabadoBombillo':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1936,9 +1976,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1946,13 +1986,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "acabadoMolde":
+                    case 'acabadoMolde':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -1963,9 +2003,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -1973,10 +2013,10 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
                     case 'barreno_profundidad':
@@ -1990,9 +2030,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -2000,13 +2040,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "cavidades":
+                    case 'cavidades':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -2017,9 +2057,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -2027,13 +2067,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "copiado":
+                    case 'copiado':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -2044,9 +2084,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -2054,13 +2094,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "offSet":
+                    case 'offSet':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -2071,9 +2111,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -2081,13 +2121,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "palomas":
+                    case 'palomas':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -2098,9 +2138,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -2108,13 +2148,13 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "rebajes":
+                    case 'rebajes':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -2125,9 +2165,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -2135,16 +2175,16 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "grabado":
-                        $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                    case 'grabado':
+                        $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         break;
-                    case "operacionEquipo":
+                    case 'operacionEquipo':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if ($metas->isNotEmpty()) {
                             $metaIds = $metas->pluck('id');
@@ -2171,23 +2211,23 @@ class PzasGeneralesController extends Controller
 
                                 foreach ($piezas as $pieza) {
                                     $operacionRecord = $opsMap->get($pieza->id_proceso);
-                                    $operacionName = $operacionRecord ? $operacionRecord->operacion : "---";
-                                    $userName = $user ? "{$user->nombre} {$user->a_paterno} {$user->a_materno}" : "---";
+                                    $operacionName = $operacionRecord ? $operacionRecord->operacion : '---';
+                                    $userName = $user ? "{$user->nombre} {$user->a_paterno} {$user->a_materno}" : '---';
 
-                                    $estadoStr = ($pieza->estado == 1) ? "---" : "Terminada";
+                                    $estadoStr = ($pieza->estado == 1) ? '---' : 'Terminada';
                                     $procesos[$indice][1][$pzasNoCero] = [$pieza->n_pieza, $userName, $estadoStr, $meta->maquina, $operacionName];
                                     $pzasNoCero++;
                                 }
                             }
 
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
-                    case "embudoCM":
+                    case 'embudoCM':
                         $metas = Metas::query()->where('id_clase', $clase->id)->get();
                         if (count($metas) > 0) {
                             $pzasNoCero = 0;
@@ -2198,9 +2238,9 @@ class PzasGeneralesController extends Controller
                                         if ($pieza->estado != 0) {
                                             $user = User::query()->where('matricula', $meta->id_usuario)->first();
                                             if ($pieza->estado == 1) {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "---", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, '---', $meta->maquina];
                                             } else {
-                                                $procesos[$indice][1][$pzasNoCero] = array($pieza->n_juego, $user->nombre, "Terminada", $meta->maquina);
+                                                $procesos[$indice][1][$pzasNoCero] = [$pieza->n_juego, $user->nombre, 'Terminada', $meta->maquina];
                                             }
                                             $pzasNoCero++;
                                         }
@@ -2208,10 +2248,10 @@ class PzasGeneralesController extends Controller
                                 }
                             }
                             if ($pzasNoCero == 0) {
-                                $procesos[$indice][1][$pzasNoCero] = array("---", "---", "---", "---");
+                                $procesos[$indice][1][$pzasNoCero] = ['---', '---', '---', '---'];
                             }
                         } else {
-                            $procesos[$indice][1][0] = array("---", "---", "---", "---");
+                            $procesos[$indice][1][0] = ['---', '---', '---', '---'];
                         }
                         break;
                     default:
@@ -2223,68 +2263,71 @@ class PzasGeneralesController extends Controller
             $contador++;
         }
         array_splice($procesos, 0, 2);
+
         return view('machines_views.vistaProcesos', compact('procesos', 'ot', 'clase'));
     }
+
     /**
-     * @param mixed $proceso
+     * @param  mixed  $proceso
      */
     public function nombreProceso($proceso)
     {
         switch ($proceso) {
-            case "cepillado":
-                return "Cepillado";
-            case "desbaste_exterior":
-                return "Desbaste Exterior";
-            case "revision_laterales":
-                return "Revision Laterales";
-            case "pOperacion":
-                return "Primera Operacion";
-            case "barreno_maniobra":
-                return "Barreno Maniobra";
-            case "sOperacion":
-                return "Segunda Operacion";
-            case "soldadura":
-                return "Soldadura";
-            case "soldaduraPTA":
-                return "Soldadura PTA";
-            case "rectificado":
-                return "Rectificado";
-            case "asentado":
-                return "Asentado";
-            case "calificado":
-                return "Calificado";
-            case "acabadoBombillo":
-                return "Acabado Bombillo";
-            case "acabadoMolde":
-                return "Acabado Molde";
-            case "cavidades":
-                return "Cavidades";
-            case "barreno_profundidad":
-                return "Barreno Profundidad";
-            case "copiado":
-                return "Copiado";
-            case "offSet":
-                return "Off Set";
-            case "palomas":
-                return "Palomas";
-            case "rebajes":
-                return "Rebajes";
-            case "grabado":
-                return "Grabado";
-            case "operacionEquipo":
-                return "Operacion Equipo";
-            case "embudoCM":
-                return "Embudo CM";
-            case "primeraOperacionCabezaSoplo":
-                return "Primera Operacion Cabeza Soplo";
-            case "segundaOperacionCabezaSoplo":
-                return "Segunda Operacion Cabeza Soplo";
+            case 'cepillado':
+                return 'Cepillado';
+            case 'desbaste_exterior':
+                return 'Desbaste Exterior';
+            case 'revision_laterales':
+                return 'Revision Laterales';
+            case 'pOperacion':
+                return 'Primera Operacion';
+            case 'barreno_maniobra':
+                return 'Barreno Maniobra';
+            case 'sOperacion':
+                return 'Segunda Operacion';
+            case 'soldadura':
+                return 'Soldadura';
+            case 'soldaduraPTA':
+                return 'Soldadura PTA';
+            case 'rectificado':
+                return 'Rectificado';
+            case 'asentado':
+                return 'Asentado';
+            case 'calificado':
+                return 'Calificado';
+            case 'acabadoBombillo':
+                return 'Acabado Bombillo';
+            case 'acabadoMolde':
+                return 'Acabado Molde';
+            case 'cavidades':
+                return 'Cavidades';
+            case 'barreno_profundidad':
+                return 'Barreno Profundidad';
+            case 'copiado':
+                return 'Copiado';
+            case 'offSet':
+                return 'Off Set';
+            case 'palomas':
+                return 'Palomas';
+            case 'rebajes':
+                return 'Rebajes';
+            case 'grabado':
+                return 'Grabado';
+            case 'operacionEquipo':
+                return 'Operacion Equipo';
+            case 'embudoCM':
+                return 'Embudo CM';
+            case 'primeraOperacionCabezaSoplo':
+                return 'Primera Operacion Cabeza Soplo';
+            case 'segundaOperacionCabezaSoplo':
+                return 'Segunda Operacion Cabeza Soplo';
         }
     }
 
     /**
      * Helper para aplicar filtros a Soldadura
-     * @param array $filters
+     *
+     * @param  array  $filters
      */
     private function applySoldaduraFilters($filters)
     {
@@ -2297,10 +2340,10 @@ class PzasGeneralesController extends Controller
 
         // 2. Filtro por fechas (dateFrom, dateTo)
         if (isset($filters['dateFrom']) && $filters['dateFrom'] !== '' && $filters['dateFrom'] !== 'Todos') {
-            $query->where('soldadura_pza.created_at', '>=', $filters['dateFrom'] . " 00:00:00", 'and');
+            $query->where('soldadura_pza.created_at', '>=', $filters['dateFrom'].' 00:00:00', 'and');
         }
         if (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
-            $query->where('soldadura_pza.created_at', '<=', $filters['dateTo'] . " 23:59:59", 'and');
+            $query->where('soldadura_pza.created_at', '<=', $filters['dateTo'].' 23:59:59', 'and');
         }
 
         // 3. Filtro por Operador o Maquina (requiere join con metas)
@@ -2335,7 +2378,7 @@ class PzasGeneralesController extends Controller
                         ->orWhereNull('soldadura_pza.error');
                 });
             } else {
-                $query->where('soldadura_pza.error', 'LIKE', '%' . $filters['error'] . '%', 'and');
+                $query->where('soldadura_pza.error', 'LIKE', '%'.$filters['error'].'%', 'and');
             }
         }
 
@@ -2344,24 +2387,24 @@ class PzasGeneralesController extends Controller
         $hasClassFilter = isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '';
         $activeOts = (isset($filters['activeOts']) && is_array($filters['activeOts'])) ? array_values(array_filter($filters['activeOts'])) : [];
 
-        if ($hasWorkOrderFilter || $hasClassFilter || (!empty($activeOts) && !$hasWorkOrderFilter)) {
+        if ($hasWorkOrderFilter || $hasClassFilter || (! empty($activeOts) && ! $hasWorkOrderFilter)) {
             $soldaduraQuery = Soldadura::query();
 
             if ($hasWorkOrderFilter) {
                 $otId = strpos($filters['workOrder'], ' - ') !== false
                     ? explode(' - ', $filters['workOrder'])[0]
                     : $filters['workOrder'];
-                $soldaduraQuery->where('id_proceso', 'LIKE', '%_' . trim($otId), 'and');
-            } else if (!empty($activeOts)) {
+                $soldaduraQuery->where('id_proceso', 'LIKE', '%_'.trim($otId), 'and');
+            } elseif (! empty($activeOts)) {
                 $soldaduraQuery->where(function ($q) use ($activeOts) {
                     foreach ($activeOts as $otId) {
-                        $q->orWhere('id_proceso', 'LIKE', '%_' . trim($otId), 'and');
+                        $q->orWhere('id_proceso', 'LIKE', '%_'.trim($otId), 'and');
                     }
                 });
             }
 
             if ($hasClassFilter) {
-                $soldaduraQuery->where('id_proceso', 'LIKE', 'Soldadura_' . $filters['class'] . '_%', 'and');
+                $soldaduraQuery->where('id_proceso', 'LIKE', 'Soldadura_'.$filters['class'].'_%', 'and');
             }
 
             $procesoIds = $soldaduraQuery->pluck('id')->toArray();
@@ -2379,7 +2422,7 @@ class PzasGeneralesController extends Controller
                 'P1 - 3' => '1',
                 'P2 - 2.5' => '2',
                 'P3 - 2' => '3',
-                'P4 - 1.5' => '4'
+                'P4 - 1.5' => '4',
             ];
             if (isset($map[$tipoVal])) {
                 $tipoVal = $map[$tipoVal];
@@ -2403,7 +2446,8 @@ class PzasGeneralesController extends Controller
 
     /**
      * Helper para aplicar filtros a Soldadura PTA
-     * @param array $filters
+     *
+     * @param  array  $filters
      */
     private function applySoldaduraPTAFilters($filters)
     {
@@ -2417,10 +2461,10 @@ class PzasGeneralesController extends Controller
 
         // 2. Filtro por fechas (dateFrom, dateTo)
         if (isset($filters['dateFrom']) && $filters['dateFrom'] !== '' && $filters['dateFrom'] !== 'Todos') {
-            $query->where('soldaduraPTA_pza.created_at', '>=', $filters['dateFrom'] . " 00:00:00", 'and');
+            $query->where('soldaduraPTA_pza.created_at', '>=', $filters['dateFrom'].' 00:00:00', 'and');
         }
         if (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
-            $query->where('soldaduraPTA_pza.created_at', '<=', $filters['dateTo'] . " 23:59:59", 'and');
+            $query->where('soldaduraPTA_pza.created_at', '<=', $filters['dateTo'].' 23:59:59', 'and');
         }
 
         // 3. Filtro por Operador o Maquina (requiere join con metas)
@@ -2455,7 +2499,7 @@ class PzasGeneralesController extends Controller
                         ->orWhereNull('soldaduraPTA_pza.defecto_pta');
                 });
             } else {
-                $query->where('soldaduraPTA_pza.defecto_pta', 'LIKE', '%' . $filters['error'] . '%', 'and');
+                $query->where('soldaduraPTA_pza.defecto_pta', 'LIKE', '%'.$filters['error'].'%', 'and');
             }
         }
 
@@ -2464,24 +2508,24 @@ class PzasGeneralesController extends Controller
         $hasClassFilterPTA = isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '';
         $activeOtsPTA = (isset($filters['activeOts']) && is_array($filters['activeOts'])) ? array_values(array_filter($filters['activeOts'])) : [];
 
-        if ($hasWorkOrderFilterPTA || $hasClassFilterPTA || (!empty($activeOtsPTA) && !$hasWorkOrderFilterPTA)) {
+        if ($hasWorkOrderFilterPTA || $hasClassFilterPTA || (! empty($activeOtsPTA) && ! $hasWorkOrderFilterPTA)) {
             $soldaduraPTAQuery = SoldaduraPTA::query();
 
             if ($hasWorkOrderFilterPTA) {
                 $otId = strpos($filters['workOrder'], ' - ') !== false
                     ? explode(' - ', $filters['workOrder'])[0]
                     : $filters['workOrder'];
-                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_' . trim($otId), 'and');
-            } else if (!empty($activeOtsPTA)) {
+                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_'.trim($otId), 'and');
+            } elseif (! empty($activeOtsPTA)) {
                 $soldaduraPTAQuery->where(function ($q) use ($activeOtsPTA) {
                     foreach ($activeOtsPTA as $otId) {
-                        $q->orWhere('id_proceso', 'LIKE', '%_' . trim($otId), 'and');
+                        $q->orWhere('id_proceso', 'LIKE', '%_'.trim($otId), 'and');
                     }
                 });
             }
 
             if ($hasClassFilterPTA) {
-                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_' . $filters['class'] . '_%', 'and');
+                $soldaduraPTAQuery->where('id_proceso', 'LIKE', '%_'.$filters['class'].'_%', 'and');
             }
 
             $procesoIdsPTA = $soldaduraPTAQuery->pluck('id')->toArray();
@@ -2530,7 +2574,7 @@ class PzasGeneralesController extends Controller
                         return response()->json([
                             'success' => true,
                             'message' => 'Contraseña correcta. Acceso autorizado.',
-                            'adminUser' => $user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno
+                            'adminUser' => $user->nombre.' '.$user->a_paterno.' '.$user->a_materno,
                         ]);
                     }
                 }
@@ -2539,7 +2583,7 @@ class PzasGeneralesController extends Controller
 
         return response()->json([
             'success' => false,
-            'message' => 'Contraseña incorrecta. Solo personal administrativo puede acceder.'
+            'message' => 'Contraseña incorrecta. Solo personal administrativo puede acceder.',
         ], 401);
     }
 
@@ -2595,7 +2639,7 @@ class PzasGeneralesController extends Controller
                 if ($meta) {
                     $operator = $usersMap->get($meta->id_usuario);
                     if ($operator) {
-                        $operatorName = $operator->nombre . ' ' . $operator->a_paterno . ' ' . $operator->a_materno;
+                        $operatorName = $operator->nombre.' '.$operator->a_paterno.' '.$operator->a_materno;
                     }
                 }
 
@@ -2618,7 +2662,7 @@ class PzasGeneralesController extends Controller
                             : 'N/A';
                     }
 
-                    if (!$clase && $className !== 'N/A' && $workOrderId !== 'N/A') {
+                    if (! $clase && $className !== 'N/A' && $workOrderId !== 'N/A') {
                         $searchClassName = str_replace('_', ' ', $className);
                         $clase = Clase::query()
                             ->where('nombre', '=', $searchClassName, 'and')
@@ -2648,13 +2692,13 @@ class PzasGeneralesController extends Controller
                             '1' => 'P1 - 3',
                             '2' => 'P2 - 2.5',
                             '3' => 'P3 - 2',
-                            '4' => 'P4 - 1.5'
+                            '4' => 'P4 - 1.5',
                         ][strval($tipoRaw)]) ? [
-                                '1' => 'P1 - 3',
-                                '2' => 'P2 - 2.5',
-                                '3' => 'P3 - 2',
-                                '4' => 'P4 - 1.5'
-                            ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
+                            '1' => 'P1 - 3',
+                            '2' => 'P2 - 2.5',
+                            '3' => 'P3 - 2',
+                            '4' => 'P4 - 1.5',
+                        ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
                         'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                         'lote' => $piece->lote ?? 'N/A',
                         'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
@@ -2668,12 +2712,12 @@ class PzasGeneralesController extends Controller
             $uniquePieces = [];
             foreach ($piecesData as $p) {
                 $claseNorm = str_replace('_', ' ', trim($p['clase'] ?? ''));
-                $key = $claseNorm . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
-                if (!isset($uniquePieces[$key])) {
+                $key = $claseNorm.'_'.trim($p['orden_trabajo'] ?? '').'_'.trim($p['n_juego'] ?? '');
+                if (! isset($uniquePieces[$key])) {
                     $uniquePieces[$key] = $p;
                 } else {
-                    $existingTime = strtotime($uniquePieces[$key]['fecha'] . ' ' . $uniquePieces[$key]['hora']);
-                    $newTime = strtotime($p['fecha'] . ' ' . $p['hora']);
+                    $existingTime = strtotime($uniquePieces[$key]['fecha'].' '.$uniquePieces[$key]['hora']);
+                    $newTime = strtotime($p['fecha'].' '.$p['hora']);
                     if ($newTime > $existingTime) {
                         $uniquePieces[$key] = $p;
                     }
@@ -2686,18 +2730,18 @@ class PzasGeneralesController extends Controller
             if (is_string($activePieces)) {
                 $activePieces = json_decode($activePieces, true) ?? [];
             }
-            if (is_array($activePieces) && !empty($activePieces)) {
+            if (is_array($activePieces) && ! empty($activePieces)) {
                 $activeKeys = [];
                 foreach ($activePieces as $ap) {
                     $apClassNorm = str_replace('_', ' ', trim($ap['class'] ?? ''));
-                    $key = $apClassNorm . '_' . trim($ap['workOrder'] ?? '') . '_' . trim($ap['noAssembly'] ?? '');
+                    $key = $apClassNorm.'_'.trim($ap['workOrder'] ?? '').'_'.trim($ap['noAssembly'] ?? '');
                     $activeKeys[$key] = true;
                 }
 
                 $filteredPieces = [];
                 foreach ($piecesData as $p) {
                     $claseNorm = str_replace('_', ' ', trim($p['clase'] ?? ''));
-                    $key = $claseNorm . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
+                    $key = $claseNorm.'_'.trim($p['orden_trabajo'] ?? '').'_'.trim($p['n_juego'] ?? '');
                     if (isset($activeKeys[$key])) {
                         $filteredPieces[] = $p;
                     }
@@ -2708,13 +2752,13 @@ class PzasGeneralesController extends Controller
             return response()->json([
                 'success' => true,
                 'pieces' => $piecesData,
-                'total' => count($piecesData)
+                'total' => count($piecesData),
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error al obtener información de Soldadura: ' . $e->getMessage()
+                'message' => 'Error al obtener información de Soldadura: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -2762,7 +2806,7 @@ class PzasGeneralesController extends Controller
                 if ($meta) {
                     $operator = $usersMap->get($meta->id_usuario);
                     if ($operator) {
-                        $operatorName = $operator->nombre . ' ' . $operator->a_paterno . ' ' . $operator->a_materno;
+                        $operatorName = $operator->nombre.' '.$operator->a_paterno.' '.$operator->a_materno;
                     }
                 }
 
@@ -2785,7 +2829,7 @@ class PzasGeneralesController extends Controller
                             : 'N/A';
                     }
 
-                    if (!$clase && $className !== 'N/A' && $workOrderId !== 'N/A') {
+                    if (! $clase && $className !== 'N/A' && $workOrderId !== 'N/A') {
                         $searchClassName = str_replace('_', ' ', $className);
                         $clase = Clase::query()
                             ->where('nombre', '=', $searchClassName, 'and')
@@ -2825,13 +2869,13 @@ class PzasGeneralesController extends Controller
                                 '1' => 'P1 - 3',
                                 '2' => 'P2 - 2.5',
                                 '3' => 'P3 - 2',
-                                '4' => 'P4 - 1.5'
+                                '4' => 'P4 - 1.5',
                             ][strval($tipoRaw)]) ? [
-                                    '1' => 'P1 - 3',
-                                    '2' => 'P2 - 2.5',
-                                    '3' => 'P3 - 2',
-                                    '4' => 'P4 - 1.5'
-                                ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
+                                '1' => 'P1 - 3',
+                                '2' => 'P2 - 2.5',
+                                '3' => 'P3 - 2',
+                                '4' => 'P4 - 1.5',
+                            ][strval($tipoRaw)] : (($tipoRaw && $tipoRaw !== '0' && $tipoRaw !== '00') ? $tipoRaw : 'N/A')),
                             'material_soldadura' => $piece->material_soldadura ?? 'N/A',
                             'lote' => $piece->lote ?? 'N/A',
                             'fecha' => $piece->created_at ? $piece->created_at->format('d-m-Y') : 'N/A',
@@ -2846,12 +2890,12 @@ class PzasGeneralesController extends Controller
             $uniquePieces = [];
             foreach ($piecesData as $p) {
                 $claseNorm = str_replace('_', ' ', trim($p['clase'] ?? ''));
-                $key = $claseNorm . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
-                if (!isset($uniquePieces[$key])) {
+                $key = $claseNorm.'_'.trim($p['orden_trabajo'] ?? '').'_'.trim($p['n_juego'] ?? '');
+                if (! isset($uniquePieces[$key])) {
                     $uniquePieces[$key] = $p;
                 } else {
-                    $existingTime = strtotime($uniquePieces[$key]['fecha'] . ' ' . $uniquePieces[$key]['hora']);
-                    $newTime = strtotime($p['fecha'] . ' ' . $p['hora']);
+                    $existingTime = strtotime($uniquePieces[$key]['fecha'].' '.$uniquePieces[$key]['hora']);
+                    $newTime = strtotime($p['fecha'].' '.$p['hora']);
                     if ($newTime > $existingTime) {
                         $uniquePieces[$key] = $p;
                     }
@@ -2864,18 +2908,18 @@ class PzasGeneralesController extends Controller
             if (is_string($activePieces)) {
                 $activePieces = json_decode($activePieces, true) ?? [];
             }
-            if (is_array($activePieces) && !empty($activePieces)) {
+            if (is_array($activePieces) && ! empty($activePieces)) {
                 $activeKeys = [];
                 foreach ($activePieces as $ap) {
                     $apClassNorm = str_replace('_', ' ', trim($ap['class'] ?? ''));
-                    $key = $apClassNorm . '_' . trim($ap['workOrder'] ?? '') . '_' . trim($ap['noAssembly'] ?? '');
+                    $key = $apClassNorm.'_'.trim($ap['workOrder'] ?? '').'_'.trim($ap['noAssembly'] ?? '');
                     $activeKeys[$key] = true;
                 }
 
                 $filteredPieces = [];
                 foreach ($piecesData as $p) {
                     $claseNorm = str_replace('_', ' ', trim($p['clase'] ?? ''));
-                    $key = $claseNorm . '_' . trim($p['orden_trabajo'] ?? '') . '_' . trim($p['n_juego'] ?? '');
+                    $key = $claseNorm.'_'.trim($p['orden_trabajo'] ?? '').'_'.trim($p['n_juego'] ?? '');
                     if (isset($activeKeys[$key])) {
                         $filteredPieces[] = $p;
                     }
@@ -2897,12 +2941,12 @@ class PzasGeneralesController extends Controller
                 if (strpos($otValue, ' - ') !== false) {
                     $otValue = explode(' - ', $otValue)[0];
                 }
-                $filenameParts[] = 'OT' . $otValue;
+                $filenameParts[] = 'OT'.$otValue;
             }
 
             // Agregar Clase si está filtrada
             if (isset($filters['class']) && $filters['class'] !== 'Todos' && $filters['class'] !== '') {
-                $filenameParts[] = 'Clase_' . $filters['class'];
+                $filenameParts[] = 'Clase_'.$filters['class'];
             }
 
             // Agregar Operador si está filtrado
@@ -2910,22 +2954,22 @@ class PzasGeneralesController extends Controller
                 $operatorMatricula = is_array($filters['operator']) ? $filters['operator']['matricula'] : $filters['operator'];
                 $operator = User::query()->where('matricula', '=', $operatorMatricula, 'and')->first();
                 if ($operator) {
-                    $operatorName = $operator->nombre . '_' . $operator->a_paterno;
+                    $operatorName = $operator->nombre.'_'.$operator->a_paterno;
                     // Limpiar caracteres especiales del nombre
                     $operatorName = preg_replace('/[^A-Za-z0-9_]/', '', $operatorName);
-                    $filenameParts[] = 'Op_' . $operatorName;
+                    $filenameParts[] = 'Op_'.$operatorName;
                 }
             }
 
             // Agregar Máquina si está filtrada
             if (isset($filters['machine']) && $filters['machine'] !== 'Todos' && $filters['machine'] !== '') {
                 $machineValue = str_replace('_', 'y', $filters['machine']);
-                $filenameParts[] = 'Maq' . $machineValue;
+                $filenameParts[] = 'Maq'.$machineValue;
             }
 
             // Agregar N# Juego si está filtrado
             if (isset($filters['n_juego']) && $filters['n_juego'] !== 'Todos' && $filters['n_juego'] !== '') {
-                $filenameParts[] = 'Juego' . $filters['n_juego'];
+                $filenameParts[] = 'Juego'.$filters['n_juego'];
             }
 
             // Agregar rango de fechas si están filtradas
@@ -2933,20 +2977,20 @@ class PzasGeneralesController extends Controller
                 $dateFrom = date('d-m-Y', strtotime($filters['dateFrom']));
                 if (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
                     $dateTo = date('d-m-Y', strtotime($filters['dateTo']));
-                    $filenameParts[] = $dateFrom . '_a_' . $dateTo;
+                    $filenameParts[] = $dateFrom.'_a_'.$dateTo;
                 } else {
-                    $filenameParts[] = 'Desde_' . $dateFrom;
+                    $filenameParts[] = 'Desde_'.$dateFrom;
                 }
             } elseif (isset($filters['dateTo']) && $filters['dateTo'] !== '' && $filters['dateTo'] !== 'Todos') {
                 $dateTo = date('d-m-Y', strtotime($filters['dateTo']));
-                $filenameParts[] = 'Hasta_' . $dateTo;
+                $filenameParts[] = 'Hasta_'.$dateTo;
             } else {
                 // Si no hay filtro de fecha, agregar la fecha actual
                 $filenameParts[] = date('d-m-Y');
             }
 
             // Unir todas las partes con guiones bajos
-            $filename = implode('_', $filenameParts) . '.pdf';
+            $filename = implode('_', $filenameParts).'.pdf';
 
             if ($isPTA) {
                 $pdf = Pdf::loadView('pieces_views.piecesReport.soldaduraPTAExtraInfoPdf', compact('piecesData', 'ordenTrabajo'))
@@ -2959,7 +3003,7 @@ class PzasGeneralesController extends Controller
             return $pdf->download($filename);
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Error al generar el PDF: ' . $e->getMessage());
+            return back()->with('error', 'Error al generar el PDF: '.$e->getMessage());
         }
     }
 }

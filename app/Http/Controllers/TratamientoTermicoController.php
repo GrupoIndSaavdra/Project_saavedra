@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\TratamientoTermico;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -18,7 +17,7 @@ class TratamientoTermicoController extends Controller
             'archivo' => 'required|mimes:pdf|max:10240',
             'descripcion' => 'required_if:cantidad,0|nullable|string|max:255',
             'cantidad' => 'required|integer|min:0',
-            'id_ot' => 'required'
+            'id_ot' => 'required',
         ], [
             'descripcion.required_if' => 'Es obligatorio ingresar una descripción del motivo cuando se registra un tratamiento térmico con 0 piezas.',
         ]);
@@ -30,7 +29,7 @@ class TratamientoTermicoController extends Controller
             'archivo' => $path,
             'descripcion' => $request->descripcion,
             'cantidad' => $request->cantidad,
-            'registrado_por' => auth()->user() ? auth()->user()->nombre . ' ' . auth()->user()->a_paterno : 'Sistema'
+            'registrado_por' => auth()->user() ? auth()->user()->nombre.' '.auth()->user()->a_paterno : 'Sistema',
         ]);
 
         return back()->with('success', 'Tratamiento térmico registrado correctamente.');
@@ -39,13 +38,14 @@ class TratamientoTermicoController extends Controller
     public function download(int|string $id)
     {
         $tratamiento = TratamientoTermico::findOrFail($id);
-        $path = storage_path('app/public/' . $tratamiento->archivo);
-        if (!file_exists($path)) {
+        $path = storage_path('app/public/'.$tratamiento->archivo);
+        if (! file_exists($path)) {
             abort(404);
         }
+
         return response()->file($path, [
             'Content-Type' => 'application/pdf',
-            'Content-Disposition' => 'inline; filename="' . basename($path) . '"'
+            'Content-Disposition' => 'inline; filename="'.basename($path).'"',
         ]);
     }
 
@@ -68,19 +68,19 @@ class TratamientoTermicoController extends Controller
             }
         }
 
-        if (!$authorized) {
+        if (! $authorized) {
             return back()->with('error', 'Contraseña incorrecta. Solo administradores o personal master pueden autorizar la eliminación de tratamientos.');
         }
 
         $tratamiento = TratamientoTermico::findOrFail($id);
-        
+
         // Delete file
         if (Storage::disk('public')->exists($tratamiento->archivo)) {
             Storage::disk('public')->delete($tratamiento->archivo);
         }
-        
+
         $tratamiento->delete();
-        
+
         return back()->with('success', 'Tratamiento térmico eliminado.');
     }
 
@@ -88,8 +88,8 @@ class TratamientoTermicoController extends Controller
     {
         $request->validate([
             'descripcion' => 'required_if:cantidad,0|nullable|string|max:255',
-            'cantidad'    => 'required|integer|min:0',
-            'archivo'     => 'nullable|file|mimes:pdf|max:10240',
+            'cantidad' => 'required|integer|min:0',
+            'archivo' => 'nullable|file|mimes:pdf|max:10240',
         ], [
             'descripcion.required_if' => 'Es obligatorio ingresar una descripción del motivo cuando se registra un tratamiento térmico con 0 piezas.',
         ]);
@@ -108,11 +108,10 @@ class TratamientoTermicoController extends Controller
 
         $tratamiento->update([
             'descripcion' => $request->descripcion,
-            'cantidad'    => $request->cantidad,
-            'archivo'     => $archivoPath,
+            'cantidad' => $request->cantidad,
+            'archivo' => $archivoPath,
         ]);
 
         return back()->with('success', 'Tratamiento térmico actualizado correctamente.');
     }
 }
-
