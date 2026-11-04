@@ -1564,3 +1564,39 @@ function loadAvailableGames(ot, clase, selectElement) {
 
 // Inicializar la funcionalidad cuando se carga la pagina
 initializeSoldaduraFeature();
+
+// Inicialización del Drawer de Código de Colores
+function initColorsDrawer() {
+    const container = document.getElementById('colors-legend-container');
+    const toggleBtn = document.getElementById('colors-toggle-btn');
+    if (!container || !toggleBtn) return;
+
+    toggleBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isActive = container.classList.toggle('active');
+        toggleBtn.setAttribute('title', isActive ? 'Haz clic para cerrar el Código de Colores' : 'Haz clic para abrir el Código de Colores');
+    });
+
+
+    document.addEventListener('click', (e) => {
+        if (!container.contains(e.target)) {
+            if (container.classList.contains('active')) {
+                container.classList.remove('active');
+                toggleBtn.setAttribute('title', 'Haz clic para abrir el Código de Colores');
+            }
+        }
+    });
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && container.classList.contains('active')) {
+            container.classList.remove('active');
+            toggleBtn.setAttribute('title', 'Haz clic para abrir el Código de Colores');
+        }
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initColorsDrawer);
+} else {
+    initColorsDrawer();
+}

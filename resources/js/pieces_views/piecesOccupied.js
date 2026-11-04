@@ -875,12 +875,24 @@ document.addEventListener('DOMContentLoaded', () => {
     if (colorsToggleBtn && colorsLegendContainer) {
         colorsToggleBtn.addEventListener('click', (e) => {
             e.stopPropagation();
-            colorsLegendContainer.classList.toggle('active');
+            const isActive = colorsLegendContainer.classList.toggle('active');
+            colorsToggleBtn.setAttribute('title', isActive ? 'Haz clic para cerrar el Código de Colores' : 'Haz clic para abrir el Código de Colores');
         });
+
 
         document.addEventListener('click', (e) => {
             if (!colorsLegendContainer.contains(e.target)) {
+                if (colorsLegendContainer.classList.contains('active')) {
+                    colorsLegendContainer.classList.remove('active');
+                    colorsToggleBtn.setAttribute('title', 'Haz clic para abrir el Código de Colores');
+                }
+            }
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && colorsLegendContainer.classList.contains('active')) {
                 colorsLegendContainer.classList.remove('active');
+                colorsToggleBtn.setAttribute('title', 'Haz clic para abrir el Código de Colores');
             }
         });
     }
