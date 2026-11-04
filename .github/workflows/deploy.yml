@@ -21,7 +21,7 @@ jobs:
           coverage: none
 
       - name: Install Composer dependencies
-        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -45,4 +45,3 @@ jobs:
             **/.git*/**
             **/node_modules/**
             .env
-            .env.example
