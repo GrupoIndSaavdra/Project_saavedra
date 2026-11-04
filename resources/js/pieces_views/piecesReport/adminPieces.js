@@ -1020,6 +1020,16 @@ function setupCascadingFilters() {
     function updateCascadingFilters() {
         if (!window.pieces || window.pieces.length === 0) return;
 
+        const currentOT = otSelect.value;
+        const currentClass = classSelect.value;
+        const currentProcess = processSelect.value;
+        const currentOperator = operatorSelect ? operatorSelect.value : "Todos";
+
+        // Si todos los filtros están en 'Todos', no es necesario filtrar en cascada sobre miles de registros
+        if (currentOT === "Todos" && currentClass === "Todos" && currentProcess === "Todos" && currentOperator === "Todos") {
+            return;
+        }
+
         let anySelectionChanged = false;
 
         function refreshSelect(selectEl, originalOptions, activeSet, type) {

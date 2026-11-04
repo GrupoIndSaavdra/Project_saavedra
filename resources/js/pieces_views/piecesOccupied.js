@@ -865,6 +865,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 closeConfirmDialog();
             } else if (editModal && editModal.style.display === 'flex') {
                 closeEditModal();
+            } else if (colorsLegendContainer && colorsLegendContainer.classList.contains('active')) {
+                colorsLegendContainer.classList.remove('active');
             }
         }
     });
@@ -882,6 +884,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    let logsLoaded = false;
 
     // Pestañas: Alternar entre Piezas Ocupadas y Auditoría
     if (tabBtnPieces && tabBtnLogs) {
@@ -909,7 +913,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 colorsLegendContainer.classList.remove('active');
                 colorsLegendContainer.style.display = 'none';
             }
-            loadAdminLogs();
+            if (!logsLoaded) {
+                loadAdminLogs(false);
+                logsLoaded = true;
+            } else if (footerCount) {
+                footerCount.innerHTML = `<strong>Registros de auditoría:</strong> ${currentLogsData.length}`;
+            }
         });
     }
 
@@ -1065,7 +1074,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function refreshCurrentView(isSilent = true) {
         if (activeTab === 'pieces') {
             loadOccupiedPieces(isSilent);
-            loadAdminLogs(true);
+            if (logsLoaded) {
+                loadAdminLogs(true);
+            }
         } else {
             loadAdminLogs(isSilent);
             loadOccupiedPieces(true);
@@ -1228,5 +1239,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicialización de estado y primera carga ultra-fluida
     updateClearButtonState();
     loadOccupiedPieces(false);
-    loadAdminLogs(true);
 });

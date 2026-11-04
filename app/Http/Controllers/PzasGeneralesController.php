@@ -258,21 +258,20 @@ class PzasGeneralesController extends Controller
 
     public function getFiltersInfo()
     {
-        // 1 minuto de cache local: reduce carga en base de datos para la generación de filtros
-        $molduras = Cache::remember('molduras_all', 60, function () {
+        // 30 minutos de cache local: reduce carga en base de datos para la generación de filtros
+        $molduras = Cache::remember('molduras_all', 1800, function () {
             return Moldura::query()->select(['id', 'nombre'])->get()->keyBy('id');
         });
-        $orders = Cache::remember('ot_active_machined', 60, function () {
-            $activeClassIds = Clase::query()->where('finalizada', '=', 0, 'and')->pluck('id')->toArray();
-            $activeOtIds = Pieza::query()->whereIn('id_clase', $activeClassIds, 'and', false)->distinct()->pluck('id_ot')->filter()->toArray();
+        $orders = Cache::remember('ot_active_machined', 1800, function () {
+            $activeOtIds = Clase::query()->where('finalizada', '=', 0, 'and')->whereNotNull('id_ot', 'and')->distinct()->pluck('id_ot')->toArray();
 
             return Orden_trabajo::query()->select(['id', 'id_moldura'])->whereIn('id', $activeOtIds, 'and', false)->orderBy('id', 'desc')->get();
         });
-        $users = Cache::remember('users_all', 60, function () {
+        $users = Cache::remember('users_all', 1800, function () {
             return User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno', 'perfil'])->get();
         });
 
-        $dbClasses = Cache::remember('clases_active_distinct_nombres', 60, function () {
+        $dbClasses = Cache::remember('clases_active_distinct_nombres', 1800, function () {
             return Clase::query()->distinct()->where('finalizada', '=', 0, 'and')->whereNotNull('nombre', 'and')->pluck('nombre')->toArray();
         });
 
@@ -546,13 +545,20 @@ class PzasGeneralesController extends Controller
                         }
                     }
                     $idProcesos = array_unique($idProcesos);
+                    if (empty($idProcesos)) {
+                        continue;
+                    }
 
                     $procesosDB = $modelClass::query()->select(['id', 'id_proceso'])->whereIn('id_proceso', $idProcesos, 'and', false)->get()->keyBy('id_proceso');
                     $procesosDBMap[$nombreProceso] = $procesosDB;
 
                     $parentDbIds = $procesosDB->pluck('id')->toArray();
                     if (! empty($parentDbIds)) {
-                        $childPieces = $modelPiecesClass::query()->select(['id', 'id_proceso', 'n_juego', 'observaciones'])->whereIn('id_proceso', $parentDbIds, 'and', false)->get();
+                        $childPieces = $modelPiecesClass::query()->select(['id', 'id_proceso', 'n_juego', 'observaciones'])
+                            ->whereIn('id_proceso', $parentDbIds, 'and', false)
+                            ->whereNotNull('observaciones', 'and')
+                            ->where('observaciones', '!=', '', 'and')
+                            ->get();
                         foreach ($childPieces as $cp) {
                             $key = $cp->id_proceso.'_'.$cp->n_juego;
                             if (! isset($observacionesMap[$nombreProceso][$key])) {

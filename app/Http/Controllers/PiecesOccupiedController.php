@@ -11,6 +11,7 @@ use App\Models\SystemLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -239,8 +240,19 @@ class PiecesOccupiedController extends Controller
     protected ?array $cachedActiveOtIds = null;
 
     /**
+     * Limpia la caché de piezas ocupadas para sincronización inmediata tras modificaciones.
+     */
+    public function clearPiecesCache(): void
+    {
+        $this->cachedActiveOtIds = null;
+        Cache::forget('pieces_occupied_initial_payload');
+        Cache::forget('pieces_occupied_active_ot_ids');
+        Cache::forget('pieces_occupied_show_catalogs');
+    }
+
+    /**
      * Obtiene los IDs de las OTs activas que tienen piezas en maquinado/producción actualmente
-     * (idéntico a la lógica de Liberación de Piezas / Reporte de Piezas).
+     * (idéntico a la lógica optimizada de Liberación de Piezas / Reporte de Piezas).
      */
     public function getActiveOtIds(): array
     {
@@ -248,22 +260,18 @@ class PiecesOccupiedController extends Controller
             return $this->cachedActiveOtIds;
         }
 
-        $activeClassIds = Clase::query()
-            ->where('finalizada', '=', 0, 'and')
-            ->pluck('id')
-            ->toArray();
-
-        $this->cachedActiveOtIds = Pieza::query()
-            ->whereIn('id_clase', $activeClassIds, 'and', false)
-            ->distinct()
-            ->pluck('id_ot')
-            ->filter()
-            ->map(fn ($id) => (string) $id)
-            ->unique()
-            ->values()
-            ->toArray();
-
-        return $this->cachedActiveOtIds;
+        return $this->cachedActiveOtIds = Cache::remember('pieces_occupied_active_ot_ids', 600, function () {
+            return Clase::query()
+                ->where('finalizada', '=', 0, 'and')
+                ->whereNotNull('id_ot', 'and')
+                ->distinct()
+                ->pluck('id_ot')
+                ->filter()
+                ->map(fn ($id) => (string) $id)
+                ->unique()
+                ->values()
+                ->toArray();
+        });
     }
 
     /**
@@ -351,22 +359,6 @@ class PiecesOccupiedController extends Controller
             }
         }
 
-        // Además, incluir cualquier proceso con piezas activas registradas en Pieza para este contexto
-        $piezaQuery = Pieza::query()->whereIn('id_clase', $activeClassIds, 'and', false);
-        if (! empty($otId)) {
-            $piezaQuery->where('id_ot', '=', $otId, 'and');
-        } else {
-            $piezaQuery->whereIn('id_ot', $activeOtIds, 'and', false);
-        }
-        $procsInPieza = $piezaQuery->distinct()->pluck('proceso')->filter()->toArray();
-        foreach ($procsInPieza as $prName) {
-            foreach (self::$processConfig as $key => $cfg) {
-                if (strcasecmp($prName, $key) === 0 || strcasecmp($prName, $cfg['label']) === 0) {
-                    $activeProcessKeys[$key] = true;
-                }
-            }
-        }
-
         $processesList = [];
         foreach (self::$processConfig as $key => $cfg) {
             if (isset($activeProcessKeys[$key])) {
@@ -439,22 +431,27 @@ class PiecesOccupiedController extends Controller
     {
         $targetOtIds = $this->getActiveOtIds();
 
-        // Cargar SOLO OTs activas que tengan piezas realizándose en maquinado (con moldura)
-        $workOrders = Orden_trabajo::query()
-            ->select(['id', 'id_moldura', 'created_at'])
-            ->with(['moldura:id,nombre'])
-            ->whereIn('id', $targetOtIds, 'and', false)
-            ->orderBy('id', 'asc')
-            ->get();
+        $cacheKey = 'pieces_occupied_show_catalogs_' . md5(implode(',', $targetOtIds));
+        $data = Cache::remember($cacheKey, 600, function () use ($targetOtIds) {
+            // Cargar SOLO OTs activas que tengan piezas realizándose en maquinado (con moldura)
+            $workOrders = Orden_trabajo::query()
+                ->select(['id', 'id_moldura', 'created_at'])
+                ->with(['moldura:id,nombre'])
+                ->whereIn('id', $targetOtIds, 'and', false)
+                ->orderBy('id', 'asc')
+                ->get();
 
-        // Procesos y clases activas en el sistema para estas OTs
-        $processesList = $this->getActiveProcesses(null, null);
-        $classesList = $this->getActiveClasses();
+            // Procesos y clases activas en el sistema para estas OTs
+            $processesList = $this->getActiveProcesses(null, null);
+            $classesList = $this->getActiveClasses();
 
-        // Operadores activos en el sistema (perfil 2 y estatus 1)
-        $operatorsList = $this->getActiveOperators([]);
+            // Operadores activos en el sistema (perfil 2 y estatus 1)
+            $operatorsList = $this->getActiveOperators([]);
 
-        return view('pieces_views.piecesOccupied', compact('workOrders', 'processesList', 'classesList', 'operatorsList'));
+            return compact('workOrders', 'processesList', 'classesList', 'operatorsList');
+        });
+
+        return view('pieces_views.piecesOccupied', $data);
     }
 
     /**
@@ -574,6 +571,15 @@ class PiecesOccupiedController extends Controller
         $targetPieza = trim((string) $request->input('pieza', ''));
         $targetOperador = trim((string) $request->input('operador', ''));
 
+        $isDefaultLoad = empty($targetOt) && empty($targetClaseId) && empty($targetProcess) && empty($targetPieza) && empty($targetOperador);
+
+        if ($isDefaultLoad) {
+            $cachedPayload = Cache::get('pieces_occupied_initial_payload');
+            if ($cachedPayload !== null) {
+                return response()->json($cachedPayload);
+            }
+        }
+
         // 1. Obtener las piezas ocupadas para el contexto de OT, Clase y Proceso
         $contextPieces = $this->fetchOccupiedPiecesList($targetOt, $targetClaseId, $targetProcess);
 
@@ -652,7 +658,7 @@ class PiecesOccupiedController extends Controller
             }
         }
 
-        return response()->json([
+        $responseData = [
             'success' => true,
             'summary' => [
                 'total_occupied' => count($tablePieces),
@@ -664,7 +670,13 @@ class PiecesOccupiedController extends Controller
             'available_operators' => $availableOperators,
             'available_pieces' => $availablePieces,
             'all_three_selected' => $allThreeSelected,
-        ]);
+        ];
+
+        if ($isDefaultLoad) {
+            Cache::put('pieces_occupied_initial_payload', $responseData, 180);
+        }
+
+        return response()->json($responseData);
     }
 
     /**
@@ -1127,6 +1139,7 @@ class PiecesOccupiedController extends Controller
             ]);
 
             DB::commit();
+            $this->clearPiecesCache();
 
             return response()->json([
                 'success' => true,
@@ -1195,6 +1208,7 @@ class PiecesOccupiedController extends Controller
             ]);
 
             DB::commit();
+            $this->clearPiecesCache();
 
             return response()->json([
                 'success' => true,
@@ -1290,6 +1304,7 @@ class PiecesOccupiedController extends Controller
             ]);
 
             DB::commit();
+            $this->clearPiecesCache();
 
             return response()->json([
                 'success' => true,
@@ -1372,6 +1387,7 @@ class PiecesOccupiedController extends Controller
             ]);
 
             DB::commit();
+            $this->clearPiecesCache();
 
             return response()->json([
                 'success' => true,

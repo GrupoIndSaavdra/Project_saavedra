@@ -52,6 +52,7 @@ use App\Models\SoldaduraPTA_pza;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class DatosProduccionController extends Controller
 {
@@ -66,8 +67,8 @@ class DatosProduccionController extends Controller
      */
     public function index($operadores = null, $filtros = null)
     {
-        // Obtener todas las ordenes de trabajo y sus respectivas clases (con caché de 60s para carga instantánea)
-        $datos = Cache::remember('production_data_catalog', 60, function () {
+        // Obtener todas las ordenes de trabajo y sus respectivas clases (caché de 30 minutos para carga instantánea)
+        $datos = Cache::remember('production_data_catalog', 1800, function () {
             return $this->obtenerDatos($this->obtenerOtArray());
         });
         if ($operadores == null) {
@@ -82,7 +83,7 @@ class DatosProduccionController extends Controller
         $isAjax = $request->ajax() || $request->wantsJson() || $request->query('ajax') == 1 || $request->input('ajax') == 1;
 
         // Validar que se haya seleccionado una OT válida
-        if (! $request->ot || $request->ot == 0) {
+        if (!$request->ot || $request->ot == 0) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Por favor, selecciona una Orden de Trabajo.']);
             }
@@ -92,7 +93,7 @@ class DatosProduccionController extends Controller
 
         //Obtener la ot conforme a su ID
         $ot = Orden_trabajo::query()->find($request->ot);
-        if (! $ot) {
+        if (!$ot) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Orden de Trabajo no encontrada.']);
             }
@@ -101,7 +102,7 @@ class DatosProduccionController extends Controller
         }
 
         $moldura = Moldura::query()->find($ot->id_moldura);
-        if (! $moldura) {
+        if (!$moldura) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Moldura asociada no encontrada.']);
             }
@@ -111,7 +112,7 @@ class DatosProduccionController extends Controller
 
         //Obtener la clase conforme a su ID
         $clase = Clase::query()->where('id_ot', '=', $request->ot, 'and')->where('nombre', '=', $request->clases, 'and')->first();
-        if (! $clase) {
+        if (!$clase) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Clase no encontrada.']);
             }
@@ -121,14 +122,14 @@ class DatosProduccionController extends Controller
 
         //Obtener el nombre del operador
         $operador = User::query()->where('matricula', '=', $request->operadores, 'and')->first();
-        if (! $operador) {
+        if (!$operador) {
             if ($isAjax) {
                 return response()->json(['success' => false, 'error' => 'Operador no encontrado.']);
             }
 
             return redirect()->route('showProduccion')->with('error', 'Operador no encontrado.');
         }
-        $operadorName = $operador->nombre.' '.$operador->a_paterno.' '.$operador->a_materno;
+        $operadorName = $operador->nombre . ' ' . $operador->a_paterno . ' ' . $operador->a_materno;
 
         //Obtener las piezas conforme a la OT, la clase, el operador y el proceso
         $piezas = Pieza::query()
@@ -174,35 +175,34 @@ class DatosProduccionController extends Controller
      */
     public function obtenerDatos($OTs)
     {
-        // ── OPTIMIZACIÓN: pre-cargar todo en 4 queries en lugar de N queries por OT ──
-        // Solo columnas necesarias para el loop → menor memoria por modelo instanciado
+        // ── OPTIMIZACIÓN: Pre-cargar combinaciones únicas vía SQL DISTINCT en lugar de 110k+ modelos Eloquent ──
         $otIds = $OTs->pluck('id')->toArray();
         $usersCache = User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])->get()->keyBy('matricula');
         $clasesCache = Clase::query()->select(['id', 'id_ot', 'nombre', 'pedido'])->get()->keyBy('id');
 
-        // 1 query: solo las columnas necesarias de todas las piezas de todas las OTs activas.
-        // CRÍTICO: sin ->select() se cargan TODOS los atributos de 76k+ modelos → memory exhausted.
-        $todasPiezasRaw = Pieza::query()
-            ->select(['id_ot', 'id_clase', 'id_operador', 'proceso', 'error', 'liberacion', 'n_pieza', 'created_at'])
-            ->whereIn('id_ot', $otIds, 'and', false)
+        // Query directa distinct en base de datos: procesa solo combinaciones únicas (3-4k filas en ~100ms)
+        $piezasDistintas = DB::table('piezas')
+            ->select(['id_ot', 'id_clase', 'id_operador', 'proceso'])
+            ->whereIn('id_ot', $otIds)
+            ->distinct()
             ->get();
 
         // Mapa en memoria de procesos únicos por clase + operador (evita miles de queries N+1)
         $procesosPorClaseOperador = [];
-        foreach ($todasPiezasRaw as $p) {
+        foreach ($piezasDistintas as $p) {
             if ($p->id_clase && $p->id_operador && $p->proceso) {
-                $procesosPorClaseOperador[$p->id_clase.'_'.$p->id_operador][$p->proceso] = true;
+                $procesosPorClaseOperador[$p->id_clase . '_' . $p->id_operador][$p->proceso] = true;
             }
         }
 
-        $todasPiezas = $todasPiezasRaw->groupBy('id_ot');
+        $piezasPorOT = $piezasDistintas->groupBy('id_ot');
 
         $datos = [];
         foreach ($OTs as $ot) {
             $datos[$ot->id] = [];
             // Moldura ya cargada con eager loading (0 queries)
             $datos[$ot->id]['moldura'] = $ot->moldura ? $ot->moldura->nombre : '?';
-            $datos[$ot->id]['nombre'] = $ot->id.' - '.$datos[$ot->id]['moldura'];
+            $datos[$ot->id]['nombre'] = $ot->id . ' - ' . $datos[$ot->id]['moldura'];
 
             // Todas las clases de la OT (independiente del operador)
             $clasesDeOT = $clasesCache->where('id_ot', $ot->id);
@@ -214,26 +214,26 @@ class DatosProduccionController extends Controller
             }
 
             $datos[$ot->id]['operadores'] = [];
-            $piezasDeOT = $todasPiezas->get($ot->id, collect());
+            $piezasDeOT = $piezasPorOT->get($ot->id, collect());
 
             foreach ($piezasDeOT as $pieza) {
                 $operator = $usersCache->get($pieza->id_operador);
-                if (! $operator) {
+                if (!$operator) {
                     continue;
                 }
 
-                if (! array_key_exists($operator->matricula, $datos[$ot->id]['operadores'])) {
+                if (!array_key_exists($operator->matricula, $datos[$ot->id]['operadores'])) {
                     $datos[$ot->id]['operadores'][$operator->matricula] = [];
                     $datos[$ot->id]['operadores'][$operator->matricula]['nombre'] = "{$operator->nombre} {$operator->a_paterno} {$operator->a_materno}";
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'] = [];
                 }
 
                 $clase = $clasesCache->get($pieza->id_clase);
-                if (! $clase) {
+                if (!$clase) {
                     continue;
                 }
 
-                if (! array_key_exists($clase->nombre, $datos[$ot->id]['operadores'][$operator->matricula]['clases'])) {
+                if (!array_key_exists($clase->nombre, $datos[$ot->id]['operadores'][$operator->matricula]['clases'])) {
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre] = [];
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['pedido'] = $clase->pedido;
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['procesos'] = $this->asignarProcesosOperador($clase->id, $operator->matricula, $procesosPorClaseOperador);
@@ -267,7 +267,7 @@ class DatosProduccionController extends Controller
     public function asignarProcesosOperador($idClase, $operador, ?array $procesosCache = null)
     {
         if ($procesosCache !== null) {
-            $key = $idClase.'_'.$operador;
+            $key = $idClase . '_' . $operador;
 
             return isset($procesosCache[$key]) ? array_keys($procesosCache[$key]) : [];
         }
@@ -296,11 +296,11 @@ class DatosProduccionController extends Controller
             //Se obtiene la fecha en la que se trabajo la pieza
             $fecha = $pieza->created_at;
             $fecha = $fecha->format('d/m/Y');
-            if (! array_key_exists($operadorName, $operadores)) {
+            if (!array_key_exists($operadorName, $operadores)) {
                 $operadores[$operadorName] = [];
                 $meta = $this->obtenerMeta($pieza, $clase->nombre);
                 $operadores[$operadorName][$fecha] = ['Piezas buenas' => 0, 'Piezas malas' => 0, 'meta' => $meta, 'Productividad' => 0];
-            } elseif (! array_key_exists($fecha, $operadores[$operadorName])) {
+            } elseif (!array_key_exists($fecha, $operadores[$operadorName])) {
                 $operadores[$operadorName][$fecha] = ['Piezas buenas' => 0, 'Piezas malas' => 0];
                 $meta = $this->obtenerMeta($pieza, $clase->nombre);
                 $operadores[$operadorName][$fecha] = ['Piezas buenas' => 0, 'Piezas malas' => 0, 'meta' => $meta, 'Productividad' => 0];
@@ -385,7 +385,7 @@ class DatosProduccionController extends Controller
     {
         //Obtener el id_proceso que esta asociado a la pieza
         $processName = str_replace(' ', '_', $pieza->proceso);
-        $idString = $processName.'_'.$nameClass.'_'.$pieza->id_ot;
+        $idString = $processName . '_' . $nameClass . '_' . $pieza->id_ot;
         $meta = $this->get_idMeta($idString, $pieza);
 
         return $meta ? $meta->meta : 0;
@@ -513,9 +513,9 @@ class DatosProduccionController extends Controller
                     $piezaFounded = Rebajes_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_juego', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
-                // case "Grabado":
-                //     $id_proceso = Grabado::query()->where('id_proceso', '=', $idString, 'and')->first();
-                //     break;
+            // case "Grabado":
+            //     $id_proceso = Grabado::query()->where('id_proceso', '=', $idString, 'and')->first();
+            //     break;
             case 'Operacion Equipo_1 operacion':
             case 'Operacion Equipo_2 operacion':
                 $id_proceso = PySOpeSoldadura::query()->where('id_proceso', '=', $idString, 'and')->first();

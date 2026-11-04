@@ -1243,6 +1243,16 @@ html, body {
     transform: rotate(90deg) scale(1.15);
 }
 
+.colors-legend-container.active .colors-toggle-btn {
+    background: linear-gradient(180deg, #0284c7 0%, var(--gis-blue) 100%);
+    box-shadow: 6px 0 26px rgba(2, 132, 199, 0.5);
+    transform: translateX(3px);
+}
+
+.colors-legend-container.active .colors-toggle-btn .toggle-icon {
+    transform: rotate(270deg) scale(1.15);
+}
+
 .colors-content {
     background: linear-gradient(
         135deg,
@@ -1267,9 +1277,8 @@ html, body {
         transform 0.25s ease;
 }
 
-.colors-legend-container:hover .colors-content,
 .colors-legend-container.active .colors-content {
-    width: 490px;
+    width: 500px;
     opacity: 1;
     transform: translateX(12px);
     padding: 18px 20px;
