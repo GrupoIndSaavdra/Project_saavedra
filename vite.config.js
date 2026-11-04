@@ -100,7 +100,7 @@ export default defineConfig({
                 //Liberar soldadura
                 'resources/js/libs/html5-qrcode.min.js',
                 'resources/css/trackingSoldadura_views/liberarQRPlanta.css',
-                'resources/js/trackingSoldadura/liberarSoldadura.js',
+                'resources/js/TrackingSoldadura/liberarSoldadura.js',
 
                 //Views PTA
                 'resources/css/processes_views/soldaduraPTA_table_partial.css',
