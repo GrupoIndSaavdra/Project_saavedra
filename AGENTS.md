@@ -208,6 +208,12 @@ Usa los componentes ya existentes en `global.css` y `components/*.css`. No reinv
 5. **Ciclo de Aprendizaje Automático (`tools\agent.bat learn`):**
    - Cuando se resuelva un bug complejo o se descubra un nuevo estándar, el agente registrará la lección en `skills/aprendizajes_temp.md`.
    - Periódicamente, o tras ejecutar `.\tools\agent.bat learn`, el agente consolidará los aprendizajes en la skill pertinente y vaciará el buffer temporal.
+6. **Nomenclatura Estricta de Commits Git (En Inglés):**
+   - `FEAT/JAER: <summary>` para nuevas funcionalidades.
+   - `FIX/JAER: <summary>` para corrección de bugs o glitches.
+   - `STYLE/JAER: <summary>` para cambios visuales, CSS, fuentes o animaciones.
+   - `REFACTOR/JAER: <summary>` para mejoras estructurales y limpieza de código.
+   - `DEPLOY/JAER: <summary>` para configuración de despliegues, pipelines CI/CD y workflows hacia ramas de servidor (cPanel/Neubox).
 
 ---
 

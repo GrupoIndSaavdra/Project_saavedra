@@ -501,6 +501,7 @@ Cuando el usuario solicite un mensaje de commit o se finalice una tarea, **el te
    - `FIX/JAER: <short summary in English>` para correcciones de bugs o glitches.
    - `STYLE/JAER: <short summary in English>` para cambios puramente de CSS, diseño, colores, fuentes o animaciones.
    - `REFACTOR/JAER: <short summary in English>` para modularización o mejoras estructurales de código sin cambiar comportamiento.
+   - `DEPLOY/JAER: <short summary in English>` para configuración de despliegues, pipelines CI/CD y workflows hacia ramas de servidor (cPanel/Neubox).
 3. **Estructura Simple:**
    - **Línea de Asunto:** Máximo 72 caracteres, verbo en imperativo (`add`, `fix`, `refactor`, `update`, `optimize`).
    - **Cuerpo Opcional:** Viñetas simples y directas explicando los cambios clave en los componentes modificados.
