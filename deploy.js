@@ -58,20 +58,16 @@ if (fs.existsSync(hotFile)) {
 }
 
 // 2. Compilar assets de producción con Vite
-runCommand('npm run build', '1/5 Compilando assets con Vite');
+runCommand('npm run build', '1/4 Compilando assets con Vite');
 
 // 3. Ejecutar migraciones pendientes e índices de rendimiento
-runCommand('php artisan migrate --force', '2/5 Ejecutando migraciones e índices de rendimiento');
+runCommand('php artisan migrate --force', '2/4 Ejecutando migraciones de base de datos');
 
-// 4. Limpiar cachés previas de Laravel
-runCommand('php artisan optimize:clear', '3/5 Limpiando cachés previas');
+// 4. Limpiar cachés de Laravel (CRÍTICO: nunca usar route:cache en XAMPP/Apache bajo subcarpeta para evitar error 405)
+runCommand('php artisan optimize:clear', '3/4 Limpiando cachés de Laravel (evita conflictos de rutas)');
 
-// 5. Compilar configuración y rutas para máximo rendimiento en producción
-runCommand('php artisan config:cache', '4/5 Compilando caché de configuración');
-runCommand('php artisan route:cache', '4/5 Compilando caché de rutas');
-
-// 6. Precompilar vistas de Blade para rendimiento
-runCommand('php artisan view:cache', '5/5 Precompilando vistas Blade');
+// 5. Precompilar vistas de Blade para rendimiento de renderizado
+runCommand('php artisan view:cache', '4/4 Precompilando vistas Blade');
 
 const elapsedSeconds = ((Date.now() - startTime) / 1000).toFixed(1);
 
