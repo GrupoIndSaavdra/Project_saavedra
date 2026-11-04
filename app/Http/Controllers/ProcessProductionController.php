@@ -53,59 +53,71 @@ class ProcessProductionController extends Controller
      */
     public function show($returnArray = null)
     {
-        // ── OPTIMIZACIÓN: Cache de órdenes de trabajo activas por 5 minutos (evita re-procesar en cada clic de reporte) ──
-        $workOrders = Cache::remember('process_production_work_orders_tree', 300, function () {
-            $wOrdersFounded = Orden_trabajo::query()
-                ->whereHas('clases', function ($q) {
-                    $q->where('finalizada', 0);
-                })
-                ->with([
-                    'moldura:id,nombre',
-                    'clases' => function ($q) {
-                        $q->where('finalizada', 0);
-                    },
-                    'clases.procesos',
-                ])
-                ->get();
-
-            $workOrdersTree = [];
-            if (count($wOrdersFounded) > 0) {
-                foreach ($wOrdersFounded as $workOrder) {
-                    $classes = $workOrder->clases;
-                    if ($classes && $classes->count() > 0) {
-                        foreach ($classes as $key => $class) {
-                            if ($class->finalizada == 0) {
-                                $baseType = $class->getBaseType();
-                                if (! empty($baseType)) {
-                                    $processes = $class->procesos;
-                                    if (! $processes) {
-                                        $processes = new Procesos();
-                                        $processes->id_clase = $class->id;
-                                        $processes->save();
-                                    }
-                                    $orderedProcesses = $this->setOrderedProcess($class, $processes);
-                                    if (! empty($orderedProcesses)) {
-                                        if (! array_key_exists($workOrder->id, $workOrdersTree)) {
-                                            $workOrdersTree[$workOrder->id] = [];
-                                            $workOrdersTree[$workOrder->id]['moldura'] = $workOrder->moldura ? $workOrder->moldura->nombre : 'Moldura no encontrada';
-                                        }
-                                        $workOrdersTree[$workOrder->id][$baseType] = $orderedProcesses;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            return count($workOrdersTree) > 0 ? $workOrdersTree : null;
-        });
+        // ── OPTIMIZACIÓN: Cache en archivo de órdenes de trabajo activas por 5 minutos (driver file para no saturar MySQL) ──
+        try {
+            $workOrders = Cache::store('file')->remember('process_production_work_orders_tree', 300, function () {
+                return $this->buildActiveWorkOrdersTree();
+            });
+        } catch (\Throwable $e) {
+            $workOrders = $this->buildActiveWorkOrdersTree();
+        }
 
         if ($returnArray != null) {
             return $workOrders; // Si se solicita un array, se retorna el array de órdenes de trabajo
         }
 
         return view('processes_views.processProduction_view', compact('workOrders'));
+    }
+
+    /**
+     * Construye el árbol de órdenes de trabajo activas con sus clases y procesos.
+     */
+    protected function buildActiveWorkOrdersTree()
+    {
+        $wOrdersFounded = Orden_trabajo::query()
+            ->whereHas('clases', function ($q) {
+                $q->where('finalizada', 0);
+            })
+            ->with([
+                'moldura:id,nombre',
+                'clases' => function ($q) {
+                    $q->where('finalizada', 0);
+                },
+                'clases.procesos',
+            ])
+            ->get();
+
+        $workOrdersTree = [];
+        if (count($wOrdersFounded) > 0) {
+            foreach ($wOrdersFounded as $workOrder) {
+                $classes = $workOrder->clases;
+                if ($classes && $classes->count() > 0) {
+                    foreach ($classes as $key => $class) {
+                        if ($class->finalizada == 0) {
+                            $baseType = $class->getBaseType();
+                            if (! empty($baseType)) {
+                                $processes = $class->procesos;
+                                if (! $processes) {
+                                    $processes = new Procesos();
+                                    $processes->id_clase = $class->id;
+                                    $processes->save();
+                                }
+                                $orderedProcesses = $this->setOrderedProcess($class, $processes);
+                                if (! empty($orderedProcesses)) {
+                                    if (! array_key_exists($workOrder->id, $workOrdersTree)) {
+                                        $workOrdersTree[$workOrder->id] = [];
+                                        $workOrdersTree[$workOrder->id]['moldura'] = $workOrder->moldura ? $workOrder->moldura->nombre : 'Moldura no encontrada';
+                                    }
+                                    $workOrdersTree[$workOrder->id][$baseType] = $orderedProcesses;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return count($workOrdersTree) > 0 ? $workOrdersTree : null;
     }
 
     /**
