@@ -423,6 +423,21 @@ class PzasGeneralesController extends Controller
         $query->select(['id', 'id_ot', 'id_clase', 'n_pieza', 'id_operador', 'maquina', 'proceso', 'error', 'liberacion', 'fecha_liberacion', 'user_liberacion', 'observacion_liberacion', 'created_at'])
             ->orderBy('id', $orderDir);
 
+        // ── OPTIMIZACIÓN: Si la vista es web (no PDF) y no se especificó ningún filtro de búsqueda (pantalla inicial),
+        // limitar a las 1,500 piezas más recientes para evitar renderizar 3 MB de DOM y acelerar la carga de 20s a <200ms.
+        $hasActiveFilters = false;
+        foreach (['workOrder', 'class', 'operator', 'machine', 'process', 'error', 'dateFrom', 'dateTo', 'n_juego'] as $filterKey) {
+            $val = $piecesData[$filterKey] ?? null;
+            if ($val !== null && $val !== 'Todos' && $val !== '') {
+                $hasActiveFilters = true;
+                break;
+            }
+        }
+
+        if (! $isPdf && ! $hasActiveFilters) {
+            $query->limit(1500);
+        }
+
         $piezas = $query->get();
 
         return $piezas->isEmpty() ? [] : $this->saveInArray($piezas, $includeObservations, $includeFinished);

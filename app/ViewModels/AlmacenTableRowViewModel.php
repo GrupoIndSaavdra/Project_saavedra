@@ -2883,13 +2883,7 @@ class AlmacenTableRowViewModel
         $hasFilesOrControl = $count > 0 || $showControlCard;
 
         // DEBUG MARKER
-        echo "<!-- DEBUG OT: {$reg->ot}, estado: {$estado}, isFinalized: " .
-            ($isFinalized ? 'true' : 'false') .
-            ', isCalidadAlerted: ' .
-            ($isCalidadAlerted ? 'true' : 'false') .
-            ', showControlCard: ' .
-            ($showControlCard ? 'true' : 'false') .
-            ' -->';
+        // echo "<!-- DEBUG OT: {$reg->ot}... -->";
 
         $estadoConfig = \App\Services\FundicionStateService::resolverEstadoOT(
             $reg,

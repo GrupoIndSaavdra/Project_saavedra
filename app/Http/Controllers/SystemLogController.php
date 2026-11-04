@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -251,120 +252,126 @@ class SystemLogController extends Controller
 
     public function index(Request $request)
     {
-        // 1. Obtener valores ÚNICOS para los filtros usando DB::table() en lugar de Eloquent.
+        // 1. Obtener valores ÚNICOS para los filtros usando DB::table() en lugar de Eloquent con Cache por 1 hora.
         // DB::table() devuelve stdClass simples — NUNCA instancia modelos Eloquent ni su
         // GuardsAttributes, evitando el agotamiento de memoria con tablas grandes.
-        $filtrosDisponibles = [
-            'ot' => DB::table('system_logs')
-                ->select(['system_logs.id_ot', 'system_logs.ot', 'molduras.nombre as moldura_nombre'])
-                ->leftJoin('orden_trabajo', 'system_logs.id_ot', '=', 'orden_trabajo.id')
-                ->leftJoin('molduras', 'orden_trabajo.id_moldura', '=', 'molduras.id')
-                ->whereNotNull('system_logs.ot')
-                ->distinct()
-                ->get()
-                ->map(function ($val) {
-                    $idBase = preg_match('/^(\d+)/', $val->ot, $m) ? $m[1] : $val->ot;
-                    if ($val->moldura_nombre) {
-                        return "{$idBase} - {$val->moldura_nombre}";
-                    }
+        $isAdminOnly = $request->filled('admin_only') && $request->admin_only == 1;
+        $cacheKey = 'system_logs_filtros_'.($isAdminOnly ? 'admin_only' : 'all');
 
-                    return $val->ot;
-                })
-                ->filter()
-                ->unique()
-                ->sort()
-                ->values(),
-
-            'clase' => DB::table('system_logs')
-                ->select(['system_logs.clase', 'clases.nombre as clase_nombre'])
-                ->leftJoin('clases', 'system_logs.id_clase', '=', 'clases.id')
-                ->whereNotNull('system_logs.clase')
-                ->distinct()
-                ->get()
-                ->map(function ($val) {
-                    if ($val->clase_nombre) {
-                        return $val->clase_nombre;
-                    }
-
-                    return preg_match('/^\d+$/', $val->clase) ? null : $val->clase;
-                })
-                ->filter()
-                ->unique()
-                ->sort()
-                ->values(),
-
-            'proceso' => DB::table('system_logs')
-                ->distinct()
-                ->whereNotNull('proceso')
-                ->orderBy('proceso')
-                ->pluck('proceso'),
-
-            'maquina' => DB::table('system_logs')
-                ->distinct()
-                ->whereNotNull('maquina')
-                ->orderBy('maquina')
-                ->pluck('maquina'),
-
-            'action' => $request->filled('admin_only') && $request->admin_only == 1
-                ? collect([
-                    'Inicio de Sesión',
-                    'Cierre de Sesión',
-                    'Cargo de OT',
-                    'Cargo de Clase de OT',
-                    'Modificación de OT',
-                    'Cargo/Modificación Cotas Nominales',
-                    'Desocupación de Máquina',
-                    'Subida de Dibujo',
-                    'Eliminación de Dibujo',
-                    'Reemplazo de Dibujo',
-                    'Creación de Carpeta',
-                    'Subida de Manual',
-                    'Eliminación de Manual',
-                    'Reemplazo de Manual',
-                    'Subida de Ayuda Visual',
-                    'Eliminación de Ayuda Visual',
-                    'Reemplazo de Ayuda Visual',
-                    'Subida de Dibujo Fundición',
-                    'Eliminación de Dibujo Fundición',
-                    'Reemplazo de Dibujo Fundición',
-                    'Visualización de Dibujo',
-                    'Autorización de Edición',
-                ])->sort()->values()
-                : DB::table('system_logs')
+        $filtrosDisponibles = Cache::remember($cacheKey, 3600, function () use ($isAdminOnly) {
+            $filtros = [
+                'ot' => DB::table('system_logs')
+                    ->select(['system_logs.id_ot', 'system_logs.ot', 'molduras.nombre as moldura_nombre'])
+                    ->leftJoin('orden_trabajo', 'system_logs.id_ot', '=', 'orden_trabajo.id')
+                    ->leftJoin('molduras', 'orden_trabajo.id_moldura', '=', 'molduras.id')
+                    ->whereNotNull('system_logs.ot')
                     ->distinct()
-                    ->whereNotNull('action')
-                    ->orderBy('action')
-                    ->pluck('action'),
-        ];
+                    ->get()
+                    ->map(function ($val) {
+                        $idBase = preg_match('/^(\d+)/', $val->ot, $m) ? $m[1] : $val->ot;
+                        if ($val->moldura_nombre) {
+                            return "{$idBase} - {$val->moldura_nombre}";
+                        }
 
-        // Obtener operadores únicos de forma eficiente
-        // En modo admin_only, solo mostrar administradores (perfil == 1)
-        $filtrosDisponibles['operador'] = DB::table('system_logs')
-            ->select(['system_logs.user_matricula', 'users.nombre', 'users.a_paterno', 'users.perfil'])
-            ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
-            ->whereNotNull('system_logs.user_matricula')
-            ->when($request->filled('admin_only') && $request->admin_only == 1, fn ($q) => $q->whereIn('users.perfil', [1, 3, 6]))
-            ->distinct()
-            ->get()
-            ->map(fn ($o) => (object) [
-                'matricula' => $o->user_matricula,
-                'nombre' => $o->nombre,
-                'a_paterno' => $o->a_paterno,
-            ]);
+                        return $val->ot;
+                    })
+                    ->filter()
+                    ->unique()
+                    ->sort()
+                    ->values(),
 
-        // Obtener N# Pieza (Juegos) simplificado — sin Eloquent para evitar hidratación de modelos
-        $filtrosDisponibles['n_pieza'] = DB::table('system_logs')
-            ->distinct()
-            ->whereNotNull('n_pieza')
-            ->where('n_pieza', 'NOT LIKE', '%/%')
-            ->orderBy('n_pieza')
-            ->pluck('n_pieza')
-            ->map(function ($p) {
-                $num = preg_replace('/[a-zA-Z]/', '', (string) $p);
+                'clase' => DB::table('system_logs')
+                    ->select(['system_logs.clase', 'clases.nombre as clase_nombre'])
+                    ->leftJoin('clases', 'system_logs.id_clase', '=', 'clases.id')
+                    ->whereNotNull('system_logs.clase')
+                    ->distinct()
+                    ->get()
+                    ->map(function ($val) {
+                        if ($val->clase_nombre) {
+                            return $val->clase_nombre;
+                        }
 
-                return $num ? $num.'J' : null;
-            })
-            ->filter()->unique()->sort()->values();
+                        return preg_match('/^\d+$/', $val->clase) ? null : $val->clase;
+                    })
+                    ->filter()
+                    ->unique()
+                    ->sort()
+                    ->values(),
+
+                'proceso' => DB::table('system_logs')
+                    ->distinct()
+                    ->whereNotNull('proceso')
+                    ->orderBy('proceso')
+                    ->pluck('proceso'),
+
+                'maquina' => DB::table('system_logs')
+                    ->distinct()
+                    ->whereNotNull('maquina')
+                    ->orderBy('maquina')
+                    ->pluck('maquina'),
+
+                'action' => $isAdminOnly
+                    ? collect([
+                        'Inicio de Sesión',
+                        'Cierre de Sesión',
+                        'Cargo de OT',
+                        'Cargo de Clase de OT',
+                        'Modificación de OT',
+                        'Cargo/Modificación Cotas Nominales',
+                        'Desocupación de Máquina',
+                        'Subida de Dibujo',
+                        'Eliminación de Dibujo',
+                        'Reemplazo de Dibujo',
+                        'Creación de Carpeta',
+                        'Subida de Manual',
+                        'Eliminación de Manual',
+                        'Reemplazo de Manual',
+                        'Subida de Ayuda Visual',
+                        'Eliminación de Ayuda Visual',
+                        'Reemplazo de Ayuda Visual',
+                        'Subida de Dibujo Fundición',
+                        'Eliminación de Dibujo Fundición',
+                        'Reemplazo de Dibujo Fundición',
+                        'Visualización de Dibujo',
+                        'Autorización de Edición',
+                    ])->sort()->values()
+                    : DB::table('system_logs')
+                        ->distinct()
+                        ->whereNotNull('action')
+                        ->orderBy('action')
+                        ->pluck('action'),
+            ];
+
+            // Obtener operadores únicos de forma eficiente
+            $filtros['operador'] = DB::table('system_logs')
+                ->select(['system_logs.user_matricula', 'users.nombre', 'users.a_paterno', 'users.perfil'])
+                ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
+                ->whereNotNull('system_logs.user_matricula')
+                ->when($isAdminOnly, fn ($q) => $q->whereIn('users.perfil', [1, 3, 6]))
+                ->distinct()
+                ->get()
+                ->map(fn ($o) => (object) [
+                    'matricula' => $o->user_matricula,
+                    'nombre' => $o->nombre,
+                    'a_paterno' => $o->a_paterno,
+                ]);
+
+            // Obtener N# Pieza (Juegos) simplificado
+            $filtros['n_pieza'] = DB::table('system_logs')
+                ->distinct()
+                ->whereNotNull('n_pieza')
+                ->where('n_pieza', 'NOT LIKE', '%/%')
+                ->orderBy('n_pieza')
+                ->pluck('n_pieza')
+                ->map(function ($p) {
+                    $num = preg_replace('/[a-zA-Z]/', '', (string) $p);
+
+                    return $num ? $num.'J' : null;
+                })
+                ->filter()->unique()->sort()->values();
+
+            return $filtros;
+        });
 
         // 2. Preparar la consulta principal con paginación
         $query = SystemLog::query()->select([

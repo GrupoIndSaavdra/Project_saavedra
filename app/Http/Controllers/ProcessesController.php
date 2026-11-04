@@ -50,6 +50,7 @@ use App\Models\SegundaOpeSoldadura_cnominal;
 use App\Models\SegundaOpeSoldadura_tolerancia;
 use App\Models\SystemLog;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 class ProcessesController extends Controller
 {
@@ -60,137 +61,140 @@ class ProcessesController extends Controller
 
     public function show_cNominalsView()
     {
-        $wOrdersFounded = Orden_trabajo::all();
-        $workOrders = [];
+        // ── OPTIMIZACIÓN: Cache de estructura de Cotas Nominales por 10 minutos (evita 690+ queries de tablas cnominal/tolerancia) ──
+        $workOrders = Cache::remember('processes_cnominals_work_orders_tree', 600, function () {
+            $wOrdersFounded = Orden_trabajo::all();
+            $workOrdersTree = [];
 
-        // Optimización: Precargar catalogos en memoria
-        $todasClases = Clase::all()->groupBy('id_ot');
-        $todasMolduras = Moldura::all()->keyBy('id');
-        $todosProcesos = Procesos::all()->keyBy('id_clase');
+            // Optimización: Precargar catalogos en memoria
+            $todasClases = Clase::all()->groupBy('id_ot');
+            $todasMolduras = Moldura::all()->keyBy('id');
+            $todosProcesos = Procesos::all()->keyBy('id_clase');
 
-        if (count($wOrdersFounded) > 0) {
-            foreach ($wOrdersFounded as $workOrder) {
-                $classes = $todasClases->get($workOrder->id, collect());
-                //Filtrar clases no finalizadas
-                $classes = $classes->filter(function ($item) {
-                    return $item->finalizada == 0;
-                });
+            if (count($wOrdersFounded) > 0) {
+                foreach ($wOrdersFounded as $workOrder) {
+                    $classes = $todasClases->get($workOrder->id, collect());
+                    //Filtrar clases no finalizadas
+                    $classes = $classes->filter(function ($item) {
+                        return $item->finalizada == 0;
+                    });
 
-                if (count($classes) > 0) {
-                    $molding = $todasMolduras->get($workOrder->id_moldura);
-                    $moldingName = $molding ? $molding->nombre : 'Sin Moldura';
-                    $workOrderTxt = $workOrder->id.' - '.$moldingName;
-                    $workOrders[$workOrderTxt] = [];
-                    foreach ($classes as $class) {
-                        $processes = $todosProcesos->get($class->id);
-                        if ($processes) {
-                            $workOrders[$workOrderTxt][$class->nombre] = [];
-                            foreach ($processes->getAttributes() as $process => $valor) {
-                                if (($process != 'id' && $process != 'id_clase' && $process != 'soldadura' && $process != 'soldaduraPTA' && $process != 'rectificado' && $process != 'asentado' && $process != 'grabado') && $valor != 0) {
-                                    $processString = $this->convertProcessToString($process);
-                                    if (! $processString) {
-                                        continue; // Skip fields with no C.Nominales form
-                                    }
-                                    $workOrders[$workOrderTxt][$class->nombre][$processString] = [];
-                                    if ($processString == 'Operacion Equipo') {
-                                        for ($i = 1; $i <= 2; $i++) {
-                                            $workOrders[$workOrderTxt][$class->nombre][$processString][$i.' operacion'] = [];
-                                            $data = $this->searchCNominals($class, $processString, $i.' operacion');
+                    if (count($classes) > 0) {
+                        $molding = $todasMolduras->get($workOrder->id_moldura);
+                        $moldingName = $molding ? $molding->nombre : 'Sin Moldura';
+                        $workOrderTxt = $workOrder->id.' - '.$moldingName;
+                        $workOrdersTree[$workOrderTxt] = [];
+                        foreach ($classes as $class) {
+                            $processes = $todosProcesos->get($class->id);
+                            if ($processes) {
+                                $workOrdersTree[$workOrderTxt][$class->nombre] = [];
+                                foreach ($processes->getAttributes() as $process => $valor) {
+                                    if (($process != 'id' && $process != 'id_clase' && $process != 'soldadura' && $process != 'soldaduraPTA' && $process != 'rectificado' && $process != 'asentado' && $process != 'grabado') && $valor != 0) {
+                                        $processString = $this->convertProcessToString($process);
+                                        if (! $processString) {
+                                            continue; // Skip fields with no C.Nominales form
+                                        }
+                                        $workOrdersTree[$workOrderTxt][$class->nombre][$processString] = [];
+                                        if ($processString == 'Operacion Equipo') {
+                                            for ($i = 1; $i <= 2; $i++) {
+                                                $workOrdersTree[$workOrderTxt][$class->nombre][$processString][$i.' operacion'] = [];
+                                                $data = $this->searchCNominals($class, $processString, $i.' operacion');
+                                                if ($data) {
+                                                    foreach ($data as $key => $value) {
+                                                        $workOrdersTree[$workOrderTxt][$class->nombre][$processString][$i.' operacion'][$key] = $value;
+                                                    }
+                                                }
+                                            }
+                                        } elseif ($processString == 'Copiado') {
+                                            $subProcesses = ['Cilindrado', 'Cavidades'];
+                                            foreach ($subProcesses as $subprocess) {
+                                                $workOrdersTree[$workOrderTxt][$class->nombre][$processString][$subprocess] = [];
+                                                $data = $this->searchCNominals($class, $processString, $subprocess);
+                                                if ($data) {
+                                                    foreach ($data as $key => $value) {
+                                                        $workOrdersTree[$workOrderTxt][$class->nombre][$processString][$subprocess][$key] = $value;
+                                                    }
+                                                }
+                                            }
+                                        } else {
+                                            //Insertar cotas y tolerancias de cada proceso que no sea Copiado o 1 y 2 Operacion Equipo
+                                            $data = $this->searchCNominals($class, $processString);
                                             if ($data) {
                                                 foreach ($data as $key => $value) {
-                                                    $workOrders[$workOrderTxt][$class->nombre][$processString][$i.' operacion'][$key] = $value;
+                                                    $workOrdersTree[$workOrderTxt][$class->nombre][$processString][$key] = $value;
                                                 }
                                             }
                                         }
-                                    } elseif ($processString == 'Copiado') {
-                                        $subProcesses = ['Cilindrado', 'Cavidades'];
-                                        foreach ($subProcesses as $subprocess) {
-                                            $workOrders[$workOrderTxt][$class->nombre][$processString][$subprocess] = [];
-                                            $data = $this->searchCNominals($class, $processString, $subprocess);
-                                            if ($data) {
-                                                foreach ($data as $key => $value) {
-                                                    $workOrders[$workOrderTxt][$class->nombre][$processString][$subprocess][$key] = $value;
+                                    }
+                                }
+                            } else {
+                                // Clase sin entrada en tabla procesos — la agregamos vacía
+                                // para que el fallback la procese y pueda cargar datos existentes
+                                $workOrdersTree[$workOrderTxt][$class->nombre] = [];
+                            }
+                        }
+                    }
+                }
+            }
+            $workOrdersTree = count($workOrdersTree) > 0 ? $workOrdersTree : null;
+
+            // Fallback: si una clase no tiene procesos registrados o los tiene en formato legacy,
+            // se añade la estructura por defecto Y se cargan los datos existentes de BD.
+            if ($workOrdersTree) {
+                foreach ($workOrdersTree as $wot => $classes) {
+                    foreach ($classes as $className => $procs) {
+                        if (empty($procs)) {
+                            $defaultProcesses = $this->getDefaultProcessesByClass($className);
+                            if ($defaultProcesses) {
+                                // Extraer ID usando Regex para ignorar cualquier símbolo (-, /, \, etc.)
+                                preg_match('/^(\d+)/', $wot, $matches);
+                                $otId = $matches[1] ?? $wot;
+                                $claseObj = Clase::query()
+                                    ->where('nombre', '=', $className)
+                                    ->where('id_ot', '=', $otId)
+                                    ->where('finalizada', '=', 0)
+                                    ->first();
+
+                                foreach ($defaultProcesses as $proc) {
+                                    if ($proc === 'Operacion Equipo') {
+                                        $workOrdersTree[$wot][$className][$proc] = [
+                                            '1 operacion' => [],
+                                            '2 operacion' => [],
+                                        ];
+                                        // Cargar datos existentes si los hay
+                                        if ($claseObj) {
+                                            for ($i = 1; $i <= 2; $i++) {
+                                                $data = $this->searchCNominals($claseObj, $proc, $i.' operacion');
+                                                if ($data) {
+                                                    foreach ($data as $key => $value) {
+                                                        $workOrdersTree[$wot][$className][$proc][$i.' operacion'][$key] = $value;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    } elseif ($proc === 'Copiado') {
+                                        $workOrdersTree[$wot][$className][$proc] = [
+                                            'Cilindrado' => [],
+                                            'Cavidades' => [],
+                                        ];
+                                        if ($claseObj) {
+                                            foreach (['Cilindrado', 'Cavidades'] as $sub) {
+                                                $data = $this->searchCNominals($claseObj, $proc, $sub);
+                                                if ($data) {
+                                                    foreach ($data as $key => $value) {
+                                                        $workOrdersTree[$wot][$className][$proc][$sub][$key] = $value;
+                                                    }
                                                 }
                                             }
                                         }
                                     } else {
-                                        //Insertar cotas y tolerancias de cada proceso que no sea Copiado o 1 y 2 Operacion Equipo
-                                        $data = $this->searchCNominals($class, $processString);
-                                        if ($data) {
-                                            foreach ($data as $key => $value) {
-                                                $workOrders[$workOrderTxt][$class->nombre][$processString][$key] = $value;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        } else {
-                            // Clase sin entrada en tabla procesos — la agregamos vacía
-                            // para que el fallback la procese y pueda cargar datos existentes
-                            $workOrders[$workOrderTxt][$class->nombre] = [];
-                        }
-                    }
-                }
-            }
-        }
-        $workOrders = count($workOrders) > 0 ? $workOrders : null;
-
-        // Fallback: si una clase no tiene procesos registrados o los tiene en formato legacy,
-        // se añade la estructura por defecto Y se cargan los datos existentes de BD.
-        if ($workOrders) {
-            foreach ($workOrders as $wot => $classes) {
-                foreach ($classes as $className => $procs) {
-                    if (empty($procs)) {
-                        $defaultProcesses = $this->getDefaultProcessesByClass($className);
-                        if ($defaultProcesses) {
-                            // Extraer ID usando Regex para ignorar cualquier símbolo (-, /, \, etc.)
-                            preg_match('/^(\d+)/', $wot, $matches);
-                            $otId = $matches[1] ?? $wot;
-                            $claseObj = Clase::query()
-                                ->where('nombre', '=', $className)
-                                ->where('id_ot', '=', $otId)
-                                ->where('finalizada', '=', 0)
-                                ->first();
-
-                            foreach ($defaultProcesses as $proc) {
-                                if ($proc === 'Operacion Equipo') {
-                                    $workOrders[$wot][$className][$proc] = [
-                                        '1 operacion' => [],
-                                        '2 operacion' => [],
-                                    ];
-                                    // Cargar datos existentes si los hay
-                                    if ($claseObj) {
-                                        for ($i = 1; $i <= 2; $i++) {
-                                            $data = $this->searchCNominals($claseObj, $proc, $i.' operacion');
+                                        $workOrdersTree[$wot][$className][$proc] = [];
+                                        if ($claseObj) {
+                                            $data = $this->searchCNominals($claseObj, $proc);
                                             if ($data) {
                                                 foreach ($data as $key => $value) {
-                                                    $workOrders[$wot][$className][$proc][$i.' operacion'][$key] = $value;
+                                                    $workOrdersTree[$wot][$className][$proc][$key] = $value;
                                                 }
-                                            }
-                                        }
-                                    }
-                                } elseif ($proc === 'Copiado') {
-                                    $workOrders[$wot][$className][$proc] = [
-                                        'Cilindrado' => [],
-                                        'Cavidades' => [],
-                                    ];
-                                    if ($claseObj) {
-                                        foreach (['Cilindrado', 'Cavidades'] as $sub) {
-                                            $data = $this->searchCNominals($claseObj, $proc, $sub);
-                                            if ($data) {
-                                                foreach ($data as $key => $value) {
-                                                    $workOrders[$wot][$className][$proc][$sub][$key] = $value;
-                                                }
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    $workOrders[$wot][$className][$proc] = [];
-                                    if ($claseObj) {
-                                        $data = $this->searchCNominals($claseObj, $proc);
-                                        if ($data) {
-                                            foreach ($data as $key => $value) {
-                                                $workOrders[$wot][$className][$proc][$key] = $value;
                                             }
                                         }
                                     }
@@ -200,7 +204,9 @@ class ProcessesController extends Controller
                     }
                 }
             }
-        }
+
+            return $workOrdersTree;
+        });
 
         $pieces_Released = [];
         $info_Pieces = [];
@@ -478,6 +484,8 @@ class ProcessesController extends Controller
             'proceso' => $request->input('process'),
             'id_ot' => $workOrderId,
         ]);
+
+        Cache::forget('processes_cnominals_work_orders_tree');
 
         $successMessage = 'Datos de '.$request->input('process').' guardados correctamente.';
 

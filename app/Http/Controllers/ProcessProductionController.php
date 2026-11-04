@@ -19,6 +19,7 @@ use Carbon\Carbon;
 use DateTime;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
@@ -52,51 +53,54 @@ class ProcessProductionController extends Controller
      */
     public function show($returnArray = null)
     {
-        // ── OPTIMIZACIÓN: eager loading de moldura, clases activas y procesos evita 268 queries N+1 ──
-        $wOrdersFounded = Orden_trabajo::query()
-            ->whereHas('clases', function ($q) {
-                $q->where('finalizada', 0);
-            })
-            ->with([
-                'moldura:id,nombre',
-                'clases' => function ($q) {
+        // ── OPTIMIZACIÓN: Cache de órdenes de trabajo activas por 5 minutos (evita re-procesar en cada clic de reporte) ──
+        $workOrders = Cache::remember('process_production_work_orders_tree', 300, function () {
+            $wOrdersFounded = Orden_trabajo::query()
+                ->whereHas('clases', function ($q) {
                     $q->where('finalizada', 0);
-                },
-                'clases.procesos',
-            ])
-            ->get();
+                })
+                ->with([
+                    'moldura:id,nombre',
+                    'clases' => function ($q) {
+                        $q->where('finalizada', 0);
+                    },
+                    'clases.procesos',
+                ])
+                ->get();
 
-        $workOrders = [];
-        if (count($wOrdersFounded) > 0) {
-            foreach ($wOrdersFounded as $workOrder) {
-                $classes = $workOrder->clases;
-                if ($classes && $classes->count() > 0) {
-                    foreach ($classes as $key => $class) {
-                        if ($class->finalizada == 0) {
-                            $baseType = $class->getBaseType();
-                            if (! empty($baseType)) {
-                                $processes = $class->procesos;
-                                if (! $processes) {
-                                    $processes = new Procesos();
-                                    $processes->id_clase = $class->id;
-                                    $processes->save();
-                                }
-                                $orderedProcesses = $this->setOrderedProcess($class, $processes);
-                                if (! empty($orderedProcesses)) {
-                                    if (! array_key_exists($workOrder->id, $workOrders)) {
-                                        $workOrders[$workOrder->id] = [];
-                                        // Moldura ya cargada (0 queries)
-                                        $workOrders[$workOrder->id]['moldura'] = $workOrder->moldura ? $workOrder->moldura->nombre : 'Moldura no encontrada';
+            $workOrdersTree = [];
+            if (count($wOrdersFounded) > 0) {
+                foreach ($wOrdersFounded as $workOrder) {
+                    $classes = $workOrder->clases;
+                    if ($classes && $classes->count() > 0) {
+                        foreach ($classes as $key => $class) {
+                            if ($class->finalizada == 0) {
+                                $baseType = $class->getBaseType();
+                                if (! empty($baseType)) {
+                                    $processes = $class->procesos;
+                                    if (! $processes) {
+                                        $processes = new Procesos();
+                                        $processes->id_clase = $class->id;
+                                        $processes->save();
                                     }
-                                    $workOrders[$workOrder->id][$baseType] = $orderedProcesses;
+                                    $orderedProcesses = $this->setOrderedProcess($class, $processes);
+                                    if (! empty($orderedProcesses)) {
+                                        if (! array_key_exists($workOrder->id, $workOrdersTree)) {
+                                            $workOrdersTree[$workOrder->id] = [];
+                                            $workOrdersTree[$workOrder->id]['moldura'] = $workOrder->moldura ? $workOrder->moldura->nombre : 'Moldura no encontrada';
+                                        }
+                                        $workOrdersTree[$workOrder->id][$baseType] = $orderedProcesses;
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
-        $workOrders = count($workOrders) > 0 ? $workOrders : null;
+
+            return count($workOrdersTree) > 0 ? $workOrdersTree : null;
+        });
+
         if ($returnArray != null) {
             return $workOrders; // Si se solicita un array, se retorna el array de órdenes de trabajo
         }
@@ -3163,6 +3167,10 @@ class ProcessProductionController extends Controller
         $orderedProcesses = $this->setOrderedProcess($class);
 
         if ($orderedProcesses) {
+            // ── OPTIMIZACIÓN: Pre-cargar piezas de la clase y usuarios para evitar 500+ queries N+1 ──
+            $allPieces = Pieza::query()->where('id_clase', $class->id)->get()->groupBy('proceso');
+            $usersCache = User::query()->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])->get()->keyBy('matricula');
+
             $soldaduraIncluded = false;
             foreach ($orderedProcesses as $processName) {
                 // Modificación para agrupar Soldadura y Soldadura PTA
@@ -3178,7 +3186,7 @@ class ProcessProductionController extends Controller
                     foreach ($subprocesses as $subprocess) {
                         $processes[$subprocess] = [];
                         $piecesBadData = [];
-                        $processes[$subprocess]['pieces'] = $this->getPieces($class, $subprocess, $piecesBadData);
+                        $processes[$subprocess]['pieces'] = $this->getPieces($class, $subprocess, $piecesBadData, $allPieces, $usersCache);
                         $processes[$subprocess]['piecesBadData'] = $piecesBadData;
                     }
 
@@ -3189,7 +3197,7 @@ class ProcessProductionController extends Controller
 
                 $processes[$processNameKey] = [];
                 $piecesBadData = [];
-                $processes[$processNameKey]['pieces'] = $this->getPieces($class, $processNameKey, $piecesBadData);
+                $processes[$processNameKey]['pieces'] = $this->getPieces($class, $processNameKey, $piecesBadData, $allPieces, $usersCache);
                 $processes[$processNameKey]['piecesBadData'] = $piecesBadData;
             }
         }
@@ -3201,8 +3209,10 @@ class ProcessProductionController extends Controller
      * @param  mixed  $class
      * @param  mixed  $processName
      * @param  mixed  &$piecesBadData
+     * @param  mixed  $allPiecesCache
+     * @param  mixed  $usersCache
      */
-    public function getPieces($class, $processName, &$piecesBadData)
+    public function getPieces($class, $processName, &$piecesBadData, $allPiecesCache = null, $usersCache = null)
     {
         $setStoredParts = [];
         $piecesArray = [];
@@ -3213,7 +3223,8 @@ class ProcessProductionController extends Controller
         $processNamesArray = $processName == 'Soldadura y Soldadura PTA' ? ['Soldadura', 'Soldadura PTA'] : [$processName];
 
         foreach ($processNamesArray as $pName) {
-            $pieces = Pieza::query()->where('proceso', $pName)->where('id_clase', $class->id)->get();
+            $pieces = $allPiecesCache ? $allPiecesCache->get($pName, collect()) : Pieza::query()->where('proceso', $pName)->where('id_clase', $class->id)->get();
+            $piecesIndex = $allPiecesCache ? $pieces->keyBy('n_pieza') : null;
 
             if (count($pieces) > 0) {
                 foreach ($pieces as $piece) {
@@ -3225,8 +3236,8 @@ class ProcessProductionController extends Controller
                             if (! in_array($noSet, $setStoredParts)) {
                                 array_push($setStoredParts, $noSet);
 
-                                $pFemale = Pieza::query()->where('n_pieza', $noSet.'H')->where('id_clase', $class->id)->where('proceso', $pName)->first();
-                                $pMale = Pieza::query()->where('n_pieza', $noSet.'M')->where('id_clase', $class->id)->where('proceso', $pName)->first();
+                                $pFemale = $piecesIndex ? $piecesIndex->get($noSet.'H') : Pieza::query()->where('n_pieza', $noSet.'H')->where('id_clase', $class->id)->where('proceso', $pName)->first();
+                                $pMale = $piecesIndex ? $piecesIndex->get($noSet.'M') : Pieza::query()->where('n_pieza', $noSet.'M')->where('id_clase', $class->id)->where('proceso', $pName)->first();
 
                                 if ($pFemale && $pMale) {
                                     if ($pFemale->liberacion == 0) {
@@ -3238,10 +3249,10 @@ class ProcessProductionController extends Controller
                                                 if (in_array($pFemale->error, ['Fundicion', 'Fundición']) || in_array($pMale->error, ['Fundicion', 'Fundición'])) {
                                                     array_push($piecesArray['bad'], $pFemale, $pMale);
                                                     if (in_array($pFemale->error, ['Fundicion', 'Fundición'])) {
-                                                        array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                                        array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
                                                     }
                                                     if (in_array($pMale->error, ['Fundicion', 'Fundición'])) {
-                                                        array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                                        array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
                                                     }
                                                 } else {
                                                     array_push($piecesArray['good'], $pFemale, $pMale);
@@ -3249,10 +3260,10 @@ class ProcessProductionController extends Controller
                                             } else {
                                                 array_push($piecesArray['bad'], $pFemale, $pMale);
                                                 if ($pFemale->error != 'Ninguno') {
-                                                    array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                                    array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
                                                 }
                                                 if ($pMale->error != 'Ninguno') {
-                                                    array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                                    array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
                                                 }
                                             }
                                         }
@@ -3261,21 +3272,21 @@ class ProcessProductionController extends Controller
                                     } else {
                                         array_push($piecesArray['bad'], $pFemale, $pMale);
                                         if ($pFemale->error != 'Ninguno') {
-                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale));
+                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale, null, '- - - ', $usersCache));
                                         } else {
-                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale, 'Rechazada'));
+                                            array_push($piecesBadData, $this->getBadPiecesData($pFemale, 'Rechazada', '- - - ', $usersCache));
                                         }
                                         if ($pMale->error != 'Ninguno') {
-                                            array_push($piecesBadData, $this->getBadPiecesData($pMale));
+                                            array_push($piecesBadData, $this->getBadPiecesData($pMale, null, '- - - ', $usersCache));
                                         } else {
-                                            array_push($piecesBadData, $this->getBadPiecesData($pMale, 'Rechazada'));
+                                            array_push($piecesBadData, $this->getBadPiecesData($pMale, 'Rechazada', '- - - ', $usersCache));
                                         }
                                     }
                                 } else {
                                     $imcompletePiece = $pFemale ? $pFemale : $pMale;
                                     if ($imcompletePiece && $imcompletePiece->liberacion == 2) {
                                         array_push($piecesArray['bad'], $imcompletePiece, $imcompletePiece);
-                                        array_push($piecesBadData, $this->getBadPiecesData($imcompletePiece, 'Rechazada'));
+                                        array_push($piecesBadData, $this->getBadPiecesData($imcompletePiece, 'Rechazada', '- - - ', $usersCache));
                                     }
                                 }
                             }
@@ -3289,13 +3300,13 @@ class ProcessProductionController extends Controller
                                 if ($processName === 'Soldadura PTA') {
                                     if (in_array($piece->error, ['Fundicion', 'Fundición'])) {
                                         array_push($piecesArray['bad'], $piece);
-                                        array_push($piecesBadData, $this->getBadPiecesData($piece));
+                                        array_push($piecesBadData, $this->getBadPiecesData($piece, null, '- - - ', $usersCache));
                                     } else {
                                         array_push($piecesArray['good'], $piece);
                                     }
                                 } else {
                                     array_push($piecesArray['bad'], $piece);
-                                    array_push($piecesBadData, $this->getBadPiecesData($piece));
+                                    array_push($piecesBadData, $this->getBadPiecesData($piece, null, '- - - ', $usersCache));
                                 }
                             }
                         } elseif ($piece->liberacion == 1) {
@@ -3303,9 +3314,9 @@ class ProcessProductionController extends Controller
                         } else {
                             array_push($piecesArray['bad'], $piece);
                             if ($piece->error != 'Ninguno') {
-                                array_push($piecesBadData, $this->getBadPiecesData($piece));
+                                array_push($piecesBadData, $this->getBadPiecesData($piece, null, '- - - ', $usersCache));
                             } else {
-                                array_push($piecesBadData, $this->getBadPiecesData($piece, 'Rechazada'));
+                                array_push($piecesBadData, $this->getBadPiecesData($piece, 'Rechazada', '- - - ', $usersCache));
                             }
                         }
                     }
@@ -3349,11 +3360,12 @@ class ProcessProductionController extends Controller
      * @param  mixed  $piece
      * @param  mixed  $rechazada
      * @param  mixed  $operation
+     * @param  mixed  $usersCache
      */
-    public function getBadPiecesData($piece, $rechazada = null, $operation = '- - - ')
+    public function getBadPiecesData($piece, $rechazada = null, $operation = '- - - ', $usersCache = null)
     {
         $array = [];
-        $operador = User::query()->where('matricula', $piece->id_operador)->first();
+        $operador = $usersCache ? $usersCache->get($piece->id_operador) : User::query()->where('matricula', $piece->id_operador)->first();
         $array['piece'] = $piece->n_pieza;
         preg_match('/^\d+/', $piece->n_pieza, $n_juego);
         $array['setNumber'] = isset($n_juego[0]) ? $n_juego[0].'J' : $piece->n_pieza;
