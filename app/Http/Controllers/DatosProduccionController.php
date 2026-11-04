@@ -39,8 +39,8 @@ use App\Models\Rebajes;
 use App\Models\Rebajes_pza;
 use App\Models\Rectificado;
 use App\Models\Rectificado_pza;
-use App\Models\revCalificado;
-use App\Models\revCalificado_pza;
+use App\Models\revCalificado as RevCalificado;
+use App\Models\revCalificado_pza as RevCalificadoPza;
 use App\Models\RevLaterales;
 use App\Models\RevLaterales_pza;
 use App\Models\SegundaOpeSoldadura;
@@ -460,9 +460,9 @@ class DatosProduccionController extends Controller
                 }
                 break;
             case 'Calificado':
-                $id_proceso = revCalificado::query()->where('id_proceso', '=', $idString, 'and')->first();
+                $id_proceso = RevCalificado::query()->where('id_proceso', '=', $idString, 'and')->first();
                 if ($id_proceso) {
-                    $piezaFounded = revCalificado_pza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
+                    $piezaFounded = RevCalificadoPza::query()->where('id_proceso', '=', $id_proceso->id, 'and')->where('n_pieza', '=', $pieza->n_pieza, 'and')->first();
                 }
                 break;
             case 'Acabado Bombillo':
