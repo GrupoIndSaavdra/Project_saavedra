@@ -3,13 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\MassPrunable;
 use Illuminate\Database\Eloquent\Model;
 
 class ViewPerformanceLog extends Model
 {
-    use HasFactory;
+    use HasFactory, MassPrunable;
 
     protected $table = 'view_performance_logs';
+
+    /**
+     * Define la consulta para depuración automática de modelos (registros con más de 3 días de antigüedad).
+     */
+    public function prunable()
+    {
+        return static::where('created_at', '<', now()->subDays(3));
+    }
 
     protected $fillable = [
         'url',

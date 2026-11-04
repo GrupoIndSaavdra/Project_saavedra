@@ -65,6 +65,13 @@ class Kernel extends ConsoleKernel
             ->at('23:00')
             ->withoutOverlapping()
             ->appendOutputTo(storage_path('logs/depuracion_periodica.log'));
+
+        // ── Limpieza automática de view_performance_logs (retención rodante de 3 días) ──
+        $schedule->command('logs:prune-view-performance --days=3')
+            ->dailyAt('02:30')
+            ->withoutOverlapping()
+            ->onOneServer()
+            ->appendOutputTo(storage_path('logs/prune_view_performance.log'));
     }
 
     /**

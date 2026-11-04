@@ -58,6 +58,12 @@ class LogViewPerformance
                 'status_code' => $response->getStatusCode(),
                 'ip' => $request->ip(),
             ]);
+
+            // Auto-mantenimiento rotativo: purgar registros de más de 3 días cada 12 horas en segundo plano
+            if (! \Illuminate\Support\Facades\Cache::store('file')->has('view_perf_logs_auto_pruned')) {
+                \Illuminate\Support\Facades\Cache::store('file')->put('view_perf_logs_auto_pruned', true, now()->addHours(12));
+                ViewPerformanceLog::where('created_at', '<', now()->subDays(3))->delete();
+            }
         } catch (\Throwable $e) {
             // Silencioso para garantizar que un fallo de log jamás afecte la navegación
         }
@@ -90,4 +96,3 @@ class LogViewPerformance
         return false;
     }
 }
-
