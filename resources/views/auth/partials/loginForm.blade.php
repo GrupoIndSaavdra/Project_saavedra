@@ -5,6 +5,7 @@
             <img src="{{ asset('images/logos/lg_saavedra.png') }}" class="lg-saavedra rounded-4" alt="GIS" />
             <h2 class="fw-bold login-title">Bienvenido</h2>
             <p class="login-subtitle">Ingresa tus credenciales para continuar</p>
+            <span class="badge bg-primary bg-opacity-10 text-primary mb-3 px-3 py-1 rounded-pill" style="font-size: 0.75rem;">Sistema GIS v2.0 • Server</span>
             <form action="{{ route('loginUser') }}" method="POST">
                 @csrf
                 @include('layouts.partials.messages')
