@@ -342,16 +342,22 @@ git status
 # Ver diferencia de un archivo
 git diff resources/views/almacen/almacen_fundicion.blade.php
 
-# Agregar y commitear cambios
-git add .
-git commit -m "feat: descripción del cambio"
+# REGLA OBLIGATORIA DEL AGENTE:
+# El agente NUNCA ejecuta 'git commit' ni 'git push'. Los cambios se dejan en el working tree
+# para que el desarrollador sea quien revise, arme el commit y decida cuándo enviarlo.
 
-# Tipos de commit (convención del proyecto):
-# feat: nueva funcionalidad
-# fix: corrección de bug
-# refactor: mejora de código sin cambio funcional
-# style: cambios de CSS/UI
-# chore: tareas de mantenimiento
+# Tipos de commit oficiales (convención obligatoria en inglés con prefijo /JAER:):
+# FEAT/JAER: <summary>      -> Nuevas funcionalidades
+# FIX/JAER: <summary>       -> Corrección de errores / bugs
+# STYLE/JAER: <summary>     -> Cambios visuales, CSS o animaciones
+# REFACTOR/JAER: <summary>  -> Mejoras estructurales sin cambio funcional
+# DEPLOY/JAER: <summary>    -> Despliegues y configuración CI/CD
+
+# Arquitectura Oficial de Ramas:
+# dev/changues    -> Rama de desarrollo diario activo (sin deploy automático).
+# feat/v2.0.0     -> Rama de staging / integración previa a producción.
+# Server/v1.0.0   -> Rama oficial de producción. ÚNICA rama que activa GitHub Actions 
+#                    (.github/workflows/deploy.yml) para despliegue por FTP hacia cPanel.
 
 # Ver últimos commits
 git log --oneline -10

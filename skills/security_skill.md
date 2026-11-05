@@ -157,3 +157,45 @@ $puedeEliminar = in_array($perfil, [1, 6]);
 $esAlmacen = ($perfil == 5);
 $esCalidad = in_array($perfil, [4, 8]);
 ```
+
+---
+
+## 7. Blindaje del Login y Control de Acceso por Red (IP Whitelist por Planta)
+
+El acceso al sistema a través de `LoginController` implementa 4 capas estrictas de seguridad:
+
+### A. Whitelist de IPs por Planta para Operadores (Perfil 2)
+En entorno de producción (`app()->environment('production')`), los operadores únicamente pueden iniciar sesión desde las redes físicas autorizadas de la empresa:
+* **Variables de entorno en `.env`:**
+  * `PLANTA_TECAMAC_ALLOWED_IPS`: IPs públicas o prefijos IPv6 de Planta Tecámac (ej. `189.191.191.86,2806:105e:1c:4008`).
+  * `PLANTA_LA_RAZA_ALLOWED_IPS`: IPs autorizadas de Planta La Raza (se deja vacía si aún no se cuenta con ella).
+* **Regla de Ejecución:** La validación de IP se evalúa **ANTES de verificar el hash de contraseña**, evitando consumo de CPU y protegiendo contra filtraciones.
+* **Excepción de Roles:** Los usuarios Master (`perfil == 3`) y Administrador (`perfil == 1`) cuentan con acceso global irrestricto desde cualquier conexión.
+* **Auditoría Forense:** Al detectar un intento fuera de planta, se registran los metadatos completos en `SystemLog` y `Log::warning` (nombre del operador, matrícula, puesto, planta e IP) y se devuelve:
+  > *"Acceso denegado: No puedes conectarte fuera de las instalaciones de la planta."*
+
+### B. Prevención de Ataques de Fuerza Bruta (`RateLimiter`)
+Protege contra ataques de diccionario o scripts automatizados:
+* Clave de rastreo: `Str::transliterate(Str::lower($matricula).'|'.$clientIp)`.
+* Umbral: Máximo **5 intentos fallidos**.
+* Penalización: Bloqueo temporal por **60 segundos** (`RateLimiter::hit(..., 60)`).
+* En login exitoso: Se resetea el contador con `RateLimiter::clear()`.
+
+### C. Protección contra Fijación de Sesión (Session Fixation)
+Inmediatamente después de autenticar al usuario (`Auth::login($user)`), es obligatorio regenerar el identificador de sesión para invalidar cookies previas no autenticadas:
+```php
+Auth::login($user);
+$request->session()->regenerate();
+```
+
+### D. Protección contra DoS a Bcrypt en `LoginRequest`
+Se aplican límites máximos de longitud en los campos de entrada para prevenir ataques de denegación de servicio por cálculo excesivo en Bcrypt:
+```php
+public function rules(): array
+{
+    return [
+        'matricula' => 'required|string|max:50',
+        'contrasena' => 'required|string|max:100',
+    ];
+}
+```

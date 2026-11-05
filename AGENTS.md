@@ -214,6 +214,13 @@ Usa los componentes ya existentes en `global.css` y `components/*.css`. No reinv
    - `STYLE/JAER: <summary>` para cambios visuales, CSS, fuentes o animaciones.
    - `REFACTOR/JAER: <summary>` para mejoras estructurales y limpieza de código.
    - `DEPLOY/JAER: <summary>` para configuración de despliegues, pipelines CI/CD y workflows hacia ramas de servidor (cPanel/Neubox).
+7. **PROHIBIDO COMMITS O PUSHES AUTOMÁTICOS DEL AGENTE:**
+   - El agente **NUNCA debe ejecutar `git commit` ni `git push` por iniciativa propia**.
+   - Todo cambio debe dejarse en el árbol de trabajo local (*working tree*), validado con `php -l` o `node --check`, para que el desarrollador sea quien lo revise, arme el commit y decida cuándo enviarlo.
+8. **Arquitectura de Ramas y Despliegues Automáticos:**
+   - `dev/changues`: Rama de trabajo diario (sin deploy automático).
+   - `feat/v2.0.0`: Rama de integración / staging (sin deploy automático).
+   - `Server/v1.0.0`: Rama oficial de producción conectada a GitHub Actions (`.github/workflows/deploy.yml`) para despliegue por FTP hacia cPanel (Neubox). Solo se mergea a ella cuando el desarrollador autorice el despliegue a producción.
 
 ---
 

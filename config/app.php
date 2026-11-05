@@ -57,9 +57,9 @@ return [
 
     'url' => env('APP_URL', 'http://localhost'),
 
-    'asset_url' => env('ASSET_URL'),
+    'asset_url' => env('ASSET_URL', null),
 
-    'planta_tecamac_allowed_ips' => env('PLANTA_TECAMAC_ALLOWED_IPS', env('PLANTA_ALLOWED_IPS', '')),
+    'planta_tecamac_allowed_ips' => env('PLANTA_TECAMAC_ALLOWED_IPS', ''),
 
     'planta_la_raza_allowed_ips' => env('PLANTA_LA_RAZA_ALLOWED_IPS', ''),
 

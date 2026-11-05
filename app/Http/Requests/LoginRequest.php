@@ -6,6 +6,10 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Factory as ValidatioFactory;
 use Illuminate\Support\Facades\Hash;
 
+/**
+ * @property string $matricula
+ * @property string $contrasena
+ */
 class LoginRequest extends FormRequest
 {
     /**
@@ -24,8 +28,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'matricula' => 'required|string',
-            'contrasena' => 'required',
+            'matricula' => 'required|string|max:50',
+            'contrasena' => 'required|string|max:100',
         ];
     }
     public function getCredentials(){
