@@ -63,6 +63,36 @@ class LoginController extends Controller
             return redirect()->to('/login')->withErrors('Tu cuenta está inactiva. Contacta al administrador del sistema.');
         }
 
+        // Restricción de red para operadores (Perfil 2) en producción
+        if ((string) $user->perfil === '2' && app()->environment('production')) {
+            $rawIps = config('app.planta_allowed_ips', env('PLANTA_ALLOWED_IPS', ''));
+            $allowedIps = array_filter(array_map('trim', explode(',', (string) $rawIps)));
+
+            if (! empty($allowedIps)) {
+                $clientIp = (string) $request->ip();
+
+                $isAllowed = false;
+                foreach ($allowedIps as $allowed) {
+                    if ($clientIp === $allowed || (! empty($allowed) && str_starts_with($clientIp, $allowed))) {
+                        $isAllowed = true;
+                        break;
+                    }
+                }
+
+                if (! $isAllowed) {
+                    SystemLog::create([
+                        'user_matricula' => $user->matricula,
+                        'action' => 'Intento de Login Fuera de Planta',
+                        'details' => "El operador intentó iniciar sesión desde una IP no autorizada: {$clientIp}.",
+                    ]);
+
+                    return redirect()->to('/login')->withErrors(
+                        'Acceso restringido: Los operadores únicamente pueden ingresar al sistema conectados a la red autorizada de la Planta.'
+                    );
+                }
+            }
+        }
+
         Auth::login($user);
 
         return $this->authenticated($request, $user);

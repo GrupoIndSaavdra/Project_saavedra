@@ -59,6 +59,8 @@ return [
 
     'asset_url' => env('ASSET_URL'),
 
+    'planta_allowed_ips' => env('PLANTA_ALLOWED_IPS', ''),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone
