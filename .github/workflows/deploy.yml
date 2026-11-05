@@ -3,7 +3,7 @@ name: Deploy API to Neubox
 on:
   push:
     branches:
-      - feat/v2.0.0
+      - Server/v1.0.0
 
 jobs:
   web-deploy:
