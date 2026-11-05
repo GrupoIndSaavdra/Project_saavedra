@@ -65,8 +65,12 @@ class LoginController extends Controller
 
         // Restricción de red para operadores (Perfil 2) en producción
         if ((string) $user->perfil === '2' && app()->environment('production')) {
-            $rawIps = config('app.planta_allowed_ips', env('PLANTA_ALLOWED_IPS', ''));
-            $allowedIps = array_filter(array_map('trim', explode(',', (string) $rawIps)));
+            $rawTecamac = config('app.planta_tecamac_allowed_ips', env('PLANTA_TECAMAC_ALLOWED_IPS', env('PLANTA_ALLOWED_IPS', '')));
+            $rawLaRaza = config('app.planta_la_raza_allowed_ips', env('PLANTA_LA_RAZA_ALLOWED_IPS', ''));
+
+            $tecamacIps = array_filter(array_map('trim', explode(',', (string) $rawTecamac)));
+            $laRazaIps = array_filter(array_map('trim', explode(',', (string) $rawLaRaza)));
+            $allowedIps = array_unique(array_merge($tecamacIps, $laRazaIps));
 
             if (! empty($allowedIps)) {
                 $clientIp = (string) $request->ip();
@@ -87,7 +91,7 @@ class LoginController extends Controller
                     ]);
 
                     return redirect()->to('/login')->withErrors(
-                        'Acceso restringido: Los operadores únicamente pueden ingresar al sistema conectados a la red autorizada de la Planta.'
+                        'Acceso restringido: Los operadores únicamente pueden ingresar al sistema conectados a la red autorizada de Planta Tecámac o Planta La Raza.'
                     );
                 }
             }
