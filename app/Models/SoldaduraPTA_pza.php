@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class SoldaduraPTA_pza extends Model
 {
     use HasFactory;
-    protected $table = 'soldaduraPTA_pza';
+    protected $table = 'soldadurapta_pza';
 
     protected $fillable = [
         // ── Clave de pieza (M/H) y juego ──

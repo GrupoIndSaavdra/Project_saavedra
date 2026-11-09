@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class EmbudoCM_tolerancias extends Model
 {
     use HasFactory;
-    protected $table = 'embudoCM_tolerancia';
+    protected $table = 'embudocm_tolerancia';
     protected $fillable = [
         'id_proceso',
         'conexion_lineaPartida',

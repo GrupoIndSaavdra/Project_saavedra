@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class OffSet_cnominal extends Model
 {
     use HasFactory;
-    protected $table = 'offSet_cnominal';
+    protected $table = 'offset_cnominal';
     protected $fillable = [
         'id_proceso',
         'anchoRanura',

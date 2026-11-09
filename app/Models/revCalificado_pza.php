@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class revCalificado_pza extends Model
 {
     use HasFactory;
-    protected $table = 'revCalificado_pza';
+    protected $table = 'revcalificado_pza';
 
     protected $fillable = [
         'diametro_ceja',

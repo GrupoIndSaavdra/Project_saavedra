@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class EmbudoCM_pza extends Model
 {
     use HasFactory;
-    protected $table = 'embudoCM_pza';
+    protected $table = 'embudocm_pza';
 
     protected $fillable = [
         'id_pza',

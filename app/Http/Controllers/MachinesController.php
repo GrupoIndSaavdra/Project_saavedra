@@ -104,33 +104,37 @@ class MachinesController extends Controller
             $machine->delete();
 
             // Desocupar piezas en la meta si es que estaban ocupadas
-            $meta = $metaId ? Metas::query()->find($metaId) : null;
-            if ($meta && ! empty($meta->proceso)) {
-                $processToUse = str_contains((string) $meta->proceso, 'Operacion Equipo') ? 'Operacion Equipo' : $meta->proceso;
-                $modelProcessPieces = $this->processProductionController->get_ModelProcessPieces($processToUse);
+            try {
+                $meta = $metaId ? Metas::query()->find($metaId) : null;
+                if ($meta && ! empty($meta->proceso)) {
+                    $processToUse = str_contains((string) $meta->proceso, 'Operacion Equipo') ? 'Operacion Equipo' : $meta->proceso;
+                    $modelProcessPieces = $this->processProductionController->get_ModelProcessPieces($processToUse);
 
-                if ($modelProcessPieces && class_exists($modelProcessPieces)) {
-                    $occupiedPieces = $modelProcessPieces::query()->where('id_meta', $meta->id)->where('estado', 1)->get();
-                    if ($occupiedPieces->count() > 0) {
-                        $processesAssemblies = ['Barreno Maniobra', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Barreno Profundidad', 'Palomas', 'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM'];
-                        if (in_array($processToUse, $processesAssemblies) || str_contains((string) $processToUse, 'Operacion Equipo')) {
-                            foreach ($occupiedPieces as $piece) { // Si es un juego marcar como desocupado
-                                $piece->delete();
-                            }
-                        } else {
-                            if ($occupiedPieces->count() < 2) { // Si es una mitad marcar como desocupada
-                                foreach ($occupiedPieces as $piece) {
-                                    $piece->estado = 0;
-                                    $piece->save();
+                    if ($modelProcessPieces && class_exists($modelProcessPieces)) {
+                        $occupiedPieces = $modelProcessPieces::query()->where('id_meta', $meta->id)->where('estado', 1)->get();
+                        if ($occupiedPieces->count() > 0) {
+                            $processesAssemblies = ['Barreno Maniobra', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Barreno Profundidad', 'Palomas', 'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM'];
+                            if (in_array($processToUse, $processesAssemblies) || str_contains((string) $processToUse, 'Operacion Equipo')) {
+                                foreach ($occupiedPieces as $piece) { // Si es un juego marcar como desocupado
+                                    $piece->delete();
                                 }
                             } else {
-                                foreach ($occupiedPieces as $piece) { // Si son dos mitades eliminarlas
-                                    $piece->delete();
+                                if ($occupiedPieces->count() < 2) { // Si es una mitad marcar como desocupada
+                                    foreach ($occupiedPieces as $piece) {
+                                        $piece->estado = 0;
+                                        $piece->save();
+                                    }
+                                } else {
+                                    foreach ($occupiedPieces as $piece) { // Si son dos mitades eliminarlas
+                                        $piece->delete();
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            } catch (\Throwable $pieceEx) {
+                Log::warning("Aviso no fatal al desocupar piezas de meta {$metaId} en máquina {$machineName}: " . $pieceEx->getMessage());
             }
 
             // Registrar auditoría de desocupación

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class BarrenoProfundidad extends Model
 {
     use HasFactory;
-    protected $table = 'barrenoProfundidad';
+    protected $table = 'barrenoprofundidad';
     protected $fillable = [
         'id',
         'id_ot'

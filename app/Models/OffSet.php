@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class OffSet extends Model
 {
     use HasFactory;
-    protected $table = 'offSet';
+    protected $table = 'offset';
     protected $fillable = [
         'id',
         'id_ot'

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class BarrenoManiobra_tolerancia extends Model
 {
     use HasFactory;
-    protected $table = 'barrenoManiobra_tolerancia';
+    protected $table = 'barrenomaniobra_tolerancia';
     protected $fillable = [
         'id_proceso',
         'profundidad_barreno1',

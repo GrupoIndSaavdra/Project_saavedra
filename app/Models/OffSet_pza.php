@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class OffSet_pza extends Model
 {
     use HasFactory;
-    protected $table = 'offSet_pza';
+    protected $table = 'offset_pza';
     protected $fillable = [
         'anchoRanura',
         'profuTaconHembra',

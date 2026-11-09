@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class revCalificado_tolerancia extends Model
 {
     use HasFactory;
-    protected $table = 'revCalificado_tolerancia';
+    protected $table = 'revcalificado_tolerancia';
     
     protected $fillable = [
         'id_proceso',

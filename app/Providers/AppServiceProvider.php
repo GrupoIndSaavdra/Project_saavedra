@@ -21,6 +21,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // En producción o detrás de proxy HTTPS (api.grupoindsaavedra.com), forzar esquema HTTPS
+        if ($this->app->environment('production') || str_contains((string) config('app.url'), 'https://') || request()->isSecure() || request()->header('X-Forwarded-Proto') === 'https') {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         // Asegurar memoria suficiente para procesamiento de vistas pesadas y modelos
         if ((int) ini_get('memory_limit') < 512) {
             @ini_set('memory_limit', '512M');
