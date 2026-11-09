@@ -1734,15 +1734,17 @@ class ProcessProductionController extends Controller
      */
     public function get_ControllerProcess($process, $class = null)
     {
+        $normalizedProcess = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
         if ($class && $class->nombre == 'Cabeza de Soplo') {
-            return match ($process) {
+            return match ($normalizedProcess) {
                 'Primera Operacion Cabeza Soplo' => new PrimeraOperacionCabezaSoploController(),
                 'Segunda Operacion Cabeza Soplo' => new SegundaOperacionCabezaSoploController(),
                 default => null, // Should not happen for this class if configured correctly
             };
         }
 
-        return match ($process) {
+        return match ($normalizedProcess) {
             'Cepillado' => new CepilladoController(),
             'Desbaste Exterior' => new DesbasteExteriorController(),
             'Revision Laterales' => new RevLateralesController(),
@@ -1767,6 +1769,7 @@ class ProcessProductionController extends Controller
             'Operacion Equipo' => $class && $class->nombre == 'Candado Obturador' ? new CandadoObturadorController() : new PySOpeSoldaduraController(),
             'Primera Operacion Cabeza Soplo' => new PrimeraOperacionCabezaSoploController(),
             'Segunda Operacion Cabeza Soplo' => new SegundaOperacionCabezaSoploController(),
+            default => null,
         };
     }
 
@@ -2045,7 +2048,9 @@ class ProcessProductionController extends Controller
      */
     public function get_processNameDB($processName)
     {
-        $process = match ($processName) {
+        $normalizedProcess = str_contains((string) $processName, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $processName;
+
+        $process = match ($normalizedProcess) {
             'Cepillado' => 'cepillado',
             'Desbaste Exterior' => 'desbaste_exterior',
             'Revision Laterales' => 'revision_laterales',
@@ -2070,6 +2075,7 @@ class ProcessProductionController extends Controller
             'Soldadura PTA' => 'soldaduraPTA',
             'Primera Operacion Cabeza Soplo' => 'primeraOperacionCabezaSoplo',
             'Segunda Operacion Cabeza Soplo' => 'segundaOperacionCabezaSoplo',
+            default => str_replace(' ', '_', strtolower((string) $processName)),
         };
 
         return $process;
@@ -2411,7 +2417,9 @@ class ProcessProductionController extends Controller
      */
     public function get_ModelProcess($process, $class = null)
     {
-        $modelProcess = match ($process) {
+        $normalizedProcess = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
+        $modelProcess = match ($normalizedProcess) {
             'Cepillado' => 'Cepillado',
             'Desbaste Exterior' => 'DesbasteExterior',
             'Revision Laterales' => 'RevLaterales',
@@ -2429,7 +2437,7 @@ class ProcessProductionController extends Controller
             'Off Set' => 'OffSet',
             'Palomas' => 'Palomas',
             'Rebajes' => 'Rebajes',
-            'Grabado' => 'Grabado', // No existe, crearlo
+            'Grabado' => 'Grabado',
             'Operacion Equipo' => ($class && $class->nombre == 'Candado Obturador') ? 'CandadoObturador' : 'PySOpeSoldadura',
             'Embudo CM' => 'EmbudoCM',
             'Soldadura' => 'Soldadura',
@@ -2437,9 +2445,16 @@ class ProcessProductionController extends Controller
             'Primera Operacion Cabeza Soplo' => 'PrimeraOperacionCabezaSoplo',
             'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo',
             'Candado Obturador' => 'CandadoObturador',
+            default => null,
         };
 
-        return "App\Models\\".$modelProcess;
+        if (! $modelProcess) {
+            return null;
+        }
+
+        $fqcn = "App\\Models\\".$modelProcess;
+
+        return class_exists($fqcn) ? $fqcn : null;
     }
 
     /**
@@ -2448,7 +2463,9 @@ class ProcessProductionController extends Controller
      */
     public function getModelProcessCNominal_Tolerance($process, $class = null)
     {
-        $cNominal = match ($process) {
+        $normalizedProcess = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
+        $cNominal = match ($normalizedProcess) {
             'Cepillado' => 'Cepillado_cnominal',
             'Desbaste Exterior' => 'Desbaste_cnominal',
             'Revision Laterales' => 'RevLaterales_cnominal',
@@ -2464,16 +2481,17 @@ class ProcessProductionController extends Controller
             'Off Set' => 'OffSet_cnominal',
             'Palomas' => 'Palomas_cnominal',
             'Rebajes' => 'Rebajes_cnominal',
-            'Grabado' => 'Grabado_cnominal', // No existe, crearlo
+            'Grabado' => 'Grabado_cnominal',
             'Operacion Equipo' => ($class && $class->nombre == 'Candado Obturador') ? 'CandadoObturador_cnominal' : 'PySOpeSoldadura_cnominal',
             'Embudo CM' => 'EmbudoCM_cnominal',
             'Primera Operacion Cabeza Soplo' => 'PrimeraOperacionCabezaSoplo_cnominal',
             'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo_cnominal',
             'Candado Obturador' => 'CandadoObturador_cnominal',
+            default => null,
         };
-        $cNominal = "App\Models\\".$cNominal;
+        $cNominal = $cNominal ? "App\\Models\\".$cNominal : null;
 
-        $tolerance = match ($process) {
+        $tolerance = match ($normalizedProcess) {
             'Cepillado' => 'Cepillado_tolerancia',
             'Desbaste Exterior' => 'Desbaste_tolerancia',
             'Revision Laterales' => 'RevLaterales_tolerancia',
@@ -2489,14 +2507,15 @@ class ProcessProductionController extends Controller
             'Off Set' => 'OffSet_tolerancia',
             'Palomas' => 'Palomas_tolerancia',
             'Rebajes' => 'Rebajes_tolerancia',
-            'Grabado' => 'Grabado_tolerancia', // No existe, crearlo
+            'Grabado' => 'Grabado_tolerancia',
             'Operacion Equipo' => ($class && $class->nombre == 'Candado Obturador') ? 'CandadoObturador_tolerancia' : 'PySOpeSoldadura_tolerancia',
             'Embudo CM' => 'EmbudoCM_tolerancias',
             'Primera Operacion Cabeza Soplo' => 'PrimeraOperacionCabezaSoplo_tolerancia',
             'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo_tolerancia',
             'Candado Obturador' => 'CandadoObturador_tolerancia',
+            default => null,
         };
-        $tolerance = "App\Models\\".$tolerance;
+        $tolerance = $tolerance ? "App\\Models\\".$tolerance : null;
 
         return [$cNominal, $tolerance];
     }
@@ -2507,7 +2526,9 @@ class ProcessProductionController extends Controller
      */
     public function get_ModelProcessPieces($process, $class = null)
     {
-        $modelProcess = match ($process) {
+        $normalizedProcess = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
+        $modelProcess = match ($normalizedProcess) {
             'Cepillado' => 'Pza_cepillado',
             'Desbaste Exterior' => 'Desbaste_pza',
             'Revision Laterales' => 'RevLaterales_pza',
@@ -2533,9 +2554,16 @@ class ProcessProductionController extends Controller
             'Primera Operacion Cabeza Soplo' => 'PrimeraOperacionCabezaSoplo_pza',
             'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo_pza',
             'Candado Obturador' => 'CandadoObturador_pza',
+            default => null,
         };
 
-        return "App\Models\\".$modelProcess;
+        if (! $modelProcess) {
+            return null;
+        }
+
+        $fqcn = "App\\Models\\".$modelProcess;
+
+        return class_exists($fqcn) ? $fqcn : null;
     }
 
     /**
@@ -2592,7 +2620,9 @@ class ProcessProductionController extends Controller
      */
     public function nameProcess($process)
     {
-        $nameProcess = match ($process) {
+        $normalizedProcess = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
+        $nameProcess = match ($normalizedProcess) {
             'Cepillado' => 'cepillado',
             'Desbaste Exterior' => 'desbaste',
             'Revision Laterales' => 'revLaterales',
@@ -2613,11 +2643,13 @@ class ProcessProductionController extends Controller
             'Palomas' => 'palomas',
             'Rebajes' => 'rebajes',
             'Grabado' => 'grabado',
+            'Operacion Equipo' => 'operacionEquipo',
             'Operacion Equipo_1 operacion' => 'operacionEquipo',
             'Operacion Equipo_2 operacion' => 'operacionEquipo',
             'Embudo CM' => 'embudoCM',
             'Soldadura' => 'soldadura',
             'Soldadura PTA' => 'soldaduraPTA',
+            default => str_replace(' ', '', strtolower((string) $process)),
         };
 
         return $nameProcess;

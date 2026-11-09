@@ -372,6 +372,7 @@ class DatosProduccionController extends Controller
             'Operacion Equipo_1' => ['pysOpeSoldadura', 1],
             'Operacion Equipo_2' => ['pysOpeSoldadura', 2],
             'embudoCm' => ['EmbudoCM', null],
+            default => [$proceso, null],
         };
 
         return $procesoName;

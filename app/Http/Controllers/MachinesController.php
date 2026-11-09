@@ -8,6 +8,8 @@ use App\Models\SystemLog;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class MachinesController extends Controller
 {
@@ -79,34 +81,53 @@ class MachinesController extends Controller
 
     public function freeUp(Request $request)
     {
-        $machine = Maquinas::query()->find($request->idMachine);
-        if ($machine) {
+        $idMachine = $request->input('idMachine') ?? $request->route('idMachine');
+        if (! $idMachine) {
+            return redirect()->route('machinesOccupied');
+        }
+
+        DB::beginTransaction();
+        try {
+            $machine = Maquinas::query()->find($idMachine);
+            if (! $machine) {
+                DB::rollBack();
+
+                return redirect()->route('machinesOccupied')->with(['error' => 'La máquina ya no se encuentra ocupada.']);
+            }
+
             // Guardar datos para el log antes de eliminar
-            $machineName = $machine->maquina;
-            $machineProcess = $machine->proceso;
+            $machineName = (string) $machine->maquina;
+            $machineProcess = (string) $machine->proceso;
             $metaId = $machine->id_meta;
 
-            // Desocupar la maquina
+            // Desocupar la máquina
             $machine->delete();
+
             // Desocupar piezas en la meta si es que estaban ocupadas
-            $meta = Metas::query()->find($metaId);
-            $modelProcessPieces = $this->processProductionController->get_ModelProcessPieces($meta->proceso);
-            $occupiedPieces = $modelProcessPieces::query()->where('id_meta', $meta->id)->where('estado', 1)->get();
-            if (count($occupiedPieces) > 0) {
-                $processesAssemblies = ['Barreno Maniobra', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Barreno Profundidad', 'Palomas', 'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM'];
-                if (in_array($meta->proceso, $processesAssemblies)) {
-                    foreach ($occupiedPieces as $piece) { // Si es un juego marcar como desocupado
-                        $piece->delete();
-                    }
-                } else {
-                    if (count($occupiedPieces) < 2) { // Si es una mitad marcar como desocupada
-                        foreach ($occupiedPieces as $piece) {
-                            $piece->estado = 0;
-                            $piece->save();
-                        }
-                    } else {
-                        foreach ($occupiedPieces as $piece) { // Si son dos mitades eliminarlas
-                            $piece->delete();
+            $meta = $metaId ? Metas::query()->find($metaId) : null;
+            if ($meta && ! empty($meta->proceso)) {
+                $processToUse = str_contains((string) $meta->proceso, 'Operacion Equipo') ? 'Operacion Equipo' : $meta->proceso;
+                $modelProcessPieces = $this->processProductionController->get_ModelProcessPieces($processToUse);
+
+                if ($modelProcessPieces && class_exists($modelProcessPieces)) {
+                    $occupiedPieces = $modelProcessPieces::query()->where('id_meta', $meta->id)->where('estado', 1)->get();
+                    if ($occupiedPieces->count() > 0) {
+                        $processesAssemblies = ['Barreno Maniobra', 'Soldadura', 'Soldadura PTA', 'Rectificado', 'Asentado', 'Barreno Profundidad', 'Palomas', 'Rebajes', 'Grabado', 'Operacion Equipo', 'Embudo CM'];
+                        if (in_array($processToUse, $processesAssemblies) || str_contains((string) $processToUse, 'Operacion Equipo')) {
+                            foreach ($occupiedPieces as $piece) { // Si es un juego marcar como desocupado
+                                $piece->delete();
+                            }
+                        } else {
+                            if ($occupiedPieces->count() < 2) { // Si es una mitad marcar como desocupada
+                                foreach ($occupiedPieces as $piece) {
+                                    $piece->estado = 0;
+                                    $piece->save();
+                                }
+                            } else {
+                                foreach ($occupiedPieces as $piece) { // Si son dos mitades eliminarlas
+                                    $piece->delete();
+                                }
+                            }
                         }
                     }
                 }
@@ -116,16 +137,24 @@ class MachinesController extends Controller
             SystemLog::create([
                 'user_matricula' => Auth::check() ? Auth::user()->matricula : null,
                 'action' => 'Desocupación de Máquina',
-                'details' => "El administrador desocupó la máquina '{$machineName}' del proceso '{$machineProcess}' (Meta ID: {$metaId}).",
+                'details' => "El usuario desocupó la máquina '{$machineName}' del proceso '{$machineProcess}'" . ($metaId ? " (Meta ID: {$metaId})." : "."),
                 'maquina' => $machineName,
                 'proceso' => $machineProcess,
                 'id_ot' => $meta->id_ot ?? null,
                 'ot' => $meta->id_ot ?? null,
             ]);
 
-            return redirect()->route('machinesOccupied')->with(['success' => 'La máquina ha sido desocupada correctamente.']);
-        }
+            DB::commit();
 
-        return redirect()->route('machinesOccupied')->with(['error' => 'La máquina no está ocupada.']);
+            return redirect()->route('machinesOccupied')->with(['success' => "La máquina {$machineName} ha sido desocupada correctamente."]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al desocupar máquina en MachinesController@freeUp: ' . $e->getMessage(), [
+                'machine_id' => $idMachine,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return redirect()->route('machinesOccupied')->with(['error' => 'Ocurrió un error al desocupar la máquina: ' . $e->getMessage()]);
+        }
     }
 }

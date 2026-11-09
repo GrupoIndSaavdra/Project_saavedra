@@ -9,7 +9,7 @@ use App\Http\Controllers\SystemLogController;
 use App\Http\Controllers\ProgresoProcesosController;
 use App\Http\Controllers\PzasGeneralesController;
 use App\Http\Controllers\PzasLiberadasController;
-use App\Http\Controllers\TiemposProduccionController;
+use App\Http\Controllers\tiemposProduccionController;
 use App\Http\Controllers\MachinesController;
 use App\Http\Controllers\MoldingController;
 use App\Http\Controllers\ProcessesController;
@@ -154,8 +154,8 @@ Route::controller(ProcessProductionController::class)->group(function () {
 //Ruta para ver el progreso de los procesos
 Route::get('/progresoOT', [ProgresoProcesosController::class, 'show'])->name('verProcesos');
 
-//Grupo de rutas para el controlador TiemposProduccionCo    ntroller
-Route::controller(TiemposProduccionController::class)->group(function () {
+//Grupo de rutas para el controlador tiemposProduccionController
+Route::controller(tiemposProduccionController::class)->group(function () {
     // Route::get('/tiemposProduccion/update', 'update')->name('actualizarClases');
     Route::get('/tiemposProduccion/{clase?}', 'show')->name('showTimes');
     Route::post('/tiemposProduccion', 'store')->name('storeTimes');
@@ -192,7 +192,7 @@ Route::controller(DatosProduccionController::class)->group(function () {
 Route::controller(MachinesController::class)->group(function () {
     Route::get('/machinesOccupied', 'show')->name('machinesOccupied'); //Vista de máquinas ocupadas
     Route::get('/machinesOccupied/api', 'getOccupiedApi')->name('machinesOccupiedApi'); //API JSON de máquinas ocupadas
-    Route::post('/machinesOccupied/freeUp', 'freeUp')->name('freeUp'); //Vista de máquinas ocupadas
+    Route::match(['get', 'post'], '/machinesOccupied/freeUp', 'freeUp')->name('freeUp'); //Desocupar máquina
 });
 
 //Rutas para el controlador de PiecesOccupiedController (Piezas Ocupadas)
