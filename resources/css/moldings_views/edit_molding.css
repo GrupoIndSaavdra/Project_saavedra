@@ -57,6 +57,168 @@ form {
     width: 100%;
 }
 
+/* ══════════════════════════════════════════════════════
+   TOOLBAR DE BÚSQUEDA Y CONTEO
+   ══════════════════════════════════════════════════════ */
+.molding-toolbar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+    box-sizing: border-box;
+}
+
+.molding-search-box {
+    position: relative;
+    flex: 1;
+    max-width: 520px;
+    display: flex;
+    align-items: center;
+}
+
+.molding-search-box .search-icon {
+    position: absolute;
+    left: 14px;
+    color: var(--gis-blue);
+    pointer-events: none;
+    opacity: 1;
+}
+
+.molding-search-input {
+    width: 100% !important;
+    padding: 11px 40px 11px 44px !important;
+    border-radius: 10px !important;
+    border: 2px solid var(--gis-blue) !important;
+    background: #ffffff !important;
+    background-color: #ffffff !important;
+    font-size: 0.95rem !important;
+    color: #1e293b !important;
+    font-weight: 600 !important;
+    text-align: left !important;
+    outline: none !important;
+    transition: all 0.22s ease !important;
+    box-shadow: 0 2px 8px rgba(3, 57, 102, 0.15) !important;
+    box-sizing: border-box !important;
+}
+
+.molding-search-input::placeholder {
+    color: #64748b !important;
+    font-weight: 400 !important;
+    text-align: left !important;
+}
+
+.molding-search-input:hover {
+    border-color: #05487f !important;
+    box-shadow: 0 4px 12px rgba(3, 57, 102, 0.22) !important;
+}
+
+.molding-search-input:focus {
+    border-color: var(--gis-blue) !important;
+    box-shadow: 0 0 0 4px rgba(3, 57, 102, 0.25) !important;
+    background-color: #ffffff !important;
+}
+
+.molding-search-clear {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: #64748b;
+    font-size: 1.3rem;
+    font-weight: 700;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+    transition: color 0.2s ease, transform 0.15s ease;
+}
+
+.molding-search-clear:hover {
+    color: var(--gis-red);
+    transform: scale(1.15);
+}
+
+.table-results-badge {
+    background: #ffffff;
+    border: 2px solid var(--gis-blue);
+    color: var(--gis-blue);
+    font-size: 0.88rem;
+    font-weight: 700;
+    padding: 9px 18px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(3, 57, 102, 0.1);
+}
+
+.table-results-badge strong {
+    color: var(--gis-blue);
+    font-weight: 800;
+}
+
+/* ══════════════════════════════════════════════════════
+   ENCABEZADO ORDENABLE (TH NOMBRE)
+   ══════════════════════════════════════════════════════ */
+.th-sortable {
+    cursor: pointer;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.th-sortable:hover {
+    background: #05487f !important;
+}
+
+.th-sort-content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+}
+
+.sort-indicator {
+    display: inline-flex;
+    flex-direction: column;
+    font-size: 0.62rem;
+    line-height: 0.85;
+    gap: 2px;
+    opacity: 0.55;
+    transition: opacity 0.2s ease;
+}
+
+.th-sortable:hover .sort-indicator {
+    opacity: 0.95;
+}
+
+.sort-indicator .arrow {
+    display: inline-block;
+    transition: all 0.2s ease;
+    color: #ffffff;
+    opacity: 0.35;
+}
+
+.sort-indicator.asc .arrow-asc {
+    opacity: 1;
+    color: #38bdf8;
+    transform: scale(1.25);
+}
+
+.sort-indicator.asc .arrow-desc {
+    opacity: 0.2;
+}
+
+.sort-indicator.desc .arrow-desc {
+    opacity: 1;
+    color: #38bdf8;
+    transform: scale(1.25);
+}
+
+.sort-indicator.desc .arrow-asc {
+    opacity: 0.2;
+}
+
 /* Tabla MUY formal y corporativa */
 .table-container {
     width: 100%;
@@ -140,7 +302,7 @@ td {
 }
 
 /* Inputs en la tabla */
-input[type="text"] {
+.molding-table input[type="text"] {
     width: 100%;
     border-radius: 6px;
     padding: 0.5rem;
@@ -153,12 +315,12 @@ input[type="text"] {
     transition: all 0.3s ease;
 }
 
-input[type="text"]:hover {
+.molding-table input[type="text"]:hover {
     border-color: #cbd5e1;
     background-color: #ffffff;
 }
 
-input[type="text"]:focus {
+.molding-table input[type="text"]:focus {
     outline: none;
     border-color: var(--gis-blue);
     background-color: #ffffff;

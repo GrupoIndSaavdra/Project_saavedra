@@ -204,6 +204,9 @@ class DatosProduccionController extends Controller
             $datos[$ot->id]['moldura'] = $ot->moldura ? $ot->moldura->nombre : '?';
             $datos[$ot->id]['nombre'] = $ot->id . ' - ' . $datos[$ot->id]['moldura'];
 
+            // Clases activas estructuradas: OT -> Clases activas -> Procesos activos -> Operadores activos
+            $datos[$ot->id]['clases'] = [];
+
             // Todas las clases de la OT (independiente del operador)
             $clasesDeOT = $clasesCache->where('id_ot', $ot->id);
             $datos[$ot->id]['clases_ot'] = [];
@@ -222,21 +225,55 @@ class DatosProduccionController extends Controller
                     continue;
                 }
 
-                if (!array_key_exists($operator->matricula, $datos[$ot->id]['operadores'])) {
-                    $datos[$ot->id]['operadores'][$operator->matricula] = [];
-                    $datos[$ot->id]['operadores'][$operator->matricula]['nombre'] = "{$operator->nombre} {$operator->a_paterno} {$operator->a_materno}";
-                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'] = [];
-                }
-
                 $clase = $clasesCache->get($pieza->id_clase);
                 if (!$clase) {
                     continue;
+                }
+
+                $operatorNombre = trim("{$operator->nombre} {$operator->a_paterno} {$operator->a_materno}");
+
+                // Estructura en cascada (OT -> Clase -> Proceso -> Operador) con sólo lo activo para la OT
+                if (!isset($datos[$ot->id]['clases'][$clase->nombre])) {
+                    $datos[$ot->id]['clases'][$clase->nombre] = [
+                        'id' => $clase->id,
+                        'pedido' => $clase->pedido,
+                        'procesos' => [],
+                    ];
+                }
+
+                if (!isset($datos[$ot->id]['clases'][$clase->nombre]['procesos'][$pieza->proceso])) {
+                    $datos[$ot->id]['clases'][$clase->nombre]['procesos'][$pieza->proceso] = [
+                        'operadores' => [],
+                    ];
+                }
+
+                $datos[$ot->id]['clases'][$clase->nombre]['procesos'][$pieza->proceso]['operadores'][$operator->matricula] = [
+                    'matricula' => $operator->matricula,
+                    'nombre' => $operatorNombre,
+                ];
+
+                // Estructura retrocompatible para operadores
+                if (!array_key_exists($operator->matricula, $datos[$ot->id]['operadores'])) {
+                    $datos[$ot->id]['operadores'][$operator->matricula] = [];
+                    $datos[$ot->id]['operadores'][$operator->matricula]['nombre'] = $operatorNombre;
+                    $datos[$ot->id]['operadores'][$operator->matricula]['clases'] = [];
                 }
 
                 if (!array_key_exists($clase->nombre, $datos[$ot->id]['operadores'][$operator->matricula]['clases'])) {
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre] = [];
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['pedido'] = $clase->pedido;
                     $datos[$ot->id]['operadores'][$operator->matricula]['clases'][$clase->nombre]['procesos'] = $this->asignarProcesosOperador($clase->id, $operator->matricula, $procesosPorClaseOperador);
+                }
+            }
+
+            // Fallback si la OT no tiene piezas registradas aún: mantener disponibles sus clases de catálogo
+            if (empty($datos[$ot->id]['clases'])) {
+                foreach ($clasesDeOT as $claseOT) {
+                    $datos[$ot->id]['clases'][$claseOT->nombre] = [
+                        'id' => $claseOT->id,
+                        'pedido' => $claseOT->pedido,
+                        'procesos' => [],
+                    ];
                 }
             }
         }

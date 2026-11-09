@@ -29,33 +29,33 @@
     <form method="post" action="{{ route('showProduccion') }}" class="search-form">
         @csrf
         <div class="dashboard">
-            <!-- Cuadro de OT -->
+            <!-- 1. Cuadro de OT -->
             <div class="box ot">
                 <label for="ot-select">Orden de Trabajo</label>
             </div>
 
-            <!--Cuadro de Operadores-->
-            <div class="box operadores">
-                <label for="operadores-label">Operador</label>
-                <input id="operadores-input" class="filtros" type="text" disabled placeholder="Esperando OT...">
-            </div>
-
-            <!--Cuadro de clase-->
+            <!-- 2. Cuadro de Clase -->
             <div class="box clases">
                 <label for="clases-select">Clase</label>
                 <input id="clases-input" class="filtros" type="text" disabled placeholder="Esperando OT...">
             </div>
 
-            <!-- Cuadro de Pedido -->
+            <!-- 3. Cuadro de Proceso -->
+            <div class="box procesos">
+                <label for="procesos-select">Proceso</label>
+                <input id="procesos-input" class="filtros" type="text" disabled placeholder="Esperando Clase...">
+            </div>
+
+            <!-- 4. Cuadro de Operadores -->
+            <div class="box operadores">
+                <label for="operadores-label">Operador</label>
+                <input id="operadores-input" class="filtros" type="text" disabled placeholder="Esperando Proceso...">
+            </div>
+
+            <!-- 5. Cuadro de Pedido -->
             <div class="box pedido">
                 <label for="pedido-select">Pedido</label>
                 <input id="pedido-input" class="filtros" type="text" disabled placeholder="—">
-            </div>
-
-            <!-- Cuadro de proceso -->
-            <div class="box procesos">
-                <label for="procesos-select">Proceso</label>
-                <input id="procesos-input" class="filtros" type="text" disabled placeholder="Esperando Operador/Clase...">
             </div>
         </div>
         
@@ -74,7 +74,7 @@
             @if(isset($filtros))
                 Consulta completada. Mostrando rendimiento para la OT {{ $filtros['ot'] }}, operador {{ $filtros['operador'] }}.
             @else
-                Falta seleccionar 5 parámetros para realizar la consulta automática.
+                Falta seleccionar 4 parámetros para realizar la consulta automática.
             @endif
         </span>
     </div>

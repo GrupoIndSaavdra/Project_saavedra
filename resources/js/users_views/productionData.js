@@ -1,112 +1,98 @@
 //********FUNCTIONS TO APPLY IN THE DASHBOARD***********
 
-const aplicarAccionesToEvents = (habilitar, campos) => {
-    if (habilitar != null) {
-        let box = document.querySelector(`.${campos[0]}`);
-        let elemento = des_habilitarCampo(box, campos[0], habilitar);
-        box.appendChild(elemento);
-        habilitar = null;
-        campos.shift();
-        aplicarAccionesToEvents(habilitar, campos);
-    } else {
-        campos.forEach((campo) => {
-            let box = document.querySelector(`.${campo}`);
-            switch (campo) {
-                case "pedido":
-                    let pedido =
-                        habilitar != null
-                            ? datos[selects["ot"].value]["operadores"][
-                            selects["operadores"].value
-                            ]["clases"][selects["clases"].value]["pedido"]
-                            : null;
-                    crearInputConValor(box, pedido, "pedido");
-                    break;
-                case "boton":
-                    boton = document.getElementById("button");
-                    if (boton && !boton.classList.contains("pro-display-none")) {
-                        boton.classList.add("pro-display-none");
-                    }
-                    break;
-                default:
-                    let elemento = des_habilitarCampo(box, campo, habilitar);
-                    box.appendChild(elemento);
-                    break;
-            }
-        });
-    }
+var datos = window.datos || {}; // Datos de las ordenes de trabajo
 
-    //Verificar si esta funcion si sirve
-};
+let habilitar,
+    box,
+    selects = {},
+    boton,
+    isInitializing = true;
+
 const des_habilitarCampo = (box, campo, habilitar) => {
-    //Declaracion de variables
     let elemento, newElement;
 
     if (habilitar != null) {
-        elemento = document.getElementById(`${campo}-input`);
-        if (elemento === null) {
-            elemento = document.getElementById(`${campo}-select`);
-        }
+        elemento = document.getElementById(`${campo}-input`) || document.getElementById(`${campo}-select`);
         newElement = insertarSelect(campo, habilitar);
         selects[campo] = newElement;
         box.classList.remove("box--disabled");
         box.classList.add("box--enabled");
     } else {
-        elemento = document.getElementById(`${campo}-select`);
-        if (elemento === null) {
-            elemento = document.getElementById(`${campo}-input`);
-        }
+        elemento = document.getElementById(`${campo}-select`) || document.getElementById(`${campo}-input`);
         newElement = insertarInput(campo);
+        selects[campo] = null;
         box.classList.remove("box--enabled");
         box.classList.add("box--disabled");
     }
+
     if (elemento != null) {
-        elemento.remove(); //Eliminar elemento si existe
+        elemento.remove();
     }
+    box.appendChild(newElement);
     return newElement;
 };
 
 const insertarSelect = (campo, arrayOpciones) => {
-    //Creacion del select
     let select = document.createElement("select");
     select.id = `${campo}-select`;
     select.className = "filtros";
     select.name = campo;
 
-    //Insertar las opciones en el select
-    let firstOption, text, value;
-    let band = false;
-    for (let opcion in arrayOpciones) {
-        switch (campo) {
-            case "ot":
-                firstOption = "Selecciona una OT";
-                value = opcion;
-                text = arrayOpciones[opcion]["nombre"] || opcion;
-                break;
-            case "operadores":
-                firstOption = "Selecciona un Operador";
-                value = opcion;
-                text = arrayOpciones[opcion]["nombre"];
-                break;
-            case "clases":
-                firstOption = "Selecciona una clase";
-                value = opcion;
-                text = opcion;
-                break;
-            case "procesos":
-                firstOption = "Selecciona un proceso";
-                value = arrayOpciones[opcion];
-                text = arrayOpciones[opcion];
-                break;
-        }
-        if (band == false) {
-            select.appendChild(insertarOpcion(0, firstOption)); //Insertar la primera opcion del select
-            band = true;
-        }
-        select.appendChild(insertarOpcion(value, text));
+    let firstOption = "";
+    switch (campo) {
+        case "ot":
+            firstOption = "Selecciona una OT";
+            break;
+        case "clases":
+            firstOption = "Selecciona una clase";
+            break;
+        case "procesos":
+            firstOption = "Selecciona un proceso";
+            break;
+        case "operadores":
+            firstOption = "Selecciona un Operador";
+            break;
     }
-    if (!band) {
-        select.appendChild(insertarOpcion(0, "Sin opciones disponibles")); //Insertar la primera opcion del select
+
+    select.appendChild(insertarOpcion(0, firstOption));
+
+    let count = 0;
+    if (Array.isArray(arrayOpciones)) {
+        arrayOpciones.forEach((opcion) => {
+            select.appendChild(insertarOpcion(opcion, opcion));
+            count++;
+        });
+    } else if (typeof arrayOpciones === "object" && arrayOpciones !== null) {
+        for (let opcion in arrayOpciones) {
+            let value = opcion;
+            let text = opcion;
+
+            switch (campo) {
+                case "ot":
+                    text = arrayOpciones[opcion]?.nombre || opcion;
+                    break;
+                case "clases":
+                    text = opcion;
+                    break;
+                case "procesos":
+                    text = opcion;
+                    break;
+                case "operadores":
+                    value = arrayOpciones[opcion]?.matricula || opcion;
+                    text = arrayOpciones[opcion]?.nombre || opcion;
+                    break;
+            }
+
+            select.appendChild(insertarOpcion(value, text));
+            count++;
+        }
     }
+
+    if (count === 0) {
+        select.innerHTML = "";
+        select.appendChild(insertarOpcion(0, "Sin opciones activas"));
+    }
+
     return select;
 };
 
@@ -118,38 +104,61 @@ const insertarOpcion = (value, text) => {
 };
 
 const insertarInput = (campo) => {
-    //Insertar input deshabilitado
     let inputDisabled = document.createElement("input");
     inputDisabled.id = `${campo}-input`;
     inputDisabled.className = "filtros";
     inputDisabled.type = "text";
     inputDisabled.disabled = true;
 
+    switch (campo) {
+        case "clases":
+            inputDisabled.placeholder = "Esperando OT...";
+            break;
+        case "procesos":
+            inputDisabled.placeholder = "Esperando Clase...";
+            break;
+        case "operadores":
+            inputDisabled.placeholder = "Esperando Proceso...";
+            break;
+        case "pedido":
+            inputDisabled.placeholder = "—";
+            break;
+        default:
+            inputDisabled.placeholder = "Esperando selección previa...";
+    }
+
     return inputDisabled;
 };
 
 /**
  * Insertar un valor y texto en un elemento
- * @param {input} elemento Elemento en el que se insertará el valor
- * @param {string} valor Valor que tendrá el elemento
+ * @param {HTMLElement} box Contenedor del elemento
+ * @param {string|number|null} valor Valor que tendrá el elemento
+ * @param {string} campo Nombre del campo
  */
 const crearInputConValor = (box, valor, campo) => {
-    //Si ya existe el input eliminarlo
-    let input = document.getElementById(`${campo}-input`);
+    let input = document.getElementById(`${campo}-input`) || document.getElementById(`${campo}-select`);
     if (input != null) {
         input.remove();
     }
 
-    //Insertar input solamente si el valor es diferente a 0
-    if (valor != 0) {
-        //Creación del nuevo input
-        input = document.createElement("input");
-        input.id = `${campo}-input`;
-        input.className = "filtros";
-        input.value = valor;
-        input.disabled = true;
-        box.appendChild(input);
+    let newInput = document.createElement("input");
+    newInput.id = `${campo}-input`;
+    newInput.className = "filtros";
+    newInput.disabled = true;
+
+    if (valor != null && valor !== "" && valor != 0) {
+        newInput.value = valor;
+        box.classList.remove("box--disabled");
+        box.classList.add("box--enabled");
+    } else {
+        newInput.value = "";
+        newInput.placeholder = "—";
+        box.classList.remove("box--enabled");
+        box.classList.add("box--disabled");
     }
+
+    box.appendChild(newInput);
 };
 
 //********FUNCTIONS TO APPLY IN THE TABLE***********
@@ -160,8 +169,7 @@ const crearTabla = (datos) => {
     for (let i = 0; i < 2; i++) {
         let tr_head = document.createElement("tr");
 
-        //Crear el encabezado de la tabla
-        if (i == 0) {
+        if (i === 0) {
             let encabezado = [
                 "Fecha",
                 "Piezas buenas",
@@ -178,7 +186,6 @@ const crearTabla = (datos) => {
             thead.appendChild(tr_head);
             table.appendChild(thead);
         } else {
-            //Insertar informacion del operador
             let tbody = document.createElement("tbody");
             for (let operador in datos) {
                 for (let fecha in datos[operador]) {
@@ -238,17 +245,14 @@ const crearTabla = (datos) => {
     return table;
 };
 
-var datos = window.datos; //Datos de las ordenes de trabajo
-
-let habilitar,
-    box,
-    selects = [],
-    boton,
-    isInitializing = true;
-//Crear select de OTs y agregarlo al div
+// Crear select de OTs y agregarlo al box .ot
 box = document.querySelector(".ot");
-selects["ot"] = insertarSelect("ot", datos);
-box.appendChild(selects["ot"]);
+if (box) {
+    let existingOt = document.getElementById("ot-select");
+    if (existingOt) existingOt.remove();
+    selects["ot"] = insertarSelect("ot", datos);
+    box.appendChild(selects["ot"]);
+}
 boton = document.getElementById("button");
 
 // Escuchar evento de envío para realizar consulta AJAX
@@ -258,16 +262,16 @@ if (form) {
         e.preventDefault();
 
         let otSelect = document.getElementById("ot-select");
-        let operadorSelect = document.getElementById("operadores-select");
         let clasesSelect = document.getElementById("clases-select");
         let procesosSelect = document.getElementById("procesos-select");
+        let operadorSelect = document.getElementById("operadores-select");
 
         let otValue = otSelect ? otSelect.value : "0";
-        let operadorValue = operadorSelect ? operadorSelect.value : "0";
         let claseValue = clasesSelect ? clasesSelect.value : "0";
         let procesoValue = procesosSelect ? procesosSelect.value : "0";
+        let operadorValue = operadorSelect ? operadorSelect.value : "0";
 
-        if (otValue == "0" || operadorValue == "0" || claseValue == "0" || procesoValue == "0") {
+        if (otValue == "0" || claseValue == "0" || procesoValue == "0" || operadorValue == "0") {
             return;
         }
 
@@ -339,7 +343,7 @@ if (form) {
                     loadingStatus.classList.add("status-success");
                 }
                 if (statusText) {
-                    statusText.innerHTML = `Consulta completada. Mostrando rendimiento para la OT <strong>${data.filtros.ot}</strong>, proceso <strong>${data.filtros.proceso}</strong>.`;
+                    statusText.innerHTML = `Consulta completada. Mostrando rendimiento para la OT <strong>${data.filtros.ot}</strong>, clase <strong>${data.filtros.clase}</strong>, proceso <strong>${data.filtros.proceso}</strong>.`;
                 }
 
                 // Actualizar etiquetas de detalles
@@ -378,108 +382,88 @@ if (form) {
     });
 }
 
-// Aplicar acciones cuando cambie cualquier selector en el dashboard usando delegación de eventos
+// Cascada de filtros: Orden de Trabajo -> Clase -> Proceso -> Operador (y Pedido con Clase)
 document.querySelector(".dashboard").addEventListener("change", (e) => {
     let target = e.target;
+
+    // 1. Cambio en ORDEN DE TRABAJO
     if (target.id === "ot-select") {
         let otValue = target.value;
-        if (otValue != 0) {
-            // Habilitar el campo de operadores si hay OT seleccionada
-            let habilitarOperadores = datos[otValue]["operadores"];
-            let boxOperadores = document.querySelector(".operadores");
-            let operadoresSelect = des_habilitarCampo(boxOperadores, "operadores", habilitarOperadores);
-            boxOperadores.appendChild(operadoresSelect);
-            selects["operadores"] = operadoresSelect;
+        let boxClases = document.querySelector(".clases");
+        let boxProcesos = document.querySelector(".procesos");
+        let boxOperadores = document.querySelector(".operadores");
+        let boxPedido = document.querySelector(".pedido");
 
-            // Poblar el select de CLASES con TODAS las clases de la OT (no solo las del operador)
-            if (datos[otValue]["clases_ot"]) {
-                let boxClases = document.querySelector(".clases");
-                let prevClasesSelect = document.getElementById("clases-select");
-                let prevClasesInput  = document.getElementById("clases-input");
-                if (prevClasesSelect) prevClasesSelect.remove();
-                if (prevClasesInput)  prevClasesInput.remove();
-
-                let clasesSelect = insertarSelect("clases", datos[otValue]["clases_ot"]);
-                selects["clases"] = clasesSelect;
-                boxClases.classList.remove("box--disabled");
-                boxClases.classList.add("box--enabled");
-                boxClases.appendChild(clasesSelect);
-            }
-
-
+        if (otValue != 0 && datos[otValue]) {
+            // Habilitar sólo las clases activas de esa OT
+            let clasesActivas = datos[otValue]["clases"] || {};
+            des_habilitarCampo(boxClases, "clases", clasesActivas);
         } else {
-            // Deshabilitar operadores y clases si no hay OT seleccionada
-            let boxOperadores = document.querySelector(".operadores");
-            let inputOperadores = des_habilitarCampo(boxOperadores, "operadores", null);
-            boxOperadores.appendChild(inputOperadores);
-
-            let boxClases = document.querySelector(".clases");
-            let inputClases = des_habilitarCampo(boxClases, "clases", null);
-            boxClases.appendChild(inputClases);
-
-
+            // Deshabilitar clases si no hay OT seleccionada
+            des_habilitarCampo(boxClases, "clases", null);
         }
 
-        // Limpiar procesos, pedido y botón
-        let boxProcesos = document.querySelector(".procesos");
-        let inputProcesos = des_habilitarCampo(boxProcesos, "procesos", null);
-        boxProcesos.appendChild(inputProcesos);
-
-        let boxPedido = document.querySelector(".pedido");
+        // Resetear procesos, operadores y pedido
+        des_habilitarCampo(boxProcesos, "procesos", null);
+        des_habilitarCampo(boxOperadores, "operadores", null);
         crearInputConValor(boxPedido, null, "pedido");
     }
 
-    else if (target.id === "operadores-select") {
-        updateProcesos();
-    }
-
+    // 2. Cambio en CLASE
     else if (target.id === "clases-select") {
         let claseValue = target.value;
         let otSelect = document.getElementById("ot-select");
         let otValue = otSelect ? otSelect.value : 0;
 
-        // Mostrar el pedido de la clase seleccionada
         let boxPedido = document.querySelector(".pedido");
-        let pedido = (claseValue != 0 && otValue != 0 && datos[otValue]["clases_ot"] && datos[otValue]["clases_ot"][claseValue])
-            ? datos[otValue]["clases_ot"][claseValue]["pedido"]
-            : null;
-        crearInputConValor(boxPedido, pedido, "pedido");
+        let boxProcesos = document.querySelector(".procesos");
+        let boxOperadores = document.querySelector(".operadores");
 
-        updateProcesos();
+        if (claseValue != 0 && otValue != 0 && datos[otValue]?.["clases"]?.[claseValue]) {
+            let claseData = datos[otValue]["clases"][claseValue];
+
+            // Mostrar pedido activo de la clase seleccionada
+            crearInputConValor(boxPedido, claseData.pedido, "pedido");
+
+            // Habilitar sólo los procesos activos de esa OT y Clase
+            let procesosActivos = claseData.procesos || {};
+            des_habilitarCampo(boxProcesos, "procesos", procesosActivos);
+        } else {
+            crearInputConValor(boxPedido, null, "pedido");
+            des_habilitarCampo(boxProcesos, "procesos", null);
+        }
+
+        // Resetear operadores
+        des_habilitarCampo(boxOperadores, "operadores", null);
+    }
+
+    // 3. Cambio en PROCESO
+    else if (target.id === "procesos-select") {
+        let procesoValue = target.value;
+        let clasesSelect = document.getElementById("clases-select");
+        let otSelect = document.getElementById("ot-select");
+
+        let claseValue = clasesSelect ? clasesSelect.value : 0;
+        let otValue = otSelect ? otSelect.value : 0;
+
+        let boxOperadores = document.querySelector(".operadores");
+
+        if (procesoValue != 0 && claseValue != 0 && otValue != 0) {
+            // Habilitar sólo los operadores activos que trabajaron ese proceso para esa clase en esa OT
+            let operadoresActivos = datos[otValue]?.["clases"]?.[claseValue]?.["procesos"]?.[procesoValue]?.operadores || {};
+            des_habilitarCampo(boxOperadores, "operadores", operadoresActivos);
+        } else {
+            des_habilitarCampo(boxOperadores, "operadores", null);
+        }
+    }
+
+    // 4. Cambio en OPERADOR
+    else if (target.id === "operadores-select") {
+        // Nada más que validar
     }
 
     checkFormValidity();
 });
-
-function updateProcesos() {
-    let otSelect = document.getElementById("ot-select");
-    let operadorSelect = document.getElementById("operadores-select");
-    let clasesSelect = document.getElementById("clases-select");
-
-    let otValue = otSelect ? otSelect.value : 0;
-    let operadorValue = operadorSelect ? operadorSelect.value : 0;
-    let claseValue = clasesSelect ? clasesSelect.value : 0;
-
-    let procesosClase = null;
-    if (otValue != 0 && operadorValue != 0 && claseValue != 0) {
-        let operadorData = datos[otValue]["operadores"][operadorValue];
-        if (operadorData && operadorData["clases"] && operadorData["clases"][claseValue]) {
-            procesosClase = operadorData["clases"][claseValue]["procesos"];
-        }
-    }
-
-    let boxProcesos = document.querySelector(".procesos");
-    if (procesosClase && procesosClase.length > 0) {
-        let selectProcesos = des_habilitarCampo(boxProcesos, "procesos", procesosClase);
-        boxProcesos.appendChild(selectProcesos);
-        selects["procesos"] = selectProcesos;
-    } else {
-        let inputProcesos = des_habilitarCampo(boxProcesos, "procesos", null);
-        boxProcesos.appendChild(inputProcesos);
-    }
-
-    checkFormValidity();
-}
 
 const crearLeyendaProductividad = () => {
     let leyenda = document.createElement("div");
@@ -525,86 +509,61 @@ const crearLeyendaProductividad = () => {
     return leyenda;
 };
 
+// Restablecer filtros si existen en la carga de la página
 if (window.filtros !== undefined) {
     let dashboard2 = document.querySelector(".dashboard2");
     let div_table = document.querySelector(".div-table");
 
-    div_table.appendChild(crearTabla(datosOperadores));
-    dashboard2.appendChild(crearLeyendaProductividad());
+    if (window.datosOperadores) {
+        div_table.appendChild(crearTabla(datosOperadores));
+        dashboard2.appendChild(crearLeyendaProductividad());
+    }
 
-    // Restablecer filtros seleccionados previamente tras el reload del submit
     let otSelect = document.getElementById("ot-select");
     if (otSelect && window.filtros.ot) {
         otSelect.value = window.filtros.ot;
-        
-        // Habilitar operadores
         let otValue = window.filtros.ot;
-        let habilitarOperadores = datos[otValue]["operadores"];
-        let boxOperadores = document.querySelector(".operadores");
-        let operadoresSelect = des_habilitarCampo(boxOperadores, "operadores", habilitarOperadores);
-        boxOperadores.appendChild(operadoresSelect);
-        selects["operadores"] = operadoresSelect;
-        
-        // Seleccionar operador
-        if (window.filtros.operador_matricula) {
-            operadoresSelect.value = window.filtros.operador_matricula;
-        } else {
-            for (let opVal in habilitarOperadores) {
-                if (habilitarOperadores[opVal].nombre === window.filtros.operador) {
-                    operadoresSelect.value = opVal;
-                    break;
-                }
-            }
-        }
 
-        // Habilitar clases
-        if (datos[otValue]["clases_ot"]) {
+        if (datos[otValue]) {
+            // 1. Restaurar clases
+            let clasesActivas = datos[otValue]["clases"] || {};
             let boxClases = document.querySelector(".clases");
-            let prevClasesSelect = document.getElementById("clases-select");
-            let prevClasesInput  = document.getElementById("clases-input");
-            if (prevClasesSelect) prevClasesSelect.remove();
-            if (prevClasesInput)  prevClasesInput.remove();
-
-            let clasesSelect = insertarSelect("clases", datos[otValue]["clases_ot"]);
-            selects["clases"] = clasesSelect;
-            boxClases.classList.remove("box--disabled");
-            boxClases.classList.add("box--enabled");
-            boxClases.appendChild(clasesSelect);
-            
+            let clasesSelect = des_habilitarCampo(boxClases, "clases", clasesActivas);
             if (window.filtros.clase) {
                 clasesSelect.value = window.filtros.clase;
             }
-        }
 
-        // Habilitar procesos
-        let operadorValue = operadoresSelect.value;
-        let claseValue = window.filtros.clase;
-        let procesosClase = null;
-        if (otValue != 0 && operadorValue != 0 && claseValue != 0) {
-            let operadorData = datos[otValue]["operadores"][operadorValue];
-            if (operadorData && operadorData["clases"] && operadorData["clases"][claseValue]) {
-                procesosClase = operadorData["clases"][claseValue]["procesos"];
-            }
-        }
+            // 2. Restaurar pedido
+            let claseValue = window.filtros.clase;
+            let boxPedido = document.querySelector(".pedido");
+            let pedido = datos[otValue]?.["clases"]?.[claseValue]?.pedido || window.filtros.pedido;
+            crearInputConValor(boxPedido, pedido, "pedido");
 
-        let boxProcesos = document.querySelector(".procesos");
-        if (procesosClase && procesosClase.length > 0) {
-            let selectProcesos = des_habilitarCampo(boxProcesos, "procesos", procesosClase);
-            boxProcesos.appendChild(selectProcesos);
-            selects["procesos"] = selectProcesos;
+            // 3. Restaurar procesos
+            let boxProcesos = document.querySelector(".procesos");
+            let procesosActivos = datos[otValue]?.["clases"]?.[claseValue]?.procesos || {};
+            let procesosSelect = des_habilitarCampo(boxProcesos, "procesos", procesosActivos);
             if (window.filtros.proceso) {
-                selectProcesos.value = window.filtros.proceso;
+                procesosSelect.value = window.filtros.proceso;
+            }
+
+            // 4. Restaurar operadores
+            let procesoValue = window.filtros.proceso;
+            let boxOperadores = document.querySelector(".operadores");
+            let operadoresActivos = datos[otValue]?.["clases"]?.[claseValue]?.["procesos"]?.[procesoValue]?.operadores || {};
+            let operadoresSelect = des_habilitarCampo(boxOperadores, "operadores", operadoresActivos);
+
+            if (window.filtros.operador_matricula) {
+                operadoresSelect.value = window.filtros.operador_matricula;
+            } else if (window.filtros.operador) {
+                for (let opMat in operadoresActivos) {
+                    if (operadoresActivos[opMat].nombre === window.filtros.operador) {
+                        operadoresSelect.value = opMat;
+                        break;
+                    }
+                }
             }
         }
-
-        // Mostrar pedido
-        let boxPedido = document.querySelector(".pedido");
-        let pedido = (claseValue != 0 && otValue != 0 && datos[otValue]["clases_ot"] && datos[otValue]["clases_ot"][claseValue])
-            ? datos[otValue]["clases_ot"][claseValue]["pedido"]
-            : null;
-        crearInputConValor(boxPedido, pedido, "pedido");
-
-
 
         checkFormValidity();
     }
@@ -613,17 +572,16 @@ isInitializing = false;
 
 function checkFormValidity() {
     let otSelect = document.getElementById("ot-select");
-    let operadorSelect = document.getElementById("operadores-select");
     let clasesSelect = document.getElementById("clases-select");
     let procesosSelect = document.getElementById("procesos-select");
-    let pedidoInput = document.getElementById("pedido-input");
+    let operadorSelect = document.getElementById("operadores-select");
 
     let otValue = otSelect ? otSelect.value : "0";
-    let operadorValue = operadorSelect ? operadorSelect.value : "0";
     let claseValue = clasesSelect ? clasesSelect.value : "0";
     let procesoValue = procesosSelect ? procesosSelect.value : "0";
+    let operadorValue = operadorSelect ? operadorSelect.value : "0";
 
-    let isValid = otValue != "0" && operadorValue != "0" && claseValue != "0" && procesoValue != "0";
+    let isValid = otValue != "0" && claseValue != "0" && procesoValue != "0" && operadorValue != "0";
 
     if (boton) {
         if (isValid) {
@@ -639,15 +597,14 @@ function checkFormValidity() {
     let loadingStatus = document.getElementById("loading-status");
 
     if (loadingStatus && !isValid) {
-        // Contar parámetros faltantes de los 5 elementos visuales del dashboard
+        // Contar parámetros faltantes de los 4 filtros seleccionables
         let missing = 0;
         if (!otSelect || otValue == "0") missing++;
-        if (!operadorSelect || operadorValue == "0") missing++;
         if (!clasesSelect || claseValue == "0") missing++;
-        if (!pedidoInput || !pedidoInput.value || pedidoInput.value == "0" || pedidoInput.value == "—") missing++;
         if (!procesosSelect || procesoValue == "0") missing++;
+        if (!operadorSelect || operadorValue == "0") missing++;
 
-        missing = Math.min(Math.max(missing, 1), 5);
+        missing = Math.min(Math.max(missing, 1), 4);
 
         if (statusText) {
             statusText.innerText = `Falta seleccionar ${missing} parámetro${missing > 1 ? 's' : ''} para realizar la consulta automática.`;
