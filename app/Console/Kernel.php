@@ -65,7 +65,6 @@ class Kernel extends ConsoleKernel
         $schedule->command('logs:prune-view-performance --days=3')
             ->dailyAt('02:30')
             ->withoutOverlapping()
-            ->onOneServer()
             ->appendOutputTo(storage_path('logs/prune_view_performance.log'));
     }
 

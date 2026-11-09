@@ -656,7 +656,9 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         if (!auth()->check() || !in_array((int) auth()->user()->perfil, [1, 3])) {
             abort(403, 'Acceso denegado');
         }
-        $logPath = storage_path('logs/laravel.log');
+        $today = date('Y-m-d');
+        $dailyPath = storage_path("logs/laravel-{$today}.log");
+        $logPath = file_exists($dailyPath) ? $dailyPath : storage_path('logs/laravel.log');
         if (!file_exists($logPath)) {
             return response('No se encontró el archivo de log en ' . $logPath, 404, ['Content-Type' => 'text/plain; charset=utf-8']);
         }
@@ -667,6 +669,37 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         $lastLines = array_slice($lines, -350);
         return response(implode('', $lastLines), 200, ['Content-Type' => 'text/plain; charset=utf-8']);
     })->name('server.error.log');
+
+    // Diagnóstico y mantenimiento del servidor (exclusivo para perfil 1 Administrador y 3 Master)
+    Route::get('/server-maintenance/{action}', function (string $action) {
+        if (!auth()->check() || !in_array((int) auth()->user()->perfil, [1, 3])) {
+            abort(403, 'Acceso denegado');
+        }
+        $output = '';
+        try {
+            switch ($action) {
+                case 'optimize-clear':
+                    \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+                    $output = \Illuminate\Support\Facades\Artisan::output();
+                    break;
+                case 'storage-link':
+                    \Illuminate\Support\Facades\Artisan::call('storage:link');
+                    $output = \Illuminate\Support\Facades\Artisan::output();
+                    break;
+                case 'status':
+                    $phpVer = PHP_VERSION;
+                    $dbConn = \Illuminate\Support\Facades\DB::connection()->getPdo() ? 'Conectado OK' : 'Error';
+                    $storageLinked = is_link(public_path('storage')) || file_exists(public_path('storage'));
+                    $output = "PHP Version: {$phpVer}\nBase de Datos: {$dbConn}\nStorage Link (public/storage): " . ($storageLinked ? 'OK' : 'No link') . "\n";
+                    break;
+                default:
+                    return response("Acción no reconocida.\nDisponibles: status, optimize-clear, storage-link", 400, ['Content-Type' => 'text/plain; charset=utf-8']);
+            }
+            return response($output, 200, ['Content-Type' => 'text/plain; charset=utf-8']);
+        } catch (\Throwable $e) {
+            return response('Error: ' . $e->getMessage(), 500, ['Content-Type' => 'text/plain; charset=utf-8']);
+        }
+    })->name('server.maintenance');
 });
 
 use App\Http\Controllers\ProductivityController;
