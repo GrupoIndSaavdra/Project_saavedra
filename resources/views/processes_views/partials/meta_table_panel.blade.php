@@ -1,6 +1,7 @@
 {{-- Tabla de Metas y Parámetros del Reporte --}}
 <form action="{{ route('verifiedPassword') }}" method="post" class="form-verified-password">
     @csrf
+    <input type="hidden" name="meta" value="{{ $arrayData['meta']->id ?? ($arrayData['meta'] ?? '') }}">
     <table class="table-meta">
         <thead>
             <tr>

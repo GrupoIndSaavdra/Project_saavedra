@@ -112,8 +112,7 @@ class DibujosFundicionPdfController extends Controller
         $ayudasConEstado = [];
 
         if ($otActiva) {
-            $otFolderNameRaw = 'OT '.$otActiva->id.($otActiva->moldura ? ' - '.$otActiva->moldura->nombre : '');
-            $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderNameRaw));
+            $otFolderName = $this->resolveFundicionDrawingFolder($otActiva);
 
             try {
                 $history = FundicionHistory::where('ot', '=', $otFolderName, 'and')->first();
@@ -542,12 +541,11 @@ class DibujosFundicionPdfController extends Controller
             }
 
             $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
-            if (is_numeric($rawOt)) {
+            if (preg_match('/(?:OT\s*)?(\d+)/i', $rawOt, $otMatch)) {
                 try {
-                    $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+                    $otModel = Orden_trabajo::query()->with('moldura')->find($otMatch[1]);
                     if ($otModel) {
-                        $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-                        $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                        $ot = $this->resolveFundicionDrawingFolder($otModel);
                     }
                 } catch (\Throwable $dbe) {
                     Log::warning('Error DB en DibujosFundicionPdfController@getFiles: '.$dbe->getMessage());
@@ -641,12 +639,11 @@ class DibujosFundicionPdfController extends Controller
         }
 
         $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
-        if (is_numeric($rawOt)) {
+        if (preg_match('/(?:OT\s*)?(\d+)/i', $rawOt, $otMatch)) {
             try {
-                $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+                $otModel = Orden_trabajo::query()->with('moldura')->find($otMatch[1]);
                 if ($otModel) {
-                    $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                    $ot = $this->resolveFundicionDrawingFolder($otModel);
                 }
             } catch (\Throwable $dbe) {
                 Log::warning('Error DB en DibujosFundicionPdfController@serveFile: '.$dbe->getMessage());
@@ -722,8 +719,7 @@ class DibujosFundicionPdfController extends Controller
             $clase = $this->sanitizePath($request->input('clase'));
 
             $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
-            $otFolderName = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-            $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
+            $otFolderName = $this->resolveFundicionDrawingFolder($otModel);
 
             $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
             if (empty($claseClean)) {
@@ -786,8 +782,7 @@ class DibujosFundicionPdfController extends Controller
         $clase = $this->sanitizePath($request->input('clase'));
 
         $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
-        $otFolderName = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-        $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
+        $otFolderName = $this->resolveFundicionDrawingFolder($otModel);
 
         $claseClean = strtoupper(trim(preg_replace('/^modelo\s+/i', '', strtolower($clase))));
         if (empty($claseClean)) {
@@ -858,10 +853,9 @@ class DibujosFundicionPdfController extends Controller
         $mode = $request->input('mode', 'reemplazar');
         $resetFlags = ($mode === 'reiniciar');
 
-        $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+        $otModel = preg_match('/(?:OT\s*)?(\d+)/i', $rawOt, $otMatch) ? Orden_trabajo::query()->with('moldura')->find($otMatch[1]) : null;
         if ($otModel) {
-            $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-            $otFolderName = $this->normalizeOTName($this->sanitizePath($otLabel));
+            $otFolderName = $this->resolveFundicionDrawingFolder($otModel);
         } else {
             $otFolderName = $this->normalizeOTName($this->sanitizePath($rawOt));
         }
@@ -2087,6 +2081,22 @@ class DibujosFundicionPdfController extends Controller
                 }
             }
 
+            // Coincidencia por número de OT si el segmento empieza con OT o contiene número de OT
+            if (! $found && preg_match('/(?:OT\s*)?(\d+)/i', $part, $otMatch)) {
+                $otNum = $otMatch[1];
+                foreach ($subdirs as $subdir) {
+                    $base = basename($subdir);
+                    if (strtoupper($base) === 'INACTIVAS') {
+                        continue;
+                    }
+                    if (preg_match('/^OT[ _-]?'.preg_quote($otNum, '/').'(?:[ _-].*)?$/i', $base)) {
+                        $resolved = $resolved ? $resolved.'/'.$base : $base;
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+
             if (! $found) {
                 // Si no se encuentra en las subcarpetas, intentar buscar en archivos (si es el segmento final)
                 $files = Storage::disk('local')->files($currentSearch);
@@ -2234,5 +2244,78 @@ class DibujosFundicionPdfController extends Controller
         }
 
         return false;
+    }
+
+    /**
+     * Reutiliza y sincroniza la carpeta de dibujos de fundición de la OT aunque haya cambiado el nombre de su moldura.
+     */
+    private function resolveFundicionDrawingFolder(Orden_trabajo $order): string
+    {
+        $id = $this->normalizeOTName($this->sanitizePath((string) $order->id));
+        $label = 'OT '.$order->id.($order->moldura ? ' - '.$order->moldura->nombre : '');
+        $current = $this->normalizeOTName($this->sanitizePath($label));
+        $disk = Storage::disk('local');
+        $pattern = '/^OT[ _-]?'.preg_quote($id, '/').'(?:[ _-].*)?$/iu';
+        $folders = [];
+
+        if ($disk->exists(self::BASE_DIR) || $disk->directoryExists(self::BASE_DIR)) {
+            foreach ($disk->directories(self::BASE_DIR) as $path) {
+                $name = basename(str_replace('\\', '/', $path));
+                if (strtoupper($name) === 'INACTIVAS') {
+                    continue;
+                }
+                if (preg_match($pattern, $this->normalizeOTName($this->toUtf8($name)))) {
+                    $folders[$name] = $path;
+                }
+            }
+        }
+
+        if (count($folders) <= 1) {
+            $found = array_key_first($folders);
+            if ($found && $found !== $current) {
+                $oldPath = self::BASE_DIR.'/'.$found;
+                $newPath = self::BASE_DIR.'/'.$current;
+                if ($disk->exists($oldPath) && ! $disk->exists($newPath)) {
+                    $disk->move($oldPath, $newPath);
+                    return $current;
+                }
+            }
+
+            return $found ?? $current;
+        }
+
+        $withFiles = array_filter($folders, function (string $path) use ($disk) {
+            foreach ($disk->allFiles($path) as $file) {
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if (in_array($ext, ['pdf', 'dwg'])) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        $candidates = $withFiles ?: $folders;
+        if (count($candidates) === 1) {
+            $found = array_key_first($candidates);
+            if ($found && $found !== $current) {
+                $oldPath = self::BASE_DIR.'/'.$found;
+                $newPath = self::BASE_DIR.'/'.$current;
+                if ($disk->exists($oldPath) && ! $disk->exists($newPath)) {
+                    $disk->move($oldPath, $newPath);
+                    return $current;
+                }
+            }
+
+            return $found;
+        }
+
+        foreach (array_keys($candidates) as $name) {
+            if ($this->normalizeOTName($this->toUtf8($name)) === $current) {
+                return $name;
+            }
+        }
+
+        return $current;
     }
 }

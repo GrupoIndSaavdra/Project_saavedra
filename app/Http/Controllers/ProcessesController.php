@@ -506,7 +506,18 @@ class ProcessesController extends Controller
         } else {
             $id_process = $processModified.'_'.$request->input('class').'_'.$workOrderId;
         }
-        $array = match ($request->input('process')) {
+        $processInput = trim((string) $request->input('process'));
+        $processNormalized = str_replace(
+            ['á', 'é', 'í', 'ó', 'ú', 'Á', 'É', 'Í', 'Ó', 'Ú'],
+            ['a', 'e', 'i', 'o', 'u', 'A', 'E', 'I', 'O', 'U'],
+            $processInput
+        );
+
+        $className = (string) $request->input('class');
+        $isCandadoObturador = str_contains($className, 'Candado Obturador');
+
+        $handled = true;
+        match ($processNormalized) {
             'Cepillado' => $this->cepillado($id_process, $request),
             'Desbaste Exterior' => $this->desbasteExterior($id_process, $request),
             'Revision Laterales' => $this->revisionLaterales($id_process, $request),
@@ -522,23 +533,26 @@ class ProcessesController extends Controller
             'Off Set' => $this->offSet($id_process, $request),
             'Palomas' => $this->palomas($id_process, $request),
             'Rebajes' => $this->rebajes($id_process, $request),
-            'Operacion Equipo' => $request->input('class') == 'Candado Obturador' ? $this->candadoObturador($id_process, $request) : $this->pySOpeSoldadura($id_process, $request),
+            'Operacion Equipo', 'Candado Obturador', 'PyS Ope Soldadura', 'P y S Ope Soldadura' => (
+                $isCandadoObturador
+                    ? $this->candadoObturador($id_process, $request)
+                    : $this->pysOpeSoldadura($id_process, $request)
+            ),
             'Embudo CM' => $this->embudoCM($id_process, $request),
-
             'Primera Operacion Cabeza Soplo' => $this->primeraOperacionCS($id_process, $request),
             'Segunda Operacion Cabeza Soplo' => $this->segundaOperacionCS($id_process, $request),
-            default => null,
+            default => ($handled = false),
         };
 
-        if ($array === null) {
+        if (! $handled) {
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Proceso no reconocido para cotas nominales: ' . $request->input('process'),
+                    'message' => 'Proceso no reconocido para cotas nominales: ' . $processInput,
                 ], 422);
             }
 
-            return back()->with(['error' => 'Proceso no reconocido para cotas nominales: ' . $request->input('process')]);
+            return back()->with(['error' => 'Proceso no reconocido para cotas nominales: ' . $processInput]);
         }
         $this->updatePieces($workOrderId, $request->input('class'), $request->input('process'), $request->input('subProcess') ?? null, $request->input('operation') ?? null);
 

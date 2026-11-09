@@ -238,8 +238,7 @@ class ProgramasCncController extends Controller
                     $otIdNumber = $otMatch[1];
                     $otModel = Orden_trabajo::query()->with('moldura')->find($otIdNumber);
                     if ($otModel) {
-                        $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-                        $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                        $ot = $this->resolveProgramasFolder($otModel);
                     }
                 } catch (\Throwable $e) {
                     Log::warning('Error DB en ProgramasCncController@getFiles: '.$e->getMessage());
@@ -298,12 +297,11 @@ class ProgramasCncController extends Controller
         $archivo = $this->sanitizeFileName($request->query('archivo', ''));
 
         $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
-        if (is_numeric($rawOt)) {
+        if (preg_match('/(?:OT\s*)?(\d+)/i', $rawOt, $otMatch)) {
             try {
-                $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
+                $otModel = Orden_trabajo::query()->with('moldura')->find($otMatch[1]);
                 if ($otModel) {
-                    $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                    $ot = $this->resolveProgramasFolder($otModel);
                 }
             } catch (\Throwable $e) {
                 Log::warning('Error DB en ProgramasCncController@serveFile: '.$e->getMessage());
@@ -372,8 +370,7 @@ class ProgramasCncController extends Controller
             $proceso = $this->sanitizePath($request->input('proceso'));
 
             $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
-            $otFolderName = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-            $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
+            $otFolderName = $this->resolveProgramasFolder($otModel);
 
             $claseModel = Clase::query()->findOrFail($claseId);
             $claseFolder = $this->sanitizePath($claseModel->nombre);
@@ -429,8 +426,7 @@ class ProgramasCncController extends Controller
         $claseModel = Clase::query()->findOrFail($request->input('clase_id'));
         $proceso = $this->sanitizePath($request->input('proceso'));
 
-        $otFolderName = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-        $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
+        $otFolderName = $this->resolveProgramasFolder($otModel);
         $claseFolder = $this->sanitizePath($claseModel->nombre);
 
         $dirPath = self::BASE_DIR.'/'.$otFolderName.'/'.$claseFolder.'/'.$proceso;
@@ -477,7 +473,9 @@ class ProgramasCncController extends Controller
             'archivo' => 'required|string|max:300',
         ]);
 
-        $ot = $this->sanitizePath($request->input('ot'));
+        $rawOt = $request->input('ot');
+        $otModel = preg_match('/(?:OT\s*)?(\d+)/i', $rawOt, $otMatch) ? Orden_trabajo::query()->with('moldura')->find($otMatch[1]) : null;
+        $ot = $otModel ? $this->resolveProgramasFolder($otModel) : $this->normalizeOTName($this->sanitizePath($rawOt));
         $clase = $this->sanitizePath($request->input('clase'));
         $proceso = $this->sanitizePath($request->input('proceso'));
         $archivo = $this->sanitizeFileName($request->input('archivo'));
@@ -518,7 +516,9 @@ class ProgramasCncController extends Controller
             'proceso' => 'required|string|max:100',
         ]);
 
-        $ot = $this->sanitizePath($request->input('ot'));
+        $rawOt = $request->input('ot');
+        $otModel = preg_match('/(?:OT\s*)?(\d+)/i', $rawOt, $otMatch) ? Orden_trabajo::query()->with('moldura')->find($otMatch[1]) : null;
+        $ot = $otModel ? $this->resolveProgramasFolder($otModel) : $this->normalizeOTName($this->sanitizePath($rawOt));
         $clase = $this->sanitizePath($request->input('clase'));
         $proceso = $this->sanitizePath($request->input('proceso'));
         $dirPath = self::BASE_DIR.'/'.$ot.'/'.$clase.'/'.$proceso;
@@ -552,7 +552,9 @@ class ProgramasCncController extends Controller
             'clase' => 'required|string|max:100',
         ]);
 
-        $ot = $this->sanitizePath($request->input('ot'));
+        $rawOt = $request->input('ot');
+        $otModel = preg_match('/(?:OT\s*)?(\d+)/i', $rawOt, $otMatch) ? Orden_trabajo::query()->with('moldura')->find($otMatch[1]) : null;
+        $ot = $otModel ? $this->resolveProgramasFolder($otModel) : $this->normalizeOTName($this->sanitizePath($rawOt));
         $clase = $this->sanitizePath($request->input('clase'));
         $dirPath = self::BASE_DIR.'/'.$ot.'/'.$clase;
 
@@ -782,5 +784,78 @@ class ProgramasCncController extends Controller
         }
 
         return $resolved;
+    }
+
+    /**
+     * Reutiliza y sincroniza la carpeta de programas de la OT aunque haya cambiado el nombre de su moldura.
+     */
+    private function resolveProgramasFolder(Orden_trabajo $order): string
+    {
+        $id = $this->normalizeOTName($this->sanitizePath((string) $order->id));
+        $label = 'OT '.$order->id.($order->moldura ? ' - '.$order->moldura->nombre : '');
+        $current = $this->normalizeOTName($this->sanitizePath($label));
+        $disk = Storage::disk('local');
+        $pattern = '/^OT[ _-]?'.preg_quote($id, '/').'(?:[ _-].*)?$/iu';
+        $folders = [];
+
+        if ($disk->exists(self::BASE_DIR) || $disk->directoryExists(self::BASE_DIR)) {
+            foreach ($disk->directories(self::BASE_DIR) as $path) {
+                $name = basename(str_replace('\\', '/', $path));
+                if (strtoupper($name) === 'INACTIVAS') {
+                    continue;
+                }
+                if (preg_match($pattern, $this->normalizeOTName($this->toUtf8($name)))) {
+                    $folders[$name] = $path;
+                }
+            }
+        }
+
+        if (count($folders) <= 1) {
+            $found = array_key_first($folders);
+            if ($found && $found !== $current) {
+                $oldPath = self::BASE_DIR.'/'.$found;
+                $newPath = self::BASE_DIR.'/'.$current;
+                if ($disk->exists($oldPath) && ! $disk->exists($newPath)) {
+                    $disk->move($oldPath, $newPath);
+                    return $current;
+                }
+            }
+
+            return $found ?? $current;
+        }
+
+        $withFiles = array_filter($folders, function (string $path) use ($disk) {
+            foreach ($disk->allFiles($path) as $file) {
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                if (in_array($ext, self::ALLOWED_EXTENSIONS)) {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        $candidates = $withFiles ?: $folders;
+        if (count($candidates) === 1) {
+            $found = array_key_first($candidates);
+            if ($found && $found !== $current) {
+                $oldPath = self::BASE_DIR.'/'.$found;
+                $newPath = self::BASE_DIR.'/'.$current;
+                if ($disk->exists($oldPath) && ! $disk->exists($newPath)) {
+                    $disk->move($oldPath, $newPath);
+                    return $current;
+                }
+            }
+
+            return $found;
+        }
+
+        foreach (array_keys($candidates) as $name) {
+            if ($this->normalizeOTName($this->toUtf8($name)) === $current) {
+                return $name;
+            }
+        }
+
+        return $current;
     }
 }
