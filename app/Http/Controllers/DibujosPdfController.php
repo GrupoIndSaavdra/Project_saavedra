@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DibujosPdfController extends Controller
 {
@@ -142,9 +143,10 @@ class DibujosPdfController extends Controller
                 try {
                     $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
                     if ($otModel) {
-                        $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-                        $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                        $ot = $this->resolveDrawingFolder($otModel);
                     }
+                } catch (HttpException $e) {
+                    throw $e;
                 } catch (\Throwable $dbe) {
                     Log::warning('Error DB en DibujosPdfController@getFiles: '.$dbe->getMessage());
                 }
@@ -208,7 +210,7 @@ class DibujosPdfController extends Controller
                 'error' => $errorMsg,
                 'archivos' => [],
                 'existe' => false,
-            ], 200);
+            ], $e instanceof HttpException ? $e->getStatusCode() : 200);
         }
     }
 
@@ -226,9 +228,10 @@ class DibujosPdfController extends Controller
             try {
                 $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
                 if ($otModel) {
-                    $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+                    $ot = $this->resolveDrawingFolder($otModel);
                 }
+            } catch (HttpException $e) {
+                throw $e;
             } catch (\Throwable $dbe) {
                 Log::warning('Error DB en DibujosPdfController@serveFile: '.$dbe->getMessage());
             }
@@ -311,8 +314,7 @@ class DibujosPdfController extends Controller
             $clase = $this->sanitizePath($request->input('clase'));
 
             $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
-            $otFolderName = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-            $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
+            $otFolderName = $this->resolveDrawingFolder($otModel);
 
             if ($clase === '--') {
                 $dirPath = self::BASE_DIR.'/'.$otFolderName;
@@ -343,9 +345,9 @@ class DibujosPdfController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Ocurrió un error al crear la carpeta.',
+                'message' => $e instanceof HttpException ? $e->getMessage() : 'Ocurrió un error al crear la carpeta.',
                 'error' => $e->getMessage(),
-            ], 500);
+            ], $e instanceof HttpException ? $e->getStatusCode() : 500);
         }
     }
 
@@ -367,8 +369,7 @@ class DibujosPdfController extends Controller
         $clase = $this->sanitizePath($request->input('clase'));
 
         $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
-        $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-        $otFolderName = $this->normalizeOTName($this->sanitizePath($otLabel));
+        $otFolderName = $this->resolveDrawingFolder($otModel);
 
         if ($clase === '--') {
             $dirPath = self::BASE_DIR.'/'.$otFolderName;
@@ -426,8 +427,7 @@ class DibujosPdfController extends Controller
         $rawOt = $request->input('ot');
         $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
         if ($otModel) {
-            $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
-            $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
+            $ot = $this->resolveDrawingFolder($otModel);
         } else {
             $ot = $this->normalizeOTName($this->sanitizePath($rawOt));
         }
@@ -597,7 +597,9 @@ class DibujosPdfController extends Controller
             'pdf' => 'required|file|mimes:pdf',
         ]);
 
-        $ot = $this->sanitizePath($request->input('ot'));
+        $rawOt = $request->input('ot');
+        $otModel = is_numeric($rawOt) ? Orden_trabajo::query()->with('moldura')->find($rawOt) : null;
+        $ot = $otModel ? $this->resolveDrawingFolder($otModel) : $this->sanitizePath($rawOt);
         $clase = $this->sanitizePath($request->input('clase'));
         $archivoAnterior = $this->sanitizeFileName($request->input('archivo_anterior'));
         $dirPath = self::BASE_DIR.'/'.$ot.'/'.$clase;
@@ -743,6 +745,54 @@ class DibujosPdfController extends Controller
                 'details' => $detailsMap[$action] ?? "Administrador realizó la acción '{$action}' en {$ruta}.",
             ]);
         }
+    }
+
+    /**
+     * Reutiliza la carpeta documental de la OT aunque haya cambiado el nombre de su moldura.
+     */
+    private function resolveDrawingFolder(Orden_trabajo $order): string
+    {
+        $id = $this->normalizeOTName($this->sanitizePath($order->id));
+        $label = 'OT '.$order->id.($order->moldura ? ' - '.$order->moldura->nombre : '');
+        $current = $this->normalizeOTName($this->sanitizePath($label));
+        $disk = Storage::disk('local');
+        $pattern = '/^OT '.preg_quote($id, '/').'(?: - |$)/u';
+        $folders = [];
+
+        foreach ($disk->directories(self::BASE_DIR) as $path) {
+            $name = basename(str_replace('\\', '/', $path));
+            if (preg_match($pattern, $this->normalizeOTName($this->toUtf8($name)))) {
+                $folders[$name] = $path;
+            }
+        }
+
+        if (count($folders) <= 1) {
+            return array_key_first($folders) ?? $current;
+        }
+
+        $withDrawings = array_filter($folders, function (string $path) use ($disk) {
+            foreach ($disk->allFiles($path) as $file) {
+                if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'pdf') {
+                    return true;
+                }
+            }
+
+            return false;
+        });
+
+        // Si el nombre nuevo solo tiene una carpeta vacía, conservar la que tiene los planos.
+        $candidates = $withDrawings ?: $folders;
+        if (count($candidates) === 1) {
+            return array_key_first($candidates);
+        }
+
+        foreach (array_keys($candidates) as $name) {
+            if ($this->normalizeOTName($this->toUtf8($name)) === $current) {
+                return $name;
+            }
+        }
+
+        throw new HttpException(409, "La OT {$order->id} tiene varias carpetas de Maquinados. Revisa cuál corresponde antes de continuar.");
     }
 
     /**
