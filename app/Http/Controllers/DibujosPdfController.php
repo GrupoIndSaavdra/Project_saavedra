@@ -2,20 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\CalidadMaquinadoDoc;
 use App\Models\Clase;
 use App\Models\DibujoFileLog;
 use App\Models\DibujoOtHistory;
-use App\Models\Moldura;
 use App\Models\Orden_trabajo;
 use App\Models\SystemLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
-use RuntimeException;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DibujosPdfController extends Controller
@@ -26,93 +21,6 @@ class DibujosPdfController extends Controller
      * Directorio legado para compatibilidad con archivos anteriores.
      */
     private const OLD_BASE_DIR = 'DIBUJOS_GIS';
-
-    public function renameMolding(int $moldingId, string $name): void
-    {
-        $disk = Storage::disk('local');
-        $moved = [];
-
-        try {
-            DB::transaction(function () use ($moldingId, $name, $disk, &$moved) {
-                $molding = Moldura::query()->lockForUpdate()->findOrFail($moldingId);
-                if ($molding->nombre === $name) {
-                    return;
-                }
-
-                $orders = Orden_trabajo::query()->where('id_moldura', '=', $moldingId, 'and')->pluck('id');
-                foreach ($orders as $id) {
-                    $old = $this->moldingFolder($id, $molding->nombre);
-                    $new = $this->moldingFolder($id, $name);
-                    if ($old === $new) {
-                        continue;
-                    }
-
-                    $backupRoot = 'CALIDAD_MAQUINADOS/dibujos';
-                    foreach ([self::BASE_DIR, self::OLD_BASE_DIR, $backupRoot] as $root) {
-                        $source = $this->resolveCaseInsensitivePath($root.'/'.$old);
-                        if (! $disk->directoryExists($source)) {
-                            continue;
-                        }
-
-                        $destination = dirname($source).'/'.$new;
-                        if ($disk->exists($this->resolveCaseInsensitivePath($destination))) {
-                            throw ValidationException::withMessages([
-                                'moldingName' => "La OT {$id} ya tiene una carpeta de Maquinados con el nombre nuevo. Revisa ambas carpetas antes de renombrar.",
-                            ]);
-                        }
-
-                        if (! $disk->move($source, $destination)) {
-                            throw new RuntimeException("No se pudo mover {$source} a {$destination}.");
-                        }
-                        $moved[] = [$source, $destination];
-                    }
-
-                    $history = DibujoOtHistory::query()->where('ot', '=', $old, 'and')->get();
-                    foreach ($history as $record) {
-                        if ($record->ot === $old) {
-                            $record->update(['ot' => $new]);
-                        }
-                    }
-
-                    $oldPrefix = $backupRoot.'/'.$old.'/';
-                    $newPrefix = $backupRoot.'/'.$new.'/';
-                    $docs = CalidadMaquinadoDoc::query()->dibujos()->where('ot', '=', $old, 'and')->get();
-                    foreach ($docs as $doc) {
-                        if (str_starts_with($doc->ruta_storage, $oldPrefix)) {
-                            $doc->update([
-                                'ot' => $new,
-                                'ruta_storage' => $newPrefix.substr($doc->ruta_storage, strlen($oldPrefix)),
-                            ]);
-                        }
-                    }
-                }
-
-                $molding->nombre = $name;
-                $molding->save();
-            });
-        } catch (\Throwable $e) {
-            foreach (array_reverse($moved) as [$source, $destination]) {
-                if (! $disk->move($destination, $source)) {
-                    Log::critical('No se pudo revertir el movimiento de dibujos de Maquinados.', compact('source', 'destination'));
-                }
-            }
-
-            throw $e;
-        }
-    }
-
-    private function workOrderForDrawingWrite(string $id): Orden_trabajo
-    {
-        $order = Orden_trabajo::query()->findOrFail($id);
-        $order->setRelation('moldura', Moldura::query()->sharedLock()->find($order->id_moldura));
-
-        return $order;
-    }
-
-    private function moldingFolder(string $id, ?string $name): string
-    {
-        return $this->normalizeOTName($this->sanitizePath('OT '.$id.($name !== null ? ' - '.$name : '')));
-    }
 
     // =========================================================================
     // VISTAS
@@ -234,7 +142,8 @@ class DibujosPdfController extends Controller
                 try {
                     $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
                     if ($otModel) {
-                        $ot = $this->moldingFolder($otModel->id, $otModel->moldura?->nombre);
+                        $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
+                        $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
                     }
                 } catch (\Throwable $dbe) {
                     Log::warning('Error DB en DibujosPdfController@getFiles: '.$dbe->getMessage());
@@ -317,7 +226,8 @@ class DibujosPdfController extends Controller
             try {
                 $otModel = Orden_trabajo::query()->with('moldura')->find($rawOt);
                 if ($otModel) {
-                    $ot = $this->moldingFolder($otModel->id, $otModel->moldura?->nombre);
+                    $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
+                    $ot = $this->normalizeOTName($this->sanitizePath($otLabel));
                 }
             } catch (\Throwable $dbe) {
                 Log::warning('Error DB en DibujosPdfController@serveFile: '.$dbe->getMessage());
@@ -400,35 +310,34 @@ class DibujosPdfController extends Controller
             $otId = $request->input('ot_id');
             $clase = $this->sanitizePath($request->input('clase'));
 
-            return DB::transaction(function () use ($otId, $clase) {
-                $otModel = $this->workOrderForDrawingWrite($otId);
-                $otFolderName = $this->moldingFolder($otModel->id, $otModel->moldura?->nombre);
+            $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
+            $otFolderName = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
+            $otFolderName = $this->normalizeOTName($this->sanitizePath($otFolderName));
 
-                if ($clase === '--') {
-                    $dirPath = self::BASE_DIR.'/'.$otFolderName;
-                } else {
-                    $dirPath = self::BASE_DIR.'/'.$otFolderName.'/'.$clase;
-                }
+            if ($clase === '--') {
+                $dirPath = self::BASE_DIR.'/'.$otFolderName;
+            } else {
+                $dirPath = self::BASE_DIR.'/'.$otFolderName.'/'.$clase;
+            }
 
-                if (Storage::disk('local')->exists($dirPath)) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'La carpeta ya existe.',
-                    ], 409);
-                }
-
-                Storage::disk('local')->makeDirectory($dirPath);
-
-                DibujoOtHistory::firstOrCreate(['ot' => $otFolderName, 'clase' => $clase]);
-                $this->logAction('crear_carpeta', $otFolderName.'/'.$clase, null);
-
+            if (Storage::disk('local')->exists($dirPath)) {
                 return response()->json([
-                    'success' => true,
-                    'message' => "Carpeta {$otFolderName}/{$clase} creada correctamente.",
-                    'ot' => $otFolderName,
-                    'clase' => $clase,
-                ]);
-            });
+                    'success' => false,
+                    'message' => 'La carpeta ya existe.',
+                ], 409);
+            }
+
+            Storage::disk('local')->makeDirectory($dirPath);
+
+            DibujoOtHistory::firstOrCreate(['ot' => $otFolderName, 'clase' => $clase]);
+            $this->logAction('crear_carpeta', $otFolderName.'/'.$clase, null);
+
+            return response()->json([
+                'success' => true,
+                'message' => "Carpeta {$otFolderName}/{$clase} creada correctamente.",
+                'ot' => $otFolderName,
+                'clase' => $clase,
+            ]);
         } catch (\Exception $e) {
             Log::error('Error en DibujosPdfController@createFolder: '.$e->getMessage());
 
@@ -457,48 +366,47 @@ class DibujosPdfController extends Controller
         $otId = $request->input('ot_id');
         $clase = $this->sanitizePath($request->input('clase'));
 
-        return DB::transaction(function () use ($request, $otId, $clase) {
-            $otModel = $this->workOrderForDrawingWrite($otId);
-            $otFolderName = $this->moldingFolder($otModel->id, $otModel->moldura?->nombre);
+        $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($otId);
+        $otLabel = 'OT '.$otModel->id.($otModel->moldura ? ' - '.$otModel->moldura->nombre : '');
+        $otFolderName = $this->normalizeOTName($this->sanitizePath($otLabel));
 
-            if ($clase === '--') {
-                $dirPath = self::BASE_DIR.'/'.$otFolderName;
-            } else {
-                $dirPath = self::BASE_DIR.'/'.$otFolderName.'/'.$clase;
-            }
+        if ($clase === '--') {
+            $dirPath = self::BASE_DIR.'/'.$otFolderName;
+        } else {
+            $dirPath = self::BASE_DIR.'/'.$otFolderName.'/'.$clase;
+        }
 
-            if (! Storage::disk('local')->exists($dirPath)) {
-                Storage::disk('local')->makeDirectory($dirPath);
-                DibujoOtHistory::firstOrCreate(['ot' => $otFolderName, 'clase' => $clase]);
-            }
+        if (! Storage::disk('local')->exists($dirPath)) {
+            Storage::disk('local')->makeDirectory($dirPath);
+            DibujoOtHistory::firstOrCreate(['ot' => $otFolderName, 'clase' => $clase]);
+        }
 
-            $file = $request->file('pdf');
-            $originalName = $this->sanitizeFileName($file->getClientOriginalName());
+        $file = $request->file('pdf');
+        $originalName = $this->sanitizeFileName($file->getClientOriginalName());
 
-            $newName = $originalName;
-            if (! empty($clase) && $clase !== '--') {
-                $prefix = $clase.' - ';
-                $newName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix.$originalName;
-            }
+        $newName = $originalName;
+        if (! empty($clase) && $clase !== '--') {
+            $prefix = $clase.' - ';
+            $newName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix.$originalName;
+        }
 
-            if (Storage::disk('local')->exists($dirPath.'/'.$newName)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => "Ya existe un archivo con el nombre '{$newName}'. Use la función de Reemplazar.",
-                ], 409);
-            }
-
-            $file->storeAs($dirPath, $newName, 'local');
-
-            $this->logAction('subir_pdf', $otFolderName.'/'.$clase, $newName);
-
+        if (Storage::disk('local')->exists($dirPath.'/'.$newName)) {
             return response()->json([
-                'success' => true,
-                'message' => "PDF '{$newName}' subido correctamente.",
-                'nombre' => $newName,
-                'url' => url('/dibujos/serve').'?ot='.urlencode($otFolderName).'&clase='.urlencode($clase).'&archivo='.urlencode($newName),
-            ]);
-        });
+                'success' => false,
+                'message' => "Ya existe un archivo con el nombre '{$newName}'. Use la función de Reemplazar.",
+            ], 409);
+        }
+
+        $file->storeAs($dirPath, $newName, 'local');
+
+        $this->logAction('subir_pdf', $otFolderName.'/'.$clase, $newName);
+
+        return response()->json([
+            'success' => true,
+            'message' => "PDF '{$newName}' subido correctamente.",
+            'nombre' => $newName,
+            'url' => url('/dibujos/serve').'?ot='.urlencode($otFolderName).'&clase='.urlencode($clase).'&archivo='.urlencode($newName),
+        ]);
     }
 
     /**

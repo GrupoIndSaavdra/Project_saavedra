@@ -33,14 +33,11 @@ class MoldingController extends Controller
         return view('moldings_views.edit_molding', compact('moldings'));
     }
 
-    public function update(Request $request, DibujosPdfController $drawings)
+    public function update(Request $request)
     {
-        $data = $request->validate([
-            'moldingId' => 'required|integer|exists:molduras,id',
-            'moldingName' => 'required|string',
-        ]);
-
-        $drawings->renameMolding($data['moldingId'], $data['moldingName']);
+        $molding = Moldura::query()->find($request->moldingId);
+        $molding->nombre = $request->moldingName;
+        $molding->update();
 
         return redirect()->to('editMolding')->with('success', 'Moldura actualizada correctamente.');
     }
