@@ -698,7 +698,9 @@ class SystemLogController extends Controller
         $clase = Clase::query()->find($id_clase);
 
         try {
-            $modelName = match ($process) {
+            $normalizedProcess = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
+            $modelName = match ($normalizedProcess) {
                 'Cepillado' => 'Pza_cepillado',
                 'Desbaste Exterior' => 'Desbaste_pza',
                 'Revision Laterales' => 'RevLaterales_pza',
@@ -727,9 +729,11 @@ class SystemLogController extends Controller
             };
 
             if ($modelName) {
-                return "App\Models\\".$modelName;
+                $fqcn = "App\\Models\\".$modelName;
+
+                return class_exists($fqcn) ? $fqcn : null;
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return null;
         }
 

@@ -520,6 +520,8 @@ class ReporteProduccionController extends Controller
      */
     private function getModelProcess($process): ?string
     {
+        $processNorm = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
         $map = [
             'Cepillado' => 'Cepillado',
             'Desbaste Exterior' => 'DesbasteExterior',
@@ -546,7 +548,7 @@ class ReporteProduccionController extends Controller
             'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo',
         ];
 
-        return isset($map[$process]) ? 'App\\Models\\'.$map[$process] : null;
+        return isset($map[$processNorm]) ? 'App\\Models\\'.$map[$processNorm] : null;
     }
 
     /**
@@ -554,6 +556,8 @@ class ReporteProduccionController extends Controller
      */
     private function getModelProcessPieces($process): ?string
     {
+        $processNorm = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
         $map = [
             'Cepillado' => 'Pza_cepillado',
             'Desbaste Exterior' => 'Desbaste_pza',
@@ -580,7 +584,7 @@ class ReporteProduccionController extends Controller
             'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo_pza',
         ];
 
-        return isset($map[$process]) ? 'App\\Models\\'.$map[$process] : null;
+        return isset($map[$processNorm]) ? 'App\\Models\\'.$map[$processNorm] : null;
     }
 
     /**
