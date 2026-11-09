@@ -2263,7 +2263,7 @@ class AlmacenFundicionController extends Controller
         $esReproceso = (bool) preg_match('/_R\d+$/i', $otFull);
 
         // Obtener TODAS las clases para esta OT y filtrarlas por aprobados en liberación
-        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
+        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso, $baseOt, $otId) {
 
             $clLow = strtolower($c['nombre']);
             $tipo = null;
@@ -2293,12 +2293,23 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 if ($type === 'casting') {
-                    // Para casting, solo queremos los APROBADOS en ESTA iteración específica ($otFull)
-                    return LiberacionModeloFundicion::query()
-                        ->where('ot', '=', $otFull)
+                    // Para casting, buscar si está aprobada en BD (aprobado o decisión aprobar) o en Storage
+                    $isAprob = LiberacionModeloFundicion::query()
+                        ->where(function ($q) use ($otFull, $baseOt, $otId) {
+                            $q->where('ot', '=', $otFull)
+                              ->orWhere('ot', '=', $baseOt);
+                            if ($otId > 0) {
+                                $q->orWhere('ot', 'LIKE', '%'.$otId.'%');
+                            }
+                        })
                         ->where('tipo_modelo', '=', $tipo)
-                        ->where('estado', '=', 'aprobado')
+                        ->where(function ($q) {
+                            $q->where('estado', '=', 'aprobado')
+                              ->orWhere('decision', '=', 'aprobar');
+                        })
                         ->exists();
+
+                    return $isAprob || $isClassAprobada($c['nombre']);
                 } elseif ($esReproceso) {
                     // Para reprocesos, SOLO devolver las clases que fueron rechazadas (guardadas en ayudas_config)
                     $historyRepro = FundicionHistory::where('ot', '=', $otFull, 'and')->first();
@@ -2325,7 +2336,7 @@ class AlmacenFundicionController extends Controller
         $clasesVinculadas = $history ? ($history->ayudas_config ?? []) : [];
         $globalClases = config('global_classes.clases', []);
 
-        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
+        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso, $baseOt, $otId) {
 
             $clLow = strtolower($claseNombre);
             $tipo = null;
@@ -2355,11 +2366,22 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 if ($type === 'casting') {
-                    return LiberacionModeloFundicion::query()
-                        ->where('ot', '=', $otFull)
+                    $isAprob = LiberacionModeloFundicion::query()
+                        ->where(function ($q) use ($otFull, $baseOt, $otId) {
+                            $q->where('ot', '=', $otFull)
+                              ->orWhere('ot', '=', $baseOt);
+                            if ($otId > 0) {
+                                $q->orWhere('ot', 'LIKE', '%'.$otId.'%');
+                            }
+                        })
                         ->where('tipo_modelo', '=', $tipo)
-                        ->where('estado', '=', 'aprobado')
+                        ->where(function ($q) {
+                            $q->where('estado', '=', 'aprobado')
+                              ->orWhere('decision', '=', 'aprobar');
+                        })
                         ->exists();
+
+                    return $isAprob || $isClassAprobada($claseNombre);
                 } elseif ($esReproceso) {
                     // Para reprocesos, todas las clases vinculadas del historial son válidas
                     return true;
@@ -2392,6 +2414,34 @@ class AlmacenFundicionController extends Controller
         })->values()->toArray();
 
         $fechaEntrega = $history && $history->fecha_entrega ? $history->fecha_entrega->format('Y-m-d') : '';
+
+        // Si es casting y el filtro no encontró clases aprobadas (ej. generación directa en Almacén o sin dictamen digital previo),
+        // respaldar con todas las clases de la OT y las vinculadas para que el usuario pueda seleccionarlas en el formulario.
+        if ($type === 'casting' && $clases->isEmpty() && empty($clasesVinculadas)) {
+            $clases = $clasesOrig;
+            $rawVinculadas = $history ? ($history->ayudas_config ?? []) : [];
+            $clasesVinculadas = collect($rawVinculadas)->map(function ($claseNombre) use ($clasesOrig) {
+                $nombreNorm = FundicionPaths::normalizeClass($claseNombre);
+                $prov = '';
+                $mat = 'Hierro Gris';
+                foreach ($clasesOrig as $co) {
+                    $coNorm = FundicionPaths::normalizeClass($co['nombre']);
+                    if (strtolower(trim($co['nombre'])) === strtolower(trim($claseNombre)) || strtolower(trim($coNorm)) === strtolower(trim($nombreNorm))) {
+                        $prov = $co['proveedor'];
+                        if (! empty($co['material'])) {
+                            $mat = $co['material'];
+                        }
+                        break;
+                    }
+                }
+
+                return [
+                    'nombre' => $nombreNorm,
+                    'proveedor' => $prov,
+                    'material' => $mat,
+                ];
+            })->values()->toArray();
+        }
 
         if ($type === 'casting') {
             $preOrdenes = PreOrdenFundicion::where('ot', '=', $otFull, 'and')
