@@ -49,7 +49,6 @@ function toastpremium(message, type = "success") {
     if (typeof Swal !== 'undefined') {
         Swal.fire({
             toast: true,
-            backdrop: false,
             position: 'bottom-end',
             showConfirmButton: false,
             timer: 3200,

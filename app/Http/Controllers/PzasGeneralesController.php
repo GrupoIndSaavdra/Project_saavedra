@@ -324,22 +324,47 @@ class PzasGeneralesController extends Controller
 
     public function getPiecesRequest(Request $request)
     {
-        $datosPiezas = [
-            'workOrder' => $request->input('workOrder'),
-            'class' => $request->input('class'),
-            'operator' => $request->input('operator'),
-            'machine' => $request->input('machine'),
-            'process' => $request->input('process'),
-            'error' => $request->input('error'),
-            'dateFrom' => $request->input('dateFrom'),
-            'dateTo' => $request->input('dateTo'),
-            'n_juego' => $request->input('n_juego'),
-            'status' => $request->input('status'),
-            'order' => $request->input('order', 'desc'),
-            'action' => $request->input('action'),
-        ];
+        try {
+            $datosPiezas = [
+                'workOrder' => $request->input('workOrder'),
+                'class' => $request->input('class'),
+                'operator' => $request->input('operator'),
+                'machine' => $request->input('machine'),
+                'process' => $request->input('process'),
+                'error' => $request->input('error'),
+                'dateFrom' => $request->input('dateFrom'),
+                'dateTo' => $request->input('dateTo'),
+                'n_juego' => $request->input('n_juego'),
+                'status' => $request->input('status'),
+                'order' => $request->input('order', 'desc'),
+                'action' => $request->input('action'),
+            ];
 
-        return $this->search($datosPiezas, 'admin');
+            return $this->search($datosPiezas, 'admin');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error en PzasGeneralesController@getPiecesRequest: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $pieces = [];
+            $piecesData = $request->all();
+            $infoPieces = [];
+            $filtersData = $this->getFiltersInfo();
+            $selectedItems = [
+                'workOrder' => 'Todos',
+                'class' => 'Todos',
+                'operator' => 'Todos',
+                'machine' => 'Todos',
+                'process' => 'Todos',
+                'error' => 'Todos',
+                'dateFrom' => 'Todos',
+                'dateTo' => 'Todos',
+                'n_juego' => 'Todos',
+                'status' => 'Todos',
+            ];
+
+            return view('pieces_views.piecesReport.adminPieces', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
+        }
     }
 
     /**
@@ -902,9 +927,13 @@ class PzasGeneralesController extends Controller
 
         // Bulk fetch all needed process records
         foreach ($processLookups as $model => $keys) {
-            $records = $model::query()->select(['id', 'id_proceso'])->whereIn('id_proceso', array_keys($keys), 'and', false)->get();
-            foreach ($records as $r) {
-                $processLookups[$model][$r->id_proceso] = $r;
+            try {
+                $records = $model::query()->select(['id', 'id_proceso'])->whereIn('id_proceso', array_keys($keys), 'and', false)->get();
+                foreach ($records as $r) {
+                    $processLookups[$model][$r->id_proceso] = $r;
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Error cargando registros de proceso para {$model} en saveInfoPzas: " . $e->getMessage());
             }
         }
 

@@ -12,6 +12,7 @@ use App\Models\SystemLog;
 use App\Models\User;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class PzasLiberadasController extends Controller
 {
@@ -33,40 +34,72 @@ class PzasLiberadasController extends Controller
 
     public function show()
     {
-        $retainedFilters = session('retainedFilters');
+        try {
+            $retainedFilters = session('retainedFilters');
 
-        if ($retainedFilters) {
-            // Restore from flashed session after a liberation action
-            $emptyDatos = array_fill_keys(array_keys($retainedFilters), 'Todos');
-            $emptyDatos['action'] = null;
+            if ($retainedFilters) {
+                // Restore from flashed session after a liberation action
+                $emptyDatos = array_fill_keys(array_keys($retainedFilters), 'Todos');
+                $emptyDatos['action'] = null;
 
-            $array = $this->controladorPzas->search($emptyDatos, 'quality');
-            $array[4] = $retainedFilters;
+                $array = $this->controladorPzas->search($emptyDatos, 'quality');
+                $array[4] = $retainedFilters;
 
-            return $this->showPieces($array);
+                return $this->showPieces($array);
+            }
+
+            return $this->getPiecesRequest(new Request());
+        } catch (\Throwable $e) {
+            Log::error('Error en PzasLiberadasController@show: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $pieces = [];
+            $piecesData = [];
+            $infoPieces = [];
+            $filtersData = $this->controladorPzas->getFiltersInfo();
+            $selectedItems = [];
+            $pieces_Released = [];
+            $info_Pieces = [];
+
+            return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'pieces_Released', 'info_Pieces'));
         }
-
-        return $this->getPiecesRequest(new Request());
     }
 
     public function getPiecesRequest(Request $request)
     {
-        $datosPiezas = [
-            'workOrder' => $request->input('workOrder'),
-            'class' => $request->input('class'),
-            'operator' => $request->input('operator'),
-            'machine' => $request->input('machine'),
-            'process' => $request->input('process'),
-            'error' => $request->input('error'),
-            'dateFrom' => $request->input('dateFrom'),
-            'dateTo' => $request->input('dateTo'),
-            'n_juego' => $request->input('n_juego'),
-            'status' => $request->input('status'),
-            'order' => $request->input('order', 'desc'),
-            'action' => $request->input('action'),
-        ];
+        try {
+            $datosPiezas = [
+                'workOrder' => $request->input('workOrder'),
+                'class' => $request->input('class'),
+                'operator' => $request->input('operator'),
+                'machine' => $request->input('machine'),
+                'process' => $request->input('process'),
+                'error' => $request->input('error'),
+                'dateFrom' => $request->input('dateFrom'),
+                'dateTo' => $request->input('dateTo'),
+                'n_juego' => $request->input('n_juego'),
+                'status' => $request->input('status'),
+                'order' => $request->input('order', 'desc'),
+                'action' => $request->input('action'),
+            ];
 
-        return $this->showPieces($this->controladorPzas->search($datosPiezas, 'quality'));
+            return $this->showPieces($this->controladorPzas->search($datosPiezas, 'quality'));
+        } catch (\Throwable $e) {
+            Log::error('Error en PzasLiberadasController@getPiecesRequest: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $pieces = [];
+            $piecesData = $request->all();
+            $infoPieces = [];
+            $filtersData = $this->controladorPzas->getFiltersInfo();
+            $selectedItems = [];
+            $pieces_Released = [];
+            $info_Pieces = [];
+
+            return view('pieces_views.releasePieces.pzasLiberar', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems', 'pieces_Released', 'info_Pieces'));
+        }
     }
 
     /**

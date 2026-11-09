@@ -40,8 +40,8 @@ use App\Models\PySOpeSoldadura_cnominal;
 use App\Models\PySOpeSoldadura_tolerancia;
 use App\Models\Rebajes_cnominal;
 use App\Models\Rebajes_tolerancia;
-use App\Models\RevCalificado_cnominal;
-use App\Models\RevCalificado_tolerancia;
+use App\Models\revCalificado_cnominal;
+use App\Models\revCalificado_tolerancia;
 use App\Models\RevLaterales_cnominal;
 use App\Models\RevLaterales_tolerancia;
 use App\Models\SegundaOperacionCabezaSoplo_cnominal;
@@ -61,13 +61,22 @@ class ProcessesController extends Controller
 
     public function show_cNominalsView()
     {
+        $workOrders = [];
         // ── OPTIMIZACIÓN: Cache en archivo de estructura de Cotas Nominales por 10 minutos (usa driver 'file' para no saturar max_allowed_packet de MySQL) ──
         try {
             $workOrders = Cache::store('file')->remember('processes_cnominals_work_orders_tree', 600, function () {
                 return $this->buildCNominalsTree();
             });
         } catch (\Throwable $e) {
-            $workOrders = $this->buildCNominalsTree();
+            try {
+                $workOrders = $this->buildCNominalsTree();
+            } catch (\Throwable $innerEx) {
+                \Illuminate\Support\Facades\Log::error('Fallo al construir árbol de cotas nominales en producción', [
+                    'error' => $innerEx->getMessage(),
+                    'trace' => $innerEx->getTraceAsString(),
+                ]);
+                $workOrders = [];
+            }
         }
 
         $pieces_Released = [];
@@ -939,13 +948,13 @@ class ProcessesController extends Controller
      */
     public function calificado($id_proceso, $request)
     {
-        $cNominal = RevCalificado_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
-        $tolerance = RevCalificado_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
+        $cNominal = revCalificado_cnominal::query()->where('id_proceso', '=', $id_proceso)->first();
+        $tolerance = revCalificado_tolerancia::query()->where('id_proceso', '=', $id_proceso)->first();
         if (! $cNominal) {
-            $cNominal = new RevCalificado_cnominal();
+            $cNominal = new revCalificado_cnominal();
         }
         if (! $tolerance) {
-            $tolerance = new RevCalificado_tolerancia();
+            $tolerance = new revCalificado_tolerancia();
         }
 
         //Llenado de tabla calificado_cnominal

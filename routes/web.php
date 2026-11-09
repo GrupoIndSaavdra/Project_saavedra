@@ -650,6 +650,23 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
     Route::get('/system-logs-report', [SystemLogController::class, 'index'])->name('systemLogsReport');
     Route::post('/system-logs', [SystemLogController::class, 'store'])->name('system.logs.store');
     Route::post('/system-logs/purge', [SystemLogController::class, 'purge'])->name('system.logs.purge');
+
+    // Visor diagnóstico de laravel.log (exclusivo para perfil 1 Administrador y 3 Master)
+    Route::get('/server-error-log', function () {
+        if (!auth()->check() || !in_array((int) auth()->user()->perfil, [1, 3])) {
+            abort(403, 'Acceso denegado');
+        }
+        $logPath = storage_path('logs/laravel.log');
+        if (!file_exists($logPath)) {
+            return response('No se encontró el archivo de log en ' . $logPath, 404, ['Content-Type' => 'text/plain; charset=utf-8']);
+        }
+        $lines = @file($logPath);
+        if ($lines === false || empty($lines)) {
+            return response('El archivo de log está vacío.', 200, ['Content-Type' => 'text/plain; charset=utf-8']);
+        }
+        $lastLines = array_slice($lines, -350);
+        return response(implode('', $lastLines), 200, ['Content-Type' => 'text/plain; charset=utf-8']);
+    })->name('server.error.log');
 });
 
 use App\Http\Controllers\ProductivityController;

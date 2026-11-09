@@ -260,8 +260,22 @@ class PiecesOccupiedController extends Controller
             return $this->cachedActiveOtIds;
         }
 
-        return $this->cachedActiveOtIds = Cache::remember('pieces_occupied_active_ot_ids', 600, function () {
-            return Clase::query()
+        try {
+            return $this->cachedActiveOtIds = Cache::remember('pieces_occupied_active_ot_ids', 600, function () {
+                return Clase::query()
+                    ->where('finalizada', '=', 0, 'and')
+                    ->whereNotNull('id_ot', 'and')
+                    ->distinct()
+                    ->pluck('id_ot')
+                    ->filter()
+                    ->map(fn ($id) => (string) $id)
+                    ->unique()
+                    ->values()
+                    ->toArray();
+            });
+        } catch (\Throwable $e) {
+            Log::warning('Fallo cache en getActiveOtIds: ' . $e->getMessage());
+            return $this->cachedActiveOtIds = Clase::query()
                 ->where('finalizada', '=', 0, 'and')
                 ->whereNotNull('id_ot', 'and')
                 ->distinct()
@@ -271,7 +285,7 @@ class PiecesOccupiedController extends Controller
                 ->unique()
                 ->values()
                 ->toArray();
-        });
+        }
     }
 
     /**
@@ -565,118 +579,147 @@ class PiecesOccupiedController extends Controller
      */
     public function getOccupiedPieces(Request $request)
     {
-        $targetOt = $request->input('ot');
-        $targetClaseId = $request->input('clase_id');
-        $targetProcess = $request->input('proceso');
-        $targetPieza = trim((string) $request->input('pieza', ''));
-        $targetOperador = trim((string) $request->input('operador', ''));
+        try {
+            $targetOt = $request->input('ot');
+            $targetClaseId = $request->input('clase_id');
+            $targetProcess = $request->input('proceso');
+            $targetPieza = trim((string) $request->input('pieza', ''));
+            $targetOperador = trim((string) $request->input('operador', ''));
 
-        $isDefaultLoad = empty($targetOt) && empty($targetClaseId) && empty($targetProcess) && empty($targetPieza) && empty($targetOperador);
+            $isDefaultLoad = empty($targetOt) && empty($targetClaseId) && empty($targetProcess) && empty($targetPieza) && empty($targetOperador);
 
-        if ($isDefaultLoad) {
-            $cachedPayload = Cache::get('pieces_occupied_initial_payload');
-            if ($cachedPayload !== null) {
-                return response()->json($cachedPayload);
+            if ($isDefaultLoad) {
+                try {
+                    $cachedPayload = Cache::get('pieces_occupied_initial_payload');
+                    if ($cachedPayload !== null) {
+                        return response()->json($cachedPayload);
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning('Fallo cache en getOccupiedPieces: ' . $e->getMessage());
+                }
             }
-        }
 
-        // 1. Obtener las piezas ocupadas para el contexto de OT, Clase y Proceso
-        $contextPieces = $this->fetchOccupiedPiecesList($targetOt, $targetClaseId, $targetProcess);
+            // 1. Obtener las piezas ocupadas para el contexto de OT, Clase y Proceso
+            $contextPieces = $this->fetchOccupiedPiecesList($targetOt, $targetClaseId, $targetProcess);
 
-        // Operadores activos en el sistema (perfil 2 y estatus 1) + operadores con piezas ocupadas
-        $availableOperators = $this->getActiveOperators($contextPieces);
+            // Operadores activos en el sistema (perfil 2 y estatus 1) + operadores con piezas ocupadas
+            $availableOperators = $this->getActiveOperators($contextPieces);
 
-        // Números de pieza: solo se activan y calculan si OT, Clase y Proceso están los 3 seleccionados
-        $allThreeSelected = ! empty($targetOt) && ! empty($targetClaseId) && ! empty($targetProcess);
-        $availablePieces = [];
+            // Números de pieza: solo se activan y calculan si OT, Clase y Proceso están los 3 seleccionados
+            $allThreeSelected = ! empty($targetOt) && ! empty($targetClaseId) && ! empty($targetProcess);
+            $availablePieces = [];
 
-        if ($allThreeSelected) {
-            $numbersMap = [];
-            foreach ($contextPieces as $p) {
-                foreach ([$p['n_pieza'], $p['n_juego']] as $str) {
-                    if ($str && preg_match('/\d+/', (string) $str, $matches)) {
-                        $num = (int) $matches[0];
-                        if ($num > 0) {
-                            $numbersMap[$num] = true;
+            if ($allThreeSelected) {
+                $numbersMap = [];
+                foreach ($contextPieces as $p) {
+                    foreach ([$p['n_pieza'], $p['n_juego']] as $str) {
+                        if ($str && preg_match('/\d+/', (string) $str, $matches)) {
+                            $num = (int) $matches[0];
+                            if ($num > 0) {
+                                $numbersMap[$num] = true;
+                            }
                         }
                     }
                 }
+                $sortedNumbers = array_keys($numbersMap);
+                sort($sortedNumbers, SORT_NUMERIC);
+                $availablePieces = array_map(fn ($num) => [
+                    'id' => (string) $num,
+                    'label' => "Pieza #{$num}",
+                ], $sortedNumbers);
             }
-            $sortedNumbers = array_keys($numbersMap);
-            sort($sortedNumbers, SORT_NUMERIC);
-            $availablePieces = array_map(fn ($num) => [
-                'id' => (string) $num,
-                'label' => "Pieza #{$num}",
-            ], $sortedNumbers);
-        }
 
-        // 2. Filtrar para la tabla por Pieza u Operador si fueron seleccionados
-        $tablePieces = $contextPieces;
+            // 2. Filtrar para la tabla por Pieza u Operador si fueron seleccionados
+            $tablePieces = $contextPieces;
 
-        if (! empty($targetPieza)) {
-            preg_match('/\d+/', $targetPieza, $targetDigits);
-            $targetNum = $targetDigits[0] ?? $targetPieza;
+            if (! empty($targetPieza)) {
+                preg_match('/\d+/', $targetPieza, $targetDigits);
+                $targetNum = $targetDigits[0] ?? $targetPieza;
 
-            $tablePieces = array_values(array_filter($tablePieces, function ($piece) use ($targetPieza, $targetNum) {
-                $pNum = trim((string) ($piece['n_pieza'] ?? ''));
-                $jNum = trim((string) ($piece['n_juego'] ?? ''));
-                preg_match('/\d+/', $pNum, $pDigits);
-                $pNumDigits = $pDigits[0] ?? '';
-                preg_match('/\d+/', $jNum, $jDigits);
-                $jNumDigits = $jDigits[0] ?? '';
+                $tablePieces = array_values(array_filter($tablePieces, function ($piece) use ($targetPieza, $targetNum) {
+                    $pNum = trim((string) ($piece['n_pieza'] ?? ''));
+                    $jNum = trim((string) ($piece['n_juego'] ?? ''));
+                    preg_match('/\d+/', $pNum, $pDigits);
+                    $pNumDigits = $pDigits[0] ?? '';
+                    preg_match('/\d+/', $jNum, $jDigits);
+                    $jNumDigits = $jDigits[0] ?? '';
 
-                return ($pNumDigits !== '' && $pNumDigits === $targetNum) ||
-                    ($jNumDigits !== '' && $jNumDigits === $targetNum) ||
-                    stripos($pNum, $targetPieza) !== false ||
-                    stripos($jNum, $targetPieza) !== false;
-            }));
-        }
-
-        if (! empty($targetOperador)) {
-            $tablePieces = array_values(array_filter($tablePieces, function ($piece) use ($targetOperador) {
-                $mat = $piece['operador_matricula'] ?? null;
-                $nom = $piece['operador_nombre'] ?? null;
-
-                return ($mat && (string) $mat === (string) $targetOperador) ||
-                    ($nom && stripos($nom, $targetOperador) !== false);
-            }));
-        }
-
-        $totalOrphans = 0;
-        $totalIncompletes = 0;
-        $affectedOts = [];
-
-        foreach ($tablePieces as $item) {
-            if (! empty($item['is_orphan'])) {
-                $totalOrphans++;
+                    return ($pNumDigits !== '' && $pNumDigits === $targetNum) ||
+                        ($jNumDigits !== '' && $jNumDigits === $targetNum) ||
+                        stripos($pNum, $targetPieza) !== false ||
+                        stripos($jNum, $targetPieza) !== false;
+                }));
             }
-            if (! empty($item['is_incomplete'])) {
-                $totalIncompletes++;
+
+            if (! empty($targetOperador)) {
+                $tablePieces = array_values(array_filter($tablePieces, function ($piece) use ($targetOperador) {
+                    $mat = $piece['operador_matricula'] ?? null;
+                    $nom = $piece['operador_nombre'] ?? null;
+
+                    return ($mat && (string) $mat === (string) $targetOperador) ||
+                        ($nom && stripos($nom, $targetOperador) !== false);
+                }));
             }
-            if (! empty($item['id_ot']) && $item['id_ot'] !== 'N/A') {
-                $affectedOts[$item['id_ot']] = true;
+
+            $totalOrphans = 0;
+            $totalIncompletes = 0;
+            $affectedOts = [];
+
+            foreach ($tablePieces as $item) {
+                if (! empty($item['is_orphan'])) {
+                    $totalOrphans++;
+                }
+                if (! empty($item['is_incomplete'])) {
+                    $totalIncompletes++;
+                }
+                if (! empty($item['id_ot']) && $item['id_ot'] !== 'N/A') {
+                    $affectedOts[$item['id_ot']] = true;
+                }
             }
+
+            $responseData = [
+                'success' => true,
+                'summary' => [
+                    'total_occupied' => count($tablePieces),
+                    'total_orphans' => $totalOrphans,
+                    'total_incompletes' => $totalIncompletes,
+                    'affected_ots' => count($affectedOts),
+                ],
+                'pieces' => $tablePieces,
+                'available_operators' => $availableOperators,
+                'available_pieces' => $availablePieces,
+                'all_three_selected' => $allThreeSelected,
+            ];
+
+            if ($isDefaultLoad) {
+                try {
+                    Cache::put('pieces_occupied_initial_payload', $responseData, 180);
+                } catch (\Throwable $e) {
+                    Log::warning('Fallo al guardar cache de pieces_occupied_initial_payload: ' . $e->getMessage());
+                }
+            }
+
+            return response()->json($responseData);
+        } catch (\Throwable $e) {
+            Log::error('Error en getOccupiedPieces: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al consultar piezas ocupadas: ' . $e->getMessage(),
+                'summary' => [
+                    'total_occupied' => 0,
+                    'total_orphans' => 0,
+                    'total_incompletes' => 0,
+                    'affected_ots' => 0,
+                ],
+                'pieces' => [],
+                'available_operators' => [],
+                'available_pieces' => [],
+                'all_three_selected' => false,
+            ], 200);
         }
-
-        $responseData = [
-            'success' => true,
-            'summary' => [
-                'total_occupied' => count($tablePieces),
-                'total_orphans' => $totalOrphans,
-                'total_incompletes' => $totalIncompletes,
-                'affected_ots' => count($affectedOts),
-            ],
-            'pieces' => $tablePieces,
-            'available_operators' => $availableOperators,
-            'available_pieces' => $availablePieces,
-            'all_three_selected' => $allThreeSelected,
-        ];
-
-        if ($isDefaultLoad) {
-            Cache::put('pieces_occupied_initial_payload', $responseData, 180);
-        }
-
-        return response()->json($responseData);
     }
 
     /**
@@ -744,8 +787,9 @@ class PiecesOccupiedController extends Controller
         ];
 
         foreach ($processesToScan as $procKey => $cfg) {
-            $pieceModel = $cfg['piece_model'];
-            $parentModel = $cfg['parent_model'];
+            try {
+                $pieceModel = $cfg['piece_model'];
+                $parentModel = $cfg['parent_model'];
 
             if (! class_exists($pieceModel)) {
                 continue;
@@ -918,7 +962,11 @@ class PiecesOccupiedController extends Controller
                     'is_incomplete' => $isIncomplete,
                 ];
             }
+        } catch (\Throwable $e) {
+            Log::warning("Error escaneando proceso {$procKey} en fetchOccupiedPiecesList: " . $e->getMessage());
+            continue;
         }
+    }
 
         // 3. Respaldo adicional: Consultar piezas con error 'Incompleto' no liberadas en la tabla 'piezas'
         $incompleteGeneralQuery = Pieza::query()
