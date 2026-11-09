@@ -196,6 +196,7 @@ class DibujosPdfController extends Controller
                 'archivos' => $allFiles,
                 'ot' => $ot,
                 'clase' => $clase,
+                'carpeta_existe' => Storage::disk('local')->directoryExists($clase === '' ? $newRootPathRel : $newClasePathRel),
                 'existe' => (count($allFiles) > 0),
             ]);
         } catch (\Throwable $e) {
@@ -767,17 +768,7 @@ class DibujosPdfController extends Controller
         }
 
         if (count($folders) <= 1) {
-            $found = array_key_first($folders);
-            if ($found && $found !== $current) {
-                $oldPath = self::BASE_DIR.'/'.$found;
-                $newPath = self::BASE_DIR.'/'.$current;
-                if ($disk->exists($oldPath) && ! $disk->exists($newPath)) {
-                    $disk->move($oldPath, $newPath);
-                    return $current;
-                }
-            }
-
-            return $found ?? $current;
+            return array_key_first($folders) ?? $current;
         }
 
         $withDrawings = array_filter($folders, function (string $path) use ($disk) {
@@ -793,17 +784,7 @@ class DibujosPdfController extends Controller
         // Si el nombre nuevo solo tiene una carpeta vacía, conservar la que tiene los planos.
         $candidates = $withDrawings ?: $folders;
         if (count($candidates) === 1) {
-            $found = array_key_first($candidates);
-            if ($found && $found !== $current) {
-                $oldPath = self::BASE_DIR.'/'.$found;
-                $newPath = self::BASE_DIR.'/'.$current;
-                if ($disk->exists($oldPath) && ! $disk->exists($newPath)) {
-                    $disk->move($oldPath, $newPath);
-                    return $current;
-                }
-            }
-
-            return $found;
+            return array_key_first($candidates);
         }
 
         foreach (array_keys($candidates) as $name) {

@@ -164,10 +164,10 @@ function updateAdminUI() {
 
         if (btnSubir) {
             btnSubir.classList.remove("hidden");
-            if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = p1; btnSubir.dataset.folderParam2 = p2; }
+            if (module === 'dibujos' || module === 'fundicion') { btnSubir.dataset.otId = otSel.value; btnSubir.dataset.clase = p2; btnSubir.dataset.folderParam1 = otSel.value; btnSubir.dataset.folderParam2 = p2; }
         }
 
-        cargarArchivosEnPanel(p1, p2);
+        cargarArchivosEnPanel(otSel.value, p2);
     } else {
         if (panelFiles) panelFiles.classList.remove('active');
         if (alertNotReady) alertNotReady.hidden = false;
@@ -334,9 +334,26 @@ function cargarArchivosEnPanel(param1, param2 = null, payloadObj = null) {
 
     url += `ot=${c1}&clase=${c2}`;
 
-    fetch(url, { headers: { 'Accept': 'application/json' } })
-        .then(r => r.json())
-        .then(data => renderArchivosGrid(data, param1, param2))
+    fetch(url, { headers: { 'Accept': 'application/json' }, cache: 'no-store' })
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok || data.success === false) {
+                throw new Error(data.error || 'Error al cargar los archivos.');
+            }
+            return data;
+        })
+        .then(data => {
+            if (String(document.getElementById('ot-select')?.value) === String(param1)
+                && typeof data.carpeta_existe === 'boolean') {
+                const folder = `${data.ot} / ${param2 === '--' ? 'Raíz' : param2}`;
+                document.querySelectorAll('.folder-label').forEach(el => el.textContent = folder);
+                document.getElementById('alert-ready-exists')?.classList.toggle('hidden', !data.carpeta_existe);
+                document.getElementById('alert-ready-not-exists')?.classList.toggle('hidden', data.carpeta_existe);
+                document.getElementById('alert-upload-no-folder')?.classList.toggle('hidden', data.carpeta_existe);
+                document.getElementById('btn-crear-carpeta')?.classList.toggle('hidden', data.carpeta_existe);
+            }
+            renderArchivosGrid(data, param1, param2);
+        })
         .catch(() => {
             grid.innerHTML = '<p class="d-text-danger d-text-center d-w-100">Error al cargar los archivos.</p>';
         });

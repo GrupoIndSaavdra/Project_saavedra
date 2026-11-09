@@ -2271,17 +2271,7 @@ class DibujosFundicionPdfController extends Controller
         }
 
         if (count($folders) <= 1) {
-            $found = array_key_first($folders);
-            if ($found && $found !== $current) {
-                $oldPath = self::BASE_DIR.'/'.$found;
-                $newPath = self::BASE_DIR.'/'.$current;
-                if ($disk->exists($oldPath) && ! $disk->exists($newPath)) {
-                    $disk->move($oldPath, $newPath);
-                    return $current;
-                }
-            }
-
-            return $found ?? $current;
+            return array_key_first($folders) ?? $current;
         }
 
         $withFiles = array_filter($folders, function (string $path) use ($disk) {
@@ -2297,17 +2287,7 @@ class DibujosFundicionPdfController extends Controller
 
         $candidates = $withFiles ?: $folders;
         if (count($candidates) === 1) {
-            $found = array_key_first($candidates);
-            if ($found && $found !== $current) {
-                $oldPath = self::BASE_DIR.'/'.$found;
-                $newPath = self::BASE_DIR.'/'.$current;
-                if ($disk->exists($oldPath) && ! $disk->exists($newPath)) {
-                    $disk->move($oldPath, $newPath);
-                    return $current;
-                }
-            }
-
-            return $found;
+            return array_key_first($candidates);
         }
 
         foreach (array_keys($candidates) as $name) {
