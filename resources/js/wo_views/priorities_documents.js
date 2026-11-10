@@ -11,6 +11,7 @@
 
         function renderSection(section) {
             const details = document.createElement('details');
+            details.setAttribute('name', 'priority-documents-sections');
             const summary = document.createElement('summary');
             summary.textContent = `${section.title} (${section.files.length})`;
             details.append(summary);
