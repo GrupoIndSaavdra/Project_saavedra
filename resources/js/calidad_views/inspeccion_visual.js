@@ -26,8 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectClase = document.getElementById('select-clase');
     const grupoClase = document.getElementById('grupo-clase');
     const grupoBtnAbrir = document.getElementById('grupo-btn-abrir');
-    const btnAbrirVisual = document.getElementById('btn-abrir-visual');
-    const btnAbrirDimensional = document.getElementById('btn-abrir-reporte');
+    const btnAbrirVisual = document.getElementById('btn-abrir-reporte');
+    const btnAbrirDimensional = document.getElementById('btn-abrir-dimensional');
     const otInfoBox = document.getElementById('ot-info-box');
     const tabDimensional = document.getElementById('tab-dimensional');
 
