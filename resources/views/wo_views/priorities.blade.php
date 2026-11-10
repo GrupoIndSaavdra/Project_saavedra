@@ -155,6 +155,7 @@ if (!function_exists('safeDateParseDisplay')) {
                         ENTREGA
                     </th>
                     <th class="col-obs text-center">OBSERVACIONES</th>
+                    <th class="col-documents text-center no-print">ARCHIVOS</th>
                 </tr>
             </thead>
             <tbody>
@@ -168,7 +169,7 @@ if (!function_exists('safeDateParseDisplay')) {
                 @endphp
                 @if ($totalWosCount === 0)
                     <tr>
-                        <td colspan="{{ $isReadOnly ? '16' : '17' }}" class="text-center p-4"
+                        <td colspan="{{ 17 + (int) $canEditPriorities + (int) (!$isReadOnly) }}" class="text-center p-4"
                             style="background-color: #ffffff; padding: 48px 20px !important;">
                             <div
                                 style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
@@ -727,6 +728,14 @@ if (!function_exists('safeDateParseDisplay')) {
                                 @else
                                     <td class="text-center">{!! renderEditableTextOrIcon($wo->observaciones_prioridad, true) !!}</td>
                                 @endif
+                                <td class="text-center no-print">
+                                    <button type="button" class="btns blue priority-documents-button"
+                                        data-priority-documents="{{ $wo->id }}"
+                                        data-label="OT {{ $wo->id }} — {{ $wo->moldura->nombre ?? $wo->nombre_producto }}"
+                                        @disabled(!in_array($userPerfil, ['1', '3', '4', '6'], true))>
+                                        Ver archivos
+                                    </button>
+                                </td>
                             </tr>
                         @endforeach
                     @endforeach
@@ -737,5 +746,6 @@ if (!function_exists('safeDateParseDisplay')) {
 </div>
 
 
+@include('wo_views.partials.priorities.documents')
 @include('wo_views.partials.priorities.scripts')
 @endsection

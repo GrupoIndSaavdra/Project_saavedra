@@ -2,6 +2,7 @@
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\DatosProduccionController;
 use App\Http\Controllers\DibujosPdfController;
+use App\Http\Controllers\PriorityDocumentsController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\LoginController;
 use App\Http\Controllers\LogoutController;
@@ -88,6 +89,10 @@ Route::controller(WOController::class)->group(function () {
     Route::post('/master/storeWO', 'storeMasterWO')->name('storeMasterWO');
     Route::post('/master/updateWO', 'updateMasterWO')->name('updateMasterWO');
     Route::get('/master/prioridades', 'prioritiesView')->name('master.priorities');
+    Route::get('/master/prioridades/{ot}/archivos', [PriorityDocumentsController::class, 'index'])
+        ->name('master.priorities.documents');
+    Route::get('/master/prioridades/{ot}/archivos/abrir', [PriorityDocumentsController::class, 'openDrawing'])
+        ->middleware('signed')->name('master.priorities.documents.open');
     Route::get('/master/prioridades/pdf', 'downloadPrioritiesPdf')->name('master.priorities.pdf');
     Route::post('/master/prioridades/autosave', 'autosavePriority')->name('master.priorities.autosave');
     Route::post('/master/prioridades/deactivate', 'deactivatePriorities')->name('master.priorities.deactivate');
