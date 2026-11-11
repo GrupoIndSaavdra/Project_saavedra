@@ -151,8 +151,8 @@
                     if (sortedFailures.length === 0) {
                         chartContainer.innerHTML = `
                             <div class="chart-empty-state chart-all-good">
-                                <img src="${window.iconosApp.aprobado}" class="empty-state-img" alt="Aprobado" />
-                                <span>Todas las cotas registradas cumplen con las tolerancias aprobadas.</span>
+                                <img src="${window.iconosApp.aprobado}" class="empty-state-img all-good-img" alt="Aprobado" />
+                                <span class="all-good-text">Todas las cotas registradas cumplen con las tolerancias aprobadas.</span>
                             </div>
                         `;
                     } else {

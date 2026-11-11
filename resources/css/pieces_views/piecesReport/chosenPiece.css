@@ -82,6 +82,7 @@
 
 /* ==========================================================================
    BOTONES DE ACCIÓN OFICIALES GIS (Regresar e Imprimir formato Actions Hub)
+   Conmutación dinámica: Shadow por defecto -> Normal / Color en Hover
    ========================================================================== */
 .cp-top-bar .action-btn-wrapper {
     position: relative;
@@ -100,32 +101,75 @@
 }
 
 .cp-top-bar .action-btn-wrapper:hover {
-    -webkit-transform: translateY(-3px);
-    transform: translateY(-3px);
+    -webkit-transform: translateY(-2px);
+    transform: translateY(-2px);
     text-decoration: none;
 }
 
-.cp-top-bar .action-btn-wrapper .img-action-btn {
-    width: clamp(42px, 3.8vw, 56px);
-    height: clamp(42px, 3.8vw, 56px);
-    object-fit: contain;
-    /* Iconos en su forma original normal sin filtros de brillo ni inversión */
-    -webkit-filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.18));
-    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.18));
-    -webkit-transition: -webkit-transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), -webkit-filter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+.cp-top-bar .action-btn-wrapper:active {
+    -webkit-transform: translateY(0) scale(0.96);
+    transform: translateY(0) scale(0.96);
 }
 
-.cp-top-bar .action-btn-wrapper:hover .img-action-btn {
-    -webkit-transform: scale(1.1);
-    transform: scale(1.1);
-    -webkit-filter: drop-shadow(0 6px 16px rgba(3, 57, 102, 0.32));
+.action-btn-icon-wrapper {
+    position: relative;
+    width: clamp(42px, 3.8vw, 56px);
+    height: clamp(42px, 3.8vw, 56px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cp-top-bar .action-btn-wrapper:hover .action-btn-icon-wrapper {
+    transform: scale(1.08);
+}
+
+.cp-top-bar .action-btn-wrapper .img-action-btn {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition:
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.25s ease,
+        filter 0.25s ease;
+    will-change: transform, opacity;
+}
+
+/* Icono Shadow por defecto */
+.cp-top-bar .action-btn-wrapper .img-action-btn.icon-shadow {
+    position: relative;
+    z-index: 1;
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.18));
+}
+
+/* Icono Color / Normal (Oculto en reposo) */
+.cp-top-bar .action-btn-wrapper .img-action-btn.icon-color {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    opacity: 0;
+    transform: scale(0.95);
+    filter: drop-shadow(0 4px 10px rgba(3, 57, 102, 0.24));
+}
+
+/* Hover: El icono con shadow se atenúa y se muestra el icono normal/color */
+.cp-top-bar .action-btn-wrapper:hover .img-action-btn.icon-shadow {
+    opacity: 0;
+    transform: scale(1.04);
+}
+
+.cp-top-bar .action-btn-wrapper:hover .img-action-btn.icon-color {
+    opacity: 1;
+    transform: scale(1);
     filter: drop-shadow(0 6px 16px rgba(3, 57, 102, 0.32));
 }
 
 .cp-top-bar .action-btn-wrapper:active .img-action-btn {
-    -webkit-transform: scale(0.96);
-    transform: scale(0.96);
+    transform: scale(0.95);
 }
 
 .cp-top-bar .action-btn-wrapper .action-label {
@@ -1066,18 +1110,54 @@
 
 .chart-empty-state {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    padding: 1.25rem 0;
+    gap: 12px;
+    padding: 1.5rem 1rem;
     color: #64748b;
-    font-size: 0.8rem;
+    font-size: 0.92rem;
     font-weight: 500;
+    text-align: center;
+    min-height: 140px;
 }
 
 .chart-empty-state.chart-all-good {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    padding: 2rem 1.25rem;
     color: var(--gis-green);
-    font-weight: 600;
+    background: radial-gradient(circle at center, rgba(10, 133, 4, 0.05) 0%, transparent 72%);
+    border-radius: 12px;
+}
+
+.chart-empty-state.chart-all-good .empty-state-img,
+.chart-all-good .all-good-img {
+    width: clamp(58px, 4.8vw, 72px) !important;
+    height: clamp(58px, 4.8vw, 72px) !important;
+    object-fit: contain;
+    filter: drop-shadow(0 6px 14px rgba(10, 133, 4, 0.28));
+    transition: transform 0.3s ease;
+}
+
+.chart-empty-state.chart-all-good:hover .empty-state-img,
+.chart-all-good:hover .all-good-img {
+    transform: scale(1.08);
+}
+
+.chart-empty-state.chart-all-good span,
+.chart-all-good .all-good-text {
+    font-size: clamp(1rem, 1.1vw, 1.25rem) !important;
+    font-weight: 750 !important;
+    color: var(--gis-green) !important;
+    letter-spacing: 0.25px;
+    line-height: 1.45;
+    max-width: 620px;
+    text-align: center;
 }
 
 /* ── 4. Contenedor con Scroll de la Tabla de Piezas ── */
@@ -1158,6 +1238,15 @@
 
 .tabla3 th:last-child {
     border-right: none;
+}
+
+.tabla3 th.th-first-col {
+    width: clamp(90px, 7vw, 130px) !important;
+    min-width: clamp(85px, 6.5vw, 120px) !important;
+}
+
+.tabla3 th.th-observaciones {
+    min-width: 320px;
 }
 
 /* Primera columna fija (No. Pieza / C.Nominal / Tolerancias / 1H, 1M ...) */
@@ -1360,20 +1449,52 @@ input.cp-border-3px-solid-red,
     }
 }
 
-/* ── 7. Estilos de Impresión ── */
+/* ── 7. Estilos de Impresión y Exportación a PDF de Alta Precisión ── */
 @media print {
-    body {
-        background: #ffffff !important;
+    @page {
+        size: landscape;
+        margin: 6mm 8mm;
     }
 
+    *,
+    *::before,
+    *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    html,
+    body {
+        background-color: #ffffff !important;
+        background-image: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100% !important;
+        height: auto !important;
+        min-height: 0 !important;
+        overflow: visible !important;
+        color: #0f172a !important;
+        font-size: 8.5pt !important;
+    }
+
+    /* Ocultar elementos de navegación y acciones de pantalla */
+    header,
+    .open-menu,
+    .nav-container,
+    .nav-drawer,
+    .drawer,
+    .overlay-bg,
+    .filter-opacity,
     .cp-top-left,
+    .btn-regresar,
+    .btn-print,
     .cp-top-right .action-btn-wrapper,
     .cp-top-right .btn-action-icon,
-    .cp-hud-tools,
-    .open-menu {
+    .no-print {
         display: none !important;
     }
 
+    /* Contenedor principal sin bordes glassmorphism ni sombras */
     .container,
     .cp-view-wrapper {
         box-shadow: none !important;
@@ -1383,30 +1504,495 @@ input.cp-border-3px-solid-red,
         max-width: 100% !important;
         padding: 0 !important;
         margin: 0 !important;
+        height: auto !important;
+        min-height: 0 !important;
+        display: block !important;
     }
 
+    /* ── Barra Superior del Reporte en Impresión ── */
+    .cp-top-bar {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 0 0 6px 0 !important;
+        margin: 0 0 6px 0 !important;
+        border-bottom: 2px solid var(--gis-blue) !important;
+        width: 100% !important;
+    }
+
+    .cp-top-center {
+        flex: 1 1 auto !important;
+        text-align: left !important;
+        align-items: flex-start !important;
+        min-width: 0 !important;
+    }
+
+    .report-header {
+        text-align: left !important;
+    }
+
+    .report-header .title-row {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+        justify-content: flex-start !important;
+    }
+
+    .report-header .title-row h1 {
+        font-size: 15pt !important;
+        font-weight: 850 !important;
+        color: var(--gis-blue) !important;
+        margin: 0 !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .report-header .title-row .header-view-icon {
+        width: 22px !important;
+        height: 22px !important;
+        object-fit: contain !important;
+    }
+
+    .report-header .subtitle {
+        font-size: 9.5pt !important;
+        color: #334155 !important;
+        margin: 2px 0 0 0 !important;
+        font-weight: 700 !important;
+    }
+
+    .cp-top-right {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        flex: 0 0 auto !important;
+        gap: 0 !important;
+    }
+
+    /* Tabla de operadores compacta para PDF */
+    .operadores-container {
+        display: flex !important;
+    }
+
+    .tablaOperadores {
+        background: #ffffff !important;
+        border: 1px solid var(--gis-blue) !important;
+        box-shadow: none !important;
+        font-size: 7.5pt !important;
+        border-radius: 6px !important;
+        overflow: hidden !important;
+        max-width: none !important;
+    }
+
+    .tablaOperadores thead {
+        background: var(--gis-blue) !important;
+    }
+
+    .tablaOperadores th {
+        background: var(--gis-blue) !important;
+        color: #ffffff !important;
+        padding: 4px 8px !important;
+        font-size: 7pt !important;
+        border: none !important;
+    }
+
+    .tablaOperadores td {
+        padding: 4px 8px !important;
+        font-size: 7.5pt !important;
+        font-weight: 600 !important;
+        border: none !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+        background-color: #ffffff !important;
+        color: #0f172a !important;
+    }
+
+    .op-piece-badge {
+        background: var(--gis-blue) !important;
+        color: #ffffff !important;
+        padding: 2px 6px !important;
+        font-size: 7.5pt !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+    }
+
+    /* ── Barra de Contexto HUD ── */
+    .cp-hud-strip {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        background: #f8fafc !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        padding: 4px 8px !important;
+        margin: 0 0 6px 0 !important;
+        box-shadow: none !important;
+    }
+
+    .cp-hud-chips {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+
+    .hud-chip {
+        background: #ffffff !important;
+        border: 1px solid #cbd5e1 !important;
+        padding: 2px 8px !important;
+        border-radius: 4px !important;
+        font-size: 7.5pt !important;
+        box-shadow: none !important;
+    }
+
+    .hud-chip-icon {
+        width: 14px !important;
+        height: 14px !important;
+    }
+
+    .hud-chip-label {
+        color: #475569 !important;
+        font-weight: 700 !important;
+    }
+
+    .hud-chip-val {
+        color: var(--gis-blue) !important;
+        font-weight: 800 !important;
+    }
+
+    .hud-chip.hud-chip-error {
+        border-color: #fca5a5 !important;
+        background: #fef2f2 !important;
+    }
+
+    .hud-chip.hud-chip-error .hud-chip-val {
+        color: #b91c1c !important;
+    }
+
+    .cp-hud-tools {
+        display: flex !important;
+    }
+
+    .cp-legend {
+        display: flex !important;
+        gap: 6px !important;
+    }
+
+    .legend-pill {
+        font-size: 7pt !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+    }
+
+    /* ── Tarjeta de Diagnóstico y Calidad Compacta para Impresión ── */
     .cp-analytics-card {
         box-shadow: none !important;
-        border: 1px solid #94a3b8 !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 6px !important;
+        background: #ffffff !important;
+        margin: 0 0 4px 0 !important;
+        padding: 4px 8px !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .analytics-header {
+        padding-bottom: 2px !important;
+        margin-bottom: 4px !important;
+        border-bottom: 1px solid #e2e8f0 !important;
+    }
+
+    .analytics-icon-img {
+        width: 15px !important;
+        height: 15px !important;
+    }
+
+    .analytics-title {
+        font-size: 8pt !important;
+        font-weight: 800 !important;
+        color: var(--gis-blue) !important;
+    }
+
+    .analytics-badge-status {
+        padding: 2px 6px !important;
+        font-size: 7pt !important;
+        font-weight: 700 !important;
+        border-radius: 4px !important;
+        box-shadow: none !important;
+    }
+
+    .analytics-body {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+    }
+
+    .analytics-kpis-col {
+        flex: 0 0 210px !important;
+        max-width: 210px !important;
+        padding: 4px 6px !important;
+        border-radius: 6px !important;
+        border: 1px solid #e2e8f0 !important;
+        background: #f8fafc !important;
+    }
+
+    .kpi-score-box {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+
+    .kpi-circle-container {
+        width: 52px !important;
+        height: 52px !important;
+        flex-shrink: 0 !important;
+        box-shadow: none !important;
+        border-width: 2px !important;
+    }
+
+    .kpi-percentage-number {
+        font-size: 10.5pt !important;
+        font-weight: 850 !important;
+        line-height: 1 !important;
+    }
+
+    .kpi-percentage-label {
+        font-size: 5pt !important;
+        margin-top: 1px !important;
+    }
+
+    .kpi-details-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+        flex: 1 !important;
+    }
+
+    .kpi-mini-card {
+        padding: 1px 4px !important;
+        border-radius: 3px !important;
+        border: 1px solid #e2e8f0 !important;
         background: #ffffff !important;
     }
 
+    .kpi-mini-img {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
+    .kpi-mini-lbl {
+        font-size: 6.2pt !important;
+        font-weight: 600 !important;
+    }
+
+    .kpi-mini-num {
+        font-size: 7.2pt !important;
+        font-weight: 800 !important;
+    }
+
+    .analytics-chart-col {
+        flex: 1 1 auto !important;
+        min-height: 0 !important;
+        height: auto !important;
+        overflow: visible !important;
+        border-left: 1px solid #e2e8f0 !important;
+        padding: 4px 6px !important;
+    }
+
+    .chart-header {
+        margin-bottom: 2px !important;
+        padding-bottom: 2px !important;
+    }
+
+    .chart-subtitle {
+        font-size: 7.5pt !important;
+    }
+
+    .chart-hint {
+        font-size: 6.2pt !important;
+    }
+
+    .chart-bars-list {
+        min-height: 0 !important;
+        height: auto !important;
+        gap: 3px !important;
+    }
+
+    /* Estado conforme en impresión: Super compacto */
+    .chart-empty-state.chart-all-good {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        gap: 2px !important;
+        padding: 4px 4px !important;
+        background: #f0fdf4 !important;
+        border: 1px dashed #86efac !important;
+        border-radius: 4px !important;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .chart-empty-state.chart-all-good .empty-state-img,
+    .chart-all-good .all-good-img {
+        width: 22px !important;
+        height: 22px !important;
+        filter: none !important;
+    }
+
+    .chart-empty-state.chart-all-good span,
+    .chart-all-good .all-good-text {
+        font-size: 7.5pt !important;
+        font-weight: 750 !important;
+        color: var(--gis-green) !important;
+        line-height: 1.15 !important;
+    }
+
+    /* ── Tablas Dimensionales por Proceso en Impresión (Fixed Layout Equitativo) ── */
     .scrollabe-table {
         box-shadow: none !important;
-        border: 1px solid #000000 !important;
+        border: 1px solid var(--gis-blue) !important;
+        border-radius: 4px !important;
         background: #ffffff !important;
         max-height: none !important;
+        height: auto !important;
         overflow: visible !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
     }
 
     .tabla3 {
         width: 100% !important;
+        max-width: 100% !important;
+        border-collapse: collapse !important;
+        table-layout: fixed !important;
+        font-size: 6pt !important;
+        margin: 0 !important;
     }
 
-    .tabla3 th {
-        background-color: #033966 !important;
+    .tabla3 tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+    }
+
+    /* Encabezados de tabla: texto proporcional sin saltos por letra */
+    .tabla3 th,
+    .t-title {
+        position: static !important;
+        background-color: var(--gis-blue) !important;
         color: #ffffff !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+        padding: 3px 1.5px !important;
+        font-size: 5.6pt !important;
+        font-weight: 700 !important;
+        border: 1px solid #1e4a73 !important;
+        white-space: normal !important;
+        word-break: normal !important;
+        overflow-wrap: break-word !important;
+        hyphens: auto !important;
+        line-height: 1.15 !important;
+        text-align: center !important;
+        vertical-align: middle !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Primera columna: No.Pieza / C.Nominal / Tolerancias */
+    .tabla3 th:first-child,
+    .tabla3 th.th-first-col,
+    .tabla3 th[style*="150px"] {
+        width: 5.5% !important;
+        min-width: 42px !important;
+        max-width: 52px !important;
+        background-color: #011c34 !important;
+        color: #ffffff !important;
+        box-shadow: none !important;
+        border-right: 1.5px solid var(--gis-blue) !important;
+    }
+
+    .tabla3 td:first-child {
+        position: static !important;
+        width: 5.5% !important;
+        background-color: #f1f5f9 !important;
+        color: var(--gis-blue) !important;
+        font-weight: 800 !important;
+        padding: 2px 1px !important;
+        font-size: 6.5pt !important;
+        text-align: center !important;
+        border-right: 1.5px solid var(--gis-blue) !important;
+        box-shadow: none !important;
+    }
+
+    /* Columna de Observaciones (anula los 1050px destructivos en print) */
+    .tabla3 th:last-child,
+    .tabla3 th.th-observaciones,
+    .tabla3 th[style*="1050px"],
+    .tabla3 th[style*="1000px"],
+    .tabla3 th[style*="700px"],
+    .tabla3 th.cp-width-1000px,
+    .tabla3 th.cp-width-700px {
+        width: 8.5% !important;
+        min-width: 55px !important;
+        max-width: 95px !important;
+    }
+
+    .tabla3 td {
+        position: static !important;
+        padding: 1.5px 0.5px !important;
+        height: 18px !important;
+        min-height: 0 !important;
+        min-width: 0 !important;
+        font-size: 6.5pt !important;
+        border: 1px solid #cbd5e1 !important;
+        background-color: #ffffff !important;
+        vertical-align: middle !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+    }
+
+    .tabla3 tr:nth-child(2) td,
+    .tabla3 tr.table-row-cNominals td {
+        background-color: #e0f2fe !important;
+        color: var(--gis-blue) !important;
+        font-weight: 700 !important;
+    }
+
+    .tabla3 tr:nth-child(3) td,
+    .tabla3 tr.table-row-tolerancias td {
+        background-color: #f1f5f9 !important;
+        color: #334155 !important;
+        font-weight: 600 !important;
+        font-size: 5.8pt !important;
+    }
+
+    .tabla3 input,
+    .tabla3 .input {
+        font-size: 6.5pt !important;
+        font-weight: 600 !important;
+        padding: 0 !important;
+        height: 16px !important;
+        min-height: 0 !important;
+        border: none !important;
+        background: transparent !important;
+        color: #0f172a !important;
+        text-align: center !important;
+        box-shadow: none !important;
+        line-height: 16px !important;
+    }
+
+    /* Cotas fuera de tolerancia resaltadas en rojo suave */
+    .tabla3 td.cell-error,
+    .tabla3 td[style*="background-color: rgb(255, 204, 204)"],
+    .tabla3 td[style*="#ffcccc"],
+    .tabla3 input.input-error {
+        background-color: #fee2e2 !important;
+        color: #b91c1c !important;
+        font-weight: 800 !important;
     }
 }

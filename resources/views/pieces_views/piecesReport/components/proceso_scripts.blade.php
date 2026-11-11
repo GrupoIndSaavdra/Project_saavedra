@@ -10,7 +10,9 @@
             quality: @json(asset('images/Color_Icons/Generales/Quality.png')),
             critica: @json(asset('images/Color_Icons/Generales/Critica.png')),
             imprimir: @json(asset('images/Color_Icons/Generales/Imprimir-Icon.png')),
-            regresar: @json(asset('images/Color_Icons/Generales/img-back.png'))
+            imprimirShadow: @json(asset('images/Shadow_Icons/Imprimir-Icon_Shadow.png')),
+            regresar: @json(asset('images/Color_Icons/Generales/img-back.png')),
+            regresarShadow: @json(asset('images/Shadow_Icons/img-back-Shadow.png'))
         };
 
         class Proceso {
@@ -619,10 +621,10 @@
                                 const th = document.createElement('th'); // Crear columna
                                 th.className = 't-title'; // Agregar clase a la columna
                                 if (j == 0) { // Si es la primera columna
-                                    th.style = "width:150px;"; // Agregar estilo a la columna
+                                    th.classList.add('th-first-col');
                                 }
                                 if (titulos[j] == 'Observaciones') {
-                                    th.style = "width:1050px;"; // Agregar estilo a la columna
+                                    th.classList.add('th-observaciones');
                                 }
                                 th.innerHTML = titulos[j]; // Agregar texto a la columna
                                 tr.appendChild(th); // Agregar columna a la fila

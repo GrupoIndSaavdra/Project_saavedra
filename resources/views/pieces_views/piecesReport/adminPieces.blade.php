@@ -16,6 +16,8 @@
     window.iconSinOrdenShadow = "{{ asset('images/Shadow_Icons/Sin_Orden-Shadow.png') }}";
     window.iconOrdenAscShadow = "{{ asset('images/Shadow_Icons/Orden_Asc-Shadow.png') }}";
     window.iconOrdenDescShadow = "{{ asset('images/Shadow_Icons/Orden_Desc-Shadow.png') }}";
+    window.iconSoldadorShadow = "{{ asset('images/Shadow_Icons/soldador-Shadow.png') }}";
+    window.iconSoldadorView = "{{ asset('images/Color_Icons/Generales/soldador-view.png') }}";
     window.baseUrl = "{{ url('/') }}";
 </script>
 @section('background-body', 'background-image:url("' . asset('images/fondos/fondoLogin.jpg') . '")')
@@ -66,16 +68,27 @@
                 <img src="{{ asset('images/Color_Icons/Vistas/Reporte_Pzas.png') }}" class="header-view-icon"
                     alt="Reporte de piezas" />
             </div>
-            <!-- IMAGEN DE PDF -->
-            <button type="submit" name="action" value="pdf" class="btn-PDF" title="Descargar PDF">
-                <div class="pdf-btn-wrapper">
-                    <img src="{{ asset('images/Shadow_Icons/PDF_View-Shadow.png') }}" class="pdf-icon icon-shadow"
-                        alt="PDF">
-                    <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}"
-                        class="pdf-icon icon-view generar_pdf" id="pdf" alt="PDF">
-                </div>
-                <span class="pdf-btn-text">Descargar PDF</span>
-            </button>
+            <div class="header-actions-right">
+                <!-- BOTÓN INFORMACIÓN EXTRA SOLDADURA -->
+                <button type="button" class="btn-extra-info-soldadura" id="btnExtraInfoSoldadura" style="display: none;" title="Ver información extra de soldadura">
+                    <div class="soldadura-btn-wrapper">
+                        <img src="{{ asset('images/Shadow_Icons/soldador-Shadow.png') }}" class="soldadura-icon icon-shadow" alt="Soldadura">
+                        <img src="{{ asset('images/Color_Icons/Generales/soldador-view.png') }}" class="soldadura-icon icon-view" alt="Soldadura">
+                    </div>
+                    <span class="soldadura-btn-text">Información extra</span>
+                </button>
+
+                <!-- IMAGEN DE PDF -->
+                <button type="submit" name="action" value="pdf" class="btn-PDF" title="Descargar PDF">
+                    <div class="pdf-btn-wrapper">
+                        <img src="{{ asset('images/Shadow_Icons/PDF_View-Shadow.png') }}" class="pdf-icon icon-shadow"
+                            alt="PDF">
+                        <img src="{{ asset('images/Color_Icons/Generales/pdf-view.png') }}"
+                            class="pdf-icon icon-view generar_pdf" id="pdf" alt="PDF">
+                    </div>
+                    <span class="pdf-btn-text">Descargar PDF</span>
+                </button>
+            </div>
         </div>
         <div class="filters"></div>
 

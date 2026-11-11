@@ -61,6 +61,7 @@ document.addEventListener("click", (e) => {
 
 let allMappedPieces = [];
 let currentFilteredPieces = [];
+window.getCurrentFilteredPieces = () => currentFilteredPieces;
 let currentPage = 1;
 let pageSize = 50;
 let currentSortColumn = -1;
