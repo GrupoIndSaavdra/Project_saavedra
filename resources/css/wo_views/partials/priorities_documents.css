@@ -13,7 +13,7 @@
 }
 .priority-documents-dialog::backdrop { background: var(--shadow-blue); backdrop-filter: blur(5px); }
 .priority-documents-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-.priority-documents-dialog h2 { font-size: 20px; overflow-wrap: anywhere; }
+.priority-documents-dialog h2 { font-size: 20px; overflow-wrap: anywhere; color: var(--gis-white); }
 .priority-documents-dialog p { margin: 16px 0; }
 .priority-documents-dialog details { border: 1px solid var(--gis-blue); border-radius: 8px; margin: 12px 0; background: var(--gis-white); }
 .priority-documents-dialog summary { padding: 14px; cursor: pointer; font-weight: 700; }
@@ -21,7 +21,7 @@
 .priority-document-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border-top: 1px solid var(--gis-blue); }
 .priority-document-row > div { min-width: 0; overflow-wrap: anywhere; }
 .priority-document-row small { display: block; color: var(--gis-gray); }
-.priority-document-row > a { flex-shrink: 0; }
+.priority-document-row > a { flex-shrink: 0; color: var(--gis-white); text-decoration: none; }
 @media (max-width: 600px) {
     .priority-documents-dialog { padding: 16px; }
     .priority-document-row { align-items: flex-start; flex-direction: column; }
