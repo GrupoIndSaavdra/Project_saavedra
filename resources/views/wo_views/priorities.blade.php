@@ -732,7 +732,12 @@ if (!function_exists('safeDateParseDisplay')) {
                                     <button type="button" class="btns blue priority-documents-button"
                                         data-priority-documents="{{ $wo->id }}"
                                         data-label="OT {{ $wo->id }} — {{ $wo->moldura->nombre ?? $wo->nombre_producto }}"
-                                        @disabled(!in_array($userPerfil, ['1', '3', '4', '6'], true))>
+                                        @if(in_array($userPerfil, ['1', '3', '4', '6'], true))
+                                            data-check-documents aria-busy="true" title="Comprobando archivos disponibles…"
+                                        @else
+                                            title="Sin permiso para consultar archivos"
+                                        @endif
+                                        disabled>
                                         Ver archivos
                                     </button>
                                 </td>

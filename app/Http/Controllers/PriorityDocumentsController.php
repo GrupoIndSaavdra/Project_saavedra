@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Orden_trabajo;
+use App\Models\Clase;
+use App\Models\Pieza;
 use App\Models\RDimensional;
 use App\Models\RVisual;
 use Illuminate\Http\Request;
@@ -31,11 +33,15 @@ class PriorityDocumentsController extends Controller
             'fundicion' => 'Dibujos de Fundición',
             'volumetricos' => 'Reportes volumétricos',
             'dimensionales' => 'Reportes dimensionales',
+            'piezas' => 'Reporte de piezas',
+            'pta' => 'Reportes de PTA',
         ] as $type => $title) {
             try {
-                $files = isset(self::DRAWINGS[$type])
-                    ? $this->drawings($ot, $type)
-                    : $this->reports($ot, $type);
+                $files = match ($type) {
+                    'maquinados', 'fundicion' => $this->drawings($ot, $type),
+                    'piezas', 'pta' => $this->productionReports($ot, $type),
+                    default => $this->reports($ot, $type),
+                };
                 $sections[] = ['title' => $title, 'files' => $files, 'error' => null];
             } catch (\Throwable $error) {
                 Log::error('No se pudieron consultar los documentos de una OT en Prioridades.', [
@@ -49,6 +55,77 @@ class PriorityDocumentsController extends Controller
         }
 
         return response()->json(['success' => true, 'ot' => $ot->id, 'sections' => $sections]);
+    }
+
+    public function availability(Request $request)
+    {
+        abort_unless(in_array((string) $request->user()->perfil, ['1', '3', '4', '6'], true), 403);
+        $data = $request->validate([
+            'ots' => 'required|array|max:100',
+            'ots.*' => 'required|string|max:255',
+        ]);
+
+        try {
+            $ids = Orden_trabajo::query()->whereIn('id', $data['ots'])->pluck('id')->all();
+            $available = array_fill_keys($ids, false);
+            $disk = Storage::disk('local');
+
+            // Los reportes generados al abrir también son documentos disponibles.
+            $production = Pieza::query()->whereIn('id_ot', $ids)
+                ->whereHas('clase', fn ($query) => $query->whereColumn('clases.id_ot', 'piezas.id_ot')
+                    ->where(fn ($state) => $state->where('finalizada', '=', 0, 'and')
+                        ->orWhere('piezas.proceso', '=', 'Soldadura PTA')))
+                ->distinct()->pluck('id_ot');
+            foreach ($production as $id) {
+                $available[$id] = true;
+            }
+
+            foreach ([RVisual::class, RDimensional::class] as $model) {
+                $pending = array_keys(array_filter($available, fn ($value) => ! $value));
+                if (! $pending) {
+                    break;
+                }
+                foreach ($model::query()->whereIn('ot_id', $pending)->with('pdfs')->get() as $report) {
+                    $paths = $report->pdfs->pluck('ruta')->merge(array_column($report->archivos_list, 'ruta'));
+                    foreach ($paths as $path) {
+                        if ($path && $disk->fileExists($path)) {
+                            $available[$report->ot_id] = true;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            foreach (self::DRAWINGS as $type => $roots) {
+                foreach ($roots as $root) {
+                    $pending = array_keys(array_filter($available, fn ($value) => ! $value));
+                    if (! $pending) {
+                        break 2;
+                    }
+                    foreach ($disk->directories($root) as $directory) {
+                        foreach ($pending as $id) {
+                            if ($available[$id] || ! $this->isOrderFolder(basename($directory), (string) $id)) {
+                                continue;
+                            }
+                            foreach ($disk->allFiles($directory) as $path) {
+                                if (in_array(strtolower(pathinfo($path, PATHINFO_EXTENSION)), $type === 'fundicion' ? ['pdf', 'dwg'] : ['pdf'], true)) {
+                                    $available[$id] = true;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return response()->json(['success' => true, 'available' => (object) $available]);
+        } catch (\Throwable $error) {
+            Log::error('No se pudo comprobar la disponibilidad de archivos en Prioridades.', [
+                'user_id' => $request->user()->id, 'error' => $error->getMessage(),
+            ]);
+
+            return response()->json(['success' => false, 'message' => 'No se pudo comprobar la disponibilidad de archivos.'], 500);
+        }
     }
 
     public function openDrawing(Request $request, Orden_trabajo $ot)
@@ -76,6 +153,61 @@ class PriorityDocumentsController extends Controller
         return $extension === 'pdf'
             ? response()->file($disk->path($path), ['Content-Type' => 'application/pdf'])
             : $disk->download($path);
+    }
+
+    public function openProductionReport(Request $request, Orden_trabajo $ot, string $type)
+    {
+        abort_unless(in_array((string) $request->user()->perfil, ['1', '3', '4', '6'], true), 403);
+        abort_unless(in_array($type, ['piezas', 'pta'], true), 404);
+
+        if ($type === 'piezas') {
+            $hasPieces = Pieza::query()->where('id_ot', '=', $ot->id, 'and')
+                ->whereHas('clase', fn ($query) => $query->where('finalizada', '=', 0, 'and'))->exists();
+            abort_unless($hasPieces, 404, 'No hay piezas activas para esta OT.');
+
+            return app(PzasGeneralesController::class)->search([
+                'workOrder' => $ot->id,
+                'action' => 'pdf',
+            ], 'admin', true);
+        }
+
+        $clase = Clase::query()->where('id_ot', '=', $ot->id, 'and')
+            ->where('id', '=', $request->query('clase_id'), 'and')->firstOrFail();
+        abort_unless($clase->piezas()->where('id_ot', '=', $ot->id, 'and')
+            ->where('proceso', '=', 'Soldadura PTA', 'and')->exists(), 404, 'No hay piezas PTA para esta clase.');
+
+        $pdfRequest = $request->duplicate(['ot_id' => $ot->id, 'clase_id' => $clase->id]);
+
+        return app(PtaResultsController::class)->analysisPDF($pdfRequest, true);
+    }
+
+    private function productionReports(Orden_trabajo $ot, string $type): array
+    {
+        if ($type === 'piezas') {
+            $hasPieces = Pieza::query()->where('id_ot', '=', $ot->id, 'and')
+                ->whereHas('clase', fn ($query) => $query->where('finalizada', '=', 0, 'and'))->exists();
+
+            return $hasPieces ? [[
+                'name' => 'Reporte de piezas - OT '.$ot->id,
+                'class' => 'Todas las clases activas',
+                'detail' => 'PDF generado al abrir con los datos actuales',
+                'available' => true,
+                'url' => route('master.priorities.documents.production', ['ot' => $ot->id, 'type' => $type]),
+            ]] : [];
+        }
+
+        return Clase::query()->where('id_ot', '=', $ot->id, 'and')
+            ->whereHas('piezas', fn ($query) => $query->where('id_ot', '=', $ot->id, 'and')
+                ->where('proceso', '=', 'Soldadura PTA', 'and'))
+            ->orderBy('nombre')->get()->map(fn ($clase) => [
+                'name' => 'Reporte de PTA - OT '.$ot->id,
+                'class' => trim($clase->nombre.' '.$clase->tamanio),
+                'detail' => 'PDF generado al abrir con los datos actuales',
+                'available' => true,
+                'url' => route('master.priorities.documents.production', [
+                    'ot' => $ot->id, 'type' => $type, 'clase_id' => $clase->id,
+                ]),
+            ])->all();
     }
 
     private function drawings(Orden_trabajo $ot, string $type): array

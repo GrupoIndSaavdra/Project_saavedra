@@ -89,8 +89,13 @@ Route::controller(WOController::class)->group(function () {
     Route::post('/master/storeWO', 'storeMasterWO')->name('storeMasterWO');
     Route::post('/master/updateWO', 'updateMasterWO')->name('updateMasterWO');
     Route::get('/master/prioridades', 'prioritiesView')->name('master.priorities');
+    Route::get('/master/prioridades/archivos/disponibilidad', [PriorityDocumentsController::class, 'availability'])
+        ->name('master.priorities.documents.availability');
     Route::get('/master/prioridades/{ot}/archivos', [PriorityDocumentsController::class, 'index'])
         ->name('master.priorities.documents');
+    Route::get('/master/prioridades/{ot}/archivos/reportes/{type}', [PriorityDocumentsController::class, 'openProductionReport'])
+        ->whereIn('type', ['piezas', 'pta'])
+        ->name('master.priorities.documents.production');
     Route::get('/master/prioridades/{ot}/archivos/abrir', [PriorityDocumentsController::class, 'openDrawing'])
         ->middleware('signed')->name('master.priorities.documents.open');
     Route::get('/master/prioridades/pdf', 'downloadPrioritiesPdf')->name('master.priorities.pdf');

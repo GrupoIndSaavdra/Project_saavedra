@@ -9,6 +9,40 @@
         let controller;
         let activeButton;
 
+        async function checkAvailability() {
+            const buttons = [...document.querySelectorAll('[data-check-documents]')];
+            const ids = [...new Set(buttons.map((button) => button.dataset.priorityDocuments))];
+            for (let offset = 0; offset < ids.length; offset += 100) {
+                const batch = ids.slice(offset, offset + 100);
+                const batchButtons = buttons.filter((button) => batch.includes(button.dataset.priorityDocuments));
+                try {
+                    const url = new URL(window.routes.priorityDocumentsAvailability, window.location.origin);
+                    batch.forEach((id) => url.searchParams.append('ots[]', id));
+                    const response = await fetch(url, { headers: { Accept: 'application/json' } });
+                    if (!response.ok) throw new Error('No se pudo comprobar la disponibilidad.');
+                    const data = await response.json();
+                    if (!data.success || !data.available) throw new Error('Respuesta de disponibilidad inválida.');
+                    batchButtons.forEach((button) => {
+                        const available = data.available[button.dataset.priorityDocuments] === true;
+                        button.disabled = !available;
+                        button.textContent = available ? 'Ver archivos' : 'Sin archivos';
+                        button.title = available ? 'Consultar archivos y reportes de esta OT' : 'Esta OT no tiene archivos ni reportes disponibles';
+                    });
+                } catch (error) {
+                    // Si falla la comprobación, permitir consultar y reintentar desde el modal.
+                    batchButtons.forEach((button) => {
+                        button.disabled = false;
+                        button.title = 'No se pudo comprobar la disponibilidad. Pulsa para consultar.';
+                    });
+                    console.error('Disponibilidad de archivos de Prioridades:', error);
+                } finally {
+                    batchButtons.forEach((button) => button.removeAttribute('aria-busy'));
+                }
+            }
+        }
+
+        checkAvailability();
+
         function renderSection(section) {
             const details = document.createElement('details');
             details.setAttribute('name', 'priority-documents-sections');
@@ -21,26 +55,48 @@
                 details.append(message);
                 if (section.error) retry.hidden = false;
             }
+            const grid = document.createElement('div');
+            grid.className = 'priority-documents-grid';
             for (const file of section.files) {
-                const row = document.createElement('div');
-                row.className = 'priority-document-row';
-                const description = document.createElement('div');
+                const card = document.createElement('article');
+                card.className = 'dibujos-file-card priority-document-card';
+                const extension = file.name.split('.').pop().toLowerCase();
+                const kind = extension === 'dwg' ? 'dwg'
+                    : extension === 'pdf' || file.detail.startsWith('PDF generado') ? 'pdf' : 'other';
+                const icon = document.createElement('div');
+                icon.className = 'file-icon-wrapper';
+                window.priorityDocumentIcons[kind].forEach((src, index) => {
+                    const image = document.createElement('img');
+                    image.src = src;
+                    image.alt = '';
+                    image.className = `file-icon ${index ? 'icon-hover' : 'icon-default'}`;
+                    icon.append(image);
+                });
                 const name = document.createElement('strong');
+                name.className = 'file-name';
                 name.textContent = file.name;
+                name.title = file.name;
                 const detail = document.createElement('small');
+                detail.className = 'priority-document-detail';
                 detail.textContent = `${file.class || 'General'} · ${file.detail}`;
-                description.append(name, detail);
+                const actions = document.createElement('div');
+                actions.className = 'file-actions';
                 const action = document.createElement(file.available ? 'a' : 'span');
-                action.textContent = file.available ? 'Abrir' : 'Archivo no disponible';
+                action.textContent = file.available ? (kind === 'dwg' ? 'Descargar' : 'Ver') : 'Archivo no disponible';
                 if (file.available) {
                     action.href = file.url;
                     action.target = '_blank';
                     action.rel = 'noopener noreferrer';
-                    action.className = 'btns blue';
+                    action.className = 'btn-dibujos-sm btn-ver';
+                    action.setAttribute('aria-label', `${action.textContent}: ${file.name}`);
+                } else {
+                    action.className = 'status-neutral';
                 }
-                row.append(description, action);
-                details.append(row);
+                actions.append(action);
+                card.append(icon, name, detail, actions);
+                grid.append(card);
             }
+            if (section.files.length) details.append(grid);
             sections.append(details);
         }
 

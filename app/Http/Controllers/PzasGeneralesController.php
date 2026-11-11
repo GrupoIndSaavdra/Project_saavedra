@@ -146,7 +146,7 @@ class PzasGeneralesController extends Controller
      * @param  mixed  $piecesData
      * @param  mixed  $profile
      */
-    public function search($piecesData, $profile = null)
+    public function search($piecesData, $profile = null, bool $inline = false)
     {
         $selectedItems = [];
         $infoPieces = [];
@@ -226,7 +226,7 @@ class PzasGeneralesController extends Controller
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
             $filename = $this->generatePdfFilename($selectedItems, 'Piezas');
 
-            return $pdf->download($filename);
+            return $inline ? $pdf->stream($filename) : $pdf->download($filename);
         }
     }
 

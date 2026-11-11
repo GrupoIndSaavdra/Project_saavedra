@@ -18,11 +18,23 @@
 .priority-documents-dialog details { border: 1px solid var(--gis-blue); border-radius: 8px; margin: 12px 0; background: var(--gis-white); }
 .priority-documents-dialog summary { padding: 14px; cursor: pointer; font-weight: 700; }
 .priority-documents-dialog details > p { padding: 0 14px; }
-.priority-document-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border-top: 1px solid var(--gis-blue); }
-.priority-document-row > div { min-width: 0; overflow-wrap: anywhere; }
-.priority-document-row small { display: block; color: var(--gis-gray); }
-.priority-document-row > a { flex-shrink: 0; color: var(--gis-white); text-decoration: none; }
+.priority-documents-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+    gap: 16px;
+    padding: 12px 16px 20px;
+}
+.priority-document-card { min-width: 0; cursor: default; }
+.priority-document-card .file-name {
+    display: block;
+    overflow: visible;
+    overflow-wrap: anywhere;
+    -webkit-line-clamp: unset;
+    line-clamp: unset;
+}
+.priority-document-detail { color: var(--gis-gray); text-align: center; overflow-wrap: anywhere; }
+.priority-document-card .file-actions a { text-decoration: none; }
+.priority-document-card .file-actions a:focus-visible { outline: 3px solid var(--gis-blue); outline-offset: 3px; }
 @media (max-width: 600px) {
     .priority-documents-dialog { padding: 16px; }
-    .priority-document-row { align-items: flex-start; flex-direction: column; }
 }

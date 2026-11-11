@@ -7,7 +7,16 @@
     <div data-documents-sections></div>
     <button type="button" class="btns blue" data-retry-documents hidden>Reintentar</button>
 </dialog>
+@php
+    $priorityDocumentIcons = [
+        'pdf' => [icon('pdf_view_shadow'), icon('pdf_view')],
+        'dwg' => [icon('dwg_shadow'), icon('dwg')],
+        'other' => [icon('documento'), icon('documento')],
+    ];
+@endphp
 <script>
     window.routes = window.routes || {};
     window.routes.priorityDocuments = @json(route('master.priorities.documents', ['ot' => '__OT__']));
+    window.routes.priorityDocumentsAvailability = @json(route('master.priorities.documents.availability'));
+    window.priorityDocumentIcons = @json($priorityDocumentIcons);
 </script>
