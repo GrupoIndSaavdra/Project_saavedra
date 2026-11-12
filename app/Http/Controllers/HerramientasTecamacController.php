@@ -21,11 +21,11 @@ class HerramientasTecamacController extends Controller
 {
     use HasCursorPagination;
 
-    private const PERFILES_PERMITIDOS = ['1', '3', '5', '6'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '5', '7', '8', '9'];
 
-    private const PERFILES_ALMACEN = ['1', '3', '5', '6'];   // CRUD completo + inactivar/reactivar
+    private const PERFILES_ALMACEN = ['1', '2', '3', '5', '7'];   // CRUD completo + inactivar/reactivar
 
-    private const PERFILES_STOCK = ['1', '3', '6'];   // Solo editar mínimo y máximo
+    private const PERFILES_STOCK = ['1', '2', '3', '5', '7'];   // Solo editar mínimo y máximo
 
     private const DIR_PUBLIC = 'herramientas_tecamac';
 
@@ -70,26 +70,44 @@ class HerramientasTecamacController extends Controller
     private function verificarAcceso(): void
     {
         $user = Auth::user();
-        if (! $user || ! in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)) {
+        $ok = $user && (
+            in_array((string) $user->perfil, ['1', '2', '3'], true) ||
+            $user->area_id == 8 ||
+            str_contains(strtoupper($user->area ?? ''), 'ALMAC') ||
+            in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
+        );
+        if (! $ok) {
             abort(403, 'Acceso restringido.');
         }
     }
 
-    /** Solo perfil 5 (Almacén) puede hacer CRUD completo */
+    /** Master (1), Admin (2) o Almacén (Área 8) pueden hacer CRUD completo */
     private function verificarAlmacen(): void
     {
         $user = Auth::user();
-        if (! $user || ! in_array((string) $user->perfil, self::PERFILES_ALMACEN, true)) {
-            abort(403, 'Solo Almacén puede realizar esta operación.');
+        $ok = $user && (
+            in_array((string) $user->perfil, ['1', '2'], true) ||
+            $user->area_id == 8 ||
+            str_contains(strtoupper($user->area ?? ''), 'ALMAC') ||
+            in_array((string) $user->perfil, self::PERFILES_ALMACEN, true)
+        );
+        if (! $ok) {
+            abort(403, 'Solo Almacén y Administradores pueden realizar esta operación.');
         }
     }
 
-    /** Perfil 1 (Admin) o Perfil 5 (Almacén) pueden editar stock */
+    /** Master, Admin, Supervisor o Almacén pueden editar stock */
     private function verificarStock(): void
     {
         $user = Auth::user();
         $permitidos = array_merge(self::PERFILES_ALMACEN, self::PERFILES_STOCK);
-        if (! $user || ! in_array((string) $user->perfil, $permitidos, true)) {
+        $ok = $user && (
+            in_array((string) $user->perfil, ['1', '2', '3'], true) ||
+            $user->area_id == 8 ||
+            str_contains(strtoupper($user->area ?? ''), 'ALMAC') ||
+            in_array((string) $user->perfil, $permitidos, true)
+        );
+        if (! $ok) {
             abort(403, 'Sin permiso para editar el stock.');
         }
     }

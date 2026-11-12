@@ -226,20 +226,46 @@ return [
     'user_default' => 'images/Color_Icons/Usuarios/usuario.png',
     'user_error' => 'images/Color_Icons/Usuarios/personError.png',
 
-    // Roles específicos de navegación y badges
-    'rol_administrador' => 'images/Light_Icons/Administracion-Light.png',
-    'rol_operador' => 'images/Light_Icons/Operador-Light.png',
-    'rol_master' => 'images/Light_Icons/Master-Light.png',
-    'rol_calidad' => 'images/Light_Icons/Calidad-Light.png',
-    'rol_almacen' => 'images/Light_Icons/Almacen-Light.png',
-    'rol_supervisor' => 'images/Light_Icons/Supervision-Light.png',
+    // -------------------------------------------------------------------------
+    // CATÁLOGO OFICIAL DE PERFILES (10 ROLES PUROS DEL SISTEMA)
+    // -------------------------------------------------------------------------
+    // Iconos de Sección / Módulo: images/Light_Icons/Iconos/[Perfil]-Light.png
+    // Iconos de Avatar de Usuario: images/Light_Icons/Perfiles/[Perfil]_Profile-Light.png
+    // -------------------------------------------------------------------------
+    'icono_master'         => 'images/Light_Icons/Iconos/Master-Light.png',
+    'icono_administrador'  => 'images/Light_Icons/Iconos/Administracion-Light.png',
+    'icono_supervisor'     => 'images/Light_Icons/Iconos/Supervision-Light.png',
+    'icono_ingenieria'     => 'images/Light_Icons/Iconos/Ingenieria-Light.png',
+    'icono_diseno'         => 'images/Light_Icons/Iconos/DYP-Light.png',
+    'icono_ventas'         => 'images/Light_Icons/Iconos/Ventas-Light.png',
+    'icono_almacen'        => 'images/Light_Icons/Iconos/Almacen-Light.png',
+    'icono_calidad'        => 'images/Light_Icons/Iconos/Calidad-Light.png',
+    'icono_operador'       => 'images/Light_Icons/Iconos/Operador-Light.png',
+    'icono_sistemas'       => 'images/Light_Icons/Iconos/Sistemas-Light.png',
 
-    'Administracion-Icon.png' => 'images/Light_Icons/Administracion-Light.png',
-    'Operador-Icon.png' => 'images/Light_Icons/Operador-Light.png',
-    'Master-Icon.png' => 'images/Light_Icons/Master-Light.png',
-    'Calidad-Icon.png' => 'images/Light_Icons/Calidad-Light.png',
-    'Almacen-Icon.png' => 'images/Light_Icons/Almacen-Light.png',
-    'Supervision-Icon.png' => 'images/Light_Icons/Supervision-Light.png',
+    // Avatares de Perfil ([Perfil]_Profile-Light.png)
+    'perfil_master'        => 'images/Light_Icons/Perfiles/Master_Profile-Light.png',
+    'perfil_administrador' => 'images/Light_Icons/Perfiles/Administracion_Profile-Light.png',
+    'perfil_supervisor'    => 'images/Light_Icons/Perfiles/Supervision_Profile-Light.png',
+    'perfil_ingenieria'    => 'images/Light_Icons/Perfiles/Ingenieria_Profile-Light.png',
+    'perfil_diseno'        => 'images/Light_Icons/Perfiles/DYP_Profile-Light.png',
+    'perfil_ventas'        => 'images/Light_Icons/Perfiles/Ventas_Profile-Light.png',
+    'perfil_almacen'       => 'images/Light_Icons/Perfiles/Almacen_Profile-Light.png',
+    'perfil_calidad'       => 'images/Light_Icons/Perfiles/Calidad_Profile-Light.png',
+    'perfil_operador'      => 'images/Light_Icons/Perfiles/Operador_Profile-Light.png',
+    'perfil_sistemas'      => 'images/Light_Icons/Perfiles/Sistemas_Profile-Light.png',
+
+    // Badges y roles para tablas y tarjetas de usuarios
+    'rol_master'           => 'images/Light_Icons/Perfiles/Master_Profile-Light.png',
+    'rol_administrador'    => 'images/Light_Icons/Perfiles/Administracion_Profile-Light.png',
+    'rol_supervisor'       => 'images/Light_Icons/Perfiles/Supervision_Profile-Light.png',
+    'rol_ingenieria'       => 'images/Light_Icons/Perfiles/Ingenieria_Profile-Light.png',
+    'rol_diseno'           => 'images/Light_Icons/Perfiles/DYP_Profile-Light.png',
+    'rol_ventas'           => 'images/Light_Icons/Perfiles/Ventas_Profile-Light.png',
+    'rol_almacen'          => 'images/Light_Icons/Perfiles/Almacen_Profile-Light.png',
+    'rol_calidad'          => 'images/Light_Icons/Perfiles/Calidad_Profile-Light.png',
+    'rol_operador'         => 'images/Light_Icons/Perfiles/Operador_Profile-Light.png',
+    'rol_sistemas'         => 'images/Light_Icons/Perfiles/Sistemas_Profile-Light.png',
     'image-icon.png' => 'images/Light_Icons/IMG-Light.png',
     'img_icon' => 'images/Light_Icons/IMG-Light.png',
 

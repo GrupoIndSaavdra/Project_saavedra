@@ -2,17 +2,17 @@
     $isInactive = !$user->estatus;
     $fullName = mb_strtoupper(trim($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno)), 'UTF-8');
     
-    $rawPuesto = trim($user->puesto ?? '');
+    $rawPuesto = trim($user->puesto ?: ($user->puestoInfo->nombre ?? ''));
     if ($isDirector) {
-        $puesto = $rawPuesto ?: 'JEFE DE PLANTA / DIRECCIÓN GENERAL';
+        $puesto = $rawPuesto ?: 'DIRECTOR / MASTER';
     } elseif ($isSupervisor) {
         if (empty($rawPuesto) || strtoupper($rawPuesto) === 'SUPERVISOR') {
-            $puesto = !empty($areaLabel) ? 'SUPERVISOR DE ' . $areaLabel : (!empty($user->area) ? 'SUPERVISOR DE ' . $user->area : 'SUPERVISOR DE ÁREA');
+            $puesto = !empty($areaLabel) ? 'SUPERVISOR DE ' . $areaLabel : 'SUPERVISOR';
         } else {
             $puesto = $rawPuesto;
         }
     } else {
-        $puesto = $rawPuesto ?: 'PUESTO OPERATIVO';
+        $puesto = $rawPuesto ?: 'OPERATIVO';
     }
 
     $puesto = mb_strtoupper($puesto, 'UTF-8');
@@ -43,14 +43,15 @@
 
     $avatarImg = null;
     $avatarAlt = '';
+    $perfilVal = (int) ($user->perfil_id ?? $user->perfil ?? 0);
 
-    if ($isDirector || str_contains($puestoUpper, 'GERENTE') || str_contains($puestoUpper, 'DIRECTOR') || str_contains($puestoUpper, 'JEFE DE PLANTA') || str_contains($puestoUpper, 'JEFE PLANTA') || str_contains($areaUpper, 'GERENCIA') || str_contains($areaUpper, 'JEFE PLANTA') || str_contains($areaUpper, 'DIRECCION')) {
+    if ($isDirector || $perfilVal === 1 || str_contains($puestoUpper, 'GERENTE') || str_contains($puestoUpper, 'DIRECTOR') || str_contains($puestoUpper, 'JEFE DE PLANTA') || str_contains($puestoUpper, 'JEFE PLANTA') || str_contains($areaUpper, 'GERENCIA') || str_contains($areaUpper, 'JEFE PLANTA') || str_contains($areaUpper, 'DIRECCION')) {
         $avatarImg = asset('images/Color_Icons/Usuarios/gerente.png');
-        $avatarAlt = 'Gerente / Jefe de Planta';
+        $avatarAlt = 'Director / Master';
     } elseif (str_contains($puestoUpper, 'SUPERVISORA') || str_contains($puestoUpper, 'ENCARGADA') || str_contains($puestoUpper, 'JEFA')) {
         $avatarImg = asset('images/Color_Icons/Usuarios/supervisora.png');
         $avatarAlt = 'Supervisora';
-    } elseif ($isSupervisor || str_contains($puestoUpper, 'SUPERVISOR') || str_contains($puestoUpper, 'JEFE') || str_contains($puestoUpper, 'ENCARGAD') || str_contains($puestoUpper, 'LIDER') || str_contains($puestoUpper, 'LÍDER') || $areaUpper === 'SUPERVISOR') {
+    } elseif ($isSupervisor || $perfilVal === 3 || str_contains($puestoUpper, 'SUPERVISOR') || str_contains($puestoUpper, 'JEFE') || str_contains($puestoUpper, 'ENCARGAD') || str_contains($puestoUpper, 'LIDER') || str_contains($puestoUpper, 'LÍDER') || $areaUpper === 'SUPERVISOR') {
         if ($isFemale) {
             $avatarImg = asset('images/Color_Icons/Usuarios/supervisora.png');
             $avatarAlt = 'Supervisora';
@@ -58,18 +59,50 @@
             $avatarImg = asset('images/Color_Icons/Usuarios/supervisor.png');
             $avatarAlt = 'Supervisor';
         }
+    } elseif ($perfilVal === 10 || str_contains($puestoUpper, 'SISTEMA') || str_contains($puestoUpper, 'SOFTWARE')) {
+        $avatarImg = file_exists(public_path('images/Light_Icons/Perfiles/Sistemas_Profile-Light.png'))
+            ? asset('images/Light_Icons/Perfiles/Sistemas_Profile-Light.png')
+            : asset('images/Color_Icons/Usuarios/usuario.png');
+        $avatarAlt = 'Sistemas / TI';
+    } elseif ($perfilVal === 8 || str_contains($puestoUpper, 'INSPECC') || str_contains($puestoUpper, 'CALIDAD') || str_contains($puestoUpper, 'METROLOG') || str_contains($areaUpper, 'CALIDAD')) {
+        $avatarImg = file_exists(public_path('images/Light_Icons/Perfiles/Calidad_Profile-Light.png'))
+            ? asset('images/Light_Icons/Perfiles/Calidad_Profile-Light.png')
+            : asset('images/Color_Icons/Generales/inspeccion.png');
+        $avatarAlt = 'Calidad';
+    } elseif ($perfilVal === 7 || str_contains($puestoUpper, 'ALMACEN')) {
+        $avatarImg = file_exists(public_path('images/Light_Icons/Perfiles/Almacen_Profile-Light.png'))
+            ? asset('images/Light_Icons/Perfiles/Almacen_Profile-Light.png')
+            : asset('images/Color_Icons/Usuarios/ayudante_general.png');
+        $avatarAlt = 'Almacén';
+    } elseif ($perfilVal === 5 || str_contains($puestoUpper, 'DISEÑO') || str_contains($puestoUpper, 'PROGRAMACI')) {
+        $avatarImg = file_exists(public_path('images/Light_Icons/Perfiles/DYP_Profile-Light.png'))
+            ? asset('images/Light_Icons/Perfiles/DYP_Profile-Light.png')
+            : asset('images/Color_Icons/Usuarios/usuario.png');
+        $avatarAlt = 'Diseño y Programación';
+    } elseif ($perfilVal === 4 || str_contains($puestoUpper, 'INGENIER')) {
+        $avatarImg = file_exists(public_path('images/Light_Icons/Perfiles/Ingenieria_Profile-Light.png'))
+            ? asset('images/Light_Icons/Perfiles/Ingenieria_Profile-Light.png')
+            : asset('images/Color_Icons/Usuarios/usuario.png');
+        $avatarAlt = 'Ingeniería';
+    } elseif ($perfilVal === 6 || str_contains($puestoUpper, 'VENTA')) {
+        $avatarImg = file_exists(public_path('images/Light_Icons/Perfiles/Ventas_Profile-Light.png'))
+            ? asset('images/Light_Icons/Perfiles/Ventas_Profile-Light.png')
+            : asset('images/Color_Icons/Usuarios/usuario.png');
+        $avatarAlt = 'Ventas';
+    } elseif ($perfilVal === 2 || str_contains($puestoUpper, 'ADMIN')) {
+        $avatarImg = file_exists(public_path('images/Light_Icons/Perfiles/Administracion_Profile-Light.png'))
+            ? asset('images/Light_Icons/Perfiles/Administracion_Profile-Light.png')
+            : asset('images/Color_Icons/Usuarios/usuario.png');
+        $avatarAlt = 'Administración';
     } elseif (str_contains($puestoUpper, 'BECARI') || str_contains($puestoUpper, 'PRACTICANTE') || str_contains($puestoUpper, 'RESIDENTE') || str_contains($puestoUpper, 'SERVICIO SOCIAL') || str_contains($areaUpper, 'BECARI')) {
         $avatarImg = asset('images/Color_Icons/Usuarios/becario.png');
         $avatarAlt = 'Becario';
     } elseif (str_contains($puestoUpper, 'AYUDANTE') || str_contains($puestoUpper, 'AUXILIAR') || str_contains($areaUpper, 'AYUDANTE')) {
         $avatarImg = asset('images/Color_Icons/Usuarios/ayudante_general.png');
         $avatarAlt = 'Ayudante General';
-    } elseif (str_contains($puestoUpper, 'SOLDAD') || str_contains($areaUpper, 'SOLDAD')) {
+    } elseif (str_contains($puestoUpper, 'SOLDAD') || str_contains($puestoUpper, 'PTA') || str_contains($areaUpper, 'SOLDAD')) {
         $avatarImg = asset('images/Color_Icons/Usuarios/soldador.png');
         $avatarAlt = 'Soldador';
-    } elseif (str_contains($puestoUpper, 'INSPECC') || str_contains($puestoUpper, 'CALIDAD') || str_contains($puestoUpper, 'METROLOG') || str_contains($areaUpper, 'CALIDAD')) {
-        $avatarImg = asset('images/Color_Icons/Generales/inspeccion.png');
-        $avatarAlt = 'Inspección de Calidad';
     } elseif (str_contains($puestoUpper, 'CENTRO') || str_contains($puestoUpper, 'MAQUINAD')) {
         $avatarImg = asset('images/Color_Icons/Usuarios/operador_centro_maquinado.png');
         $avatarAlt = 'Operador Centro de Maquinados';
@@ -84,7 +117,7 @@
     data-planta="{{ $user->planta ?? '' }}"
     data-turno="{{ $user->turno ?? '' }}"
     data-status="{{ $user->estatus ? 'activo' : 'inactivo' }}"
-    data-search="{{ strtolower($fullName . ' ' . $user->matricula . ' ' . $puesto . ' ' . ($user->area ?? '') . ' ' . ($user->planta ?? '')) }}"
+    data-search="{{ strtolower($fullName . ' ' . $user->matricula . ' ' . $puesto . ' ' . ($user->area ?? '') . ' ' . ($user->planta ?? '') . ' ' . ($user->perfilInfo->nombre ?? '')) }}"
     title="{{ $fullName }} - {{ $puesto }} (Matrícula: {{ $user->matricula }})"
 >
     {{-- Avatar / Imagen Asignada --}}

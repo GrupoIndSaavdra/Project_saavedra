@@ -37,9 +37,9 @@ class AlmacenFundicionController extends Controller
 
     /**
      * Perfiles de usuario que tienen acceso a esta vista.
-     * 1 = Admin | 2 = Admin | 3 = Jefe | 5 = Almacen
+     * 1 = Master | 2 = Admin | 3 = Supervisor | 5/7 = Almacen | 8 = Calidad
      */
-    private const PERFILES_PERMITIDOS = ['1', '2', '3', '5'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '5', '7', '8'];
 
     // =========================================================================
     // GATE DE ACCESO
@@ -50,7 +50,20 @@ class AlmacenFundicionController extends Controller
         /** @var User|null $user */
         $user = Auth::user();
 
-        if (! $user || ! in_array($user->perfil, self::PERFILES_PERMITIDOS, true)) {
+        $tieneAcceso = $user && (
+            in_array((string) $user->perfil, ['1', '2', '3', '4', '7', '8'], true) && (
+                $user->perfil == 1 ||
+                $user->perfil == 2 ||
+                $user->perfil == 7 ||
+                $user->perfil == 8 ||
+                $user->area_id == 8 ||
+                $user->area_id == 5 ||
+                str_contains(strtoupper($user->area ?? ''), 'ALMAC') ||
+                str_contains(strtoupper($user->area ?? ''), 'CALIDAD')
+            ) || in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
+        );
+
+        if (! $tieneAcceso) {
             abort(403, 'Acceso restringido. Solo Almacén y Calidad pueden ver esta sección.');
         }
     }
@@ -351,7 +364,7 @@ class AlmacenFundicionController extends Controller
         }
 
         $user = Auth::user();
-        $isQuality = ($user->perfil == 4);
+        $isQuality = ($user->perfil == 4 || $user->perfil == 8);
         $isAdmin = ($user->perfil == 1 || $user->perfil == 2);
         $soloPreorden = $request->query('solo_preorden', '0') === '1';
 
@@ -742,7 +755,7 @@ class AlmacenFundicionController extends Controller
                 abort(404, 'Historial de OT no encontrado.');
             }
 
-            if ($user->perfil == 4) { // 4 = Calidad
+            if ($user->perfil == 4 || $user->perfil == 8) { // Calidad
                 // Calidad solo ve preordenes si pre_orden_email_sent es true (excepto liberados/CFM/PFC)
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert =
@@ -758,7 +771,7 @@ class AlmacenFundicionController extends Controller
                 if ($isPreorden && ! $isAllowedBeforeAlert && ! $history->pre_orden_email_sent) {
                     abort(403, 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.');
                 }
-            } elseif ($user->perfil == 5) { // Almacén
+            } elseif ($user->perfil == 5 || $user->perfil == 7) { // Almacén
                 // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                 $isCalidadDoc = ($tipo === 'liberacion' ||
                     str_contains($archivo, 'F-CCL-LDM') ||
@@ -795,10 +808,10 @@ class AlmacenFundicionController extends Controller
                     )
                 ) {
                     // Nueva estructura: ayudas_visuales vive en el root de la OT bajo la carpeta de la clase
-                    $baseDir = ($origin === 'calidad' || ($user->perfil == 4 && empty($origin)))
+                    $baseDir = ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 8) && empty($origin)))
                         ? self::CALIDAD_DIR.'/'.$folderName
                         : self::ALMACEN_DIR.'/'.$folderName;
-                } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                } elseif ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 8) && empty($origin))) {
                     $baseDir = self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales';
                 } else {
                     $baseDir = self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales';
@@ -985,7 +998,7 @@ class AlmacenFundicionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
             }
 
-            if ($user->perfil == 4) { // 4 = Calidad
+            if ($user->perfil == 4 || $user->perfil == 8) { // Calidad
                 // Calidad solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert =
@@ -1001,7 +1014,7 @@ class AlmacenFundicionController extends Controller
                 if ($isPreorden && ! $isAllowedBeforeAlert && ! $history->pre_orden_email_sent) {
                     return response()->json(['success' => false, 'error' => 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.'], 403);
                 }
-            } elseif ($user->perfil == 5) { // Almacén
+            } elseif ($user->perfil == 5 || $user->perfil == 7) { // Almacén
                 // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                 $isCalidadDoc = ($tipo === 'liberacion' ||
                     str_contains($archivo, 'F-CCL-LDM') ||
@@ -1029,7 +1042,7 @@ class AlmacenFundicionController extends Controller
                 // Archivos en Documentos_Aprobados / Documentos_Rechazados viven en el root de la OT
                 if ($origin === 'aprobado' || $origin === 'rechazado') {
                     $baseDir = self::ALMACEN_DIR.'/'.$folderName;
-                } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                } elseif ($origin === 'calidad' || (($user->perfil == 4 || $user->perfil == 8) && empty($origin))) {
                     $baseDir = self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales';
                 } else {
                     $baseDir = self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales';
@@ -1139,10 +1152,10 @@ class AlmacenFundicionController extends Controller
 
         // Validar que el rol del usuario que realiza la petición coincida con el dueño del documento (o sea Admin)
         if ($user->perfil != 1 && $user->perfil != 2) {
-            if ($fileOwner === 'almacen' && $user->perfil != 5 && $user->perfil != 3) {
+            if ($fileOwner === 'almacen' && $user->perfil != 5 && $user->perfil != 7 && $user->perfil != 3) {
                 return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Almacén puede eliminar este documento.'], 403);
             }
-            if ($fileOwner === 'calidad' && $user->perfil != 4) {
+            if ($fileOwner === 'calidad' && $user->perfil != 4 && $user->perfil != 8) {
                 return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Calidad puede eliminar este documento.'], 403);
             }
         }

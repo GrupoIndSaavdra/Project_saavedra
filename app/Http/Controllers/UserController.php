@@ -3,6 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
+use App\Http\Requests\UpdateUserRequest;
+use App\Models\Area;
+use App\Models\Perfil;
+use App\Models\Puesto;
 use App\Models\User;
 use App\Traits\HasCursorPagination;
 use Illuminate\Database\QueryException;
@@ -22,25 +26,28 @@ class UserController extends Controller
 
     public function getLayout()
     {
-        $profile = auth()->user()->perfil;
+        $profile = (string) (auth()->user()->perfil ?? '9');
         $layout = [
-            1 => 'layouts.menu.appAdmin',
-            2 => 'layouts.menu.appProduction',
-            3 => 'layouts.menu.appMaster',
-            4 => 'layouts.menu.appQuality',
-            5 => 'layouts.menu.appWarehouse',
-            6 => 'layouts.menu.appAdmin',
+            '1' => 'layouts.appMenu',
+            '2' => 'layouts.appMenu',
+            '3' => 'layouts.appMenu',
+            '4' => 'layouts.appMenu',
+            '5' => 'layouts.appMenu',
+            '6' => 'layouts.appMenu',
+            '7' => 'layouts.appMenu',
+            '8' => 'layouts.appMenu',
+            '9' => 'layouts.appMenu',
         ];
 
-        return $layout[$profile] ?? 'layouts.menu.appAdmin';
+        return $layout[$profile] ?? 'layouts.appMenu';
     }
 
     public function show(HttpRequest $request)
     {
         $layout = $this->getLayout();
-        $query = User::query()->select([
+        $query = User::query()->with(['areaInfo', 'puestoInfo'])->select([
             'id', 'matricula', 'nombre', 'a_paterno', 'a_materno',
-            'perfil', 'turno', 'planta', 'area', 'puesto',
+            'perfil', 'perfil_id', 'turno', 'planta', 'area_id', 'puesto_id',
             'estatus', 'created_at',
         ]);
 
@@ -50,7 +57,9 @@ class UserController extends Controller
                 $w->where('matricula', 'like', "%{$q}%")
                     ->orWhere('nombre', 'like', "%{$q}%")
                     ->orWhere('a_paterno', 'like', "%{$q}%")
-                    ->orWhere('a_materno', 'like', "%{$q}%");
+                    ->orWhere('a_materno', 'like', "%{$q}%")
+                    ->orWhereHas('areaInfo', fn ($a) => $a->where('nombre', 'like', "%{$q}%"))
+                    ->orWhereHas('puestoInfo', fn ($p) => $p->where('nombre', 'like', "%{$q}%"));
             });
         }
 
@@ -65,13 +74,17 @@ class UserController extends Controller
         $users = $query->orderBy('nombre')->orderBy('a_paterno')->orderByDesc('id')->get();
         $totalUsers = User::count();
 
-        return view('users_views.users', compact('layout', 'users', 'totalUsers'));
+        $perfiles = Perfil::orderBy('id')->get();
+        $areas = Area::orderBy('id')->get();
+        $puestos = Puesto::orderBy('area_id')->orderBy('codigo_nivel')->get();
+
+        return view('users_views.users', compact('layout', 'users', 'totalUsers', 'perfiles', 'areas', 'puestos'));
     }
 
     public function organigrama(HttpRequest $request)
     {
         $layout = $this->getLayout();
-        $users = User::all();
+        $users = User::with(['areaInfo', 'puestoInfo', 'perfilInfo'])->get();
 
         return view('users_views.organigrama', compact('layout', 'users'));
     }
@@ -80,14 +93,22 @@ class UserController extends Controller
     {
         $layout = auth()->user() && ($this->getLayout() == 'layouts.appMaster' || $this->getLayout() == 'layouts.appAdmin') ? $this->getLayout() : 'layouts.defaultLayout';
 
-        return view('users_views.create_user', compact('layout'));
+        $perfiles = Perfil::orderBy('id')->get();
+        $areas = Area::orderBy('id')->get();
+        $puestos = Puesto::orderBy('area_id')->orderBy('codigo_nivel')->get();
+
+        return view('users_views.create_user', compact('layout', 'perfiles', 'areas', 'puestos'));
     }
 
     public function store(CreateUserRequest $request)
     {
-        $user = User::create($request->validated());
+        $validated = $request->validated();
+        $validated['perfil'] = (string) $validated['perfil'];
+        $validated['perfil_id'] = (int) $validated['perfil'];
 
-        return redirect()->route('createUser')->with('success', 'Usuario registrado correctamente');
+        $user = User::create($validated);
+
+        return redirect()->route('createUser')->with('success', "Usuario {$user->nombre} {$user->a_paterno} registrado correctamente con matrícula {$user->matricula}.");
     }
 
     /**
@@ -220,22 +241,15 @@ class UserController extends Controller
     /**
      * @param  int|string  $id
      */
-    public function updateUsuario(HttpRequest $request, $id)
+    public function updateUsuario(UpdateUserRequest $request, $id)
     {
         try {
             DB::beginTransaction();
             $user = User::findOrFail($id);
-            $data = $request->validate([
-                'nombre' => 'required|string',
-                'a_paterno' => 'required|string',
-                'a_materno' => 'required|string',
-                'perfil' => 'required',
-                'turno' => 'nullable|string',
-                'planta' => 'nullable|string',
-                'area' => 'nullable|string',
-                'puesto' => 'nullable|string',
-                'contrasena' => 'nullable|string|min:8',
-            ]);
+            $data = $request->validated();
+
+            $data['perfil'] = (string) $data['perfil'];
+            $data['perfil_id'] = (int) $data['perfil'];
 
             if (! empty($data['contrasena'])) {
                 $data['contrasena'] = bcrypt($data['contrasena']);
@@ -245,6 +259,9 @@ class UserController extends Controller
 
             $user->update($data);
             DB::commit();
+
+            // Recargar relaciones para respuesta precisa
+            $user->load(['areaInfo', 'puestoInfo', 'perfilInfo']);
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -258,10 +275,13 @@ class UserController extends Controller
                         'a_materno' => $user->a_materno,
                         'nombre_completo' => $user->name,
                         'perfil' => (string) $user->perfil,
-                        'planta' => $user->planta ?? '—',
+                        'perfil_id' => $user->perfil_id,
+                        'planta' => $user->planta_label ?: ($user->planta ?? '—'),
                         'turno' => $user->turno ?? '—',
                         'area' => $user->area ?? '—',
+                        'area_id' => $user->area_id,
                         'puesto' => $user->puesto ?? '—',
+                        'puesto_id' => $user->puesto_id,
                     ],
                 ]);
             }

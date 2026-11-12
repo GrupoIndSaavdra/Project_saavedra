@@ -68,7 +68,8 @@ class WOController extends Controller
         $workOrdersAll = Orden_trabajo::query()->with(['clases.procesos', 'moldura'])->orderByRaw('CAST(id AS UNSIGNED) ASC')->orderBy('id', 'ASC')->get();
         $workOrders = null;
 
-        $isAlmacen = auth()->user()->perfil == 5 || request('almacen_only') == 1;
+        $user = auth()->user();
+        $isAlmacen = ($user && ($user->perfil == 5 || $user->perfil == 7 || $user->area_id == 8 || str_contains(strtoupper($user->area ?? ''), 'ALMAC'))) || request('almacen_only') == 1;
 
         if ($workOrdersAll->isNotEmpty()) {
             $workOrders = [];
@@ -192,7 +193,9 @@ class WOController extends Controller
         $redirectParams = ['workOrder' => $workOrder];
         // ÚNICAMENTE el perfil 5 (Almacén) debe usar el modo almacén
         // Admin (1) y Master (3) siempre necesitan la vista completa para editar todos los procesos
-        if (auth()->user()->perfil == 5 || $request->filled('almacen_only')) {
+        $authUser = auth()->user();
+        $userIsAlmacen = $authUser && ($authUser->perfil == 5 || $authUser->perfil == 7 || $authUser->area_id == 8 || str_contains(strtoupper($authUser->area ?? ''), 'ALMAC'));
+        if ($userIsAlmacen || $request->filled('almacen_only')) {
             $redirectParams['almacen_only'] = 1;
         }
 
@@ -606,7 +609,7 @@ class WOController extends Controller
     public function deactivatePriorities(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if ($userProfile !== '3') {
+        if (!in_array($userProfile, ['1', '3'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'No tienes permisos de Master para desactivar Órdenes de Trabajo.',
@@ -653,8 +656,8 @@ class WOController extends Controller
     public function prioritiesDisabledView(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if ($userProfile !== '3') {
-            abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para el usuario Master.');
+        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '6', '7', '8'])) {
+            abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para personal autorizado.');
         }
 
         $startWeek = $request->input('start_week');
@@ -757,8 +760,8 @@ class WOController extends Controller
     public function downloadPrioritiesDisabledPdf(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if ($userProfile !== '3') {
-            abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para el usuario Master.');
+        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '6', '7', '8'])) {
+            abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para personal autorizado.');
         }
 
         $startWeek = $request->input('start_week');
@@ -843,7 +846,7 @@ class WOController extends Controller
     public function reactivatePriorities(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if ($userProfile !== '3') {
+        if (!in_array($userProfile, ['1', '3'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'No tienes permisos de Master para reactivar Órdenes de Trabajo.',
@@ -897,7 +900,7 @@ class WOController extends Controller
     public function deletePrioritiesPermanently(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if ($userProfile !== '3') {
+        if (!in_array($userProfile, ['1', '3'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'No tienes permisos de Master para eliminar u ocultar Órdenes de Trabajo.',
@@ -1224,7 +1227,7 @@ class WOController extends Controller
     public function downloadBackupZip(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if ($userProfile !== '3') {
+        if (!in_array($userProfile, ['1', '3'])) {
             abort(403, 'No tienes permisos de Master para descargar respaldos de Órdenes de Trabajo.');
         }
 
@@ -1403,7 +1406,7 @@ class WOController extends Controller
     public function autosavePriority(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if ($userProfile !== '3') {
+        if (!in_array($userProfile, ['1', '3'])) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos para modificar información en Prioridades (Modo Solo Lectura).'], 403);
         }
 
@@ -1555,8 +1558,9 @@ class WOController extends Controller
         $classes = $this->classController->getClasses($workOrder);
         $classes = $classes->count() == 0 ? null : $classes;
 
-        // Vista especial para Almacén (perfil 5 o si se solicita almacen_only=1).
-        if (auth()->user()->perfil == 5 || request()->filled('almacen_only')) {
+        $showUser = auth()->user();
+        $userIsAlmacen = $showUser && ($showUser->perfil == 5 || $showUser->perfil == 7 || $showUser->area_id == 8 || str_contains(strtoupper($showUser->area ?? ''), 'ALMAC'));
+        if ($userIsAlmacen || request()->filled('almacen_only')) {
             // Cargar remisiones y parcialidades agrupadas por id_clase
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
             $remisiones = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds, 'and', false)->where('visible', '=', 1, 'and')->orderByDesc('created_at')->get()->groupBy('id_clase');
@@ -2522,7 +2526,7 @@ class WOController extends Controller
     {
         // Guard de perfil: solo Master (3) puede reordenar y guardar prioridades
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if ($userProfile !== '3') {
+        if (!in_array($userProfile, ['1', '3'])) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos para modificar el orden de prioridades (Modo Solo Lectura).'], 403);
         }
 

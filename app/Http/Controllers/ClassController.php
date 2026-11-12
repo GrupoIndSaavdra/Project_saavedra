@@ -154,7 +154,8 @@ class ClassController extends Controller
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
         $nameChanged = false;
-        if (! in_array(auth()->user()->perfil, [5]) && $request->input('from_almacen') != 1) {
+        $isAlmacenUser = auth()->user() && (auth()->user()->perfil == 5 || auth()->user()->area_id == 8 || str_contains(strtoupper(auth()->user()->area ?? ''), 'ALMAC'));
+        if (! $isAlmacenUser && $request->input('from_almacen') != 1) {
             if ($request->has('class')) {
                 // Verificar si la nueva clase ya existe en la misma OT, para no tener duplicados
                 if ($class->nombre !== $request->input('class')) {
@@ -380,7 +381,8 @@ class ClassController extends Controller
         }
 
         $process->id_clase = $class->id;
-        if (! in_array(auth()->user()->perfil, [5])) {
+        $isUserAlmacen = auth()->user() && (auth()->user()->perfil == 5 || auth()->user()->area_id == 8 || str_contains(strtoupper(auth()->user()->area ?? ''), 'ALMAC'));
+        if (! $isUserAlmacen) {
             //Inicializar los campos de los procesos en 0
             $fields = [
                 'cepillado',
@@ -412,8 +414,8 @@ class ClassController extends Controller
                 $process->$field = 0;
             }
         }
-        if ($dataProcess !== null || in_array(auth()->user()->perfil, [5])) {
-            if (in_array(auth()->user()->perfil, [5])) {
+        if ($dataProcess !== null || $isUserAlmacen) {
+            if ($isUserAlmacen) {
                 //Asignar los procesos a la clase
                 $noProcess = 0;
                 $processFounded = Procesos::query()->where('id_clase', '=', $class->id, 'and')->first();

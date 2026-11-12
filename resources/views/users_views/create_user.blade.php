@@ -25,11 +25,11 @@
         </a>
     </div>
 
-    <form action="{{ route('storeUser') }}" method="post" class="form-container">
+    <form id="createUserForm" action="{{ route('storeUser') }}" method="post" class="form-container">
         @csrf
         @include('layouts.partials.messages')
 
-        {{-- ── SECCIÓN 1: DATOS PERSONALES ── --}}
+        {{-- ── PASO 1: INFORMACIÓN PERSONAL ── --}}
         <div class="form-section">
             <div class="section-header">
                 <h3 class="section-title">1. INFORMACIÓN PERSONAL</h3>
@@ -57,61 +57,97 @@
             </div>
         </div>
 
-        {{-- ── SECCIÓN 2: ACCESO Y PERFIL ── --}}
+        {{-- ── PASO 2: UBICACIÓN Y ASIGNACIÓN OPERATIVA (PLANTA → TIPO DE PERFIL → PUESTO) ── --}}
         <div class="form-section">
             <div class="section-header">
-                <h3 class="section-title">2. CREDENCIALES Y PERFIL DE ACCESO</h3>
-                <span class="section-badge">Sistema</span>
+                <h3 class="section-title">2. UBICACIÓN Y ASIGNACIÓN OPERATIVA</h3>
+                <span class="section-badge">Operación y Rol</span>
             </div>
             <div class="grid-row grid-cols-3">
-                <div class="form-outline">
-                    <label class="form-label" for="matriculaInput">
-                        Matrícula <span class="required-indicator">*</span>
-                    </label>
-                    <input type="text" id="matriculaInput" class="form-control" maxlength="7" minlength="4" name="matricula" value="{{ old('matricula') }}" placeholder="4 a 7 caracteres" required />
-                </div>
-
-                <div class="form-outline">
-                    <label class="form-label" for="contrasenaInput">
-                        Contraseña <span class="required-indicator">*</span>
-                    </label>
-                    <input type="password" id="contrasenaInput" class="form-control" maxlength="12" minlength="8" name="contrasena" placeholder="8 a 12 caracteres" required />
-                </div>
-
-                <div class="form-outline">
-                    <label class="form-label" for="floatingSelect">
-                        Tipo de Perfil (Rol) <span class="required-indicator">*</span>
-                    </label>
-                    <select class="form-select" id="floatingSelect" name="perfil" required>
-                        <option value="1" {{ old('perfil') == '1' ? 'selected' : '' }}>Administrador</option>
-                        <option value="6" {{ old('perfil') == '6' ? 'selected' : '' }}>Supervisor</option>
-                        <option value="2" {{ old('perfil', '2') == '2' ? 'selected' : '' }}>Operador</option>
-                        <option value="3" {{ old('perfil') == '3' ? 'selected' : '' }}>Maestro</option>
-                        <option value="4" {{ old('perfil') == '4' ? 'selected' : '' }}>Calidad</option>
-                        <option value="5" {{ old('perfil') == '5' ? 'selected' : '' }}>Almacén</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        {{-- ── SECCIÓN 3: ASIGNACIÓN OPERATIVA ── --}}
-        <div class="form-section">
-            <div class="section-header">
-                <h3 class="section-title">3. UBICACIÓN Y ASIGNACIÓN OPERATIVA</h3>
-                <span class="section-badge">Operación</span>
-            </div>
-            <div class="grid-row grid-cols-4">
+                {{-- 1. Planta --}}
                 <div class="form-outline">
                     <label class="form-label" for="selectPlanta">
                         Planta <span class="required-indicator">*</span>
                     </label>
                     <select class="form-select" id="selectPlanta" name="planta" required>
                         <option value="" disabled {{ old('planta') ? '' : 'selected' }}>Seleccione planta</option>
-                        <option value="TECÁMAC" {{ old('planta') == 'TECÁMAC' ? 'selected' : '' }}>TECÁMAC</option>
+                        <option value="TECAMAC" {{ in_array(old('planta', 'TECAMAC'), ['TECAMAC', 'TECÁMAC'], true) ? 'selected' : '' }}>TECÁMAC</option>
                         <option value="CDMX" {{ old('planta') == 'CDMX' ? 'selected' : '' }}>CDMX</option>
                     </select>
                 </div>
 
+                {{-- 2. Tipo de Perfil (Rol) - Se desbloquea al seleccionar Planta --}}
+                <div class="form-outline">
+                    <label class="form-label" for="selectPerfil">
+                        Tipo de Perfil (Rol) <span class="required-indicator">*</span>
+                    </label>
+                    <select class="form-select" id="selectPerfil" name="perfil" required disabled>
+                        <option value="" disabled selected>Seleccione planta primero</option>
+                    </select>
+                    <input type="hidden" name="perfil_id" id="hiddenPerfilId" value="{{ old('perfil_id', old('perfil', '')) }}">
+                </div>
+
+                {{-- 3. Puesto - Se desbloquea al seleccionar Tipo de Perfil --}}
+                <div class="form-outline">
+                    <label class="form-label" for="selectPuesto">
+                        Puesto <span class="required-indicator">*</span>
+                    </label>
+                    <select class="form-select" id="selectPuesto" name="puesto_id" required disabled>
+                        <option value="" disabled selected>Seleccione perfil primero</option>
+                    </select>
+                    <input type="hidden" id="hiddenPuestoId" value="{{ old('puesto_id', '') }}">
+                </div>
+
+                {{-- Hidden input para area_id deducido automáticamente por el puesto --}}
+                <input type="hidden" name="area_id" id="hiddenAreaId" value="{{ old('area_id', '') }}">
+            </div>
+        </div>
+
+        {{-- ── PASO 3: CREDENCIALES Y PERFIL DE ACCESO ── --}}
+        <div class="form-section">
+            <div class="section-header">
+                <h3 class="section-title">3. CREDENCIALES Y PERFIL DE ACCESO</h3>
+                <span class="section-badge">Sistema</span>
+            </div>
+            <div class="grid-row grid-cols-3">
+                {{-- Matrícula con Prefijo Dinámico --}}
+                <div class="form-outline">
+                    <label class="form-label" for="matriculaSufijo">
+                        Matrícula <span class="required-indicator">*</span>
+                    </label>
+                    <div class="input-group-matricula">
+                        <span class="matricula-prefix-badge" id="matriculaPrefixBadge">11-</span>
+                        <input
+                            type="text"
+                            id="matriculaSufijo"
+                            class="form-control matricula-input-suffix"
+                            placeholder="Ej. 1273"
+                            maxlength="6"
+                            minlength="4"
+                            autocomplete="off"
+                            required
+                        />
+                    </div>
+                    {{-- Matrícula completa que viaja en el POST --}}
+                    <input type="hidden" name="matricula_prefijo" id="hiddenMatriculaPrefijo" value="11-">
+                    <input type="hidden" name="matricula_sufijo" id="hiddenMatriculaSufijo" value="">
+                    <input type="hidden" name="matricula" id="hiddenMatriculaCompleta" value="{{ old('matricula', '') }}">
+
+                    <small class="input-helper-text" id="matriculaHelper">
+                        7 a 9 caracteres totales (Prefijo de 2 dígitos + 4 a 6 dígitos del checador).
+                    </small>
+                </div>
+
+                {{-- Contraseña --}}
+                <div class="form-outline">
+                    <label class="form-label" for="contrasenaInput">
+                        Contraseña <span class="required-indicator">*</span>
+                    </label>
+                    <input type="password" id="contrasenaInput" class="form-control" maxlength="12" minlength="8" name="contrasena" placeholder="8 a 12 caracteres" required />
+                    <small class="input-helper-text">De 8 a 12 caracteres alfanuméricos.</small>
+                </div>
+
+                {{-- Turno --}}
                 <div class="form-outline">
                     <label class="form-label" for="selectTurno">
                         Turno <span class="required-indicator">*</span>
@@ -119,37 +155,9 @@
                     <select class="form-select" id="selectTurno" name="turno" required>
                         <option value="" disabled {{ old('turno') ? '' : 'selected' }}>Seleccione turno</option>
                         <option value="MIXTO" {{ old('turno') == 'MIXTO' ? 'selected' : '' }}>MIXTO</option>
-                        <option value="MATUTINO" {{ old('turno') == 'MATUTINO' ? 'selected' : '' }}>MATUTINO</option>
+                        <option value="MATUTINO" {{ old('turno', 'MATUTINO') == 'MATUTINO' ? 'selected' : '' }}>MATUTINO</option>
                         <option value="VESPERTINO" {{ old('turno') == 'VESPERTINO' ? 'selected' : '' }}>VESPERTINO</option>
                         <option value="NOCTURNO" {{ old('turno') == 'NOCTURNO' ? 'selected' : '' }}>NOCTURNO</option>
-                    </select>
-                </div>
-
-                <div class="form-outline">
-                    <label class="form-label" for="selectArea">
-                        Área <span class="required-indicator">*</span>
-                    </label>
-                    <select class="form-select" id="selectArea" name="area" required>
-                        <option value="" disabled {{ old('area') ? '' : 'selected' }}>Seleccione área</option>
-                        <option value="JEFE PLANTA" {{ old('area') == 'JEFE PLANTA' ? 'selected' : '' }}>JEFE PLANTA</option>
-                        <option value="SUPERVISOR" {{ old('area') == 'SUPERVISOR' ? 'selected' : '' }}>SUPERVISOR</option>
-                        <option value="PRODUCCIÓN" {{ old('area') == 'PRODUCCIÓN' ? 'selected' : '' }}>PRODUCCIÓN</option>
-                        <option value="SOLDADURA" {{ old('area') == 'SOLDADURA' ? 'selected' : '' }}>SOLDADURA</option>
-                        <option value="CALIDAD" {{ old('area') == 'CALIDAD' ? 'selected' : '' }}>CALIDAD</option>
-                        <option value="MANTENIMIENTO" {{ old('area') == 'MANTENIMIENTO' ? 'selected' : '' }}>MANTENIMIENTO</option>
-                        <option value="SOFTWARE" {{ old('area') == 'SOFTWARE' ? 'selected' : '' }}>SOFTWARE</option>
-                        <option value="ALMACÉN" {{ old('area') == 'ALMACÉN' ? 'selected' : '' }}>ALMACÉN</option>
-                        <option value="PROGRAMACIÓN" {{ old('area') == 'PROGRAMACIÓN' ? 'selected' : '' }}>PROGRAMACIÓN</option>
-                        <option value="ADMINISTRACIÓN" {{ old('area') == 'ADMINISTRACIÓN' ? 'selected' : '' }}>ADMINISTRACIÓN</option>
-                    </select>
-                </div>
-
-                <div class="form-outline">
-                    <label class="form-label" for="selectPuesto">
-                        Puesto <span class="required-indicator">*</span>
-                    </label>
-                    <select class="form-select" id="selectPuesto" name="puesto" required>
-                        <option value="" disabled selected>Seleccione área primero</option>
                     </select>
                 </div>
             </div>
@@ -171,122 +179,304 @@
     </form>
 </div>
 
+{{-- ── LOGICA DINAMICA DE ASIGNACION Y MATRICULA (CASCADA: PLANTA → ÁREA → PUESTO → PERFIL) ── --}}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        const puestosPorArea = {
-            'JEFE PLANTA': [
-                'JEFE DE PLANTA',
-                'GERENTE DE PLANTA',
-                'SUPERVISOR'
-            ],
-            'SUPERVISOR': [
-                'SUPERVISOR DE PRODUCCIÓN',
-                'SUPERVISOR DE CALIDAD',
-                'SUPERVISOR DE SOLDADURA',
-                'SUPERVISOR DE MANTENIMIENTO',
-                'SUPERVISOR DE SOFTWARE',
-                'SUPERVISOR DE PROGRAMACIÓN',
-                'SUPERVISOR DE ALMACÉN',
-                'SUPERVISOR DE ADMINISTRACIÓN',
-                'SUPERVISOR GENERAL',
-                'SUPERVISOR DE PLANTA'
-            ],
-            'PRODUCCIÓN': [
-                'SUPERVISOR DE PRODUCCIÓN',
-                'HERRAMENTISTA',
-                'AYUDANTE GENERAL',
-                'CENTRO DE MAQUINADOS',
-                'OPERADOR TORNO CNC',
-                'BECARIO',
-                'SUPERVISOR'
-            ],
-            'SOLDADURA': [
-                'SUPERVISOR DE SOLDADURA',
-                'SOLDADOR',
-                'SUPERVISOR'
-            ],
-            'CALIDAD': [
-                'SUPERVISOR DE CALIDAD',
-                'INSPECCIÓN',
-                'SUPERVISOR'
-            ],
-            'MANTENIMIENTO': [
-                'SUPERVISOR DE MANTENIMIENTO',
-                'AUX MANTENIMIENTO',
-                'SUPERVISOR'
-            ],
-            'SOFTWARE': [
-                'SUPERVISOR DE SOFTWARE',
-                'SUPERVISOR DE SISTEMAS',
-                'BECARIO',
-                'SUPERVISOR'
-            ],
-            'ALMACÉN': [
-                'SUPERVISOR DE ALMACÉN',
-                'ALMACÉN',
-                'SUPERVISOR'
-            ],
-            'PROGRAMACIÓN': [
-                'SUPERVISOR DE PROGRAMACIÓN',
-                'BECARIO',
-                'SUPERVISOR'
-            ],
-            'ADMINISTRACIÓN': [
-                'SUPERVISOR DE ADMINISTRACIÓN',
-                'BECARIO',
-                'CHOFER',
-                'INTENDENCIA',
-                'SUPERVISOR'
-            ]
+        // Catálogos cargados desde la base de datos
+        const perfiles = @json($perfiles); // [{id, nombre, codigo_perfil}, ...]
+        const areas = @json($areas);       // [{id, nombre, planta, codigo_prefijo}, ...]
+        const puestos = @json($puestos);   // [{id, area_id, nombre, codigo_nivel}, ...]
+
+        // Elementos DOM
+        const form = document.getElementById('createUserForm');
+        const selectPlanta = document.getElementById('selectPlanta');
+        const selectPerfil = document.getElementById('selectPerfil');
+        const selectPuesto = document.getElementById('selectPuesto');
+
+        const hiddenPerfilId = document.getElementById('hiddenPerfilId');
+        const hiddenAreaId = document.getElementById('hiddenAreaId');
+        const hiddenPuestoId = document.getElementById('hiddenPuestoId');
+
+        const matriculaPrefixBadge = document.getElementById('matriculaPrefixBadge');
+        const matriculaSufijo = document.getElementById('matriculaSufijo');
+        const hiddenMatriculaPrefijo = document.getElementById('hiddenMatriculaPrefijo');
+        const hiddenMatriculaSufijo = document.getElementById('hiddenMatriculaSufijo');
+        const hiddenMatriculaCompleta = document.getElementById('hiddenMatriculaCompleta');
+        const matriculaHelper = document.getElementById('matriculaHelper');
+
+        // Valores old() de Laravel para preservar estado tras error de validación
+        const oldData = {
+            planta: @json(old('planta', '')),
+            perfil: @json(old('perfil', '')),
+            puesto_id: @json(old('puesto_id', '')),
+            area_id: @json(old('area_id', '')),
+            matricula: @json(old('matricula', ''))
         };
 
-        const selectArea = document.getElementById('selectArea');
-        const selectPuesto = document.getElementById('selectPuesto');
-        const oldPuesto = @json(old('puesto', ''));
+        if (oldData.matricula && oldData.matricula.includes('-')) {
+            const parts = oldData.matricula.split('-');
+            matriculaSufijo.value = parts.slice(1).join('-');
+        }
 
-        function actualizarPuestos(selectedArea, defaultPuesto = '') {
-            selectPuesto.innerHTML = '';
+        /**
+         * Retorna los puestos disponibles según el perfil y la planta seleccionada.
+         */
+        function getPuestosPorPerfil(perfilId, planta) {
+            perfilId = parseInt(perfilId, 10);
+            const rawPlanta = (planta || selectPlanta.value || '').toUpperCase();
+            const currentPlanta = rawPlanta.startsWith('TEC') ? 'TECAMAC' : (rawPlanta === 'CDMX' ? 'CDMX' : 'TECAMAC');
 
-            if (!selectedArea || !puestosPorArea[selectedArea]) {
-                const opt = document.createElement('option');
-                opt.value = '';
-                opt.textContent = 'Seleccione área primero';
-                opt.disabled = true;
-                opt.selected = true;
-                selectPuesto.appendChild(opt);
-                return;
+            switch (perfilId) {
+                case 1: // Master -> Dirección General (area 1)
+                    return puestos.filter(p => parseInt(p.area_id, 10) === 1);
+
+                case 2: // Administrador -> Administración (area 10)
+                    return puestos.filter(p => parseInt(p.area_id, 10) === 10);
+
+                case 3: // Supervisor -> Producción (9) en TECAMAC; Taller (6) o Acabados (7) en CDMX con nivel <= 2
+                    if (currentPlanta === 'CDMX') {
+                        return puestos.filter(p => [6, 7].includes(parseInt(p.area_id, 10)) && parseInt(p.codigo_nivel, 10) <= 2);
+                    } else {
+                        return puestos.filter(p => parseInt(p.area_id, 10) === 9 && parseInt(p.codigo_nivel, 10) <= 2);
+                    }
+
+                case 4: // Ingeniería -> Ingeniería (area 4)
+                    return puestos.filter(p => parseInt(p.area_id, 10) === 4);
+
+                case 5: // Diseño y programación -> Diseño y Programación (area 3)
+                    return puestos.filter(p => parseInt(p.area_id, 10) === 3);
+
+                case 6: // Ventas -> Ventas (area 2)
+                    return puestos.filter(p => parseInt(p.area_id, 10) === 2);
+
+                case 7: // Almacén -> Almacén (area 8)
+                    return puestos.filter(p => parseInt(p.area_id, 10) === 8);
+
+                case 8: // Calidad -> Calidad (area 5)
+                    return puestos.filter(p => parseInt(p.area_id, 10) === 5);
+
+                case 9: // Operador -> Producción (9) en TECAMAC; Taller (6) o Acabados (7) en CDMX con nivel >= 3
+                    if (currentPlanta === 'CDMX') {
+                        return puestos.filter(p => [6, 7].includes(parseInt(p.area_id, 10)) && parseInt(p.codigo_nivel, 10) >= 3);
+                    } else {
+                        return puestos.filter(p => parseInt(p.area_id, 10) === 9 && parseInt(p.codigo_nivel, 10) >= 3);
+                    }
+
+                case 10: // Sistemas -> Sistemas / TI (area 11)
+                    return puestos.filter(p => parseInt(p.area_id, 10) === 11);
+
+                default:
+                    return [];
             }
+        }
+
+        /**
+         * 1. Despliega los perfiles disponibles para la planta seleccionada.
+         */
+        function popularPerfiles(planta, preservePerfilId = null) {
+            selectPerfil.innerHTML = '';
 
             const placeholder = document.createElement('option');
             placeholder.value = '';
-            placeholder.textContent = 'Seleccione puesto';
             placeholder.disabled = true;
-            if (!defaultPuesto) {
+            placeholder.textContent = '— Seleccionar Perfil —';
+            selectPerfil.appendChild(placeholder);
+
+            perfiles.forEach(p => {
+                const puestosDisponibles = getPuestosPorPerfil(p.id, planta);
+                if (puestosDisponibles.length > 0) {
+                    const opt = document.createElement('option');
+                    opt.value = p.id;
+                    opt.dataset.codigo = p.codigo_perfil;
+                    opt.textContent = `${p.id} - ${p.nombre}`;
+                    if (preservePerfilId && parseInt(preservePerfilId, 10) === parseInt(p.id, 10)) {
+                        opt.selected = true;
+                    }
+                    selectPerfil.appendChild(opt);
+                }
+            });
+
+            if (!selectPerfil.value) {
                 placeholder.selected = true;
             }
-            selectPuesto.appendChild(placeholder);
 
-            const puestos = puestosPorArea[selectedArea];
-            puestos.forEach(puesto => {
+            hiddenPerfilId.value = selectPerfil.value || '';
+        }
+
+        /**
+         * 2. Despliega los puestos según el perfil seleccionado.
+         */
+        function actualizarPuestos(preservePuestoId = null) {
+            selectPuesto.innerHTML = '';
+            const perfilId = parseInt(selectPerfil.value, 10);
+
+            if (!perfilId) {
+                selectPuesto.disabled = true;
                 const opt = document.createElement('option');
-                opt.value = puesto;
-                opt.textContent = puesto;
-                if (defaultPuesto && defaultPuesto === puesto) {
+                opt.value = '';
+                opt.disabled = true;
+                opt.selected = true;
+                opt.textContent = 'Seleccione perfil primero';
+                selectPuesto.appendChild(opt);
+                hiddenPuestoId.value = '';
+                hiddenAreaId.value = '';
+                recalcularMatricula();
+                return;
+            }
+
+            const puestosDisponibles = getPuestosPorPerfil(perfilId, selectPlanta.value);
+
+            if (puestosDisponibles.length === 0) {
+                selectPuesto.disabled = true;
+                const opt = document.createElement('option');
+                opt.value = '';
+                opt.disabled = true;
+                opt.selected = true;
+                opt.textContent = 'No hay puestos disponibles para este perfil';
+                selectPuesto.appendChild(opt);
+                hiddenPuestoId.value = '';
+                hiddenAreaId.value = '';
+                recalcularMatricula();
+                return;
+            }
+
+            selectPuesto.disabled = false;
+
+            let matched = false;
+            puestosDisponibles.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.dataset.nivel = p.codigo_nivel;
+                opt.dataset.areaId = p.area_id;
+                opt.textContent = p.nombre;
+                if (preservePuestoId && parseInt(preservePuestoId, 10) === parseInt(p.id, 10)) {
                     opt.selected = true;
+                    matched = true;
                 }
                 selectPuesto.appendChild(opt);
             });
+
+            if (!matched && puestosDisponibles.length > 0) {
+                selectPuesto.selectedIndex = 0;
+            }
+
+            const selectedOpt = selectPuesto.selectedOptions[0];
+            if (selectedOpt && selectedOpt.dataset.areaId) {
+                hiddenAreaId.value = selectedOpt.dataset.areaId;
+                hiddenPuestoId.value = selectedOpt.value;
+            }
+
+            recalcularMatricula();
         }
 
-        selectArea.addEventListener('change', function () {
-            actualizarPuestos(this.value);
+        /**
+         * 3. Recalcula la matrícula dinámicamente según Perfil y Puesto (Prefijo de 2 dígitos + guion).
+         */
+        function recalcularMatricula() {
+            const perfilId = parseInt(selectPerfil.value, 10);
+            const puestoId = parseInt(selectPuesto.value, 10);
+            const puestoObj = puestos.find(p => p.id === puestoId);
+            const areaId = puestoObj ? parseInt(puestoObj.area_id, 10) : parseInt(hiddenAreaId.value, 10);
+
+            hiddenPerfilId.value = perfilId || '';
+            hiddenAreaId.value = areaId || '';
+            hiddenPuestoId.value = puestoId || '';
+
+            if (!perfilId || !puestoId) {
+                matriculaPrefixBadge.textContent = '--';
+                hiddenMatriculaPrefijo.value = '';
+                actualizarMatriculaCompleta();
+                return;
+            }
+
+            const perfObj = perfiles.find(p => p.id === perfilId);
+            const cPerfil = perfObj ? (perfObj.codigo_perfil ?? String(perfObj.id)) : '9';
+            const cPuesto = puestoObj ? (puestoObj.codigo_nivel ?? '1') : '1';
+
+            // Fórmula: Perfil (1 dígito) + Nivel de Puesto (1 dígito) + '-'
+            const prefix = `${cPerfil}${cPuesto}-`;
+
+            if (perfilId === 1) {
+                matriculaSufijo.maxLength = 4;
+                matriculaSufijo.minLength = 4;
+                matriculaSufijo.placeholder = '4 dígitos (ej. 1234)';
+                matriculaHelper.innerHTML = `<strong style="color:var(--gis-blue);">Exactamente 7 caracteres totales</strong>: 3 asignados automáticamente (<code>${prefix}</code>) + 4 del checador.`;
+            } else {
+                matriculaSufijo.maxLength = 6;
+                matriculaSufijo.minLength = 4;
+                matriculaSufijo.placeholder = '4 a 6 caracteres (ej. 1273)';
+                matriculaHelper.innerHTML = `<strong>7 a 9 caracteres totales</strong> con prefijo <code>${prefix}</code> (4 a 6 dígitos complementarios).`;
+            }
+
+            matriculaPrefixBadge.textContent = prefix;
+            hiddenMatriculaPrefijo.value = prefix;
+            actualizarMatriculaCompleta();
+        }
+
+        function actualizarMatriculaCompleta() {
+            let sufijo = matriculaSufijo.value.trim().toUpperCase().replace(/\s+/g, '');
+            matriculaSufijo.value = sufijo;
+            hiddenMatriculaSufijo.value = sufijo;
+
+            const prefijo = hiddenMatriculaPrefijo.value || '994-';
+            hiddenMatriculaCompleta.value = sufijo ? (prefijo + sufijo) : '';
+        }
+
+        // ── Eventos de Interacción ──
+        selectPlanta.addEventListener('change', function () {
+            if (!this.value) {
+                selectPerfil.disabled = true;
+                selectPerfil.innerHTML = '<option value="" disabled selected>Seleccione planta primero</option>';
+                selectPuesto.disabled = true;
+                selectPuesto.innerHTML = '<option value="" disabled selected>Seleccione perfil primero</option>';
+                hiddenAreaId.value = '';
+                hiddenPerfilId.value = '';
+                hiddenPuestoId.value = '';
+                recalcularMatricula();
+                return;
+            }
+
+            selectPerfil.disabled = false;
+            popularPerfiles(this.value, selectPerfil.value || oldData.perfil);
+            actualizarPuestos(selectPuesto.value || oldData.puesto_id);
         });
 
-        // Inicializar al cargar (para soporte de errores de validación con old())
-        if (selectArea.value) {
-            actualizarPuestos(selectArea.value, oldPuesto);
-        } else {
-            actualizarPuestos('');
+        selectPerfil.addEventListener('change', function () {
+            hiddenPerfilId.value = this.value;
+            actualizarPuestos();
+        });
+
+        selectPuesto.addEventListener('change', function () {
+            const selectedOpt = this.selectedOptions[0];
+            if (selectedOpt && selectedOpt.dataset.areaId) {
+                hiddenAreaId.value = selectedOpt.dataset.areaId;
+            }
+            hiddenPuestoId.value = this.value;
+            recalcularMatricula();
+        });
+
+        matriculaSufijo.addEventListener('input', function () {
+            actualizarMatriculaCompleta();
+        });
+
+        // Al enviar el formulario, desbloquear selects para que viajen en POST
+        form.addEventListener('submit', function () {
+            actualizarMatriculaCompleta();
+            selectPlanta.disabled = false;
+            selectPerfil.disabled = false;
+            selectPuesto.disabled = false;
+        });
+
+        // ── Inicialización ──
+        const initialPlanta = (selectPlanta.value || oldData.planta || '').toUpperCase();
+        if (initialPlanta) {
+            selectPlanta.value = initialPlanta.startsWith('TEC') ? 'TECAMAC' : (initialPlanta === 'CDMX' ? 'CDMX' : 'TECAMAC');
+            selectPerfil.disabled = false;
+            popularPerfiles(selectPlanta.value, oldData.perfil);
+            if (selectPerfil.value) {
+                selectPuesto.disabled = false;
+                actualizarPuestos(oldData.puesto_id);
+            }
         }
     });
 </script>
