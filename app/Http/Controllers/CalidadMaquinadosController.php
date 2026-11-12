@@ -36,13 +36,8 @@ class CalidadMaquinadosController extends Controller
         $user = Auth::user();
 
         $tieneAcceso = $user && (
-            in_array((string) $user->perfil, ['1', '2', '3', '4', '8'], true) && (
-                $user->perfil == 1 || 
-                $user->perfil == 2 || 
-                $user->perfil == 8 || 
-                $user->area_id == 5 || 
-                str_contains(strtoupper($user->area ?? ''), 'CALIDAD')
-            ) || in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
+            in_array((string) $user->perfil, ['1', '2', '3', '4', '8'], true) ||
+            in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
         );
 
         if (! $tieneAcceso) {

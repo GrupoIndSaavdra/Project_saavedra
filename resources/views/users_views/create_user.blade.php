@@ -98,8 +98,6 @@
                     <input type="hidden" id="hiddenPuestoId" value="{{ old('puesto_id', '') }}">
                 </div>
 
-                {{-- Hidden input para area_id deducido automáticamente por el puesto --}}
-                <input type="hidden" name="area_id" id="hiddenAreaId" value="{{ old('area_id', '') }}">
             </div>
         </div>
 
@@ -184,7 +182,6 @@
     document.addEventListener('DOMContentLoaded', function () {
         // Catálogos cargados desde la base de datos
         const perfiles = @json($perfiles); // [{id, nombre, codigo_perfil}, ...]
-        const areas = @json($areas);       // [{id, nombre, planta, codigo_prefijo}, ...]
         const puestos = @json($puestos);   // [{id, area_id, nombre, codigo_nivel}, ...]
 
         // Elementos DOM
@@ -194,7 +191,7 @@
         const selectPuesto = document.getElementById('selectPuesto');
 
         const hiddenPerfilId = document.getElementById('hiddenPerfilId');
-        const hiddenAreaId = document.getElementById('hiddenAreaId');
+        const hiddenAreaId = document.getElementById('hiddenAreaId') || { value: '' };
         const hiddenPuestoId = document.getElementById('hiddenPuestoId');
 
         const matriculaPrefixBadge = document.getElementById('matriculaPrefixBadge');

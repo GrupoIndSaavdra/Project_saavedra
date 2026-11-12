@@ -69,7 +69,7 @@ class WOController extends Controller
         $workOrders = null;
 
         $user = auth()->user();
-        $isAlmacen = ($user && ($user->perfil == 5 || $user->perfil == 7 || $user->area_id == 8 || str_contains(strtoupper($user->area ?? ''), 'ALMAC'))) || request('almacen_only') == 1;
+        $isAlmacen = ($user && in_array((string) $user->perfil, ['5', '7'], true)) || request('almacen_only') == 1;
 
         if ($workOrdersAll->isNotEmpty()) {
             $workOrders = [];
@@ -194,7 +194,7 @@ class WOController extends Controller
         // ÚNICAMENTE el perfil 5 (Almacén) debe usar el modo almacén
         // Admin (1) y Master (3) siempre necesitan la vista completa para editar todos los procesos
         $authUser = auth()->user();
-        $userIsAlmacen = $authUser && ($authUser->perfil == 5 || $authUser->perfil == 7 || $authUser->area_id == 8 || str_contains(strtoupper($authUser->area ?? ''), 'ALMAC'));
+        $userIsAlmacen = $authUser && in_array((string) $authUser->perfil, ['5', '7'], true);
         if ($userIsAlmacen || $request->filled('almacen_only')) {
             $redirectParams['almacen_only'] = 1;
         }
@@ -1559,7 +1559,7 @@ class WOController extends Controller
         $classes = $classes->count() == 0 ? null : $classes;
 
         $showUser = auth()->user();
-        $userIsAlmacen = $showUser && ($showUser->perfil == 5 || $showUser->perfil == 7 || $showUser->area_id == 8 || str_contains(strtoupper($showUser->area ?? ''), 'ALMAC'));
+        $userIsAlmacen = $showUser && in_array((string) $showUser->perfil, ['5', '7'], true);
         if ($userIsAlmacen || request()->filled('almacen_only')) {
             // Cargar remisiones y parcialidades agrupadas por id_clase
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];

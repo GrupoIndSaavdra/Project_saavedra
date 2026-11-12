@@ -22,7 +22,7 @@
     $directores = $allUsers->filter(function($u) {
         $perfilId = (int) ($u->perfil_id ?? $u->perfil ?? 0);
         $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-        $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+        $area   = strtoupper(trim($u->area ?? ''));
         return $perfilId === 1 || in_array($puesto, ['DIRECTOR / MASTER', 'DIRECTOR', 'GERENTE', 'JEFE DE PLANTA']) || in_array($area, ['DIRECCIÓN GENERAL', 'DIRECCION GENERAL', 'GERENCIA']);
     });
 
@@ -39,7 +39,7 @@
             'match' => function($u) {
                 $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return $perfil === 2 || str_contains($area, 'ADMIN') || str_contains($puesto, 'ADMIN');
             }
         ],
@@ -48,7 +48,7 @@
             'match' => function($u) {
                 $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return $perfil === 10 || str_contains($area, 'SISTEMA') || str_contains($puesto, 'SISTEMA') || str_contains($puesto, 'SOFTWARE') || str_contains($puesto, 'TI');
             }
         ],
@@ -57,7 +57,7 @@
             'match' => function($u) {
                 $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return $perfil === 8 || str_contains($area, 'CALIDAD') || str_contains($puesto, 'CALIDAD') || str_contains($puesto, 'INSPECC') || str_contains($puesto, 'METROLOG');
             }
         ],
@@ -66,7 +66,7 @@
             'match' => function($u) {
                 $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return $perfil === 7 || str_contains($area, 'ALMACEN') || str_contains($area, 'ALMACÉN') || str_contains($puesto, 'ALMACEN') || str_contains($puesto, 'ALMACÉN');
             }
         ],
@@ -74,7 +74,7 @@
             'label' => 'SOLDADURA & PTA',
             'match' => function($u) {
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return str_contains($puesto, 'SOLDAD') || str_contains($puesto, 'PTA') || str_contains($area, 'SOLDAD');
             }
         ],
@@ -82,7 +82,7 @@
             'label' => 'HERRAMENTISTAS',
             'match' => function($u) {
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return str_contains($puesto, 'HERRAMENT') || str_contains($area, 'HERRAMENT');
             }
         ],
@@ -91,7 +91,7 @@
             'match' => function($u) {
                 $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return $perfil === 5 || str_contains($area, 'DISEÑO') || str_contains($area, 'PROGRAMACI') || str_contains($puesto, 'DISEÑO') || str_contains($puesto, 'PROGRAMACI');
             }
         ],
@@ -100,7 +100,7 @@
             'match' => function($u) {
                 $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return $perfil === 4 || str_contains($area, 'INGENIER') || str_contains($puesto, 'INGENIER');
             }
         ],
@@ -109,7 +109,7 @@
             'match' => function($u) {
                 $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 return $perfil === 6 || str_contains($area, 'VENTA') || str_contains($puesto, 'VENTA');
             }
         ],
@@ -118,7 +118,7 @@
             'match' => function($u) {
                 $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
                 $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
-                $area   = strtoupper(trim($u->area ?: ($u->areaInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
                 if (str_contains($puesto, 'SOLDAD') || str_contains($puesto, 'PTA') || str_contains($puesto, 'HERRAMENT')) return false;
                 return in_array($perfil, [3, 9], true) || str_contains($area, 'PRODUCCI') || str_contains($area, 'MAQUINAD') || str_contains($area, 'TALLER') || str_contains($area, 'ACABADO') || str_contains($puesto, 'TORNO') || str_contains($puesto, 'CENTRO') || str_contains($puesto, 'AYUDANTE') || str_contains($puesto, 'OPERADOR') || str_contains($puesto, 'TURNO');
             }

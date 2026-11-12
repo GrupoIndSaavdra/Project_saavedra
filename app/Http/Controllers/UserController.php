@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateUserRequest;
 use App\Http\Requests\UpdateUserRequest;
-use App\Models\Area;
 use App\Models\Perfil;
 use App\Models\Puesto;
 use App\Models\User;
@@ -45,9 +44,9 @@ class UserController extends Controller
     public function show(HttpRequest $request)
     {
         $layout = $this->getLayout();
-        $query = User::query()->with(['areaInfo', 'puestoInfo'])->select([
+        $query = User::query()->with(['puestoInfo'])->select([
             'id', 'matricula', 'nombre', 'a_paterno', 'a_materno',
-            'perfil', 'perfil_id', 'turno', 'planta', 'area_id', 'puesto_id',
+            'perfil', 'perfil_id', 'turno', 'planta', 'puesto_id',
             'estatus', 'created_at',
         ]);
 
@@ -58,7 +57,6 @@ class UserController extends Controller
                     ->orWhere('nombre', 'like', "%{$q}%")
                     ->orWhere('a_paterno', 'like', "%{$q}%")
                     ->orWhere('a_materno', 'like', "%{$q}%")
-                    ->orWhereHas('areaInfo', fn ($a) => $a->where('nombre', 'like', "%{$q}%"))
                     ->orWhereHas('puestoInfo', fn ($p) => $p->where('nombre', 'like', "%{$q}%"));
             });
         }
@@ -75,16 +73,15 @@ class UserController extends Controller
         $totalUsers = User::count();
 
         $perfiles = Perfil::orderBy('id')->get();
-        $areas = Area::orderBy('id')->get();
-        $puestos = Puesto::orderBy('area_id')->orderBy('codigo_nivel')->get();
+        $puestos = Puesto::orderBy('codigo_nivel')->get();
 
-        return view('users_views.users', compact('layout', 'users', 'totalUsers', 'perfiles', 'areas', 'puestos'));
+        return view('users_views.users', compact('layout', 'users', 'totalUsers', 'perfiles', 'puestos'));
     }
 
     public function organigrama(HttpRequest $request)
     {
         $layout = $this->getLayout();
-        $users = User::with(['areaInfo', 'puestoInfo', 'perfilInfo'])->get();
+        $users = User::with(['puestoInfo', 'perfilInfo'])->get();
 
         return view('users_views.organigrama', compact('layout', 'users'));
     }
@@ -94,10 +91,9 @@ class UserController extends Controller
         $layout = auth()->user() && ($this->getLayout() == 'layouts.appMaster' || $this->getLayout() == 'layouts.appAdmin') ? $this->getLayout() : 'layouts.defaultLayout';
 
         $perfiles = Perfil::orderBy('id')->get();
-        $areas = Area::orderBy('id')->get();
-        $puestos = Puesto::orderBy('area_id')->orderBy('codigo_nivel')->get();
+        $puestos = Puesto::orderBy('codigo_nivel')->get();
 
-        return view('users_views.create_user', compact('layout', 'perfiles', 'areas', 'puestos'));
+        return view('users_views.create_user', compact('layout', 'perfiles', 'puestos'));
     }
 
     public function store(CreateUserRequest $request)
@@ -261,7 +257,7 @@ class UserController extends Controller
             DB::commit();
 
             // Recargar relaciones para respuesta precisa
-            $user->load(['areaInfo', 'puestoInfo', 'perfilInfo']);
+            $user->load(['puestoInfo', 'perfilInfo']);
 
             if ($request->expectsJson() || $request->ajax()) {
                 return response()->json([
@@ -278,8 +274,6 @@ class UserController extends Controller
                         'perfil_id' => $user->perfil_id,
                         'planta' => $user->planta_label ?: ($user->planta ?? '—'),
                         'turno' => $user->turno ?? '—',
-                        'area' => $user->area ?? '—',
-                        'area_id' => $user->area_id,
                         'puesto' => $user->puesto ?? '—',
                         'puesto_id' => $user->puesto_id,
                     ],

@@ -154,7 +154,7 @@ class ClassController extends Controller
         $workOrder = Orden_trabajo::query()->find($class->id_ot, ['*']);
 
         $nameChanged = false;
-        $isAlmacenUser = auth()->user() && (auth()->user()->perfil == 5 || auth()->user()->area_id == 8 || str_contains(strtoupper(auth()->user()->area ?? ''), 'ALMAC'));
+        $isAlmacenUser = auth()->user() && in_array((string) auth()->user()->perfil, ['5', '7'], true);
         if (! $isAlmacenUser && $request->input('from_almacen') != 1) {
             if ($request->has('class')) {
                 // Verificar si la nueva clase ya existe en la misma OT, para no tener duplicados
@@ -381,7 +381,7 @@ class ClassController extends Controller
         }
 
         $process->id_clase = $class->id;
-        $isUserAlmacen = auth()->user() && (auth()->user()->perfil == 5 || auth()->user()->area_id == 8 || str_contains(strtoupper(auth()->user()->area ?? ''), 'ALMAC'));
+        $isUserAlmacen = auth()->user() && in_array((string) auth()->user()->perfil, ['5', '7'], true);
         if (! $isUserAlmacen) {
             //Inicializar los campos de los procesos en 0
             $fields = [

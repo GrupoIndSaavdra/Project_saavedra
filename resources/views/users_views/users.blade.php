@@ -96,12 +96,11 @@
         <table id="users-table">
             <thead>
                 <tr>
-                    <th>Rol</th>
+                    <th>Tipo de Perfil</th>
                     <th>Matrícula</th>
                     <th>Usuario</th>
                     <th>Planta</th>
                     <th>Turno</th>
-                    <th>Área</th>
                     <th>Puesto</th>
                     <th>Fecha de registro</th>
                     <th>Estatus</th>
@@ -156,7 +155,7 @@
                     data-id="{{ $user->id }}"
                     data-rol="{{ $rolLabel }}"
                     data-status="{{ $user->estatus ? 'Activo' : 'Inactivo' }}"
-                    data-search="{{ strtolower($user->matricula . ' ' . $user->name . ' ' . ($user->planta ?? '') . ' ' . ($user->turno ?? '') . ' ' . ($user->area ?? '') . ' ' . ($user->puesto ?? '')) }}">
+                    data-search="{{ strtolower($user->matricula . ' ' . $user->name . ' ' . ($user->planta ?? '') . ' ' . ($user->turno ?? '') . ' ' . ($user->puesto ?? '')) }}">
                     {{-- Rol (Icono superior en círculo temático + Texto debajo) --}}
                     <td>
                         <div class="role-cell-container">
@@ -187,11 +186,6 @@
                     {{-- Turno --}}
                     <td>
                         <span class="badge-turno">{{ $user->turno ?: '—' }}</span>
-                    </td>
-
-                    {{-- Área --}}
-                    <td>
-                        <span>{{ $user->area ?: '—' }}</span>
                     </td>
 
                     {{-- Puesto --}}
@@ -232,7 +226,6 @@
                                     'planta' => $user->planta ?? '',
                                     'turno' => $user->turno ?? '',
                                     'area' => $user->area ?? '',
-                                    'area_id' => $user->area_id,
                                     'puesto' => $user->puesto ?? '',
                                     'puesto_id' => $user->puesto_id,
                                 ]) }})"
@@ -267,7 +260,7 @@
                 </tr>
                 @empty
                 <tr class="empty-row">
-                    <td colspan="10">No hay usuarios registrados.</td>
+                    <td colspan="9">No hay usuarios registrados.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -372,7 +365,6 @@
                             <option value="">Seleccione puesto</option>
                         </select>
                         <input type="hidden" id="edit_puesto_id" value="">
-                        <input type="hidden" id="edit_area_id" name="area_id" value="">
                     </div>
                     <div class="modal-form-group">
                         <label class="modal-label" for="edit_turno">Turno *</label>
@@ -406,7 +398,7 @@
     const editPerfil   = document.getElementById('edit_perfil');
     const editPerfilId = document.getElementById('edit_perfil_id');
     const editPlanta   = document.getElementById('edit_planta');
-    const editAreaId   = document.getElementById('edit_area_id');
+    const editAreaId   = document.getElementById('edit_area_id') || { value: '' };
     const editPuesto   = document.getElementById('edit_puesto');
     const editPuestoId = document.getElementById('edit_puesto_id');
 
@@ -755,21 +747,6 @@
             formData.set('perfil_id', perfilVal);
             formData.set('puesto_id', editPuesto.value || '');
 
-            // Resolver y asegurar area_id infalible
-            let areaVal = editAreaId.value;
-            if (!areaVal && editPuesto.selectedIndex >= 0) {
-                areaVal = editPuesto.options[editPuesto.selectedIndex]?.dataset?.areaId || '';
-            }
-            if (!areaVal) {
-                const pObj = (puestosOficiales || []).find(p => parseInt(p.id, 10) === parseInt(editPuesto.value, 10));
-                if (pObj) areaVal = pObj.area_id;
-            }
-            if (!areaVal) {
-                if (perfilVal === 1) areaVal = 1;
-                else if (perfilVal === 10) areaVal = 11;
-            }
-            formData.set('area_id', areaVal);
-
             const response = await fetch(editForm.action, {
                 method: 'POST',
                 body: formData,
@@ -815,15 +792,14 @@
                         `;
                     }
 
-                    // Actualizar Celdas Planta, Turno, Área, Puesto
+                    // Actualizar Celdas Planta, Turno, Puesto
                     const cells = row.querySelectorAll('td');
                     if (cells[3]) cells[3].innerHTML = `<span class="badge-planta">${data.user.planta}</span>`;
                     if (cells[4]) cells[4].innerHTML = `<span class="badge-turno">${data.user.turno}</span>`;
-                    if (cells[5]) cells[5].innerHTML = `<span>${data.user.area}</span>`;
-                    if (cells[6]) cells[6].innerHTML = `<span>${data.user.puesto}</span>`;
+                    if (cells[5]) cells[5].innerHTML = `<span>${data.user.puesto}</span>`;
 
                     // Actualizar búsqueda en memoria
-                    row.dataset.search = (data.user.matricula + ' ' + data.user.nombre_completo + ' ' + data.user.planta + ' ' + data.user.turno + ' ' + data.user.area + ' ' + data.user.puesto).toLowerCase();
+                    row.dataset.search = (data.user.matricula + ' ' + data.user.nombre_completo + ' ' + data.user.planta + ' ' + data.user.turno + ' ' + data.user.puesto).toLowerCase();
 
                     // Actualizar botón editar
                     const editBtn = row.querySelector('.btn-action-edit');

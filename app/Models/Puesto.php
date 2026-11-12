@@ -17,11 +17,6 @@ class Puesto extends Model
         'codigo_nivel',
     ];
 
-    public function area()
-    {
-        return $this->belongsTo(Area::class, 'area_id');
-    }
-
     public function users()
     {
         return $this->hasMany(User::class, 'puesto_id');
