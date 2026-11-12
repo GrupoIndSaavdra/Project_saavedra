@@ -12,7 +12,6 @@ class Puesto extends Model
     protected $table = 'puestos';
 
     protected $fillable = [
-        'area_id',
         'nombre',
         'codigo_nivel',
     ];

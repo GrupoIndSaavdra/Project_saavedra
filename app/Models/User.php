@@ -87,26 +87,6 @@ class User extends Authenticatable
     }
 
     /**
-     * Perfiles (roles) válidos para una combinación Área + Nivel de puesto.
-     * Debe mantenerse sincronizado con resources/js/users_views/userAssignment.js
-     */
-    public static function perfilesPermitidos(int $areaId, int $nivel): array
-    {
-        return match ($areaId) {
-            1 => [Perfil::MASTER],
-            2 => [6],
-            3 => [5],
-            4 => [4],
-            5 => [8],
-            8 => [7],
-            10 => [2],
-            11 => [Perfil::SISTEMAS],
-            6, 7, 9 => $nivel <= 2 ? [Perfil::SUPERVISOR] : [Perfil::OPERADOR],
-            default => [],
-        };
-    }
-
-    /**
      * Prefijo de matrícula de 2 dígitos + guion (Perfil + Nivel de Puesto).
      * Master: 11- | Sistemas: 01- | Resto: {codigo_perfil}{codigo_nivel}-
      */

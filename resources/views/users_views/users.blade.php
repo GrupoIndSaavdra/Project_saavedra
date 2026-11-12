@@ -425,7 +425,6 @@
     const editPerfil   = document.getElementById('edit_perfil');
     const editPerfilId = document.getElementById('edit_perfil_id');
     const editPlanta   = document.getElementById('edit_planta');
-    const editAreaId   = document.getElementById('edit_area_id') || { value: '' };
     const editPuesto   = document.getElementById('edit_puesto');
     const editPuestoId = document.getElementById('edit_puesto_id');
 
@@ -451,67 +450,58 @@
         editPerfilId.value = editPerfil.value || '';
     }
 
+    const puestosMapModal = {
+        1: [1], // Master: Director / Master
+        2: [35, 36, 37], // Administrador: Jefe de Departamento, Auxiliar, Becario
+        3: { // Supervisor
+            TECAMAC: [28, 29, 30], // Jefe de Turno, Auxiliar de Supervisión, Becario
+            CDMX: [14, 15, 16, 20, 21, 22] // Jefe de Taller, Jefe de Acabados, Auxiliares, Becarios
+        },
+        4: [8, 9, 10], // Ingeniería: Jefe de Departamento, Auxiliar, Becario
+        5: [5, 6, 7], // Diseño y programación: Jefe de Departamento, Auxiliar, Becario
+        6: [2, 3, 4], // Ventas: Jefe de Departamento, Auxiliar, Becario
+        7: [25, 26, 27], // Almacén: Jefe de Departamento, Auxiliar, Becario
+        8: [11, 12, 13], // Calidad: Jefe de Departamento, Auxiliar, Becario
+        9: { // Operador
+            TECAMAC: [31, 32, 33, 34], // Operador Torno CNC, Soldador PTA, Centro de Maquinados, Ayudante General
+            CDMX: [17, 18, 19, 23, 24] // Operador Torno CNC, Centro de Maquinados, Ayudante, Acabados
+        },
+        10: [38, 39, 40] // Sistemas: Jefe de Sistemas, Auxiliar, Becario
+    };
+
     /**
-     * Retorna los puestos disponibles según el perfil y la planta seleccionada.
+     * Retorna los puestos disponibles según el perfil y la planta seleccionada (sin áreas).
      */
     function getPuestosPorPerfilModal(perfilId, planta) {
         perfilId = parseInt(perfilId, 10);
         const rawPlanta = (planta || editPlanta.value || 'TECAMAC').toUpperCase();
         const currentPlanta = rawPlanta.startsWith('TEC') ? 'TECAMAC' : (rawPlanta === 'CDMX' ? 'CDMX' : 'TECAMAC');
 
-        switch (perfilId) {
-            case 1: // Master -> Dirección General (area 1)
-                return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 1);
-
-            case 2: // Administrador -> Administración (area 10)
-                return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 10);
-
-            case 3: // Supervisor -> Producción (9) en TECAMAC; Taller (6) o Acabados (7) en CDMX con nivel <= 2
-                if (currentPlanta === 'CDMX') {
-                    return (puestosOficiales || []).filter(p => [6, 7].includes(parseInt(p.area_id, 10)) && parseInt(p.codigo_nivel, 10) <= 2);
-                } else {
-                    return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 9 && parseInt(p.codigo_nivel, 10) <= 2);
-                }
-
-            case 4: // Ingeniería -> Ingeniería (area 4)
-                return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 4);
-
-            case 5: // Diseño y programación -> Diseño y Programación (area 3)
-                return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 3);
-
-            case 6: // Ventas -> Ventas (area 2)
-                return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 2);
-
-            case 7: // Almacén -> Almacén (area 8)
-                return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 8);
-
-            case 8: // Calidad -> Calidad (area 5)
-                return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 5);
-
-            case 9: // Operador -> Producción (9) en TECAMAC; Taller (6) o Acabados (7) en CDMX con nivel >= 3
-                if (currentPlanta === 'CDMX') {
-                    return (puestosOficiales || []).filter(p => [6, 7].includes(parseInt(p.area_id, 10)) && parseInt(p.codigo_nivel, 10) >= 3);
-                } else {
-                    return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 9 && parseInt(p.codigo_nivel, 10) >= 3);
-                }
-
-            case 10: // Sistemas -> Sistemas / TI (area 11)
-                return (puestosOficiales || []).filter(p => parseInt(p.area_id, 10) === 11);
-
-            default:
-                return [];
+        const entry = puestosMapModal[perfilId];
+        let allowedIds = [];
+        if (entry) {
+            if (Array.isArray(entry)) {
+                allowedIds = entry;
+            } else if (typeof entry === 'object') {
+                allowedIds = entry[currentPlanta] || entry['TECAMAC'] || [];
+            }
         }
+
+        let filtered = (puestosOficiales || []).filter(p => allowedIds.includes(parseInt(p.id, 10)));
+        if (filtered.length === 0 && puestosOficiales.length > 0) {
+            filtered = puestosOficiales.slice(0, 3);
+        }
+        return filtered;
     }
 
     /**
-     * Llena el selector de puestos filtrado por perfil y planta, deduciendo el area_id.
+     * Llena el selector de puestos filtrado por perfil y planta.
      */
     function actualizarPuestosModal(perfilId, planta, preservePuestoId = null) {
         editPuesto.innerHTML = '';
         perfilId = parseInt(perfilId, 10);
         let lista = getPuestosPorPerfilModal(perfilId, planta);
 
-        // Si se especificó un puesto a preservar que no aparece en la lista filtrada pero existe en el catálogo, incluirlo
         if (preservePuestoId) {
             const yaEsta = lista.some(p => parseInt(p.id, 10) === parseInt(preservePuestoId, 10) || p.nombre === preservePuestoId);
             if (!yaEsta) {
@@ -528,7 +518,6 @@
             opt.textContent = 'Sin puestos disponibles';
             editPuesto.appendChild(opt);
             editPuestoId.value = '';
-            editAreaId.value = '';
             return;
         }
 
@@ -536,7 +525,6 @@
         lista.forEach(p => {
             const opt = document.createElement('option');
             opt.value = p.id;
-            opt.dataset.areaId = p.area_id;
             opt.dataset.nivel = p.codigo_nivel || p.codigo_puesto || '1';
             opt.textContent = p.nombre || p.puesto;
             if (preservePuestoId && (parseInt(preservePuestoId, 10) === parseInt(p.id, 10) || preservePuestoId === (p.nombre || p.puesto))) {
@@ -550,13 +538,7 @@
             editPuesto.selectedIndex = 0;
         }
 
-        const selectedOpt = editPuesto.options[editPuesto.selectedIndex];
         editPuestoId.value = editPuesto.value || '';
-        if (selectedOpt && selectedOpt.dataset.areaId) {
-            editAreaId.value = selectedOpt.dataset.areaId;
-        } else if (lista.length > 0) {
-            editAreaId.value = lista[0].area_id;
-        }
     }
 
     editPlanta.addEventListener('change', function () {
@@ -570,15 +552,6 @@
 
     editPuesto.addEventListener('change', function () {
         editPuestoId.value = this.value;
-        const selectedOpt = this.options[this.selectedIndex];
-        if (selectedOpt && selectedOpt.dataset.areaId) {
-            editAreaId.value = selectedOpt.dataset.areaId;
-        } else {
-            const pObj = (puestosOficiales || []).find(p => parseInt(p.id, 10) === parseInt(this.value, 10));
-            if (pObj) {
-                editAreaId.value = pObj.area_id;
-            }
-        }
     });
 
     function openEditModal(userData) {
@@ -613,14 +586,6 @@
         editPerfil.value   = perfilId;
         editPerfilId.value = perfilId;
         editPuestoId.value = editPuesto.value || '';
-
-        // Sincronizar area_id desde el puesto seleccionado o de userData
-        const selectedOpt = editPuesto.options[editPuesto.selectedIndex];
-        if (selectedOpt && selectedOpt.dataset.areaId) {
-            editAreaId.value = selectedOpt.dataset.areaId;
-        } else if (userData.area_id) {
-            editAreaId.value = userData.area_id;
-        }
 
         modalOverlay.classList.add('active');
     }
