@@ -73,25 +73,26 @@ if (document.readyState === "loading") {
 
 function createMenu(profile) {
     let btn_open = document.querySelector(".open-menu");
-    const userPuestoEl = document.getElementById("user_puesto");
-    const userPuesto = userPuestoEl ? userPuestoEl.value.trim().toUpperCase() : "";
-    const isSistemas = userPuesto.includes("SISTEMAS") || String(profile) === "10";
 
-    if (profile == 9 && !isSistemas) {
+    if (String(profile) === "9") {
         if (btn_open) {
             btn_open.style.opacity = "0";
             btn_open.style.pointerEvents = "none";
+            btn_open.style.display = "none";
         }
-    } else {
-        if (btn_open) {
-            btn_open.style.opacity = "1";
-            btn_open.style.pointerEvents = "auto";
-        }
-        let routes = getRoutes(profile);
-        let ul = document.querySelector(".nav-list");
-        if (!ul) return;
-        ul.innerHTML = "";
-        ul.appendChild(createList(routes, false, []));
+        return;
+    }
+
+    if (btn_open) {
+        btn_open.style.opacity = "1";
+        btn_open.style.pointerEvents = "auto";
+        btn_open.style.display = "";
+    }
+    let routes = getRoutes(profile);
+    let ul = document.querySelector(".nav-list");
+    if (!ul) return;
+    ul.innerHTML = "";
+    ul.appendChild(createList(routes, false, []));
 
         const currentPath = window.location.pathname;
         const currentSearch = window.location.search;
@@ -195,7 +196,6 @@ function createMenu(profile) {
             }
             sessionStorage.setItem("active_menu_href", targetLink.href);
         }
-    }
 }
 
 function isSameOrSubRoute(currentPath, savedHref) {
@@ -656,7 +656,8 @@ function getRoutes(profile) {
 
     switch (profile) {
         case "1":
-            // ── 1: MASTER (Máxima Jerarquía Global: Acceso Total a Todos los Módulos) ──
+        case "10":
+            // ── 1 & 10: MASTER & SISTEMAS (Máxima Jerarquía Global: Acceso Total a Todos los Módulos) ──
             sections = [
                 {
                     title: null,

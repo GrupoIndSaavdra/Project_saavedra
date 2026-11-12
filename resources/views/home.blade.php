@@ -12,7 +12,7 @@
     <!-- Main content -->
     <div class="filter-blur">
     </div>
-    @if (auth()->user()->perfil == 2)
+    @if (in_array((int) auth()->user()->perfil, [2, 9]))
         {{-- Diseño de pantalla dividida para Operadores --}}
         <div class="operator-home-container">
             {{-- Panel izquierdo: Prioridades --}}
@@ -105,7 +105,7 @@
         </div>
     @endif
 
-    @if (auth()->user()->perfil == 2)
+    @if (in_array((int) auth()->user()->perfil, [2, 9]))
         <div class="div-new-report" id="divNewReport">
             <div class="new-report-tab">
                 <span class="new-report-chevron">&#x203A;</span>

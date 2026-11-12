@@ -376,10 +376,12 @@ class ProcessProductionController extends Controller
                 //Verificar que la pieza aun no este rechazada
                 foreach ($unoccupiedPiece as $uPiece) {
                     if ($this->verifiedRejectedPiece($uPiece, $class, $processName)) {
-                        $metaPiece = $uPiece->id_meta;
-                        $metaPiece = Metas::query()->find($metaPiece);
-                        if ($metaPiece->maquina == $meta->maquina) {
-                            // Marcar la pieza como ocupada
+                        $metaPiece = $uPiece->id_meta ? Metas::query()->find($uPiece->id_meta) : null;
+                        $isSameMachine = $metaPiece && ($metaPiece->maquina == $meta->maquina);
+                        $isOrphan = ! $metaPiece || ! Maquinas::query()->where('id_meta', $metaPiece->id)->exists();
+
+                        if ($isSameMachine || $isOrphan) {
+                            // Marcar la pieza como ocupada en la meta actual
                             $uPiece->estado = 1;
                             $uPiece->id_meta = $meta->id;
                             $uPiece->save();
@@ -563,8 +565,8 @@ class ProcessProductionController extends Controller
     public function validatePasswordAdmin($passwordEntered)
     {
         if ($passwordEntered) {
-            // ── OPTIMIZACIÓN: solo cargar admins, master, calidad, almacén y supervisor ──
-            $users = User::query()->whereIn('perfil', [1, 3, 4, 5, 6], 'and', false)->get();
+            // ── OPTIMIZACIÓN: admins (1), master (3), calidad (4, 8), almacén (5), supervisor (6) y sistemas (10) ──
+            $users = User::query()->whereIn('perfil', [1, 3, 4, 5, 6, 8, 10], 'and', false)->get();
             foreach ($users as $user) {
                 if (Hash::check($passwordEntered, $user->contrasena)) {
                     return true;
@@ -848,7 +850,7 @@ class ProcessProductionController extends Controller
                     ->where('n_juego', $request->input('selectedAssembly'))
                     ->first();
 
-                if (! $existingPiece || ($existingPiece && $existingPiece->meta == $meta->id)) {
+                if (! $existingPiece || ($existingPiece && ($existingPiece->id_meta == $meta->id || $existingPiece->estado == 0))) {
                     if ($processString == 'Soldadura' || $processString == 'Soldadura PTA') {
                         $reverseProcess = $processString == 'Soldadura' ? 'Soldadura PTA' : 'Soldadura';
                         $processReverseIdString = str_replace(' ', '_', $reverseProcess).'_'.$class->nombre.'_'.$class->id_ot;
@@ -856,10 +858,10 @@ class ProcessProductionController extends Controller
                         $reverseProcessDB = $modelProcessReverse::query()->where('id_proceso', $processReverseIdString)->first();
                         $modelReversePieces = $this->get_ModelProcessPieces($reverseProcess, $class);
 
-                        $existingPiece = $modelReversePieces::query()->where('id_proceso', $reverseProcessDB->id)
+                        $existingReverse = $modelReversePieces::query()->where('id_proceso', $reverseProcessDB->id)
                             ->where('n_juego', $request->input('selectedAssembly'))
                             ->first();
-                        if ($existingPiece && $existingPiece->meta != $meta->id) {
+                        if ($existingReverse && $existingReverse->id_meta != $meta->id && $existingReverse->estado != 0) {
                             $param = 'error';
                             $message = 'El juego '.$noAssembly.' ya está en uso en '.$reverseProcess.'. Por favor, elija otro juego.';
 
@@ -877,27 +879,33 @@ class ProcessProductionController extends Controller
                         [$availableAssemblies, $remainingPieces, $totalGood] = $this->get_RemainingPieces($processString, $previousProcess, $class);
                     }
 
-                    if (! in_array($request->input('selectedAssembly'), $availableAssemblies)) {
+                    if (! in_array($request->input('selectedAssembly'), $availableAssemblies) && ! ($existingPiece && $existingPiece->id_meta == $meta->id)) {
                         $param = 'error';
                         $message = 'El juego '.$noAssembly.' no está disponible. Por favor, elija otro juego de la lista.';
 
                         return redirect()->route('showReportFormat', ['meta' => $meta, 'process' => $request->input('process'), 'edit' => 0])->with($param, $message);
                     }
 
-                    //Creación de piezas
-                    $newPiece = new $modelPieces();
-                    $newPiece->id_pza = $request->input('selectedAssembly').$process->id;
-                    $newPiece->id_meta = $meta->id;
-                    $newPiece->id_proceso = $process->id;
-                    $newPiece->estado = 1;
-                    $newPiece->n_juego = $request->input('selectedAssembly');
-                    try {
-                        $newPiece->save();
-                    } catch (QueryException $ex) {
-                        if ($ex->errorInfo[1] == 1062) {
-                            return back()->with('error', 'Este juego ya fue asignado.');
+                    // Creación o reactivación de piezas
+                    if ($existingPiece) {
+                        $existingPiece->id_meta = $meta->id;
+                        $existingPiece->estado = 1;
+                        $existingPiece->save();
+                    } else {
+                        $newPiece = new $modelPieces();
+                        $newPiece->id_pza = $request->input('selectedAssembly').$process->id;
+                        $newPiece->id_meta = $meta->id;
+                        $newPiece->id_proceso = $process->id;
+                        $newPiece->estado = 1;
+                        $newPiece->n_juego = $request->input('selectedAssembly');
+                        try {
+                            $newPiece->save();
+                        } catch (QueryException $ex) {
+                            if ($ex->errorInfo[1] == 1062) {
+                                return back()->with('error', 'Este juego ya fue asignado.');
+                            }
+                            throw $ex;
                         }
-                        throw $ex;
                     }
 
                     $param = 'success';
@@ -1050,6 +1058,12 @@ class ProcessProductionController extends Controller
                             }
                         }
 
+                        $param = 'success';
+                        $message = 'Juego '.$noAssembly.' seleccionado correctamente';
+                    } elseif ($existingPiece->estado == 0 || $existingPiece->id_meta == $meta->id) {
+                        $existingPiece->id_meta = $meta->id;
+                        $existingPiece->estado = 1;
+                        $existingPiece->save();
                         $param = 'success';
                         $message = 'Juego '.$noAssembly.' seleccionado correctamente';
                     } else {
@@ -1429,6 +1443,9 @@ class ProcessProductionController extends Controller
             $this->get_FilteredPiecesSoldadura_SoldaduraPTA($reverseProcess, $class, $availableAssemblies, $remainingPieces);
         }
 
+        // Garantizar unicidad estricta para evitar que una misma pieza aparezca múltiples veces
+        $availableAssemblies = array_values(array_unique($availableAssemblies));
+
         // Asignar los valores en el array
         $arrayData = [
             'consignmentPieces' => $consignmentPieces,
@@ -1481,9 +1498,24 @@ class ProcessProductionController extends Controller
         }
 
         // Intersección: Piezas que están buenas en AMBOS procesos
+        // Barreno Profundidad registra por juego ('1J', '2J') mientras que Cavidades registra por mitades ('1M', '1H') o juego
         $commonPieces = [];
         if (isset($goodPieces['Barreno Profundidad']) && isset($goodPieces['Cavidades'])) {
-            $commonPieces = array_intersect($goodPieces['Barreno Profundidad'], $goodPieces['Cavidades']);
+            $cavGames = [];
+            $cavHalves = [];
+            foreach ($goodPieces['Cavidades'] as $cavPiece) {
+                $letter = substr($cavPiece, -1);
+                $num = substr($cavPiece, 0, -1);
+                if ($letter === 'J') {
+                    $cavGames[] = $cavPiece;
+                } elseif ($letter === 'M' || $letter === 'H') {
+                    $cavHalves[$num][] = $letter;
+                    if (count(array_unique($cavHalves[$num])) === 2) {
+                        $cavGames[] = $num.'J';
+                    }
+                }
+            }
+            $commonPieces = array_values(array_intersect($goodPieces['Barreno Profundidad'], array_unique($cavGames)));
         }
 
         $totalGood = count($commonPieces);
@@ -1590,9 +1622,9 @@ class ProcessProductionController extends Controller
     {
         // Filtrar los juegos que aun no han sido maquinados en el proceso inverso
         [$occupiedAssemblies, $machinedPieces] = $this->get_machinedPieces($reverseProcess, $class);
-        foreach ($occupiedAssemblies as $assembly) {
-            if (in_array($assembly, $availableAssemblies)) {
-                $key = array_search($assembly, $availableAssemblies);
+        foreach ($occupiedAssemblies as $occAssembly) {
+            if (in_array($occAssembly, $availableAssemblies)) {
+                $key = array_search($occAssembly, $availableAssemblies);
                 if ($key !== false) {
                     unset($availableAssemblies[$key]);
                     // Reindexar el array para evitar huecos en las claves
@@ -1600,10 +1632,12 @@ class ProcessProductionController extends Controller
                     $modelProcess = $this->get_ModelProcess($reverseProcess, $class);
                     $id_processId = str_replace(' ', '_', $reverseProcess).'_'.$class->nombre.'_'.$class->id_ot;
                     $processDB = $modelProcess::query()->where('id_proceso', $id_processId)->first();
-                    $modelProcessPieces = $this->get_ModelProcessPieces($reverseProcess, $class);
-                    $assembly = $modelProcessPieces::query()->where('id_proceso', $processDB->id)->where('n_juego', $assembly)->first();
-                    if ($assembly && $assembly->estado == 2) {
-                        $remainingPieces -= 1;
+                    if ($processDB) {
+                        $modelProcessPieces = $this->get_ModelProcessPieces($reverseProcess, $class);
+                        $targetPiece = $modelProcessPieces::query()->where('id_proceso', $processDB->id)->where('n_juego', $occAssembly)->first();
+                        if ($targetPiece && $targetPiece->estado == 2) {
+                            $remainingPieces -= 1;
+                        }
                     }
                 }
             }
@@ -2719,7 +2753,8 @@ class ProcessProductionController extends Controller
     public function validatePasswordQuality($passwordEntered)
     {
         if ($passwordEntered) {
-            $users = User::query()->where('perfil', 4)->get();
+            // Permitir Calidad Maquinados/Fundición (4), Calidad Soldadura/PTA (8), Admin (1), Master (3) y Sistemas (10)
+            $users = User::query()->whereIn('perfil', [1, 3, 4, 8, 10], 'and', false)->get();
             foreach ($users as $user) {
                 if (Hash::check($passwordEntered, $user->contrasena)) {
                     return $user; // Retornar el usuario de calidad
