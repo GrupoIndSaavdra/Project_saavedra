@@ -85,7 +85,6 @@ class CreateUserRequest extends FormRequest
             'perfil' => 'tipo de perfil',
             'turno' => 'turno',
             'planta' => 'planta',
-            'area_id' => 'área',
             'puesto_id' => 'puesto',
         ];
     }

@@ -616,16 +616,9 @@ function getRoutes(profile) {
         },
     ];
 
-    const userAreaIdEl = document.getElementById("user_area_id");
-    const userAreaEl   = document.getElementById("user_area");
     const userPuestoEl = document.getElementById("user_puesto");
-    const userAreaId   = userAreaIdEl ? parseInt(userAreaIdEl.value, 10) : 0;
-    const userArea     = userAreaEl ? userAreaEl.value.trim().toUpperCase() : "";
     const userPuesto   = userPuestoEl ? userPuestoEl.value.trim().toUpperCase() : "";
-
     const isSistemas   = userPuesto.includes("SISTEMAS") || String(profile) === "10";
-    const isQualityArea = userAreaId === 5 || userArea.includes("CALIDAD");
-    const isAlmacenArea = userAreaId === 8 || userArea.includes("ALMAC");
 
     if (isSistemas) {
         return [

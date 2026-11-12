@@ -49,13 +49,8 @@ class CalidadFundicionController extends Controller
         $user = Auth::user();
 
         $tieneAcceso = $user && (
-            in_array((string) $user->perfil, ['1', '2', '3', '4', '8'], true) && (
-                $user->perfil == 1 ||
-                $user->perfil == 2 ||
-                $user->perfil == 8 ||
-                $user->area_id == 5 ||
-                str_contains(strtoupper($user->area ?? ''), 'CALIDAD')
-            ) || in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
+            in_array((string) $user->perfil, ['1', '2', '3', '4', '8'], true) ||
+            in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
         );
 
         if (! $tieneAcceso) {
@@ -265,7 +260,7 @@ class CalidadFundicionController extends Controller
 
         $user = Auth::user();
         $isAdmin = $user && in_array((string) $user->perfil, ['1', '2'], true);
-        $isQuality = $isAdmin || ($user && ($user->area_id == 5 || str_contains(strtoupper($user->area ?? ''), 'CALIDAD') || in_array((string) $user->perfil, ['1', '3', '4', '8'], true)));
+        $isQuality = $isAdmin || ($user && in_array((string) $user->perfil, ['1', '3', '4', '8'], true));
         $soloPreorden = $request->query('solo_preorden', '0') === '1';
 
         $dibujos = collect([]);
@@ -475,7 +470,7 @@ class CalidadFundicionController extends Controller
                     $scanPath = $scanInfo['path'];
                     $origin = $scanInfo['origin'];
                     $prefix = $scanInfo['prefix'];
-                    if (Storage::disk('local')->exists($scanPath)) {
+                    if (Storage::disk('local')->exists($scanPath) || Storage::disk('local')->directoryExists($scanPath)) {
                         $files = collect(Storage::disk('local')->allFiles($scanPath))
                             ->filter(function ($f) use ($relatedOt, $ot, $activeClasses, $scanPath, $todasLasClases) {
                                 $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));

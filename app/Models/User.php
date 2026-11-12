@@ -27,7 +27,6 @@ class User extends Authenticatable
         'perfil_id',
         'turno',
         'planta',
-        'area_id',
         'puesto_id',
         'prod_status',
         'prod_start_at',
@@ -67,7 +66,7 @@ class User extends Authenticatable
     // Accessors para retrocompatibilidad con vistas existentes:
     public function getAreaAttribute(): string
     {
-        return $this->areaInfo->nombre ?? '';
+        return '';
     }
 
     public function getPuestoAttribute(): string
@@ -111,7 +110,7 @@ class User extends Authenticatable
      * Prefijo de matrícula de 2 dígitos + guion (Perfil + Nivel de Puesto).
      * Master: 11- | Sistemas: 01- | Resto: {codigo_perfil}{codigo_nivel}-
      */
-    public static function prefijoMatricula(Perfil $perfil, ?Area $area, ?Puesto $puesto): string
+    public static function prefijoMatricula(Perfil $perfil, mixed $area = null, ?Puesto $puesto = null): string
     {
         if ((int) $perfil->id === Perfil::MASTER) {
             return '11-';
@@ -126,11 +125,6 @@ class User extends Authenticatable
     public function perfilInfo()
     {
         return $this->belongsTo(Perfil::class, 'perfil_id');
-    }
-
-    public function areaInfo()
-    {
-        return $this->belongsTo(Area::class, 'area_id');
     }
 
     public function puestoInfo()

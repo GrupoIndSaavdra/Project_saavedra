@@ -71,9 +71,7 @@ class HerramientasTecamacController extends Controller
     {
         $user = Auth::user();
         $ok = $user && (
-            in_array((string) $user->perfil, ['1', '2', '3'], true) ||
-            $user->area_id == 8 ||
-            str_contains(strtoupper($user->area ?? ''), 'ALMAC') ||
+            in_array((string) $user->perfil, ['1', '2', '3', '7'], true) ||
             in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
         );
         if (! $ok) {
@@ -81,14 +79,12 @@ class HerramientasTecamacController extends Controller
         }
     }
 
-    /** Master (1), Admin (2) o Almacén (Área 8) pueden hacer CRUD completo */
+    /** Master (1), Admin (2) o Almacén (7) pueden hacer CRUD completo */
     private function verificarAlmacen(): void
     {
         $user = Auth::user();
         $ok = $user && (
-            in_array((string) $user->perfil, ['1', '2'], true) ||
-            $user->area_id == 8 ||
-            str_contains(strtoupper($user->area ?? ''), 'ALMAC') ||
+            in_array((string) $user->perfil, ['1', '2', '7'], true) ||
             in_array((string) $user->perfil, self::PERFILES_ALMACEN, true)
         );
         if (! $ok) {
@@ -102,9 +98,7 @@ class HerramientasTecamacController extends Controller
         $user = Auth::user();
         $permitidos = array_merge(self::PERFILES_ALMACEN, self::PERFILES_STOCK);
         $ok = $user && (
-            in_array((string) $user->perfil, ['1', '2', '3'], true) ||
-            $user->area_id == 8 ||
-            str_contains(strtoupper($user->area ?? ''), 'ALMAC') ||
+            in_array((string) $user->perfil, ['1', '2', '3', '7'], true) ||
             in_array((string) $user->perfil, $permitidos, true)
         );
         if (! $ok) {

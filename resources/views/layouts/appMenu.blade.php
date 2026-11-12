@@ -101,8 +101,6 @@
                         @endif
                     </div>
                     <input type="hidden" value="{{ $isPtaTemp ? 'pta_temp' : auth()->user()->perfil }}" id="profile">
-                    <input type="hidden" value="{{ auth()->user()->area_id ?? '' }}" id="user_area_id">
-                    <input type="hidden" value="{{ strtoupper(auth()->user()->area ?? '') }}" id="user_area">
                     <input type="hidden" value="{{ auth()->user()->puesto_id ?? '' }}" id="user_puesto_id">
                     <input type="hidden" value="{{ strtoupper(auth()->user()->puesto ?? '') }}" id="user_puesto">
                 </nav>
@@ -252,14 +250,7 @@
 @isset($pieces_Released)
     @php
         $userObj = auth()->user();
-        $isQualityStaff = $userObj && (
-            $userObj->perfil == 1 || 
-            $userObj->perfil == 8 || 
-            $userObj->area_id == 5 || 
-            str_contains(strtoupper($userObj->area ?? ''), 'CALIDAD') ||
-            // Retrocompatibilidad con perfil histórico
-            ($userObj->perfil == 4 && $userObj->area_id != 9)
-        );
+        $isQualityStaff = $userObj && in_array((string) $userObj->perfil, ['1', '8', '4'], true);
     @endphp
     <script>
         window.pieces_Released = ({{ $isQualityStaff ? '1' : '0' }}) ? @json($pieces_Released) : [];
