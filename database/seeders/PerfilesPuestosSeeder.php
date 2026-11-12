@@ -10,7 +10,7 @@ class PerfilesPuestosSeeder extends Seeder
 {
     /**
      * Seed de catálogos oficiales de perfiles (roles) y puestos.
-     * Seguro para producción (no destructivo, usa updateOrInsert).
+     * Seguro para producción (no destructivo, sin dependencia de áreas).
      */
     public function run(): void
     {
@@ -44,66 +44,62 @@ class PerfilesPuestosSeeder extends Seeder
             }
         }
 
-        // ── 2. Catálogo Oficial de Puestos ──
+        // ── 2. Catálogo Oficial de Puestos (Independiente de áreas) ──
         if (Schema::hasTable('puestos')) {
-            $estandar = [
-                ['1', 'Jefe de Departamento'],
-                ['2', 'Auxiliar'],
-                ['3', 'Becario'],
+            $puestos = [
+                ['id' => 1, 'nombre' => 'Director / Master', 'codigo_nivel' => '1'],
+                ['id' => 2, 'nombre' => 'Jefe de Departamento', 'codigo_nivel' => '1'],
+                ['id' => 3, 'nombre' => 'Auxiliar', 'codigo_nivel' => '2'],
+                ['id' => 4, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 5, 'nombre' => 'Jefe de Departamento', 'codigo_nivel' => '1'],
+                ['id' => 6, 'nombre' => 'Auxiliar', 'codigo_nivel' => '2'],
+                ['id' => 7, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 8, 'nombre' => 'Jefe de Departamento', 'codigo_nivel' => '1'],
+                ['id' => 9, 'nombre' => 'Auxiliar', 'codigo_nivel' => '2'],
+                ['id' => 10, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 11, 'nombre' => 'Jefe de Departamento', 'codigo_nivel' => '1'],
+                ['id' => 12, 'nombre' => 'Auxiliar', 'codigo_nivel' => '2'],
+                ['id' => 13, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 14, 'nombre' => 'Jefe de Taller', 'codigo_nivel' => '1'],
+                ['id' => 15, 'nombre' => 'Auxiliar de Supervisión', 'codigo_nivel' => '2'],
+                ['id' => 16, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 17, 'nombre' => 'Operador Torno CNC', 'codigo_nivel' => '4'],
+                ['id' => 18, 'nombre' => 'Operador Centro de Maquinados', 'codigo_nivel' => '5'],
+                ['id' => 19, 'nombre' => 'Ayudante General', 'codigo_nivel' => '6'],
+                ['id' => 20, 'nombre' => 'Jefe de Acabados', 'codigo_nivel' => '1'],
+                ['id' => 21, 'nombre' => 'Auxiliar de Supervisión', 'codigo_nivel' => '2'],
+                ['id' => 22, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 23, 'nombre' => 'Operador de Acabados', 'codigo_nivel' => '4'],
+                ['id' => 24, 'nombre' => 'Ayudante General', 'codigo_nivel' => '5'],
+                ['id' => 25, 'nombre' => 'Jefe de Departamento', 'codigo_nivel' => '1'],
+                ['id' => 26, 'nombre' => 'Auxiliar', 'codigo_nivel' => '2'],
+                ['id' => 27, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 28, 'nombre' => 'Jefe de Turno', 'codigo_nivel' => '1'],
+                ['id' => 29, 'nombre' => 'Auxiliar de Supervisión', 'codigo_nivel' => '2'],
+                ['id' => 30, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 31, 'nombre' => 'Operador Torno CNC', 'codigo_nivel' => '4'],
+                ['id' => 32, 'nombre' => 'Soldador PTA', 'codigo_nivel' => '5'],
+                ['id' => 33, 'nombre' => 'Operador Centro de Maquinados', 'codigo_nivel' => '6'],
+                ['id' => 34, 'nombre' => 'Ayudante General', 'codigo_nivel' => '7'],
+                ['id' => 35, 'nombre' => 'Jefe de Departamento', 'codigo_nivel' => '1'],
+                ['id' => 36, 'nombre' => 'Auxiliar', 'codigo_nivel' => '2'],
+                ['id' => 37, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
+                ['id' => 38, 'nombre' => 'Jefe de Sistemas', 'codigo_nivel' => '1'],
+                ['id' => 39, 'nombre' => 'Auxiliar de Sistemas', 'codigo_nivel' => '2'],
+                ['id' => 40, 'nombre' => 'Becario', 'codigo_nivel' => '3'],
             ];
 
-            $mapa = [
-                1 => [['1', 'Director / Master']],
-                2 => $estandar,
-                3 => $estandar,
-                4 => $estandar,
-                5 => $estandar,
-                6 => [
-                    ['1', 'Jefe de Taller'],
-                    ['2', 'Auxiliar de Supervisión'],
-                    ['3', 'Becario'],
-                    ['4', 'Operador Torno CNC'],
-                    ['5', 'Operador Centro de Maquinados'],
-                    ['6', 'Ayudante General'],
-                ],
-                7 => [
-                    ['1', 'Jefe de Acabados'],
-                    ['2', 'Auxiliar de Supervisión'],
-                    ['3', 'Becario'],
-                    ['4', 'Operador de Acabados'],
-                    ['5', 'Ayudante General'],
-                ],
-                8 => $estandar,
-                9 => [
-                    ['1', 'Jefe de Turno'],
-                    ['2', 'Auxiliar de Supervisión'],
-                    ['3', 'Becario'],
-                    ['4', 'Operador Torno CNC'],
-                    ['5', 'Soldador PTA'],
-                    ['6', 'Operador Centro de Maquinados'],
-                    ['7', 'Ayudante General'],
-                ],
-                10 => $estandar,
-                11 => [
-                    ['1', 'Jefe de Sistemas'],
-                    ['2', 'Auxiliar de Sistemas'],
-                    ['3', 'Becario'],
-                ],
-            ];
-
-            foreach ($mapa as $areaId => $lista) {
-                foreach ($lista as [$nivel, $nombre]) {
-                    DB::table('puestos')->updateOrInsert(
-                        ['area_id' => $areaId, 'codigo_nivel' => $nivel],
-                        [
-                            'nombre' => $nombre,
-                            'created_at' => $now,
-                            'updated_at' => $now,
-                        ]
-                    );
-                }
+            foreach ($puestos as $p) {
+                DB::table('puestos')->updateOrInsert(
+                    ['id' => $p['id']],
+                    [
+                        'nombre' => $p['nombre'],
+                        'codigo_nivel' => $p['codigo_nivel'],
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]
+                );
             }
         }
     }
 }
-
