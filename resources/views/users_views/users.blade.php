@@ -351,11 +351,23 @@
                     <div class="modal-form-group">
                         <label class="modal-label" for="edit_perfil">Tipo de Perfil (Rol) *</label>
                         <select id="edit_perfil" name="perfil" class="modal-select" required>
-                            @if(isset($perfiles) && count($perfiles) > 0)
-                                @foreach($perfiles as $p)
-                                    <option value="{{ $p->id }}" data-codigo="{{ $p->codigo_perfil }}">{{ $p->id }} - {{ $p->nombre }}</option>
-                                @endforeach
-                            @endif
+                            @php
+                                $perfilesEdit = (isset($perfiles) && count($perfiles) > 0) ? $perfiles : collect([
+                                    (object)['id' => 1, 'nombre' => 'Master', 'codigo_perfil' => '1'],
+                                    (object)['id' => 2, 'nombre' => 'Administrador', 'codigo_perfil' => '2'],
+                                    (object)['id' => 3, 'nombre' => 'Supervisor', 'codigo_perfil' => '3'],
+                                    (object)['id' => 4, 'nombre' => 'Ingeniería', 'codigo_perfil' => '4'],
+                                    (object)['id' => 5, 'nombre' => 'Diseño y programación', 'codigo_perfil' => '5'],
+                                    (object)['id' => 6, 'nombre' => 'Ventas', 'codigo_perfil' => '6'],
+                                    (object)['id' => 7, 'nombre' => 'Almacén', 'codigo_perfil' => '7'],
+                                    (object)['id' => 8, 'nombre' => 'Calidad', 'codigo_perfil' => '8'],
+                                    (object)['id' => 9, 'nombre' => 'Operador', 'codigo_perfil' => '9'],
+                                    (object)['id' => 10, 'nombre' => 'Sistemas', 'codigo_perfil' => '0'],
+                                ]);
+                            @endphp
+                            @foreach($perfilesEdit as $p)
+                                <option value="{{ $p->id }}" data-codigo="{{ $p->codigo_perfil }}">{{ $p->id }} - {{ $p->nombre }}</option>
+                            @endforeach
                         </select>
                         <input type="hidden" name="perfil_id" id="edit_perfil_id" value="">
                     </div>
@@ -387,10 +399,25 @@
 </div>
 
 <script>
-    // ── Catálogos Oficiales de Áreas y Puestos Jerárquicos ──────────────────
-    const perfilesOficiales = @json($perfiles ?? []);
-    const areasOficiales = @json($areas ?? []);
-    const puestosOficiales = @json($puestos ?? []);
+    // ── Catálogos Oficiales de Puestos y Perfiles ──────────────────
+    const defaultPerfilesFallback = [
+        { id: 1, nombre: 'Master', codigo_perfil: '1' },
+        { id: 2, nombre: 'Administrador', codigo_perfil: '2' },
+        { id: 3, nombre: 'Supervisor', codigo_perfil: '3' },
+        { id: 4, nombre: 'Ingeniería', codigo_perfil: '4' },
+        { id: 5, nombre: 'Diseño y programación', codigo_perfil: '5' },
+        { id: 6, nombre: 'Ventas', codigo_perfil: '6' },
+        { id: 7, nombre: 'Almacén', codigo_perfil: '7' },
+        { id: 8, nombre: 'Calidad', codigo_perfil: '8' },
+        { id: 9, nombre: 'Operador', codigo_perfil: '9' },
+        { id: 10, nombre: 'Sistemas', codigo_perfil: '0' }
+    ];
+
+    const rawPerfiles = @json($perfiles ?? []);
+    const rawPuestos = @json($puestos ?? []);
+
+    const perfilesOficiales = (Array.isArray(rawPerfiles) && rawPerfiles.length > 0) ? rawPerfiles : defaultPerfilesFallback;
+    const puestosOficiales = (Array.isArray(rawPuestos) && rawPuestos.length > 0) ? rawPuestos : [];
 
     const modalOverlay = document.getElementById('edit-user-modal');
     const editForm     = document.getElementById('edit-user-form');

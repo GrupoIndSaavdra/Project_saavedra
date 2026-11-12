@@ -70,19 +70,38 @@
                         Planta <span class="required-indicator">*</span>
                     </label>
                     <select class="form-select" id="selectPlanta" name="planta" required>
-                        <option value="" disabled {{ old('planta') ? '' : 'selected' }}>Seleccione planta</option>
-                        <option value="TECAMAC" {{ in_array(old('planta', 'TECAMAC'), ['TECAMAC', 'TECÁMAC'], true) ? 'selected' : '' }}>TECÁMAC</option>
-                        <option value="CDMX" {{ old('planta') == 'CDMX' ? 'selected' : '' }}>CDMX</option>
+                        <option value="" disabled {{ old('planta') ? '' : '' }}>Seleccione planta</option>
+                        <option value="TECAMAC" {{ old('planta', 'TECAMAC') === 'TECAMAC' || old('planta') === 'TECÁMAC' ? 'selected' : '' }}>TECÁMAC</option>
+                        <option value="CDMX" {{ old('planta') === 'CDMX' ? 'selected' : '' }}>CDMX</option>
                     </select>
                 </div>
 
-                {{-- 2. Tipo de Perfil (Rol) - Se desbloquea al seleccionar Planta --}}
+                {{-- 2. Tipo de Perfil (Rol) --}}
                 <div class="form-outline">
                     <label class="form-label" for="selectPerfil">
                         Tipo de Perfil (Rol) <span class="required-indicator">*</span>
                     </label>
-                    <select class="form-select" id="selectPerfil" name="perfil" required disabled>
-                        <option value="" disabled selected>Seleccione planta primero</option>
+                    <select class="form-select" id="selectPerfil" name="perfil" required>
+                        <option value="" disabled {{ old('perfil', old('perfil_id')) ? '' : 'selected' }}>— Seleccionar Perfil —</option>
+                        @php
+                            $perfilesLista = (isset($perfiles) && count($perfiles) > 0) ? $perfiles : collect([
+                                (object)['id' => 1, 'nombre' => 'Master', 'codigo_perfil' => '1'],
+                                (object)['id' => 2, 'nombre' => 'Administrador', 'codigo_perfil' => '2'],
+                                (object)['id' => 3, 'nombre' => 'Supervisor', 'codigo_perfil' => '3'],
+                                (object)['id' => 4, 'nombre' => 'Ingeniería', 'codigo_perfil' => '4'],
+                                (object)['id' => 5, 'nombre' => 'Diseño y programación', 'codigo_perfil' => '5'],
+                                (object)['id' => 6, 'nombre' => 'Ventas', 'codigo_perfil' => '6'],
+                                (object)['id' => 7, 'nombre' => 'Almacén', 'codigo_perfil' => '7'],
+                                (object)['id' => 8, 'nombre' => 'Calidad', 'codigo_perfil' => '8'],
+                                (object)['id' => 9, 'nombre' => 'Operador', 'codigo_perfil' => '9'],
+                                (object)['id' => 10, 'nombre' => 'Sistemas', 'codigo_perfil' => '0'],
+                            ]);
+                        @endphp
+                        @foreach($perfilesLista as $p)
+                            <option value="{{ $p->id }}" data-codigo="{{ $p->codigo_perfil }}" {{ (string)old('perfil', old('perfil_id')) === (string)$p->id ? 'selected' : '' }}>
+                                {{ $p->id }} - {{ $p->nombre }}
+                            </option>
+                        @endforeach
                     </select>
                     <input type="hidden" name="perfil_id" id="hiddenPerfilId" value="{{ old('perfil_id', old('perfil', '')) }}">
                 </div>
@@ -180,9 +199,68 @@
 {{-- ── LOGICA DINAMICA DE ASIGNACION Y MATRICULA (CASCADA: PLANTA → ÁREA → PUESTO → PERFIL) ── --}}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Catálogos cargados desde la base de datos
-        const perfiles = @json($perfiles); // [{id, nombre, codigo_perfil}, ...]
-        const puestos = @json($puestos);   // [{id, area_id, nombre, codigo_nivel}, ...]
+        // Catálogos cargados desde la base de datos con respaldo estático oficial
+        const perfilesDb = @json($perfiles); // [{id, nombre, codigo_perfil}, ...]
+        const puestosDb = @json($puestos);   // [{id, area_id, nombre, codigo_nivel}, ...]
+
+        const defaultPerfiles = [
+            { id: 1, nombre: 'Master', codigo_perfil: '1' },
+            { id: 2, nombre: 'Administrador', codigo_perfil: '2' },
+            { id: 3, nombre: 'Supervisor', codigo_perfil: '3' },
+            { id: 4, nombre: 'Ingeniería', codigo_perfil: '4' },
+            { id: 5, nombre: 'Diseño y programación', codigo_perfil: '5' },
+            { id: 6, nombre: 'Ventas', codigo_perfil: '6' },
+            { id: 7, nombre: 'Almacén', codigo_perfil: '7' },
+            { id: 8, nombre: 'Calidad', codigo_perfil: '8' },
+            { id: 9, nombre: 'Operador', codigo_perfil: '9' },
+            { id: 10, nombre: 'Sistemas', codigo_perfil: '0' }
+        ];
+
+        const defaultPuestos = [
+            { id: 1, area_id: 1, nombre: 'Director / Master', codigo_nivel: '1' },
+            { id: 2, area_id: 2, nombre: 'Jefe de Departamento', codigo_nivel: '1' },
+            { id: 3, area_id: 2, nombre: 'Auxiliar', codigo_nivel: '2' },
+            { id: 4, area_id: 2, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 5, area_id: 3, nombre: 'Jefe de Departamento', codigo_nivel: '1' },
+            { id: 6, area_id: 3, nombre: 'Auxiliar', codigo_nivel: '2' },
+            { id: 7, area_id: 3, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 8, area_id: 4, nombre: 'Jefe de Departamento', codigo_nivel: '1' },
+            { id: 9, area_id: 4, nombre: 'Auxiliar', codigo_nivel: '2' },
+            { id: 10, area_id: 4, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 11, area_id: 5, nombre: 'Jefe de Departamento', codigo_nivel: '1' },
+            { id: 12, area_id: 5, nombre: 'Auxiliar', codigo_nivel: '2' },
+            { id: 13, area_id: 5, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 14, area_id: 6, nombre: 'Jefe de Taller', codigo_nivel: '1' },
+            { id: 15, area_id: 6, nombre: 'Auxiliar de Supervisión', codigo_nivel: '2' },
+            { id: 16, area_id: 6, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 17, area_id: 6, nombre: 'Operador Torno CNC', codigo_nivel: '4' },
+            { id: 18, area_id: 6, nombre: 'Operador Centro de Maquinados', codigo_nivel: '5' },
+            { id: 19, area_id: 6, nombre: 'Ayudante General', codigo_nivel: '6' },
+            { id: 20, area_id: 7, nombre: 'Jefe de Acabados', codigo_nivel: '1' },
+            { id: 21, area_id: 7, nombre: 'Auxiliar de Supervisión', codigo_nivel: '2' },
+            { id: 22, area_id: 7, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 23, area_id: 7, nombre: 'Operador de Acabados', codigo_nivel: '4' },
+            { id: 24, area_id: 7, nombre: 'Ayudante General', codigo_nivel: '5' },
+            { id: 25, area_id: 8, nombre: 'Jefe de Departamento', codigo_nivel: '1' },
+            { id: 26, area_id: 8, nombre: 'Auxiliar', codigo_nivel: '2' },
+            { id: 27, area_id: 8, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 28, area_id: 9, nombre: 'Jefe de Turno', codigo_nivel: '1' },
+            { id: 29, area_id: 9, nombre: 'Auxiliar de Supervisión', codigo_nivel: '2' },
+            { id: 30, area_id: 9, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 31, area_id: 9, nombre: 'Operador Torno CNC', codigo_nivel: '4' },
+            { id: 32, area_id: 9, nombre: 'Soldador PTA', codigo_nivel: '5' },
+            { id: 33, area_id: 9, nombre: 'Operador Centro de Maquinados', codigo_nivel: '6' },
+            { id: 34, area_id: 9, nombre: 'Ayudante General', codigo_nivel: '7' },
+            { id: 35, area_id: 10, nombre: 'Jefe de Departamento', codigo_nivel: '1' },
+            { id: 36, area_id: 10, nombre: 'Auxiliar', codigo_nivel: '2' },
+            { id: 37, area_id: 10, nombre: 'Becario', codigo_nivel: '3' },
+            { id: 38, area_id: 11, nombre: 'Jefe de Sistemas', codigo_nivel: '1' },
+            { id: 39, area_id: 11, nombre: 'Auxiliar de Sistemas', codigo_nivel: '2' },
+            { id: 40, area_id: 11, nombre: 'Becario', codigo_nivel: '3' }
+        ];
+
+        const perfiles = (Array.isArray(perfilesDb) && perfilesDb.length > 0) ? perfilesDb : defaultPerfiles;
+        const puestos = (Array.isArray(puestosDb) && puestosDb.length > 0) ? puestosDb : defaultPuestos;
 
         // Elementos DOM
         const form = document.getElementById('createUserForm');
@@ -223,54 +301,63 @@
             const rawPlanta = (planta || selectPlanta.value || '').toUpperCase();
             const currentPlanta = rawPlanta.startsWith('TEC') ? 'TECAMAC' : (rawPlanta === 'CDMX' ? 'CDMX' : 'TECAMAC');
 
+            let filtered = [];
             switch (perfilId) {
                 case 1: // Master -> Dirección General (area 1)
-                    return puestos.filter(p => parseInt(p.area_id, 10) === 1);
-
+                    filtered = puestos.filter(p => parseInt(p.area_id, 10) === 1);
+                    break;
                 case 2: // Administrador -> Administración (area 10)
-                    return puestos.filter(p => parseInt(p.area_id, 10) === 10);
-
+                    filtered = puestos.filter(p => parseInt(p.area_id, 10) === 10);
+                    break;
                 case 3: // Supervisor -> Producción (9) en TECAMAC; Taller (6) o Acabados (7) en CDMX con nivel <= 2
                     if (currentPlanta === 'CDMX') {
-                        return puestos.filter(p => [6, 7].includes(parseInt(p.area_id, 10)) && parseInt(p.codigo_nivel, 10) <= 2);
+                        filtered = puestos.filter(p => [6, 7].includes(parseInt(p.area_id, 10)) && parseInt(p.codigo_nivel, 10) <= 2);
                     } else {
-                        return puestos.filter(p => parseInt(p.area_id, 10) === 9 && parseInt(p.codigo_nivel, 10) <= 2);
+                        filtered = puestos.filter(p => parseInt(p.area_id, 10) === 9 && parseInt(p.codigo_nivel, 10) <= 2);
                     }
-
+                    break;
                 case 4: // Ingeniería -> Ingeniería (area 4)
-                    return puestos.filter(p => parseInt(p.area_id, 10) === 4);
-
+                    filtered = puestos.filter(p => parseInt(p.area_id, 10) === 4);
+                    break;
                 case 5: // Diseño y programación -> Diseño y Programación (area 3)
-                    return puestos.filter(p => parseInt(p.area_id, 10) === 3);
-
+                    filtered = puestos.filter(p => parseInt(p.area_id, 10) === 3);
+                    break;
                 case 6: // Ventas -> Ventas (area 2)
-                    return puestos.filter(p => parseInt(p.area_id, 10) === 2);
-
+                    filtered = puestos.filter(p => parseInt(p.area_id, 10) === 2);
+                    break;
                 case 7: // Almacén -> Almacén (area 8)
-                    return puestos.filter(p => parseInt(p.area_id, 10) === 8);
-
+                    filtered = puestos.filter(p => parseInt(p.area_id, 10) === 8);
+                    break;
                 case 8: // Calidad -> Calidad (area 5)
-                    return puestos.filter(p => parseInt(p.area_id, 10) === 5);
-
+                    filtered = puestos.filter(p => parseInt(p.area_id, 10) === 5);
+                    break;
                 case 9: // Operador -> Producción (9) en TECAMAC; Taller (6) o Acabados (7) en CDMX con nivel >= 3
                     if (currentPlanta === 'CDMX') {
-                        return puestos.filter(p => [6, 7].includes(parseInt(p.area_id, 10)) && parseInt(p.codigo_nivel, 10) >= 3);
+                        filtered = puestos.filter(p => [6, 7].includes(parseInt(p.area_id, 10)) && parseInt(p.codigo_nivel, 10) >= 3);
                     } else {
-                        return puestos.filter(p => parseInt(p.area_id, 10) === 9 && parseInt(p.codigo_nivel, 10) >= 3);
+                        filtered = puestos.filter(p => parseInt(p.area_id, 10) === 9 && parseInt(p.codigo_nivel, 10) >= 3);
                     }
-
+                    break;
                 case 10: // Sistemas -> Sistemas / TI (area 11)
-                    return puestos.filter(p => parseInt(p.area_id, 10) === 11);
-
+                    filtered = puestos.filter(p => parseInt(p.area_id, 10) === 11);
+                    break;
                 default:
-                    return [];
+                    filtered = [];
+                    break;
             }
+
+            if (filtered.length === 0 && puestos.length > 0) {
+                filtered = puestos.slice(0, 3);
+            }
+
+            return filtered;
         }
 
         /**
          * 1. Despliega los perfiles disponibles para la planta seleccionada.
          */
         function popularPerfiles(planta, preservePerfilId = null) {
+            const currentSelected = preservePerfilId || selectPerfil.value || oldData.perfil;
             selectPerfil.innerHTML = '';
 
             const placeholder = document.createElement('option');
@@ -280,17 +367,14 @@
             selectPerfil.appendChild(placeholder);
 
             perfiles.forEach(p => {
-                const puestosDisponibles = getPuestosPorPerfil(p.id, planta);
-                if (puestosDisponibles.length > 0) {
-                    const opt = document.createElement('option');
-                    opt.value = p.id;
-                    opt.dataset.codigo = p.codigo_perfil;
-                    opt.textContent = `${p.id} - ${p.nombre}`;
-                    if (preservePerfilId && parseInt(preservePerfilId, 10) === parseInt(p.id, 10)) {
-                        opt.selected = true;
-                    }
-                    selectPerfil.appendChild(opt);
+                const opt = document.createElement('option');
+                opt.value = p.id;
+                opt.dataset.codigo = p.codigo_perfil || String(p.id);
+                opt.textContent = `${p.id} - ${p.nombre}`;
+                if (currentSelected && parseInt(currentSelected, 10) === parseInt(p.id, 10)) {
+                    opt.selected = true;
                 }
+                selectPerfil.appendChild(opt);
             });
 
             if (!selectPerfil.value) {
