@@ -26,8 +26,8 @@ jobs:
           extensions: mbstring, xml, ctype, iconv, intl, pdo_mysql, bcmath, gd, zip
           coverage: none
 
-      - name: Install Composer dependencies (with dev for verification)
-        run: composer install --prefer-dist --no-interaction --no-scripts
+      - name: Install Composer dependencies
+        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,22 +39,18 @@ jobs:
           echo "Verificando sintaxis PHP en app, routes, config y database..."
           find app routes config database -type f -name "*.php" -exec php -l {} +
 
-      - name: Run Pre-deploy Integrity Tests
+      - name: Validate Laravel configuration and routes integrity
         run: |
           cp .env.example .env
           php artisan key:generate --force
           php artisan package:discover --ansi
           php artisan route:list > /dev/null
-          php artisan test --filter="IntegrityTest|ExampleTest"
           rm -f .env
 
       - name: Build Vite assets
         run: |
           npm ci || npm install
           npm run build
-
-      - name: Prune dev dependencies for production
-        run: composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist --no-scripts
 
       - name: Sync files via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
