@@ -344,19 +344,21 @@ class PiecesOccupiedController extends Controller
 
         if (! empty($otId)) {
             $claseQuery->where('id_ot', '=', $otId, 'and');
-            if (! empty($claseId)) {
-                if (is_numeric($claseId)) {
-                    $claseQuery->where('id', '=', (int) $claseId, 'and');
-                } else {
-                    $cleanName = trim(preg_replace('/^\d+\s*-\s*/', '', mb_strtolower($claseId, 'UTF-8')));
-                    $claseQuery->where(function ($q) use ($claseId, $cleanName) {
-                        $q->where('nombre', '=', $claseId, 'and')
-                            ->orWhere('nombre', 'LIKE', "%{$cleanName}%");
-                    });
-                }
-            }
         } else {
             $claseQuery->whereIn('id_ot', $activeOtIds, 'and', false);
+        }
+
+        if (! empty($claseId) && $claseId !== 'Todos') {
+            if (is_numeric($claseId)) {
+                $claseQuery->where('id', '=', (int) $claseId, 'and');
+            } else {
+                $cleanName = trim(preg_replace('/^\d+\s*[-_.]?\s*/', '', mb_strtolower($claseId, 'UTF-8')));
+                $claseQuery->where(function ($q) use ($claseId, $cleanName) {
+                    $q->where('nombre', '=', $claseId, 'and')
+                        ->orWhere('nombre', 'LIKE', "%{$cleanName}%")
+                        ->orWhere('nombre', 'LIKE', "% - {$cleanName}%");
+                });
+            }
         }
 
         $activeClassIds = $claseQuery->pluck('id')->toArray();
@@ -396,14 +398,14 @@ class PiecesOccupiedController extends Controller
     }
 
     /**
-     * Obtiene los operadores activos en el sistema (perfil 2 = Operador Maquinado, estatus = 1)
+     * Obtiene los operadores activos en el sistema (Perfil 9 = Operador, Perfil 2 = Compatibilidad, estatus = 1)
      * e incluye cualquier operador con piezas ocupadas actualmente.
      */
     protected function getActiveOperators(array $occupiedPieces = []): array
     {
         $activeOperators = User::query()
             ->select(['matricula', 'nombre', 'a_paterno', 'a_materno'])
-            ->where('perfil', '=', 2, 'and')
+            ->whereIn('perfil', [2, 9, '2', '9'], 'and', false)
             ->where('estatus', '=', 1, 'and')
             ->get();
 
@@ -487,12 +489,30 @@ class PiecesOccupiedController extends Controller
                 ];
             }, $classesList);
         } else {
-            $classes = Clase::query()
+            $rawClasses = Clase::query()
                 ->select(['id', 'id_ot', 'nombre', 'piezas', 'finalizada'])
                 ->where('id_ot', '=', $otId, 'and')
                 ->where('finalizada', '=', 0, 'and')
                 ->orderBy('nombre')
                 ->get();
+
+            $seenClean = [];
+            $classes = [];
+            foreach ($rawClasses as $c) {
+                $clean = trim(preg_replace('/^\d+\s*[-_.]?\s*/', '', (string) $c->nombre));
+                $titleName = mb_convert_case($clean, MB_CASE_TITLE, 'UTF-8');
+                $lower = mb_strtolower($clean, 'UTF-8');
+                if ($clean !== '' && ! isset($seenClean[$lower])) {
+                    $seenClean[$lower] = true;
+                    $classes[] = [
+                        'id' => $clean,
+                        'nombre' => $titleName,
+                        'piezas' => $c->piezas,
+                        'id_original' => $c->id,
+                        'raw_nombre' => $c->nombre,
+                    ];
+                }
+            }
         }
 
         // Obtener los procesos activos para este contexto de OT y Clase
@@ -748,12 +768,22 @@ class PiecesOccupiedController extends Controller
         $activeMachineMetaIds = Maquinas::query()->pluck('id_meta')->filter()->toArray();
 
         // Normalización de Clase para comparación tolerante
+        $normClaseStr = function (?string $str): string {
+            if (! $str) return '';
+            $s = trim(preg_replace('/^\d+\s*[-_.]?\s*/', '', (string) $str));
+            $s = mb_strtolower($s, 'UTF-8');
+            return strtr($s, [
+                'á'=>'a', 'é'=>'e', 'í'=>'i', 'ó'=>'o', 'ú'=>'u', 'ñ'=>'n',
+                'Á'=>'a', 'É'=>'e', 'Í'=>'i', 'Ó'=>'o', 'Ú'=>'u', 'Ñ'=>'n'
+            ]);
+        };
+
         $targetClaseObj = (! empty($targetClaseId) && is_numeric($targetClaseId)) ? Clase::find((int) $targetClaseId) : null;
         $targetClaseNombre = $targetClaseObj ? $targetClaseObj->nombre : (string) $targetClaseId;
-        $cleanTargetClase = trim(preg_replace('/^\d+\s*-\s*/', '', mb_strtolower($targetClaseNombre, 'UTF-8')));
+        $cleanTargetClase = $normClaseStr($targetClaseNombre);
 
-        $matchesTargetClass = function ($claseId, $claseNombre) use ($targetClaseId, $targetClaseObj, $targetClaseNombre, $cleanTargetClase) {
-            if (empty($targetClaseId)) {
+        $matchesTargetClass = function ($claseId, $claseNombre) use ($targetClaseId, $targetClaseObj, $targetClaseNombre, $cleanTargetClase, $normClaseStr) {
+            if (empty($targetClaseId) || $targetClaseId === 'Todos') {
                 return true;
             }
             if ($claseId && (string) $claseId === (string) $targetClaseId) {
@@ -762,8 +792,11 @@ class PiecesOccupiedController extends Controller
             if ($targetClaseObj && $claseId && (int) $claseId === (int) $targetClaseObj->id) {
                 return true;
             }
-            $cleanNombre = trim(preg_replace('/^\d+\s*-\s*/', '', mb_strtolower((string) $claseNombre, 'UTF-8')));
+            $cleanNombre = $normClaseStr($claseNombre);
             if ($cleanNombre !== '' && $cleanNombre === $cleanTargetClase) {
+                return true;
+            }
+            if ($cleanNombre !== '' && $cleanTargetClase !== '' && (str_contains($cleanNombre, $cleanTargetClase) || str_contains($cleanTargetClase, $cleanNombre))) {
                 return true;
             }
             if (strcasecmp((string) $claseNombre, (string) $targetClaseNombre) === 0) {

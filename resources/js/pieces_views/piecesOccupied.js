@@ -1133,10 +1133,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch(url);
                 const data = await res.json();
                 if (data.classes && data.classes.length > 0 && selectClase) {
+                    const seenClaseNorms = new Set();
                     data.classes.forEach(c => {
+                        const cleanNombre = String(c.nombre || '').replace(/^\d+\s*[-_.]?\s*/, '').trim();
+                        const norm = cleanNombre.toLowerCase();
+                        if (!cleanNombre || seenClaseNorms.has(norm)) return;
+                        seenClaseNorms.add(norm);
+
                         const opt = document.createElement('option');
-                        opt.value = c.id;
-                        opt.textContent = c.piezas !== undefined && c.piezas !== null ? `${c.nombre} (${c.piezas} pzas)` : c.nombre;
+                        opt.value = typeof c.id === 'string' ? String(c.id).replace(/^\d+\s*[-_.]?\s*/, '').trim() : c.id;
+                        opt.textContent = c.piezas !== undefined && c.piezas !== null ? `${cleanNombre} (${c.piezas} pzas)` : cleanNombre;
                         selectClase.appendChild(opt);
                     });
                 }
@@ -1222,10 +1228,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await res.json();
                     if (selectClase && data.classes && data.classes.length > 0) {
                         selectClase.innerHTML = '<option value="">Todas las Clases</option>';
+                        const seenClaseNorms = new Set();
                         data.classes.forEach(c => {
+                            const cleanNombre = String(c.nombre || '').replace(/^\d+\s*[-_.]?\s*/, '').trim();
+                            const norm = cleanNombre.toLowerCase();
+                            if (!cleanNombre || seenClaseNorms.has(norm)) return;
+                            seenClaseNorms.add(norm);
+
                             const opt = document.createElement('option');
-                            opt.value = c.id;
-                            opt.textContent = c.piezas !== undefined && c.piezas !== null ? `${c.nombre} (${c.piezas} pzas)` : c.nombre;
+                            opt.value = typeof c.id === 'string' ? String(c.id).replace(/^\d+\s*[-_.]?\s*/, '').trim() : c.id;
+                            opt.textContent = c.piezas !== undefined && c.piezas !== null ? `${cleanNombre} (${c.piezas} pzas)` : cleanNombre;
                             selectClase.appendChild(opt);
                         });
                     }

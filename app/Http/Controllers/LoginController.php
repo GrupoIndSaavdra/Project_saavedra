@@ -78,8 +78,8 @@ class LoginController extends Controller
             return redirect()->to('/login')->withErrors('Tu cuenta está inactiva. Contacta al administrador del sistema.');
         }
 
-        // 3. Restricción de red para operadores (Perfil 2) ANTES de calcular el Hash en producción
-        if ($user && (string) $user->perfil === '2' && app()->environment('production')) {
+        // 3. Restricción de red para operadores (Perfil 9 y 2) ANTES de calcular el Hash en producción
+        if ($user && in_array((string) $user->perfil, ['2', '9'], true) && app()->environment('production')) {
             $rawTecamac = config('app.planta_tecamac_allowed_ips', '');
             $rawLaRaza = config('app.planta_la_raza_allowed_ips', '');
 
@@ -151,8 +151,8 @@ class LoginController extends Controller
      */
     public function authenticated(Request $request, $user)
     {
-        // Si es operador (Perfil 2), inicializamos su cronómetro de productividad desde YA (con 00 segs)
-        if ($user->perfil == '2') {
+        // Si es operador (Perfil 9 y 2), inicializamos su cronómetro de productividad desde YA (con 00 segs)
+        if (in_array((string) $user->perfil, ['2', '9'], true)) {
             $user->prod_status = 'welcome';
             $user->prod_start_at = now()->setSeconds(0);
             $user->prod_locked_type = null;

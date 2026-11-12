@@ -24,7 +24,7 @@ class GenerarQRSoldaduraController extends Controller
      */
     public function create()
     {
-        $operadores = User::query()->where('perfil', 2)->get();
+        $operadores = User::query()->whereIn('perfil', [2, 9, '2', '9'], 'and', false)->orderBy('nombre')->get();
 
         // Agrupar soldaduras por nombre y lote, sumando los kilos disponibles
         $soldaduras = RegistroSoldadura::query()->where('kilos', '>', 0)

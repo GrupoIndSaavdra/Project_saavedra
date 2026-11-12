@@ -19,7 +19,7 @@ class ProductivityController extends Controller
     public function ping(Request $request)
     {
         $user = Auth::user();
-        if (! $user || $user->perfil != '2') {
+        if (! $user || ! in_array((string) $user->perfil, ['2', '9'], true)) {
             return response()->json(['locked' => null]);
         }
 
