@@ -50,10 +50,12 @@
             @hasSection('header-left')
                 @yield('header-left')
             @else
-                <!--Menu-->
-                <button class="open-menu" aria-label="Menú principal" aria-expanded="false">
-                    <img class="icon" src="{{ asset('images/Color_Icons/Generales/icono.png') }}" alt="Icono Menú">
-                </button>
+                @if ((string) auth()->user()->perfil !== '9')
+                    <!--Menu-->
+                    <button class="open-menu" aria-label="Menú principal" aria-expanded="false">
+                        <img class="icon" src="{{ asset('images/Color_Icons/Generales/icono.png') }}" alt="Icono Menú">
+                    </button>
+                @endif
             @endif
             <div class="filter-opacity">
                 <nav class="nav" id="nav">
@@ -102,7 +104,7 @@
                     </div>
                     <input type="hidden" value="{{ $isPtaTemp ? 'pta_temp' : auth()->user()->perfil }}" id="profile">
                     <input type="hidden" value="{{ auth()->user()->puesto_id ?? '' }}" id="user_puesto_id">
-                    <input type="hidden" value="{{ strtoupper(auth()->user()->puesto ?? '') }}" id="user_puesto">
+                    <input type="hidden" value="{{ strtoupper(auth()->user()->puestoInfo->nombre ?? (auth()->user()->puesto ?? '')) }}" id="user_puesto">
                 </nav>
             </div>
 

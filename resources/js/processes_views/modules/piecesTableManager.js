@@ -482,9 +482,10 @@ function insertAvaliablePiecesSelect(container = null) {
     defaultOption.textContent = "Seleccionar pieza";
     select.appendChild(defaultOption);
 
-    // Crear las opciones con las piezas disponibles
+    // Crear las opciones con las piezas disponibles (deduplicadas para evitar repeticiones)
     if (window.arrayData && window.arrayData["availableAssemblies"] && Array.isArray(window.arrayData["availableAssemblies"])) {
-        window.arrayData["availableAssemblies"].forEach((assembly) => {
+        const uniqueAssemblies = [...new Set(window.arrayData["availableAssemblies"])];
+        uniqueAssemblies.forEach((assembly) => {
             let option = document.createElement("option");
             option.value = assembly;
             option.textContent = assembly;
