@@ -43,11 +43,21 @@ class UserController extends Controller
 
     public function show(HttpRequest $request)
     {
+        $this->asegurarCatalogos();
         $layout = $this->getLayout();
         $query = User::query()->with(['puestoInfo'])->select([
-            'id', 'matricula', 'nombre', 'a_paterno', 'a_materno',
-            'perfil', 'perfil_id', 'turno', 'planta', 'puesto_id',
-            'estatus', 'created_at',
+            'id',
+            'matricula',
+            'nombre',
+            'a_paterno',
+            'a_materno',
+            'perfil',
+            'perfil_id',
+            'turno',
+            'planta',
+            'puesto_id',
+            'estatus',
+            'created_at',
         ]);
 
         if ($request->filled('q')) {
@@ -57,7 +67,7 @@ class UserController extends Controller
                     ->orWhere('nombre', 'like', "%{$q}%")
                     ->orWhere('a_paterno', 'like', "%{$q}%")
                     ->orWhere('a_materno', 'like', "%{$q}%")
-                    ->orWhereHas('puestoInfo', fn ($p) => $p->where('nombre', 'like', "%{$q}%"));
+                    ->orWhereHas('puestoInfo', fn($p) => $p->where('nombre', 'like', "%{$q}%"));
             });
         }
 
@@ -88,12 +98,29 @@ class UserController extends Controller
 
     public function create()
     {
+        $this->asegurarCatalogos();
         $layout = auth()->user() && ($this->getLayout() == 'layouts.appMaster' || $this->getLayout() == 'layouts.appAdmin') ? $this->getLayout() : 'layouts.defaultLayout';
 
         $perfiles = Perfil::orderBy('id')->get();
         $puestos = Puesto::orderBy('codigo_nivel')->get();
 
         return view('users_views.create_user', compact('layout', 'perfiles', 'puestos'));
+    }
+
+    private function asegurarCatalogos(): void
+    {
+        try {
+            if (Perfil::count() === 0 || Puesto::count() === 0) {
+                \Illuminate\Support\Facades\Artisan::call('db:seed', [
+                    '--class' => 'Database\\Seeders\\PerfilesPuestosSeeder',
+                    '--force' => true,
+                ]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo auto-sembrar catálogos de perfiles y puestos.', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 
     public function store(CreateUserRequest $request)
@@ -247,7 +274,7 @@ class UserController extends Controller
             $data['perfil'] = (string) $data['perfil'];
             $data['perfil_id'] = (int) $data['perfil'];
 
-            if (! empty($data['contrasena'])) {
+            if (!empty($data['contrasena'])) {
                 $data['contrasena'] = bcrypt($data['contrasena']);
             } else {
                 unset($data['contrasena']);
@@ -307,7 +334,7 @@ class UserController extends Controller
             'nueva_contraseña' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
         $user = User::query()->where('matricula', $request->matricula)->first();
-        if (! $user) {
+        if (!$user) {
             return redirect()->to('recoverPassword')->withErrors('Matricula no encontrada.');
         }
         $user->update(['contrasena' => bcrypt($request->nueva_contraseña)]);
