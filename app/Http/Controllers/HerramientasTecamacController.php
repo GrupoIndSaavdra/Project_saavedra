@@ -21,11 +21,11 @@ class HerramientasTecamacController extends Controller
 {
     use HasCursorPagination;
 
-    private const PERFILES_PERMITIDOS = ['1', '2', '3', '5', '7', '8', '9'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '0'];
 
-    private const PERFILES_ALMACEN = ['1', '2', '3', '5', '7'];   // CRUD completo + inactivar/reactivar
+    private const PERFILES_ALMACEN = ['1', '2', '3', '5', '7', '10', '0'];   // CRUD completo + inactivar/reactivar
 
-    private const PERFILES_STOCK = ['1', '2', '3', '5', '7'];   // Solo editar mínimo y máximo
+    private const PERFILES_STOCK = ['1', '2', '3', '5', '7', '10', '0'];   // Solo editar mínimo y máximo
 
     private const DIR_PUBLIC = 'herramientas_tecamac';
 

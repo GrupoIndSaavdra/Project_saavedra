@@ -109,7 +109,7 @@ class LiberarQRPlantaController extends Controller
 
     public function indexRecepcion()
     {
-        $almacenistas = User::query()->where('perfil', '5')->get(); // Perfil 5 = Almacén
+        $almacenistas = User::query()->whereIn('perfil', ['5', '7', 5, 7], 'and', false)->get(); // Perfil 7 = Almacén (y retrocompatible 5)
         $botesDisponibles = SoldaduraBote::query()->where('estado', 'en_planta')->get();
         $botesEnPlanta = $botesDisponibles->count();
         $currentUser = auth()->user(); // Usuario autenticado actual
@@ -149,7 +149,7 @@ class LiberarQRPlantaController extends Controller
                 return back()->withErrors(['qr_content' => 'Este bote no está en tránsito. Estado actual: '.$bote->estado]);
             }
 
-            $almacenistas = User::query()->where('perfil', '5')->get();
+            $almacenistas = User::query()->whereIn('perfil', ['5', '7', 5, 7], 'and', false)->get();
             $botesEnPlanta = SoldaduraBote::query()->where('estado', 'en_planta')->count();
             $currentUser = auth()->user(); // Usuario autenticado actual
 

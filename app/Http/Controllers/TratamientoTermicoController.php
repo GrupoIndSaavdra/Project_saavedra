@@ -54,12 +54,12 @@ class TratamientoTermicoController extends Controller
         $password = $request->input('password');
         $authorized = false;
 
-        // Si el usuario firmado es admin (1), master (3) o supervisor (6), está autorizado automáticamente
-        if (auth()->check() && in_array(auth()->user()->perfil, [1, 3, 6])) {
+        // Si el usuario firmado es admin (2), master (1), supervisor (3, 6) o sistemas (10), está autorizado automáticamente
+        if (auth()->check() && in_array((string) auth()->user()->perfil, ['1', '2', '3', '6', '10', '0'], true)) {
             $authorized = true;
         } elseif ($password) {
-            // Verificar si el password corresponde a algún admin (1), master (3) o supervisor (6)
-            $users = User::whereIn('perfil', [1, 3, 6], 'and', false)->get();
+            // Verificar si el password corresponde a algún personal administrativo
+            $users = User::whereIn('perfil', [1, 2, 3, 6, 10, '1', '2', '3', '6', '10', '0'], 'and', false)->get();
             foreach ($users as $user) {
                 if (Hash::check($password, $user->contrasena)) {
                     $authorized = true;

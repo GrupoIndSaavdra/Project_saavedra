@@ -242,7 +242,7 @@ class SystemLogController extends Controller
         // En MAQUINADO, el tiempo estándar debe respetarse y solo se reinicia al guardar la pieza.
         if ($action === 'Consulta Documentación Técnica') {
             $user = Auth::user();
-            if ($user && $user->perfil == 2 && $user->prod_status !== 'machining') {
+            if ($user && in_array((string) $user->perfil, ['2', '9'], true) && $user->prod_status !== 'machining') {
                 $user->update(['prod_start_at' => now()->setSeconds(0), 'prod_locked_type' => null]);
             }
         }
@@ -347,7 +347,7 @@ class SystemLogController extends Controller
                 ->select(['system_logs.user_matricula', 'users.nombre', 'users.a_paterno', 'users.perfil'])
                 ->leftJoin('users', 'system_logs.user_matricula', '=', 'users.matricula')
                 ->whereNotNull('system_logs.user_matricula')
-                ->when($isAdminOnly, fn ($q) => $q->whereIn('users.perfil', [1, 3, 6]))
+                ->when($isAdminOnly, fn ($q) => $q->whereIn('users.perfil', [1, 2, 3, 6, 10, '1', '2', '3', '6', '10', '0']))
                 ->distinct()
                 ->get()
                 ->map(fn ($o) => (object) [
@@ -429,7 +429,7 @@ class SystemLogController extends Controller
                 $subQ->select(DB::raw(1))
                     ->from('users')
                     ->whereColumn('users.matricula', 'system_logs.user_matricula')
-                    ->whereIn('users.perfil', [1, 3, 6]);
+                    ->whereIn('users.perfil', [1, 2, 3, 6, 10, '1', '2', '3', '6', '10', '0']);
             });
 
             // Filtrar solo acciones propias de administradores
@@ -658,8 +658,8 @@ class SystemLogController extends Controller
     {
         set_time_limit(0);
         try {
-            // Solo administradores (perfil 1), Master (perfil 3) o Supervisor (perfil 6)
-            if (! in_array(Auth::user()->perfil, [1, 3, 6])) {
+            // Solo administradores (perfiles 1, 2, 3, 6, 10)
+            if (! in_array((string) Auth::user()->perfil, ['1', '2', '3', '6', '10', '0'], true)) {
                 return response()->json([
                     'success' => false,
                     'message' => 'No tiene permisos para realizar esta acción.',

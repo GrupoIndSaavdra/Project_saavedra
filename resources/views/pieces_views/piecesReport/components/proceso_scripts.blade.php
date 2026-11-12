@@ -1,7 +1,7 @@
     <script>
         window.iconosApp = {
-            operador: @json(asset('images/Light_Icons/Operador_Profile-Light.png')),
-            operadorHerramienta: @json(asset('images/Light_Icons/Operador-Light.png')),
+            operador: @json(asset('images/Light_Icons/Perfiles/Operador_Profile-Light.png')),
+            operadorHerramienta: @json(asset('images/Light_Icons/Iconos/Operador-Light.png')),
             pieza: @json(asset('images/Light_Icons/Piezas-Light.png')),
             aprobado: @json(asset('images/Color_Icons/Generales/Aprobado.png')),
             alerta: @json(asset('images/Color_Icons/Generales/Sospechosa.png')),

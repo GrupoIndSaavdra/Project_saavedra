@@ -565,8 +565,8 @@ class ProcessProductionController extends Controller
     public function validatePasswordAdmin($passwordEntered)
     {
         if ($passwordEntered) {
-            // ── OPTIMIZACIÓN: admins (1), master (3), calidad (4, 8), almacén (5), supervisor (6) y sistemas (10) ──
-            $users = User::query()->whereIn('perfil', [1, 3, 4, 5, 6, 8, 10], 'and', false)->get();
+            // ── OPTIMIZACIÓN: admins (1, 2), master (1, 3), calidad (4, 8), almacén (5, 7), supervisor (3, 6) y sistemas (10) ──
+            $users = User::query()->whereIn('perfil', [1, 2, 3, 4, 5, 6, 7, 8, 10, '1', '2', '3', '4', '5', '6', '7', '8', '10', '0'], 'and', false)->get();
             foreach ($users as $user) {
                 if (Hash::check($passwordEntered, $user->contrasena)) {
                     return true;
@@ -642,7 +642,7 @@ class ProcessProductionController extends Controller
         $machine = Maquinas::query()->where('id_meta', $meta->id)->first();
         if ($machine) {
             $user = auth()->user();
-            if ($user && $user->perfil == 2) {
+            if ($user && in_array((string) $user->perfil, ['2', '9'], true)) {
                 // REINICIAR CRONÓMETRO: Se registra actividad de producción (con 00 segs)
                 $user->update(['prod_start_at' => now()->setSeconds(0), 'prod_locked_type' => null]);
             }
@@ -819,7 +819,7 @@ class ProcessProductionController extends Controller
         }
 
         $user = auth()->user();
-        if ($user && $user->perfil == 2) {
+        if ($user && in_array((string) $user->perfil, ['2', '9'], true)) {
             // REINICIAR CRONÓMETRO: Selección de juego cuenta como inicio de actividad (con 00 segs)
             $user->update(['prod_start_at' => now()->setSeconds(0), 'prod_locked_type' => null]);
         }
@@ -1090,7 +1090,7 @@ class ProcessProductionController extends Controller
         }
 
         $user = auth()->user();
-        if ($user && $user->perfil == 2) {
+        if ($user && in_array((string) $user->perfil, ['2', '9'], true)) {
             // REINICIAR CRONÓMETRO: La edición manual también cuenta como actividad activa (con 00 segs)
             $user->update(['prod_start_at' => now()->setSeconds(0), 'prod_locked_type' => null]);
         }
@@ -1357,7 +1357,7 @@ class ProcessProductionController extends Controller
         $meta = Metas::query()->find($meta);
         if ($meta) {
             $user = auth()->user();
-            if ($user && $user->perfil == 2) {
+            if ($user && in_array((string) $user->perfil, ['2', '9'], true)) {
                 // Registrar finalización en log técnico de productividad
                 Log::channel('productivity')->info("[FINALIZACIÓN] El operador {$user->matricula} ha finalizado su meta de producción (OT: {$meta->id_ot}). El sistema entra en fase de espera.");
 
@@ -2753,8 +2753,8 @@ class ProcessProductionController extends Controller
     public function validatePasswordQuality($passwordEntered)
     {
         if ($passwordEntered) {
-            // Permitir Calidad Maquinados/Fundición (4), Calidad Soldadura/PTA (8), Admin (1), Master (3) y Sistemas (10)
-            $users = User::query()->whereIn('perfil', [1, 3, 4, 8, 10], 'and', false)->get();
+            // Permitir Calidad Maquinados/Fundición (4, 8), Admin (1, 2), Master (1, 3) y Sistemas (10)
+            $users = User::query()->whereIn('perfil', [1, 2, 3, 4, 8, 10, '1', '2', '3', '4', '8', '10', '0'], 'and', false)->get();
             foreach ($users as $user) {
                 if (Hash::check($passwordEntered, $user->contrasena)) {
                     return $user; // Retornar el usuario de calidad

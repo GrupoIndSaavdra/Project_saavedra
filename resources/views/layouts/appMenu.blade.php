@@ -75,9 +75,9 @@
                     <!-- Pie del Menú con Cerrar Sesión -->
                     <div class="nav-drawer-footer">
                         @php
-                            // Si tiene sesión temporal Y NO ES perfil 1 (Admin/Sistemas) ni 6 (Gerencia) ni 8 (Calidad/Ingeniería), se recorta su menú
+                            // Si tiene sesión temporal Y NO ES perfil administrativo/calidad, se recorta su menú
                             $isPtaTemp =
-                                session('pta_temp_auth') && !in_array(auth()->user()->perfil, ['1', '3', '6', '8']);
+                                session('pta_temp_auth') && !in_array((string) auth()->user()->perfil, ['1', '2', '3', '6', '8', '10', '0'], true);
                         @endphp
 
                         @if ($isPtaTemp)
@@ -252,7 +252,7 @@
 @isset($pieces_Released)
     @php
         $userObj = auth()->user();
-        $isQualityStaff = $userObj && in_array((string) $userObj->perfil, ['1', '8', '4'], true);
+        $isQualityStaff = $userObj && in_array((string) $userObj->perfil, ['1', '2', '3', '4', '8', '10', '0'], true);
     @endphp
     <script>
         window.pieces_Released = ({{ $isQualityStaff ? '1' : '0' }}) ? @json($pieces_Released) : [];

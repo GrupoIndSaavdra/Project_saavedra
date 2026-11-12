@@ -1,19 +1,19 @@
 {{-- Panel de Datos del Operador y Código del Formato --}}
 <div class="div-table-code">
     <div class="panel-section-header">
-        <img src="{{ asset('images/Light_Icons/Operador-Light.png') }}" class="panel-header-icon" alt="Operador">
+        <img src="{{ asset('images/Light_Icons/Iconos/Operador-Light.png') }}" class="panel-header-icon" alt="Operador">
         <span>Datos del Operador</span>
-        <img src="{{ asset('images/Light_Icons/Operador-Light.png') }}" class="panel-header-icon" alt="Operador">
+        <img src="{{ asset('images/Light_Icons/Iconos/Operador-Light.png') }}" class="panel-header-icon" alt="Operador">
     </div>
 
     <div class="operator-profile-card">
         <div class="operator-avatar-wrapper">
-            <img src="{{ asset('images/Light_Icons/Operador_Profile-Light.png') }}" alt="Operador" class="operator-avatar-img">
+            <img src="{{ asset('images/Light_Icons/Perfiles/Operador_Profile-Light.png') }}" alt="Operador" class="operator-avatar-img">
         </div>
         <div class="operator-info-content">
             <div class="operator-meta-badges">
                 <span class="operator-id-badge">
-                    <img src="{{ asset('images/Light_Icons/Operador-Light.png') }}" alt="Matrícula">
+                    <img src="{{ asset('images/Light_Icons/Iconos/Operador-Light.png') }}" alt="Matrícula">
                     <span>Matrícula: {{ auth()->user()->matricula }}</span>
                 </span>
                 <span class="operator-status-badge">

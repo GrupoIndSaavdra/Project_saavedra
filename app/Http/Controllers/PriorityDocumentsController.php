@@ -26,7 +26,7 @@ class PriorityDocumentsController extends Controller
 
     public function index(Request $request, Orden_trabajo $ot)
     {
-        abort_unless(in_array((string) $request->user()->perfil, ['1', '3', '4', '6'], true), 403);
+        abort_unless(in_array((string) $request->user()->perfil, ['1', '2', '3', '4', '5', '6', '7', '8', '10', '0'], true), 403);
         $sections = [];
         foreach ([
             'maquinados' => 'Dibujos de Maquinados',
@@ -59,7 +59,7 @@ class PriorityDocumentsController extends Controller
 
     public function availability(Request $request)
     {
-        abort_unless(in_array((string) $request->user()->perfil, ['1', '3', '4', '6'], true), 403);
+        abort_unless(in_array((string) $request->user()->perfil, ['1', '2', '3', '4', '5', '6', '7', '8', '10', '0'], true), 403);
         $data = $request->validate([
             'ots' => 'required|array|max:100',
             'ots.*' => 'required|string|max:255',
@@ -130,7 +130,7 @@ class PriorityDocumentsController extends Controller
 
     public function openDrawing(Request $request, Orden_trabajo $ot)
     {
-        abort_unless(in_array((string) $request->user()->perfil, ['1', '3', '4', '6'], true), 403);
+        abort_unless(in_array((string) $request->user()->perfil, ['1', '2', '3', '4', '5', '6', '7', '8', '10', '0'], true), 403);
         $type = $request->query('section');
         $path = $request->query('file');
         abort_unless(is_string($type) && isset(self::DRAWINGS[$type]) && is_string($path), 404);
@@ -157,7 +157,7 @@ class PriorityDocumentsController extends Controller
 
     public function openProductionReport(Request $request, Orden_trabajo $ot, string $type)
     {
-        abort_unless(in_array((string) $request->user()->perfil, ['1', '3', '4', '6'], true), 403);
+        abort_unless(in_array((string) $request->user()->perfil, ['1', '2', '3', '4', '5', '6', '7', '8', '10', '0'], true), 403);
         abort_unless(in_array($type, ['piezas', 'pta'], true), 404);
 
         if ($type === 'piezas') {

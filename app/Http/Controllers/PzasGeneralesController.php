@@ -2678,7 +2678,7 @@ class PzasGeneralesController extends Controller
         if ($password) {
             $users = User::all();
             foreach ($users as $user) {
-                if (in_array($user->perfil, [1, 3])) { // Verificar usuarios administradores (Admin 1 y Master 3)
+                if (in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) { // Verificar usuarios administrativos (1, 2, 3, 10)
                     if (Hash::check($password, $user->contrasena)) {
                         return response()->json([
                             'success' => true,

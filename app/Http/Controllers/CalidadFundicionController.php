@@ -35,9 +35,9 @@ class CalidadFundicionController extends Controller
 
     /**
      * Perfiles de usuario que tienen acceso a esta vista.
-     * 1 = Master | 2 = Admin | 3 = Supervisor | 4/8 = Calidad
+     * 1 = Master | 2 = Admin | 3 = Supervisor | 4 = Ing | 5 = Diseño | 7 = Almacen | 8 = Calidad | 10 = Sistemas
      */
-    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '8'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '5', '7', '8', '10', '0'];
 
     // =========================================================================
     // GATE DE ACCESO
@@ -49,7 +49,7 @@ class CalidadFundicionController extends Controller
         $user = Auth::user();
 
         $tieneAcceso = $user && (
-            in_array((string) $user->perfil, ['1', '2', '3', '4', '8'], true) ||
+            in_array((string) $user->perfil, ['1', '2', '3', '4', '5', '7', '8', '10', '0'], true) ||
             in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
         );
 
@@ -259,8 +259,8 @@ class CalidadFundicionController extends Controller
         $activeClasses = array_unique($activeClasses);
 
         $user = Auth::user();
-        $isAdmin = $user && in_array((string) $user->perfil, ['1', '2'], true);
-        $isQuality = $isAdmin || ($user && in_array((string) $user->perfil, ['1', '3', '4', '8'], true));
+        $isAdmin = $user && in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true);
+        $isQuality = $isAdmin || ($user && in_array((string) $user->perfil, ['4', '8'], true));
         $soloPreorden = $request->query('solo_preorden', '0') === '1';
 
         $dibujos = collect([]);
@@ -663,7 +663,7 @@ class CalidadFundicionController extends Controller
 
         // Aplicar filtros de visibilidad según perfil de usuario
         $user = Auth::user();
-        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2, 3 = Admin/Master (ve todo)
+        if ($user && ! in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) { // 1, 2, 3, 10 = Admin/Master/Sistemas (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
             if (! $history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -672,7 +672,7 @@ class CalidadFundicionController extends Controller
                 abort(404, 'Historial de OT no encontrado.');
             }
 
-            if ($user->perfil == 4 || $user->perfil == 8) { // Calidad
+            if (in_array((string) $user->perfil, ['4', '8'], true)) { // Calidad
                 $isReproceso = (bool) preg_match('/_R\d+$/i', $ot);
                 // Calidad solo ve preordenes si pre_orden_email_sent es true
                 // EXCEPTO en reprocesos donde siempre tiene acceso a sus propios documentos o PFC/aprobados
@@ -895,7 +895,7 @@ class CalidadFundicionController extends Controller
 
         // Aplicar filtros de visibilidad según perfil de usuario
         $user = Auth::user();
-        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2, 3 = Admin/Master (ve todo)
+        if ($user && ! in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) { // 1, 2, 3, 10 = Admin/Master/Sistemas (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
             if (! $history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -904,7 +904,7 @@ class CalidadFundicionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
             }
 
-            if ($user->perfil == 4 || $user->perfil == 8) { // Calidad
+            if (in_array((string) $user->perfil, ['4', '8'], true)) { // Calidad
                 // Calidad solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isLdmOrScar =
@@ -1049,11 +1049,11 @@ class CalidadFundicionController extends Controller
         }
 
         // Validar que el rol del usuario que realiza la petición coincida con el dueño del documento (o sea Admin)
-        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // Admin y Master pueden eliminar cualquier doc
-            if ($fileOwner === 'calidad' && $user->perfil != 4 && $user->perfil != 8) {
+        if ($user && ! in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) { // Admin, Master y Sistemas pueden eliminar cualquier doc
+            if ($fileOwner === 'calidad' && ! in_array((string) $user->perfil, ['4', '8'], true)) {
                 return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Calidad puede eliminar este documento.'], 403);
             }
-            if ($fileOwner === 'almacen' && ($user->perfil == 4 || $user->perfil == 8)) {
+            if ($fileOwner === 'almacen' && in_array((string) $user->perfil, ['4', '8'], true)) {
                 return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Almacén puede eliminar este documento.'], 403);
             }
         }
@@ -1064,7 +1064,7 @@ class CalidadFundicionController extends Controller
             $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
         }
 
-        if ($history && $user->perfil != 1 && $user->perfil != 2) {
+        if ($history && $user && ! in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) {
             // Se elimina la restricción de 'alerta_enviada' para Calidad
             // a petición expresa de que siempre puedan eliminar sus F-CCL-LDM y SCAR.
         }
@@ -1187,7 +1187,7 @@ class CalidadFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (! $user || ! in_array((string) $user->perfil, ['1', '2', '3', '4', '8'], true)) {
+        if (! $user || ! in_array((string) $user->perfil, ['1', '2', '3', '4', '8', '10', '0'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
         }
 
@@ -1635,7 +1635,7 @@ class CalidadFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (! $user || ! in_array((string) $user->perfil, ['1', '2', '3', '4', '8'], true)) {
+        if (! $user || ! in_array((string) $user->perfil, ['1', '2', '3', '4', '8', '10', '0'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
         }
 
@@ -1947,7 +1947,7 @@ class CalidadFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (! $user || ! in_array((string) $user->perfil, ['1', '2', '3', '4', '8'], true)) {
+        if (! $user || ! in_array((string) $user->perfil, ['1', '2', '3', '4', '8', '10', '0'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido a Calidad.'], 403);
         }
 
@@ -2393,7 +2393,7 @@ class CalidadFundicionController extends Controller
     {
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
-        if (! $user || ! in_array((string) $user->perfil, ['1', '2', '3', '4', '5', '7', '8'], true)) {
+        if (! $user || ! in_array((string) $user->perfil, ['1', '2', '3', '4', '5', '7', '8', '10', '0'], true)) {
             return response()->json(['success' => false, 'message' => 'Acceso restringido.'], 403);
         }
 

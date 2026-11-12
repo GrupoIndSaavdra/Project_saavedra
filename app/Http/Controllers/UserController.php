@@ -36,6 +36,8 @@ class UserController extends Controller
             '7' => 'layouts.appMenu',
             '8' => 'layouts.appMenu',
             '9' => 'layouts.appMenu',
+            '10' => 'layouts.appMenu',
+            '0' => 'layouts.appMenu',
         ];
 
         return $layout[$profile] ?? 'layouts.appMenu';

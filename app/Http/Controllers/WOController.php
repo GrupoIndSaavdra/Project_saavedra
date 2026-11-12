@@ -609,10 +609,10 @@ class WOController extends Controller
     public function deactivatePriorities(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '3'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '10', '0'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'No tienes permisos de Master para desactivar Órdenes de Trabajo.',
+                'message' => 'No tienes permisos para desactivar Órdenes de Trabajo.',
             ], 403);
         }
 
@@ -656,7 +656,7 @@ class WOController extends Controller
     public function prioritiesDisabledView(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '6', '7', '8'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '6', '7', '8', '10', '0'])) {
             abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para personal autorizado.');
         }
 
@@ -760,7 +760,7 @@ class WOController extends Controller
     public function downloadPrioritiesDisabledPdf(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '6', '7', '8'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '6', '7', '8', '10', '0'])) {
             abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para personal autorizado.');
         }
 
@@ -846,10 +846,10 @@ class WOController extends Controller
     public function reactivatePriorities(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '3'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '10', '0'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'No tienes permisos de Master para reactivar Órdenes de Trabajo.',
+                'message' => 'No tienes permisos para reactivar Órdenes de Trabajo.',
             ], 403);
         }
 
@@ -900,10 +900,10 @@ class WOController extends Controller
     public function deletePrioritiesPermanently(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '3'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '10', '0'])) {
             return response()->json([
                 'success' => false,
-                'message' => 'No tienes permisos de Master para eliminar u ocultar Órdenes de Trabajo.',
+                'message' => 'No tienes permisos para eliminar u ocultar Órdenes de Trabajo.',
             ], 403);
         }
 
@@ -1227,8 +1227,8 @@ class WOController extends Controller
     public function downloadBackupZip(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '3'])) {
-            abort(403, 'No tienes permisos de Master para descargar respaldos de Órdenes de Trabajo.');
+        if (!in_array($userProfile, ['1', '2', '3', '10', '0'])) {
+            abort(403, 'No tienes permisos para descargar respaldos de Órdenes de Trabajo.');
         }
 
         $fileName = basename((string) $request->query('file'));
@@ -1406,7 +1406,7 @@ class WOController extends Controller
     public function autosavePriority(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '3'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '10', '0'])) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos para modificar información en Prioridades (Modo Solo Lectura).'], 403);
         }
 
@@ -2444,9 +2444,9 @@ class WOController extends Controller
      */
     public function showPriorityManager()
     {
-        // Guard de perfil: solo Master (1) y Admin/Gerencia (3)
-        $userProfile = auth()->user()->perfil ?? null;
-        if (! in_array($userProfile, ['1', '3', '6'])) {
+        // Guard de perfil: solo Master (1), Admin (2), Supervisor (3), Gerencia (6) y Sistemas (10)
+        $userProfile = (string) (auth()->user()->perfil ?? '');
+        if (! in_array($userProfile, ['1', '2', '3', '6', '10', '0'])) {
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
 
@@ -2526,7 +2526,7 @@ class WOController extends Controller
     {
         // Guard de perfil: solo Master (3) puede reordenar y guardar prioridades
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '3'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '10', '0'])) {
             return response()->json(['success' => false, 'message' => 'No tienes permisos para modificar el orden de prioridades (Modo Solo Lectura).'], 403);
         }
 

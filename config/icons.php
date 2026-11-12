@@ -67,7 +67,7 @@ return [
     'descarga_pdf' => 'images/Color_Icons/Generales/Descargar_PDF-Icon.png',
     'descarga_pdf_shadow' => 'images/Light_Icons/Descargar_PDF-Light.png',
     'imprimir' => 'images/Color_Icons/Generales/Imprimir-Icon.png',
-    'imprimir_shadow' => 'images/Light_Icons/Imprimir-Light.png',
+    'imprimir_shadow' => 'images/Light_Icons/Imprimir-Icon_Light.png',
     'upload' => 'images/Color_Icons/Generales/upload_icon.png',
     'reemplazar' => 'images/Color_Icons/Generales/reemplazar.png',
     'reiniciar' => 'images/Color_Icons/Generales/reiniciar.png',
@@ -188,7 +188,7 @@ return [
     'clase_light' => 'images/Light_Icons/Proceso-Light.png',
     'clase_color' => 'images/Color_Icons/Generales/perspectiva-icon.png',
     'piezas_light' => 'images/Light_Icons/Piezas-Light.png',
-    'pieza_cubo' => 'images/Light_Icons/Pieza_Cubo-Light.png',
+    'pieza_cubo' => 'images/Light_Icons/Filtro_Clase-Light.png',
     'sin_piezas' => 'images/Color_Icons/Generales/icono_sin_piezas.png',
     'sin_cotas' => 'images/Color_Icons/Generales/icono_sin_cotas.png',
     'piezas_color' => 'images/Color_Icons/Vistas/Piezas_Ocupadas.png',
@@ -214,7 +214,7 @@ return [
     | Usuarios y Roles de Sistema
     |--------------------------------------------------------------------------
     */
-    'user_admin' => 'images/Light_Icons/Administracion-Light.png',
+    'user_admin' => 'images/Light_Icons/Iconos/Administracion-Light.png',
     'user_gerente' => 'images/Color_Icons/Usuarios/gerente.png',
     'user_supervisor' => 'images/Color_Icons/Usuarios/supervisor.png',
     'user_supervisora' => 'images/Color_Icons/Usuarios/supervisora.png',

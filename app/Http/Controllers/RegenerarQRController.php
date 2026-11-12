@@ -70,7 +70,7 @@ class RegenerarQRController extends Controller
         if ($passwordEntered) {
             $users = User::all();
             foreach ($users as $user) {
-                if (in_array($user->perfil, [1, 3, 4, 6])) { // Verificar si el usuario es admin, master, calidad o supervisor
+                if (in_array((string) $user->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) { // Verificar personal autorizado
                     if (Hash::check($passwordEntered, $user->contrasena)) {
                         return true; // Contraseña correcta
                     }

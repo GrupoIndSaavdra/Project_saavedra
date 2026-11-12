@@ -19,9 +19,9 @@ class ReporteProduccionController extends Controller
 {
     public function __construct()
     {
-        // Solo el perfil 1 (Administrador) y perfil 3 (Master) pueden ver y reenviar reportes
+        // Acceso para Master (1), Administrador (2), Supervisor (3) y Sistemas (10)
         $this->middleware(function ($request, $next) {
-            if (auth()->check() && ! in_array(auth()->user()->perfil, [1, 3])) {
+            if (auth()->check() && ! in_array((string) auth()->user()->perfil, ['1', '2', '3', '10', '0'], true)) {
                 abort(403, 'No tienes permiso para acceder a esta sección.');
             }
 

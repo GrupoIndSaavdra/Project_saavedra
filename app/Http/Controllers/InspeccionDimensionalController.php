@@ -35,7 +35,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function index(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -70,7 +70,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function show(Request $request, string $ot, string $clase)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -207,7 +207,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function autosaveMedida(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -279,7 +279,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function updateNominalTolerancia(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -311,7 +311,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function addRow(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -386,7 +386,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deleteRow(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -431,7 +431,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function uploadExcel(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -578,7 +578,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function viewExcel(Request $request, int $id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -631,7 +631,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function downloadExcel(Request $request, int $id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -668,7 +668,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deleteExcel(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -745,7 +745,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function updateHeader(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -774,7 +774,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function generatePdf(Request $request, int|string $id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -882,7 +882,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function downloadPdf(int|string $id, int|string $pdf_id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -900,7 +900,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function viewPdf(int|string $id, int|string $pdf_id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -923,7 +923,7 @@ class InspeccionDimensionalController extends Controller
      */
     public function deletePdf(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 

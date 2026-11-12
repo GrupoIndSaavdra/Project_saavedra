@@ -656,8 +656,10 @@ function getRoutes(profile) {
 
     switch (profile) {
         case "1":
+        case "2":
         case "10":
-            // ── 1 & 10: MASTER & SISTEMAS (Máxima Jerarquía Global: Acceso Total a Todos los Módulos) ──
+        case "0":
+            // ── 1, 2, 10 & 0: MASTER, ADMINISTRADOR & SISTEMAS (Máxima Jerarquía Global: Acceso Total a Todos los Módulos) ──
             sections = [
                 {
                     title: null,
@@ -681,65 +683,6 @@ function getRoutes(profile) {
                 {
                     title: "Almacén",
                     routes: almacenSections,
-                },
-            ];
-            break;
-
-        case "2":
-            // ── 2: ADMINISTRADOR (Prioridades, Molduras, OT, Usuarios, Auditoría Producción, Reportes, Herramientas) ──
-            sections = [
-                {
-                    title: null,
-                    routes: [routeHome],
-                },
-                {
-                    title: "Prioridades",
-                    routes: [
-                        ["masterPriorities", "Prioridades GIS"],
-                        ["masterPrioritiesDisabled", "Prioridades Desactivadas"],
-                    ],
-                },
-                {
-                    title: "Molduras",
-                    routes: [
-                        ["createMolding", "Crear nueva moldura"],
-                        ["editMolding", "Editar moldura"],
-                    ],
-                },
-                {
-                    title: "Orden de Trabajo",
-                    routes: [
-                        ["createMasterWO", "Crear o Modificar Orden de Trabajo"],
-                        ["piecesInProgress", "Orden de Trabajo en Progreso"],
-                    ],
-                },
-                {
-                    title: "Usuarios",
-                    routes: [
-                        ['users', 'Ver usuarios'],
-                        ['usersOrganigrama', 'Organigrama'],
-                        ["createUser", "Registrar usuario"],
-                        ["recoverPassword", "Recuperar contraseña"],
-                    ],
-                },
-                {
-                    title: "Producción",
-                    routes: [
-                        ["systemLogsReport", "Auditoría de Producción"],
-                    ],
-                },
-                {
-                    title: "Reportes",
-                    routes: [
-                        ["reportes.reenvio", "Reenviar Reporte Diario"],
-                        ["reportes.pta", "Envío de Reportes PTA"],
-                    ],
-                },
-                {
-                    title: "Herramientas",
-                    routes: [
-                        ["herramientas.tecamac.index", "Herramientas Planta Tecámac"],
-                    ],
                 },
             ];
             break;

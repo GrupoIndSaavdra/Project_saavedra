@@ -29,7 +29,7 @@ class PzasLiberadasController extends Controller
     {
         $perfil = auth()->user()->perfil;
 
-        return $perfil == 4 ? 'layouts.appQuality' : 'layouts.appAdmin';
+        return in_array((string) $perfil, ['4', '8'], true) ? 'layouts.appQuality' : 'layouts.appAdmin';
     }
 
     public function show()

@@ -397,7 +397,7 @@ function insertButton_saveOrChoose(form, table) {
                 let btn = document.createElement("button");
                 btn.type = "submit";
                 btn.className = "btn-savePiece btn-choose-piece";
-                const pieceCubeIcon = window.imgPiezaCubo || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Pieza_Cubo-Light.png` : "/images/Light_Icons/Pieza_Cubo-Light.png");
+                const pieceCubeIcon = window.imgPiezaCubo || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Filtro_Clase-Light.png` : "/images/Light_Icons/Filtro_Clase-Light.png");
                 btn.innerHTML = `<img src="${pieceCubeIcon}" class="save-piece-icon" alt="Elegir pieza"><span>Elegir pieza</span>`;
 
                 // Validación amigable previa
