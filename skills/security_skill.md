@@ -167,7 +167,7 @@ El acceso al sistema a través de `LoginController` implementa 4 capas estrictas
 ### A. Whitelist de IPs por Planta para Operadores (Perfil 2)
 En entorno de producción (`app()->environment('production')`), los operadores únicamente pueden iniciar sesión desde las redes físicas autorizadas de la empresa:
 * **Variables de entorno en `.env`:**
-  * `PLANTA_TECAMAC_ALLOWED_IPS`: IPs públicas o prefijos IPv6 de Planta Tecámac (ej. `189.191.191.86,2806:105e:1c:4008`).
+  * `PLANTA_TECAMAC_ALLOWED_IPS`: IPs públicas o prefijos IPv6 de Planta Tecámac (ej. `189.191.196.35,2806:105e:1c:2108,189.191.191.86,2806:105e:1c:4008`).
   * `PLANTA_LA_RAZA_ALLOWED_IPS`: IPs autorizadas de Planta La Raza (se deja vacía si aún no se cuenta con ella).
 * **Regla de Ejecución:** La validación de IP se evalúa **ANTES de verificar el hash de contraseña**, evitando consumo de CPU y protegiendo contra filtraciones.
 * **Excepción de Roles:** Los usuarios Master (`perfil == 3`) y Administrador (`perfil == 1`) cuentan con acceso global irrestricto desde cualquier conexión.

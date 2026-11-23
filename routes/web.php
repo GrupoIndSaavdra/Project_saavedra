@@ -680,9 +680,9 @@ Route::middleware(['auth', 'throttle:60,1'])->group(function () {
         return response(implode('', $lastLines), 200, ['Content-Type' => 'text/plain; charset=utf-8']);
     })->name('server.error.log');
 
-    // Diagnóstico y mantenimiento del servidor (exclusivo para perfil 1 Administrador y 3 Master)
+    // Diagnóstico y mantenimiento del servidor (perfiles 1 Master, 2 Admin, 3 Supervisor, 10 Sistemas)
     Route::get('/server-maintenance/{action}', function (string $action) {
-        if (!auth()->check() || !in_array((int) auth()->user()->perfil, [1, 3])) {
+        if (!auth()->check() || !in_array((int) auth()->user()->perfil, [1, 2, 3, 10])) {
             abort(403, 'Acceso denegado');
         }
         $output = '';
