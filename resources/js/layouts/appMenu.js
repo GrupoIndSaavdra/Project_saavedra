@@ -797,7 +797,7 @@ function getRoutes(profile) {
             break;
 
         case "5":
-            // ── 5: DISEÑO Y PROGRAMACIÓN (Prioridades, OT, Doc. Técnica, Cotas/Tolerancias, Piezas ocupadas, Herramientas) ──
+            // ── 5: DISEÑO Y PROGRAMACIÓN (Prioridades, Molduras, OT, Doc. Técnica, Cotas/Tolerancias, Piezas ocupadas, Herramientas) ──
             sections = [
                 {
                     title: null,
@@ -808,6 +808,13 @@ function getRoutes(profile) {
                     routes: [
                         ["masterPriorities", "Prioridades GIS"],
                         ["masterPrioritiesDisabled", "Prioridades Desactivadas"],
+                    ],
+                },
+                {
+                    title: "Molduras",
+                    routes: [
+                        ["createMolding", "Crear nueva moldura"],
+                        ["editMolding", "Editar moldura"],
                     ],
                 },
                 {
