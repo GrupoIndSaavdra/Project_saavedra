@@ -279,6 +279,11 @@ class DibujosPdfController extends Controller
         }
 
         if (! $foundFile) {
+            // Intento de descarga al vuelo desde la nube si el archivo aún no está en local
+            $foundFile = $this->fetchFromCloudLazy($ot, $clase, $archivo);
+        }
+
+        if (! $foundFile) {
             abort(404, 'Archivo no encontrado.');
         }
 
@@ -400,6 +405,9 @@ class DibujosPdfController extends Controller
         }
 
         $file->storeAs($dirPath, $newName, 'local');
+
+        // Intento de réplica inmediata a la nube si hay conexión
+        $this->pushToCloudImmediate($dirPath.'/'.$newName);
 
         $this->logAction('subir_pdf', $otFolderName.'/'.$clase, $newName);
 
@@ -899,5 +907,78 @@ class DibujosPdfController extends Controller
         }
 
         return $resolved;
+    }
+
+    /**
+     * Intenta descargar al vuelo un archivo desde la nube si no existe localmente.
+     */
+    protected function fetchFromCloudLazy(string $ot, string $clase, string $archivo): ?string
+    {
+        $cloudUrl = config('sync.cloud_url');
+        $token = config('sync.token');
+
+        if (empty($cloudUrl) || empty($token)) {
+            return null;
+        }
+
+        $candidates = [];
+        if ($clase !== '--' && !empty($clase)) {
+            $candidates[] = "DIBUJOS_MAQUINADOS/{$ot}/{$clase}/{$archivo}";
+        }
+        $candidates[] = "DIBUJOS_MAQUINADOS/{$ot}/{$archivo}";
+
+        foreach ($candidates as $relPath) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::timeout(6)
+                    ->withHeaders(['X-Sync-Token' => $token])
+                    ->get(rtrim((string) $cloudUrl, '/') . '/api/sync/files/download', ['path' => $relPath]);
+
+                if ($response->successful()) {
+                    $targetRel = self::BASE_DIR . '/' . ltrim(substr($relPath, strlen('DIBUJOS_MAQUINADOS/')), '/');
+                    Storage::disk('local')->put($targetRel, $response->body());
+                    Log::info("Dibujo '{$archivo}' descargado al vuelo desde la nube y cacheado en local.");
+                    return $targetRel;
+                }
+            } catch (\Throwable $e) {
+                // Silencioso ante falta de internet o error de red
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Intenta enviar inmediatamente un archivo recién subido a la nube si hay conexión.
+     */
+    protected function pushToCloudImmediate(string $localRelPath): void
+    {
+        $cloudUrl = config('sync.cloud_url');
+        $token = config('sync.token');
+
+        if (empty($cloudUrl) || empty($token)) {
+            return;
+        }
+
+        try {
+            $absPath = Storage::disk('local')->path($localRelPath);
+            if (!file_exists($absPath)) {
+                return;
+            }
+
+            $rel = str_replace('\\', '/', $localRelPath);
+            if (str_starts_with($rel, 'DOCUMENTACION_GIS/')) {
+                $rel = substr($rel, strlen('DOCUMENTACION_GIS/'));
+            }
+
+            \Illuminate\Support\Facades\Http::timeout(5)
+                ->withHeaders(['X-Sync-Token' => $token])
+                ->attach('file', file_get_contents($absPath), basename($absPath))
+                ->post(rtrim((string) $cloudUrl, '/') . '/api/sync/files/upload', [
+                    'path' => $rel,
+                    'mtime' => filemtime($absPath),
+                ]);
+        } catch (\Throwable $e) {
+            // Silencioso: el sync automático de fondo se encargará de subirlo si falló o no había internet
+        }
     }
 }

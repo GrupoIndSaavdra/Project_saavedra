@@ -21,6 +21,11 @@ if /i "%CMD%"=="tokens" goto run_tokens
 if /i "%CMD%"=="schema" goto run_schema
 if /i "%CMD%"=="learn" goto run_learn
 if /i "%CMD%"=="aprendizajes" goto run_learn
+if /i "%CMD%"=="sync" goto run_sync
+if /i "%CMD%"=="backup" goto run_backup
+if /i "%CMD%"=="schedule" goto run_schedule_install
+if /i "%CMD%"=="schedule-install" goto run_schedule_install
+if /i "%CMD%"=="schedule-work" goto run_schedule_work
 if /i "%CMD%"=="install" goto run_install
 if /i "%CMD%"=="setup" goto run_install
 if /i "%CMD%"=="help" goto help
@@ -75,6 +80,47 @@ exit /b %errorlevel%
 php artisan app:analizar-aprendizajes %1 %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%
 
+:run_sync
+php artisan saavedra:sync %1 %2 %3 %4 %5 %6 %7 %8 %9
+exit /b %errorlevel%
+
+:run_backup
+php artisan saavedra:backup-local %1 %2 %3 %4 %5 %6 %7 %8 %9
+exit /b %errorlevel%
+
+:run_schedule_install
+echo ====================================================================
+echo   CONFIGURANDO TAREA AUTOMATICA EN WINDOWS TASK SCHEDULER
+echo ====================================================================
+set "PHP_BIN=C:\php\php.exe"
+if not exist "%PHP_BIN%" (
+    for /f "delims=" %%I in ('where php 2^>nul') do (
+        if not defined PHP_BIN_DETECTED set "PHP_BIN=%%I" & set "PHP_BIN_DETECTED=1"
+    )
+)
+
+echo  PHP Binario: %PHP_BIN%
+echo  Proyecto:    %CD%
+echo.
+
+schtasks /create /tn "Saavedra_Master_Scheduler" /tr "\"%PHP_BIN%\" \"%CD%\artisan\" schedule:run" /sc minute /mo 1 /ru "SYSTEM" /f
+if %errorlevel% neq 0 (
+    echo.
+    echo  [ERROR] No se pudo crear la tarea. Abre la consola de CMD como Administrador.
+) else (
+    echo.
+    echo  [EXITO] Tarea 'Saavedra_Master_Scheduler' creada correctamente en Windows.
+    echo         Se ejecutara cada 1 minuto de forma continua e invisible.
+)
+exit /b %errorlevel%
+
+:run_schedule_work
+echo ====================================================================
+echo   INICIANDO SCHEDULER EN TIEMPO REAL (schedule:work)
+echo ====================================================================
+php artisan schedule:work
+exit /b %errorlevel%
+
 :run_install
 powershell -NoProfile -ExecutionPolicy Bypass -File setup.ps1 -OnlyTools
 exit /b %errorlevel%
@@ -98,6 +144,10 @@ echo    compress [archivo]       - Compresor de logs y prompts (estilo LLMLingua
 echo    tokens [archivo/dir]     - Medidor de presupuesto de tokens con tiktoken
 echo    schema                   - Introspeccion de MySQL a prisma/schema.prisma
 echo    learn                    - Escanea commits y logs para actualizar aprendizajes_temp.md
+echo    sync [args...]           - Sincronizacion bidireccional de BD (local a nube)
+echo    backup [args...]         - Respaldo comprimido .sql.gz de base de datos
+echo    schedule                 - Instala la tarea automatica de Windows Task Scheduler
+echo    schedule-work            - Ejecuta el demonio del scheduler en vivo en consola
 echo    install                  - Instalar o actualizar dependencias y grafos de IA
 echo ====================================================================
 exit /b 0

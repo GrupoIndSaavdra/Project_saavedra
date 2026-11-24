@@ -1,0 +1,641 @@
+<?php
+
+namespace App\Console\Commands;
+
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
+
+class SaavedraSync extends Command
+{
+    /**
+     * The name and signature of the console command.
+     *
+     * @var string
+     */
+    protected $signature = 'saavedra:sync 
+                            {--direction=both : Dirección de sincronización (push, pull, both)}
+                            {--table= : Sincronizar únicamente esta tabla específica}
+                            {--force : Ignorar fecha del checkpoint y sincronizar desde el inicio}
+                            {--no-files : Omitir sincronización de archivos físicos}
+                            {--only-files : Sincronizar únicamente archivos físicos (sin BD)}
+                            {--dry-run : Ejecutar en modo simulación sin guardar cambios}';
+
+    /**
+     * The console command description.
+     *
+     * @var string
+     */
+    protected $description = 'Sincroniza datos bidireccionalmente entre el servidor local (planta) y la nube';
+
+    /**
+     * Execute the console command.
+     */
+    public function handle(): int
+    {
+        $startTime = microtime(true);
+        $cloudUrl = rtrim((string) config('sync.cloud_url', 'https://api.grupoindsaavedra.com'), '/');
+        $appUrl = rtrim((string) config('app.url', ''), '/');
+
+        // Si este comando se ejecuta dentro del servidor de la nube (cPanel), no debe sincronizarse consigo mismo
+        if (!empty($appUrl) && $cloudUrl === $appUrl) {
+            return self::SUCCESS;
+        }
+
+        $token = (string) config('sync.token', '');
+        $direction = strtolower((string) $this->option('direction') ?: 'both');
+        $singleTable = $this->option('table');
+        $force = (bool) $this->option('force');
+        $dryRun = (bool) $this->option('dry-run');
+
+        $this->info("================================================================================");
+        $this->info("🔄 INICIANDO MOTOR DE SINCRONIZACIÓN SAAVEDRA");
+        $this->info("   Servidor remoto: {$cloudUrl}");
+        $this->info("   Dirección: " . strtoupper($direction));
+        if ($dryRun) {
+            $this->warn("   MODO SIMULACIÓN (DRY-RUN) ACTIVO — No se aplicarán cambios reales.");
+        }
+        $this->info("================================================================================");
+
+        // ── 1. COMPROBAR CONECTIVIDAD (PING / HEARTBEAT) ─────────────────────
+        if (!$this->checkConnectivity($cloudUrl, $token)) {
+            $this->warn("⚠️  [OFFLINE] No hay conexión a internet o el servidor en la nube no responde.");
+            $this->line("   El sistema continuará operando normalmente en la red local de la planta.");
+            $this->logSync("Conexión fallida con {$cloudUrl}. Modo local activo.");
+            return self::SUCCESS;
+        }
+
+        $this->info("✅ Conexión con la nube verificada exitosamente.");
+
+        $noFiles = (bool) $this->option('no-files');
+        $onlyFiles = (bool) $this->option('only-files');
+
+        // ── 2. OBTENER TABLAS A SINCRONIZAR ──────────────────────────────────
+        $tables = $singleTable ? [(string) $singleTable] : $this->getSyncableTables();
+
+        $totalPushed = 0;
+        $totalPulled = 0;
+
+        // ── 3. EJECUTAR SINCRONIZACIÓN DE BASE DE DATOS ───────────────────────
+        if (!$onlyFiles) {
+            foreach ($tables as $table) {
+                if (!Schema::hasTable($table)) {
+                    $this->warn("   [!] Tabla '{$table}' no existe localmente. Omitiendo.");
+                    continue;
+                }
+
+                // PULL: Nube -> Local
+                if (in_array($direction, ['pull', 'both'], true)) {
+                    $pulled = $this->syncPull($table, $cloudUrl, $token, $force, $dryRun);
+                    $totalPulled += $pulled;
+                }
+
+                // PUSH: Local -> Nube
+                if (in_array($direction, ['push', 'both'], true)) {
+                    $pushed = $this->syncPush($table, $cloudUrl, $token, $force, $dryRun);
+                    $totalPushed += $pushed;
+                }
+            }
+        }
+
+        // ── 4. EJECUTAR SINCRONIZACIÓN DE ARCHIVOS FÍSICOS (DOCUMENTACION_GIS) ─
+        $filesPushed = 0;
+        $filesPulled = 0;
+
+        if (!$noFiles && config('sync.sync_files_enabled', true)) {
+            $fileResults = $this->syncPhysicalFiles($cloudUrl, $token, $direction, $dryRun);
+            $filesPulled = $fileResults['pulled'];
+            $filesPushed = $fileResults['pushed'];
+        }
+
+        $elapsed = round(microtime(true) - $startTime, 2);
+
+        $this->info("================================================================================");
+        $this->info("🏁 SINCRONIZACIÓN FINALIZADA EN {$elapsed}s");
+        $this->info("   📤 Registros subidos a la nube (PUSH): {$totalPushed}");
+        $this->info("   📥 Registros descargados de la nube (PULL): {$totalPulled}");
+        $this->info("   📁 Archivos físicos subidos (PUSH): {$filesPushed}");
+        $this->info("   📁 Archivos físicos descargados (PULL): {$filesPulled}");
+        $this->info("================================================================================");
+
+        $this->logSync("Sincronización completada. DB PUSH: {$totalPushed}, DB PULL: {$totalPulled}, FILES PUSH: {$filesPushed}, FILES PULL: {$filesPulled}, Tiempo: {$elapsed}s");
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * Comprueba si la nube está disponible en tiempo récord.
+     */
+    protected function checkConnectivity(string $cloudUrl, string $token): bool
+    {
+        $pingTimeout = (int) config('sync.ping_timeout', 4);
+
+        try {
+            $response = Http::timeout($pingTimeout)
+                ->withHeaders(['X-Sync-Token' => $token])
+                ->get("{$cloudUrl}/api/sync/ping");
+
+            return $response->successful() && ($response->json('success') === true);
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * Sube registros modificados localmente hacia la nube (PUSH).
+     */
+    protected function syncPush(string $table, string $cloudUrl, string $token, bool $force, bool $dryRun): int
+    {
+        $checkpoint = $this->getCheckpoint('push', $table);
+        $lastSyncedAt = (!$force && $checkpoint) ? $checkpoint->last_synced_at : null;
+        $batchSize = (int) config('sync.batch_size', 200);
+        $primaryKey = $this->getPrimaryKey($table);
+        $hasUpdatedAt = Schema::hasColumn($table, 'updated_at');
+        $hasCreatedAt = Schema::hasColumn($table, 'created_at');
+        $isSnapshot = false;
+
+        $query = DB::table($table);
+
+        if ($hasUpdatedAt && !empty($lastSyncedAt)) {
+            $query->where('updated_at', '>', $lastSyncedAt)
+                  ->orderBy('updated_at', 'asc')
+                  ->orderBy($primaryKey, 'asc');
+        } elseif ($hasCreatedAt && !empty($lastSyncedAt)) {
+            $query->where('created_at', '>', $lastSyncedAt)
+                  ->orderBy('created_at', 'asc')
+                  ->orderBy($primaryKey, 'asc');
+        } elseif (!$hasUpdatedAt && !$hasCreatedAt) {
+            $totalInTable = DB::table($table)->count();
+            if ($totalInTable <= 3000) {
+                $isSnapshot = true;
+                $query->orderBy($primaryKey, 'asc');
+            } elseif (!$force && $checkpoint && $checkpoint->last_synced_id) {
+                $query->where($primaryKey, '>', $checkpoint->last_synced_id)
+                      ->orderBy($primaryKey, 'asc');
+            } else {
+                $query->orderBy($primaryKey, 'asc');
+            }
+        } elseif (!$force && $checkpoint && $checkpoint->last_synced_id) {
+            $query->where($primaryKey, '>', $checkpoint->last_synced_id)
+                  ->orderBy($primaryKey, 'asc');
+        } else {
+            $query->orderBy($primaryKey, 'asc');
+        }
+
+        $records = $isSnapshot ? $query->get() : $query->limit($batchSize)->get();
+        $count = $records->count();
+
+        if ($count === 0) {
+            return 0;
+        }
+
+        $this->line("   📤 [PUSH] Subiendo {$count} registros de '{$table}'...");
+
+        if ($dryRun) {
+            $this->comment("      [DRY-RUN] Simulado push de {$count} registros.");
+            return $count;
+        }
+
+        $timeout = (int) config('sync.timeout', 60);
+
+        try {
+            $response = Http::timeout($timeout)
+                ->withHeaders([
+                    'X-Sync-Token' => $token,
+                    'Accept' => 'application/json',
+                ])
+                ->post("{$cloudUrl}/api/sync/push", [
+                    'table' => $table,
+                    'records' => $records->toArray(),
+                ]);
+
+            if ($response->successful() && $response->json('success') === true) {
+                $lastRecord = $records->last();
+                $nextSyncedAt = null;
+                $nextId = null;
+
+                if ($hasUpdatedAt && isset($lastRecord->updated_at)) {
+                    $nextSyncedAt = $lastRecord->updated_at;
+                } elseif ($hasCreatedAt && isset($lastRecord->created_at)) {
+                    $nextSyncedAt = $lastRecord->created_at;
+                }
+                if (isset($lastRecord->{$primaryKey})) {
+                    $nextId = $lastRecord->{$primaryKey};
+                }
+
+                $this->updateCheckpoint('push', $table, $nextSyncedAt, $nextId, $count, 'success');
+                $this->info("      ✅ {$count} registros subidos a '{$table}'.");
+                return $count;
+            }
+
+            $errorMsg = $response->json('message') ?? 'Error HTTP ' . $response->status();
+            $this->error("      ❌ Fallo al subir '{$table}': {$errorMsg}");
+            $this->updateCheckpoint('push', $table, $lastSyncedAt, null, 0, 'error', $errorMsg);
+        } catch (\Throwable $e) {
+            $this->error("      ❌ Excepción en PUSH de '{$table}': " . $e->getMessage());
+            $this->updateCheckpoint('push', $table, $lastSyncedAt, null, 0, 'error', $e->getMessage());
+        }
+
+        return 0;
+    }
+
+    /**
+     * Descarga registros nuevos o modificados desde la nube (PULL).
+     */
+    protected function syncPull(string $table, string $cloudUrl, string $token, bool $force, bool $dryRun): int
+    {
+        $checkpoint = $this->getCheckpoint('pull', $table);
+        $since = (!$force && $checkpoint) ? $checkpoint->last_synced_at : null;
+        $lastId = (!$force && $checkpoint) ? $checkpoint->last_synced_id : null;
+        $batchSize = (int) config('sync.batch_size', 200);
+        $timeout = (int) config('sync.timeout', 60);
+
+        try {
+            $response = Http::timeout($timeout)
+                ->withHeaders([
+                    'X-Sync-Token' => $token,
+                    'Accept' => 'application/json',
+                ])
+                ->get("{$cloudUrl}/api/sync/pull", [
+                    'table' => $table,
+                    'since' => $since,
+                    'last_id' => $lastId,
+                    'limit' => $batchSize,
+                ]);
+
+            if (!$response->successful() || $response->json('success') !== true) {
+                return 0;
+            }
+
+            $records = $response->json('records', []);
+            $count = count($records);
+
+            if ($count === 0) {
+                return 0;
+            }
+
+            $this->line("   📥 [PULL] Descargando {$count} registros de '{$table}'...");
+
+            if ($dryRun) {
+                $this->comment("      [DRY-RUN] Simulado pull de {$count} registros.");
+                return $count;
+            }
+
+            $primaryKey = $response->json('primary_key', 'id');
+            $validColumns = array_flip(Schema::getColumnListing($table));
+
+            DB::beginTransaction();
+            try {
+                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+
+                $cleanRecords = [];
+                foreach ($records as $row) {
+                    $row = (array) $row;
+                    $cleanRow = array_intersect_key($row, $validColumns);
+                    if (!empty($cleanRow)) {
+                        $cleanRecords[] = $cleanRow;
+                    }
+                }
+
+                // Aplicar en micro-lotes de 100 con upsert de alta velocidad
+                foreach (array_chunk($cleanRecords, 100) as $chunk) {
+                    $chunkHandled = false;
+                    try {
+                        $firstKeys = array_keys($chunk[0]);
+                        $sameKeys = true;
+                        foreach ($chunk as $item) {
+                            if (array_keys($item) !== $firstKeys) {
+                                $sameKeys = false;
+                                break;
+                            }
+                        }
+
+                        if ($sameKeys && in_array($primaryKey, $firstKeys, true)) {
+                            DB::table($table)->upsert($chunk, [$primaryKey]);
+                            $chunkHandled = true;
+                        }
+                    } catch (\Throwable $e) {
+                        $chunkHandled = false;
+                    }
+
+                    if (!$chunkHandled) {
+                        foreach ($chunk as $cleanRow) {
+                            if (isset($cleanRow[$primaryKey]) && !empty($cleanRow[$primaryKey])) {
+                                $keyValue = $cleanRow[$primaryKey];
+                                DB::table($table)->updateOrInsert([$primaryKey => $keyValue], $cleanRow);
+                            } else {
+                                DB::table($table)->insert($cleanRow);
+                            }
+                        }
+                    }
+                }
+
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                DB::commit();
+
+                $nextSince = $response->json('next_since');
+                $nextId = $response->json('next_id');
+
+                $this->updateCheckpoint('pull', $table, $nextSince, $nextId, $count, 'success');
+                $this->info("      ✅ {$count} registros aplicados localmente en '{$table}'.");
+
+                return $count;
+            } catch (\Throwable $e) {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                DB::rollBack();
+                $this->error("      ❌ Error aplicando PULL en '{$table}': " . $e->getMessage());
+                $this->updateCheckpoint('pull', $table, $since, $lastId, 0, 'error', $e->getMessage());
+            }
+        } catch (\Throwable $e) {
+            $this->error("      ❌ Excepción en PULL de '{$table}': " . $e->getMessage());
+        }
+
+        return 0;
+    }
+
+    /**
+     * Obtiene el checkpoint de sincronización para un canal y tabla.
+     */
+    protected function getCheckpoint(string $channel, string $table): ?object
+    {
+        if (!Schema::hasTable('sync_checkpoints')) {
+            return null;
+        }
+
+        return DB::table('sync_checkpoints')
+            ->where('channel', '=', $channel, 'and')
+            ->where('table_name', '=', $table, 'and')
+            ->first();
+    }
+
+    /**
+     * Actualiza o crea el checkpoint en la base de datos local.
+     */
+    protected function updateCheckpoint(
+        string $channel,
+        string $table,
+        ?string $lastSyncedAt,
+        ?int $lastSyncedId,
+        int $recordsCount,
+        string $status,
+        ?string $lastError = null
+    ): void {
+        if (!Schema::hasTable('sync_checkpoints')) {
+            return;
+        }
+
+        DB::table('sync_checkpoints')->updateOrInsert(
+            [
+                'channel' => $channel,
+                'table_name' => $table,
+            ],
+            [
+                'last_synced_at' => $lastSyncedAt,
+                'last_synced_id' => $lastSyncedId,
+                'records_count' => DB::raw("records_count + {$recordsCount}"),
+                'status' => $status,
+                'last_error' => $lastError,
+                'updated_at' => now(),
+            ]
+        );
+    }
+
+    /**
+     * Determina la clave primaria de la tabla.
+     */
+    protected function getPrimaryKey(string $table): string
+    {
+        try {
+            $keys = DB::select("SHOW KEYS FROM `{$table}` WHERE Key_name = 'PRIMARY'");
+            if (!empty($keys) && isset($keys[0]->Column_name)) {
+                return $keys[0]->Column_name;
+            }
+        } catch (\Throwable $e) {
+        }
+
+        return 'id';
+    }
+
+    /**
+     * Retorna todas las tablas sincronizables ordenadas.
+     */
+    protected function getSyncableTables(): array
+    {
+        $ignored = config('sync.ignore_tables', []);
+        $priority = config('sync.priority_tables', []);
+
+        $dbTables = [];
+        try {
+            $rawTables = DB::select('SHOW TABLES');
+            $dbName = DB::getDatabaseName();
+            $property = 'Tables_in_' . $dbName;
+
+            foreach ($rawTables as $row) {
+                $tableName = $row->{$property} ?? array_values((array) $row)[0] ?? null;
+                if ($tableName && !in_array($tableName, $ignored, true)) {
+                    $dbTables[] = $tableName;
+                }
+            }
+        } catch (\Throwable $e) {
+            $dbTables = $priority;
+        }
+
+        $ordered = [];
+        foreach ($priority as $pTable) {
+            if (in_array($pTable, $dbTables, true)) {
+                $ordered[] = $pTable;
+            }
+        }
+
+        $remaining = array_diff($dbTables, $ordered);
+        sort($remaining);
+
+        return array_merge($ordered, $remaining);
+    }
+
+    /**
+     * Sincroniza bidireccionalmente los archivos físicos de DOCUMENTACION_GIS.
+     */
+    protected function syncPhysicalFiles(string $cloudUrl, string $token, string $direction, bool $dryRun): array
+    {
+        $this->info("\n📁 INICIANDO SINCRONIZACIÓN DE ARCHIVOS FÍSICOS (DOCUMENTACION_GIS)...");
+
+        $baseRelative = (string) config('sync.files_relative_dir', 'DOCUMENTACION_GIS');
+        $baseDir = storage_path('app/' . $baseRelative);
+        if (!is_dir($baseDir)) {
+            @mkdir($baseDir, 0755, true);
+        }
+
+        $pulled = 0;
+        $pushed = 0;
+        $timeout = (int) config('sync.timeout', 90);
+
+        try {
+            // 1. Obtener manifiesto de la nube
+            $response = Http::timeout($timeout)
+                ->withHeaders(['X-Sync-Token' => $token])
+                ->get("{$cloudUrl}/api/sync/files/manifest");
+
+            if (!$response->successful() || $response->json('success') !== true) {
+                $this->warn("   ⚠️  No se pudo obtener el manifiesto de archivos de la nube.");
+                return ['pulled' => 0, 'pushed' => 0];
+            }
+
+            $rawCloudFiles = $response->json('files', []);
+            $cloudFiles = [];
+            foreach ($rawCloudFiles as $cf) {
+                $cloudFiles[$cf['path']] = $cf;
+            }
+
+            // 2. Escanear manifiesto local
+            $localFiles = $this->getLocalFilesManifest($baseDir);
+
+            $this->line("   📊 Archivos detectados — Nube: " . count($cloudFiles) . " | Local: " . count($localFiles));
+
+            // 3. PULL: Archivos en la nube que faltan localmente o están más nuevos en la nube
+            if (in_array($direction, ['pull', 'both'], true)) {
+                foreach ($cloudFiles as $path => $cloudInfo) {
+                    $needsDownload = false;
+
+                    if (!isset($localFiles[$path])) {
+                        $needsDownload = true;
+                    } elseif ($cloudInfo['mtime'] > $localFiles[$path]['mtime'] && $cloudInfo['size'] !== $localFiles[$path]['size']) {
+                        $needsDownload = true;
+                    }
+
+                    if ($needsDownload) {
+                        $sizeKb = round($cloudInfo['size'] / 1024, 1);
+                        $this->line("   📥 [PULL-FILE] Descargando '{$path}' ({$sizeKb} KB)...");
+
+                        if ($dryRun) {
+                            $pulled++;
+                            continue;
+                        }
+
+                        $downRes = Http::timeout($timeout)
+                            ->withHeaders(['X-Sync-Token' => $token])
+                            ->get("{$cloudUrl}/api/sync/files/download", ['path' => $path]);
+
+                        if ($downRes->successful()) {
+                            $destPath = "{$baseDir}/{$path}";
+                            $destDir = dirname($destPath);
+                            if (!is_dir($destDir)) {
+                                @mkdir($destDir, 0755, true);
+                            }
+
+                            file_put_contents($destPath, $downRes->body());
+                            if (isset($cloudInfo['mtime'])) {
+                                @touch($destPath, (int) $cloudInfo['mtime']);
+                            }
+                            $pulled++;
+                        } else {
+                            $this->error("      ❌ Fallo al descargar '{$path}'");
+                        }
+                    }
+                }
+            }
+
+            // 4. PUSH: Archivos locales que faltan en la nube o están más nuevos en local
+            if (in_array($direction, ['push', 'both'], true)) {
+                foreach ($localFiles as $path => $localInfo) {
+                    $needsUpload = false;
+
+                    if (!isset($cloudFiles[$path])) {
+                        $needsUpload = true;
+                    } elseif ($localInfo['mtime'] > $cloudFiles[$path]['mtime'] && $localInfo['size'] !== $cloudFiles[$path]['size']) {
+                        $needsUpload = true;
+                    }
+
+                    if ($needsUpload) {
+                        $sizeKb = round($localInfo['size'] / 1024, 1);
+                        $this->line("   📤 [PUSH-FILE] Subiendo '{$path}' ({$sizeKb} KB)...");
+
+                        if ($dryRun) {
+                            $pushed++;
+                            continue;
+                        }
+
+                        $sourcePath = "{$baseDir}/{$path}";
+                        if (file_exists($sourcePath)) {
+                            $upRes = Http::timeout($timeout)
+                                ->withHeaders(['X-Sync-Token' => $token])
+                                ->attach('file', file_get_contents($sourcePath), basename($sourcePath))
+                                ->post("{$cloudUrl}/api/sync/files/upload", [
+                                    'path' => $path,
+                                    'mtime' => $localInfo['mtime'],
+                                ]);
+
+                            if ($upRes->successful() && $upRes->json('success') === true) {
+                                $pushed++;
+                            } else {
+                                $this->error("      ❌ Fallo al subir '{$path}'");
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->error("   ❌ Excepción sincronizando archivos: " . $e->getMessage());
+        }
+
+        return ['pulled' => $pulled, 'pushed' => $pushed];
+    }
+
+    /**
+     * Escanea el directorio local de almacenamiento y genera el manifiesto.
+     */
+    protected function getLocalFilesManifest(string $baseDir): array
+    {
+        $manifest = [];
+        if (!is_dir($baseDir)) {
+            return $manifest;
+        }
+
+        $allowedExtensions = config('sync.allowed_file_extensions', ['pdf', 'png', 'jpg', 'jpeg', 'dwg', 'dxf']);
+
+        try {
+            $iterator = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($baseDir, \FilesystemIterator::SKIP_DOTS | \FilesystemIterator::FOLLOW_SYMLINKS)
+            );
+
+            foreach ($iterator as $fileInfo) {
+                if ($fileInfo->isFile()) {
+                    $ext = strtolower($fileInfo->getExtension());
+                    if (!in_array($ext, $allowedExtensions, true)) {
+                        continue;
+                    }
+
+                    $absolutePath = str_replace('\\', '/', $fileInfo->getRealPath());
+                    $normalizedBase = str_replace('\\', '/', $baseDir);
+                    $relative = ltrim(substr($absolutePath, strlen($normalizedBase)), '/');
+
+                    $manifest[$relative] = [
+                        'path' => $relative,
+                        'size' => $fileInfo->getSize(),
+                        'mtime' => $fileInfo->getMTime(),
+                    ];
+                }
+            }
+        } catch (\Throwable $e) {
+        }
+
+        return $manifest;
+    }
+
+    /**
+     * Escribe en el archivo de logs dedicado.
+     */
+    protected function logSync(string $message): void
+    {
+        try {
+            $logPath = storage_path('logs/sync.log');
+            $time = now()->format('Y-m-d H:i:s');
+            file_put_contents($logPath, "[{$time}] {$message}\n", FILE_APPEND | LOCK_EX);
+        } catch (\Throwable $e) {
+            Log::info("[SYNC] {$message}");
+        }
+    }
+}
+
