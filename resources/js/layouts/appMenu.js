@@ -94,108 +94,108 @@ function createMenu(profile) {
     ul.innerHTML = "";
     ul.appendChild(createList(routes, false, []));
 
-        const currentPath = window.location.pathname;
-        const currentSearch = window.location.search;
-        const allLinks = Array.from(ul.querySelectorAll("a.nav-link"));
-        let targetLink = null;
+    const currentPath = window.location.pathname;
+    const currentSearch = window.location.search;
+    const allLinks = Array.from(ul.querySelectorAll("a.nav-link"));
+    let targetLink = null;
 
-        // Detección de sección preferida explícita por parámetros en URL
-        let urlPreferredSection = null;
-        if (currentSearch.includes('almacen_only=1') || currentSearch.includes('sec=almacen')) {
-            urlPreferredSection = "Almacén";
-        } else if (currentSearch.includes('sec=calidad')) {
-            urlPreferredSection = "Calidad";
-        } else if (currentSearch.includes('admin_only=1') || currentSearch.includes('sec=admin')) {
-            urlPreferredSection = "Administración";
-        }
+    // Detección de sección preferida explícita por parámetros en URL
+    let urlPreferredSection = null;
+    if (currentSearch.includes('almacen_only=1') || currentSearch.includes('sec=almacen')) {
+        urlPreferredSection = "Almacén";
+    } else if (currentSearch.includes('sec=calidad')) {
+        urlPreferredSection = "Calidad";
+    } else if (currentSearch.includes('admin_only=1') || currentSearch.includes('sec=admin')) {
+        urlPreferredSection = "Administración";
+    }
 
-        const savedPath = sessionStorage.getItem("active_menu_path");
-        const savedHref = sessionStorage.getItem("active_menu_href");
-        const savedTopSection = sessionStorage.getItem("active_top_section");
-        const preferredTopSection = urlPreferredSection || savedTopSection;
+    const savedPath = sessionStorage.getItem("active_menu_path");
+    const savedHref = sessionStorage.getItem("active_menu_href");
+    const savedTopSection = sessionStorage.getItem("active_top_section");
+    const preferredTopSection = urlPreferredSection || savedTopSection;
 
-        // 1. Prioridad Máxima: Si el usuario hizo clic en una opción específica del menú y coincide con la vista actual
-        if (savedPath && savedHref) {
-            const isMatch = isSameOrSubRoute(currentPath, savedHref);
-            if (isMatch) {
-                const candidate = allLinks.find(a => a.dataset.menuPath === savedPath);
-                if (candidate) {
-                    if (!urlPreferredSection || candidate.dataset.topSection === urlPreferredSection) {
-                        targetLink = candidate;
-                    }
+    // 1. Prioridad Máxima: Si el usuario hizo clic en una opción específica del menú y coincide con la vista actual
+    if (savedPath && savedHref) {
+        const isMatch = isSameOrSubRoute(currentPath, savedHref);
+        if (isMatch) {
+            const candidate = allLinks.find(a => a.dataset.menuPath === savedPath);
+            if (candidate) {
+                if (!urlPreferredSection || candidate.dataset.topSection === urlPreferredSection) {
+                    targetLink = candidate;
                 }
             }
         }
+    }
 
-        // 2. Coincidencia dentro de la sección preferida (por query param o guardada)
-        if (!targetLink && preferredTopSection) {
-            const prefLinks = allLinks.filter(a => a.dataset.topSection === preferredTopSection);
+    // 2. Coincidencia dentro de la sección preferida (por query param o guardada)
+    if (!targetLink && preferredTopSection) {
+        const prefLinks = allLinks.filter(a => a.dataset.topSection === preferredTopSection);
 
-            // 2.a. Coincidencia exacta de pathname y search
-            targetLink = prefLinks.find(a => {
-                const linkUrl = new URL(a.href, window.location.origin);
-                return currentPath === linkUrl.pathname && isLinkMatching(a, currentPath);
-            });
+        // 2.a. Coincidencia exacta de pathname y search
+        targetLink = prefLinks.find(a => {
+            const linkUrl = new URL(a.href, window.location.origin);
+            return currentPath === linkUrl.pathname && isLinkMatching(a, currentPath);
+        });
 
-            // 2.b. Coincidencia flexible de pathname
-            if (!targetLink) {
-                targetLink = prefLinks.find(a => isLinkMatching(a, currentPath));
-            }
-
-            // 2.c. Coincidencia por sub-rutas dentro de la sección
-            if (!targetLink) {
-                targetLink = prefLinks.find(a => isPathMatching(currentPath, a.href));
-            }
-        }
-
-        // 3. Coincidencia exacta de pathname y search en todo el menú
+        // 2.b. Coincidencia flexible de pathname
         if (!targetLink) {
-            targetLink = allLinks.find(a => {
-                const linkUrl = new URL(a.href, window.location.origin);
-                return currentPath === linkUrl.pathname && isLinkMatching(a, currentPath);
-            });
+            targetLink = prefLinks.find(a => isLinkMatching(a, currentPath));
         }
 
-        // 4. Coincidencia flexible en todo el menú
+        // 2.c. Coincidencia por sub-rutas dentro de la sección
         if (!targetLink) {
-            targetLink = allLinks.find(a => isLinkMatching(a, currentPath));
+            targetLink = prefLinks.find(a => isPathMatching(currentPath, a.href));
         }
+    }
 
-        // 5. Coincidencia por sub-rutas en todo el menú
-        if (!targetLink) {
-            targetLink = allLinks.find(a => isPathMatching(currentPath, a.href));
-        }
+    // 3. Coincidencia exacta de pathname y search en todo el menú
+    if (!targetLink) {
+        targetLink = allLinks.find(a => {
+            const linkUrl = new URL(a.href, window.location.origin);
+            return currentPath === linkUrl.pathname && isLinkMatching(a, currentPath);
+        });
+    }
 
-        // Expandir solo la rama del enlace activo seleccionado
-        if (targetLink) {
-            // Limpiar cualquier active previo para evitar duplicados
-            allLinks.forEach(a => a.classList.remove("active"));
-            ul.querySelectorAll(".menu-section.active").forEach(sec => sec.classList.remove("active"));
+    // 4. Coincidencia flexible en todo el menú
+    if (!targetLink) {
+        targetLink = allLinks.find(a => isLinkMatching(a, currentPath));
+    }
 
-            targetLink.classList.add("active");
-            let parentEl = targetLink.parentElement;
-            while (parentEl && parentEl.tagName !== "NAV" && parentEl !== document.body) {
-                if (parentEl.classList.contains("menu-section")) {
-                    parentEl.classList.add("active");
-                    const directSubmenu = Array.from(parentEl.children).find(c => c.classList && c.classList.contains("submenu"));
-                    if (directSubmenu) {
-                        directSubmenu.hidden = false;
-                    }
+    // 5. Coincidencia por sub-rutas en todo el menú
+    if (!targetLink) {
+        targetLink = allLinks.find(a => isPathMatching(currentPath, a.href));
+    }
+
+    // Expandir solo la rama del enlace activo seleccionado
+    if (targetLink) {
+        // Limpiar cualquier active previo para evitar duplicados
+        allLinks.forEach(a => a.classList.remove("active"));
+        ul.querySelectorAll(".menu-section.active").forEach(sec => sec.classList.remove("active"));
+
+        targetLink.classList.add("active");
+        let parentEl = targetLink.parentElement;
+        while (parentEl && parentEl.tagName !== "NAV" && parentEl !== document.body) {
+            if (parentEl.classList.contains("menu-section")) {
+                parentEl.classList.add("active");
+                const directSubmenu = Array.from(parentEl.children).find(c => c.classList && c.classList.contains("submenu"));
+                if (directSubmenu) {
+                    directSubmenu.hidden = false;
                 }
-                parentEl = parentEl.parentElement;
             }
-
-            // Sincronizar sessionStorage con la opción activa confirmada
-            if (targetLink.dataset.menuPath) {
-                sessionStorage.setItem("active_menu_path", targetLink.dataset.menuPath);
-            }
-            if (targetLink.dataset.topSection) {
-                sessionStorage.setItem("active_top_section", targetLink.dataset.topSection);
-            } else {
-                sessionStorage.removeItem("active_top_section");
-            }
-            sessionStorage.setItem("active_menu_href", targetLink.href);
+            parentEl = parentEl.parentElement;
         }
+
+        // Sincronizar sessionStorage con la opción activa confirmada
+        if (targetLink.dataset.menuPath) {
+            sessionStorage.setItem("active_menu_path", targetLink.dataset.menuPath);
+        }
+        if (targetLink.dataset.topSection) {
+            sessionStorage.setItem("active_top_section", targetLink.dataset.topSection);
+        } else {
+            sessionStorage.removeItem("active_top_section");
+        }
+        sessionStorage.setItem("active_menu_href", targetLink.href);
+    }
 }
 
 function isSameOrSubRoute(currentPath, savedHref) {
@@ -617,8 +617,8 @@ function getRoutes(profile) {
     ];
 
     const userPuestoEl = document.getElementById("user_puesto");
-    const userPuesto   = userPuestoEl ? userPuestoEl.value.trim().toUpperCase() : "";
-    const isSistemas   = userPuesto.includes("SISTEMAS") || String(profile) === "10";
+    const userPuesto = userPuestoEl ? userPuestoEl.value.trim().toUpperCase() : "";
+    const isSistemas = userPuesto.includes("SISTEMAS") || String(profile) === "10";
 
     if (isSistemas) {
         return [
@@ -932,6 +932,12 @@ function getRoutes(profile) {
                     routes: [
                         ["calidad.fundicion.index", "Dibujos y Ayudas de Fundición"],
                         ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados"],
+                    ],
+                },
+                {
+                    title: "Producción",
+                    routes: [
+                        ["cNominals", "Editar C.Nominales y Tolerancias", "sec=calidad"],
                     ],
                 },
                 {

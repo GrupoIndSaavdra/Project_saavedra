@@ -252,7 +252,7 @@ class SystemLogController extends Controller
 
     public function index(Request $request)
     {
-        if (Auth::check() && (string) Auth::user()->perfil === '5') {
+        if (Auth::check() && in_array((string) Auth::user()->perfil, ['5', '8'], true)) {
             abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
         }
 
