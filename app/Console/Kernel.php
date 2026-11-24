@@ -20,7 +20,7 @@ class Kernel extends ConsoleKernel
     {
         // ── Tareas existentes ──────────────────────────────────────────
         // $schedule->command('inspire')->hourly();
-        $schedule->command('qr:cancelar-vencidos')->daily();
+        // $schedule->command('qr:cancelar-vencidos')->daily(); // Inactivo temporalmente
 
         // ── Reporte Diario de Producción — 23:50 todos los días ────────
         $schedule->command('reporte:enviar-diario')
@@ -38,6 +38,18 @@ class Kernel extends ConsoleKernel
         $schedule->command('app:heartbeat')
             ->everyMinute()
             ->withoutOverlapping();
+
+        // ── Sincronización Local <-> Nube — cada 2 minutos ───────────────────
+        $schedule->command('saavedra:sync')
+            ->everyTwoMinutes()
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/sync.log'));
+
+        // ── Respaldo Diario de Base de Datos Local — 23:59 todos los días ─────
+        $schedule->command('saavedra:backup-local')
+            ->dailyAt('23:59')
+            ->withoutOverlapping()
+            ->appendOutputTo(storage_path('logs/backup_local.log'));
 
         // ── Sincronización Calidad Maquinados — cada 5 minutos ────────────────
         $schedule->command('calidad:sync-maquinados')

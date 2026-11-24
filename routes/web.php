@@ -73,7 +73,7 @@ Route::middleware(['auth', 'perfil:1,2,10'])->controller(UserController::class)-
 });
 
 //Grupo de ruta para el controlador MolduraController (Master, Admin, Supervisor, Ventas, Sistemas)
-Route::middleware(['auth', 'perfil:1,2,3,6,10'])->controller(MoldingController::class)->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,5,6,10'])->controller(MoldingController::class)->group(function () {
     Route::get('/createMolding', 'create')->name('createMolding'); //Vista registrar moldura
     Route::post('/createMolding/storeMolding', 'store')->name('storeMolding'); //Registrar moldura
     Route::get('/editMolding', 'edit')->name('editMolding'); //Vista editar moldura

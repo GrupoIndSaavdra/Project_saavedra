@@ -1290,7 +1290,7 @@ class CalidadTableRowViewModel
                         strpos($nameLow, 'confirmacion') === false &&
                         strpos($nameLow, 'cfm') === false &&
                         strpos($nameLow, 'liberacion') === false);
-                if ($this->userPerfil == 4 || $this->userPerfil == 3) {
+                if ($this->userPerfil == 4 || $this->userPerfil == 3 || $this->userPerfil == 8) {
                     // Calidad o Master
                     if (!$isPreorden) {
                         $filteredOtros[] = $archivo;
@@ -1517,7 +1517,7 @@ class CalidadTableRowViewModel
         ]);
         $this->isQualityFinalized = $this->hasFinalStatus && $this->todosGuardados;
         $this->showQualityCard =
-            in_array(\Auth::user()->perfil, ['1', '3', '4', '6', 1, 3, 4, 6]) &&
+            in_array(\Auth::user()->perfil, ['1', '3', '4', '6', '8', 1, 3, 4, 6, 8]) &&
             $this->estado === 'activa' &&
             $this->targetReg->calidad_revision_status !== 'casting_aprobado';
         $this->hasFilesOrControl = $this->count > 0 || $this->showQualityCard;

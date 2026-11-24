@@ -481,7 +481,7 @@ class PtaResultsController extends Controller
      */
     public function analysis(Request $request)
     {
-        if (! session('pta_temp_auth') && Auth::check() && (string) Auth::user()->perfil === '5') {
+        if (! session('pta_temp_auth') && Auth::check() && in_array((string) Auth::user()->perfil, ['5', '8'], true)) {
             abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
         }
 
@@ -626,7 +626,7 @@ class PtaResultsController extends Controller
      */
     public function segPasadaIndex(Request $request)
     {
-        if (! session('pta_temp_auth') && Auth::check() && (string) Auth::user()->perfil === '5') {
+        if (! session('pta_temp_auth') && Auth::check() && in_array((string) Auth::user()->perfil, ['5', '8'], true)) {
             abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
         }
 

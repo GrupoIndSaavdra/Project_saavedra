@@ -86,8 +86,8 @@ class Dashboard {
                 // dormido y se montará solo en cuanto el polling detecte la primera pieza.
                 if (classArray["hasPTA"] === true) {
                     let userProfile = document.getElementById("profile");
-                    // Perfiles permitidos: 1=Master, 2=Operador, 3=Admin, 4=Calidad, 5=Almacén
-                    if (userProfile && (userProfile.value == "1" || userProfile.value == "2" || userProfile.value == "3" || userProfile.value == "4" || userProfile.value == "5")) {
+                    // Perfiles permitidos: 1=Master, 2=Operador, 3=Admin, 4=Calidad, 5=Diseño, 8=Calidad
+                    if (userProfile && (userProfile.value == "1" || userProfile.value == "2" || userProfile.value == "3" || userProfile.value == "4" || userProfile.value == "5" || userProfile.value == "8")) {
                         const classId = classArray["id"];
                         const ptaData = (window.ptaCardsData && window.ptaCardsData[wOrderName] && window.ptaCardsData[wOrderName][classId])
                             ? window.ptaCardsData[wOrderName][classId]
@@ -99,13 +99,13 @@ class Dashboard {
                 section.appendChild(headerSection);
 
                 // ── Checklist de Fundición (entre header y procesos) ──────────
-                // Guard de perfil: 1=Master, 2=Admin, 4=Calidad, 5=Almacén.
+                // Guard de perfil: 1=Master, 2=Admin, 4=Calidad, 5=Diseño, 8=Calidad.
                 let userProfileChecklist = document.getElementById("profile");
-                // Perfiles permitidos: 1=Master, 2=Admin, 4=Calidad, 5=Almacén
+                // Perfiles permitidos: 1=Master, 2=Admin, 4=Calidad, 5=Diseño, 8=Calidad
                 if (
                     userProfileChecklist &&
                     (userProfileChecklist.value === "1" || userProfileChecklist.value === "2" || userProfileChecklist.value === "3" ||
-                        userProfileChecklist.value === "4" || userProfileChecklist.value === "5")
+                        userProfileChecklist.value === "4" || userProfileChecklist.value === "5" || userProfileChecklist.value === "8")
                 ) {
                     section.classList.add('section--has-checklist');
                     const checklistWrapper = document.createElement('div');
