@@ -125,4 +125,59 @@ class SyncTest extends TestCase
         $response->assertStatus(400);
         $response->assertJson(['success' => false]);
     }
+
+    /**
+     * Prueba que el token de desarrollador pueda hacer ping exitosamente.
+     */
+    public function test_dev_token_allows_ping(): void
+    {
+        config(['sync.dev_token' => 'dev_test_secret_token_12345']);
+
+        $response = $this->withHeaders(['X-Sync-Token' => 'dev_test_secret_token_12345'])->getJson('/api/sync/ping');
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+    }
+
+    /**
+     * Prueba que el token de desarrollador pueda descargar registros (PULL).
+     */
+    public function test_dev_token_allows_pull(): void
+    {
+        config(['sync.dev_token' => 'dev_test_secret_token_12345']);
+
+        $response = $this->withHeaders(['X-Sync-Token' => 'dev_test_secret_token_12345'])->getJson('/api/sync/pull?table=users&limit=1');
+        $response->assertStatus(200);
+        $response->assertJson(['success' => true]);
+    }
+
+    /**
+     * Prueba que el token de desarrollador tenga PUSH bloqueado con 403 Forbidden.
+     */
+    public function test_dev_token_blocks_push_with_403(): void
+    {
+        config(['sync.dev_token' => 'dev_test_secret_token_12345']);
+
+        $response = $this->withHeaders(['X-Sync-Token' => 'dev_test_secret_token_12345'])->postJson('/api/sync/push', [
+            'table' => 'users',
+            'records' => [],
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJson(['success' => false]);
+    }
+
+    /**
+     * Prueba que el token de desarrollador tenga upload de archivos bloqueado con 403 Forbidden.
+     */
+    public function test_dev_token_blocks_files_upload_with_403(): void
+    {
+        config(['sync.dev_token' => 'dev_test_secret_token_12345']);
+
+        $response = $this->withHeaders(['X-Sync-Token' => 'dev_test_secret_token_12345'])->postJson('/api/sync/files/upload', [
+            'path' => 'DIBUJOS_MAQUINADOS/test.pdf',
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJson(['success' => false]);
+    }
 }

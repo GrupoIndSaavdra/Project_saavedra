@@ -45,8 +45,27 @@ class SaavedraSync extends Command
             return self::SUCCESS;
         }
 
-        $token = (string) config('sync.token', '');
-        $direction = strtolower((string) $this->option('direction') ?: 'both');
+        $devToken = (string) config('sync.dev_token', '');
+        $prodToken = (string) config('sync.token', '');
+        $isDevExplicit = (bool) config('sync.is_dev', false);
+
+        // Se considera modo Dev si se activa SYNC_IS_DEV, si no hay token prod pero sí dev,
+        // o si el token principal configurado en este cliente es el token de dev
+        $isDevMode = $isDevExplicit || (empty($prodToken) && !empty($devToken)) || (!empty($devToken) && $prodToken === $devToken);
+        $token = $isDevMode ? $devToken : $prodToken;
+
+        $rawDirection = $this->option('direction');
+        if ($isDevMode) {
+            $direction = strtolower((string) ($rawDirection ?: 'pull'));
+            if (in_array($direction, ['push', 'both'], true)) {
+                $this->warn("   ⚠️  [MODO DEV] El token de desarrollador solo permite descarga (PULL).");
+                $this->warn("      Se omite la subida (PUSH) a producción para proteger los datos en la nube.");
+                $direction = 'pull';
+            }
+        } else {
+            $direction = strtolower((string) ($rawDirection ?: 'both'));
+        }
+
         $singleTable = $this->option('table');
         $force = (bool) $this->option('force');
         $dryRun = (bool) $this->option('dry-run');
@@ -55,6 +74,11 @@ class SaavedraSync extends Command
         $this->info("🔄 INICIANDO MOTOR DE SINCRONIZACIÓN SAAVEDRA");
         $this->info("   Servidor remoto: {$cloudUrl}");
         $this->info("   Dirección: " . strtoupper($direction));
+        if ($isDevMode) {
+            $this->comment("   PERFIL: DESARROLLADOR (PULL MANUAL / PROTEGIDO)");
+        } else {
+            $this->line("   PERFIL: SERVIDOR DE PRODUCCIÓN (BIDIRECCIONAL)");
+        }
         if ($dryRun) {
             $this->warn("   MODO SIMULACIÓN (DRY-RUN) ACTIVO — No se aplicarán cambios reales.");
         }
@@ -108,7 +132,8 @@ class SaavedraSync extends Command
         $filesPulled = 0;
 
         if (!$noFiles && config('sync.sync_files_enabled', true)) {
-            $fileResults = $this->syncPhysicalFiles($cloudUrl, $token, $direction, $dryRun);
+            $fileDirection = $isDevMode ? 'pull' : $direction;
+            $fileResults = $this->syncPhysicalFiles($cloudUrl, $token, $fileDirection, $dryRun);
             $filesPulled = $fileResults['pulled'];
             $filesPushed = $fileResults['pushed'];
         }
@@ -175,95 +200,140 @@ class SaavedraSync extends Command
     {
         $checkpoint = $this->getCheckpoint('push', $table);
         $lastSyncedAt = (!$force && $checkpoint) ? $checkpoint->last_synced_at : null;
-        $batchSize = (int) config('sync.batch_size', 200);
+        $lastSyncedId = (!$force && $checkpoint) ? $checkpoint->last_synced_id : null;
+        $batchSize = (int) config('sync.batch_size', 250);
         $primaryKey = $this->getPrimaryKey($table);
         $hasUpdatedAt = Schema::hasColumn($table, 'updated_at');
         $hasCreatedAt = Schema::hasColumn($table, 'created_at');
-        $isSnapshot = false;
+        $timeout = (int) config('sync.timeout', 90);
+        $totalPushed = 0;
+        $page = 0;
 
-        $query = DB::table($table);
+        do {
+            $page++;
+            $isSnapshot = false;
+            $query = DB::table($table);
 
-        if ($hasUpdatedAt && !empty($lastSyncedAt)) {
-            $query->where('updated_at', '>', $lastSyncedAt)
-                  ->orderBy('updated_at', 'asc')
-                  ->orderBy($primaryKey, 'asc');
-        } elseif ($hasCreatedAt && !empty($lastSyncedAt)) {
-            $query->where('created_at', '>', $lastSyncedAt)
-                  ->orderBy('created_at', 'asc')
-                  ->orderBy($primaryKey, 'asc');
-        } elseif (!$hasUpdatedAt && !$hasCreatedAt) {
-            $totalInTable = DB::table($table)->count();
-            if ($totalInTable <= 3000) {
-                $isSnapshot = true;
-                $query->orderBy($primaryKey, 'asc');
-            } elseif (!$force && $checkpoint && $checkpoint->last_synced_id) {
-                $query->where($primaryKey, '>', $checkpoint->last_synced_id)
+            if ($hasUpdatedAt) {
+                if (!empty($lastSyncedAt)) {
+                    $query->where(function ($q) use ($lastSyncedAt, $lastSyncedId, $primaryKey) {
+                        $q->where('updated_at', '>', $lastSyncedAt);
+                        if (!empty($lastSyncedId)) {
+                            $q->orWhere(function ($q2) use ($lastSyncedAt, $lastSyncedId, $primaryKey) {
+                                $q2->where('updated_at', '=', $lastSyncedAt)
+                                   ->where($primaryKey, '>', $lastSyncedId);
+                            });
+                        }
+                    });
+                }
+                $query->orderBy('updated_at', 'asc')
+                      ->orderBy($primaryKey, 'asc');
+            } elseif ($hasCreatedAt) {
+                if (!empty($lastSyncedAt)) {
+                    $query->where(function ($q) use ($lastSyncedAt, $lastSyncedId, $primaryKey) {
+                        $q->where('created_at', '>', $lastSyncedAt);
+                        if (!empty($lastSyncedId)) {
+                            $q->orWhere(function ($q2) use ($lastSyncedAt, $lastSyncedId, $primaryKey) {
+                                $q2->where('created_at', '=', $lastSyncedAt)
+                                   ->where($primaryKey, '>', $lastSyncedId);
+                            });
+                        }
+                    });
+                }
+                $query->orderBy('created_at', 'asc')
                       ->orderBy($primaryKey, 'asc');
             } else {
-                $query->orderBy($primaryKey, 'asc');
+                $totalInTable = DB::table($table)->count();
+                if ($totalInTable <= 3000) {
+                    $isSnapshot = true;
+                    $query->orderBy($primaryKey, 'asc');
+                } elseif (!empty($lastSyncedId)) {
+                    $query->where($primaryKey, '>', $lastSyncedId)
+                          ->orderBy($primaryKey, 'asc');
+                } else {
+                    $query->orderBy($primaryKey, 'asc');
+                }
             }
-        } elseif (!$force && $checkpoint && $checkpoint->last_synced_id) {
-            $query->where($primaryKey, '>', $checkpoint->last_synced_id)
-                  ->orderBy($primaryKey, 'asc');
-        } else {
-            $query->orderBy($primaryKey, 'asc');
-        }
 
-        $records = $isSnapshot ? $query->get() : $query->limit($batchSize)->get();
-        $count = $records->count();
+            $records = $isSnapshot ? $query->get() : $query->limit($batchSize)->get();
+            $count = $records->count();
 
-        if ($count === 0) {
-            return 0;
-        }
+            if ($count === 0) {
+                break;
+            }
 
-        $this->line("   📤 [PUSH] Subiendo {$count} registros de '{$table}'...");
+            if ($page === 1) {
+                if (!$isSnapshot && $count >= $batchSize) {
+                    $this->line("   📤 [PUSH] Subiendo registros de '{$table}' (por lotes)...");
+                } else {
+                    $this->line("   📤 [PUSH] Subiendo {$count} registros de '{$table}'...");
+                }
+            }
 
-        if ($dryRun) {
-            $this->comment("      [DRY-RUN] Simulado push de {$count} registros.");
-            return $count;
-        }
-
-        $timeout = (int) config('sync.timeout', 60);
-
-        try {
-            $response = $this->httpClient($timeout)
-                ->withHeaders([
-                    'X-Sync-Token' => $token,
-                    'Accept' => 'application/json',
-                ])
-                ->post("{$cloudUrl}/api/sync/push", [
-                    'table' => $table,
-                    'records' => $records->toArray(),
-                ]);
-
-            if ($response->successful() && $response->json('success') === true) {
+            if ($dryRun) {
+                $this->comment("      [DRY-RUN] Simulado push de {$count} registros (página {$page}).");
+                $totalPushed += $count;
+                if ($isSnapshot || $count < $batchSize) {
+                    break;
+                }
                 $lastRecord = $records->last();
-                $nextSyncedAt = null;
-                $nextId = null;
-
                 if ($hasUpdatedAt && isset($lastRecord->updated_at)) {
-                    $nextSyncedAt = $lastRecord->updated_at;
+                    $lastSyncedAt = $lastRecord->updated_at;
                 } elseif ($hasCreatedAt && isset($lastRecord->created_at)) {
-                    $nextSyncedAt = $lastRecord->created_at;
+                    $lastSyncedAt = $lastRecord->created_at;
                 }
                 if (isset($lastRecord->{$primaryKey})) {
-                    $nextId = $lastRecord->{$primaryKey};
+                    $lastSyncedId = $lastRecord->{$primaryKey};
                 }
-
-                $this->updateCheckpoint('push', $table, $nextSyncedAt, $nextId, $count, 'success');
-                $this->info("      ✅ {$count} registros subidos a '{$table}'.");
-                return $count;
+                continue;
             }
 
-            $errorMsg = $response->json('message') ?? 'Error HTTP ' . $response->status();
-            $this->error("      ❌ Fallo al subir '{$table}': {$errorMsg}");
-            $this->updateCheckpoint('push', $table, $lastSyncedAt, null, 0, 'error', $errorMsg);
-        } catch (\Throwable $e) {
-            $this->error("      ❌ Excepción en PUSH de '{$table}': " . $e->getMessage());
-            $this->updateCheckpoint('push', $table, $lastSyncedAt, null, 0, 'error', $e->getMessage());
-        }
+            try {
+                $response = $this->httpClient($timeout)
+                    ->withHeaders([
+                        'X-Sync-Token' => $token,
+                        'Accept' => 'application/json',
+                    ])
+                    ->post("{$cloudUrl}/api/sync/push", [
+                        'table' => $table,
+                        'records' => $records->toArray(),
+                    ]);
 
-        return 0;
+                if ($response->successful() && $response->json('success') === true) {
+                    $lastRecord = $records->last();
+
+                    if ($hasUpdatedAt && isset($lastRecord->updated_at)) {
+                        $lastSyncedAt = $lastRecord->updated_at;
+                    } elseif ($hasCreatedAt && isset($lastRecord->created_at)) {
+                        $lastSyncedAt = $lastRecord->created_at;
+                    }
+                    if (isset($lastRecord->{$primaryKey})) {
+                        $lastSyncedId = $lastRecord->{$primaryKey};
+                    }
+
+                    $totalPushed += $count;
+                    $this->updateCheckpoint('push', $table, $lastSyncedAt, $lastSyncedId, $count, 'success');
+
+                    if ($isSnapshot || $count < $batchSize) {
+                        $this->info("      ✅ {$totalPushed} registros subidos a '{$table}'.");
+                        break;
+                    } else {
+                        $this->line("      ... {$totalPushed} registros subidos acumulados a '{$table}'...");
+                    }
+                } else {
+                    $errorMsg = $response->json('message') ?? 'Error HTTP ' . $response->status();
+                    $this->error("      ❌ Fallo al subir '{$table}': {$errorMsg}");
+                    $this->updateCheckpoint('push', $table, $lastSyncedAt, $lastSyncedId, 0, 'error', $errorMsg);
+                    break;
+                }
+            } catch (\Throwable $e) {
+                $this->error("      ❌ Excepción en PUSH de '{$table}': " . $e->getMessage());
+                $this->updateCheckpoint('push', $table, $lastSyncedAt, $lastSyncedId, 0, 'error', $e->getMessage());
+                break;
+            }
+        } while (!$isSnapshot && $count >= $batchSize);
+
+        return $totalPushed;
     }
 
     /**
@@ -274,139 +344,168 @@ class SaavedraSync extends Command
         $checkpoint = $this->getCheckpoint('pull', $table);
         $since = (!$force && $checkpoint) ? $checkpoint->last_synced_at : null;
         $lastId = (!$force && $checkpoint) ? $checkpoint->last_synced_id : null;
-        $batchSize = (int) config('sync.batch_size', 200);
-        $timeout = (int) config('sync.timeout', 60);
+        $batchSize = (int) config('sync.batch_size', 250);
+        $timeout = (int) config('sync.timeout', 90);
+        $totalApplied = 0;
+        $hasMore = false;
+        $page = 0;
 
-        try {
-            $response = $this->httpClient($timeout)
-                ->withHeaders([
-                    'X-Sync-Token' => $token,
-                    'Accept' => 'application/json',
-                ])
-                ->get("{$cloudUrl}/api/sync/pull", [
-                    'table' => $table,
-                    'since' => $since,
-                    'last_id' => $lastId,
-                    'limit' => $batchSize,
-                ]);
-
-            if (!$response->successful() || $response->json('success') !== true) {
-                return 0;
-            }
-
-            $records = $response->json('records', []);
-            $count = count($records);
-
-            if ($count === 0) {
-                return 0;
-            }
-
-            $this->line("   📥 [PULL] Descargando {$count} registros de '{$table}'...");
-
-            if ($dryRun) {
-                $this->comment("      [DRY-RUN] Simulado pull de {$count} registros.");
-                return $count;
-            }
-
-            $primaryKey = $response->json('primary_key', 'id');
-            $validColumns = array_flip(Schema::getColumnListing($table));
-
-            DB::beginTransaction();
+        do {
+            $page++;
             try {
-                DB::statement('SET FOREIGN_KEY_CHECKS=0;');
-                try {
-                    DB::statement("SET SESSION sql_mode='NO_ENGINE_SUBSTITUTION';");
-                } catch (\Throwable $e) {}
+                $response = $this->httpClient($timeout)
+                    ->withHeaders([
+                        'X-Sync-Token' => $token,
+                        'Accept' => 'application/json',
+                    ])
+                    ->get("{$cloudUrl}/api/sync/pull", [
+                        'table' => $table,
+                        'since' => $since,
+                        'last_id' => $lastId,
+                        'limit' => $batchSize,
+                    ]);
 
-                $cleanRecords = [];
-                foreach ($records as $row) {
-                    $row = (array) $row;
-                    $cleanRow = array_intersect_key($row, $validColumns);
-                    if (!empty($cleanRow)) {
-                        $cleanRecords[] = $cleanRow;
+                if (!$response->successful() || $response->json('success') !== true) {
+                    $errorMsg = $response->json('message') ?? ('Error HTTP ' . $response->status());
+                    if ($totalApplied === 0) {
+                        $this->error("      ❌ Fallo al descargar '{$table}': {$errorMsg}");
+                    } else {
+                        $this->error("      ❌ Fallo en página {$page} de '{$table}': {$errorMsg}");
+                    }
+                    break;
+                }
+
+                $records = $response->json('records', []);
+                $count = count($records);
+
+                if ($count === 0) {
+                    break;
+                }
+
+                $hasMore = (bool) $response->json('has_more', false);
+
+                if ($page === 1) {
+                    if ($hasMore) {
+                        $this->line("   📥 [PULL] Descargando registros de '{$table}' (por lotes)...");
+                    } else {
+                        $this->line("   📥 [PULL] Descargando {$count} registros de '{$table}'...");
                     }
                 }
 
-                // Aplicar en micro-lotes de 100 con upsert de alta velocidad
-                foreach (array_chunk($cleanRecords, 100) as $chunk) {
-                    $chunkHandled = false;
-                    try {
-                        $firstKeys = array_keys($chunk[0]);
-                        $sameKeys = true;
-                        foreach ($chunk as $item) {
-                            if (array_keys($item) !== $firstKeys) {
-                                $sameKeys = false;
-                                break;
-                            }
-                        }
+                if ($dryRun) {
+                    $this->comment("      [DRY-RUN] Simulado pull de {$count} registros (página {$page}).");
+                    $totalApplied += $count;
+                    $since = $response->json('next_since');
+                    $lastId = $response->json('next_id');
+                    continue;
+                }
 
-                        if ($sameKeys && in_array($primaryKey, $firstKeys, true)) {
-                            DB::table($table)->upsert($chunk, [$primaryKey]);
-                            $chunkHandled = true;
+                $primaryKey = $response->json('primary_key', 'id');
+                $validColumns = array_flip(Schema::getColumnListing($table));
+
+                DB::beginTransaction();
+                try {
+                    DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+                    try {
+                        DB::statement("SET SESSION sql_mode='NO_ENGINE_SUBSTITUTION';");
+                    } catch (\Throwable $e) {}
+
+                    $cleanRecords = [];
+                    foreach ($records as $row) {
+                        $row = (array) $row;
+                        $cleanRow = array_intersect_key($row, $validColumns);
+                        if (!empty($cleanRow)) {
+                            $cleanRecords[] = $cleanRow;
                         }
-                    } catch (\Throwable $e) {
-                        $chunkHandled = false;
                     }
 
-                    if (!$chunkHandled) {
-                        foreach ($chunk as $cleanRow) {
-                            try {
-                                if (isset($cleanRow[$primaryKey]) && !empty($cleanRow[$primaryKey])) {
-                                    $keyValue = $cleanRow[$primaryKey];
-                                    DB::table($table)->updateOrInsert([$primaryKey => $keyValue], $cleanRow);
-                                } else {
-                                    DB::table($table)->insert($cleanRow);
+                    // Aplicar en micro-lotes de 100 con upsert de alta velocidad
+                    foreach (array_chunk($cleanRecords, 100) as $chunk) {
+                        $chunkHandled = false;
+                        try {
+                            $firstKeys = array_keys($chunk[0]);
+                            $sameKeys = true;
+                            foreach ($chunk as $item) {
+                                if (array_keys($item) !== $firstKeys) {
+                                    $sameKeys = false;
+                                    break;
                                 }
-                            } catch (\Throwable $rowEx) {
-                                // Auto-sanación ante colisión de índice único secundario (Error 1062)
-                                if (str_contains($rowEx->getMessage(), '1062 Duplicate entry')) {
-                                    try {
-                                        if (preg_match("/Duplicate entry '([^']+)' for key/i", $rowEx->getMessage(), $matches)) {
-                                            $dupVal = $matches[1];
-                                            foreach ($cleanRow as $col => $val) {
-                                                if (is_string($val) && (str_starts_with($val, $dupVal) || str_starts_with($dupVal, substr($val, 0, 50)))) {
-                                                    DB::table($table)->where($col, '=', $val)->where($primaryKey, '!=', $cleanRow[$primaryKey] ?? 0)->delete();
-                                                    break;
+                            }
+
+                            if ($sameKeys && in_array($primaryKey, $firstKeys, true)) {
+                                DB::table($table)->upsert($chunk, [$primaryKey]);
+                                $chunkHandled = true;
+                            }
+                        } catch (\Throwable $e) {
+                            $chunkHandled = false;
+                        }
+
+                        if (!$chunkHandled) {
+                            foreach ($chunk as $cleanRow) {
+                                try {
+                                    if (isset($cleanRow[$primaryKey]) && !empty($cleanRow[$primaryKey])) {
+                                        $keyValue = $cleanRow[$primaryKey];
+                                        DB::table($table)->updateOrInsert([$primaryKey => $keyValue], $cleanRow);
+                                    } else {
+                                        DB::table($table)->insert($cleanRow);
+                                    }
+                                } catch (\Throwable $rowEx) {
+                                    // Auto-sanación ante colisión de índice único secundario (Error 1062)
+                                    if (str_contains($rowEx->getMessage(), '1062 Duplicate entry')) {
+                                        try {
+                                            if (preg_match("/Duplicate entry '([^']+)' for key/i", $rowEx->getMessage(), $matches)) {
+                                                $dupVal = $matches[1];
+                                                foreach ($cleanRow as $col => $val) {
+                                                    if (is_string($val) && (str_starts_with($val, $dupVal) || str_starts_with($dupVal, substr($val, 0, 50)))) {
+                                                        DB::table($table)->where($col, '=', $val)->where($primaryKey, '!=', $cleanRow[$primaryKey] ?? 0)->delete();
+                                                        break;
+                                                    }
                                                 }
                                             }
+                                            if (isset($cleanRow[$primaryKey])) {
+                                                DB::table($table)->updateOrInsert([$primaryKey => $cleanRow[$primaryKey]], $cleanRow);
+                                            } else {
+                                                DB::table($table)->insert($cleanRow);
+                                            }
+                                        } catch (\Throwable $retryEx) {
+                                            $this->logSync("[PULL-SKIP] Registro omitido en '{$table}': " . $retryEx->getMessage(), 'warning');
                                         }
-                                        if (isset($cleanRow[$primaryKey])) {
-                                            DB::table($table)->updateOrInsert([$primaryKey => $cleanRow[$primaryKey]], $cleanRow);
-                                        } else {
-                                            DB::table($table)->insert($cleanRow);
-                                        }
-                                    } catch (\Throwable $retryEx) {
-                                        $this->logSync("[PULL-SKIP] Registro omitido en '{$table}': " . $retryEx->getMessage(), 'warning');
+                                    } else {
+                                        $this->logSync("[PULL-SKIP] Registro omitido en '{$table}': " . $rowEx->getMessage(), 'warning');
                                     }
-                                } else {
-                                    $this->logSync("[PULL-SKIP] Registro omitido en '{$table}': " . $rowEx->getMessage(), 'warning');
                                 }
                             }
                         }
                     }
+
+                    DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                    DB::commit();
+
+                    $totalApplied += $count;
+                    $since = $response->json('next_since');
+                    $lastId = $response->json('next_id');
+
+                    $this->updateCheckpoint('pull', $table, $since, $lastId, $count, 'success');
+
+                    if ($hasMore) {
+                        $this->line("      ... {$totalApplied} registros aplicados acumulados en '{$table}'...");
+                    } else {
+                        $this->info("      ✅ {$totalApplied} registros aplicados localmente en '{$table}'.");
+                    }
+                } catch (\Throwable $e) {
+                    DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+                    DB::rollBack();
+                    $this->error("      ❌ Error aplicando PULL en '{$table}': " . $e->getMessage());
+                    $this->updateCheckpoint('pull', $table, $since, $lastId, 0, 'error', $e->getMessage());
+                    break;
                 }
-
-                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-                DB::commit();
-
-                $nextSince = $response->json('next_since');
-                $nextId = $response->json('next_id');
-
-                $this->updateCheckpoint('pull', $table, $nextSince, $nextId, $count, 'success');
-                $this->info("      ✅ {$count} registros aplicados localmente en '{$table}'.");
-
-                return $count;
             } catch (\Throwable $e) {
-                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-                DB::rollBack();
-                $this->error("      ❌ Error aplicando PULL en '{$table}': " . $e->getMessage());
-                $this->updateCheckpoint('pull', $table, $since, $lastId, 0, 'error', $e->getMessage());
+                $this->error("      ❌ Excepción en PULL de '{$table}': " . $e->getMessage());
+                break;
             }
-        } catch (\Throwable $e) {
-            $this->error("      ❌ Excepción en PULL de '{$table}': " . $e->getMessage());
-        }
+        } while ($hasMore);
 
-        return 0;
+        return $totalApplied;
     }
 
     /**
@@ -440,6 +539,13 @@ class SaavedraSync extends Command
             return;
         }
 
+        $existing = DB::table('sync_checkpoints')
+            ->where('channel', '=', $channel, 'and')
+            ->where('table_name', '=', $table, 'and')
+            ->first();
+
+        $newCount = ($existing ? (int) $existing->records_count : 0) + $recordsCount;
+
         DB::table('sync_checkpoints')->updateOrInsert(
             [
                 'channel' => $channel,
@@ -448,7 +554,7 @@ class SaavedraSync extends Command
             [
                 'last_synced_at' => $lastSyncedAt,
                 'last_synced_id' => $lastSyncedId,
-                'records_count' => DB::raw("records_count + {$recordsCount}"),
+                'records_count' => $newCount,
                 'status' => $status,
                 'last_error' => $lastError,
                 'updated_at' => now(),
