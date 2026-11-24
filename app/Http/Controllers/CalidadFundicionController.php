@@ -69,6 +69,9 @@ class CalidadFundicionController extends Controller
     public function index(Request $request)
     {
         $this->verificarAcceso();
+        if (Auth::check() && (string) Auth::user()->perfil === '7') {
+            abort(403, 'Acceso restringido. Almacén debe utilizar la vista de Almacén Fundición.');
+        }
 
         // Filtros desde query string
         $busquedaOt = trim($request->query('ot', ''));

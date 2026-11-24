@@ -58,6 +58,11 @@ class HomeController extends Controller
                     $layout = 'layouts.menu.appAdmin';
                     $welcomeT = 'Bienvenido Supervisor';
                     break;
+                case 7:
+                    $layout = 'layouts.menu.appAdmin';
+                    $backgroundImage = 'images/fondos/fondoalmacen.png';
+                    $welcomeT = 'Bienvenido a Almacén';
+                    break;
                 case 8:
                     $layout = 'layouts.menu.appQuality';
                     $backgroundImage = 'images/fondos/fondocalidad.png';

@@ -38,6 +38,7 @@ return [
     'batch_size' => (int) env('SYNC_BATCH_SIZE', 250),
     'timeout' => (int) env('SYNC_TIMEOUT', 90),
     'ping_timeout' => (int) env('SYNC_PING_TIMEOUT', 4),
+    'ssl_verify' => (bool) env('SYNC_SSL_VERIFY', false),
 
     /*
     |--------------------------------------------------------------------------

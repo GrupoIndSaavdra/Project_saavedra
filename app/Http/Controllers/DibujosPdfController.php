@@ -929,7 +929,12 @@ class DibujosPdfController extends Controller
 
         foreach ($candidates as $relPath) {
             try {
-                $response = \Illuminate\Support\Facades\Http::timeout(6)
+                $http = \Illuminate\Support\Facades\Http::timeout(6);
+                if (!config('sync.ssl_verify', false)) {
+                    $http = $http->withoutVerifying();
+                }
+
+                $response = $http
                     ->withHeaders(['X-Sync-Token' => $token])
                     ->get(rtrim((string) $cloudUrl, '/') . '/api/sync/files/download', ['path' => $relPath]);
 
@@ -970,7 +975,12 @@ class DibujosPdfController extends Controller
                 $rel = substr($rel, strlen('DOCUMENTACION_GIS/'));
             }
 
-            \Illuminate\Support\Facades\Http::timeout(5)
+            $http = \Illuminate\Support\Facades\Http::timeout(5);
+            if (!config('sync.ssl_verify', false)) {
+                $http = $http->withoutVerifying();
+            }
+
+            $http
                 ->withHeaders(['X-Sync-Token' => $token])
                 ->attach('file', file_get_contents($absPath), basename($absPath))
                 ->post(rtrim((string) $cloudUrl, '/') . '/api/sync/files/upload', [
