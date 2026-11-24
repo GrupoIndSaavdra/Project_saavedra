@@ -252,6 +252,10 @@ class SystemLogController extends Controller
 
     public function index(Request $request)
     {
+        if (Auth::check() && (string) Auth::user()->perfil === '5') {
+            abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
+        }
+
         // 1. Obtener valores ÚNICOS para los filtros usando DB::table() en lugar de Eloquent con Cache por 1 hora.
         // DB::table() devuelve stdClass simples — NUNCA instancia modelos Eloquent ni su
         // GuardsAttributes, evitando el agotamiento de memoria con tablas grandes.

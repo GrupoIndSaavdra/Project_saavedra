@@ -120,6 +120,10 @@ class PzasGeneralesController extends Controller
 
     public function showPiecesReport_view()
     {
+        if (auth()->check() && (string) auth()->user()->perfil === '5') {
+            abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
+        }
+
         return $this->getPiecesRequest(new Request());
     }
 

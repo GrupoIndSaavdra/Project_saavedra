@@ -481,6 +481,10 @@ class PtaResultsController extends Controller
      */
     public function analysis(Request $request)
     {
+        if (! session('pta_temp_auth') && Auth::check() && (string) Auth::user()->perfil === '5') {
+            abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
+        }
+
         $otsConPTA = Orden_trabajo::whereHas('clases', function ($q) {
             $q->whereHas('piezas', function ($q2) {
                 $q2->where('proceso', 'Soldadura PTA');
@@ -622,6 +626,10 @@ class PtaResultsController extends Controller
      */
     public function segPasadaIndex(Request $request)
     {
+        if (! session('pta_temp_auth') && Auth::check() && (string) Auth::user()->perfil === '5') {
+            abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
+        }
+
         $otsConPTA = Orden_trabajo::whereHas('clases', function ($q) {
             $q->whereHas('piezas', fn ($q2) => $q2->where('proceso', 'Soldadura PTA'));
         })->with([

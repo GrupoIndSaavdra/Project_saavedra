@@ -557,7 +557,7 @@ function enableEditClass(idClass) {
         }
     }
 
-    if (selectedClass && window.profile != 5) {
+    if (selectedClass && window.profile != 7) {
         let className = selectedClass.nombre;
         let procsForClass = (window.processes && window.processes[idClass] && Object.keys(window.processes[idClass]).length > 0)
             ? window.processes[idClass]
@@ -627,10 +627,10 @@ function createSelectOrInput(element, attributesArray, nameInput) {
             htmlTag.setAttribute(attribute, attributesArray[element][attribute]);
         }
     }
-    if (window.profile == 5 && nameInput != "order" && nameInput != "pieces") {
+    if (window.profile == 7 && nameInput != "order" && nameInput != "pieces") {
         htmlTag.disabled = true;
     }
-    if (window.profile != 5 && nameInput == "pieces") {
+    if (window.profile != 7 && nameInput == "pieces") {
         htmlTag.disabled = true;
         if (htmlTag.value === "" || htmlTag.value === "null" || htmlTag.value == null) {
             htmlTag.value = 0;
@@ -793,7 +793,7 @@ function crearCasillas(operations, operationsArray, markedProcesses, edit) {
         sections.appendChild(section2);
     }
 
-    if (window.profile != 5) createCheckboxAll(edit);
+    if (window.profile != 7) createCheckboxAll(edit);
 }
 
 function createProcessBox(operation, processIndex, operationName, markedProcesses, edit) {
@@ -849,7 +849,7 @@ function createProcessBox(operation, processIndex, operationName, markedProcesse
 function createCheckboxAll(edit) {
     let existingDiv = document.querySelector(".div-checkboxAll");
     if (existingDiv != null) existingDiv.remove();
-    if (window.profile == 5 || !edit) return;
+    if (window.profile == 7 || !edit) return;
 
     let div_boxes = document.querySelector(".div-boxes");
     if (!div_boxes) return;
@@ -901,7 +901,7 @@ function automateCheckbox(checkbox, machineInput, operationName, markedProcesses
         }
     }
     if (!edit) { checkbox.disabled = true; machineInput.disabled = true; }
-    if (window.profile == 5) {
+    if (window.profile == 7) {
         machineInput.disabled = true; checkbox.disabled = true;
         if (markedProcesses == null) checkbox.checked = false;
     }

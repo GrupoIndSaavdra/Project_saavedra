@@ -10,6 +10,18 @@ use Illuminate\Support\Facades\Storage;
 
 class TratamientoTermicoController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            if (auth()->check() && (string) auth()->user()->perfil === '5') {
+                abort(403, 'Acceso denegado: el perfil de Diseño y programación no tiene acceso a tratamientos térmicos.');
+            }
+
+            return $next($request);
+        });
+    }
+
     public function store(Request $request)
     {
         $request->validate([
