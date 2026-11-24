@@ -298,10 +298,16 @@ class SaavedraBackupLocal extends Command
     }
 
     /**
-     * Registro en archivo de logs de respaldo.
+     * Registro en archivo de logs de respaldo y sincronización (storage/logs/sync.log).
      */
     protected function logBackup(string $message): void
     {
+        try {
+            Log::channel('sync')->info("[LOCAL-BACKUP-OK] {$message}");
+        } catch (\Throwable $e) {
+            // Silencioso
+        }
+
         try {
             $logPath = storage_path('logs/backup_local.log');
             $time = now()->format('Y-m-d H:i:s');
