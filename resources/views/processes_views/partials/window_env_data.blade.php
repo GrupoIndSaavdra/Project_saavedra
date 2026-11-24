@@ -22,7 +22,7 @@
     window.imgMasZoom = "{{ asset('images/Light_Icons/Mas_Zoom-Light.png') }}";
     window.imgMenosZoom = "{{ asset('images/Light_Icons/Menos_Zoom-Light.png') }}";
     window.imgOt = "{{ asset('images/Light_Icons/OT-Light.png') }}";
-    window.imgPiezaCubo = "{{ asset('images/Light_Icons/Pieza_Cubo-Light.png') }}";
+    window.imgPiezaCubo = "{{ asset('images/Light_Icons/Filtro_Clase-Light.png') }}";
     window.imgNoPiecesCustom = "{{ asset('images/Color_Icons/Generales/icono_sin_piezas.png') }}";
     window.occupiedMachines = @json((new \App\Http\Controllers\MachinesController)->machinesOccupied());
 </script>

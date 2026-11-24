@@ -1,6 +1,43 @@
 import { createDateFilterTrigger } from '../../components/modalCmCalendar.js';
 var operacion = false;
 
+function normalizeName(str) {
+    return String(str || '')
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function cleanClassDisplayName(str) {
+    if (!str) return '';
+    let clean = String(str).trim().replace(/^\d+\s*[-_.]?\s*/, '').trim();
+    if (!clean) return String(str).trim();
+    return clean.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+}
+
+function normClass(str) {
+    return String(str || '')
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .trim()
+        .replace(/^\d+\s*[-_.]?\s*/, '')
+        .toLowerCase()
+        .replace(/\s+/g, ' ');
+}
+
+function matchClassNames(classA, classB) {
+    if (!classA || !classB) return false;
+    let a = String(classA).trim();
+    let b = String(classB).trim();
+    if (a.toLowerCase() === b.toLowerCase()) return true;
+    let normA = normClass(a);
+    let normB = normClass(b);
+    if (!normA || !normB) return false;
+    return normA === normB;
+}
+
 // Restaurar filtros si venimos de la vista de detalle de una pieza
 const comingBack = sessionStorage.getItem('comingFromPieceView') === 'true';
 sessionStorage.removeItem('comingFromPieceView');
@@ -145,30 +182,34 @@ function renderCurrentPage() {
             data-njuego="${esc(pieza.noAssembly)}"
         >`;
 
-        Object.keys(pieza).forEach((key) => {
-            if (key !== "colorPiece") {
-                let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
+        const tableColumns = [
+            "class", "workOrder", "noAssembly", "operator", "machine", "process",
+            "errors", "observations", "machinedDate", "liberationDate",
+            "user_liberation", "observacion_liberacion", "btn_release", "btn_decline", "btn_seePiece"
+        ];
 
-                if (key === "btn_release") {
-                    let btnHtml = "";
-                    if (!pieza[key][1].includes("Incompleto") && pieza[key][0] != 1) {
-                        let bool = (infoP[2] == "Ninguno" && piezaOG[9] != 2);
-                        btnHtml = `<a class="btn-liberar btn-action-liberar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}" data-buena="${bool}"><img src="${window.liberar}" alt="Liberar" class="ver"></a>`;
-                    }
-                    html += `<td>${btnHtml}</td>`;
-                } else if (key === "btn_decline") {
-                    let btnHtml = "";
-                    if (pieza[key] != 2) {
-                        btnHtml = `<a class="btn-liberar btn-action-rechazar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}"><img src="${window.rechazar}" alt="Rechazar" class="ver"></a>`;
-                    }
-                    html += `<td>${btnHtml}</td>`;
-                } else if (key === "btn_seePiece") {
-                    let url = `${window.baseUrl}/pieces/${piezasIds}/${infoP[1]}/${profileValue}`;
-                    html += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver" class="ver"></a></td>`;
-                } else {
-                    let cellClass = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' class="wide-cell"' : '';
-                    html += `<td${cellClass}>${cellValue}</td>`;
+        tableColumns.forEach((key) => {
+            let cellValue = pieza[key] !== null && pieza[key] !== undefined ? pieza[key] : "";
+
+            if (key === "btn_release") {
+                let btnHtml = "";
+                if (!pieza[key][1].includes("Incompleto") && pieza[key][0] != 1) {
+                    let bool = (infoP[2] == "Ninguno" && piezaOG[9] != 2);
+                    btnHtml = `<a class="btn-liberar btn-action-liberar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}" data-buena="${bool}"><img src="${window.liberar}" alt="Liberar" class="ver"></a>`;
                 }
+                html += `<td>${btnHtml}</td>`;
+            } else if (key === "btn_decline") {
+                let btnHtml = "";
+                if (pieza[key] != 2) {
+                    btnHtml = `<a class="btn-liberar btn-action-rechazar" style="cursor:pointer;" data-pieza="${piezasIds}" data-proceso="${infoP[1]}"><img src="${window.rechazar}" alt="Rechazar" class="ver"></a>`;
+                }
+                html += `<td>${btnHtml}</td>`;
+            } else if (key === "btn_seePiece") {
+                let url = `${window.baseUrl}/pieces/${piezasIds}/${infoP[1]}/${profileValue}`;
+                html += `<td><a class="btn-pza" href="${url}"><img src="${window.ojito}" alt="Ver" class="ver"></a></td>`;
+            } else {
+                let cellClass = (key === "operator" || key === "observations" || key === "observacion_liberacion") ? ' class="wide-cell"' : '';
+                html += `<td${cellClass}>${cellValue}</td>`;
             }
         });
         html += `</tr>`;
@@ -347,16 +388,16 @@ function asignColorTr(status, error, process) {
     }
 }
 function orderedArray(array) {
-    // Estructura del backend PHP (saveInArray):
-    //  [0] id_ot  [1] n_pieza  [2] operador  [3] maquina  [4] proceso
-    //  [5] error  [6] created_at  [7] fecha_liberacion  [8] user_liberacion
-    //  [9] liberacion (push)  [10] 'mitad'|'juego' (push)
-    //  .observations  .observacion_liberacion  .className  .id_clase
+    let rawClass = array["className"] || "";
+    let cleanClass = cleanClassDisplayName(rawClass);
+
     return {
-        class: array["className"],
+        class: cleanClass || rawClass,
+        raw_class: rawClass,
         workOrder: array[0],
         noAssembly: array[1],
         operator: array[2],
+        operator_id: array["id_operador"] || array[13] || "",
         machine: array[3],
         process: array[4],
         errors: array[5],
@@ -571,26 +612,44 @@ function createFilters() {
                         }
                     } else {
                         let dataToIterate = window.filtersData[item];
-                        if (item == "class" && typeof window.getSearchableClassesJS === "function") {
-                            window.getSearchableClassesJS().forEach(c => {
-                                const formatted = c.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                                if (!dataToIterate.includes(formatted)) {
-                                    dataToIterate.push(formatted);
+
+                        if (item == "class") {
+                            let cleanClassMap = new Map();
+                            (window.filtersData[item] || []).forEach(c => {
+                                let clean = cleanClassDisplayName(c);
+                                let norm = normClass(clean);
+                                if (clean && norm && !cleanClassMap.has(norm)) {
+                                    cleanClassMap.set(norm, clean);
                                 }
                             });
+                            if (typeof window.getSearchableClassesJS === "function") {
+                                window.getSearchableClassesJS().forEach(c => {
+                                    let clean = cleanClassDisplayName(c);
+                                    let norm = normClass(clean);
+                                    if (clean && norm && !cleanClassMap.has(norm)) {
+                                        cleanClassMap.set(norm, clean);
+                                    }
+                                });
+                            }
+                            dataToIterate = Array.from(cleanClassMap.values()).sort((a, b) => a.localeCompare(b));
                         }
 
                         if (item == "operator") {
-                            dataToIterate = [...window.filtersData[item]].sort((a, b) => {
-                                const nameA = `${a.nombre} ${a.a_paterno} ${a.a_materno}`.toLowerCase();
-                                const nameB = `${b.nombre} ${b.a_paterno} ${b.a_materno}`.toLowerCase();
+                            dataToIterate = [...(window.filtersData[item] || [])].sort((a, b) => {
+                                const nameA = normalizeName(`${a.nombre} ${a.a_paterno} ${a.a_materno}`);
+                                const nameB = normalizeName(`${b.nombre} ${b.a_paterno} ${b.a_materno}`);
                                 return nameA.localeCompare(nameB);
                             });
                         }
 
                         dataToIterate.forEach((key) => {
                             if (item == "operator") {
-                                if (key.matricula == window.selectedItems[item].matricula) {
+                                let selMat = window.selectedItems[item] ? (window.selectedItems[item].matricula || window.selectedItems[item]) : null;
+                                if (selMat && key.matricula == selMat) {
+                                    return;
+                                }
+                            } else if (item == "class") {
+                                if (window.selectedItems[item] && matchClassNames(key, window.selectedItems[item])) {
                                     return;
                                 }
                             } else {
@@ -601,7 +660,7 @@ function createFilters() {
                             const option = document.createElement("option");
                             option.value = item == "operator" ? key.matricula : key;
                             option.textContent =
-                                item == "operator" ? key.nombre + " " + key.a_paterno + " " + key.a_materno : key;
+                                item == "operator" ? [key.nombre, key.a_paterno, key.a_materno].filter(Boolean).join(" ") : key;
                             select.appendChild(option);
                         });
                     }
@@ -754,8 +813,6 @@ function setupCascadingFilters() {
 
     if (!otSelect || !classSelect || !processSelect) return;
 
-    const normClass = (s) => String(s || '').trim().replace(/^\d+\s*-\s*/, '').toLowerCase();
-
     function extractOptions(select) {
         if (!select) return [];
         let opts = [];
@@ -775,16 +832,43 @@ function setupCascadingFilters() {
     const originalOperatorOptions = extractOptions(operatorSelect);
     const originalMachineOptions = extractOptions(machineSelect);
 
+    function restoreAllOriginalOptions() {
+        const restore = (selectEl, originalOptions, isClass = false) => {
+            if (!selectEl) return;
+            const currentVal = selectEl.value;
+            while (selectEl.options.length > 0) selectEl.remove(0);
+            let seen = new Set();
+            originalOptions.forEach(opt => {
+                if (seen.has(opt.value)) return;
+                seen.add(opt.value);
+                let o = document.createElement("option");
+                o.value = opt.value;
+                o.textContent = opt.text;
+                if (opt.value === currentVal || (isClass && normClass(opt.value) === normClass(currentVal))) {
+                    o.selected = true;
+                }
+                selectEl.appendChild(o);
+            });
+            if (selectEl.selectedIndex < 0) selectEl.value = "Todos";
+        };
+
+        restore(classSelect, originalClassOptions, true);
+        restore(processSelect, originalProcessOptions);
+        if (operatorSelect) restore(operatorSelect, originalOperatorOptions);
+        if (machineSelect) restore(machineSelect, originalMachineOptions);
+    }
+
     function updateCascadingFilters() {
         if (!window.pieces || window.pieces.length === 0) return;
 
-        const currentOT = otSelect.value;
-        const currentClass = classSelect.value;
-        const currentProcess = processSelect.value;
+        const currentOT = otSelect ? otSelect.value : "Todos";
+        const currentClass = classSelect ? classSelect.value : "Todos";
+        const currentProcess = processSelect ? processSelect.value : "Todos";
         const currentOperator = operatorSelect ? operatorSelect.value : "Todos";
 
-        // Si todos los filtros están en 'Todos', no es necesario filtrar en cascada sobre miles de registros
+        // Si todos los filtros principales están en 'Todos', restaurar todas las opciones originales completas
         if (currentOT === "Todos" && currentClass === "Todos" && currentProcess === "Todos" && currentOperator === "Todos") {
+            restoreAllOriginalOptions();
             return;
         }
 
@@ -810,7 +894,32 @@ function setupCascadingFilters() {
                 matchedOptionValue = "Todos";
             }
 
-            // Filtrar opciones originales
+            // Si activeSet es null/undefined, restauramos TODAS las opciones originales de este select
+            if (!activeSet) {
+                originalOptions.forEach(opt => {
+                    if (opt.value === "Todos" || seenValues.has(opt.value)) return;
+                    seenValues.add(opt.value);
+                    let o = document.createElement("option");
+                    o.value = opt.value;
+                    o.textContent = opt.text;
+                    selectEl.appendChild(o);
+
+                    if (currentVal === opt.value || (type === 'class' && normClass(currentVal) === normClass(opt.value))) {
+                        hasCurrentVal = true;
+                        matchedOptionValue = opt.value;
+                    }
+                });
+
+                if (hasCurrentVal && matchedOptionValue !== null) {
+                    selectEl.value = matchedOptionValue;
+                } else {
+                    selectEl.value = "Todos";
+                    if (currentVal !== "Todos") anySelectionChanged = true;
+                }
+                return;
+            }
+
+            // Filtrar opciones originales según activeSet
             originalOptions.forEach(opt => {
                 if (opt.value === "Todos" || seenValues.has(opt.value)) return;
 
@@ -821,9 +930,10 @@ function setupCascadingFilters() {
                 } else if (type === 'process') {
                     isActive = activeSet.has(opt.value) || activeSet.has(opt.text);
                 } else if (type === 'operator') {
-                    let optName = String(opt.text || '').trim().toLowerCase();
-                    isActive = (activeSet.ids && activeSet.ids.has(String(opt.value).trim())) ||
-                               (activeSet.names && activeSet.names.has(optName));
+                    let optName = normalizeName(opt.text);
+                    let optVal = String(opt.value).trim();
+                    isActive = (activeSet.ids && activeSet.ids.has(optVal)) ||
+                               (activeSet.names && (activeSet.names.has(optName) || Array.from(activeSet.names).some(an => an && (optName.includes(an) || an.includes(optName)))));
                 } else if (type === 'machine') {
                     let val = String(opt.value).trim();
                     if (val.includes("_")) {
@@ -853,24 +963,54 @@ function setupCascadingFilters() {
                 }
             });
 
-            // Para clases: asegurar que todas las clases activas presentes en las piezas estén en el select
+            // Para clases: asegurar que todas las clases activas presentes en las piezas estén en el select con nombre limpio
             if (type === 'class') {
                 activeSet.forEach(ac => {
-                    let raw = String(ac).trim();
-                    if (!raw || seenValues.has(raw)) return;
+                    let clean = cleanClassDisplayName(ac);
+                    let rawNorm = normClass(clean);
+                    if (!clean || !rawNorm) return;
 
-                    let rawNorm = normClass(raw);
                     let alreadyRepresented = Array.from(seenValues).some(v => normClass(v) === rawNorm);
                     if (!alreadyRepresented) {
-                        seenValues.add(raw);
+                        seenValues.add(clean);
                         let o = document.createElement("option");
-                        o.value = raw;
-                        o.textContent = raw;
+                        o.value = clean;
+                        o.textContent = clean;
                         selectEl.appendChild(o);
 
-                        if (currentVal === raw || normClass(currentVal) === rawNorm) {
+                        if (normClass(currentVal) === rawNorm) {
                             hasCurrentVal = true;
-                            matchedOptionValue = raw;
+                            matchedOptionValue = clean;
+                        }
+                    }
+                });
+            }
+
+            // Para operadores: asegurar que todos los operadores activos de las piezas estén en el select
+            if (type === 'operator' && activeSet.names) {
+                activeSet.names.forEach(an => {
+                    if (!an) return;
+                    let alreadyRepresented = Array.from(seenValues).some(v => {
+                        let matchInOriginal = originalOptions.find(o => o.value === v);
+                        return matchInOriginal && (normalizeName(matchInOriginal.text) === an || normalizeName(matchInOriginal.text).includes(an) || an.includes(normalizeName(matchInOriginal.text)));
+                    });
+                    if (!alreadyRepresented) {
+                        let samplePiece = activePiecesForProcess.find(p => {
+                            let pNames = String(p[2] || '').split('/').map(n => normalizeName(n));
+                            return pNames.includes(an);
+                        });
+                        let displayText = samplePiece ? String(samplePiece[2]).split('/').find(n => normalizeName(n) === an) : an;
+                        let optId = samplePiece ? (samplePiece.id_operador || samplePiece[13] || an) : an;
+
+                        seenValues.add(optId);
+                        let o = document.createElement("option");
+                        o.value = optId;
+                        o.textContent = displayText ? displayText.trim() : an;
+                        selectEl.appendChild(o);
+
+                        if (currentVal === optId || normalizeName(currentVal) === an) {
+                            hasCurrentVal = true;
+                            matchedOptionValue = optId;
                         }
                     }
                 });
@@ -898,9 +1038,11 @@ function setupCascadingFilters() {
             }
         });
 
-        if (activeClasses.size > 0) {
+        if (finalOT === "Todos") {
+            refreshSelect(classSelect, originalClassOptions, null, 'class');
+        } else if (activeClasses.size > 0) {
             refreshSelect(classSelect, originalClassOptions, activeClasses, 'class');
-        } else if (finalOT !== "Todos") {
+        } else {
             const otIdOnly = String(finalOT).split(" - ")[0].trim();
             if (otIdOnly && window.baseUrl) {
                 fetch(`${window.baseUrl}/piecesOccupied/classes?ot=${encodeURIComponent(otIdOnly)}`)
@@ -913,8 +1055,6 @@ function setupCascadingFilters() {
                     })
                     .catch(e => console.error("Error al actualizar clases de OT:", e));
             }
-        } else {
-            refreshSelect(classSelect, originalClassOptions, new Set(originalClassOptions.map(o => o.value)), 'class');
         }
 
         // 2. Filtrar piezas activas por OT + Clase
@@ -923,14 +1063,18 @@ function setupCascadingFilters() {
         let activeProcesses = new Set();
         activePiecesForOT.forEach(p => {
             let pieceClass = String(p.className || '').trim();
-            let matchClass = finalClass === "Todos" ? true : (pieceClass === finalClass || normClass(pieceClass) === normClass(finalClass));
+            let matchClass = finalClass === "Todos" ? true : matchClassNames(pieceClass, finalClass);
             if (matchClass) {
                 activePiecesForClass.push(p);
                 if (p[4]) activeProcesses.add(String(p[4]).trim());
             }
         });
 
-        refreshSelect(processSelect, originalProcessOptions, activeProcesses, 'process');
+        if (finalOT === "Todos" && finalClass === "Todos") {
+            refreshSelect(processSelect, originalProcessOptions, null, 'process');
+        } else {
+            refreshSelect(processSelect, originalProcessOptions, activeProcesses, 'process');
+        }
 
         // 3. Filtrar operadores y máquinas por OT + Clase + Proceso
         const finalProcess = processSelect.value;
@@ -945,16 +1089,26 @@ function setupCascadingFilters() {
                 activePiecesForProcess.push(p);
                 if (p[2]) {
                     String(p[2]).split('/').forEach(name => {
-                        let cleanName = name.trim().toLowerCase();
+                        let cleanName = normalizeName(name);
                         if (cleanName) activeOperatorNames.add(cleanName);
                     });
                 }
-                if (p[13]) activeOperators.add(String(p[13]).trim());
+                let opId = p.id_operador || p[13];
+                if (opId) {
+                    String(opId).split('/').forEach(id => {
+                        let cleanId = id.trim();
+                        if (cleanId) activeOperators.add(cleanId);
+                    });
+                }
             }
         });
 
         if (operatorSelect) {
-            refreshSelect(operatorSelect, originalOperatorOptions, { ids: activeOperators, names: activeOperatorNames }, 'operator');
+            if (finalOT === "Todos" && finalClass === "Todos" && finalProcess === "Todos") {
+                refreshSelect(operatorSelect, originalOperatorOptions, null, 'operator');
+            } else {
+                refreshSelect(operatorSelect, originalOperatorOptions, { ids: activeOperators, names: activeOperatorNames }, 'operator');
+            }
         }
 
         // 4. Filtrar máquinas por OT + Clase + Proceso + Operador (si hay operador seleccionado)
@@ -963,10 +1117,10 @@ function setupCascadingFilters() {
         activePiecesForProcess.forEach(p => {
             let matchOperator = true;
             if (finalOperator !== "Todos" && operatorSelect) {
-                let opName = (operatorSelect.options[operatorSelect.selectedIndex]?.textContent || '').trim().toLowerCase();
-                let rowOps = String(p[2] || '').split('/').map(n => n.trim().toLowerCase());
-                let pIdUser = String(p[13] || '').trim();
-                matchOperator = (pIdUser === finalOperator || rowOps.includes(opName));
+                let opName = normalizeName(operatorSelect.options[operatorSelect.selectedIndex]?.textContent || '');
+                let rowOps = String(p[2] || '').split('/').map(n => normalizeName(n));
+                let pIdUsers = String(p.id_operador || p[13] || '').split('/').map(id => id.trim());
+                matchOperator = (pIdUsers.includes(finalOperator) || rowOps.some(ro => ro === opName || ro.includes(opName) || opName.includes(ro)));
             }
             if (matchOperator && p[3]) {
                 activeMachines.add(String(p[3]).trim());
@@ -974,7 +1128,11 @@ function setupCascadingFilters() {
         });
 
         if (machineSelect) {
-            refreshSelect(machineSelect, originalMachineOptions, activeMachines, 'machine');
+            if (finalOT === "Todos" && finalClass === "Todos" && finalProcess === "Todos" && finalOperator === "Todos") {
+                refreshSelect(machineSelect, originalMachineOptions, null, 'machine');
+            } else {
+                refreshSelect(machineSelect, originalMachineOptions, activeMachines, 'machine');
+            }
         }
 
         if (anySelectionChanged && typeof applyAllFilters === 'function') {
@@ -1383,14 +1541,23 @@ function applyAllFilters() {
 
         if (f.class && f.class !== "Todos") {
             const rowClass = String(ord.class || '').trim();
-            const cleanRowClass = rowClass.replace(/^\d+\s*-\s*/, '').toLowerCase();
-            const cleanFilterClass = String(f.class).trim().replace(/^\d+\s*-\s*/, '').toLowerCase();
-            if (rowClass !== f.class && cleanRowClass !== cleanFilterClass) return false;
+            if (!matchClassNames(rowClass, f.class)) return false;
         }
 
         if (f.operator && f.operator !== "Todos") {
-            let rowOperators = String(ord.operator).split('/').map(op => op.trim());
-            if (!rowOperators.includes(f.operator)) return false;
+            const opSelect = document.querySelector('select[name="operator"]');
+            const selectedText = (opSelect && opSelect.options[opSelect.selectedIndex]?.textContent || "").trim();
+            const normSelected = normalizeName(selectedText);
+            const normFilter = normalizeName(f.operator);
+
+            const rowOperators = String(ord.operator || "").split('/').map(op => normalizeName(op));
+            const rowIds = String(ord.operator_id || "").split('/').map(id => id.trim());
+
+            const matchId = rowIds.includes(String(f.operator).trim());
+            const matchName = (normSelected && normSelected !== 'todos' && rowOperators.some(op => op === normSelected || op.includes(normSelected) || normSelected.includes(op)))
+                           || (normFilter && normFilter !== 'todos' && rowOperators.some(op => op === normFilter || op.includes(normFilter) || normFilter.includes(op)));
+
+            if (!matchId && !matchName) return false;
         }
 
         if (f.machine && f.machine !== "Todos") {

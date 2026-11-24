@@ -24,10 +24,10 @@ class User extends Authenticatable
         'a_materno',
         'contrasena',
         'perfil',
+        'perfil_id',
         'turno',
         'planta',
-        'area',
-        'puesto',
+        'puesto_id',
         'prod_status',
         'prod_start_at',
         'prod_locked_type',
@@ -61,5 +61,54 @@ class User extends Authenticatable
     public function getNameAttribute()
     {
         return $this->nombre . ' ' . $this->a_paterno . ' ' . $this->a_materno;
+    }
+
+    // Accessors para retrocompatibilidad con vistas existentes:
+    public function getAreaAttribute(): string
+    {
+        return '';
+    }
+
+    public function getPuestoAttribute(): string
+    {
+        return $this->puestoInfo->nombre ?? '';
+    }
+
+    /**
+     * Etiqueta oficial de planta para mostrar en vistas (el valor en BD es TECAMAC / CDMX).
+     */
+    public function getPlantaLabelAttribute(): string
+    {
+        return match ($this->planta) {
+            'TECAMAC' => 'TECÁMAC',
+            null, '' => '',
+            default => (string) $this->planta,
+        };
+    }
+
+    /**
+     * Prefijo de matrícula de 2 dígitos + guion (Perfil + Nivel de Puesto).
+     * Master: 11- | Sistemas: 01- | Resto: {codigo_perfil}{codigo_nivel}-
+     */
+    public static function prefijoMatricula(Perfil $perfil, mixed $area = null, ?Puesto $puesto = null): string
+    {
+        if ((int) $perfil->id === Perfil::MASTER) {
+            return '11-';
+        }
+
+        $cPerfil = (string) ($perfil->codigo_perfil ?? $perfil->id);
+        $cNivel  = (string) ($puesto->codigo_nivel ?? '1');
+
+        return $cPerfil . $cNivel . '-';
+    }
+
+    public function perfilInfo()
+    {
+        return $this->belongsTo(Perfil::class, 'perfil_id');
+    }
+
+    public function puestoInfo()
+    {
+        return $this->belongsTo(Puesto::class, 'puesto_id');
     }
 }

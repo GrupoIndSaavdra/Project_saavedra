@@ -34,7 +34,7 @@ class InspeccionVisualController extends Controller
      */
     public function index(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -69,7 +69,7 @@ class InspeccionVisualController extends Controller
      */
     public function show(Request $request, string $ot, string $clase)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -321,7 +321,7 @@ class InspeccionVisualController extends Controller
      */
     public function uploadArchivo(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -468,7 +468,7 @@ class InspeccionVisualController extends Controller
      */
     public function viewArchivo(Request $request, int $id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -521,7 +521,7 @@ class InspeccionVisualController extends Controller
      */
     public function downloadArchivo(Request $request, int $id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -558,7 +558,7 @@ class InspeccionVisualController extends Controller
      */
     public function deleteArchivo(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -635,7 +635,7 @@ class InspeccionVisualController extends Controller
      */
     public function generatePdf(Request $request, int|string $id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -736,7 +736,7 @@ class InspeccionVisualController extends Controller
      */
     public function downloadPdf(int|string $id, int|string $pdf_id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -754,7 +754,7 @@ class InspeccionVisualController extends Controller
      */
     public function viewPdf(int|string $id, int|string $pdf_id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -777,7 +777,7 @@ class InspeccionVisualController extends Controller
      */
     public function deletePdf(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 

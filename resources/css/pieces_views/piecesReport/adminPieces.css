@@ -417,12 +417,24 @@ tr:hover {
     color: #fff;
 }
 
-/* BOTÓN E ICONO DE PDF COMPUESTO (SHADOW + VIEW) */
-.btn-PDF {
+/* CONTENEDOR DE ACCIONES SUPERIOR DERECHO (SOLDADURA + PDF) */
+.header-actions-right {
     position: absolute;
     right: 8px;
     top: 50%;
     transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 10;
+}
+
+/* BOTÓN E ICONO DE PDF COMPUESTO (SHADOW + VIEW) */
+.btn-PDF {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
     background: transparent;
     border: none;
     cursor: pointer;
@@ -506,7 +518,7 @@ tr:hover {
 }
 
 .btn-PDF:active {
-    transform: translateY(-50%) scale(0.96);
+    transform: scale(0.96);
 }
 
 /* ADVERTENCE */
@@ -585,7 +597,11 @@ tr:hover {
     letter-spacing: 0.04rem;
     text-transform: uppercase;
     animation: pulseClickBadge 2.2s infinite ease-in-out;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        color 0.2s ease,
+        box-shadow 0.2s ease;
 }
 
 .toggle-click-badge:hover {
@@ -630,7 +646,8 @@ tr:hover {
 }
 
 @keyframes pulseClickBadge {
-    0%, 100% {
+    0%,
+    100% {
         box-shadow: 0 0 6px rgba(56, 189, 248, 0.25);
         border-color: rgba(56, 189, 248, 0.5);
     }
@@ -902,25 +919,99 @@ tr:hover {
    ============================================ */
 
 .btn-extra-info-soldadura {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    padding: 12px 24px;
-    background: linear-gradient(135deg, var(--gis-blue) 0%, #065494 100%);
-    color: white;
+    position: relative;
+    right: auto;
+    top: auto;
+    bottom: auto;
+    left: auto;
+    transform: none;
+    background: transparent;
     border: none;
-    border-radius: 30px;
     cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    box-shadow: 0 4px 15px rgba(3, 57, 102, 0.4);
-    z-index: 999;
-    transition: all 0.3s ease;
+    padding: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    transition:
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.25s ease;
+    text-decoration: none;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
-.btn-extra-info-soldadura:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 20px rgba(3, 57, 102, 0.6);
+.soldadura-btn-wrapper {
+    position: relative;
+    width: clamp(36px, 3.2vw, 46px);
+    height: clamp(36px, 3.2vw, 46px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.soldadura-icon {
+    width: 100% !important;
+    height: 100% !important;
+    float: none !important;
+    object-fit: contain;
+    transition:
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        opacity 0.25s ease,
+        filter 0.25s ease;
+    will-change: transform, opacity;
+}
+
+.soldadura-icon.icon-shadow {
+    position: relative;
+    z-index: 1;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15));
+}
+
+.soldadura-icon.icon-view {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    opacity: 0;
+    transform: scale(0.96);
+}
+
+.soldadura-btn-text {
+    font-size: clamp(0.68rem, 0.75vw, 0.75rem);
+    font-weight: 700;
+    color: var(--gis-blue);
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.1;
+    -webkit-user-select: none;
+    user-select: none;
+    transition: color 0.25s ease;
+}
+
+.btn-extra-info-soldadura:hover .soldadura-btn-wrapper {
+    transform: scale(1.08);
+}
+
+.btn-extra-info-soldadura:hover .icon-view {
+    opacity: 1;
+    transform: scale(1);
+    filter: drop-shadow(0 6px 14px rgba(3, 57, 102, 0.25));
+}
+
+.btn-extra-info-soldadura:hover .icon-shadow {
+    opacity: 0.25;
+    transform: scale(1.04);
+}
+
+.btn-extra-info-soldadura:hover .soldadura-btn-text {
+    color: var(--gis-red);
+}
+
+.btn-extra-info-soldadura:active {
+    transform: scale(0.96);
 }
 
 /* Fondo de opacidad moderno sin GPU blur bottleneck */
@@ -948,67 +1039,263 @@ tr:hover {
     visibility: visible !important;
 }
 
-/* Contenedor del modal responsivo, amplio y ultra-fluido */
-.soldadura-info-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: var(--gis-white);
-    padding: 22px 26px;
-    border-radius: 20px;
-    box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.3);
-    z-index: 10001 !important;
-    width: 98vw;
-    max-width: 98vw;
-    height: 94vh;
-    max-height: 94vh;
-    display: flex;
-    flex-direction: column;
-    box-sizing: border-box;
-    border: 1px solid rgba(3, 57, 102, 0.15);
+/* =============================================================================
+   MODAL DE INFORMACIÓN EXTRA DE SOLDADURA — ESTILO CORPORATIVO GIS SAAVEDRA
+   ============================================================================= */
+
+/* Animación fluida de entrada */
+@keyframes soldaduraModalIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.96) translateY(12px);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
 }
 
-/* Cabecera del modal */
+@keyframes pulseDot {
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.35;
+        transform: scale(1.35);
+    }
+}
+
+/* Overlay oficial del sistema para modales (definido en global.css: rgba(0, 10, 25, 0.85) sin blur) */
+.modal-soldadura-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    padding: 2vh 2vw;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-soldadura-overlay.open {
+    display: flex;
+    opacity: 1;
+}
+
+/* Diálogo / Tarjeta principal del modal con fondo Azul Corporativo GIS */
+.soldadura-info-modal {
+    position: relative;
+    width: 96vw;
+    max-width: 1650px;
+    height: 92vh;
+    max-height: 900px;
+    background: linear-gradient(
+        135deg,
+        #022340 0%,
+        #033966 45%,
+        #011b33 100%
+    ) !important;
+    border: 2px solid rgba(147, 197, 253, 0.4) !important;
+    border-radius: 20px;
+    box-shadow:
+        0 25px 70px -10px rgba(0, 10, 25, 0.85),
+        inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    box-sizing: border-box;
+    animation: soldaduraModalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ── Cabecera del Modal con contraste en Azul Corporativo ── */
 .soldadura-modal-header {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    align-items: flex-start;
-    border-bottom: 1px solid rgba(3, 57, 102, 0.15);
-    padding-bottom: 15px;
-    margin-bottom: 15px;
+    padding: 14px 24px;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.08) 0%,
+        rgba(255, 255, 255, 0.02) 100%
+    ) !important;
+    border-bottom: 1.5px solid rgba(147, 197, 253, 0.25) !important;
     flex-shrink: 0;
+    gap: 16px;
+}
+
+.soldadura-modal-title-area {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.soldadura-modal-header-icon-wrap {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(147, 197, 253, 0.5);
+    flex-shrink: 0;
+}
+
+.soldadura-modal-header-icon {
+    width: 44px;
+    height: 44px;
+    object-fit: contain;
 }
 
 .soldadura-modal-title-group {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .soldadura-modal-title {
     margin: 0;
-    color: var(--gis-blue);
-    font-size: 24px;
+    font-size: 1.25rem;
     font-weight: 800;
-    letter-spacing: -0.5px;
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    letter-spacing: -0.3px;
+    line-height: 1.2;
     font-family: "Poppins", sans-serif;
 }
 
-.soldadura-modal-subtitle {
-    margin: 0;
-    color: var(--gis-gray);
-    font-size: 14px;
+.soldadura-modal-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.soldadura-meta-capsule {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(0, 15, 35, 0.65) !important;
+    border: 1.5px solid rgba(147, 197, 253, 0.3) !important;
+    border-radius: 24px;
+    padding: 3px 6px;
+    gap: 6px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.soldadura-meta-divider {
+    width: 1px;
+    height: 14px;
+    background: rgba(147, 197, 253, 0.3) !important;
+    display: inline-block;
+}
+
+.soldadura-meta-pill {
+    font-size: 0.72rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: "Poppins", sans-serif;
+}
+
+.soldadura-meta-count {
+    background: rgba(14, 165, 233, 0.15) !important;
+    color: #e0f2fe !important;
+    border: 1px solid rgba(14, 165, 233, 0.35) !important;
+}
+
+.soldadura-meta-process {
+    background: rgba(34, 197, 94, 0.18) !important;
+    color: #86efac !important;
+    border: 1px solid rgba(34, 197, 94, 0.4) !important;
+    text-transform: uppercase;
+}
+
+/* Indicadores circulares de estado */
+.badge-dot-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #0284c7;
+    animation: pulseDot 1.4s infinite;
+}
+
+.badge-dot-success {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gis-green);
+}
+
+.badge-dot-idle {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--gis-gray);
+}
+
+/* Acciones en la cabecera */
+.soldadura-modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.soldadura-search-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.95) !important;
+    border: 1.5px solid rgba(147, 197, 253, 0.45) !important;
+    border-radius: 20px;
+    padding: 6px 14px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition: all 0.2s ease;
+}
+
+.soldadura-search-wrapper:focus-within {
+    background: #ffffff !important;
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.35);
+}
+
+.soldadura-search-wrapper .search-icon {
+    color: var(--gis-blue) !important;
+    flex-shrink: 0;
+}
+
+.soldadura-quick-search-input {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #0f172a !important;
+    width: 220px;
+    font-family: "Poppins", sans-serif;
+}
+
+.soldadura-quick-search-input::placeholder {
+    color: #64748b;
     font-weight: 500;
 }
 
-/* Botón cerrar X circular en cabecera con rotación interactiva */
 .btn-modal-close-x {
-    background: rgba(3, 57, 102, 0.05);
-    border: none;
-    font-size: 16px;
-    font-weight: bold;
-    color: var(--gis-blue);
+    background: rgba(255, 255, 255, 0.12) !important;
+    border: 1.5px solid rgba(147, 197, 253, 0.35) !important;
+    color: #ffffff !important;
     cursor: pointer;
     width: 34px;
     height: 34px;
@@ -1017,103 +1304,60 @@ tr:hover {
     align-items: center;
     justify-content: center;
     transition: all 0.25s ease;
-    line-height: 1;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    padding: 0;
 }
 
 .btn-modal-close-x:hover {
-    background-color: rgba(156, 3, 3, 0.12);
-    color: var(--gis-red);
+    background-color: var(--gis-red) !important;
+    color: #ffffff !important;
+    border-color: rgba(255, 255, 255, 0.6) !important;
     transform: rotate(90deg);
 }
 
-/* Barra de filtros horizontales con degradado sutil y tintes corporativos */
-.soldadura-modal-filters-bar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    background: linear-gradient(
-        135deg,
-        rgba(3, 57, 102, 0.03) 0%,
-        rgba(3, 57, 102, 0.07) 100%
-    );
-    padding: 16px 20px;
-    border-radius: 14px;
-    border: 1px solid rgba(3, 57, 102, 0.15);
-    margin-bottom: 18px;
-    flex-shrink: 0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
-}
-
-.soldadura-modal-filter-item {
+/* ── Cargador animado (GIS Spinner) ── */
+.soldadura-loader-container {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    justify-content: center;
     flex: 1;
-    min-width: 140px;
+    padding: 80px 20px;
 }
 
-.soldadura-modal-filter-item label {
-    font-size: 10px;
-    font-weight: 800;
-    color: var(--gis-blue);
-    text-transform: uppercase;
-    letter-spacing: 0.7px;
+.soldadura-loader-img {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 16px;
+    object-fit: contain;
 }
 
-.soldadura-modal-filter-select,
-.soldadura-modal-filter-input {
-    padding: 9px 12px;
-    border: 1px solid rgba(3, 57, 102, 0.2);
-    border-radius: 10px;
-    background-color: var(--gis-white);
-    color: var(--gis-black);
-    font-size: 13px;
-    font-weight: 600;
-    outline: none;
-    transition: all 0.2s ease;
-    width: 100%;
-    cursor: pointer;
-    box-sizing: border-box;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+.soldadura-loader-text {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #ffffff !important;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    margin: 0;
+    font-family: "Poppins", sans-serif;
 }
 
-.soldadura-modal-filter-select:hover,
-.soldadura-modal-filter-input:hover {
-    border-color: rgba(3, 57, 102, 0.4);
-    background-color: #fafafa;
-}
-
-.soldadura-modal-filter-select:focus,
-.soldadura-modal-filter-input:focus {
-    border-color: var(--gis-blue);
-    box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15);
-}
-
-.soldadura-no-data {
-    color: var(--gis-gray);
-    font-style: italic;
-    font-size: 14px;
-    text-align: center;
-    padding: 20px 0;
-}
-
-/* Contenedor de la tabla con scroll independiente y bordes redondeados */
+/* ── Contenedor de la tabla y scrollbar (Fondo Blanco Limpio para Lectura Óptima) ── */
 .soldadura-table-container {
-    flex-grow: 1;
+    flex: 1;
     overflow-y: auto;
     overflow-x: auto;
-    margin-bottom: 18px;
-    border: 1px solid rgba(3, 57, 102, 0.2);
+    margin: 14px 20px 0;
+    border: 1.5px solid rgba(147, 197, 253, 0.25) !important;
     border-radius: 12px;
-    background-color: var(--gis-white);
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.04);
+    background: #ffffff !important;
+    box-shadow:
+        0 8px 24px -4px rgba(0, 0, 0, 0.35),
+        0 2px 6px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Scrollbar premium para el contenedor de la tabla */
 .soldadura-table-container::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 7px;
+    height: 7px;
 }
 
 .soldadura-table-container::-webkit-scrollbar-track {
@@ -1122,22 +1366,42 @@ tr:hover {
 }
 
 .soldadura-table-container::-webkit-scrollbar-thumb {
-    background: var(--gis-blue);
+    background: rgba(3, 57, 102, 0.4);
     border-radius: 4px;
 }
 
 .soldadura-table-container::-webkit-scrollbar-thumb:hover {
-    background: #022340;
+    background: var(--gis-blue);
 }
 
-/* Tabla interna del modal estirada al 100% de ancho */
+.soldadura-table-container::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+}
+
+.soldadura-table-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 4px;
+}
+
+.soldadura-table-container::-webkit-scrollbar-thumb {
+    background: rgba(3, 57, 102, 0.4);
+    border-radius: 4px;
+}
+
+.soldadura-table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--gis-blue);
+}
+
+/* ── Tabla interna del modal ── */
 .soldadura-modal-table {
     width: 100% !important;
     max-width: 100% !important;
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    font-size: 0.78rem !important;
+    font-family: "Poppins", sans-serif !important;
     table-layout: auto !important;
-    border-collapse: collapse;
-    font-size: 12px;
-    font-family: "Poppins", sans-serif;
 }
 
 .soldadura-modal-header-row {
@@ -1146,142 +1410,408 @@ tr:hover {
         var(--gis-blue) 0%,
         #055ba3 100%
     ) !important;
-    color: var(--gis-white);
     position: sticky;
     top: 0;
     z-index: 10;
 }
 
 .soldadura-modal-th {
-    padding: 12px 8px !important;
-    text-align: center !important;
-    font-weight: 700;
-    font-size: 11.5px;
-    letter-spacing: 0.5px;
-    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-    text-transform: uppercase;
-    white-space: nowrap;
+    padding: 11px 12px !important;
+    color: #ffffff !important;
+    font-weight: 800 !important;
+    font-size: 0.72rem !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    border: none !important;
+    border-bottom: 2px solid #002244 !important;
+    white-space: nowrap !important;
+}
+
+.soldadura-modal-th:first-child {
+    border-top-left-radius: 10px;
+}
+
+.soldadura-modal-th:last-child {
+    border-top-right-radius: 10px;
 }
 
 .soldadura-row-even {
-    background-color: rgba(248, 250, 252, 0.75);
+    background-color: #ffffff;
 }
 
 .soldadura-row-odd {
-    background-color: var(--gis-white);
+    background-color: rgba(3, 57, 102, 0.025);
 }
 
 .soldadura-modal-table tbody tr {
-    transition: background-color 0.15s ease;
+    transition: background-color 0.12s ease;
 }
 
 .soldadura-modal-table tbody tr:hover {
-    background-color: rgba(3, 57, 102, 0.06);
+    background-color: rgba(3, 57, 102, 0.08) !important;
 }
 
 .soldadura-modal-td {
-    padding: 10px 8px !important;
-    border-bottom: 1px solid #e2e8f0;
-    color: var(--gis-gray);
-    line-height: 1.4;
-    text-align: center !important;
-    white-space: nowrap;
+    padding: 8px 12px !important;
+    border: none !important;
+    border-bottom: 1px solid #edf2f7 !important;
+    color: var(--gis-gray) !important;
+    line-height: 1.4 !important;
+    vertical-align: middle !important;
+    white-space: nowrap !important;
+    font-size: 0.78rem !important;
 }
 
-.soldadura-modal-td:last-child {
+.soldadura-modal-td.text-center {
+    text-align: center !important;
+}
+
+.soldadura-modal-td.text-left {
+    text-align: left !important;
+}
+
+.soldadura-modal-td.text-bold {
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.soldadura-modal-td.font-mono {
+    font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+    font-weight: 600;
+}
+
+.soldadura-modal-td.cell-obs {
+    min-width: 200px;
+    max-width: 360px;
     white-space: normal !important;
     word-break: break-word !important;
-    text-align: left !important;
-    min-width: 180px;
+    font-size: 0.74rem;
+    color: #475569;
 }
 
-/* Badges estilizados para columnas de resultado en PTA */
-.soldadura-modal-td .badge-si {
-    background-color: rgba(10, 133, 4, 0.12);
+/* ── Badges y Etiquetas en Celdas ── */
+.badge-juego {
+    display: inline-block;
+    padding: 2.5px 8px;
+    border-radius: 6px;
+    background: rgba(3, 57, 102, 0.08);
+    color: var(--gis-blue);
+    font-weight: 800;
+    font-size: 0.75rem;
+    border: 1px solid rgba(3, 57, 102, 0.2);
+    min-width: 32px;
+    text-align: center;
+}
+
+.badge-ot {
+    display: inline-block;
+    padding: 2.5px 8px;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #0f172a;
+    font-weight: 700;
+    font-size: 0.74rem;
+    border: 1px solid #cbd5e1;
+}
+
+.badge-clase {
+    font-weight: 700;
+    color: var(--gis-blue);
+    font-size: 0.74rem;
+    text-transform: uppercase;
+}
+
+.badge-si {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(10, 133, 4, 0.12);
     color: var(--gis-green);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 11px;
-    display: inline-block;
+    font-weight: 700;
+    font-size: 0.72rem;
+    border: 1px solid rgba(10, 133, 4, 0.25);
 }
 
-.soldadura-modal-td .badge-no {
-    background-color: rgba(156, 3, 3, 0.12);
+.badge-no {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(156, 3, 3, 0.12);
     color: var(--gis-red);
-    padding: 4px 10px;
-    border-radius: 6px;
-    font-weight: bold;
-    font-size: 11px;
+    font-weight: 700;
+    font-size: 0.72rem;
+    border: 1px solid rgba(156, 3, 3, 0.25);
+}
+
+.badge-na {
     display: inline-block;
-}
-
-.soldadura-modal-td .badge-na {
-    background-color: rgba(64, 64, 64, 0.1);
-    color: var(--gis-gray);
-    padding: 4px 10px;
+    padding: 2px 7px;
     border-radius: 6px;
-    font-size: 11px;
+    background: #f1f5f9;
+    color: #64748b;
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+
+.badge-defecto {
     display: inline-block;
+    padding: 2px 7px;
+    border-radius: 6px;
+    background: rgba(220, 38, 38, 0.08);
+    color: #dc2626;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border: 1px solid rgba(220, 38, 38, 0.2);
 }
 
-.soldadura-modal-td .badge-empty {
+.text-peso {
+    color: #0369a1;
+    font-weight: 700;
+}
+
+.text-muted {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Estado Vacío */
+.soldadura-empty-state {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.soldadura-empty-state .empty-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.soldadura-empty-state p {
+    margin: 0;
     color: var(--gis-gray);
+    font-size: 0.88rem;
+    font-weight: 500;
 }
 
-/* Contenedor de botones inferiores */
+/* ── Pie del Modal y Botones de Acción con Alto Contraste en Paleta Azul GIS ── */
 .soldadura-modal-buttons {
     display: flex;
-    justify-content: flex-end;
-    gap: 12px;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 24px;
+    background: linear-gradient(
+        180deg,
+        rgba(2, 35, 64, 0.65) 0%,
+        rgba(0, 18, 40, 0.95) 100%
+    ) !important;
+    border-top: 1.5px solid rgba(147, 197, 253, 0.25) !important;
+    box-shadow: 0 -4px 20px rgba(0, 10, 25, 0.45) !important;
+    flex-shrink: 0;
     margin-top: auto;
-    padding-top: 15px;
-    border-top: 1px solid rgba(3, 57, 102, 0.15);
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+/* Badge con contorno redondo del lado izquierdo con fondo cristal azul */
+.soldadura-footer-stat-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 16px;
+    background: rgba(0, 20, 45, 0.75) !important;
+    border: 1.5px solid rgba(147, 197, 253, 0.35) !important;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #ffffff !important;
+    font-family: "Poppins", sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.soldadura-footer-stat-badge strong {
+    color: #7dd3fc !important;
+}
+
+.soldadura-footer-stat-badge #soldaduraFooterStatsText {
+    color: #ffffff !important;
+}
+
+.soldadura-footer-stat-badge .stat-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #4ade80 !important;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.8) !important;
     flex-shrink: 0;
 }
 
-/* Botones descargar PDF y Cerrar */
-.soldadura-btn-download,
-.soldadura-btn-close {
-    padding: 10px 24px;
-    border: none;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 13.5px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-sizing: border-box;
+/* ── Paginación del Modal de Soldadura con cápsula azul corporativo ── */
+.soldadura-pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: rgba(0, 20, 45, 0.75) !important;
+    padding: 5px 14px;
+    border-radius: 24px;
+    border: 1.5px solid rgba(147, 197, 253, 0.35) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
 }
 
+.soldadura-page-size-wrap {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #e0f2fe !important;
+    font-family: "Poppins", sans-serif;
+}
+
+.soldadura-page-size-wrap label {
+    color: #e0f2fe !important;
+    text-shadow: none !important;
+    font-size: 0.76rem !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px !important;
+    text-transform: uppercase !important;
+    margin: 0 !important;
+}
+
+.soldadura-page-size-select {
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(147, 197, 253, 0.4) !important;
+    background: #ffffff !important;
+    color: var(--gis-blue) !important;
+    font-size: 0.78rem !important;
+    font-weight: 800 !important;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+.soldadura-page-size-select:focus {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.35) !important;
+}
+
+.soldadura-pagination-nav {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.soldadura-page-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(147, 197, 253, 0.3) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+.soldadura-page-btn:hover:not(:disabled) {
+    background: #0284c7 !important;
+    border-color: #38bdf8 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(2, 132, 199, 0.5) !important;
+}
+
+.soldadura-page-btn:disabled {
+    opacity: 0.3 !important;
+    cursor: not-allowed;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: rgba(147, 197, 253, 0.15) !important;
+    color: #64748b !important;
+    box-shadow: none !important;
+}
+
+.soldadura-page-indicator {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: #ffffff !important;
+    padding: 0 6px;
+    white-space: nowrap;
+    font-family: "Poppins", sans-serif;
+}
+
+/* ── Botones de Acción: Descargar PDF (Azul Brillante) y Cerrar (Rojo Intenso) ── */
+.soldadura-modal-right-buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Botón Descargar PDF / Imprimir (Azul GIS) */
 .soldadura-btn-download {
-    background: linear-gradient(135deg, var(--gis-green) 0%, #086b03 100%);
-    color: var(--gis-white);
-    box-shadow: 0 4px 12px rgba(10, 133, 4, 0.35);
+    padding: 8px 18px !important;
+    font-size: 0.82rem !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 6px !important;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.45) !important;
+    border: 1px solid rgba(125, 211, 252, 0.5) !important;
+    cursor: pointer !important;
+    font-weight: 700 !important;
+    font-family: "Poppins", sans-serif !important;
+    transition: all 0.2s ease !important;
 }
 
 .soldadura-btn-download:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(10, 133, 4, 0.5);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.6) !important;
+    background: linear-gradient(135deg, #0369a1 0%, #075985 100%) !important;
 }
 
 .soldadura-btn-download:active {
-    transform: translateY(0);
+    transform: translateY(0) !important;
 }
 
+/* Botón Cerrar (Rojo GIS) */
 .soldadura-btn-close {
-    background: rgba(64, 64, 64, 0.08);
-    color: var(--gis-gray);
-    border: 1px solid rgba(64, 64, 64, 0.2);
+    padding: 8px 18px !important;
+    font-size: 0.82rem !important;
+    border-radius: 10px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    background: linear-gradient(
+        135deg,
+        var(--gis-red) 0%,
+        #7a0202 100%
+    ) !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 14px rgba(156, 3, 3, 0.45) !important;
+    border: 1px solid rgba(248, 113, 113, 0.45) !important;
+    cursor: pointer !important;
+    font-weight: 700 !important;
+    font-family: "Poppins", sans-serif !important;
+    transition: all 0.2s ease !important;
 }
 
 .soldadura-btn-close:hover {
-    background: rgba(64, 64, 64, 0.15);
-    color: var(--gis-black);
-    border-color: var(--gis-gray);
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 18px rgba(156, 3, 3, 0.6) !important;
+    background: linear-gradient(135deg, #7a0202 0%, #5a0101 100%) !important;
 }
 
 .soldadura-btn-close:active {
-    background: rgba(64, 64, 64, 0.25);
+    transform: translateY(0) !important;
 }
 
 /* BOTÓN LIMPIAR FILTROS */
@@ -1309,12 +1839,18 @@ tr:hover {
 
 /* Estado ACTIVO: Azul GIS */
 .btn-clear-filters:enabled {
-    background: linear-gradient(135deg, var(--gis-blue, #033966) 0%, #0284c7 100%) !important;
+    background: linear-gradient(
+        135deg,
+        var(--gis-blue, #033966) 0%,
+        #0284c7 100%
+    ) !important;
     color: #ffffff !important;
     cursor: pointer !important;
     opacity: 1 !important;
     transform: scale(1);
-    box-shadow: 0 4px 14px rgba(3, 57, 102, 0.45), inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
+    box-shadow:
+        0 4px 14px rgba(3, 57, 102, 0.45),
+        inset 0 1px 1px rgba(255, 255, 255, 0.35) !important;
 }
 
 /* Estado HOVER cuando está activo: Azul Cerúleo Vibrante */
@@ -1322,7 +1858,9 @@ tr:hover {
     background: linear-gradient(135deg, #0284c7 0%, #38bdf8 100%) !important;
     color: #ffffff !important;
     transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 6px 18px rgba(2, 132, 199, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.45) !important;
+    box-shadow:
+        0 6px 18px rgba(2, 132, 199, 0.55),
+        inset 0 1px 1px rgba(255, 255, 255, 0.45) !important;
 }
 
 /* Estado INACTIVO / BLOQUEADO: Gris */
@@ -1335,107 +1873,6 @@ tr:hover {
     transform: scale(0.98);
 }
 
-/* ==========================================================================
-   MODAL DE SOLDADURA PREMIUM (ESTILO PRE-ORDEN CASTING DETALLE)
-   ========================================================================== */
-
-@keyframes prodModalEntrance {
-    0% {
-        opacity: 0;
-        transform: scale(0.92) translateY(30px);
-    }
-    100% {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-.modal-soldadura-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 10, 25, 0.85) !important;
-    z-index: 10000;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 3vh;
-    overflow: hidden;
-}
-
-.modal-soldadura-overlay.open {
-    display: flex;
-}
-
-.modal-soldadura-content {
-    background: #ffffff;
-    width: 95vw !important;
-    max-width: 1800px !important;
-    max-height: 94vh !important;
-    border-radius: 20px !important;
-    border: 4px solid #0284c7 !important;
-    box-shadow: 0 25px 60px rgba(2, 132, 199, 0.25) !important;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    position: relative;
-    animation: prodModalEntrance 0.4s cubic-bezier(0.23, 1, 0.32, 1) both;
-}
-
-.modal-soldadura-header {
-    padding: 2.2em 2.5em 1.5em !important;
-    background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%) !important;
-    position: relative;
-    z-index: 10;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.02);
-    display: block !important;
-}
-
-.modal-soldadura-header h3 {
-    margin: 0;
-    color: #fff !important;
-    font-size: 2em !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.5px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-    font-family: "Poppins", sans-serif !important;
-    text-transform: none !important;
-    text-align: left !important;
-}
-
-.modal-soldadura-header .div-cerrar {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-}
-
-.modal-soldadura-header .btn-cerrar {
-    background: none;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.3s ease;
-    padding: 0;
-}
-
-.modal-soldadura-header .btn-cerrar:hover {
-    transform: scale(1.1);
-}
-
-.modal-soldadura-header .img-cerrar {
-    width: 36px !important;
-    height: 36px !important;
-}
-
-.modal-soldadura-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 2em 2.5em !important;
-    background: #f8fafc !important;
-    font-family: "Poppins", sans-serif !important;
-}
-
 /* ========================================================
    ORDENAMIENTO DE COLUMNAS (TH) E INDICADOR GIS
    ======================================================== */
@@ -1443,7 +1880,9 @@ th.sortable-th {
     cursor: pointer !important;
     -webkit-user-select: none !important;
     user-select: none !important;
-    transition: background-color 0.2s ease, filter 0.2s ease !important;
+    transition:
+        background-color 0.2s ease,
+        filter 0.2s ease !important;
 }
 
 th.sortable-th:hover {
@@ -1514,7 +1953,9 @@ th.sortable-th:hover {
     float: none !important;
     object-fit: contain;
     filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.15));
-    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), filter 0.25s ease;
+    transition:
+        transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+        filter 0.25s ease;
 }
 
 .header-order-text {
@@ -1584,7 +2025,8 @@ th.sortable-th:hover {
 }
 
 @-webkit-keyframes pulseDot {
-    0%, 100% {
+    0%,
+    100% {
         -webkit-transform: scale(0.8);
         transform: scale(0.8);
         opacity: 0.5;
@@ -1597,7 +2039,8 @@ th.sortable-th:hover {
 }
 
 @keyframes pulseDot {
-    0%, 100% {
+    0%,
+    100% {
         -webkit-transform: scale(0.8);
         transform: scale(0.8);
         opacity: 0.5;
@@ -1675,5 +2118,3 @@ th.sortable-th:hover {
     opacity: 0.4;
     margin: 0 4px;
 }
-
-

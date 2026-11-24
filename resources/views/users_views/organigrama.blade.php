@@ -14,114 +14,163 @@
 </head>
 
 @php
-    // Filtrar EXCLUSIVAMENTE personal que tiene asignado al menos área o puesto
-    $assignedUsers = $users->filter(function($u) {
-        $hasArea = !empty(trim($u->area ?? ''));
-        $hasPuesto = !empty(trim($u->puesto ?? ''));
-        return $hasArea || $hasPuesto;
+    // 1. Catálogo completo de usuarios para el organigrama
+    $allUsers = $users;
+    $assignedUsers = $users;
+
+    // 2. Identificar Dirección General / Presidencia (Nivel 1 Raíz)
+    $directores = $allUsers->filter(function($u) {
+        $perfilId = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+        $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+        $area   = strtoupper(trim($u->area ?? ''));
+        return $perfilId === 1 || in_array($puesto, ['DIRECTOR / MASTER', 'DIRECTOR', 'GERENTE', 'JEFE DE PLANTA']) || in_array($area, ['DIRECCIÓN GENERAL', 'DIRECCION GENERAL', 'GERENCIA']);
     });
 
-    // Identificar Director General / Jefe de Planta entre los asignados
-    $director = $assignedUsers->first(function($u) {
-        $area = strtoupper(trim($u->area ?? ''));
-        $puesto = strtoupper(trim($u->puesto ?? ''));
-        return in_array($area, ['JEFE PLANTA', 'JEFE DE PLANTA', 'GERENCIA', 'DIRECCIÓN', 'DIRECCION']) ||
-               in_array($puesto, ['JEFE DE PLANTA', 'GERENTE', 'DIRECTOR', 'JEFE PLANTA']);
-    });
+    // Raíz principal (Abraham Saavedra ID 1 o primer directivo)
+    $director = $directores->firstWhere('id', 1) ?? $directores->first();
 
-    // Definición estándar de Áreas (Herramentistas al mismo nivel que Supervisores de Software/Programación)
-    $areaDefinitions = [
-        'PRODUCCIÓN' => [
-            'aliases' => ['PRODUCCIÓN', 'PRODUCCION'],
-            'exclude_puestos' => ['HERRAMENTISTA'], // Herramentista se eleva al nivel 2 independiente
-            'label' => 'PRODUCCIÓN',
+    // Otros directores / Master corporativo (para que no desaparezcan y tengan su espacio en el organigrama)
+    $otrosDirectores = $directores->filter(fn($u) => !$director || $u->id !== $director->id);
+
+    // 3. Definición de Ramas Departamentales y Especialidades Operativas (Nivel 2)
+    $branchDefinitions = [
+        'ADMINISTRACION' => [
+            'label' => 'ADMINISTRACIÓN',
+            'match' => function($u) {
+                $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return $perfil === 2 || str_contains($area, 'ADMIN') || str_contains($puesto, 'ADMIN');
+            }
         ],
-        'HERRAMENTISTAS' => [
-            'aliases' => ['HERRAMENTISTA', 'HERRAMENTALES'],
-            'puesto_match' => ['HERRAMENTISTA'],
-            'label' => 'HERRAMENTISTAS',
-            'is_specialist' => true,
-        ],
-        'PROGRAMACIÓN' => [
-            'aliases' => ['PROGRAMACIÓN', 'PROGRAMACION'],
-            'label' => 'PROGRAMACIÓN',
-        ],
-        'SOFTWARE' => [
-            'aliases' => ['SOFTWARE', 'SISTEMAS'],
-            'label' => 'SOFTWARE / SISTEMAS',
+        'SISTEMAS' => [
+            'label' => 'SISTEMAS / TI',
+            'match' => function($u) {
+                $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return $perfil === 10 || str_contains($area, 'SISTEMA') || str_contains($puesto, 'SISTEMA') || str_contains($puesto, 'SOFTWARE') || str_contains($puesto, 'TI');
+            }
         ],
         'CALIDAD' => [
-            'aliases' => ['CALIDAD', 'METROLOGIA'],
             'label' => 'CALIDAD',
+            'match' => function($u) {
+                $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return $perfil === 8 || str_contains($area, 'CALIDAD') || str_contains($puesto, 'CALIDAD') || str_contains($puesto, 'INSPECC') || str_contains($puesto, 'METROLOG');
+            }
+        ],
+        'ALMACEN' => [
+            'label' => 'ALMACÉN',
+            'match' => function($u) {
+                $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return $perfil === 7 || str_contains($area, 'ALMACEN') || str_contains($area, 'ALMACÉN') || str_contains($puesto, 'ALMACEN') || str_contains($puesto, 'ALMACÉN');
+            }
         ],
         'SOLDADURA' => [
-            'aliases' => ['SOLDADURA', 'SOLDADOR'],
-            'label' => 'SOLDADURA',
+            'label' => 'SOLDADURA & PTA',
+            'match' => function($u) {
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return str_contains($puesto, 'SOLDAD') || str_contains($puesto, 'PTA') || str_contains($area, 'SOLDAD');
+            }
         ],
-        'ALMACÉN' => [
-            'aliases' => ['ALMACÉN', 'ALMACEN'],
-            'label' => 'ALMACÉN',
+        'HERRAMENTISTAS' => [
+            'label' => 'HERRAMENTISTAS',
+            'match' => function($u) {
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return str_contains($puesto, 'HERRAMENT') || str_contains($area, 'HERRAMENT');
+            }
         ],
-        'MANTENIMIENTO' => [
-            'aliases' => ['MANTENIMIENTO'],
-            'label' => 'MANTENIMIENTO',
+        'DYP' => [
+            'label' => 'DISEÑO Y PROGRAMACIÓN',
+            'match' => function($u) {
+                $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return $perfil === 5 || str_contains($area, 'DISEÑO') || str_contains($area, 'PROGRAMACI') || str_contains($puesto, 'DISEÑO') || str_contains($puesto, 'PROGRAMACI');
+            }
         ],
-        'ADMINISTRACIÓN' => [
-            'aliases' => ['ADMINISTRACIÓN', 'ADMINISTRACION', 'ADMIN'],
-            'label' => 'ADMINISTRACIÓN',
+        'INGENIERIA' => [
+            'label' => 'INGENIERÍA',
+            'match' => function($u) {
+                $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return $perfil === 4 || str_contains($area, 'INGENIER') || str_contains($puesto, 'INGENIER');
+            }
+        ],
+        'VENTAS' => [
+            'label' => 'VENTAS',
+            'match' => function($u) {
+                $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                return $perfil === 6 || str_contains($area, 'VENTA') || str_contains($puesto, 'VENTA');
+            }
+        ],
+        'PRODUCCION' => [
+            'label' => 'PRODUCCIÓN Y MAQUINADOS',
+            'match' => function($u) {
+                $perfil = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $area   = strtoupper(trim($u->area ?? ''));
+                if (str_contains($puesto, 'SOLDAD') || str_contains($puesto, 'PTA') || str_contains($puesto, 'HERRAMENT')) return false;
+                return in_array($perfil, [3, 9], true) || str_contains($area, 'PRODUCCI') || str_contains($area, 'MAQUINAD') || str_contains($area, 'TALLER') || str_contains($area, 'ACABADO') || str_contains($puesto, 'TORNO') || str_contains($puesto, 'CENTRO') || str_contains($puesto, 'AYUDANTE') || str_contains($puesto, 'OPERADOR') || str_contains($puesto, 'TURNO');
+            }
         ],
     ];
 
-    // Clasificar usuarios por cada rama activa
+    // Si existen directores o masters adicionales, agregamos la rama directiva
+    if ($otrosDirectores->isNotEmpty()) {
+        $branchDefinitions = ['DIRECCION' => [
+            'label' => 'DIRECCIÓN Y ASESORÍA MASTER',
+            'match' => fn($u) => $otrosDirectores->contains('id', $u->id)
+        ]] + $branchDefinitions;
+    }
+
+    $assignedUserIds = [$director->id ?? 0];
     $areaData = [];
-    foreach ($areaDefinitions as $areaKey => $def) {
-        $usersInArea = $assignedUsers->filter(function($u) use ($def, $director) {
-            if ($director && $u->id === $director->id) return false;
-            $uArea = strtoupper(trim($u->area ?? ''));
-            $uPuesto = strtoupper(trim($u->puesto ?? ''));
 
-            // Verificar exclusión explícita (ej: herramentistas en producción)
-            if (!empty($def['exclude_puestos'])) {
-                foreach ($def['exclude_puestos'] as $exp) {
-                    if (str_contains($uPuesto, $exp) || str_contains($uArea, $exp)) return false;
-                }
-            }
-
-            // Coincidencia por puesto explícito (ej: HERRAMENTISTA)
-            if (!empty($def['puesto_match'])) {
-                foreach ($def['puesto_match'] as $pm) {
-                    if (str_contains($uPuesto, $pm) || str_contains($uArea, $pm)) return true;
-                }
-            }
-
-            // Coincidencia por área o por puesto (ej: SUPERVISOR DE PRODUCCIÓN con área SUPERVISOR)
-            foreach ($def['aliases'] as $alias) {
-                if (str_contains($uArea, $alias) || str_contains($uPuesto, $alias)) return true;
-            }
-            return false;
+    foreach ($branchDefinitions as $branchKey => $def) {
+        $usersInBranch = $allUsers->filter(function($u) use ($def, &$assignedUserIds) {
+            if (in_array($u->id, $assignedUserIds, true)) return false;
+            return ($def['match'])($u);
         });
 
-        // Solo incluir el área en el organigrama si cuenta con personal asignado
-        if ($usersInArea->isNotEmpty()) {
-            if (!empty($def['is_specialist'])) {
-                // Para Herramentistas: el primero toma la cabecera del nivel 2 y los demás como sub-equipo
-                $supervisor = $usersInArea->first();
-                $team = $usersInArea->skip(1);
-            } else {
-                // Supervisor del área: puesto que contenga SUPERVISOR / JEFE / ENCARGADO o área SUPERVISOR
-                $supervisor = $usersInArea->first(function($u) {
-                    $puesto = strtoupper(trim($u->puesto ?? ''));
-                    $area = strtoupper(trim($u->area ?? ''));
-                    return str_contains($puesto, 'SUPERVISOR') || str_contains($puesto, 'JEFE') || str_contains($puesto, 'ENCARGAD') || $area === 'SUPERVISOR';
-                });
-
-                // Equipo operativo bajo el supervisor
-                $team = $usersInArea->filter(function($u) use ($supervisor) {
-                    return !$supervisor || $u->id !== $supervisor->id;
-                });
+        // Solo incluir ramas con colaboradores asignados
+        if ($usersInBranch->isNotEmpty()) {
+            foreach ($usersInBranch as $u) {
+                $assignedUserIds[] = $u->id;
             }
 
-            $areaData[$areaKey] = [
+            // Supervisor o Líder con prioridad jerárquica
+            $supervisor = $usersInBranch->sortBy(function($u) {
+                $puesto = strtoupper(trim($u->puesto ?: ($u->puestoInfo->nombre ?? '')));
+                $perfilId = (int) ($u->perfil_id ?? $u->perfil ?? 0);
+                $nivel = (int) ($u->puestoInfo->codigo_nivel ?? 9);
+
+                if (str_contains($puesto, 'JEFE')) return 1;
+                if (str_contains($puesto, 'SUPERVISOR') || $perfilId === 3) return 2;
+                if (str_contains($puesto, 'ENCARGAD') || str_contains($puesto, 'LIDER')) return 3;
+                if ($nivel <= 2) return 4;
+                if (str_contains($puesto, 'AUXILIAR')) return 10;
+                return 20 + $nivel;
+            })->first();
+
+            if (!$supervisor && $usersInBranch->isNotEmpty()) {
+                $supervisor = $usersInBranch->first();
+            }
+
+            $team = $usersInBranch->filter(function($u) use ($supervisor) {
+                return !$supervisor || $u->id !== $supervisor->id;
+            });
+
+            $areaData[$branchKey] = [
                 'label' => $def['label'],
                 'supervisor' => $supervisor,
                 'team' => $team,
@@ -129,9 +178,9 @@
         }
     }
 
-    $totalCount = $assignedUsers->count();
-    $activeCount = $assignedUsers->where('estatus', 1)->count();
-    $inactiveCount = $assignedUsers->where('estatus', 0)->count();
+    $totalCount = $allUsers->count();
+    $activeCount = $allUsers->where('estatus', 1)->count();
+    $inactiveCount = $allUsers->where('estatus', 0)->count();
 @endphp
 
 <div class="org-master-wrapper">
@@ -233,6 +282,12 @@
             <input type="text" id="org-search-input" placeholder="Buscar por nombre, puesto o matrícula…">
         </div>
 
+        <div class="org-collapse-controls">
+            <button type="button" class="btn-toggle" id="btn-org-expand-all" title="Expandir todas las áreas y puestos">Expandir todo</button>
+            <button type="button" class="btn-toggle active" id="btn-org-summary" title="Contraer puestos y mostrar resumen por área">Resumen</button>
+            <button type="button" class="btn-toggle" id="btn-org-density" title="Alternar entre vista detallada y vista compacta">Vista compacta</button>
+        </div>
+
         <div class="zoom-controls">
             <button type="button" class="btn-zoom btn-zoom-fit" id="btn-zoom-fit" title="Ajustar organigrama a la pantalla">
                 <svg class="zoom-btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -292,9 +347,20 @@
                             @if(!empty($areaData))
                                 <ul>
                                     @foreach($areaData as $areaKey => $area)
-                                        <li>
-                                            {{-- Titulo del Área / Rama --}}
-                                            <div class="area-branch-title">{{ mb_strtoupper($area['label'], 'UTF-8') }}</div>
+                                        @php $hasAreaTeam = $area['team']->isNotEmpty(); @endphp
+                                        <li class="org-area-branch {{ $hasAreaTeam ? 'has-children' : '' }}" data-area-key="{{ $areaKey }}">
+                                            {{-- Titulo del Área / Rama (Click para desplegar o contraer) --}}
+                                            <div
+                                                class="area-branch-title {{ $hasAreaTeam ? 'org-collapsible-trigger' : '' }}"
+                                                @if($hasAreaTeam) role="button" tabindex="0" aria-expanded="true" title="Haz clic para desplegar o contraer esta área" @endif
+                                            >
+                                                <span class="org-branch-label">{{ mb_strtoupper($area['label'], 'UTF-8') }}</span>
+                                                <span class="org-count-badge org-count-total" title="Colaboradores visibles">0</span>
+                                                <span class="org-count-badge org-count-warn" hidden title="Faltantes / Inactivos"></span>
+                                                @if($hasAreaTeam)
+                                                    <i class="org-chevron" aria-hidden="true">▾</i>
+                                                @endif
+                                            </div>
 
                                             {{-- NODO SUPERVISOR / HERRAMENTISTA LÍDER --}}
                                             @if($area['supervisor'])
@@ -313,33 +379,46 @@
                                             @endif
 
                                             {{-- SUB-RAMAS DE EQUIPO (Torno CNC, Centro de Maquinados, Ayudante General, Becarios, etc.) --}}
-                                            @if($area['team']->isNotEmpty())
+                                            @if($hasAreaTeam)
                                                 @php
                                                     $teamByPuesto = $area['team']->groupBy(function($u) {
-                                                        return trim($u->puesto ?: 'Operativo');
+                                                        return trim($u->puesto ?: ($u->puestoInfo->nombre ?? 'Operativo'));
                                                     })->sortBy(function($group, $puestoName) {
                                                         $p = strtoupper($puestoName);
-                                                        if (str_contains($p, 'TORNO')) return 1;
-                                                        if (str_contains($p, 'CENTRO')) return 2;
-                                                        if (str_contains($p, 'AYUDANTE')) return 3;
-                                                        if (str_contains($p, 'HERRAMENTISTA')) return 4;
-                                                        if (str_contains($p, 'SOLDADOR')) return 5;
-                                                        if (str_contains($p, 'INSPECC')) return 6;
-                                                        if (str_contains($p, 'ALMACEN')) return 7;
-                                                        if (str_contains($p, 'MANTENIMIENTO')) return 8;
-                                                        if (str_contains($p, 'BECARI')) return 9;
-                                                        if (str_contains($p, 'CHOFER')) return 10;
-                                                        if (str_contains($p, 'INTENDENCIA')) return 11;
+                                                        if (str_contains($p, 'DIRECTOR') || str_contains($p, 'MASTER')) return 0;
+                                                        if (str_contains($p, 'JEFE')) return 1;
+                                                        if (str_contains($p, 'SUPERVISOR')) return 2;
+                                                        if (str_contains($p, 'AUXILIAR')) return 3;
+                                                        if (str_contains($p, 'TORNO')) return 4;
+                                                        if (str_contains($p, 'CENTRO')) return 5;
+                                                        if (str_contains($p, 'SOLDADOR') || str_contains($p, 'PTA')) return 6;
+                                                        if (str_contains($p, 'HERRAMENT')) return 7;
+                                                        if (str_contains($p, 'ACABADO')) return 8;
+                                                        if (str_contains($p, 'INSPECC') || str_contains($p, 'CALIDAD')) return 9;
+                                                        if (str_contains($p, 'ALMACEN')) return 10;
+                                                        if (str_contains($p, 'AYUDANTE')) return 11;
+                                                        if (str_contains($p, 'BECARI')) return 12;
                                                         return 20;
                                                     });
                                                 @endphp
                                                 <ul>
                                                     @foreach($teamByPuesto as $puestoName => $membersInPuesto)
-                                                        <li>
-                                                            <div class="sub-role-branch-title">{{ mb_strtoupper($puestoName, 'UTF-8') }}</div>
+                                                        <li class="org-role-group is-group-collapsed">
+                                                            <div
+                                                                class="sub-role-branch-title org-collapsible-trigger"
+                                                                role="button"
+                                                                tabindex="0"
+                                                                aria-expanded="false"
+                                                                title="Haz clic para desplegar o contraer este puesto"
+                                                            >
+                                                                <span class="org-branch-label">{{ mb_strtoupper($puestoName, 'UTF-8') }}</span>
+                                                                <span class="org-count-badge org-count-total" title="Colaboradores visibles">{{ $membersInPuesto->count() }}</span>
+                                                                <span class="org-count-badge org-count-warn" hidden title="Faltantes / Inactivos"></span>
+                                                                <i class="org-chevron" aria-hidden="true">▾</i>
+                                                            </div>
                                                             <div class="puesto-nodes-column {{ $membersInPuesto->count() >= 2 ? 'nodes-grid-2col' : '' }}">
                                                                 @foreach($membersInPuesto as $member)
-                                                                    @include('users_views.partials.org_node', ['user' => $member, 'isDirector' => false, 'isSupervisor' => false])
+                                                                    @include('users_views.partials.org_node', ['user' => $member, 'isDirector' => false, 'isSupervisor' => false, 'areaLabel' => $area['label']])
                                                                 @endforeach
                                                             </div>
                                                         </li>

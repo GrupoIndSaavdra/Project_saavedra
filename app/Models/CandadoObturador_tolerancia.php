@@ -9,7 +9,7 @@ class CandadoObturador_tolerancia extends Model
 {
     use HasFactory;
 
-    protected $table = 'CandadoObturador_tolerancia';
+    protected $table = 'candadoobturador_tolerancia';
 
     protected $fillable = [
         'id_proceso',

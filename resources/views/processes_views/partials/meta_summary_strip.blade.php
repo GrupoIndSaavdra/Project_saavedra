@@ -18,7 +18,7 @@
             <span class="summary-chip-value">{{ $arrayData['machine'] ?? '---' }}</span>
         </div>
         <div class="summary-chip summary-chip-operator" title="Operador en Turno">
-            <img src="{{ asset('images/Light_Icons/Operador-Light.png') }}" class="summary-chip-icon" alt="Operador">
+            <img src="{{ asset('images/Light_Icons/Iconos/Operador-Light.png') }}" class="summary-chip-icon" alt="Operador">
             <span class="summary-chip-value">{{ auth()->user()->a_paterno . ' ' . auth()->user()->nombre }}</span>
         </div>
     </div>

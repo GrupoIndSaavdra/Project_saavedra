@@ -397,7 +397,7 @@ function insertButton_saveOrChoose(form, table) {
                 let btn = document.createElement("button");
                 btn.type = "submit";
                 btn.className = "btn-savePiece btn-choose-piece";
-                const pieceCubeIcon = window.imgPiezaCubo || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Pieza_Cubo-Light.png` : "/images/Light_Icons/Pieza_Cubo-Light.png");
+                const pieceCubeIcon = window.imgPiezaCubo || (window.baseUrl ? `${window.baseUrl.replace(/\/$/, '')}/images/Light_Icons/Filtro_Clase-Light.png` : "/images/Light_Icons/Filtro_Clase-Light.png");
                 btn.innerHTML = `<img src="${pieceCubeIcon}" class="save-piece-icon" alt="Elegir pieza"><span>Elegir pieza</span>`;
 
                 // Validación amigable previa
@@ -482,9 +482,10 @@ function insertAvaliablePiecesSelect(container = null) {
     defaultOption.textContent = "Seleccionar pieza";
     select.appendChild(defaultOption);
 
-    // Crear las opciones con las piezas disponibles
+    // Crear las opciones con las piezas disponibles (deduplicadas para evitar repeticiones)
     if (window.arrayData && window.arrayData["availableAssemblies"] && Array.isArray(window.arrayData["availableAssemblies"])) {
-        window.arrayData["availableAssemblies"].forEach((assembly) => {
+        const uniqueAssemblies = [...new Set(window.arrayData["availableAssemblies"])];
+        uniqueAssemblies.forEach((assembly) => {
             let option = document.createElement("option");
             option.value = assembly;
             option.textContent = assembly;

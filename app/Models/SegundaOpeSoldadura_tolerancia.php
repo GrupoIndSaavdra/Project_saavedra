@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class SegundaOpeSoldadura_tolerancia extends Model
 {
     use HasFactory;
-    protected $table = 'segundaOpeSoldadura_tolerancia';
+    protected $table = 'segundaopesoldadura_tolerancia';
     protected $fillable = [
         'id_proceso',
         'diametro1',

@@ -65,7 +65,7 @@ function createTable(machines, form) {
     let rows = [];
     if (machines && machines.length > 0) {
         const cncIconSrc = window.imgProgramsCNC || (window.baseUrl + "/images/Color_Icons/Generales/ProgramsCNC.png");
-        const operatorIconSrc = window.imgOperator || (window.baseUrl + "/images/Light_Icons/Operador-Light.png");
+        const operatorIconSrc = window.imgOperator || (window.baseUrl + "/images/Light_Icons/Iconos/Operador-Light.png");
         const lockedIconSrc = window.imgLocked || (window.baseUrl + "/images/Light_Icons/Bloqueado-Light.png");
         const unlockedIconSrc = window.imgUnlocked || (window.baseUrl + "/images/Color_Icons/Generales/desbloqueado.png");
 

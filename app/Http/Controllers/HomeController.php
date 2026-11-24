@@ -32,6 +32,7 @@ class HomeController extends Controller
                     $welcomeT = 'Bienvenido a Administración';
                     break;
                 case 2:
+                case 9:
                     $layout = 'layouts.menu.appProduction';
                     $backgroundImage = 'images/Color_Icons/Usuarios/operadores.png';
                     $welcomeT = 'Bienvenido a Producción';
@@ -56,6 +57,10 @@ class HomeController extends Controller
                 case 6:
                     $layout = 'layouts.menu.appAdmin';
                     $welcomeT = 'Bienvenido Supervisor';
+                    break;
+                case 10:
+                    $layout = 'layouts.menu.appAdmin';
+                    $welcomeT = 'Bienvenido a Administración';
                     break;
                 default:
                     $layout = 'layouts.menu.appAdmin';

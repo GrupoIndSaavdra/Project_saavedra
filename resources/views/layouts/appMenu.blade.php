@@ -50,10 +50,12 @@
             @hasSection('header-left')
                 @yield('header-left')
             @else
-                <!--Menu-->
-                <button class="open-menu" aria-label="Menú principal" aria-expanded="false">
-                    <img class="icon" src="{{ asset('images/Color_Icons/Generales/icono.png') }}" alt="Icono Menú">
-                </button>
+                @if ((string) auth()->user()->perfil !== '9')
+                    <!--Menu-->
+                    <button class="open-menu" aria-label="Menú principal" aria-expanded="false">
+                        <img class="icon" src="{{ asset('images/Color_Icons/Generales/icono.png') }}" alt="Icono Menú">
+                    </button>
+                @endif
             @endif
             <div class="filter-opacity">
                 <nav class="nav" id="nav">
@@ -73,9 +75,9 @@
                     <!-- Pie del Menú con Cerrar Sesión -->
                     <div class="nav-drawer-footer">
                         @php
-                            // Si tiene sesión temporal Y NO ES perfil 1 (Admin/Sistemas) ni 6 (Gerencia) ni 8 (Calidad/Ingeniería), se recorta su menú
+                            // Si tiene sesión temporal Y NO ES perfil administrativo/calidad, se recorta su menú
                             $isPtaTemp =
-                                session('pta_temp_auth') && !in_array(auth()->user()->perfil, ['1', '3', '6', '8']);
+                                session('pta_temp_auth') && !in_array((string) auth()->user()->perfil, ['1', '2', '3', '6', '8', '10', '0'], true);
                         @endphp
 
                         @if ($isPtaTemp)
@@ -101,6 +103,8 @@
                         @endif
                     </div>
                     <input type="hidden" value="{{ $isPtaTemp ? 'pta_temp' : auth()->user()->perfil }}" id="profile">
+                    <input type="hidden" value="{{ auth()->user()->puesto_id ?? '' }}" id="user_puesto_id">
+                    <input type="hidden" value="{{ strtoupper(auth()->user()->puestoInfo->nombre ?? (auth()->user()->puesto ?? '')) }}" id="user_puesto">
                 </nav>
             </div>
 
@@ -246,9 +250,13 @@
 
 
 @isset($pieces_Released)
+    @php
+        $userObj = auth()->user();
+        $isQualityStaff = $userObj && in_array((string) $userObj->perfil, ['1', '2', '3', '4', '8', '10', '0'], true);
+    @endphp
     <script>
-        window.pieces_Released = ({{ auth()->user()->perfil ?? 0 }} == 4) ? @json($pieces_Released) : [];
-        window.info_Pieces = ({{ auth()->user()->perfil ?? 0 }} == 4) ? @json($info_Pieces) : [];
+        window.pieces_Released = ({{ $isQualityStaff ? '1' : '0' }}) ? @json($pieces_Released) : [];
+        window.info_Pieces = ({{ $isQualityStaff ? '1' : '0' }}) ? @json($info_Pieces) : [];
     </script>
 @endisset
 

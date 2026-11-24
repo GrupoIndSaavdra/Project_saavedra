@@ -407,6 +407,7 @@ class tiemposProduccionController extends Controller
             'Soldadura PTA' => 'soldaduraPTA',
             'Primera Operacion Cabeza Soplo' => 'primeraOperacionCabezaSoplo',
             'Segunda Operacion Cabeza Soplo' => 'segundaOperacionCabezaSoplo',
+            default => $processName,
         };
 
         return $process;
@@ -444,6 +445,7 @@ class tiemposProduccionController extends Controller
             'soldaduraPTA' => 'Soldadura PTA',
             'primeraOperacionCabezaSoplo' => 'Primera Operacion Cabeza Soplo',
             'segundaOperacionCabezaSoplo' => 'Segunda Operacion Cabeza Soplo',
+            default => $processName,
         };
 
         return $process;

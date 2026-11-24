@@ -31,7 +31,7 @@
         window.baseUrl = "{{ url('/') }}";
         window.imgProgramsCNC = "{{ asset('images/Color_Icons/Generales/ProgramsCNC.png') }}";
         window.imgProgramsProduction = "{{ asset('images/Color_Icons/Generales/ProgramsProduction.png') }}";
-        window.imgOperator = "{{ asset('images/Light_Icons/Operador-Light.png') }}";
+        window.imgOperator = "{{ asset('images/Light_Icons/Iconos/Operador-Light.png') }}";
         window.imgLocked = "{{ asset('images/Light_Icons/Bloqueado-Light.png') }}";
         window.imgUnlocked = "{{ asset('images/Color_Icons/Generales/desbloqueado.png') }}";
         window.imgSinOrden = "{{ asset('images/Light_Icons/Sin_Orden-Light.png') }}";

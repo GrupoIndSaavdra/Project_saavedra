@@ -126,6 +126,8 @@ El sistema utiliza perfiles numéricos en la tabla de usuarios (`perfil`). Cada 
    - Para consultas grandes sobre tablas con miles de registros (`piezas`, `piezas_historial`, `system_logs`), **utilizar siempre `chunk(200, ...)` o `lazyById()`** para no exceder la memoria RAM de PHP.
 3. **Catálogo de Clases:**
    - Siempre normalizar clases mediante `config('global_classes.php')` o `App\Services\FundicionPaths::normalizeClass($clase)`.
+4. **PROHIBIDO EL USO DE `migrate:fresh`, `db:wipe` O CUALQUIER COMANDO DESTRUCTOR DE BASE DE DATOS:**
+   - Bajo ninguna circunstancia se debe ejecutar `migrate:fresh`, `migrate:reset`, `db:wipe` ni comandos que borren tablas o datos existentes a menos que el desarrollador lo ordene explícitamente por escrito. Toda alteración de esquema debe hacerse quirúrgicamente mediante migraciones incrementales o condicionales.
 
 ### C. Vistas Blade y JavaScript
 1. **Seguridad CSRF:**

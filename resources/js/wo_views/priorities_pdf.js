@@ -5,6 +5,8 @@
 // de la vista de Prioridades GIS.
 // ══════════════════════════════════════════════════════════════════
 
+import './priorities_documents.js';
+
 /**
  * Exporta la tabla de prioridades a archivo Excel (.xls) con diseño corporativo GIS impecable.
  */

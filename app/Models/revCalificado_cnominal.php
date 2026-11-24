@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class revCalificado_cnominal extends Model
 {
     use HasFactory;
-    protected $table = 'revCalificado_cnominal';
+    protected $table = 'revcalificado_cnominal';
     
     protected $fillable = [
         'id_proceso',

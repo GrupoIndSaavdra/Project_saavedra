@@ -9,7 +9,7 @@ class CandadoObturador_cnominal extends Model
 {
     use HasFactory;
 
-    protected $table = 'CandadoObturador_cnominal';
+    protected $table = 'candadoobturador_cnominal';
 
     protected $fillable = [
         'id_proceso',

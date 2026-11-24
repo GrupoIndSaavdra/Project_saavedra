@@ -548,7 +548,7 @@ class PtaResultsController extends Controller
      * GET admin/pta/analysis/pdf
      * Genera el reporte PDF del análisis actual (filtros OT y Clase).
      */
-    public function analysisPDF(Request $request)
+    public function analysisPDF(Request $request, bool $inline = false)
     {
         $otId = $request->get('ot_id');
         $claseId = $request->get('clase_id');
@@ -608,7 +608,7 @@ class PtaResultsController extends Controller
         // Establecer orientación horizontal (landscape)
         $pdf->setPaper('a4', 'landscape');
 
-        return $pdf->download($filename);
+        return $inline ? $pdf->stream($filename) : $pdf->download($filename);
     }
 
     // ═══════════════════════════════════════════════════════════════════════

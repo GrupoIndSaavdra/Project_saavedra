@@ -9,7 +9,7 @@ class SegundaOperacionCabezaSoplo_tolerancia extends Model
 {
     use HasFactory;
 
-    protected $table = 'segundaOperacionCabezaSoplo_tolerancia';
+    protected $table = 'segundaoperacioncabezasoplo_tolerancia';
 
     protected $fillable = [
         'id_proceso',

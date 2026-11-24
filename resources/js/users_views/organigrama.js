@@ -18,17 +18,150 @@ document.addEventListener("DOMContentLoaded", function () {
     const btnZoomFit = document.getElementById("btn-zoom-fit");
     const btnExportPdf = document.getElementById("btn-export-pdf");
 
+    const masterWrapper = document.querySelector(".org-master-wrapper");
+    const btnExpandAll = document.getElementById("btn-org-expand-all");
+    const btnSummary = document.getElementById("btn-org-summary");
+    const btnDensity = document.getElementById("btn-org-density");
+
+    // Referencias cacheadas del DOM (evitan querySelectorAll repetitivos)
+    const treeBranchEl = treeRoot ? treeRoot.querySelector(".tree-branch") : null;
+    const treeUlEl = treeBranchEl ? treeBranchEl.querySelector(":scope > ul") : null;
+    const areaBranches = Array.from(document.querySelectorAll("li.org-area-branch.has-children"));
+    const roleGroups = Array.from(document.querySelectorAll("li.org-role-group"));
+    const branchTitles = Array.from(document.querySelectorAll(".area-branch-title, .sub-role-branch-title"));
+    const areaTitleEls = Array.from(document.querySelectorAll(".area-branch-title"));
+    const subRoleCols = Array.from(document.querySelectorAll(".puesto-nodes-column"));
+    const kpiTotalEl = document.getElementById("kpi-total-val");
+    const kpiActiveEl = document.getElementById("kpi-active-val");
+    const kpiInactiveEl = document.getElementById("kpi-inactive-val");
+
     let currentPlanta = "todas";
     let currentTurno = "todos";
     let currentStatus = "todos";
     let searchQuery = "";
     let currentZoom = 1;
+    let hadActiveFilter = false;
+    let searchDebounceTimer = null;
+    let fitRafId = null;
+    let resizeDebounceTimer = null;
+
+    // ── Despliegue / Contracción de Áreas y Puestos ──────────
+    function syncAriaStates() {
+        areaBranches.forEach((li) => {
+            const trigger = li.querySelector(":scope > .area-branch-title");
+            if (trigger) {
+                trigger.setAttribute("aria-expanded", li.classList.contains("is-area-collapsed") ? "false" : "true");
+            }
+        });
+        roleGroups.forEach((li) => {
+            const trigger = li.querySelector(":scope > .sub-role-branch-title");
+            if (trigger) {
+                trigger.setAttribute("aria-expanded", li.classList.contains("is-group-collapsed") ? "false" : "true");
+            }
+        });
+
+        const allExpanded = roleGroups.every((g) => !g.classList.contains("is-group-collapsed"))
+            && areaBranches.every((a) => !a.classList.contains("is-area-collapsed"));
+        const isSummary = roleGroups.length > 0
+            && roleGroups.every((g) => g.classList.contains("is-group-collapsed"))
+            && areaBranches.every((a) => !a.classList.contains("is-area-collapsed"));
+
+        if (btnExpandAll) btnExpandAll.classList.toggle("active", allExpanded);
+        if (btnSummary) btnSummary.classList.toggle("active", isSummary);
+    }
+
+    function setCollapsed(collapseGroups, collapseAreas) {
+        roleGroups.forEach((li) => {
+            li.classList.toggle("is-group-collapsed", collapseGroups);
+        });
+        areaBranches.forEach((li) => {
+            li.classList.toggle("is-area-collapsed", collapseAreas);
+        });
+        syncAriaStates();
+    }
+
+    function updateBranchCounts() {
+        branchTitles.forEach((titleEl) => {
+            const li = titleEl.closest("li");
+            if (!li) return;
+            const scope = li.classList.contains("org-role-group")
+                ? (li.querySelector(":scope > .puesto-nodes-column") || li)
+                : li;
+            const visibleNodes = scope.querySelectorAll(".org-node:not(.node-filtered-out)");
+            const inactiveNodes = scope.querySelectorAll(".org-node.node-inactivo:not(.node-filtered-out)");
+
+            const totalBadge = titleEl.querySelector(".org-count-total");
+            const warnBadge = titleEl.querySelector(".org-count-warn");
+            if (totalBadge) {
+                totalBadge.textContent = visibleNodes.length;
+            }
+            if (warnBadge) {
+                warnBadge.hidden = inactiveNodes.length === 0;
+                warnBadge.textContent = inactiveNodes.length > 0 ? `⚠ ${inactiveNodes.length}` : "";
+            }
+        });
+    }
+
+    // Delegación de eventos para clic y teclado sobre títulos de área y puesto
+    if (treeRoot) {
+        treeRoot.addEventListener("click", (e) => {
+            const trigger = e.target.closest(".org-collapsible-trigger");
+            if (!trigger) return;
+            const li = trigger.closest("li");
+            if (!li) return;
+
+            if (trigger.classList.contains("sub-role-branch-title")) {
+                li.classList.toggle("is-group-collapsed");
+            } else if (trigger.classList.contains("area-branch-title")) {
+                li.classList.toggle("is-area-collapsed");
+            }
+
+            syncAriaStates();
+            fitToScreen();
+        });
+
+        treeRoot.addEventListener("keydown", (e) => {
+            if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("org-collapsible-trigger")) {
+                e.preventDefault();
+                e.target.click();
+            }
+        });
+    }
+
+    if (btnExpandAll) {
+        btnExpandAll.addEventListener("click", () => {
+            setCollapsed(false, false);
+            fitToScreen();
+        });
+    }
+
+    if (btnSummary) {
+        btnSummary.addEventListener("click", () => {
+            setCollapsed(true, false);
+            fitToScreen();
+        });
+    }
+
+    if (btnDensity && masterWrapper) {
+        btnDensity.addEventListener("click", () => {
+            const isCompact = masterWrapper.classList.toggle("org-compact-mode");
+            btnDensity.classList.toggle("active", isCompact);
+            btnDensity.textContent = isCompact ? "Vista detallada" : "Vista compacta";
+            fitToScreen();
+        });
+    }
 
     // ── Filtros ──────────────────────────────────────────────
     function filterUsers() {
         let visibleCount = 0;
         let activeVisible = 0;
         let inactiveVisible = 0;
+
+        const trimmedQuery = searchQuery.trim().toLowerCase();
+        const hasFilter = currentPlanta !== "todas"
+            || currentTurno !== "todos"
+            || currentStatus !== "todos"
+            || trimmedQuery !== "";
 
         userCards.forEach((card) => {
             const cardPlanta = (card.dataset.planta || "").trim().toUpperCase();
@@ -40,7 +173,6 @@ document.addEventListener("DOMContentLoaded", function () {
             let matchPlanta = true;
             if (currentPlanta !== "todas") {
                 const targetPlanta = currentPlanta.trim().toUpperCase();
-                // Si la tarjeta no tiene planta o es diferente a la seleccionada
                 matchPlanta = cardPlanta === targetPlanta;
             }
 
@@ -60,8 +192,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             // Search Query
             let matchSearch = true;
-            if (searchQuery.trim() !== "") {
-                matchSearch = cardText.includes(searchQuery.trim().toLowerCase());
+            if (trimmedQuery !== "") {
+                matchSearch = cardText.includes(trimmedQuery);
             }
 
             const isMatch = matchPlanta && matchTurno && matchStatus && matchSearch;
@@ -71,40 +203,40 @@ document.addEventListener("DOMContentLoaded", function () {
                 card.style.opacity = "1";
                 card.style.filter = "none";
                 card.classList.remove("node-filtered-out");
+                card.classList.toggle("node-found", trimmedQuery !== "");
                 visibleCount++;
                 if (cardStatus === "activo") activeVisible++;
                 else inactiveVisible++;
             } else {
                 card.style.display = "none";
                 card.classList.add("node-filtered-out");
+                card.classList.remove("node-found");
             }
         });
 
         // Ocultar sub-ramas de puestos si no tienen miembros visibles
-        const subRoleLis = document.querySelectorAll(".puesto-nodes-column");
-        subRoleLis.forEach((col) => {
+        subRoleCols.forEach((col) => {
             const parentLi = col.closest("li");
             if (!parentLi) return;
             const visibleChildren = col.querySelectorAll(".org-node:not(.node-filtered-out)");
-            if (visibleChildren.length > 0) {
-                parentLi.style.display = "";
-            } else {
-                parentLi.style.display = "none";
-            }
+            parentLi.style.display = visibleChildren.length > 0 ? "" : "none";
         });
 
         // Ocultar ramas de área completas si ni supervisor ni equipo están visibles
-        const areaTitles = document.querySelectorAll(".area-branch-title");
-        areaTitles.forEach((titleEl) => {
+        areaTitleEls.forEach((titleEl) => {
             const areaLi = titleEl.closest("li");
             if (!areaLi) return;
             const visibleNodesInArea = areaLi.querySelectorAll(".org-node:not(.node-filtered-out)");
-            if (visibleNodesInArea.length > 0) {
-                areaLi.style.display = "";
-            } else {
-                areaLi.style.display = "none";
-            }
+            areaLi.style.display = visibleNodesInArea.length > 0 ? "" : "none";
         });
+
+        // Auto-expandir cuando hay búsqueda/filtros activos y restaurar resumen al limpiar
+        if (hasFilter) {
+            setCollapsed(false, false);
+        } else if (hadActiveFilter) {
+            setCollapsed(true, false);
+        }
+        hadActiveFilter = hasFilter;
 
         // Mostrar u ocultar mensaje de estado vacío (ej: CDMX sin gente)
         if (visibleCount === 0) {
@@ -112,11 +244,10 @@ document.addEventListener("DOMContentLoaded", function () {
             if (emptyFilterMsg) {
                 emptyFilterMsg.style.display = "block";
                 
-                // Personalizar mensaje según el filtro
                 if (currentPlanta !== "todas") {
                     if (emptyTitleEl) emptyTitleEl.textContent = `No hay personal registrado en Planta ${currentPlanta}`;
                     if (emptyDetailsEl) emptyDetailsEl.textContent = `Actualmente no se encuentran colaboradores asignados a la ubicación "${currentPlanta}".`;
-                } else if (searchQuery.trim() !== "") {
+                } else if (trimmedQuery !== "") {
                     if (emptyTitleEl) emptyTitleEl.textContent = `Sin resultados para "${searchQuery}"`;
                     if (emptyDetailsEl) emptyDetailsEl.textContent = "Intenta con otro término de búsqueda o limpia los filtros.";
                 } else {
@@ -129,14 +260,23 @@ document.addEventListener("DOMContentLoaded", function () {
             if (emptyFilterMsg) emptyFilterMsg.style.display = "none";
         }
 
-        // Actualizar contadores
-        const totalEl = document.getElementById("kpi-total-val");
-        const activeEl = document.getElementById("kpi-active-val");
-        const inactiveEl = document.getElementById("kpi-inactive-val");
+        // Actualizar contadores KPI y contadores en píldoras de área/puesto
+        if (kpiTotalEl) kpiTotalEl.textContent = visibleCount;
+        if (kpiActiveEl) kpiActiveEl.textContent = activeVisible;
+        if (kpiInactiveEl) kpiInactiveEl.textContent = inactiveVisible;
 
-        if (totalEl) totalEl.textContent = visibleCount;
-        if (activeEl) activeEl.textContent = activeVisible;
-        if (inactiveEl) inactiveEl.textContent = inactiveVisible;
+        updateBranchCounts();
+        if (visibleCount > 0) {
+            fitToScreen();
+            if (trimmedQuery !== "") {
+                const firstFound = document.querySelector(".org-node.node-found");
+                if (firstFound) {
+                    setTimeout(() => {
+                        firstFound.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+                    }, 90);
+                }
+            }
+        }
     }
 
     // Planta Buttons
@@ -165,11 +305,12 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Search Input
+    // Search Input (con debounce suave para evitar recálculos excesivos)
     if (searchInput) {
         searchInput.addEventListener("input", function () {
             searchQuery = this.value;
-            filterUsers();
+            if (searchDebounceTimer) clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(filterUsers, 220);
         });
     }
 
@@ -240,26 +381,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function fitToScreen() {
         if (!canvas || !treeRoot) return;
-        
-        // Medir ancho disponible
-        const availableWidth = canvas.clientWidth - 80;
-        
-        // Reset zoom momentáneo para cálculo exacto
-        treeRoot.style.zoom = 1;
-        
-        requestAnimationFrame(() => {
-            const contentWidth = treeRoot.scrollWidth || treeRoot.offsetWidth || 1400;
-            let optimalZoom = availableWidth / contentWidth;
-            
-            // Límite de escala óptima entre 45% y 100%
-            optimalZoom = Math.min(Math.max(0.45, optimalZoom), 1.0);
-            
+        if (fitRafId) cancelAnimationFrame(fitRafId);
+
+        fitRafId = requestAnimationFrame(() => {
+            fitRafId = null;
+            const availableWidth = canvas.clientWidth - 80;
+            const measuredEl = treeUlEl || treeBranchEl || treeRoot;
+            // offsetWidth sobre el <ul> raíz devuelve el ancho natural sin escalar y sin inflarse por min-width:100%
+            const naturalWidth = measuredEl.offsetWidth || measuredEl.scrollWidth || 1400;
+            const optimalZoom = Math.min(Math.max(0.45, availableWidth / naturalWidth), 1.0);
+
             setZoom(optimalZoom, false);
-            
-            setTimeout(() => {
-                canvas.scrollLeft = (canvas.scrollWidth - canvas.clientWidth) / 2;
+
+            requestAnimationFrame(() => {
+                canvas.scrollLeft = Math.max(0, (canvas.scrollWidth - canvas.clientWidth) / 2);
                 canvas.scrollTop = 0;
-            }, 50);
+            });
         });
     }
 
@@ -379,52 +516,89 @@ document.addEventListener("DOMContentLoaded", function () {
         btnExportPdf.addEventListener("click", exportToPdf);
     }
 
-    // Drag to Pan Canvas
+    // Drag to Pan Canvas optimizado con requestAnimationFrame (60 FPS)
     if (canvas) {
         let isDown = false;
-        let startX, startY, scrollLeft, scrollTop;
+        let startX = 0;
+        let startY = 0;
+        let startScrollLeft = 0;
+        let startScrollTop = 0;
+        let pendingScrollLeft = 0;
+        let pendingScrollTop = 0;
+        let dragRafId = null;
+        let wheelRafId = null;
+        let pendingZoomDelta = 0;
+
+        function applyPendingPan() {
+            dragRafId = null;
+            canvas.scrollLeft = pendingScrollLeft;
+            canvas.scrollTop = pendingScrollTop;
+        }
+
+        function stopDragging() {
+            if (!isDown) return;
+            isDown = false;
+            canvas.classList.remove("is-dragging");
+            if (dragRafId) {
+                cancelAnimationFrame(dragRafId);
+                dragRafId = null;
+            }
+        }
 
         canvas.addEventListener("mousedown", (e) => {
-            if (e.target.closest(".org-node") || e.target.closest(".org-empty-filter-box") || e.target.closest("button") || e.target.closest("input") || e.target.closest("select")) return;
+            if (
+                e.button !== 0 ||
+                e.target.closest(".org-node") ||
+                e.target.closest(".org-collapsible-trigger") ||
+                e.target.closest(".org-empty-filter-box") ||
+                e.target.closest("button") ||
+                e.target.closest("input") ||
+                e.target.closest("select")
+            ) return;
             isDown = true;
-            canvas.style.cursor = "grabbing";
-            startX = e.pageX - canvas.offsetLeft;
-            startY = e.pageY - canvas.offsetTop;
-            scrollLeft = canvas.scrollLeft;
-            scrollTop = canvas.scrollTop;
+            canvas.classList.add("is-dragging");
+            startX = e.clientX;
+            startY = e.clientY;
+            startScrollLeft = canvas.scrollLeft;
+            startScrollTop = canvas.scrollTop;
         });
 
-        window.addEventListener("mouseup", () => {
-            if (isDown) {
-                isDown = false;
-                canvas.style.cursor = "grab";
-            }
-        });
+        window.addEventListener("mouseup", stopDragging);
+        window.addEventListener("blur", stopDragging);
 
         canvas.addEventListener("mousemove", (e) => {
             if (!isDown) return;
             e.preventDefault();
-            const x = e.pageX - canvas.offsetLeft;
-            const y = e.pageY - canvas.offsetTop;
-            const walkX = (x - startX) * 1.5;
-            const walkY = (y - startY) * 1.5;
-            canvas.scrollLeft = scrollLeft - walkX;
-            canvas.scrollTop = scrollTop - walkY;
+            pendingScrollLeft = startScrollLeft - (e.clientX - startX) * 1.35;
+            pendingScrollTop = startScrollTop - (e.clientY - startY) * 1.35;
+            if (!dragRafId) {
+                dragRafId = requestAnimationFrame(applyPendingPan);
+            }
         });
 
-        // Zoom con rueda del ratón (Ctrl + Scroll)
+        // Zoom con rueda del ratón (Ctrl + Scroll) agrupado por frame
         canvas.addEventListener("wheel", (e) => {
-            if (e.ctrlKey) {
-                e.preventDefault();
-                const delta = e.deltaY < 0 ? 0.08 : -0.08;
-                setZoom(currentZoom + delta);
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+            pendingZoomDelta += e.deltaY < 0 ? 0.08 : -0.08;
+            if (!wheelRafId) {
+                wheelRafId = requestAnimationFrame(() => {
+                    wheelRafId = null;
+                    const delta = pendingZoomDelta;
+                    pendingZoomDelta = 0;
+                    setZoom(currentZoom + delta);
+                });
             }
         }, { passive: false });
-
-        // Centrar y ajustar scroll al cargar
-        setTimeout(() => {
-            canvas.scrollLeft = (canvas.scrollWidth - canvas.clientWidth) / 2;
-        }, 150);
     }
+
+    // Estado inicial en Resumen (puestos contraídos, áreas visibles con contadores)
+    setCollapsed(true, false);
+    updateBranchCounts();
+    setTimeout(fitToScreen, 100);
+    window.addEventListener("resize", () => {
+        if (resizeDebounceTimer) clearTimeout(resizeDebounceTimer);
+        resizeDebounceTimer = setTimeout(fitToScreen, 150);
+    });
 });
 

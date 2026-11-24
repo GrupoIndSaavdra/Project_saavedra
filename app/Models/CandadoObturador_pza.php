@@ -9,7 +9,7 @@ class CandadoObturador_pza extends Model
 {
     use HasFactory;
 
-    protected $table = 'CandadoObturador_pza';
+    protected $table = 'candadoobturador_pza';
 
     protected $fillable = [
         'id_pza',

@@ -36,7 +36,7 @@ class Heartbeat extends Command
 
         // LIMPIEZA DE SESIONES FANTASMA (Abandono de pestaña)
         // Si el usuario no ha mandado ping en más de 2 minutos, lo pasamos a none.
-        User::query()->where('perfil', '=', '2', 'and')
+        User::query()->whereIn('perfil', [2, 9, '2', '9'], 'and', false)
             ->where('prod_status', '!=', 'none', 'and')
             ->where('updated_at', '<', $now->copy()->subMinutes(2), 'and')
             ->update([
@@ -45,8 +45,8 @@ class Heartbeat extends Command
                 'prod_start_at' => null
             ]);
 
-        // Buscar operadores (Perfil 2) que tengan un monitoreo activo
-        $users = User::query()->where('perfil', '=', '2', 'and')
+        // Buscar operadores (Perfil 9 y 2) que tengan un monitoreo activo
+        $users = User::query()->whereIn('perfil', [2, 9, '2', '9'], 'and', false)
             ->where('prod_status', '!=', 'none', 'and')
             ->whereNull('prod_locked_type') // Solo procesar los que no están bloqueados aún
             ->get();

@@ -16,8 +16,12 @@
         <div class="cp-top-left">
             <a href="{{ $backUrl }}" id="btnRegresar" class="action-btn-wrapper btn-regresar"
                 title="Regresar a la vista anterior">
-                <img src="{{ asset('images/Color_Icons/Generales/img-back.png') }}" class="img-action-btn btn-regresar-img"
-                    alt="Regresar" />
+                <div class="action-btn-icon-wrapper">
+                    <img src="{{ asset('images/Shadow_Icons/img-back-Shadow.png') }}" class="img-action-btn icon-shadow btn-regresar-img"
+                        alt="Regresar" />
+                    <img src="{{ asset('images/Color_Icons/Generales/img-back.png') }}" class="img-action-btn icon-color btn-regresar-color"
+                        alt="Regresar" />
+                </div>
                 <span class="action-label">Regresar</span>
             </a>
         </div>
@@ -38,8 +42,12 @@
         <div class="cp-top-right">
             <button type="button" class="action-btn-wrapper btn-print" onclick="window.print()"
                 title="Imprimir / Exportar Reporte">
-                <img src="{{ asset('images/Color_Icons/Generales/Imprimir-Icon.png') }}" class="img-action-btn btn-print-img"
-                    alt="Imprimir" />
+                <div class="action-btn-icon-wrapper">
+                    <img src="{{ asset('images/Shadow_Icons/Imprimir-Icon_Shadow.png') }}" class="img-action-btn icon-shadow btn-print-img"
+                        alt="Imprimir" />
+                    <img src="{{ asset('images/Color_Icons/Generales/Imprimir-Icon.png') }}" class="img-action-btn icon-color btn-print-color"
+                        alt="Imprimir" />
+                </div>
                 <span class="action-label">Imprimir</span>
             </button>
             <div id="operadores-container" class="operadores-container"></div>

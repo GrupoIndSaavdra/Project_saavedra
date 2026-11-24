@@ -5,6 +5,9 @@ on:
     branches:
       - Server/v1.0.0
 
+permissions:
+  contents: write
+
 jobs:
   web-deploy:
     name: Deploy to Server
@@ -12,6 +15,9 @@ jobs:
     steps:
       - name: Get latest code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
@@ -27,6 +33,19 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Verify PHP syntax across codebase
+        run: |
+          echo "Verificando sintaxis PHP en app, routes, config y database..."
+          find app routes config database -type f -name "*.php" -exec php -l {} +
+
+      - name: Validate Laravel configuration and routes integrity
+        run: |
+          cp .env.example .env
+          php artisan key:generate --force
+          php artisan package:discover --ansi
+          php artisan route:list > /dev/null
+          rm -f .env
 
       - name: Build Vite assets
         run: |
@@ -45,3 +64,29 @@ jobs:
             **/.git*/**
             **/node_modules/**
             .env
+
+      - name: Rollback to previous commit on failure
+        if: failure()
+        run: |
+          echo "================================================================"
+          echo "⚠️ FALLO DETECTADO EN EL PROCESO DE DESPLIEGUE O PRUEBAS"
+          echo "Iniciando rollback automático de la rama Server/v1.0.0..."
+          echo "================================================================"
+
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          PREV_COMMIT="${{ github.event.before }}"
+          if [ -z "$PREV_COMMIT" ] || [ "$PREV_COMMIT" = "0000000000000000000000000000000000000000" ]; then
+            PREV_COMMIT=$(git rev-parse HEAD~1)
+          fi
+
+          echo "Restaurando Server/v1.0.0 al commit previo estable: $PREV_COMMIT"
+          git checkout -B Server/v1.0.0
+          git reset --hard "$PREV_COMMIT"
+          git push --force origin Server/v1.0.0
+
+          echo "================================================================"
+          echo "✅ Rollback completado en Server/v1.0.0."
+          echo "El servidor NO fue alterado o se preservó en su versión previa."
+          echo "================================================================"

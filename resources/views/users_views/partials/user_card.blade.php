@@ -1,21 +1,29 @@
 @php
     $isInactive = !$user->estatus;
     $rolLabel = match((string)$user->perfil) {
-        '1' => 'Administrador',
-        '2' => 'Operador',
-        '3' => 'Master',
-        '4' => 'Calidad',
-        '5' => 'Almacén',
-        '6' => 'Supervisor',
+        '1' => 'Master',
+        '2' => 'Administrador',
+        '3' => 'Supervisor',
+        '4' => 'Ingeniería',
+        '5' => 'Diseño y programación',
+        '6' => 'Ventas',
+        '7' => 'Almacén',
+        '8' => 'Calidad',
+        '9' => 'Operador',
+        '10' => 'Sistemas',
         default => $user->perfil,
     };
     $rolIcon = match((string)$user->perfil) {
-        '1' => 'images/Light_Icons/Administracion-Light.png',
-        '2' => 'images/Light_Icons/Operador-Light.png',
-        '3' => 'images/Light_Icons/Master-Light.png',
-        '4' => 'images/Light_Icons/Calidad-Light.png',
-        '5' => 'images/Light_Icons/Almacen-Light.png',
-        '6' => 'images/Light_Icons/Supervision-Light.png',
+        '1' => 'images/Light_Icons/Perfiles/Master_Profile-Light.png',
+        '2' => 'images/Light_Icons/Perfiles/Administracion_Profile-Light.png',
+        '3' => 'images/Light_Icons/Perfiles/Supervision_Profile-Light.png',
+        '4' => 'images/Light_Icons/Perfiles/Ingenieria_Profile-Light.png',
+        '5' => 'images/Light_Icons/Perfiles/DYP_Profile-Light.png',
+        '6' => 'images/Light_Icons/Perfiles/Ventas_Profile-Light.png',
+        '7' => 'images/Light_Icons/Perfiles/Almacen_Profile-Light.png',
+        '8' => 'images/Light_Icons/Perfiles/Calidad_Profile-Light.png',
+        '9' => 'images/Light_Icons/Perfiles/Operador_Profile-Light.png',
+        '10' => 'images/Light_Icons/Perfiles/Sistemas_Profile-Light.png',
         default => null,
     };
     $fullName = trim($user->name ?: ($user->nombre . ' ' . $user->a_paterno . ' ' . $user->a_materno));

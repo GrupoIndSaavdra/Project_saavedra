@@ -484,7 +484,7 @@ class EmbudoCMController extends Controller
             }
         } else {
             if (isset($request->password)) { //Si se ingreso una contraseña y la meta existe entonces...
-                $usersPasswords = User::query()->where('perfil', 1)->get(); //Obtengo todas las contraseñas de admin.
+                $usersPasswords = User::query()->whereIn('perfil', [1, 2, 3, 10, '1', '2', '3', '10', '0'], 'and', false)->get(); // Obtengo contraseñas de personal administrativo.
                 foreach ($usersPasswords as $userPassword) { //Recorro las contraseñas.
                     if (Hash::check($request->password, $userPassword->contrasena)) {  //Si la contraseña es correcta.
                         return view('processes.embudoCM', ['band' => 4, 'moldura' => $moldura->nombre, 'ot' => $ot, 'meta' => $meta, 'clase' => $clase, 'nPiezas' => $pzasCreadas, 'pzasRestantes' => $pzasRestantes, 'cNominal' => $cNominal, 'tolerancia' => $tolerancia]); //Retorno la vista de cepillado.

@@ -22,9 +22,9 @@ class CalidadMaquinadosController extends Controller
 {
     /**
      * Perfiles de usuario con acceso.
-     * 1 = Administrador | 4 = Calidad
+     * 1 = Master | 2 = Admin | 3 = Supervisor | 4 = Ing | 5 = Diseño | 7 = Almacen | 8 = Calidad | 10 = Sistemas
      */
-    private const PERFILES_PERMITIDOS = ['1', '3', '4'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '5', '7', '8', '10', '0'];
 
     // =========================================================================
     // GATE DE ACCESO
@@ -35,7 +35,12 @@ class CalidadMaquinadosController extends Controller
         /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
-        if (! $user || ! in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)) {
+        $tieneAcceso = $user && (
+            in_array((string) $user->perfil, ['1', '2', '3', '4', '5', '7', '8', '10', '0'], true) ||
+            in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
+        );
+
+        if (! $tieneAcceso) {
             abort(403, 'Acceso restringido. Solo Calidad y Administradores pueden ver esta sección.');
         }
     }

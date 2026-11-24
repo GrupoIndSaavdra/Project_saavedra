@@ -118,7 +118,7 @@
                         @endforeach
                     @endif
                 </select>
-                <label for="select-operador"><img src="{{ asset('images/Light_Icons/Filtro_Operador-Light.png') }}"
+                <label for="select-operador"><img src="{{ asset('images/Light_Icons/Iconos/Operador-Light.png') }}"
                         class="icon-label" alt="" /> OPERADOR</label>
             </div>
 

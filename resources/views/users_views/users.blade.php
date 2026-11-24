@@ -68,12 +68,16 @@
 
         <select id="role-filter" class="role-select-toolbar">
             <option value="todos">Todos los roles</option>
+            <option value="Master">Master</option>
             <option value="Administrador">Administrador</option>
             <option value="Supervisor">Supervisor</option>
-            <option value="Operador">Operador</option>
-            <option value="Master">Master</option>
-            <option value="Calidad">Calidad</option>
+            <option value="Ingeniería">Ingeniería</option>
+            <option value="Diseño y programación">Diseño y programación</option>
+            <option value="Ventas">Ventas</option>
             <option value="Almacén">Almacén</option>
+            <option value="Calidad">Calidad</option>
+            <option value="Operador">Operador</option>
+            <option value="Sistemas">Sistemas</option>
         </select>
 
         <select id="status-filter" class="role-select-toolbar">
@@ -92,12 +96,11 @@
         <table id="users-table">
             <thead>
                 <tr>
-                    <th>Rol</th>
+                    <th>Tipo de Perfil</th>
                     <th>Matrícula</th>
                     <th>Usuario</th>
                     <th>Planta</th>
                     <th>Turno</th>
-                    <th>Área</th>
                     <th>Puesto</th>
                     <th>Fecha de registro</th>
                     <th>Estatus</th>
@@ -109,38 +112,50 @@
                 @php
                     $perfilStr = (string)$user->perfil;
                     $rolLabel = match($perfilStr) {
-                        '1', 'Administrador'     => 'Administrador',
-                        '2', 'Operador'          => 'Operador',
-                        '3', 'Master', 'Maestro' => 'Master',
-                        '4', 'Calidad'           => 'Calidad',
-                        '5', 'Almacén', 'Almacen'=> 'Almacén',
-                        '6', 'Supervisor'        => 'Supervisor',
-                        default                  => $user->perfil,
+                        '1', 'Master', 'Maestro'             => 'Master',
+                        '2', 'Administrador', 'Admin'        => 'Administrador',
+                        '3', 'Supervisor'                    => 'Supervisor',
+                        '4', 'Ingeniería', 'Ingenieria'      => 'Ingeniería',
+                        '5', 'Diseño y programación'         => 'Diseño y programación',
+                        '6', 'Ventas'                        => 'Ventas',
+                        '7', 'Almacén', 'Almacen'            => 'Almacén',
+                        '8', 'Calidad'                       => 'Calidad',
+                        '9', 'Operador'                      => 'Operador',
+                        '10', 'Sistemas', 'Sistemas / TI'   => 'Sistemas',
+                        default                              => $user->perfil,
                     };
                     $rolClass = match($rolLabel) {
-                        'Administrador' => 'badge-admin',
-                        'Operador'      => 'badge-operador',
-                        'Master'        => 'badge-master',
-                        'Calidad'       => 'badge-calidad',
-                        'Almacén'       => 'badge-almacen',
-                        'Supervisor'    => 'badge-supervisor',
-                        default         => 'badge-default',
+                        'Master'                => 'badge-master',
+                        'Administrador'         => 'badge-admin',
+                        'Supervisor'            => 'badge-supervisor',
+                        'Ingeniería'            => 'badge-supervisor',
+                        'Diseño y programación' => 'badge-supervisor',
+                        'Ventas'                => 'badge-supervisor',
+                        'Almacén'               => 'badge-almacen',
+                        'Calidad'               => 'badge-calidad',
+                        'Operador'              => 'badge-operador',
+                        'Sistemas'              => 'badge-admin',
+                        default                 => 'badge-default',
                     };
                     $rolIcon = match($rolLabel) {
-                        'Administrador' => 'images/Light_Icons/Administracion-Light.png',
-                        'Operador'      => 'images/Light_Icons/Operador-Light.png',
-                        'Master'        => 'images/Light_Icons/Master-Light.png',
-                        'Calidad'       => 'images/Light_Icons/Calidad-Light.png',
-                        'Almacén'       => 'images/Light_Icons/Almacen-Light.png',
-                        'Supervisor'    => 'images/Light_Icons/Supervision-Light.png',
-                        default         => null,
+                        'Master'                => 'images/Light_Icons/Perfiles/Master_Profile-Light.png',
+                        'Administrador'         => 'images/Light_Icons/Perfiles/Administracion_Profile-Light.png',
+                        'Supervisor'            => 'images/Light_Icons/Perfiles/Supervision_Profile-Light.png',
+                        'Ingeniería'            => 'images/Light_Icons/Perfiles/Ingenieria_Profile-Light.png',
+                        'Diseño y programación' => 'images/Light_Icons/Perfiles/DYP_Profile-Light.png',
+                        'Ventas'                => 'images/Light_Icons/Perfiles/Ventas_Profile-Light.png',
+                        'Almacén'               => 'images/Light_Icons/Perfiles/Almacen_Profile-Light.png',
+                        'Calidad'               => 'images/Light_Icons/Perfiles/Calidad_Profile-Light.png',
+                        'Operador'              => 'images/Light_Icons/Perfiles/Operador_Profile-Light.png',
+                        'Sistemas'              => 'images/Light_Icons/Perfiles/Sistemas_Profile-Light.png',
+                        default                 => 'images/Light_Icons/Perfiles/Supervision_Profile-Light.png',
                     };
                 @endphp
                 <tr id="user-row-{{ $user->id }}"
                     data-id="{{ $user->id }}"
                     data-rol="{{ $rolLabel }}"
                     data-status="{{ $user->estatus ? 'Activo' : 'Inactivo' }}"
-                    data-search="{{ strtolower($user->matricula . ' ' . $user->name . ' ' . ($user->planta ?? '') . ' ' . ($user->turno ?? '') . ' ' . ($user->area ?? '') . ' ' . ($user->puesto ?? '')) }}">
+                    data-search="{{ strtolower($user->matricula . ' ' . $user->name . ' ' . ($user->planta ?? '') . ' ' . ($user->turno ?? '') . ' ' . ($user->puesto ?? '')) }}">
                     {{-- Rol (Icono superior en círculo temático + Texto debajo) --}}
                     <td>
                         <div class="role-cell-container">
@@ -171,11 +186,6 @@
                     {{-- Turno --}}
                     <td>
                         <span class="badge-turno">{{ $user->turno ?: '—' }}</span>
-                    </td>
-
-                    {{-- Área --}}
-                    <td>
-                        <span>{{ $user->area ?: '—' }}</span>
                     </td>
 
                     {{-- Puesto --}}
@@ -212,10 +222,12 @@
                                     'a_paterno' => $user->a_paterno,
                                     'a_materno' => $user->a_materno,
                                     'perfil' => (string)$user->perfil,
+                                    'perfil_id' => $user->perfil_id,
                                     'planta' => $user->planta ?? '',
                                     'turno' => $user->turno ?? '',
                                     'area' => $user->area ?? '',
                                     'puesto' => $user->puesto ?? '',
+                                    'puesto_id' => $user->puesto_id,
                                 ]) }})"
                                 title="Editar usuario"
                             >
@@ -248,7 +260,7 @@
                 </tr>
                 @empty
                 <tr class="empty-row">
-                    <td colspan="10">No hay usuarios registrados.</td>
+                    <td colspan="9">No hay usuarios registrados.</td>
                 </tr>
                 @endforelse
             </tbody>
@@ -312,68 +324,67 @@
 
             {{-- 2. Credenciales y Perfil --}}
             <div class="modal-section">
-                <div class="modal-section-title">2. CREDENCIALES Y PERFIL</div>
+                <div class="modal-section-title">2. CREDENCIALES</div>
                 <div class="modal-grid-2">
                     <div class="modal-form-group">
                         <label class="modal-label" for="edit_matricula">Matrícula (Solo lectura)</label>
-                        <input type="text" id="edit_matricula" class="modal-input" disabled style="background:#e2e8f0; cursor:not-allowed;">
+                        <input type="text" id="edit_matricula" name="matricula" class="modal-input" readonly style="background:#e2e8f0; cursor:not-allowed;">
                     </div>
                     <div class="modal-form-group">
-                        <label class="modal-label" for="edit_perfil">Tipo de Perfil (Rol) *</label>
-                        <select id="edit_perfil" name="perfil" class="modal-select" required>
-                            <option value="1">Administrador</option>
-                            <option value="6">Supervisor</option>
-                            <option value="2">Operador</option>
-                            <option value="3">Master</option>
-                            <option value="4">Calidad</option>
-                            <option value="5">Almacén</option>
-                        </select>
+                        <label class="modal-label" for="edit_contrasena">Nueva Contraseña (Opcional)</label>
+                        <input type="password" id="edit_contrasena" name="contrasena" class="modal-input" placeholder="Dejar en blanco para mantener" minlength="8" maxlength="12">
                     </div>
                 </div>
             </div>
 
-            {{-- 3. Ubicación y Asignación Operativa --}}
+            {{-- 3. Ubicación y Asignación Operativa (Planta → Tipo de Perfil (Rol) → Puesto → Turno) --}}
             <div class="modal-section">
                 <div class="modal-section-title">3. UBICACIÓN Y ASIGNACIÓN OPERATIVA</div>
                 <div class="modal-grid-4">
                     <div class="modal-form-group">
-                        <label class="modal-label" for="edit_planta">Planta</label>
-                        <select id="edit_planta" name="planta" class="modal-select">
-                            <option value="">— Sin asignar —</option>
-                            <option value="TECÁMAC">TECÁMAC</option>
+                        <label class="modal-label" for="edit_planta">Planta *</label>
+                        <select id="edit_planta" name="planta" class="modal-select" required>
+                            <option value="TECAMAC">TECÁMAC</option>
                             <option value="CDMX">CDMX</option>
                         </select>
                     </div>
                     <div class="modal-form-group">
-                        <label class="modal-label" for="edit_turno">Turno</label>
-                        <select id="edit_turno" name="turno" class="modal-select">
-                            <option value="">— Sin asignar —</option>
+                        <label class="modal-label" for="edit_perfil">Tipo de Perfil (Rol) *</label>
+                        <select id="edit_perfil" name="perfil" class="modal-select" required>
+                            @php
+                                $perfilesEdit = (isset($perfiles) && count($perfiles) > 0) ? $perfiles : collect([
+                                    (object)['id' => 1, 'nombre' => 'Master', 'codigo_perfil' => '1'],
+                                    (object)['id' => 2, 'nombre' => 'Administrador', 'codigo_perfil' => '2'],
+                                    (object)['id' => 3, 'nombre' => 'Supervisor', 'codigo_perfil' => '3'],
+                                    (object)['id' => 4, 'nombre' => 'Ingeniería', 'codigo_perfil' => '4'],
+                                    (object)['id' => 5, 'nombre' => 'Diseño y programación', 'codigo_perfil' => '5'],
+                                    (object)['id' => 6, 'nombre' => 'Ventas', 'codigo_perfil' => '6'],
+                                    (object)['id' => 7, 'nombre' => 'Almacén', 'codigo_perfil' => '7'],
+                                    (object)['id' => 8, 'nombre' => 'Calidad', 'codigo_perfil' => '8'],
+                                    (object)['id' => 9, 'nombre' => 'Operador', 'codigo_perfil' => '9'],
+                                    (object)['id' => 10, 'nombre' => 'Sistemas', 'codigo_perfil' => '0'],
+                                ]);
+                            @endphp
+                            @foreach($perfilesEdit as $p)
+                                <option value="{{ $p->id }}" data-codigo="{{ $p->codigo_perfil }}">{{ $p->id }} - {{ $p->nombre }}</option>
+                            @endforeach
+                        </select>
+                        <input type="hidden" name="perfil_id" id="edit_perfil_id" value="">
+                    </div>
+                    <div class="modal-form-group">
+                        <label class="modal-label" for="edit_puesto">Puesto *</label>
+                        <select id="edit_puesto" name="puesto_id" class="modal-select" required>
+                            <option value="">Seleccione puesto</option>
+                        </select>
+                        <input type="hidden" id="edit_puesto_id" value="">
+                    </div>
+                    <div class="modal-form-group">
+                        <label class="modal-label" for="edit_turno">Turno *</label>
+                        <select id="edit_turno" name="turno" class="modal-select" required>
                             <option value="MIXTO">MIXTO</option>
                             <option value="MATUTINO">MATUTINO</option>
                             <option value="VESPERTINO">VESPERTINO</option>
                             <option value="NOCTURNO">NOCTURNO</option>
-                        </select>
-                    </div>
-                    <div class="modal-form-group">
-                        <label class="modal-label" for="edit_area">Área</label>
-                        <select id="edit_area" name="area" class="modal-select">
-                            <option value="">— Sin asignar —</option>
-                            <option value="JEFE PLANTA">JEFE PLANTA</option>
-                            <option value="SUPERVISOR">SUPERVISOR</option>
-                            <option value="PRODUCCIÓN">PRODUCCIÓN</option>
-                            <option value="SOLDADURA">SOLDADURA</option>
-                            <option value="CALIDAD">CALIDAD</option>
-                            <option value="MANTENIMIENTO">MANTENIMIENTO</option>
-                            <option value="SOFTWARE">SOFTWARE</option>
-                            <option value="ALMACÉN">ALMACÉN</option>
-                            <option value="PROGRAMACIÓN">PROGRAMACIÓN</option>
-                            <option value="ADMINISTRACIÓN">ADMINISTRACIÓN</option>
-                        </select>
-                    </div>
-                    <div class="modal-form-group">
-                        <label class="modal-label" for="edit_puesto">Puesto</label>
-                        <select id="edit_puesto" name="puesto" class="modal-select">
-                            <option value="">Seleccione área primero</option>
                         </select>
                     </div>
                 </div>
@@ -388,113 +399,159 @@
 </div>
 
 <script>
-    // ── Matriz de Puestos por Área ───────────────────────────────
-    const puestosPorAreaModal = {
-        'JEFE PLANTA': [
-            'JEFE DE PLANTA',
-            'GERENTE DE PLANTA',
-            'SUPERVISOR'
-        ],
-        'SUPERVISOR': [
-            'SUPERVISOR DE PRODUCCIÓN',
-            'SUPERVISOR DE CALIDAD',
-            'SUPERVISOR DE SOLDADURA',
-            'SUPERVISOR DE MANTENIMIENTO',
-            'SUPERVISOR DE SOFTWARE',
-            'SUPERVISOR DE PROGRAMACIÓN',
-            'SUPERVISOR DE ALMACÉN',
-            'SUPERVISOR DE ADMINISTRACIÓN',
-            'SUPERVISOR GENERAL',
-            'SUPERVISOR DE PLANTA'
-        ],
-        'PRODUCCIÓN': [
-            'SUPERVISOR DE PRODUCCIÓN',
-            'HERRAMENTISTA',
-            'AYUDANTE GENERAL',
-            'CENTRO DE MAQUINADOS',
-            'OPERADOR TORNO CNC',
-            'BECARIO',
-            'SUPERVISOR'
-        ],
-        'SOLDADURA': [
-            'SUPERVISOR DE SOLDADURA',
-            'SOLDADOR',
-            'SUPERVISOR'
-        ],
-        'CALIDAD': [
-            'SUPERVISOR DE CALIDAD',
-            'INSPECCIÓN',
-            'SUPERVISOR'
-        ],
-        'MANTENIMIENTO': [
-            'SUPERVISOR DE MANTENIMIENTO',
-            'AUX MANTENIMIENTO',
-            'SUPERVISOR'
-        ],
-        'SOFTWARE': [
-            'SUPERVISOR DE SOFTWARE',
-            'SUPERVISOR DE SISTEMAS',
-            'BECARIO',
-            'SUPERVISOR'
-        ],
-        'ALMACÉN': [
-            'SUPERVISOR DE ALMACÉN',
-            'ALMACÉN',
-            'SUPERVISOR'
-        ],
-        'PROGRAMACIÓN': [
-            'SUPERVISOR DE PROGRAMACIÓN',
-            'BECARIO',
-            'SUPERVISOR'
-        ],
-        'ADMINISTRACIÓN': [
-            'SUPERVISOR DE ADMINISTRACIÓN',
-            'BECARIO',
-            'CHOFER',
-            'INTENDENCIA',
-            'SUPERVISOR'
-        ]
-    };
+    // ── Catálogos Oficiales de Puestos y Perfiles ──────────────────
+    const defaultPerfilesFallback = [
+        { id: 1, nombre: 'Master', codigo_perfil: '1' },
+        { id: 2, nombre: 'Administrador', codigo_perfil: '2' },
+        { id: 3, nombre: 'Supervisor', codigo_perfil: '3' },
+        { id: 4, nombre: 'Ingeniería', codigo_perfil: '4' },
+        { id: 5, nombre: 'Diseño y programación', codigo_perfil: '5' },
+        { id: 6, nombre: 'Ventas', codigo_perfil: '6' },
+        { id: 7, nombre: 'Almacén', codigo_perfil: '7' },
+        { id: 8, nombre: 'Calidad', codigo_perfil: '8' },
+        { id: 9, nombre: 'Operador', codigo_perfil: '9' },
+        { id: 10, nombre: 'Sistemas', codigo_perfil: '0' }
+    ];
+
+    const rawPerfiles = @json($perfiles ?? []);
+    const rawPuestos = @json($puestos ?? []);
+
+    const perfilesOficiales = (Array.isArray(rawPerfiles) && rawPerfiles.length > 0) ? rawPerfiles : defaultPerfilesFallback;
+    const puestosOficiales = (Array.isArray(rawPuestos) && rawPuestos.length > 0) ? rawPuestos : [];
 
     const modalOverlay = document.getElementById('edit-user-modal');
     const editForm     = document.getElementById('edit-user-form');
     const modalTitle   = document.getElementById('modal-title');
-    const editArea     = document.getElementById('edit_area');
+    const editPerfil   = document.getElementById('edit_perfil');
+    const editPerfilId = document.getElementById('edit_perfil_id');
+    const editPlanta   = document.getElementById('edit_planta');
     const editPuesto   = document.getElementById('edit_puesto');
+    const editPuestoId = document.getElementById('edit_puesto_id');
 
-    function actualizarPuestosModal(selectedArea, defaultPuesto = '') {
+    function populatePerfilesModal(preservePerfilId = null) {
+        editPerfil.innerHTML = '';
+        (perfilesOficiales || []).forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.id;
+            opt.dataset.codigo = p.codigo_perfil || '';
+            opt.textContent = `${p.id} - ${p.nombre || p.perfil}`;
+            if (preservePerfilId && parseInt(preservePerfilId, 10) === parseInt(p.id, 10)) {
+                opt.selected = true;
+            }
+            editPerfil.appendChild(opt);
+        });
+
+        if (preservePerfilId) {
+            editPerfil.value = preservePerfilId;
+        } else if (editPerfil.options.length > 0) {
+            editPerfil.selectedIndex = 0;
+        }
+
+        editPerfilId.value = editPerfil.value || '';
+    }
+
+    const puestosMapModal = {
+        1: [1], // Master: Director / Master
+        2: [35, 36, 37], // Administrador: Jefe de Departamento, Auxiliar, Becario
+        3: { // Supervisor
+            TECAMAC: [28, 29, 30], // Jefe de Turno, Auxiliar de Supervisión, Becario
+            CDMX: [14, 15, 16, 20, 21, 22] // Jefe de Taller, Jefe de Acabados, Auxiliares, Becarios
+        },
+        4: [8, 9, 10], // Ingeniería: Jefe de Departamento, Auxiliar, Becario
+        5: [5, 6, 7], // Diseño y programación: Jefe de Departamento, Auxiliar, Becario
+        6: [2, 3, 4], // Ventas: Jefe de Departamento, Auxiliar, Becario
+        7: [25, 26, 27], // Almacén: Jefe de Departamento, Auxiliar, Becario
+        8: [11, 12, 13], // Calidad: Jefe de Departamento, Auxiliar, Becario
+        9: { // Operador
+            TECAMAC: [31, 32, 33, 34], // Operador Torno CNC, Soldador PTA, Centro de Maquinados, Ayudante General
+            CDMX: [17, 18, 19, 23, 24] // Operador Torno CNC, Centro de Maquinados, Ayudante, Acabados
+        },
+        10: [38, 39, 40] // Sistemas: Jefe de Sistemas, Auxiliar, Becario
+    };
+
+    /**
+     * Retorna los puestos disponibles según el perfil y la planta seleccionada (sin áreas).
+     */
+    function getPuestosPorPerfilModal(perfilId, planta) {
+        perfilId = parseInt(perfilId, 10);
+        const rawPlanta = (planta || editPlanta.value || 'TECAMAC').toUpperCase();
+        const currentPlanta = rawPlanta.startsWith('TEC') ? 'TECAMAC' : (rawPlanta === 'CDMX' ? 'CDMX' : 'TECAMAC');
+
+        const entry = puestosMapModal[perfilId];
+        let allowedIds = [];
+        if (entry) {
+            if (Array.isArray(entry)) {
+                allowedIds = entry;
+            } else if (typeof entry === 'object') {
+                allowedIds = entry[currentPlanta] || entry['TECAMAC'] || [];
+            }
+        }
+
+        let filtered = (puestosOficiales || []).filter(p => allowedIds.includes(parseInt(p.id, 10)));
+        if (filtered.length === 0 && puestosOficiales.length > 0) {
+            filtered = puestosOficiales.slice(0, 3);
+        }
+        return filtered;
+    }
+
+    /**
+     * Llena el selector de puestos filtrado por perfil y planta.
+     */
+    function actualizarPuestosModal(perfilId, planta, preservePuestoId = null) {
         editPuesto.innerHTML = '';
+        perfilId = parseInt(perfilId, 10);
+        let lista = getPuestosPorPerfilModal(perfilId, planta);
 
-        if (!selectedArea || !puestosPorAreaModal[selectedArea]) {
+        if (preservePuestoId) {
+            const yaEsta = lista.some(p => parseInt(p.id, 10) === parseInt(preservePuestoId, 10) || p.nombre === preservePuestoId);
+            if (!yaEsta) {
+                const puestoExtra = (puestosOficiales || []).find(p => parseInt(p.id, 10) === parseInt(preservePuestoId, 10) || p.nombre === preservePuestoId);
+                if (puestoExtra) {
+                    lista = [puestoExtra, ...lista];
+                }
+            }
+        }
+
+        if (lista.length === 0) {
             const opt = document.createElement('option');
             opt.value = '';
-            opt.textContent = 'Seleccione área primero';
+            opt.textContent = 'Sin puestos disponibles';
             editPuesto.appendChild(opt);
+            editPuestoId.value = '';
             return;
         }
 
-        const placeholder = document.createElement('option');
-        placeholder.value = '';
-        placeholder.textContent = '— Seleccionar puesto —';
-        if (!defaultPuesto) {
-            placeholder.selected = true;
-        }
-        editPuesto.appendChild(placeholder);
-
-        const puestos = puestosPorAreaModal[selectedArea];
-        puestos.forEach(puesto => {
+        let matched = false;
+        lista.forEach(p => {
             const opt = document.createElement('option');
-            opt.value = puesto;
-            opt.textContent = puesto;
-            if (defaultPuesto && defaultPuesto === puesto) {
+            opt.value = p.id;
+            opt.dataset.nivel = p.codigo_nivel || p.codigo_puesto || '1';
+            opt.textContent = p.nombre || p.puesto;
+            if (preservePuestoId && (parseInt(preservePuestoId, 10) === parseInt(p.id, 10) || preservePuestoId === (p.nombre || p.puesto))) {
                 opt.selected = true;
+                matched = true;
             }
             editPuesto.appendChild(opt);
         });
+
+        if (!matched && lista.length > 0) {
+            editPuesto.selectedIndex = 0;
+        }
+
+        editPuestoId.value = editPuesto.value || '';
     }
 
-    editArea.addEventListener('change', function () {
-        actualizarPuestosModal(this.value);
+    editPlanta.addEventListener('change', function () {
+        actualizarPuestosModal(editPerfil.value, this.value);
+    });
+
+    editPerfil.addEventListener('change', function () {
+        editPerfilId.value = this.value;
+        actualizarPuestosModal(this.value, editPlanta.value);
+    });
+
+    editPuesto.addEventListener('change', function () {
+        editPuestoId.value = this.value;
     });
 
     function openEditModal(userData) {
@@ -505,12 +562,30 @@
         document.getElementById('edit_nombre').value    = userData.nombre || '';
         document.getElementById('edit_a_paterno').value = userData.a_paterno || '';
         document.getElementById('edit_a_materno').value = userData.a_materno || '';
-        document.getElementById('edit_perfil').value    = userData.perfil || '2';
-        document.getElementById('edit_planta').value    = userData.planta || '';
-        document.getElementById('edit_turno').value     = userData.turno || '';
+        document.getElementById('edit_contrasena').value = '';
 
-        editArea.value = userData.area || '';
-        actualizarPuestosModal(userData.area, userData.puesto || '');
+        // Asegurar que los campos editables estén disponibles
+        editPuesto.disabled = false;
+        editPerfil.disabled = false;
+        editPlanta.disabled = false;
+
+        const rawPlanta = (userData.planta || 'TECAMAC').toUpperCase();
+        const plantaVal = rawPlanta.startsWith('TEC') ? 'TECAMAC' : (rawPlanta === 'CDMX' ? 'CDMX' : 'TECAMAC');
+        editPlanta.value = plantaVal;
+        document.getElementById('edit_turno').value = userData.turno || 'MATUTINO';
+
+        const perfilId = parseInt(userData.perfil_id || userData.perfil, 10) || 9;
+
+        // 1. Poblar todos los 10 perfiles en el dropdown
+        populatePerfilesModal(perfilId);
+
+        // 2. Cargar puestos filtrados por perfil y planta, preservando el puesto actual del usuario
+        actualizarPuestosModal(perfilId, plantaVal, userData.puesto_id || userData.puesto);
+
+        // 3. Sincronizar hidden fields
+        editPerfil.value   = perfilId;
+        editPerfilId.value = perfilId;
+        editPuestoId.value = editPuesto.value || '';
 
         modalOverlay.classList.add('active');
     }
@@ -659,6 +734,11 @@
 
         try {
             const formData = new FormData(editForm);
+            const perfilVal = parseInt(editPerfil.value, 10);
+            formData.set('perfil', perfilVal);
+            formData.set('perfil_id', perfilVal);
+            formData.set('puesto_id', editPuesto.value || '');
+
             const response = await fetch(editForm.action, {
                 method: 'POST',
                 body: formData,
@@ -684,12 +764,16 @@
                     // Actualizar Rol
                     const roleContainer = row.querySelector('.role-cell-container');
                     const rolMap = {
-                        '1': { label: 'Administrador', class: 'badge-admin', icon: '{{ icon("images/Light_Icons/Administracion-Light.png") }}' },
-                        '2': { label: 'Operador', class: 'badge-operador', icon: '{{ icon("images/Light_Icons/Operador-Light.png") }}' },
-                        '3': { label: 'Master', class: 'badge-master', icon: '{{ icon("images/Light_Icons/Master-Light.png") }}' },
-                        '4': { label: 'Calidad', class: 'badge-calidad', icon: '{{ icon("images/Light_Icons/Calidad-Light.png") }}' },
-                        '5': { label: 'Almacén', class: 'badge-almacen', icon: '{{ icon("images/Light_Icons/Almacen-Light.png") }}' },
-                        '6': { label: 'Supervisor', class: 'badge-supervisor', icon: '{{ icon("images/Light_Icons/Supervision-Light.png") }}' }
+                        '1': { label: 'Master', class: 'badge-master', icon: '{{ icon("images/Light_Icons/Perfiles/Master_Profile-Light.png") }}' },
+                        '2': { label: 'Administrador', class: 'badge-admin', icon: '{{ icon("images/Light_Icons/Perfiles/Administracion_Profile-Light.png") }}' },
+                        '3': { label: 'Supervisor', class: 'badge-supervisor', icon: '{{ icon("images/Light_Icons/Perfiles/Supervision_Profile-Light.png") }}' },
+                        '4': { label: 'Ingeniería', class: 'badge-supervisor', icon: '{{ icon("images/Light_Icons/Perfiles/Ingenieria_Profile-Light.png") }}' },
+                        '5': { label: 'Diseño y programación', class: 'badge-supervisor', icon: '{{ icon("images/Light_Icons/Perfiles/DYP_Profile-Light.png") }}' },
+                        '6': { label: 'Ventas', class: 'badge-supervisor', icon: '{{ icon("images/Light_Icons/Perfiles/Ventas_Profile-Light.png") }}' },
+                        '7': { label: 'Almacén', class: 'badge-almacen', icon: '{{ icon("images/Light_Icons/Perfiles/Almacen_Profile-Light.png") }}' },
+                        '8': { label: 'Calidad', class: 'badge-calidad', icon: '{{ icon("images/Light_Icons/Perfiles/Calidad_Profile-Light.png") }}' },
+                        '9': { label: 'Operador', class: 'badge-operador', icon: '{{ icon("images/Light_Icons/Perfiles/Operador_Profile-Light.png") }}' },
+                        '10': { label: 'Sistemas', class: 'badge-admin', icon: '{{ icon("images/Light_Icons/Perfiles/Sistemas_Profile-Light.png") }}' }
                     };
                     const rInfo = rolMap[data.user.perfil] || { label: data.user.perfil, class: 'badge-default', icon: null };
                     row.dataset.rol = rInfo.label;
@@ -700,15 +784,14 @@
                         `;
                     }
 
-                    // Actualizar Celdas Planta, Turno, Área, Puesto
+                    // Actualizar Celdas Planta, Turno, Puesto
                     const cells = row.querySelectorAll('td');
                     if (cells[3]) cells[3].innerHTML = `<span class="badge-planta">${data.user.planta}</span>`;
                     if (cells[4]) cells[4].innerHTML = `<span class="badge-turno">${data.user.turno}</span>`;
-                    if (cells[5]) cells[5].innerHTML = `<span>${data.user.area}</span>`;
-                    if (cells[6]) cells[6].innerHTML = `<span>${data.user.puesto}</span>`;
+                    if (cells[5]) cells[5].innerHTML = `<span>${data.user.puesto}</span>`;
 
                     // Actualizar búsqueda en memoria
-                    row.dataset.search = (data.user.matricula + ' ' + data.user.nombre_completo + ' ' + data.user.planta + ' ' + data.user.turno + ' ' + data.user.area + ' ' + data.user.puesto).toLowerCase();
+                    row.dataset.search = (data.user.matricula + ' ' + data.user.nombre_completo + ' ' + data.user.planta + ' ' + data.user.turno + ' ' + data.user.puesto).toLowerCase();
 
                     // Actualizar botón editar
                     const editBtn = row.querySelector('.btn-action-edit');

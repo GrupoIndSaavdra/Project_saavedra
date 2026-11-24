@@ -9,7 +9,7 @@ class SegundaOperacionCabezaSoplo_cnominal extends Model
 {
     use HasFactory;
 
-    protected $table = 'segundaOperacionCabezaSoplo_cnominal';
+    protected $table = 'segundaoperacioncabezasoplo_cnominal';
 
     protected $fillable = [
         'id_proceso',

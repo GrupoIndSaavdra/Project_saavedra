@@ -55,6 +55,7 @@ use App\Models\Palomas;
 use App\Models\Palomas_cnominal;
 use App\Models\Palomas_pza;
 use App\Models\Palomas_tolerancia;
+use App\Models\Perfil;
 use App\Models\Pieza;
 use App\Models\PrimeraOperacionCabezaSoplo;
 use App\Models\PrimeraOperacionCabezaSoplo_cnominal;
@@ -146,7 +147,7 @@ class PzasGeneralesController extends Controller
      * @param  mixed  $piecesData
      * @param  mixed  $profile
      */
-    public function search($piecesData, $profile = null)
+    public function search($piecesData, $profile = null, bool $inline = false)
     {
         $selectedItems = [];
         $infoPieces = [];
@@ -226,7 +227,7 @@ class PzasGeneralesController extends Controller
             $pdf = Pdf::loadView('pieces_views.piecesReport.pdf', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
             $filename = $this->generatePdfFilename($selectedItems, 'Piezas');
 
-            return $pdf->download($filename);
+            return $inline ? $pdf->stream($filename) : $pdf->download($filename);
         }
     }
 
@@ -308,10 +309,39 @@ class PzasGeneralesController extends Controller
     public function objectToArrayFromDB($object, $param, $molduras = null)
     {
         $array = [];
+        if ($param == 'operator') {
+            // Obtenemos operadores que tienen piezas registradas en el sistema para no excluir ninguno
+            $opsConPiezas = Cache::remember('piezas_distinct_operadores', 1800, function () {
+                return DB::table('piezas')
+                    ->whereNotNull('id_operador')
+                    ->where('id_operador', '!=', '')
+                    ->distinct()
+                    ->pluck('id_operador')
+                    ->toArray();
+            });
+            $opsConPiezasFlip = !empty($opsConPiezas) ? array_flip($opsConPiezas) : [];
+
+            foreach ($object as $item) {
+                $p = (string) ($item->perfil ?? '');
+                // Incluye Perfil 9 (nuevo catálogo Operador), Perfil 2 (antiguo operador maquinado / compatibilidad),
+                // constante Perfil::OPERADOR o cualquier usuario con piezas registradas a su nombre
+                if (in_array($p, ['9', '2', (string) Perfil::OPERADOR], true) || isset($opsConPiezasFlip[(string) $item->matricula])) {
+                    $array[] = $item;
+                }
+            }
+
+            // Ordenar alfabéticamente por nombre completo
+            usort($array, function ($a, $b) {
+                $nA = trim("{$a->nombre} {$a->a_paterno} {$a->a_materno}");
+                $nB = trim("{$b->nombre} {$b->a_paterno} {$b->a_materno}");
+                return strcasecmp($nA, $nB);
+            });
+
+            return $array;
+        }
+
         foreach ($object as $item) {
-            if (($param == 'operator' && $item->perfil == 2)) {
-                array_push($array, $item);
-            } elseif ($param == 'workOrder') {
+            if ($param == 'workOrder') {
                 // Usa cache de molduras si está disponible (0 queries), si no hace 1 query
                 $molding = $molduras ? $molduras->get($item->id_moldura) : Moldura::query()->where('id', $item->id_moldura)->first();
                 $text = $item->id.' - '.($molding ? $molding->nombre : '?');
@@ -324,22 +354,47 @@ class PzasGeneralesController extends Controller
 
     public function getPiecesRequest(Request $request)
     {
-        $datosPiezas = [
-            'workOrder' => $request->input('workOrder'),
-            'class' => $request->input('class'),
-            'operator' => $request->input('operator'),
-            'machine' => $request->input('machine'),
-            'process' => $request->input('process'),
-            'error' => $request->input('error'),
-            'dateFrom' => $request->input('dateFrom'),
-            'dateTo' => $request->input('dateTo'),
-            'n_juego' => $request->input('n_juego'),
-            'status' => $request->input('status'),
-            'order' => $request->input('order', 'desc'),
-            'action' => $request->input('action'),
-        ];
+        try {
+            $datosPiezas = [
+                'workOrder' => $request->input('workOrder'),
+                'class' => $request->input('class'),
+                'operator' => $request->input('operator'),
+                'machine' => $request->input('machine'),
+                'process' => $request->input('process'),
+                'error' => $request->input('error'),
+                'dateFrom' => $request->input('dateFrom'),
+                'dateTo' => $request->input('dateTo'),
+                'n_juego' => $request->input('n_juego'),
+                'status' => $request->input('status'),
+                'order' => $request->input('order', 'desc'),
+                'action' => $request->input('action'),
+            ];
 
-        return $this->search($datosPiezas, 'admin');
+            return $this->search($datosPiezas, 'admin');
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Error en PzasGeneralesController@getPiecesRequest: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            $pieces = [];
+            $piecesData = $request->all();
+            $infoPieces = [];
+            $filtersData = $this->getFiltersInfo();
+            $selectedItems = [
+                'workOrder' => 'Todos',
+                'class' => 'Todos',
+                'operator' => 'Todos',
+                'machine' => 'Todos',
+                'process' => 'Todos',
+                'error' => 'Todos',
+                'dateFrom' => 'Todos',
+                'dateTo' => 'Todos',
+                'n_juego' => 'Todos',
+                'status' => 'Todos',
+            ];
+
+            return view('pieces_views.piecesReport.adminPieces', compact('pieces', 'piecesData', 'infoPieces', 'filtersData', 'selectedItems'));
+        }
     }
 
     /**
@@ -378,12 +433,25 @@ class PzasGeneralesController extends Controller
                     $query->where('id_ot', '=', $workOrderId, 'and');
                     break;
                 case 'class':
-                    $cleanClass = trim(preg_replace('/^\d+\s*-\s*/', '', $value));
+                    $cleanClass = trim(preg_replace('/^\d+\s*-\s*/', '', (string) $value));
+                    $cleanUpper = strtoupper($cleanClass);
+                    $valUpper = strtoupper((string) $value);
+
                     $claseIds = Clase::query()
-                        ->where('nombre', '=', $value, 'and')
-                        ->orWhere('nombre', '=', $cleanClass)
-                        ->orWhere('nombre', 'LIKE', '% - '.$cleanClass)
-                        ->pluck('id');
+                        ->where(function ($q) use ($value, $cleanClass, $cleanUpper, $valUpper) {
+                            $q->where('nombre', '=', $value)
+                                ->orWhere('nombre', '=', $cleanClass)
+                                ->orWhere('nombre', '=', $cleanUpper)
+                                ->orWhere('nombre', '=', $valUpper)
+                                ->orWhere('nombre', 'LIKE', "% - {$cleanClass}")
+                                ->orWhere('nombre', 'LIKE', "% - {$cleanUpper}")
+                                ->orWhere('nombre', 'LIKE', "%-{$cleanClass}")
+                                ->orWhere('nombre', 'LIKE', "%-{$cleanUpper}")
+                                ->orWhere('nombre', 'LIKE', "%{$cleanClass}%");
+                        })
+                        ->pluck('id')
+                        ->toArray();
+
                     $query->whereIn('id_clase', $claseIds, 'and', false);
                     break;
                 case 'operator':
@@ -715,6 +783,12 @@ class PzasGeneralesController extends Controller
                 $array[$contador]['className'] = $className ? $className->nombre : null;
                 $array[$contador]['observacion_liberacion'] = $item->observacion_liberacion;
 
+                $opMatricula = ($mitad && isset($pzaH) && isset($pzaM) && $pzaH && $pzaM)
+                    ? ($pzaH->id_operador === $pzaM->id_operador ? $pzaH->id_operador : "{$pzaH->id_operador}/{$pzaM->id_operador}")
+                    : (isset($existing) && $existing ? $existing->id_operador : $item->id_operador);
+                $array[$contador]['id_operador'] = $opMatricula;
+                $array[$contador][13] = $opMatricula;
+
                 $array[$contador]['observations'] = '';
                 if ($includeObservations && $className) {
                     $id_process = str_replace(' ', '_', $item->proceso).'_'.$className->nombre.'_'.$item->id_ot;
@@ -761,8 +835,9 @@ class PzasGeneralesController extends Controller
 
                 // Si es un juego de dos mitades con estados diferentes, usar el estado combinado
                 $liberacionFinal = isset($liberacionCombinada) ? $liberacionCombinada : $item->liberacion;
-                array_push($array[$contador], $liberacionFinal);
-                array_push($array[$contador], $mitad ? 'mitad' : 'juego');
+                $array[$contador][9] = $liberacionFinal;
+                $array[$contador][10] = $mitad ? 'mitad' : 'juego';
+                $array[$contador][13] = $opMatricula;
                 $liberacionCombinada = null; // Resetear para la siguiente iteración
 
                 $contador++;
@@ -902,9 +977,13 @@ class PzasGeneralesController extends Controller
 
         // Bulk fetch all needed process records
         foreach ($processLookups as $model => $keys) {
-            $records = $model::query()->select(['id', 'id_proceso'])->whereIn('id_proceso', array_keys($keys), 'and', false)->get();
-            foreach ($records as $r) {
-                $processLookups[$model][$r->id_proceso] = $r;
+            try {
+                $records = $model::query()->select(['id', 'id_proceso'])->whereIn('id_proceso', array_keys($keys), 'and', false)->get();
+                foreach ($records as $r) {
+                    $processLookups[$model][$r->id_proceso] = $r;
+                }
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Error cargando registros de proceso para {$model} en saveInfoPzas: " . $e->getMessage());
             }
         }
 
@@ -1050,22 +1129,29 @@ class PzasGeneralesController extends Controller
 
         // Find Class ID - search by nombre AND id_ot to uniquely identify the class
         $cleanClass = trim(preg_replace('/^\d+\s*-\s*/', '', (string) $className));
+        $cleanUpper = strtoupper($cleanClass);
+        $valUpper = strtoupper((string) $className);
+
+        $matchClassClosure = function ($q) use ($className, $cleanClass, $cleanUpper, $valUpper) {
+            $q->where('nombre', '=', $className)
+                ->orWhere('nombre', '=', $cleanClass)
+                ->orWhere('nombre', '=', $cleanUpper)
+                ->orWhere('nombre', '=', $valUpper)
+                ->orWhere('nombre', 'LIKE', "% - {$cleanClass}")
+                ->orWhere('nombre', 'LIKE', "% - {$cleanUpper}")
+                ->orWhere('nombre', 'LIKE', "%-{$cleanClass}")
+                ->orWhere('nombre', 'LIKE', "%-{$cleanUpper}")
+                ->orWhere('nombre', 'LIKE', "%{$cleanClass}%");
+        };
+
         $clase = Clase::query()
             ->where('id_ot', '=', $otId, 'and')
-            ->where(function ($q) use ($className, $cleanClass) {
-                $q->where('nombre', '=', $className, 'and')
-                    ->orWhere('nombre', '=', $cleanClass)
-                    ->orWhere('nombre', 'LIKE', '% - '.$cleanClass);
-            })
+            ->where($matchClassClosure)
             ->first();
         // Fallback: search by nombre only if not found with id_ot
         if (! $clase) {
             $clase = Clase::query()
-                ->where(function ($q) use ($className, $cleanClass) {
-                    $q->where('nombre', '=', $className, 'and')
-                        ->orWhere('nombre', '=', $cleanClass)
-                        ->orWhere('nombre', 'LIKE', '% - '.$cleanClass);
-                })
+                ->where($matchClassClosure)
                 ->first();
         }
         if (! $clase) {
@@ -2592,7 +2678,7 @@ class PzasGeneralesController extends Controller
         if ($password) {
             $users = User::all();
             foreach ($users as $user) {
-                if (in_array($user->perfil, [1, 3])) { // Verificar usuarios administradores (Admin 1 y Master 3)
+                if (in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) { // Verificar usuarios administrativos (1, 2, 3, 10)
                     if (Hash::check($password, $user->contrasena)) {
                         return response()->json([
                             'success' => true,

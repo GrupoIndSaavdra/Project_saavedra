@@ -109,7 +109,7 @@ class LiberarQRPlantaController extends Controller
 
     public function indexRecepcion()
     {
-        $almacenistas = User::query()->where('perfil', '5')->get(); // Perfil 5 = Almacén
+        $almacenistas = User::query()->whereIn('perfil', ['5', '7', 5, 7], 'and', false)->get(); // Perfil 7 = Almacén (y retrocompatible 5)
         $botesDisponibles = SoldaduraBote::query()->where('estado', 'en_planta')->get();
         $botesEnPlanta = $botesDisponibles->count();
         $currentUser = auth()->user(); // Usuario autenticado actual
@@ -149,7 +149,7 @@ class LiberarQRPlantaController extends Controller
                 return back()->withErrors(['qr_content' => 'Este bote no está en tránsito. Estado actual: '.$bote->estado]);
             }
 
-            $almacenistas = User::query()->where('perfil', '5')->get();
+            $almacenistas = User::query()->whereIn('perfil', ['5', '7', 5, 7], 'and', false)->get();
             $botesEnPlanta = SoldaduraBote::query()->where('estado', 'en_planta')->count();
             $currentUser = auth()->user(); // Usuario autenticado actual
 
@@ -200,9 +200,9 @@ class LiberarQRPlantaController extends Controller
 
     public function index()
     {
-        $usuarios = User::query()->whereIn('perfil', ['2', '5'], 'and', false)->get()->groupBy('perfil');
-        $operadores = $usuarios->get('2', collect());
-        $almacenistas = $usuarios->get('5', collect());
+        $usuarios = User::query()->whereIn('perfil', ['2', '5', '9', '7', 2, 5, 9, 7], 'and', false)->get()->groupBy('perfil');
+        $operadores = $usuarios->get('2', collect())->concat($usuarios->get('9', collect()))->sortBy('nombre')->values();
+        $almacenistas = $usuarios->get('5', collect())->concat($usuarios->get('7', collect()))->sortBy('nombre')->values();
 
         $botesDisponibles = SoldaduraBote::query()->where('estado', 'en_planta')
             ->with('lote')
@@ -247,9 +247,9 @@ class LiberarQRPlantaController extends Controller
                 return back()->withErrors(['qr_content' => 'Este bote no está disponible para liberación. Estado actual: '.$bote->estado]);
             }
 
-            $usuarios = User::query()->whereIn('perfil', ['2', '5'], 'and', false)->get()->groupBy('perfil');
-            $operadores = $usuarios->get('2', collect());
-            $almacenistas = $usuarios->get('5', collect());
+            $usuarios = User::query()->whereIn('perfil', ['2', '5', '9', '7', 2, 5, 9, 7], 'and', false)->get()->groupBy('perfil');
+            $operadores = $usuarios->get('2', collect())->concat($usuarios->get('9', collect()))->sortBy('nombre')->values();
+            $almacenistas = $usuarios->get('5', collect())->concat($usuarios->get('7', collect()))->sortBy('nombre')->values();
 
             $botesDisponibles = SoldaduraBote::query()->where('estado', 'en_planta')
                 ->with('lote')

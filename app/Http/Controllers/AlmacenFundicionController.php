@@ -37,9 +37,9 @@ class AlmacenFundicionController extends Controller
 
     /**
      * Perfiles de usuario que tienen acceso a esta vista.
-     * 1 = Admin | 2 = Admin | 3 = Jefe | 5 = Almacen
+     * 1 = Master | 2 = Admin | 3 = Supervisor | 4 = Ing | 5 = Diseño | 7 = Almacen | 8 = Calidad | 10 = Sistemas
      */
-    private const PERFILES_PERMITIDOS = ['1', '2', '3', '5'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '5', '7', '8', '10', '0'];
 
     // =========================================================================
     // GATE DE ACCESO
@@ -50,7 +50,12 @@ class AlmacenFundicionController extends Controller
         /** @var User|null $user */
         $user = Auth::user();
 
-        if (! $user || ! in_array($user->perfil, self::PERFILES_PERMITIDOS, true)) {
+        $tieneAcceso = $user && (
+            in_array((string) $user->perfil, ['1', '2', '3', '4', '5', '7', '8', '10', '0'], true) ||
+            in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
+        );
+
+        if (! $tieneAcceso) {
             abort(403, 'Acceso restringido. Solo Almacén y Calidad pueden ver esta sección.');
         }
     }
@@ -351,8 +356,8 @@ class AlmacenFundicionController extends Controller
         }
 
         $user = Auth::user();
-        $isQuality = ($user->perfil == 4);
-        $isAdmin = ($user->perfil == 1 || $user->perfil == 2);
+        $isQuality = ($user && in_array((string) $user->perfil, ['4', '8'], true));
+        $isAdmin = ($user && in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true));
         $soloPreorden = $request->query('solo_preorden', '0') === '1';
 
         $dibujos = collect([]);
@@ -733,7 +738,7 @@ class AlmacenFundicionController extends Controller
 
         // Aplicar filtros de visibilidad según perfil de usuario
         $user = Auth::user();
-        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2, 3 = Admin/Master (ve todo)
+        if ($user && ! in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) { // 1, 2, 3, 10 = Admin/Master/Sistemas (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
             if (! $history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -742,7 +747,7 @@ class AlmacenFundicionController extends Controller
                 abort(404, 'Historial de OT no encontrado.');
             }
 
-            if ($user->perfil == 4) { // 4 = Calidad
+            if (in_array((string) $user->perfil, ['4', '8'], true)) { // Calidad
                 // Calidad solo ve preordenes si pre_orden_email_sent es true (excepto liberados/CFM/PFC)
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert =
@@ -758,7 +763,7 @@ class AlmacenFundicionController extends Controller
                 if ($isPreorden && ! $isAllowedBeforeAlert && ! $history->pre_orden_email_sent) {
                     abort(403, 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.');
                 }
-            } elseif ($user->perfil == 5) { // Almacén
+            } elseif (in_array((string) $user->perfil, ['5', '7'], true)) { // Almacén
                 // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                 $isCalidadDoc = ($tipo === 'liberacion' ||
                     str_contains($archivo, 'F-CCL-LDM') ||
@@ -795,10 +800,10 @@ class AlmacenFundicionController extends Controller
                     )
                 ) {
                     // Nueva estructura: ayudas_visuales vive en el root de la OT bajo la carpeta de la clase
-                    $baseDir = ($origin === 'calidad' || ($user->perfil == 4 && empty($origin)))
+                    $baseDir = ($origin === 'calidad' || (in_array((string) $user->perfil, ['4', '8'], true) && empty($origin)))
                         ? self::CALIDAD_DIR.'/'.$folderName
                         : self::ALMACEN_DIR.'/'.$folderName;
-                } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                } elseif ($origin === 'calidad' || (in_array((string) $user->perfil, ['4', '8'], true) && empty($origin))) {
                     $baseDir = self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales';
                 } else {
                     $baseDir = self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales';
@@ -976,7 +981,7 @@ class AlmacenFundicionController extends Controller
 
         // Aplicar filtros de visibilidad según perfil de usuario
         $user = Auth::user();
-        if ($user->perfil != 1 && $user->perfil != 2 && $user->perfil != 3) { // 1, 2, 3 = Admin/Master (ve todo)
+        if ($user && ! in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) { // 1, 2, 3, 10 = Admin/Master/Sistemas (ve todo)
             $history = FundicionHistory::where('ot', '=', $ot, 'and')->first();
             if (! $history) {
                 $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
@@ -985,7 +990,7 @@ class AlmacenFundicionController extends Controller
                 return response()->json(['success' => false, 'error' => 'Historial de OT no encontrado.'], 404);
             }
 
-            if ($user->perfil == 4) { // 4 = Calidad
+            if (in_array((string) $user->perfil, ['4', '8'], true)) { // Calidad
                 // Calidad solo ve preordenes si pre_orden_email_sent es true
                 $isPreorden = ($tipo === 'otro' || str_starts_with(strtolower($archivo), 'preordenes/'));
                 $isAllowedBeforeAlert =
@@ -1001,7 +1006,7 @@ class AlmacenFundicionController extends Controller
                 if ($isPreorden && ! $isAllowedBeforeAlert && ! $history->pre_orden_email_sent) {
                     return response()->json(['success' => false, 'error' => 'Acceso denegado. La pre-orden no ha sido alertada por Almacén.'], 403);
                 }
-            } elseif ($user->perfil == 5) { // Almacén
+            } elseif (in_array((string) $user->perfil, ['5', '7'], true)) { // Almacén
                 // Almacén solo ve PDFs de Calidad si se envió la alerta (aprobado o scar alertado)
                 $isCalidadDoc = ($tipo === 'liberacion' ||
                     str_contains($archivo, 'F-CCL-LDM') ||
@@ -1029,7 +1034,7 @@ class AlmacenFundicionController extends Controller
                 // Archivos en Documentos_Aprobados / Documentos_Rechazados viven en el root de la OT
                 if ($origin === 'aprobado' || $origin === 'rechazado') {
                     $baseDir = self::ALMACEN_DIR.'/'.$folderName;
-                } elseif ($origin === 'calidad' || ($user->perfil == 4 && empty($origin))) {
+                } elseif ($origin === 'calidad' || (in_array((string) $user->perfil, ['4', '8'], true) && empty($origin))) {
                     $baseDir = self::CALIDAD_DIR.'/'.$folderName.'/ayudas_visuales';
                 } else {
                     $baseDir = self::ALMACEN_DIR.'/'.$folderName.'/ayudas_visuales';
@@ -1137,12 +1142,12 @@ class AlmacenFundicionController extends Controller
             $fileOwner = 'calidad';
         }
 
-        // Validar que el rol del usuario que realiza la petición coincida con el dueño del documento (o sea Admin)
-        if ($user->perfil != 1 && $user->perfil != 2) {
-            if ($fileOwner === 'almacen' && $user->perfil != 5 && $user->perfil != 3) {
+        // Validar que el rol del usuario que realiza la petición coincida con el dueño del documento (o sea Admin/Master/Sistemas)
+        if ($user && ! in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) {
+            if ($fileOwner === 'almacen' && ! in_array((string) $user->perfil, ['3', '5', '7'], true)) {
                 return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Almacén puede eliminar este documento.'], 403);
             }
-            if ($fileOwner === 'calidad' && $user->perfil != 4) {
+            if ($fileOwner === 'calidad' && ! in_array((string) $user->perfil, ['4', '8'], true)) {
                 return response()->json(['success' => false, 'error' => 'Acceso denegado. Solo Calidad puede eliminar este documento.'], 403);
             }
         }
@@ -1153,7 +1158,7 @@ class AlmacenFundicionController extends Controller
             $history = FundicionHistory::where('ot', '=', $folderName, 'and')->first();
         }
 
-        if ($history && $user->perfil != 1 && $user->perfil != 2) {
+        if ($history && ! in_array((string) $user->perfil, ['1', '2', '3', '10', '0'], true)) {
             if ($fileOwner === 'almacen') {
                 $alertSent = (bool) ($history->pre_orden_email_sent || $history->pre_orden_sent);
                 if ($alertSent) {
@@ -2263,7 +2268,7 @@ class AlmacenFundicionController extends Controller
         $esReproceso = (bool) preg_match('/_R\d+$/i', $otFull);
 
         // Obtener TODAS las clases para esta OT y filtrarlas por aprobados en liberación
-        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
+        $clases = collect($clasesOrig)->filter(function ($c) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso, $baseOt, $otId) {
 
             $clLow = strtolower($c['nombre']);
             $tipo = null;
@@ -2293,12 +2298,23 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 if ($type === 'casting') {
-                    // Para casting, solo queremos los APROBADOS en ESTA iteración específica ($otFull)
-                    return LiberacionModeloFundicion::query()
-                        ->where('ot', '=', $otFull)
+                    // Para casting, buscar si está aprobada en BD (aprobado o decisión aprobar) o en Storage
+                    $isAprob = LiberacionModeloFundicion::query()
+                        ->where(function ($q) use ($otFull, $baseOt, $otId) {
+                            $q->where('ot', '=', $otFull)
+                              ->orWhere('ot', '=', $baseOt);
+                            if ($otId > 0) {
+                                $q->orWhere('ot', 'LIKE', '%'.$otId.'%');
+                            }
+                        })
                         ->where('tipo_modelo', '=', $tipo)
-                        ->where('estado', '=', 'aprobado')
+                        ->where(function ($q) {
+                            $q->where('estado', '=', 'aprobado')
+                              ->orWhere('decision', '=', 'aprobar');
+                        })
                         ->exists();
+
+                    return $isAprob || $isClassAprobada($c['nombre']);
                 } elseif ($esReproceso) {
                     // Para reprocesos, SOLO devolver las clases que fueron rechazadas (guardadas en ayudas_config)
                     $historyRepro = FundicionHistory::where('ot', '=', $otFull, 'and')->first();
@@ -2325,7 +2341,7 @@ class AlmacenFundicionController extends Controller
         $clasesVinculadas = $history ? ($history->ayudas_config ?? []) : [];
         $globalClases = config('global_classes.clases', []);
 
-        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso) {
+        $clasesVinculadas = collect($clasesVinculadas)->filter(function ($claseNombre) use ($otFull, $type, $isClassAprobada, $isClassRechazada, $esReproceso, $baseOt, $otId) {
 
             $clLow = strtolower($claseNombre);
             $tipo = null;
@@ -2355,11 +2371,22 @@ class AlmacenFundicionController extends Controller
 
             if ($tipo) {
                 if ($type === 'casting') {
-                    return LiberacionModeloFundicion::query()
-                        ->where('ot', '=', $otFull)
+                    $isAprob = LiberacionModeloFundicion::query()
+                        ->where(function ($q) use ($otFull, $baseOt, $otId) {
+                            $q->where('ot', '=', $otFull)
+                              ->orWhere('ot', '=', $baseOt);
+                            if ($otId > 0) {
+                                $q->orWhere('ot', 'LIKE', '%'.$otId.'%');
+                            }
+                        })
                         ->where('tipo_modelo', '=', $tipo)
-                        ->where('estado', '=', 'aprobado')
+                        ->where(function ($q) {
+                            $q->where('estado', '=', 'aprobado')
+                              ->orWhere('decision', '=', 'aprobar');
+                        })
                         ->exists();
+
+                    return $isAprob || $isClassAprobada($claseNombre);
                 } elseif ($esReproceso) {
                     // Para reprocesos, todas las clases vinculadas del historial son válidas
                     return true;
@@ -2392,6 +2419,34 @@ class AlmacenFundicionController extends Controller
         })->values()->toArray();
 
         $fechaEntrega = $history && $history->fecha_entrega ? $history->fecha_entrega->format('Y-m-d') : '';
+
+        // Si es casting y el filtro no encontró clases aprobadas (ej. generación directa en Almacén o sin dictamen digital previo),
+        // respaldar con todas las clases de la OT y las vinculadas para que el usuario pueda seleccionarlas en el formulario.
+        if ($type === 'casting' && $clases->isEmpty() && empty($clasesVinculadas)) {
+            $clases = $clasesOrig;
+            $rawVinculadas = $history ? ($history->ayudas_config ?? []) : [];
+            $clasesVinculadas = collect($rawVinculadas)->map(function ($claseNombre) use ($clasesOrig) {
+                $nombreNorm = FundicionPaths::normalizeClass($claseNombre);
+                $prov = '';
+                $mat = 'Hierro Gris';
+                foreach ($clasesOrig as $co) {
+                    $coNorm = FundicionPaths::normalizeClass($co['nombre']);
+                    if (strtolower(trim($co['nombre'])) === strtolower(trim($claseNombre)) || strtolower(trim($coNorm)) === strtolower(trim($nombreNorm))) {
+                        $prov = $co['proveedor'];
+                        if (! empty($co['material'])) {
+                            $mat = $co['material'];
+                        }
+                        break;
+                    }
+                }
+
+                return [
+                    'nombre' => $nombreNorm,
+                    'proveedor' => $prov,
+                    'material' => $mat,
+                ];
+            })->values()->toArray();
+        }
 
         if ($type === 'casting') {
             $preOrdenes = PreOrdenFundicion::where('ot', '=', $otFull, 'and')

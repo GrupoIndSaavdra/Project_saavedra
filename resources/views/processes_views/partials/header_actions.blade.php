@@ -1,6 +1,6 @@
 {{-- Botones de acción contextual en la cabecera (Header Izquierdo) --}}
 <div class="header-actions-group">
-    @if (!empty($arrayData['edit']) && $arrayData['edit'] == 1)
+    @if (!empty($arrayData['edit']) && $arrayData['edit'] != 0)
         <a href="#" class="btn-cancel-report">
             <img src="{{ asset('images/Light_Icons/Cancelar-Light.png') }}" class="cancel-report-icon" alt="Cancelar">
             <span>Cancelar</span>

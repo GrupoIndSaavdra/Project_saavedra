@@ -19,9 +19,9 @@ class ReporteProduccionController extends Controller
 {
     public function __construct()
     {
-        // Solo el perfil 1 (Administrador) y perfil 3 (Master) pueden ver y reenviar reportes
+        // Acceso para Master (1), Administrador (2), Supervisor (3) y Sistemas (10)
         $this->middleware(function ($request, $next) {
-            if (auth()->check() && ! in_array(auth()->user()->perfil, [1, 3])) {
+            if (auth()->check() && ! in_array((string) auth()->user()->perfil, ['1', '2', '3', '10', '0'], true)) {
                 abort(403, 'No tienes permiso para acceder a esta sección.');
             }
 
@@ -520,6 +520,8 @@ class ReporteProduccionController extends Controller
      */
     private function getModelProcess($process): ?string
     {
+        $processNorm = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
         $map = [
             'Cepillado' => 'Cepillado',
             'Desbaste Exterior' => 'DesbasteExterior',
@@ -546,7 +548,7 @@ class ReporteProduccionController extends Controller
             'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo',
         ];
 
-        return isset($map[$process]) ? 'App\\Models\\'.$map[$process] : null;
+        return isset($map[$processNorm]) ? 'App\\Models\\'.$map[$processNorm] : null;
     }
 
     /**
@@ -554,6 +556,8 @@ class ReporteProduccionController extends Controller
      */
     private function getModelProcessPieces($process): ?string
     {
+        $processNorm = str_contains((string) $process, 'Operacion Equipo') ? 'Operacion Equipo' : (string) $process;
+
         $map = [
             'Cepillado' => 'Pza_cepillado',
             'Desbaste Exterior' => 'Desbaste_pza',
@@ -580,7 +584,7 @@ class ReporteProduccionController extends Controller
             'Segunda Operacion Cabeza Soplo' => 'SegundaOperacionCabezaSoplo_pza',
         ];
 
-        return isset($map[$process]) ? 'App\\Models\\'.$map[$process] : null;
+        return isset($map[$processNorm]) ? 'App\\Models\\'.$map[$processNorm] : null;
     }
 
     /**

@@ -41,7 +41,7 @@ class RInternoSalidasController extends Controller
     public function index(Request $request)
     {
         // Solo perfiles autorizados
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -112,7 +112,7 @@ class RInternoSalidasController extends Controller
 
     public function show(string $ot, string $clase)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 
@@ -248,7 +248,7 @@ class RInternoSalidasController extends Controller
 
     public function autosave(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -320,7 +320,7 @@ class RInternoSalidasController extends Controller
 
     public function updateObservaciones(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -372,7 +372,7 @@ class RInternoSalidasController extends Controller
 
     public function updateHeader(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -453,7 +453,7 @@ class RInternoSalidasController extends Controller
 
     public function getLog(int $id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -486,7 +486,7 @@ class RInternoSalidasController extends Controller
 
     public function bulkUpdate(Request $request)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             return response()->json(['error' => 'Sin permisos'], 403);
         }
 
@@ -561,7 +561,7 @@ class RInternoSalidasController extends Controller
 
     public function generatePdf(int $id)
     {
-        if (! in_array(auth()->user()->perfil, [1, 3, 4, 6])) {
+        if (! in_array((string) auth()->user()->perfil, ['1', '2', '3', '4', '6', '8', '10', '0'], true)) {
             abort(403, 'No tienes permisos para acceder a esta sección.');
         }
 

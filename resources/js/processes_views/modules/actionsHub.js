@@ -48,6 +48,19 @@ function showInlinePasswordForm(type, imgElement = null) {
     inputCSRF.value = csrfToken;
     form.appendChild(inputCSRF);
 
+    // Meta ID de la orden de producción actual
+    const metaId = (window.arrayData && window.arrayData.meta)
+        ? (window.arrayData.meta.id || window.arrayData.meta)
+        : (document.querySelector('input[name="meta"]')?.value || null);
+
+    if (metaId) {
+        let inputMeta = document.createElement("input");
+        inputMeta.type = "hidden";
+        inputMeta.name = "meta";
+        inputMeta.value = metaId;
+        form.appendChild(inputMeta);
+    }
+
     if (type === "EditPieces") {
         let editFlag = document.createElement("input");
         editFlag.type = "hidden";
@@ -150,7 +163,13 @@ function showInlinePasswordForm(type, imgElement = null) {
 
     floatingBar.style.position = "fixed";
     floatingBar.style.top = `${centerY - (btnSize / 2)}px`;
-    floatingBar.style.left = `${centerX - (btnSize / 2)}px`;
+
+    // Evitar que la barra flotante se desborde fuera del viewport en pantallas angostas
+    let leftPos = centerX - (btnSize / 2);
+    if (leftPos + 460 > window.innerWidth) {
+        leftPos = Math.max(16, window.innerWidth - 480);
+    }
+    floatingBar.style.left = `${leftPos}px`;
     floatingBar.style.zIndex = "10000030";
 
     document.body.appendChild(floatingBar);
@@ -206,11 +225,13 @@ function changeFormRoute(div, form, route) {
     let input_hidden = document.createElement("input");
     input_hidden.type = "hidden";
     input_hidden.name = "meta";
-    input_hidden.value = window.arrayData["meta"].id;
+    input_hidden.value = (window.arrayData && window.arrayData["meta"])
+        ? (window.arrayData["meta"].id || window.arrayData["meta"])
+        : "";
     form.appendChild(input_hidden);
 
     // Crear o vincular el botón de cancelar edición en la barra superior (Header Izquierdo)
-    if (window.arrayData["edit"] == 1) {
+    if (window.arrayData && window.arrayData["edit"]) {
         let existingHeaderCancel = document.querySelector("header .btn-cancel-report");
         if (existingHeaderCancel) {
             attachCancelEditEvent(existingHeaderCancel);
@@ -544,22 +565,43 @@ function insertProductionActions() {
     }
 }
 
+function getActionImg(event) {
+    if (!event) return null;
+    if (event.currentTarget && event.currentTarget.tagName === 'IMG') return event.currentTarget;
+    if (event.currentTarget && event.currentTarget.querySelector) {
+        const found = event.currentTarget.querySelector('img');
+        if (found) return found;
+    }
+    if (event.target && event.target.tagName === 'IMG') return event.target;
+    if (event.target && event.target.closest) {
+        const wrap = event.target.closest('.action-btn-wrapper');
+        if (wrap) {
+            const found = wrap.querySelector('img');
+            if (found) return found;
+        }
+    }
+    return null;
+}
+
 function handleEditMetaClick(event) {
-    let img = event.currentTarget;
+    let img = getActionImg(event);
     if (!img || img.classList.contains("btn-disabled")) return;
 
-    if (img.src.includes(window.edit.split('/').pop())) {
-        showInlinePasswordForm("EditMeta", img);
-    } else {
+    const isCurrentActive = document.body.classList.contains("is-verifying-active") &&
+        document.querySelector(".form-inline-verification.is-admin-verify");
+
+    if (isCurrentActive) {
         window.logUserAction("Abandono Edición Reporte", "El usuario canceló la autenticación para editar reporte.");
         removePasswordForms();
-        img.src = window.edit;
+    } else {
+        showInlinePasswordForm("EditMeta", img);
     }
 }
 
 function createActionButton(src, label, title, disabled, callback) {
     let wrapper = document.createElement("div");
-    wrapper.className = "action-btn-wrapper";
+    wrapper.className = "action-btn-wrapper" + (disabled ? " is-disabled" : "");
+    wrapper.style.cursor = disabled ? "not-allowed" : "pointer";
 
     let img = document.createElement("img");
     img.src = src;
@@ -567,15 +609,20 @@ function createActionButton(src, label, title, disabled, callback) {
     img.title = title;
     img.alt = label;
 
-    img.onclick = (e) => {
-        if (!img.classList.contains('btn-disabled')) {
-            callback(e);
-        }
-    };
-
     let lbl = document.createElement("div");
     lbl.className = "action-label";
     lbl.textContent = label;
+    lbl.title = title;
+
+    const triggerAction = (e) => {
+        if (!disabled && !img.classList.contains('btn-disabled')) {
+            callback({ currentTarget: img, target: img, stopPropagation: () => e.stopPropagation() });
+        }
+    };
+
+    wrapper.onclick = (e) => {
+        triggerAction(e);
+    };
 
     wrapper.appendChild(img);
     wrapper.appendChild(lbl);
@@ -583,27 +630,31 @@ function createActionButton(src, label, title, disabled, callback) {
 }
 
 function handleQualityClick(event) {
-    let img = event.currentTarget;
+    let img = getActionImg(event);
     if (!img || img.classList.contains("btn-disabled")) return;
 
-    if (img.src.includes(window.imgQualityCheck.split('/').pop())) {
-        showInlinePasswordForm("Calidad", img);
-    } else {
+    const isCurrentActive = document.body.classList.contains("is-verifying-active") &&
+        document.querySelector(".form-inline-verification.is-quality-verify");
+
+    if (isCurrentActive) {
         window.logUserAction("Abandono de Liberación", "El usuario canceló la autenticación de calidad.");
         removePasswordForms();
-        img.src = window.imgQualityCheck;
+    } else {
+        showInlinePasswordForm("Calidad", img);
     }
 }
 
 function handleEditPiecesClick(event) {
-    let img = event.currentTarget;
+    let img = getActionImg(event);
     if (!img || img.classList.contains("btn-disabled")) return;
 
-    if (img.src.includes(window.imgEditPieces.split('/').pop())) {
-        showInlinePasswordForm("EditPieces", img);
-    } else {
+    const isCurrentActive = document.body.classList.contains("is-verifying-active") &&
+        document.querySelector(".form-inline-verification.is-pieces-verify");
+
+    if (isCurrentActive) {
         removePasswordForms();
-        img.src = window.imgEditPieces;
+    } else {
+        showInlinePasswordForm("EditPieces", img);
     }
 }
 

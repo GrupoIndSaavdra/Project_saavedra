@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class BarrenoProfundidad_pza extends Model
 {
     use HasFactory;
-    protected $table = 'barrenoProfundidad_pza';
+    protected $table = 'barrenoprofundidad_pza';
 
     protected $fillable = [
         'broca1',

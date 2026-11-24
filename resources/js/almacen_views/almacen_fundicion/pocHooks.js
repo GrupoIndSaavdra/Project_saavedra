@@ -37,9 +37,28 @@ window.abrirModalPreOrdenCasting = function (ot) {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                let classesToUse = (data.clases && data.clases.length > 0) ? data.clases : [];
-                if (classesToUse.length === 0 && data.clases_vinculadas) {
-                    classesToUse = data.clases_vinculadas.map(c => typeof c === 'string' ? { nombre: c, proveedor: '', material: 'Hierro Gris' } : { nombre: c.nombre, proveedor: c.proveedor || '', material: c.material || 'Hierro Gris' });
+                let classesToUse = (data.clases && data.clases.length > 0) ? [...data.clases] : [];
+                if (data.clases_vinculadas && data.clases_vinculadas.length > 0) {
+                    data.clases_vinculadas.forEach(cv => {
+                        const cvObj = typeof cv === 'string' ? { nombre: cv, proveedor: '', material: 'Hierro Gris' } : { nombre: cv.nombre, proveedor: cv.proveedor || '', material: cv.material || 'Hierro Gris' };
+                        const exists = classesToUse.some(c => (c.nombre || c.clase || '').toLowerCase().trim() === (cvObj.nombre || '').toLowerCase().trim());
+                        if (!exists) {
+                            classesToUse.push(cvObj);
+                        }
+                    });
+                }
+                if (classesToUse.length === 0) {
+                    classesToUse = [
+                        { nombre: "Bombillo", proveedor: "", material: "Hierro Gris" },
+                        { nombre: "Molde", proveedor: "", material: "Hierro Gris" },
+                        { nombre: "Fondo", proveedor: "", material: "Hierro Gris" },
+                        { nombre: "Obturador", proveedor: "", material: "Hierro Gris" },
+                        { nombre: "Embudo", proveedor: "", material: "Hierro Gris" },
+                        { nombre: "Corona", proveedor: "", material: "Hierro Gris" },
+                        { nombre: "Plato", proveedor: "", material: "Hierro Gris" },
+                        { nombre: "Pistones", proveedor: "", material: "Hierro Gris" },
+                        { nombre: "Guías", proveedor: "", material: "Hierro Gris" }
+                    ];
                 }
 
                 window.pocAvailableClasses = classesToUse;

@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class OffSet_tolerancia extends Model
 {
     use HasFactory;
-    protected $table = 'offSet_tolerancia';
+    protected $table = 'offset_tolerancia';
     protected $fillable = [
         'id_proceso',
         'anchoRanura',
