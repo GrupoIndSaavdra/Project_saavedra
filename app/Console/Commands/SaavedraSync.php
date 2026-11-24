@@ -314,6 +314,9 @@ class SaavedraSync extends Command
             DB::beginTransaction();
             try {
                 DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+                try {
+                    DB::statement("SET SESSION sql_mode='NO_ENGINE_SUBSTITUTION';");
+                } catch (\Throwable $e) {}
 
                 $cleanRecords = [];
                 foreach ($records as $row) {
@@ -347,11 +350,37 @@ class SaavedraSync extends Command
 
                     if (!$chunkHandled) {
                         foreach ($chunk as $cleanRow) {
-                            if (isset($cleanRow[$primaryKey]) && !empty($cleanRow[$primaryKey])) {
-                                $keyValue = $cleanRow[$primaryKey];
-                                DB::table($table)->updateOrInsert([$primaryKey => $keyValue], $cleanRow);
-                            } else {
-                                DB::table($table)->insert($cleanRow);
+                            try {
+                                if (isset($cleanRow[$primaryKey]) && !empty($cleanRow[$primaryKey])) {
+                                    $keyValue = $cleanRow[$primaryKey];
+                                    DB::table($table)->updateOrInsert([$primaryKey => $keyValue], $cleanRow);
+                                } else {
+                                    DB::table($table)->insert($cleanRow);
+                                }
+                            } catch (\Throwable $rowEx) {
+                                // Auto-sanación ante colisión de índice único secundario (Error 1062)
+                                if (str_contains($rowEx->getMessage(), '1062 Duplicate entry')) {
+                                    try {
+                                        if (preg_match("/Duplicate entry '([^']+)' for key/i", $rowEx->getMessage(), $matches)) {
+                                            $dupVal = $matches[1];
+                                            foreach ($cleanRow as $col => $val) {
+                                                if (is_string($val) && (str_starts_with($val, $dupVal) || str_starts_with($dupVal, substr($val, 0, 50)))) {
+                                                    DB::table($table)->where($col, '=', $val)->where($primaryKey, '!=', $cleanRow[$primaryKey] ?? 0)->delete();
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                        if (isset($cleanRow[$primaryKey])) {
+                                            DB::table($table)->updateOrInsert([$primaryKey => $cleanRow[$primaryKey]], $cleanRow);
+                                        } else {
+                                            DB::table($table)->insert($cleanRow);
+                                        }
+                                    } catch (\Throwable $retryEx) {
+                                        $this->logSync("[PULL-SKIP] Registro omitido en '{$table}': " . $retryEx->getMessage(), 'warning');
+                                    }
+                                } else {
+                                    $this->logSync("[PULL-SKIP] Registro omitido en '{$table}': " . $rowEx->getMessage(), 'warning');
+                                }
                             }
                         }
                     }
