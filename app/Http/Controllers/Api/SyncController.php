@@ -20,6 +20,7 @@ class SyncController extends Controller
         $receivedToken = $request->header('X-Sync-Token') ?? $request->query('sync_token');
 
         if (empty($configuredToken) || empty($receivedToken) || !hash_equals((string) $configuredToken, (string) $receivedToken)) {
+            $this->logSync("[CPANEL-AUTH-FAIL] Intento con token inválido o ausente desde IP: {$request->ip()}", 'warning');
             return response()->json([
                 'success' => false,
                 'message' => 'No autorizado. Token de sincronización inválido o no proporcionado.',
@@ -37,6 +38,8 @@ class SyncController extends Controller
         if ($authError = $this->validateToken($request)) {
             return $authError;
         }
+
+        $this->logSync("[CPANEL-PING] Heartbeat recibido con éxito desde IP: {$request->ip()}");
 
         return response()->json([
             'success' => true,
@@ -57,6 +60,8 @@ class SyncController extends Controller
         }
 
         $allTables = $this->getAllSyncableTables();
+
+        $this->logSync("[CPANEL-TABLES] Listado de tablas solicitado desde IP: {$request->ip()} (" . count($allTables) . " tablas)");
 
         return response()->json([
             'success' => true,
@@ -138,6 +143,8 @@ class SyncController extends Controller
                 $nextId = $lastRecord->{$primaryKey};
             }
         }
+
+        $this->logSync("[CPANEL-PULL] Tabla '{$table}': entregados {$count} registros hacia IP: {$request->ip()}" . ($isSnapshot ? ' (snapshot)' : ''));
 
         return response()->json([
             'success' => true,
@@ -238,6 +245,8 @@ class SyncController extends Controller
             DB::statement('SET FOREIGN_KEY_CHECKS=1;');
             DB::commit();
 
+            $this->logSync("[CPANEL-PUSH] Tabla '{$table}': recibidos y procesados {$processed} registros desde IP: {$request->ip()}");
+
             return response()->json([
                 'success' => true,
                 'table' => $table,
@@ -335,6 +344,8 @@ class SyncController extends Controller
             Log::warning('Error generando manifiesto de archivos en sync: ' . $e->getMessage());
         }
 
+        $this->logSync("[CPANEL-FILES-MANIFEST] Manifiesto solicitado desde IP: {$request->ip()} (" . count($manifest) . " archivos)");
+
         return response()->json([
             'success' => true,
             'base_dir' => $baseRelative,
@@ -371,6 +382,8 @@ class SyncController extends Controller
                 'message' => "El archivo '{$safePath}' no existe en el almacenamiento.",
             ], 404);
         }
+
+        $this->logSync("[CPANEL-FILE-DOWNLOAD] Archivo '{$safePath}' descargado por IP: {$request->ip()}");
 
         return response()->download($absolutePath, basename($absolutePath));
     }
@@ -427,6 +440,8 @@ class SyncController extends Controller
             if ($originalMtime && is_numeric($originalMtime)) {
                 @touch($targetAbsolute, (int) $originalMtime);
             }
+
+            $this->logSync("[CPANEL-FILE-UPLOAD] Archivo '{$safePath}' (" . round(filesize($targetAbsolute) / 1024, 1) . " KB) recibido y guardado desde IP: {$request->ip()}");
 
             return response()->json([
                 'success' => true,
@@ -510,6 +525,24 @@ class SyncController extends Controller
         sort($remaining);
 
         return array_merge($ordered, $remaining);
+    }
+
+    /**
+     * Escribe en el archivo de log dedicado de sincronización (storage/logs/sync.log).
+     */
+    protected function logSync(string $message, string $level = 'info'): void
+    {
+        try {
+            Log::channel('sync')->{$level}($message);
+        } catch (\Throwable $e) {
+            try {
+                $logPath = storage_path('logs/sync.log');
+                $time = now()->format('Y-m-d H:i:s');
+                file_put_contents($logPath, "[{$time}] [{$level}] {$message}\n", FILE_APPEND | LOCK_EX);
+            } catch (\Throwable $e2) {
+                // Silencioso
+            }
+        }
     }
 }
 

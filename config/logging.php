@@ -71,6 +71,13 @@ return [
             'level' => 'info',
         ],
 
+        'sync' => [
+            'driver' => 'single',
+            'path' => storage_path('logs/sync.log'),
+            'level' => 'info',
+            'replace_placeholders' => true,
+        ],
+
         'daily' => [
             'driver' => 'daily',
             'path' => storage_path('logs/laravel.log'),

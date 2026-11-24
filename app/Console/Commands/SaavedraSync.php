@@ -60,11 +60,13 @@ class SaavedraSync extends Command
         }
         $this->info("================================================================================");
 
+        $this->logSync("[LOCAL-SYNC-START] Iniciando sincronización con {$cloudUrl} (Dirección: " . strtoupper($direction) . ($dryRun ? ', DRY-RUN' : '') . ")");
+
         // ── 1. COMPROBAR CONECTIVIDAD (PING / HEARTBEAT) ─────────────────────
         if (!$this->checkConnectivity($cloudUrl, $token)) {
             $this->warn("⚠️  [OFFLINE] No hay conexión a internet o el servidor en la nube no responde.");
             $this->line("   El sistema continuará operando normalmente en la red local de la planta.");
-            $this->logSync("Conexión fallida con {$cloudUrl}. Modo local activo.");
+            $this->logSync("[LOCAL-SYNC-OFFLINE] Conexión fallida con {$cloudUrl}. Modo local activo.", 'warning');
             return self::SUCCESS;
         }
 
@@ -121,7 +123,7 @@ class SaavedraSync extends Command
         $this->info("   📁 Archivos físicos descargados (PULL): {$filesPulled}");
         $this->info("================================================================================");
 
-        $this->logSync("Sincronización completada. DB PUSH: {$totalPushed}, DB PULL: {$totalPulled}, FILES PUSH: {$filesPushed}, FILES PULL: {$filesPulled}, Tiempo: {$elapsed}s");
+        $this->logSync("[LOCAL-SYNC-OK] Sincronización completada en {$elapsed}s. DB PUSH: {$totalPushed}, DB PULL: {$totalPulled}, FILES PUSH: {$filesPushed}, FILES PULL: {$filesPulled}");
 
         return self::SUCCESS;
     }
@@ -648,16 +650,20 @@ class SaavedraSync extends Command
     }
 
     /**
-     * Escribe en el archivo de logs dedicado.
+     * Escribe en el archivo de logs dedicado (storage/logs/sync.log).
      */
-    protected function logSync(string $message): void
+    protected function logSync(string $message, string $level = 'info'): void
     {
         try {
-            $logPath = storage_path('logs/sync.log');
-            $time = now()->format('Y-m-d H:i:s');
-            file_put_contents($logPath, "[{$time}] {$message}\n", FILE_APPEND | LOCK_EX);
+            Log::channel('sync')->{$level}($message);
         } catch (\Throwable $e) {
-            Log::info("[SYNC] {$message}");
+            try {
+                $logPath = storage_path('logs/sync.log');
+                $time = now()->format('Y-m-d H:i:s');
+                file_put_contents($logPath, "[{$time}] [{$level}] {$message}\n", FILE_APPEND | LOCK_EX);
+            } catch (\Throwable $e2) {
+                // Silencioso
+            }
         }
     }
 }
