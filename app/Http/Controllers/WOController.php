@@ -57,6 +57,9 @@ class WOController extends Controller
     //Mostrar la vista para seleccionar o crear una Orden de Trabajo
     public function manage()
     {
+        if (auth()->check() && (string) auth()->user()->perfil === '8') {
+            abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
+        }
         // Obtener todas las molduras (incluyendo las nuevas), a excepción de aquellas cuyas clases tienen finalizada = 2
         $moldings = Moldura::whereNotExists(function ($query) {
             $query->select(DB::raw(1))
@@ -173,6 +176,9 @@ class WOController extends Controller
 
     public function store(OTRequest $request) //Funcion para registrar una OT.
     {
+        if (auth()->check() && (string) auth()->user()->perfil === '8') {
+            abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
+        }
         if (isset($request->workOrderAdded)) {
             //Creacion de la orden de trabajo registrada
             $newWorkOrder = new Orden_trabajo();
@@ -1553,6 +1559,9 @@ class WOController extends Controller
      */
     public function show($workOrder)
     {
+        if (auth()->check() && (string) auth()->user()->perfil === '8') {
+            abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
+        }
         $workOrder = Orden_trabajo::query()->find($workOrder, ['*']);
         $molding = Moldura::query()->find($workOrder->id_moldura, ['*']);
 

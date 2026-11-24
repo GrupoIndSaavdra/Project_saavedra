@@ -8,7 +8,7 @@
                 ? 'Administración'
                 : ($perfil == 3
                     ? 'Master'
-                    : ($perfil == 4
+                    : ($perfil == 4 || $perfil == 8
                         ? 'Calidad'
                         : 'Almacén'));
     @endphp
@@ -32,11 +32,11 @@
                     ? 'Administración'
                     : ($perfil == 3
                         ? 'Master'
-                        : ($perfil == 4
+                        : ($perfil == 4 || $perfil == 8
                             ? 'Calidad'
                             : 'Almacén'));
             $deptIcon =
-                $perfil == 4 || $perfil == 3
+                $perfil == 4 || $perfil == 3 || $perfil == 8
                     ? 'Color_Icons/Generales/Quality.png'
                     : 'Color_Icons/Generales/almacen.png';
         @endphp

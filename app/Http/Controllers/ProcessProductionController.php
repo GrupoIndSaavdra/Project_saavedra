@@ -32,7 +32,7 @@ class ProcessProductionController extends Controller
     {
         $this->middleware('auth');
         $this->middleware(function ($request, $next) {
-            if (auth()->check() && (string) auth()->user()->perfil === '5') {
+            if (auth()->check() && in_array((string) auth()->user()->perfil, ['5', '8'], true)) {
                 abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
             }
 

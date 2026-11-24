@@ -58,6 +58,13 @@ class HomeController extends Controller
                     $layout = 'layouts.menu.appAdmin';
                     $welcomeT = 'Bienvenido Supervisor';
                     break;
+                case 8:
+                    $layout = 'layouts.menu.appQuality';
+                    $backgroundImage = 'images/fondos/fondocalidad.png';
+                    $welcomeT = 'Bienvenido a Control de calidad';
+                    $objectiveT = 'En nuestro perfil de calidad, cada milímetro importa. Nos comprometemos a inspeccionar con precisión cada pieza, asegurando medidas exactas y calidad impecable. En la búsqueda constante de la excelencia, nos destacamos por nuestra meticulosidad y compromiso con la perfección.';
+                    [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+                    break;
                 case 10:
                     $layout = 'layouts.menu.appAdmin';
                     $welcomeT = 'Bienvenido a Administración';
