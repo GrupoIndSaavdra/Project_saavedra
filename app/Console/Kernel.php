@@ -39,8 +39,8 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->withoutOverlapping();
 
-        // ── Sincronización Local <-> Nube — cada 2 minutos (Solo Producción / Servidor) ──
-        if (config('sync.auto_enabled', true) && !config('sync.is_dev', false) && (config('sync.token') !== config('sync.dev_token') || empty(config('sync.dev_token')))) {
+        // ── Sincronización Local <-> Nube — cada 2 minutos (Solo Servidor de Producción) ──
+        if (config('sync.auto_enabled', true) && !config('sync.is_dev', false)) {
             $schedule->command('saavedra:sync')
                 ->everyTwoMinutes()
                 ->withoutOverlapping()
