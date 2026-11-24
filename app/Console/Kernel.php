@@ -39,11 +39,13 @@ class Kernel extends ConsoleKernel
             ->everyMinute()
             ->withoutOverlapping();
 
-        // ── Sincronización Local <-> Nube — cada 2 minutos ───────────────────
-        $schedule->command('saavedra:sync')
-            ->everyTwoMinutes()
-            ->withoutOverlapping()
-            ->appendOutputTo(storage_path('logs/sync.log'));
+        // ── Sincronización Local <-> Nube — cada 2 minutos (Solo Producción / Servidor) ──
+        if (config('sync.auto_enabled', true) && !config('sync.is_dev', false) && (config('sync.token') !== config('sync.dev_token') || empty(config('sync.dev_token')))) {
+            $schedule->command('saavedra:sync')
+                ->everyTwoMinutes()
+                ->withoutOverlapping()
+                ->appendOutputTo(storage_path('logs/sync.log'));
+        }
 
         // ── Respaldo Diario de Base de Datos Local — 23:59 todos los días ─────
         $schedule->command('saavedra:backup-local')

@@ -12,19 +12,56 @@ use Illuminate\Support\Facades\Schema;
 class SyncController extends Controller
 {
     /**
-     * Valida el token secreto compartido entre local y nube.
+     * Valida el token secreto recibido.
+     * Soporta dos llaves:
+     * - Token de Producción (SYNC_API_TOKEN): Permisos completos (PUSH y PULL).
+     * - Token de Desarrollador (SYNC_DEV_TOKEN): Solo lectura (PULL), PUSH denegado.
      */
-    protected function validateToken(Request $request): ?JsonResponse
+    protected function authenticateToken(Request $request): array|JsonResponse
     {
-        $configuredToken = config('sync.token');
-        $receivedToken = $request->header('X-Sync-Token') ?? $request->query('sync_token');
+        $prodToken = config('sync.token');
+        $devToken = config('sync.dev_token');
+        $receivedToken = (string) ($request->header('X-Sync-Token') ?? $request->query('sync_token'));
 
-        if (empty($configuredToken) || empty($receivedToken) || !hash_equals((string) $configuredToken, (string) $receivedToken)) {
-            $this->logSync("[CPANEL-AUTH-FAIL] Intento con token inválido o ausente desde IP: {$request->ip()}", 'warning');
+        if (empty($receivedToken)) {
+            $this->logSync("[CPANEL-AUTH-FAIL] Token ausente desde IP: {$request->ip()}", 'warning');
             return response()->json([
                 'success' => false,
-                'message' => 'No autorizado. Token de sincronización inválido o no proporcionado.',
+                'message' => 'No autorizado. Token de sincronización no proporcionado.',
             ], 401);
+        }
+
+        if (!empty($prodToken) && hash_equals((string) $prodToken, $receivedToken)) {
+            return ['role' => 'prod'];
+        }
+
+        if (!empty($devToken) && hash_equals((string) $devToken, $receivedToken)) {
+            return ['role' => 'dev'];
+        }
+
+        $this->logSync("[CPANEL-AUTH-FAIL] Token inválido desde IP: {$request->ip()}", 'warning');
+        return response()->json([
+            'success' => false,
+            'message' => 'No autorizado. Token de sincronización inválido.',
+        ], 401);
+    }
+
+    /**
+     * Valida el token y verifica permisos de rol.
+     */
+    protected function validateToken(Request $request, bool $allowDev = true): ?JsonResponse
+    {
+        $auth = $this->authenticateToken($request);
+        if ($auth instanceof JsonResponse) {
+            return $auth;
+        }
+
+        if ($auth['role'] === 'dev' && !$allowDev) {
+            $this->logSync("[CPANEL-AUTH-BLOCKED] Intento de PUSH bloqueado con token de desarrollador desde IP: {$request->ip()}", 'warning');
+            return response()->json([
+                'success' => false,
+                'message' => 'Acceso denegado: El token de desarrollador solo tiene permisos de descarga (PULL). No se permite modificar producción.',
+            ], 403);
         }
 
         return null;
@@ -98,15 +135,35 @@ class SyncController extends Controller
 
         $query = DB::table($table);
 
-        if ($hasUpdatedAt && !empty($since)) {
-            $query->where('updated_at', '>', $since)
-                  ->orderBy('updated_at', 'asc')
+        if ($hasUpdatedAt) {
+            if (!empty($since)) {
+                $query->where(function ($q) use ($since, $lastId, $primaryKey) {
+                    $q->where('updated_at', '>', $since);
+                    if (!empty($lastId)) {
+                        $q->orWhere(function ($q2) use ($since, $lastId, $primaryKey) {
+                            $q2->where('updated_at', '=', $since)
+                               ->where($primaryKey, '>', $lastId);
+                        });
+                    }
+                });
+            }
+            $query->orderBy('updated_at', 'asc')
                   ->orderBy($primaryKey, 'asc');
-        } elseif ($hasCreatedAt && !empty($since)) {
-            $query->where('created_at', '>', $since)
-                  ->orderBy('created_at', 'asc')
+        } elseif ($hasCreatedAt) {
+            if (!empty($since)) {
+                $query->where(function ($q) use ($since, $lastId, $primaryKey) {
+                    $q->where('created_at', '>', $since);
+                    if (!empty($lastId)) {
+                        $q->orWhere(function ($q2) use ($since, $lastId, $primaryKey) {
+                            $q2->where('created_at', '=', $since)
+                               ->where($primaryKey, '>', $lastId);
+                        });
+                    }
+                });
+            }
+            $query->orderBy('created_at', 'asc')
                   ->orderBy($primaryKey, 'asc');
-        } elseif (!$hasUpdatedAt && !$hasCreatedAt) {
+        } else {
             // Tablas de catálogo sin timestamps (ej. clases, procesos, maquinas)
             // Si tienen <= 3000 registros, entregamos snapshot completo para garantizar sincronía total
             $totalInTable = DB::table($table)->count();
@@ -118,11 +175,6 @@ class SyncController extends Controller
             } else {
                 $query->orderBy($primaryKey, 'asc');
             }
-        } elseif (!empty($lastId)) {
-            $query->where($primaryKey, '>', $lastId)
-                  ->orderBy($primaryKey, 'asc');
-        } else {
-            $query->orderBy($primaryKey, 'asc');
         }
 
         $records = $isSnapshot ? $query->get() : $query->limit($limit)->get();
@@ -164,7 +216,7 @@ class SyncController extends Controller
      */
     public function push(Request $request): JsonResponse
     {
-        if ($authError = $this->validateToken($request)) {
+        if ($authError = $this->validateToken($request, false)) {
             return $authError;
         }
 
@@ -193,6 +245,9 @@ class SyncController extends Controller
         try {
             // Desactivar temporalmente FK checks para evitar bloqueos por orden de inserción
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            try {
+                DB::statement("SET SESSION sql_mode='NO_ENGINE_SUBSTITUTION';");
+            } catch (\Throwable $e) {}
 
             // Sanitizar todas las filas
             $cleanRecords = [];
@@ -420,7 +475,7 @@ class SyncController extends Controller
      */
     public function filesUpload(Request $request): JsonResponse
     {
-        if ($authError = $this->validateToken($request)) {
+        if ($authError = $this->validateToken($request, false)) {
             return $authError;
         }
 

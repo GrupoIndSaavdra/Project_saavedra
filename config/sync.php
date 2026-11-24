@@ -4,15 +4,50 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Token Secreto de Sincronización
+    | Token Secreto de Sincronización (Producción / Planta)
     |--------------------------------------------------------------------------
     |
-    | Llave de seguridad compartida entre el servidor local (Windows Server)
+    | Llave principal compartida entre el servidor local de Planta Tecámac
     | y el servidor en la nube (api.grupoindsaavedra.com).
-    | Se envía en la cabecera 'X-Sync-Token' en cada petición HTTP.
+    | Permite sincronización bidireccional completa (PUSH y PULL).
     |
     */
     'token' => env('SYNC_API_TOKEN', 'saavedra_sync_secret_key_change_me'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Token de Desarrolladores (Devs - Solo Lectura / Manual)
+    |--------------------------------------------------------------------------
+    |
+    | Llave secundaria para que los programadores descarguen (PULL) la base
+    | de datos de producción a sus entornos locales.
+    | Por seguridad, este token es 100% de solo lectura: el servidor de la nube
+    | rechaza cualquier intento de subida (PUSH) con este token.
+    |
+    */
+    'dev_token' => env('SYNC_DEV_TOKEN', null),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Sincronización Automática en Segundo Plano (Cron / Task Scheduler)
+    |--------------------------------------------------------------------------
+    |
+    | En producción debe ser 'true' para sincronizar cada 2 minutos.
+    | En entornos de desarrollo debe ser 'false' para que sea siempre manual.
+    |
+    */
+    'auto_enabled' => (bool) env('SYNC_AUTO_ENABLED', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Modo Desarrollador (Dev)
+    |--------------------------------------------------------------------------
+    |
+    | Si está activo, el comando CLI opera en modo solo lectura (PULL protegido)
+    | y desactiva las sincronizaciones automáticas.
+    |
+    */
+    'is_dev' => (bool) env('SYNC_IS_DEV', false),
 
     /*
     |--------------------------------------------------------------------------
