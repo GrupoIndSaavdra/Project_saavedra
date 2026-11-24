@@ -630,7 +630,7 @@ $ldmCastingProcesados = array_values(
                                 if (!$alertSent) {
                                     if ($userPerfil == 1 || $userPerfil == 2 || $userPerfil == 3) {
                                         $canDelete = true;
-                                    } elseif ($userPerfil == 5 && $fileOwner === 'almacen') {
+                                    } elseif (($userPerfil == 5 || $userPerfil == 7) && $fileOwner === 'almacen') {
                                         $canDelete = true;
                                     } elseif (($userPerfil == 4 || $userPerfil == 3) && $fileOwner === 'calidad') {
                                         $canDelete = true;
