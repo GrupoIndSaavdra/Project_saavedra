@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -126,6 +127,28 @@ class SaavedraSync extends Command
     }
 
     /**
+     * Cliente HTTP preconfigurado con timeouts, reintentos y verificación SSL adaptable para Windows.
+     */
+    protected function httpClient(int $timeout = 60): PendingRequest
+    {
+        $options = [
+            'curl' => [
+                CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V4,
+            ],
+        ];
+
+        $client = Http::timeout($timeout)
+            ->retry(2, 200, throw: false)
+            ->withOptions($options);
+
+        if (!config('sync.ssl_verify', false)) {
+            $client = $client->withoutVerifying();
+        }
+
+        return $client;
+    }
+
+    /**
      * Comprueba si la nube está disponible en tiempo récord.
      */
     protected function checkConnectivity(string $cloudUrl, string $token): bool
@@ -133,7 +156,7 @@ class SaavedraSync extends Command
         $pingTimeout = (int) config('sync.ping_timeout', 4);
 
         try {
-            $response = Http::timeout($pingTimeout)
+            $response = $this->httpClient($pingTimeout)
                 ->withHeaders(['X-Sync-Token' => $token])
                 ->get("{$cloudUrl}/api/sync/ping");
 
@@ -201,7 +224,7 @@ class SaavedraSync extends Command
         $timeout = (int) config('sync.timeout', 60);
 
         try {
-            $response = Http::timeout($timeout)
+            $response = $this->httpClient($timeout)
                 ->withHeaders([
                     'X-Sync-Token' => $token,
                     'Accept' => 'application/json',
@@ -253,7 +276,7 @@ class SaavedraSync extends Command
         $timeout = (int) config('sync.timeout', 60);
 
         try {
-            $response = Http::timeout($timeout)
+            $response = $this->httpClient($timeout)
                 ->withHeaders([
                     'X-Sync-Token' => $token,
                     'Accept' => 'application/json',
@@ -474,7 +497,7 @@ class SaavedraSync extends Command
 
         try {
             // 1. Obtener manifiesto de la nube
-            $response = Http::timeout($timeout)
+            $response = $this->httpClient($timeout)
                 ->withHeaders(['X-Sync-Token' => $token])
                 ->get("{$cloudUrl}/api/sync/files/manifest");
 
@@ -514,7 +537,7 @@ class SaavedraSync extends Command
                             continue;
                         }
 
-                        $downRes = Http::timeout($timeout)
+                        $downRes = $this->httpClient($timeout)
                             ->withHeaders(['X-Sync-Token' => $token])
                             ->get("{$cloudUrl}/api/sync/files/download", ['path' => $path]);
 
@@ -559,7 +582,7 @@ class SaavedraSync extends Command
 
                         $sourcePath = "{$baseDir}/{$path}";
                         if (file_exists($sourcePath)) {
-                            $upRes = Http::timeout($timeout)
+                            $upRes = $this->httpClient($timeout)
                                 ->withHeaders(['X-Sync-Token' => $token])
                                 ->attach('file', file_get_contents($sourcePath), basename($sourcePath))
                                 ->post("{$cloudUrl}/api/sync/files/upload", [
