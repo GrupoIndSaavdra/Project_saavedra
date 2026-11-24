@@ -47,19 +47,16 @@ class SaavedraSync extends Command
 
         $devToken = (string) config('sync.dev_token', '');
         $prodToken = (string) config('sync.token', '');
-        $isDevExplicit = (bool) config('sync.is_dev', false);
+        $isDevMode = (bool) config('sync.is_dev', false);
 
-        // Se considera modo Dev si se activa SYNC_IS_DEV, si no hay token prod pero sí dev,
-        // o si el token principal configurado en este cliente es el token de dev
-        $isDevMode = $isDevExplicit || (empty($prodToken) && !empty($devToken)) || (!empty($devToken) && $prodToken === $devToken);
-        $token = $isDevMode ? $devToken : $prodToken;
+        $token = $isDevMode ? (!empty($devToken) ? $devToken : $prodToken) : $prodToken;
 
         $rawDirection = $this->option('direction');
         if ($isDevMode) {
             $direction = strtolower((string) ($rawDirection ?: 'pull'));
             if (in_array($direction, ['push', 'both'], true)) {
-                $this->warn("   ⚠️  [MODO DEV] El token de desarrollador solo permite descarga (PULL).");
-                $this->warn("      Se omite la subida (PUSH) a producción para proteger los datos en la nube.");
+                $this->warn("   ⚠️  [MODO DEV] Tu entorno está configurado en modo Desarrollador (SYNC_IS_DEV=true).");
+                $this->warn("      Se omite la subida (PUSH) a la nube para proteger los datos de producción.");
                 $direction = 'pull';
             }
         } else {
