@@ -1,9 +1,15 @@
 @extends('layouts.appMenu')
 
+@php
+    $isAlmacenMaq = (int) (Auth::user()->perfil ?? 0) === 7;
+    $maqDeptLabel = $isAlmacenMaq ? 'Almacén' : 'Calidad';
+    $maqDeptIcon = $isAlmacenMaq ? 'images/Color_Icons/Generales/almacen.png' : 'images/Color_Icons/Generales/Quality.png';
+@endphp
+
 @section('head')
-    <title>Calidad — Dibujos y Ayudas de Maquinados | GIS</title>
+    <title>{{ $maqDeptLabel }} — Dibujos y Ayudas de Maquinados | GIS</title>
     <meta name="description"
-        content="Vista de solo lectura para Calidad: Dibujos de Maquinados y Ayudas Visuales de Maquinados sincronizados automáticamente.">
+        content="Vista de solo lectura para {{ $maqDeptLabel }}: Dibujos de Maquinados y Ayudas Visuales de Maquinados sincronizados automáticamente.">
     @vite([
         'resources/css/calidad_views/calidad_maquinados.css',
         'resources/js/calidad_views/calidad_maquinados.js',
@@ -19,10 +25,10 @@
         {{-- ── HEADER ─────────────────────────────────────────────── --}}
         <div class="alm-header">
             <div class="alm-header-icon">
-                <img src="{{ asset('images/Color_Icons/Generales/Quality.png') }}" alt="Calidad" class="cal-maq-width-90px">
+                <img src="{{ asset($maqDeptIcon) }}" alt="{{ $maqDeptLabel }}" class="cal-maq-width-90px">
             </div>
             <div class="alm-header-text">
-                <h1>Dibujos y Ayudas Visuales de Maquinados — Calidad</h1>
+                <h1>Dibujos y Ayudas Visuales de Maquinados — {{ $maqDeptLabel }}</h1>
                 <p>Consulta de documentación técnica de Maquinados. Sincronización automática cada 5 minutos. Solo lectura.</p>
             </div>
             <span class="alm-readonly-badge">Solo lectura</span>
