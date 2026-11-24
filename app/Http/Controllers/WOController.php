@@ -656,7 +656,7 @@ class WOController extends Controller
     public function prioritiesDisabledView(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '6', '7', '8', '10', '0'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '7', '8', '10', '0'])) {
             abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para personal autorizado.');
         }
 
@@ -760,7 +760,7 @@ class WOController extends Controller
     public function downloadPrioritiesDisabledPdf(Request $request)
     {
         $userProfile = (string) (auth()->user()->perfil ?? '');
-        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '6', '7', '8', '10', '0'])) {
+        if (!in_array($userProfile, ['1', '2', '3', '4', '5', '7', '8', '10', '0'])) {
             abort(403, 'Acceso denegado: Esta vista es de uso exclusivo para personal autorizado.');
         }
 

@@ -21,7 +21,7 @@ class HerramientasTecamacController extends Controller
 {
     use HasCursorPagination;
 
-    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '0'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '5', '7', '8', '9', '10', '0'];
 
     private const PERFILES_ALMACEN = ['1', '2', '3', '5', '7', '10', '0'];   // CRUD completo + inactivar/reactivar
 

@@ -57,8 +57,8 @@ Route::controller(LoginController::class)->group(function () {
     Route::post('/login', 'login')->name('loginUser');
 });
 
-//Grupo de rutas para el controlador de ver usuarios en perfil de master
-Route::controller(UserController::class)->group(function () {
+//Grupo de rutas para el controlador de ver usuarios (Solo Master, Administrador y Sistemas)
+Route::middleware(['auth', 'perfil:1,2,10'])->controller(UserController::class)->group(function () {
     Route::get('/users', 'show')->name('users'); //Vista de usuarios
     Route::get('/users/organigrama', 'organigrama')->name('users.organigrama'); //Vista de organigrama
     Route::get('/users/create', 'create')->name('createUser'); //Vista de crear usuario
@@ -72,8 +72,8 @@ Route::controller(UserController::class)->group(function () {
     Route::post('/users/{id}', 'updateUsuario')->name('update_usuario');
 });
 
-//Grupo de ruta para el controlador MolduraController
-Route::controller(MoldingController::class)->group(function () {
+//Grupo de ruta para el controlador MolduraController (Master, Admin, Supervisor, Ventas, Sistemas)
+Route::middleware(['auth', 'perfil:1,2,3,6,10'])->controller(MoldingController::class)->group(function () {
     Route::get('/createMolding', 'create')->name('createMolding'); //Vista registrar moldura
     Route::post('/createMolding/storeMolding', 'store')->name('storeMolding'); //Registrar moldura
     Route::get('/editMolding', 'edit')->name('editMolding'); //Vista editar moldura
@@ -85,27 +85,33 @@ Route::controller(MoldingController::class)->group(function () {
 Route::controller(WOController::class)->group(function () {
     Route::get('/manageWO', 'manage')->name('manageWO');
     Route::post('/storeWO', 'store')->name('storeWO');
-    Route::get('/master/createWO', 'createMasterWO')->name('createMasterWO');
-    Route::post('/master/storeWO', 'storeMasterWO')->name('storeMasterWO');
-    Route::post('/master/updateWO', 'updateMasterWO')->name('updateMasterWO');
-    Route::get('/master/prioridades', 'prioritiesView')->name('master.priorities');
-    Route::get('/master/prioridades/archivos/disponibilidad', [PriorityDocumentsController::class, 'availability'])
-        ->name('master.priorities.documents.availability');
-    Route::get('/master/prioridades/{ot}/archivos', [PriorityDocumentsController::class, 'index'])
-        ->name('master.priorities.documents');
-    Route::get('/master/prioridades/{ot}/archivos/reportes/{type}', [PriorityDocumentsController::class, 'openProductionReport'])
-        ->whereIn('type', ['piezas', 'pta'])
-        ->name('master.priorities.documents.production');
-    Route::get('/master/prioridades/{ot}/archivos/abrir', [PriorityDocumentsController::class, 'openDrawing'])
-        ->middleware('signed')->name('master.priorities.documents.open');
-    Route::get('/master/prioridades/pdf', 'downloadPrioritiesPdf')->name('master.priorities.pdf');
-    Route::post('/master/prioridades/autosave', 'autosavePriority')->name('master.priorities.autosave');
-    Route::post('/master/prioridades/deactivate', 'deactivatePriorities')->name('master.priorities.deactivate');
-    Route::get('/master/prioridades/desactivadas', 'prioritiesDisabledView')->name('master.priorities.disabled');
-    Route::get('/master/prioridades/desactivadas/pdf', 'downloadPrioritiesDisabledPdf')->name('master.priorities.disabled.pdf');
-    Route::post('/master/prioridades/reactivate', 'reactivatePriorities')->name('master.priorities.reactivate');
-    Route::post('/master/prioridades/delete-permanent', 'deletePrioritiesPermanently')->name('master.priorities.delete_permanent');
-    Route::get('/master/prioridades/download-backup-zip', 'downloadBackupZip')->name('master.priorities.download_backup_zip');
+    Route::middleware(['auth', 'perfil:1,2,3,5,6,10'])->group(function () {
+        Route::get('/master/createWO', 'createMasterWO')->name('createMasterWO');
+        Route::post('/master/storeWO', 'storeMasterWO')->name('storeMasterWO');
+        Route::post('/master/updateWO', 'updateMasterWO')->name('updateMasterWO');
+    });
+    Route::middleware(['auth', 'perfil:1,2,3,4,5,7,8,10'])->group(function () {
+        Route::get('/master/prioridades', 'prioritiesView')->name('master.priorities');
+        Route::get('/master/prioridades/archivos/disponibilidad', [PriorityDocumentsController::class, 'availability'])
+            ->name('master.priorities.documents.availability');
+        Route::get('/master/prioridades/{ot}/archivos', [PriorityDocumentsController::class, 'index'])
+            ->name('master.priorities.documents');
+        Route::get('/master/prioridades/{ot}/archivos/reportes/{type}', [PriorityDocumentsController::class, 'openProductionReport'])
+            ->whereIn('type', ['piezas', 'pta'])
+            ->name('master.priorities.documents.production');
+        Route::get('/master/prioridades/{ot}/archivos/abrir', [PriorityDocumentsController::class, 'openDrawing'])
+            ->middleware('signed')->name('master.priorities.documents.open');
+        Route::get('/master/prioridades/pdf', 'downloadPrioritiesPdf')->name('master.priorities.pdf');
+        Route::get('/master/prioridades/desactivadas', 'prioritiesDisabledView')->name('master.priorities.disabled');
+        Route::get('/master/prioridades/desactivadas/pdf', 'downloadPrioritiesDisabledPdf')->name('master.priorities.disabled.pdf');
+    });
+    Route::middleware(['auth', 'perfil:1,2,3,10'])->group(function () {
+        Route::post('/master/prioridades/autosave', 'autosavePriority')->name('master.priorities.autosave');
+        Route::post('/master/prioridades/deactivate', 'deactivatePriorities')->name('master.priorities.deactivate');
+        Route::post('/master/prioridades/reactivate', 'reactivatePriorities')->name('master.priorities.reactivate');
+        Route::post('/master/prioridades/delete-permanent', 'deletePrioritiesPermanently')->name('master.priorities.delete_permanent');
+        Route::get('/master/prioridades/download-backup-zip', 'downloadBackupZip')->name('master.priorities.download_backup_zip');
+    });
     Route::get('/showWO/{workOrder}', 'show')->name('showWO');
     Route::get('/destroyWO/{wo}', 'destroy')->name('destroyWO');
     Route::get('/generatePDFWO/{wo}', 'generatePDF')->name('generatePDFWO');
@@ -140,8 +146,8 @@ Route::controller(ClassController::class)->group(function () {
     Route::get('/destroyClass/{idClass}', 'destroy')->name('destroyClass'); //Eliminar clase
 });
 
-//Grupo de rutas para el controlador ProcesosController
-Route::controller(ProcessesController::class)->group(function () {
+//Grupo de rutas para el controlador ProcesosController (Cotas Nominales y Tolerancias)
+Route::middleware(['auth', 'perfil:1,2,3,5,8,10'])->controller(ProcessesController::class)->group(function () {
     Route::get('/cNominals', 'show_cNominalsView')->name('cNominals'); //Ruta para la interfaz de los procesos para editar las cotas nominales y tolerancias
     Route::post('/cNominals/store', 'storeCNominalsData')->name('storeCNominals'); //Ruta para la interfaz de los procesos para guardar las cotas nominales y tolerancias
 });
@@ -192,21 +198,21 @@ Route::controller(PzasLiberadasController::class)->group(function () {
     Route::post('/pieces', 'getPiecesRequest')->name('piecesRelease'); //Ruta para ver los procesos de las maquinas
     Route::post('/piezasLiberar', 'liberar_rechazar')->name('liberar_rechazar'); //Ruta para liberar o rechazar
 });
-//Rutas para el controlador de DatosProduccionController
-Route::controller(DatosProduccionController::class)->group(function () {
+//Rutas para el controlador de DatosProduccionController (Master, Admin, Supervisor, Sistemas)
+Route::middleware(['auth', 'perfil:1,2,3,10'])->controller(DatosProduccionController::class)->group(function () {
     Route::get('/productionData', 'index')->name('productionData'); //Vista de datos de producción
     Route::post('/productionData', 'show')->name('showProduccion'); //Vista de datos de producción
 });
 
-//Rutas para el controlador de MachinesController
-Route::controller(MachinesController::class)->group(function () {
+//Rutas para el controlador de MachinesController (Master, Admin, Supervisor, Sistemas)
+Route::middleware(['auth', 'perfil:1,2,3,10'])->controller(MachinesController::class)->group(function () {
     Route::get('/machinesOccupied', 'show')->name('machinesOccupied'); //Vista de máquinas ocupadas
     Route::get('/machinesOccupied/api', 'getOccupiedApi')->name('machinesOccupiedApi'); //API JSON de máquinas ocupadas
     Route::match(['get', 'post'], '/machinesOccupied/freeUp', 'freeUp')->name('freeUp'); //Desocupar máquina
 });
 
-//Rutas para el controlador de PiecesOccupiedController (Piezas Ocupadas)
-Route::controller(\App\Http\Controllers\PiecesOccupiedController::class)->group(function () {
+//Rutas para el controlador de PiecesOccupiedController (Master, Admin, Supervisor, Diseño y Programación, Sistemas)
+Route::middleware(['auth', 'perfil:1,2,3,5,10'])->controller(\App\Http\Controllers\PiecesOccupiedController::class)->group(function () {
     Route::get('/piecesOccupied', 'show')->name('piecesOccupied');
     Route::get('/piecesOccupied/classes', 'getClassesByOt')->name('piecesOccupied.classes');
     Route::post('/piecesOccupied/piecesByContext', 'getPiecesByContext')->name('piecesOccupied.piecesByContext');
@@ -219,13 +225,13 @@ Route::controller(\App\Http\Controllers\PiecesOccupiedController::class)->group(
 });
 
 //Rutas para el controlador de ProgressPanelController
-Route::get('/panel-progreso', fn() => view('wo_views.progressPanel_wo'))->name('panelProgreso');
+Route::middleware(['auth', 'perfil:1,2,3,10'])->get('/panel-progreso', fn() => view('wo_views.progressPanel_wo'))->name('panelProgreso');
 
 /* ===========================
    Tracking Soldadura - NUEVO SISTEMA
 =========================== */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'perfil:1,2,7,10'])->group(function () {
     Route::get('/trackingSoldadura', [TrackingSoldaduraController::class, 'index'])->name('trackingSoldadura.index');
     Route::post('/trackingSoldadura', [TrackingSoldaduraController::class, 'store'])->name('trackingSoldadura.store');
 });
@@ -234,7 +240,7 @@ Route::middleware(['auth'])->group(function () {
    1. Generar QR por Lote
 =========================== */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'perfil:1,2,7,10'])->group(function () {
     Route::get('/soldadura/generar-qr-lote', [GenerarQRLoteController::class, 'index'])
         ->name('soldadura.generarQRLote');
 
@@ -246,7 +252,7 @@ Route::middleware(['auth'])->group(function () {
    2. Generar QRs Individuales
 =========================== */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'perfil:1,2,7,10'])->group(function () {
     Route::get('/soldadura/generar-qr-individual', [GenerarQRIndividualController::class, 'index'])
         ->name('soldadura.generarQRIndividual');
 
@@ -258,7 +264,7 @@ Route::middleware(['auth'])->group(function () {
    3. Recepción de Soldadura en Planta (ENTRADA)
 =========================== */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'perfil:1,2,7,10'])->group(function () {
     Route::get('/soldadura/recepcion-planta', [LiberarQRPlantaController::class, 'indexRecepcion'])
         ->name('soldadura.recepcionPlanta');
 
@@ -273,7 +279,7 @@ Route::middleware(['auth'])->group(function () {
    4. Liberar Soldadura a Operadores (SALIDA)
 =========================== */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'perfil:1,2,7,10'])->group(function () {
     Route::get('/soldadura/liberar-qr-planta', [LiberarQRPlantaController::class, 'index'])
         ->name('soldadura.liberarQRPlanta');
 
@@ -285,10 +291,10 @@ Route::middleware(['auth'])->group(function () {
 });
 
 /* ===========================
-   5. Regenerar QRs - Solo Administradores
+   5. Regenerar QRs - Solo Administradores / Almacén / Sistemas
 =========================== */
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'perfil:1,2,7,10'])->group(function () {
     // Vista de verificación de contraseña
     Route::get('/soldadura/regenerar-qr', [RegenerarQRController::class, 'index'])
         ->name('soldadura.regenerarQR');
@@ -369,7 +375,7 @@ Route::prefix('admin/pta')->name('pta.')->group(function () {
 /* ===========================
    Reporte General de Producción
 =========================== */
-Route::middleware(['auth'])->prefix('reportes')->name('reportes.')->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,10'])->prefix('reportes')->name('reportes.')->group(function () {
     // Vista del formulario de re-envío manual
     Route::get('/reenvio', [ReporteProduccionController::class, 'showReenvio'])
         ->name('reenvio');
@@ -387,7 +393,7 @@ Route::get('/reportes/descargar-pdf/{fecha}', [ReporteProduccionController::clas
 /* ===========================
    Envío de Reportes PTA
 =========================== */
-Route::middleware(['auth'])->prefix('reportes/pta')->name('reportes.pta')->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,10'])->prefix('reportes/pta')->name('reportes.pta')->group(function () {
     // Vista principal con selector OT/Clase + historial de envíos
     Route::get('/', [EnvioPtaController::class, 'index'])
         ->name('');
@@ -401,13 +407,13 @@ Route::middleware(['auth'])->prefix('reportes/pta')->name('reportes.pta')->group
    Módulo de Dibujos / Planos PDF (DIBUJOS_GIS)
 =========================== */
 
-Route::prefix('dibujos')->name('dibujos.')->group(function () {
+Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function () {
     Route::get('/estructura', [DibujosPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [DibujosPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/serve', [DibujosPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('dibujos')->name('dibujos.')->group(function () {
 
     // ── Vista de administración ──
     Route::get('/manage', [DibujosPdfController::class, 'showManage'])
@@ -433,17 +439,17 @@ Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function
 });
     
 /* ===========================
-   Módulo de Manuales (MANUALES_GIS)
+   Módulo de Dibujos de Fundición (FUNDICION_GIS)
 =========================== */
 
-Route::prefix('fundicion')->name('fundicion.')->group(function () {
+Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(function () {
     Route::get('/estructura', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/total-archivos', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'getTotalFiles'])->name('total_archivos');
     Route::get('/serve', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('fundicion')->name('fundicion.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'createFolder'])->name('createFolder');
@@ -462,16 +468,16 @@ Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(func
    Módulo de Programas CNC (PROGRAMAS_MAQUINADOS)
 =========================== */
 
-// ── Rutas públicas (lectura, operadores y admins) ──
-Route::prefix('programas')->name('programas.')->group(function () {
+// ── Rutas de lectura autenticadas ──
+Route::middleware(['auth'])->prefix('programas')->name('programas.')->group(function () {
     Route::get('/estructura',       [ProgramasCncController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos',         [ProgramasCncController::class, 'getFiles'])->name('archivos');
     Route::get('/serve',            [ProgramasCncController::class, 'serveFile'])->name('serve');
     Route::get('/procesos-clase',   [ProgramasCncController::class, 'getProcesosForClase'])->name('procesos_clase');
 });
 
-// ── Rutas protegidas (CRUD, solo admins/master) ──
-Route::middleware(['auth'])->prefix('programas')->name('programas.')->group(function () {
+// ── Rutas protegidas (CRUD, Master/Admin/Supervisor/Ingeniería/Diseño/Sistemas) ──
+Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('programas')->name('programas.')->group(function () {
     Route::get('/manage',           [ProgramasCncController::class, 'showManage'])->name('manage');
     Route::get('/log',              [ProgramasCncController::class, 'getLog'])->name('log');
     Route::post('/createFolder',    [ProgramasCncController::class, 'createFolder'])->name('createFolder');
@@ -581,13 +587,13 @@ Route::middleware(['auth'])->prefix('calidad/fundicion')->name('calidad.fundicio
    Módulo de Manuales (MANUALES_GIS)
 =========================== */
 
-Route::prefix('manuales')->name('manuales.')->group(function () {
+Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(function () {
     Route::get('/estructura', [\App\Http\Controllers\ManualesPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\ManualesPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/serve', [\App\Http\Controllers\ManualesPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('manuales')->name('manuales.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\ManualesPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\ManualesPdfController::class, 'createFolder'])->name('createFolder');
@@ -603,13 +609,13 @@ Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(functi
    Módulo de Ayudas Visuales (AYUDAS_GIS)
 =========================== */
 
-Route::prefix('ayudas')->name('ayudas.')->group(function () {
+Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function () {
     Route::get('/estructura', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/serve', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('ayudas')->name('ayudas.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'createFolder'])->name('createFolder');
@@ -625,13 +631,13 @@ Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function (
    Módulo de Ayudas Visuales (Fundición)
 =========================== */
 
-Route::prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
+Route::middleware(['auth'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
     Route::get('/estructura', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'getStructure'])->name('estructura');
     Route::get('/archivos', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'getFiles'])->name('archivos');
     Route::get('/serve', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'createFolder'])->name('createFolder');
@@ -744,7 +750,7 @@ Route::middleware(['auth'])->prefix('calidad/maquinados')->name('calidad.maquina
    Acceso: Administrador (1) y Calidad (4)
 =========================== */
 
-Route::middleware(['auth'])->prefix('herramientas/tecamac')->name('herramientas.tecamac.')->group(function () {
+Route::middleware(['auth', 'perfil:1,2,3,5,7,8,9,10'])->prefix('herramientas/tecamac')->name('herramientas.tecamac.')->group(function () {
     // Vista principal
     Route::get('/', [HerramientasTecamacController::class, 'index'])
         ->name('index');
@@ -897,27 +903,6 @@ Route::middleware(['auth'])->prefix('calidad/inspeccion-dimensional')->name('cal
         ->name('update_nominal_tolerancia');
     Route::get('/{ot}/{clase}', [InspeccionDimensionalController::class, 'show'])
         ->name('show');
-});
-
-Route::get('/autologin', function() {
-    $user = \App\Models\User::where('perfil', 5)->first() ?: \App\Models\User::first();
-    if ($user) {
-        auth()->login($user);
-        return redirect('/almacen/fundicion');
-    }
-    return 'No user found';
-});
-
-Route::get('/test-user', function() {
-    if (auth()->check()) {
-        return response()->json([
-            'id' => auth()->id(),
-            'nombre' => auth()->user()->nombre,
-            'perfil' => auth()->user()->perfil,
-            'perfil_type' => gettype(auth()->user()->perfil)
-        ]);
-    }
-    return 'Not logged in';
 });
 
 /*

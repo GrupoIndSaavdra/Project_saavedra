@@ -33,9 +33,7 @@ body {
     width: 98%;
     max-width: 98%;
     margin: 70px auto 40px;
-    background: var(--glass-bg-white);
-    -webkit-backdrop-filter: blur(15px);
-    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.94);
     border: 5px solid var(--glass-border-white);
     border-radius: 12px;
     box-shadow: var(--glass-shadow);
@@ -485,9 +483,8 @@ body {
     min-height: 650px;
     max-height: 82vh;
     padding: 30px 40px 100px;
-    background: radial-gradient(circle, #f1f5f9 1px, transparent 1px);
-    background-size: 20px 20px;
-    background-color: #fdfdfd;
+    background: radial-gradient(circle, #dbe3ec 1.15px, transparent 1.15px) 0 0 / 20px 20px, #ffffff;
+    background-attachment: local;
     border: 3px solid #cbd5e1;
     border-radius: 10px;
     position: relative;
@@ -496,6 +493,17 @@ body {
     -webkit-user-select: none;
     user-select: none;
     scroll-behavior: auto;
+    contain: layout paint;
+    will-change: scroll-position;
+}
+
+/* Suspende hover de nodos mientras se arrastra el lienzo para mantener 60 FPS */
+.org-canvas-container.is-dragging {
+    cursor: grabbing;
+}
+
+.org-canvas-container.is-dragging .org-node {
+    pointer-events: none;
 }
 
 .org-canvas-container::-webkit-scrollbar {
@@ -527,6 +535,7 @@ body {
     min-width: 100%;
     text-align: center;
     padding-bottom: 40px;
+    contain: layout style;
 }
 
 /* ── Estructura Jerárquica del Árbol (CSS Tree) ─────────────── */
@@ -625,7 +634,7 @@ body {
     min-width: 185px;
     max-width: 220px;
     box-shadow: 0 6px 18px rgba(3, 57, 102, 0.12);
-    transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
     position: relative;
     cursor: pointer;
     z-index: 10;
@@ -670,17 +679,12 @@ body {
     font-weight: 800;
 }
 
-/* ── NODO INACTIVO / FALTA DE PERSONAL (ROJO DESTACADO) ─────── */
+/* ── NODO INACTIVO / FALTA DE PERSONAL (ROJO DESTACADO SIN REPAINT INFINITO) ─────── */
 .org-node.node-inactivo {
     border: 3px solid #dc2626 !important;
+    border-left: 6px solid #dc2626 !important;
     background: var(--org-red-bg) !important;
-    box-shadow: 0 6px 18px rgba(220, 38, 38, 0.28) !important;
-    animation: pulseBorder 2.5s infinite ease-in-out;
-}
-
-@keyframes pulseBorder {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
-    50% { box-shadow: 0 0 12px 3px rgba(220, 38, 38, 0.4); }
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.22) !important;
 }
 
 .node-inactivo:hover {
@@ -1119,11 +1123,184 @@ body {
         print-color-adjust: exact !important;
     }
 
+    .org-collapse-controls,
+    .org-chevron {
+        display: none !important;
+    }
+
     .tree-branch li::before,
     .tree-branch li::after,
     .tree-branch ul ul::before {
         border-color: #033966 !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
+    }
+}
+
+/* ── Controles de Despliegue / Resumen / Densidad ───────────── */
+.org-collapse-controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(241, 245, 249, 0.9);
+    padding: 3px;
+    border-radius: 10px;
+    border: 1.5px solid #cbd5e1;
+}
+
+.org-collapsible-trigger {
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.org-collapsible-trigger:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
+}
+
+.org-collapsible-trigger:focus-visible {
+    outline: 3px solid #f59e0b;
+    outline-offset: 2px;
+}
+
+.org-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.area-branch-title .org-count-total {
+    background: #ffffff;
+    color: var(--gis-blue);
+}
+
+.sub-role-branch-title .org-count-total {
+    background: #0284c7;
+    color: #ffffff;
+}
+
+.org-count-badge.org-count-warn {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+}
+
+.org-count-badge[hidden] {
+    display: none !important;
+}
+
+.org-chevron {
+    font-style: normal;
+    font-size: 0.8rem;
+    line-height: 1;
+    display: inline-block;
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Estado contraído de Área y de Sub-grupo (Puesto) */
+li.org-area-branch.is-area-collapsed > .area-branch-title .org-chevron,
+li.org-role-group.is-group-collapsed > .sub-role-branch-title .org-chevron {
+    transform: rotate(-90deg);
+}
+
+li.org-area-branch.is-area-collapsed > ul {
+    display: none !important;
+}
+
+li.org-role-group.is-group-collapsed > .puesto-nodes-column {
+    display: none !important;
+}
+
+li.org-role-group.is-group-collapsed > .sub-role-branch-title::after {
+    display: none !important;
+}
+
+li.org-role-group:not(.is-group-collapsed) > .puesto-nodes-column {
+    animation: orgExpandReveal 0.28s ease-out backwards;
+}
+
+/* Resaltado de coincidencia en búsqueda */
+.org-node.node-found {
+    outline: 3px solid #f59e0b !important;
+    outline-offset: 3px;
+    animation: orgFoundPulse 1s ease 2;
+}
+
+/* Modo Compacto opcional (igual que el prototipo de referencia) */
+.org-master-wrapper.org-compact-mode .org-node {
+    min-width: 150px;
+    max-width: 172px;
+    padding: 8px 8px 6px;
+}
+
+.org-master-wrapper.org-compact-mode .org-node-director {
+    min-width: 195px;
+    max-width: 225px;
+}
+
+.org-master-wrapper.org-compact-mode .org-node-supervisor {
+    min-width: 160px;
+    max-width: 185px;
+}
+
+.org-master-wrapper.org-compact-mode .org-avatar-circle {
+    width: 54px;
+    height: 54px;
+}
+
+.org-master-wrapper.org-compact-mode .org-node-director .org-avatar-circle {
+    width: 70px;
+    height: 70px;
+}
+
+.org-master-wrapper.org-compact-mode .org-name {
+    font-size: 0.68rem;
+}
+
+.org-master-wrapper.org-compact-mode .org-role {
+    font-size: 0.62rem;
+    margin-bottom: 3px;
+}
+
+.org-master-wrapper.org-compact-mode .org-meta-tags {
+    display: none;
+}
+
+.org-master-wrapper.org-compact-mode .puesto-nodes-column.nodes-grid-2col {
+    grid-template-columns: repeat(2, minmax(150px, 174px));
+}
+
+@keyframes orgExpandReveal {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: none;
+    }
+}
+
+@keyframes orgFoundPulse {
+    50% {
+        outline-color: transparent;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .org-collapsible-trigger,
+    .org-chevron,
+    li.org-role-group:not(.is-group-collapsed) > .puesto-nodes-column,
+    .org-node.node-found {
+        animation: none !important;
+        transition: none !important;
     }
 }
