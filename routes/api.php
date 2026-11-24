@@ -27,7 +27,9 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 | con el servidor en la nube. Protegidos por validación de X-Sync-Token.
 |
 */
-Route::prefix('sync')->group(function () {
+Route::prefix('sync')
+    ->withoutMiddleware([\Illuminate\Routing\Middleware\ThrottleRequests::class . ':api'])
+    ->group(function () {
     Route::get('/ping', [\App\Http\Controllers\Api\SyncController::class, 'ping']);
     Route::get('/tables', [\App\Http\Controllers\Api\SyncController::class, 'tables']);
     Route::get('/pull', [\App\Http\Controllers\Api\SyncController::class, 'pull']);
