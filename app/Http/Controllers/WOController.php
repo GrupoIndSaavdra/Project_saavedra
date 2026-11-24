@@ -69,7 +69,8 @@ class WOController extends Controller
         $workOrders = null;
 
         $user = auth()->user();
-        $isAlmacen = ($user && in_array((string) $user->perfil, ['5', '7'], true)) || request('almacen_only') == 1;
+        $isDiseno = $user && (string) $user->perfil === '5';
+        $isAlmacen = ! $isDiseno && (($user && (string) $user->perfil === '7') || request('almacen_only') == 1);
 
         if ($workOrdersAll->isNotEmpty()) {
             $workOrders = [];
@@ -194,8 +195,9 @@ class WOController extends Controller
         // ÚNICAMENTE el perfil 5 (Almacén) debe usar el modo almacén
         // Admin (1) y Master (3) siempre necesitan la vista completa para editar todos los procesos
         $authUser = auth()->user();
-        $userIsAlmacen = $authUser && in_array((string) $authUser->perfil, ['5', '7'], true);
-        if ($userIsAlmacen || $request->filled('almacen_only')) {
+        $isDiseno = $authUser && (string) $authUser->perfil === '5';
+        $userIsAlmacen = $authUser && (string) $authUser->perfil === '7';
+        if (! $isDiseno && ($userIsAlmacen || $request->filled('almacen_only'))) {
             $redirectParams['almacen_only'] = 1;
         }
 
@@ -1559,8 +1561,9 @@ class WOController extends Controller
         $classes = $classes->count() == 0 ? null : $classes;
 
         $showUser = auth()->user();
-        $userIsAlmacen = $showUser && in_array((string) $showUser->perfil, ['5', '7'], true);
-        if ($userIsAlmacen || request()->filled('almacen_only')) {
+        $isDiseno = $showUser && (string) $showUser->perfil === '5';
+        $userIsAlmacen = $showUser && (string) $showUser->perfil === '7';
+        if (! $isDiseno && ($userIsAlmacen || request()->filled('almacen_only'))) {
             // Cargar remisiones y parcialidades agrupadas por id_clase
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
             $remisiones = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds, 'and', false)->where('visible', '=', 1, 'and')->orderByDesc('created_at')->get()->groupBy('id_clase');
@@ -2598,6 +2601,10 @@ class WOController extends Controller
      */
     public function getTermicoChecklist(string $otId)
     {
+        if (auth()->check() && (string) auth()->user()->perfil === '5') {
+            abort(403, 'Acceso denegado: tu perfil no tiene permisos para consultar tratamientos térmicos.');
+        }
+
         $otIdClean = explode('_', $otId)[0];
         $ot = Orden_trabajo::with('clases')->find($otIdClean);
         if (! $ot) {

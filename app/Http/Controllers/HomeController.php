@@ -50,9 +50,9 @@ class HomeController extends Controller
                     [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
                     break;
                 case 5:
-                    $layout = 'layouts.menu.appWarehouse';
-                    $backgroundImage = 'images/fondos/fondoalmacen.png';
-                    $welcomeT = 'Bienvenido a Almacen';
+                    $layout = 'layouts.menu.appAdmin';
+                    $backgroundImage = 'images/fondos/fondoadmin.png';
+                    $welcomeT = 'Bienvenido a Diseño y Programación';
                     break;
                 case 6:
                     $layout = 'layouts.menu.appAdmin';

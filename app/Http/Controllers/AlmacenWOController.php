@@ -17,6 +17,13 @@ class AlmacenWOController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            if (auth()->check() && (string) auth()->user()->perfil === '5') {
+                abort(403, 'Acceso denegado: el perfil de Diseño y programación no tiene acceso a remisiones.');
+            }
+
+            return $next($request);
+        });
     }
 
     /**

@@ -147,13 +147,15 @@ class Dashboard {
                         checklistWrapper.appendChild(emptyCard);
                     }
 
-                    // Card 2: Tratamiento Térmico (Reactiva)
-                    const termicoCard = new TermicoChecklistCard(
-                        wOrderName,
-                        className,
-                        { pieces: classArray["pieces"] || 0, tratadas: classArray["tratadas"] || 0 },
-                        checklistWrapper
-                    );
+                    // Card 2: Tratamiento Térmico (Reactiva) — Oculta para Diseño y programación (perfil 5)
+                    if (String(userProfileChecklist.value) !== "5") {
+                        const termicoCard = new TermicoChecklistCard(
+                            wOrderName,
+                            className,
+                            { pieces: classArray["pieces"] || 0, tratadas: classArray["tratadas"] || 0 },
+                            checklistWrapper
+                        );
+                    }
 
                     // Card 3: Planeación (Reactiva)
                     const planeacionCard = new PlaneacionChecklistCard(

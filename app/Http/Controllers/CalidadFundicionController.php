@@ -37,7 +37,7 @@ class CalidadFundicionController extends Controller
      * Perfiles de usuario que tienen acceso a esta vista.
      * 1 = Master | 2 = Admin | 3 = Supervisor | 4 = Ing | 5 = Diseño | 7 = Almacen | 8 = Calidad | 10 = Sistemas
      */
-    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '5', '7', '8', '10', '0'];
+    private const PERFILES_PERMITIDOS = ['1', '2', '3', '4', '7', '8', '10', '0'];
 
     // =========================================================================
     // GATE DE ACCESO
@@ -49,7 +49,7 @@ class CalidadFundicionController extends Controller
         $user = Auth::user();
 
         $tieneAcceso = $user && (
-            in_array((string) $user->perfil, ['1', '2', '3', '4', '5', '7', '8', '10', '0'], true) ||
+            in_array((string) $user->perfil, ['1', '2', '3', '4', '7', '8', '10', '0'], true) ||
             in_array((string) $user->perfil, self::PERFILES_PERMITIDOS, true)
         );
 

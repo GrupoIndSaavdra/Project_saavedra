@@ -31,6 +31,13 @@ class ProcessProductionController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
+        $this->middleware(function ($request, $next) {
+            if (auth()->check() && (string) auth()->user()->perfil === '5') {
+                abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
+            }
+
+            return $next($request);
+        });
         $this->processesController = new ProcessesController();
     }
 
