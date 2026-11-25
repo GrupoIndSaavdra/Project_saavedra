@@ -1106,6 +1106,54 @@ td {
     z-index: 3;
 }
 
+/* Tarjeta de máquina inactiva (bloqueo cruzado/parcial por otra máquina en uso) */
+.cm-machine-card.is-inactive {
+    border-color: #cbd5e1 !important;
+    background: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%) !important;
+    cursor: not-allowed !important;
+    position: relative;
+    box-shadow: 0 2px 6px rgba(100, 116, 139, 0.12) !important;
+    opacity: 0.88;
+}
+
+.cm-machine-card.is-inactive:hover {
+    transform: none !important;
+    border-color: #94a3b8 !important;
+    box-shadow: 0 3px 10px rgba(100, 116, 139, 0.2) !important;
+    background: linear-gradient(145deg, #f1f5f9 0%, #e2e8f0 100%) !important;
+}
+
+.cm-machine-card.is-inactive .cm-mach-icon {
+    filter: grayscale(0.65) opacity(0.85);
+}
+
+.cm-machine-card.is-inactive .cm-mach-number,
+.cm-machine-card.is-inactive .cm-mach-main-label {
+    color: #475569 !important;
+    font-weight: 700 !important;
+}
+
+.cm-machine-card.is-inactive .cm-mach-sub-label {
+    color: #64748b !important;
+    font-weight: 600 !important;
+}
+
+.cm-mach-badge-inactive {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: #64748b;
+    color: #ffffff;
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 2px 7px;
+    border-radius: 999px;
+    box-shadow: 0 2px 5px rgba(100, 116, 139, 0.35);
+    z-index: 3;
+}
+
 .cm-mach-badge-available {
     position: absolute;
     top: 6px;
