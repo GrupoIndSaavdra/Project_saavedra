@@ -29,8 +29,74 @@ class MachinesController extends Controller
         return view('machines_views.machinesOccupied', compact('machines'));
     }
 
+    /**
+     * Limpia automáticamente máquinas ocupadas que correspondan a turnos/días vencidos
+     * o registros huérfanos sin meta válida en base de datos.
+     */
+    public static function cleanupExpiredMachines(): void
+    {
+        try {
+            $today = date('Y-m-d');
+            $yesterday = date('Y-m-d', strtotime('-1 day'));
+            $nowTime = date('H:i:s');
+
+            $allMachines = Maquinas::all();
+            if ($allMachines->isEmpty()) {
+                return;
+            }
+
+            $metaIds = $allMachines->pluck('id_meta')->filter()->unique();
+            $metas = Metas::whereIn('id', $metaIds)->get()->keyBy('id');
+
+            $idsToDelete = [];
+
+            foreach ($allMachines as $mach) {
+                // 1. Huérfano sin id_meta o cuya meta ya no existe en la base de datos
+                if (empty($mach->id_meta) || ! $metas->has($mach->id_meta)) {
+                    $idsToDelete[] = $mach->id;
+                    continue;
+                }
+
+                $meta = $metas->get($mach->id_meta);
+                $metaDate = (string) $meta->fecha;
+
+                // 2. Si la meta es de antes de ayer, está 100% vencida
+                if ($metaDate < $yesterday) {
+                    $idsToDelete[] = $mach->id;
+                    continue;
+                }
+
+                // 3. Si la meta es de ayer:
+                if ($metaDate === $yesterday) {
+                    // Verificar si es turno nocturno que cruza medianoche (h_inicio > h_termino)
+                    $isNightShift = $meta->h_inicio && $meta->h_termino && ($meta->h_inicio > $meta->h_termino);
+                    if (! $isNightShift) {
+                        // Turno diurno normal de ayer: vencido
+                        $idsToDelete[] = $mach->id;
+                    } else {
+                        // Turno nocturno: vence 2 horas después de h_termino en el día de hoy
+                        $graceEnd = date('H:i:s', strtotime($meta->h_termino . ' +2 hours'));
+                        if ($nowTime > $graceEnd && $nowTime > '08:00:00') {
+                            $idsToDelete[] = $mach->id;
+                        }
+                    }
+                }
+            }
+
+            if (! empty($idsToDelete)) {
+                Maquinas::query()->whereIn('id', $idsToDelete)->delete();
+                Log::info('[AUTO-CLEANUP MAQUINAS] Se liberaron '.count($idsToDelete).' máquinas ocupadas de turnos vencidos.');
+            }
+        } catch (\Throwable $e) {
+            Log::error('[AUTO-CLEANUP MAQUINAS] Error limpiando máquinas vencidas: '.$e->getMessage());
+        }
+    }
+
     public function machinesOccupied()
     {
+        // Limpiar automáticamente máquinas de turnos pasados antes de listar
+        self::cleanupExpiredMachines();
+
         $machines = Maquinas::all();
         $occupiedMachines = [];
 
@@ -119,37 +185,34 @@ class MachinesController extends Controller
 
             // Desocupar la máquina y TODOS los registros duplicados de esta misma máquina
             Maquinas::query()->where('maquina', $machineName)->delete();
+            $normalizedName = str_replace(' y ', '_', $machineName);
+            $spacedName = str_replace('_', ' y ', $machineName);
+            Maquinas::query()->whereIn('maquina', [$normalizedName, $spacedName])->delete();
 
-            // Si es pareada (ej: 1_2), desocupar también registros individuales huérfanos o con la misma meta
+            // Si es pareada (ej: 1_2 o 1 y 2), desocupar también registros individuales
             $pairedMap = [
-                '1_2' => ['1', '2'],
-                '5_6' => ['5', '6'],
-                '25_26' => ['25', '26'],
-                '27_28' => ['27', '28'],
+                '1_2' => ['1', '2'], '1 y 2' => ['1', '2'],
+                '5_6' => ['5', '6'], '5 y 6' => ['5', '6'],
+                '25_26' => ['25', '26'], '25 y 26' => ['25', '26'],
+                '27_28' => ['27', '28'], '27 y 28' => ['27', '28'],
             ];
 
             if (isset($pairedMap[$machineName])) {
-                Maquinas::query()->whereIn('maquina', $pairedMap[$machineName])
-                    ->where(function ($q) use ($metaId) {
-                        if ($metaId) {
-                            $q->where('id_meta', $metaId)->orWhereNull('id_meta');
-                        } else {
-                            $q->whereNull('id_meta');
-                        }
-                    })->delete();
+                Maquinas::query()->whereIn('maquina', $pairedMap[$machineName])->delete();
+            }
+            if (isset($pairedMap[$normalizedName])) {
+                Maquinas::query()->whereIn('maquina', $pairedMap[$normalizedName])->delete();
             }
 
-            // Si es una máquina individual que pertenece a un par (ej: 1 o 2), y la dual '1_2' tiene la misma meta, liberarla
+            // Si es una máquina individual que pertenece a un par (ej: 1 o 2), liberar también la dual '1_2'
             $individualToPairMap = [
-                '1' => '1_2', '2' => '1_2',
-                '5' => '5_6', '6' => '5_6',
-                '25' => '25_26', '26' => '25_26',
-                '27' => '27_28', '28' => '27_28',
+                '1' => ['1_2', '1 y 2'], '2' => ['1_2', '1 y 2'],
+                '5' => ['5_6', '5 y 6'], '6' => ['5_6', '5 y 6'],
+                '25' => ['25_26', '25 y 26'], '26' => ['25_26', '25 y 26'],
+                '27' => ['27_28', '27 y 28'], '28' => ['27_28', '27 y 28'],
             ];
-            if (isset($individualToPairMap[$machineName]) && $metaId) {
-                Maquinas::query()->where('maquina', $individualToPairMap[$machineName])
-                    ->where('id_meta', $metaId)
-                    ->delete();
+            if (isset($individualToPairMap[$machineName])) {
+                Maquinas::query()->whereIn('maquina', (array) $individualToPairMap[$machineName])->delete();
             }
 
             // Desocupar piezas en la meta si es que estaban ocupadas
