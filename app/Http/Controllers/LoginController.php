@@ -89,10 +89,15 @@ class LoginController extends Controller
 
             if (! empty($allowedIps)) {
                 $isAllowed = false;
-                foreach ($allowedIps as $allowed) {
-                    if ($clientIp === $allowed || (! empty($allowed) && str_starts_with($clientIp, $allowed))) {
-                        $isAllowed = true;
-                        break;
+                // Si la petición proviene de la red local física de planta (IP privada o localhost)
+                if (preg_match('/^(192\.168\.|10\.|172\.(1[6-9]|2[0-9]|3[01])\.|127\.0\.0\.1)/', $clientIp) || in_array($clientIp, ['127.0.0.1', '::1'], true)) {
+                    $isAllowed = true;
+                } else {
+                    foreach ($allowedIps as $allowed) {
+                        if ($clientIp === $allowed || (! empty($allowed) && str_starts_with($clientIp, $allowed))) {
+                            $isAllowed = true;
+                            break;
+                        }
                     }
                 }
 

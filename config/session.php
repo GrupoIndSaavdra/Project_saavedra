@@ -155,7 +155,7 @@ return [
     |
     */
 
-    'domain' => env('SESSION_DOMAIN', env('APP_ENV') === 'production' ? '.grupoindsaavedra.com' : null),
+    'domain' => env('SESSION_DOMAIN', (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'grupoindsaavedra.com')) ? '.grupoindsaavedra.com' : null),
 
     /*
     |--------------------------------------------------------------------------
@@ -168,7 +168,7 @@ return [
     |
     */
 
-    'secure' => env('SESSION_SECURE_COOKIE', env('APP_ENV') === 'production'),
+    'secure' => env('SESSION_SECURE_COOKIE', (isset($_SERVER['HTTP_HOST']) && str_contains($_SERVER['HTTP_HOST'], 'grupoindsaavedra.com')) ? true : null),
 
     /*
     |--------------------------------------------------------------------------
