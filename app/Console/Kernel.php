@@ -25,60 +25,59 @@ class Kernel extends ConsoleKernel
         // ── Reporte Diario de Producción — 23:50 todos los días ────────
         $schedule->command('reporte:enviar-diario')
             ->dailyAt('23:50')
-            ->withoutOverlapping()
+            ->withoutOverlapping(60)
             ->appendOutputTo(storage_path('logs/reporte_diario.log'));
 
         // ── Alerta Pre-órdenes de Entrega — 08:00 ────────
         $schedule->command('alert:preorden-entrega')
             ->dailyAt('08:00')
-            ->withoutOverlapping()
+            ->withoutOverlapping(60)
             ->appendOutputTo(storage_path('logs/alert_preorden_entrega.log'));
 
         // ── Latido de Monitoreo — cada minuto ──────────────────────────
         $schedule->command('app:heartbeat')
             ->everyMinute()
-            ->withoutOverlapping();
+            ->withoutOverlapping(5)
+            ->appendOutputTo(storage_path('logs/heartbeat.log'));
 
         // ── Sincronización Local <-> Nube — cada 2 minutos (Solo Servidor de Producción) ──
         if (config('sync.auto_enabled', true) && !config('sync.is_dev', false)) {
             $schedule->command('saavedra:sync')
                 ->everyTwoMinutes()
-                ->withoutOverlapping()
+                ->withoutOverlapping(10)
                 ->appendOutputTo(storage_path('logs/sync.log'));
         }
 
         // ── Respaldo Diario de Base de Datos Local — 23:59 todos los días ─────
         $schedule->command('saavedra:backup-local')
             ->dailyAt('23:59')
-            ->withoutOverlapping()
+            ->withoutOverlapping(60)
             ->appendOutputTo(storage_path('logs/backup_local.log'));
 
         // ── Sincronización Calidad Maquinados — cada 5 minutos ────────────────
         $schedule->command('calidad:sync-maquinados')
             ->everyFiveMinutes()
-            ->withoutOverlapping()
+            ->withoutOverlapping(15)
             ->appendOutputTo(storage_path('logs/sync_maquinados.log'));
 
         // ── Sincronización Calidad Fundición — cada 5 minutos ─────────────────
         $schedule->command('calidad:sync-fundicion')
             ->everyFiveMinutes()
-            ->withoutOverlapping()
+            ->withoutOverlapping(15)
             ->appendOutputTo(storage_path('logs/sync_fundicion.log'));
 
         // ── Depuración automática cada domingo a las 23:00 ────────────────────
-        // Se ejecuta semanalmente para evitar acumulación brusca de logs en el servidor.
-        // La depuración manual sigue disponible desde la interfaz de administración en cualquier momento.
         $schedule->command('app:depurar-logs')
             ->weekly()
             ->sundays()
             ->at('23:00')
-            ->withoutOverlapping()
+            ->withoutOverlapping(120)
             ->appendOutputTo(storage_path('logs/depuracion_periodica.log'));
 
         // ── Limpieza automática de view_performance_logs (retención rodante de 3 días) ──
         $schedule->command('logs:prune-view-performance --days=3')
             ->dailyAt('02:30')
-            ->withoutOverlapping()
+            ->withoutOverlapping(30)
             ->appendOutputTo(storage_path('logs/prune_view_performance.log'));
     }
 
