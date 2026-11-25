@@ -191,6 +191,58 @@ class SaavedraSync extends Command
     }
 
     /**
+     * Envía un lote de registros asegurando que el tamaño del payload HTTP
+     * nunca supere 15 KB (15,000 bytes) para evitar bloqueos del proxy Nginx en Neubox.
+     */
+    protected function postPushBatch(string $table, array $records, string $cloudUrl, string $token, int $timeout): array
+    {
+        $payload = [
+            'table' => $table,
+            'records' => $records,
+        ];
+        $json = json_encode($payload);
+
+        // Si el payload excede 15 KB y hay más de 1 registro, dividir recursivamente a la mitad
+        if (strlen($json) > 15000 && count($records) > 1) {
+            $mid = (int) ceil(count($records) / 2);
+            $part1 = array_slice($records, 0, $mid);
+            $part2 = array_slice($records, $mid);
+
+            $res1 = $this->postPushBatch($table, $part1, $cloudUrl, $token, $timeout);
+            if (!$res1['success']) {
+                return $res1;
+            }
+            $res2 = $this->postPushBatch($table, $part2, $cloudUrl, $token, $timeout);
+            return [
+                'success' => $res2['success'],
+                'processed' => $res1['processed'] + $res2['processed'],
+                'error' => $res2['error'] ?? null,
+            ];
+        }
+
+        $response = $this->httpClient($timeout)
+            ->withHeaders([
+                'X-Sync-Token' => $token,
+                'Accept' => 'application/json',
+            ])
+            ->post("{$cloudUrl}/api/sync/push", $payload);
+
+        if ($response->successful() && $response->json('success') === true) {
+            return [
+                'success' => true,
+                'processed' => (int) ($response->json('processed') ?? count($records)),
+            ];
+        }
+
+        $errorMsg = $response->json('message') ?? ('Error HTTP ' . $response->status());
+        return [
+            'success' => false,
+            'processed' => 0,
+            'error' => $errorMsg,
+        ];
+    }
+
+    /**
      * Sube registros modificados localmente hacia la nube (PUSH).
      */
     protected function syncPush(string $table, string $cloudUrl, string $token, bool $force, bool $dryRun): int
@@ -198,7 +250,7 @@ class SaavedraSync extends Command
         $checkpoint = $this->getCheckpoint('push', $table);
         $lastSyncedAt = (!$force && $checkpoint) ? $checkpoint->last_synced_at : null;
         $lastSyncedId = (!$force && $checkpoint) ? $checkpoint->last_synced_id : null;
-        $batchSize = (int) config('sync.batch_size', 250);
+        $batchSize = (int) config('sync.batch_size', 40);
         $primaryKey = $this->getPrimaryKey($table);
         $hasUpdatedAt = Schema::hasColumn($table, 'updated_at');
         $hasCreatedAt = Schema::hasColumn($table, 'created_at');
@@ -208,7 +260,6 @@ class SaavedraSync extends Command
 
         do {
             $page++;
-            $isSnapshot = false;
             $query = DB::table($table);
 
             if ($hasUpdatedAt) {
@@ -240,27 +291,26 @@ class SaavedraSync extends Command
                 $query->orderBy('created_at', 'asc')
                       ->orderBy($primaryKey, 'asc');
             } else {
-                $totalInTable = DB::table($table)->count();
-                if ($totalInTable <= 3000) {
-                    $isSnapshot = true;
-                    $query->orderBy($primaryKey, 'asc');
-                } elseif (!empty($lastSyncedId)) {
-                    $query->where($primaryKey, '>', $lastSyncedId)
-                          ->orderBy($primaryKey, 'asc');
-                } else {
-                    $query->orderBy($primaryKey, 'asc');
+                // Para tablas sin timestamps (ej. clases, procesos, maquinas)
+                if (!empty($lastSyncedId)) {
+                    $query->where($primaryKey, '>', $lastSyncedId);
                 }
+                $query->orderBy($primaryKey, 'asc');
             }
 
-            $records = $isSnapshot ? $query->get() : $query->limit($batchSize)->get();
+            $records = $query->limit($batchSize)->get();
             $count = $records->count();
 
             if ($count === 0) {
+                // Si la tabla no tiene timestamps y terminamos el recorrido, reseteamos checkpoint id para el próximo ciclo
+                if (!$hasUpdatedAt && !$hasCreatedAt && !empty($lastSyncedId)) {
+                    $this->updateCheckpoint('push', $table, null, null, $totalPushed, 'success');
+                }
                 break;
             }
 
             if ($page === 1) {
-                if (!$isSnapshot && $count >= $batchSize) {
+                if ($count >= $batchSize) {
                     $this->line("   📤 [PUSH] Subiendo registros de '{$table}' (por lotes)...");
                 } else {
                     $this->line("   📤 [PUSH] Subiendo {$count} registros de '{$table}'...");
@@ -270,7 +320,7 @@ class SaavedraSync extends Command
             if ($dryRun) {
                 $this->comment("      [DRY-RUN] Simulado push de {$count} registros (página {$page}).");
                 $totalPushed += $count;
-                if ($isSnapshot || $count < $batchSize) {
+                if ($count < $batchSize) {
                     break;
                 }
                 $lastRecord = $records->last();
@@ -286,17 +336,9 @@ class SaavedraSync extends Command
             }
 
             try {
-                $response = $this->httpClient($timeout)
-                    ->withHeaders([
-                        'X-Sync-Token' => $token,
-                        'Accept' => 'application/json',
-                    ])
-                    ->post("{$cloudUrl}/api/sync/push", [
-                        'table' => $table,
-                        'records' => $records->toArray(),
-                    ]);
+                $batchResult = $this->postPushBatch($table, $records->toArray(), $cloudUrl, $token, $timeout);
 
-                if ($response->successful() && $response->json('success') === true) {
+                if ($batchResult['success']) {
                     $lastRecord = $records->last();
 
                     if ($hasUpdatedAt && isset($lastRecord->updated_at)) {
@@ -311,14 +353,17 @@ class SaavedraSync extends Command
                     $totalPushed += $count;
                     $this->updateCheckpoint('push', $table, $lastSyncedAt, $lastSyncedId, $count, 'success');
 
-                    if ($isSnapshot || $count < $batchSize) {
+                    if ($count < $batchSize) {
                         $this->info("      ✅ {$totalPushed} registros subidos a '{$table}'.");
+                        if (!$hasUpdatedAt && !$hasCreatedAt) {
+                            $this->updateCheckpoint('push', $table, null, null, $totalPushed, 'success');
+                        }
                         break;
                     } else {
                         $this->line("      ... {$totalPushed} registros subidos acumulados a '{$table}'...");
                     }
                 } else {
-                    $errorMsg = $response->json('message') ?? 'Error HTTP ' . $response->status();
+                    $errorMsg = $batchResult['error'] ?? 'Error desconocido';
                     $this->error("      ❌ Fallo al subir '{$table}': {$errorMsg}");
                     $this->updateCheckpoint('push', $table, $lastSyncedAt, $lastSyncedId, 0, 'error', $errorMsg);
                     break;
@@ -328,7 +373,7 @@ class SaavedraSync extends Command
                 $this->updateCheckpoint('push', $table, $lastSyncedAt, $lastSyncedId, 0, 'error', $e->getMessage());
                 break;
             }
-        } while (!$isSnapshot && $count >= $batchSize);
+        } while ($count >= $batchSize);
 
         return $totalPushed;
     }
@@ -341,7 +386,7 @@ class SaavedraSync extends Command
         $checkpoint = $this->getCheckpoint('pull', $table);
         $since = (!$force && $checkpoint) ? $checkpoint->last_synced_at : null;
         $lastId = (!$force && $checkpoint) ? $checkpoint->last_synced_id : null;
-        $batchSize = (int) config('sync.batch_size', 250);
+        $batchSize = (int) config('sync.pull_batch_size', 250);
         $timeout = (int) config('sync.timeout', 90);
         $totalApplied = 0;
         $hasMore = false;

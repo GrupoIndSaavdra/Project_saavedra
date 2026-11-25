@@ -216,6 +216,13 @@ class SyncController extends Controller
      */
     public function push(Request $request): JsonResponse
     {
+        if ($request->isMethod('GET')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'El endpoint /push solo acepta peticiones POST con el cuerpo de registros a sincronizar.',
+            ], 405);
+        }
+
         if ($authError = $this->validateToken($request, false)) {
             return $authError;
         }
@@ -335,8 +342,13 @@ class SyncController extends Controller
                 'processed' => $processed,
             ]);
         } catch (\Throwable $e) {
-            DB::statement('SET FOREIGN_KEY_CHECKS=1;');
-            DB::rollBack();
+            try {
+                DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            } catch (\Throwable $fkEx) {}
+
+            try {
+                DB::rollBack();
+            } catch (\Throwable $rbEx) {}
 
             Log::error("Fallo en sincronización PUSH de tabla '{$table}'", [
                 'error' => $e->getMessage(),

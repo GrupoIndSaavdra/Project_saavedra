@@ -65,12 +65,15 @@ return [
     | Tamaño de Lote y Timeout
     |--------------------------------------------------------------------------
     |
-    | batch_size: Cantidad de registros por paquete (250 es óptimo para HTTP).
+    | batch_size: Cantidad de registros por paquete para PUSH (40 garantiza que
+    |             ningún paquete supere los 15 KB del buffer de Nginx en Neubox).
+    | pull_batch_size: Cantidad de registros por paquete para PULL (descarga GET).
     | timeout: Segundos máximos de espera por paquete HTTP.
     | ping_timeout: Segundos para comprobar si hay conexión a internet.
     |
     */
-    'batch_size' => (int) env('SYNC_BATCH_SIZE', 250),
+    'batch_size' => (int) env('SYNC_BATCH_SIZE', 40),
+    'pull_batch_size' => (int) env('SYNC_PULL_BATCH_SIZE', 250),
     'timeout' => (int) env('SYNC_TIMEOUT', 90),
     'ping_timeout' => (int) env('SYNC_PING_TIMEOUT', 4),
     'ssl_verify' => (bool) env('SYNC_SSL_VERIFY', false),
