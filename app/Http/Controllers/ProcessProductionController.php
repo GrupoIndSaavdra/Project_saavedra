@@ -1149,19 +1149,14 @@ class ProcessProductionController extends Controller
 
                 //Verificar si ya hay piezas registradas de esa meta
                 if ($this->verifyNumbersOfPieces($foundedMeta) == 0) {
-                    // Verificar si la maquina no esta siendo ocupada
+                    // Verificar si la maquina no esta siendo ocupada por otra meta
                     /** @var Maquinas|null $machineOccupied */
-                    $machineOccupied = Maquinas::query()->where('maquina', $request->input('machine'))->where('proceso', $request->input('process'))->first();
-                    if (! $machineOccupied || $machineOccupied->id_meta === $foundedMeta->id) {
-                        // Si la máquina ocupada es la misma que habia creado, se elimina
-                        if ($machineOccupied) {
-                            $machineOccupied->delete();
-                        } else {
-                            /** @var Maquinas|null $oldMachine */
-                            $oldMachine = Maquinas::query()->where('maquina', $foundedMeta->maquina)->where('proceso', $foundedMeta->proceso)->first();
-                            if ($oldMachine) {
-                                $oldMachine->delete(); // Eliminar la máquina ocupada anterior
-                            }
+                    $machineOccupied = $this->isMachineOccupied($request->input('machine'), $foundedMeta->id);
+                    if (! $machineOccupied) {
+                        // Limpiar registros previos de máquina para esta meta
+                        Maquinas::query()->where('id_meta', $foundedMeta->id)->delete();
+                        if (! empty($foundedMeta->maquina) && $foundedMeta->maquina != $request->input('machine')) {
+                            Maquinas::query()->where('maquina', (string) $foundedMeta->maquina)->where('id_meta', $foundedMeta->id)->delete();
                         }
 
                         //Verificar si existe una meta creada con los datos ingresados
@@ -1194,7 +1189,8 @@ class ProcessProductionController extends Controller
                         return redirect()->route('showReportFormat', ['meta' => $meta, 'process' => $request->input('process'), 'edit' => 0])->with('success', $successMessage);
                     }
 
-                    return redirect()->route('showReportFormat', ['meta' => $foundedMeta, 'process' => $foundedMeta->proceso, 'edit' => 0])->with('error', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla'); // Si la mquina esta ocupada retornar error con la meta antes creada
+                    $displayOccupiedName = str_replace('_', ' y ', (string) $machineOccupied->maquina);
+                    return redirect()->route('showReportFormat', ['meta' => $foundedMeta, 'process' => $foundedMeta->proceso, 'edit' => 0])->with('error', "La máquina {$displayOccupiedName} está ocupada en el proceso '{$machineOccupied->proceso}'. Por favor, elija otra máquina o pida a un supervisor desbloquearla."); // Si la maquina esta ocupada retornar error con la meta antes creada
                 } else {
                     $foundedMeta->fecha = $date;
                     $foundedMeta->h_inicio = $startTime;
@@ -1228,7 +1224,7 @@ class ProcessProductionController extends Controller
             });
         if ($class) {
             // Verificar si la maquina no esta siendo ocupada
-            $machineOccupied = Maquinas::query()->where('maquina', $request->input('machine'))->where('proceso', $request->input('process'))->first();
+            $machineOccupied = $this->isMachineOccupied($request->input('machine'));
             if (! $machineOccupied) {
                 //Cambiar el formato de las horas ingresadas 00:00 a 00:00:00
                 $startTime = DateTime::createFromFormat('H:i', $request->input('startTime'));
@@ -1305,7 +1301,8 @@ class ProcessProductionController extends Controller
                 return redirect()->route('showReportFormat', ['meta' => $meta, 'process' => $processString, 'edit' => 0])->with('success', $successMessage);
             }
 
-            return redirect()->route('processProduction')->with('warning', 'La máquina esta ocupada. Por favor, elija otra maquina o pida a un supervisor desbloquearla');
+            $displayOccupiedName = str_replace('_', ' y ', (string) $machineOccupied->maquina);
+            return redirect()->route('processProduction')->with('warning', "La máquina {$displayOccupiedName} está ocupada en el proceso '{$machineOccupied->proceso}'. Por favor, elija otra máquina o pida a un supervisor desbloquearla.");
         }
 
         return redirect()->route('processProduction')->with('error', 'La clase ingresada no existe.'); // Si la clase no existe, retornar error
@@ -1346,12 +1343,35 @@ class ProcessProductionController extends Controller
      */
     public function storeMachine($request, $newMeta, $machineOccupied = null)
     {
-        // Crear una nueva máquina ocupada asociada a la meta
+        $machineVal = (string) $request->input('machine');
+        $processVal = $request->input('subprocess') ? $request->input('process').'_'.$request->input('subprocess') : $request->input('process');
+
+        // 1. Evitar duplicar si ya existe un registro de máquina para esta meta
+        $existing = Maquinas::query()->where('id_meta', $newMeta->id)->first();
+        if ($existing) {
+            $existing->maquina = $machineVal;
+            $existing->proceso = $processVal;
+            $existing->save();
+
+            return;
+        }
+
+        // 2. Si ya existía un registro de esta máquina sin meta o con meta previa, actualizarlo
+        $sameMachine = Maquinas::query()->where('maquina', $machineVal)->first();
+        if ($sameMachine) {
+            $sameMachine->id_meta = $newMeta->id;
+            $sameMachine->proceso = $processVal;
+            $sameMachine->save();
+
+            return;
+        }
+
+        // 3. Crear registro único
         if (! $machineOccupied) {
             $machineOccupied = new Maquinas();
-            $machineOccupied->maquina = $request->input('machine');
-            $machineOccupied->proceso = $request->input('subprocess') ? $request->input('process').'_'.$request->input('subprocess') : $request->input('process');
         }
+        $machineOccupied->maquina = $machineVal;
+        $machineOccupied->proceso = $processVal;
         $machineOccupied->id_meta = $newMeta->id;
         $machineOccupied->save();
     }
@@ -1377,12 +1397,11 @@ class ProcessProductionController extends Controller
             }
 
             $class = Clase::query()->find($meta->id_clase);
-            // Desocupar la maquina
-            /** @var Maquinas|null $machineOccupied */
-            $machineOccupied = Maquinas::query()->where('id_meta', $meta->id)->first();
-            if ($machineOccupied) {
-                $machineOccupied->delete();
+            // Desocupar la máquina y cualquier duplicado vinculado a esta meta o máquina
+            if (! empty($meta->maquina)) {
+                Maquinas::query()->where('maquina', (string) $meta->maquina)->delete();
             }
+            Maquinas::query()->where('id_meta', $meta->id)->delete();
             // Desocupar piezas en la meta si es que estaban ocupadas
             $processString = str_contains($meta->proceso, 'Operacion Equipo') ? $this->getSub_Process($meta->proceso, 0) : $meta->proceso;
             $modelProcessPieces = $this->get_ModelProcessPieces($processString, $class);
@@ -3461,5 +3480,42 @@ class ProcessProductionController extends Controller
         $array['error'] = $rechazada ? $rechazada : $piece->error;
 
         return $array;
+    }
+
+    /**
+     * Verifica si una máquina está ocupada en el sistema considerando máquinas individuales y pareadas/duales.
+     *
+     * @param string|int|null $targetMachine
+     * @param int|null $ignoreMetaId
+     * @return Maquinas|null
+     */
+    public function isMachineOccupied($targetMachine, $ignoreMetaId = null)
+    {
+        $target = trim((string) $targetMachine);
+        if ($target === '') {
+            return null;
+        }
+
+        $conflicting = [$target];
+
+        // Mapeo cruzado de máquinas pareadas/duales oficiales
+        $pairedMap = [
+            '1' => '1_2', '2' => '1_2', '1_2' => ['1', '2', '1_2'],
+            '5' => '5_6', '6' => '5_6', '5_6' => ['5', '6', '5_6'],
+            '25' => '25_26', '26' => '25_26', '25_26' => ['25', '26', '25_26'],
+            '27' => '27_28', '28' => '27_28', '27_28' => ['27', '28', '27_28'],
+        ];
+
+        if (isset($pairedMap[$target])) {
+            $mapped = (array) $pairedMap[$target];
+            $conflicting = array_unique(array_merge($conflicting, $mapped));
+        }
+
+        $query = Maquinas::query()->whereIn('maquina', $conflicting);
+        if ($ignoreMetaId) {
+            $query->where('id_meta', '!=', $ignoreMetaId);
+        }
+
+        return $query->first();
     }
 }

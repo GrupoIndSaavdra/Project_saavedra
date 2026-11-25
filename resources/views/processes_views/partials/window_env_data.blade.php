@@ -24,7 +24,9 @@
     window.imgOt = "{{ asset('images/Light_Icons/OT-Light.png') }}";
     window.imgPiezaCubo = "{{ asset('images/Light_Icons/Filtro_Clase-Light.png') }}";
     window.imgNoPiecesCustom = "{{ asset('images/Color_Icons/Generales/icono_sin_piezas.png') }}";
-    window.occupiedMachines = @json((new \App\Http\Controllers\MachinesController)->machinesOccupied());
+    window.occupiedMachines = @json(array_values((new \App\Http\Controllers\MachinesController)->machinesOccupied()));
+    if (!window.routes) window.routes = {};
+    window.routes.machinesOccupiedApi = "{{ route('machinesOccupiedApi') }}";
 </script>
 @isset($arrayData)
     <script>

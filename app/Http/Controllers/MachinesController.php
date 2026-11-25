@@ -71,26 +71,43 @@ class MachinesController extends Controller
             ];
         }
 
-        return $occupiedMachines;
+        return array_values($occupiedMachines);
     }
 
     public function getOccupiedApi()
     {
-        return response()->json(array_values($this->machinesOccupied()));
+        return response()->json($this->machinesOccupied());
     }
 
     public function freeUp(Request $request)
     {
         $idMachine = $request->input('idMachine') ?? $request->route('idMachine');
-        if (! $idMachine) {
+        $machineNameInput = $request->input('machine') ?? $request->input('maquina');
+
+        if (! $idMachine && ! $machineNameInput) {
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'No se especificó la máquina a desocupar.'], 400);
+            }
+
             return redirect()->route('machinesOccupied');
         }
 
         DB::beginTransaction();
         try {
-            $machine = Maquinas::query()->find($idMachine);
+            $machine = null;
+            if ($idMachine) {
+                $machine = Maquinas::query()->find($idMachine);
+            }
+            if (! $machine && $machineNameInput) {
+                $machine = Maquinas::query()->where('maquina', (string) $machineNameInput)->first();
+            }
+
             if (! $machine) {
                 DB::rollBack();
+
+                if ($request->wantsJson() || $request->ajax()) {
+                    return response()->json(['success' => false, 'message' => 'La máquina ya no se encuentra ocupada.']);
+                }
 
                 return redirect()->route('machinesOccupied')->with(['error' => 'La máquina ya no se encuentra ocupada.']);
             }
@@ -100,8 +117,40 @@ class MachinesController extends Controller
             $machineProcess = (string) $machine->proceso;
             $metaId = $machine->id_meta;
 
-            // Desocupar la máquina
-            $machine->delete();
+            // Desocupar la máquina y TODOS los registros duplicados de esta misma máquina
+            Maquinas::query()->where('maquina', $machineName)->delete();
+
+            // Si es pareada (ej: 1_2), desocupar también registros individuales huérfanos o con la misma meta
+            $pairedMap = [
+                '1_2' => ['1', '2'],
+                '5_6' => ['5', '6'],
+                '25_26' => ['25', '26'],
+                '27_28' => ['27', '28'],
+            ];
+
+            if (isset($pairedMap[$machineName])) {
+                Maquinas::query()->whereIn('maquina', $pairedMap[$machineName])
+                    ->where(function ($q) use ($metaId) {
+                        if ($metaId) {
+                            $q->where('id_meta', $metaId)->orWhereNull('id_meta');
+                        } else {
+                            $q->whereNull('id_meta');
+                        }
+                    })->delete();
+            }
+
+            // Si es una máquina individual que pertenece a un par (ej: 1 o 2), y la dual '1_2' tiene la misma meta, liberarla
+            $individualToPairMap = [
+                '1' => '1_2', '2' => '1_2',
+                '5' => '5_6', '6' => '5_6',
+                '25' => '25_26', '26' => '25_26',
+                '27' => '27_28', '28' => '27_28',
+            ];
+            if (isset($individualToPairMap[$machineName]) && $metaId) {
+                Maquinas::query()->where('maquina', $individualToPairMap[$machineName])
+                    ->where('id_meta', $metaId)
+                    ->delete();
+            }
 
             // Desocupar piezas en la meta si es que estaban ocupadas
             try {
@@ -150,13 +199,26 @@ class MachinesController extends Controller
 
             DB::commit();
 
-            return redirect()->route('machinesOccupied')->with(['success' => "La máquina {$machineName} ha sido desocupada correctamente."]);
+            $displayMachineName = str_replace('_', ' y ', $machineName);
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => "La máquina {$displayMachineName} ha sido desocupada correctamente.",
+                    'machine' => $machineName,
+                ]);
+            }
+
+            return redirect()->route('machinesOccupied')->with(['success' => "La máquina {$displayMachineName} ha sido desocupada correctamente."]);
         } catch (\Throwable $e) {
             DB::rollBack();
             Log::error('Error al desocupar máquina en MachinesController@freeUp: ' . $e->getMessage(), [
                 'machine_id' => $idMachine,
                 'trace' => $e->getTraceAsString(),
             ]);
+
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Ocurrió un error al desocupar la máquina: ' . $e->getMessage()], 500);
+            }
 
             return redirect()->route('machinesOccupied')->with(['error' => 'Ocurrió un error al desocupar la máquina: ' . $e->getMessage()]);
         }
