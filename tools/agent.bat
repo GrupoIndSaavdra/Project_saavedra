@@ -91,62 +91,7 @@ php artisan saavedra:backup-local %1 %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%
 
 :run_schedule_install
-echo ====================================================================
-echo   CONFIGURANDO TAREA EN EL PROGRAMADOR DE TAREAS DE WINDOWS
-echo ====================================================================
-
-:: 1. Deteccion inteligente del ejecutable de PHP
-set "PHP_BIN="
-for /f "delims=" %%I in ('where php 2^>nul') do (
-    if not defined PHP_BIN set "PHP_BIN=%%I"
-)
-if not defined PHP_BIN (
-    if exist "C:\laragon\bin\php" (
-        for /f "delims=" %%D in ('dir /b /ad /o-n "C:\laragon\bin\php\php-*" 2^>nul') do (
-            if not defined PHP_BIN if exist "C:\laragon\bin\php\%%D\php.exe" set "PHP_BIN=C:\laragon\bin\php\%%D\php.exe"
-        )
-    )
-)
-if not defined PHP_BIN (
-    if exist "C:\xampp\php\php.exe" set "PHP_BIN=C:\xampp\php\php.exe"
-)
-if not defined PHP_BIN (
-    if exist "C:\php\php.exe" set "PHP_BIN=C:\php\php.exe"
-)
-
-if not defined PHP_BIN (
-    echo [ERROR] No se encontro el ejecutable de PHP.
-    echo Asegurate de tener PHP en el PATH o en C:\laragon, C:\xampp o C:\php.
-    exit /b 1
-)
-
-echo   PHP Detectado: %PHP_BIN%
-echo   Ruta Proyecto: %CD%
-echo   Nombre Tarea:  Saavedra_Master_Scheduler
-echo.
-
-:: 2. Crear la tarea registrada para el usuario actual (100%% editable desde taskschd.msc)
-schtasks /create /tn "Saavedra_Master_Scheduler" /tr "\"%PHP_BIN%\" \"%CD%\artisan\" schedule:run" /sc minute /mo 1 /f
-if %errorlevel% neq 0 (
-    echo.
-    echo  [AVISO] Intentando registrar con privilegios elevados...
-    schtasks /create /tn "Saavedra_Master_Scheduler" /tr "\"%PHP_BIN%\" \"%CD%\artisan\" schedule:run" /sc minute /mo 1 /rl HIGHEST /f
-)
-
-if %errorlevel% equ 0 (
-    echo.
-    echo  ====================================================================
-    echo   [EXITO] Tarea 'Saavedra_Master_Scheduler' configurada correctamente.
-    echo   Aparece en: Biblioteca del Programador de tareas
-    echo   Puedes editar sus propiedades, horarios o ejecutarla manualmente.
-    echo  ====================================================================
-    echo.
-    echo  Abriendo el Programador de Tareas (taskschd.msc)...
-    start taskschd.msc
-) else (
-    echo.
-    echo  [ERROR] No se pudo crear la tarea. Abre CMD o PowerShell como Administrador.
-)
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\setup_scheduler.ps1 %*
 exit /b %errorlevel%
 
 :run_schedule_gui
