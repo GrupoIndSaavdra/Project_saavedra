@@ -26,6 +26,8 @@ if /i "%CMD%"=="backup" goto run_backup
 if /i "%CMD%"=="schedule" goto run_schedule_install
 if /i "%CMD%"=="schedule-install" goto run_schedule_install
 if /i "%CMD%"=="schedule-work" goto run_schedule_work
+if /i "%CMD%"=="schedule-gui" goto run_schedule_gui
+if /i "%CMD%"=="schedule-open" goto run_schedule_gui
 if /i "%CMD%"=="install" goto run_install
 if /i "%CMD%"=="setup" goto run_install
 if /i "%CMD%"=="help" goto help
@@ -90,29 +92,67 @@ exit /b %errorlevel%
 
 :run_schedule_install
 echo ====================================================================
-echo   CONFIGURANDO TAREA AUTOMATICA EN WINDOWS TASK SCHEDULER
+echo   CONFIGURANDO TAREA EN EL PROGRAMADOR DE TAREAS DE WINDOWS
 echo ====================================================================
-set "PHP_BIN=C:\php\php.exe"
-if not exist "%PHP_BIN%" (
-    for /f "delims=" %%I in ('where php 2^>nul') do (
-        if not defined PHP_BIN_DETECTED set "PHP_BIN=%%I" & set "PHP_BIN_DETECTED=1"
+
+:: 1. Deteccion inteligente del ejecutable de PHP
+set "PHP_BIN="
+for /f "delims=" %%I in ('where php 2^>nul') do (
+    if not defined PHP_BIN set "PHP_BIN=%%I"
+)
+if not defined PHP_BIN (
+    if exist "C:\laragon\bin\php" (
+        for /f "delims=" %%D in ('dir /b /ad /o-n "C:\laragon\bin\php\php-*" 2^>nul') do (
+            if not defined PHP_BIN if exist "C:\laragon\bin\php\%%D\php.exe" set "PHP_BIN=C:\laragon\bin\php\%%D\php.exe"
+        )
     )
 )
+if not defined PHP_BIN (
+    if exist "C:\xampp\php\php.exe" set "PHP_BIN=C:\xampp\php\php.exe"
+)
+if not defined PHP_BIN (
+    if exist "C:\php\php.exe" set "PHP_BIN=C:\php\php.exe"
+)
 
-echo  PHP Binario: %PHP_BIN%
-echo  Proyecto:    %CD%
+if not defined PHP_BIN (
+    echo [ERROR] No se encontro el ejecutable de PHP.
+    echo Asegurate de tener PHP en el PATH o en C:\laragon, C:\xampp o C:\php.
+    exit /b 1
+)
+
+echo   PHP Detectado: %PHP_BIN%
+echo   Ruta Proyecto: %CD%
+echo   Nombre Tarea:  Saavedra_Master_Scheduler
 echo.
 
-schtasks /create /tn "Saavedra_Master_Scheduler" /tr "\"%PHP_BIN%\" \"%CD%\artisan\" schedule:run" /sc minute /mo 1 /ru "SYSTEM" /f
+:: 2. Crear la tarea registrada para el usuario actual (100%% editable desde taskschd.msc)
+schtasks /create /tn "Saavedra_Master_Scheduler" /tr "\"%PHP_BIN%\" \"%CD%\artisan\" schedule:run" /sc minute /mo 1 /f
 if %errorlevel% neq 0 (
     echo.
-    echo  [ERROR] No se pudo crear la tarea. Abre la consola de CMD como Administrador.
+    echo  [AVISO] Intentando registrar con privilegios elevados...
+    schtasks /create /tn "Saavedra_Master_Scheduler" /tr "\"%PHP_BIN%\" \"%CD%\artisan\" schedule:run" /sc minute /mo 1 /rl HIGHEST /f
+)
+
+if %errorlevel% equ 0 (
+    echo.
+    echo  ====================================================================
+    echo   [EXITO] Tarea 'Saavedra_Master_Scheduler' configurada correctamente.
+    echo   Aparece en: Biblioteca del Programador de tareas
+    echo   Puedes editar sus propiedades, horarios o ejecutarla manualmente.
+    echo  ====================================================================
+    echo.
+    echo  Abriendo el Programador de Tareas (taskschd.msc)...
+    start taskschd.msc
 ) else (
     echo.
-    echo  [EXITO] Tarea 'Saavedra_Master_Scheduler' creada correctamente en Windows.
-    echo         Se ejecutara cada 1 minuto de forma continua e invisible.
+    echo  [ERROR] No se pudo crear la tarea. Abre CMD o PowerShell como Administrador.
 )
 exit /b %errorlevel%
+
+:run_schedule_gui
+echo Abriendo el Programador de Tareas de Windows (taskschd.msc)...
+start taskschd.msc
+exit /b 0
 
 :run_schedule_work
 echo ====================================================================
@@ -146,7 +186,8 @@ echo    schema                   - Introspeccion de MySQL a prisma/schema.prisma
 echo    learn                    - Escanea commits y logs para actualizar aprendizajes_temp.md
 echo    sync [args...]           - Sincronizacion bidireccional de BD (local a nube)
 echo    backup [args...]         - Respaldo comprimido .sql.gz de base de datos
-echo    schedule                 - Instala la tarea automatica de Windows Task Scheduler
+echo    schedule                 - Registra la tarea editable en el Programador de Tareas y lo abre
+echo    schedule-gui             - Abre el Programador de Tareas de Windows (taskschd.msc)
 echo    schedule-work            - Ejecuta el demonio del scheduler en vivo en consola
 echo    install                  - Instalar o actualizar dependencias y grafos de IA
 echo ====================================================================
