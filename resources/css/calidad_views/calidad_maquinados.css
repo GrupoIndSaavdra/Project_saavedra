@@ -72,6 +72,56 @@ body {
     white-space: nowrap;
 }
 
+.alm-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+.cal-maq-btn-sync {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    font-size: 0.9em;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.cal-maq-btn-sync:hover {
+    transform: translateY(-1px);
+}
+
+.cal-maq-btn-sync:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.cal-maq-sync-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+.cal-maq-spin {
+    animation: calmaq-rotate 1s linear infinite;
+}
+
+@keyframes calmaq-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 /* ────────────────────────────────────────────────────
    STATS CARDS
 ──────────────────────────────────────────────────── */

@@ -318,6 +318,9 @@ class AyudasVisualesPdfController extends Controller
 
         $file->storeAs($dirPath, $finalName, 'local');
 
+        // Sincronización inmediata hacia Calidad Maquinados
+        \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($dirPath.'/'.$finalName, 'ayuda', 'upsert');
+
         $this->logAction('subir_pdf', $proceso, $finalName);
 
         return response()->json([
@@ -380,6 +383,7 @@ class AyudasVisualesPdfController extends Controller
         }
 
         Storage::disk('local')->delete($foundFile);
+        \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($foundFile, 'ayuda', 'delete');
         $this->logAction('eliminar_pdf', $proceso, $archivo);
 
         return response()->json([
@@ -513,17 +517,23 @@ class AyudasVisualesPdfController extends Controller
             }
         }
 
-        if ($foundFile) {
-            Storage::disk('local')->delete($foundFile);
-        }
-
         $file = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
 
         $prefix = $proceso.' - ';
         $finalName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix.$originalName;
 
+        if ($foundFile) {
+            Storage::disk('local')->delete($foundFile);
+            if ($foundFile !== $dirPath.'/'.$finalName) {
+                \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($foundFile, 'ayuda', 'delete');
+            }
+        }
+
         $file->storeAs($dirPath, $finalName, 'local');
+
+        // Sincronización inmediata hacia Calidad Maquinados
+        \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($dirPath.'/'.$finalName, 'ayuda', 'upsert');
 
         $this->logAction('reemplazar_pdf', $proceso, "{$archivoAnterior} → {$finalName}");
 

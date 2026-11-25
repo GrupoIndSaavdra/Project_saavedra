@@ -226,6 +226,63 @@ window.calmaqVerArchivo = function (id) {
     );
 };
 
+// ── SINCRONIZACIÓN BAJO DEMANDA ───────────────────────────────────────────────
+
+/**
+ * Ejecuta la sincronización manual bajo demanda hacia Calidad Maquinados.
+ */
+window.calmaqSincronizarAhora = async function () {
+    const btn = document.getElementById('calmaq-btn-sync');
+    const icon = document.getElementById('calmaq-sync-icon');
+    const text = document.getElementById('calmaq-sync-text');
+
+    if (!window.calmaqRoutes?.sync) {
+        mostrarToast('Ruta de sincronización no disponible.', true);
+        return;
+    }
+
+    if (btn && btn.disabled) return;
+
+    if (btn) btn.disabled = true;
+    if (icon) icon.classList.add('cal-maq-spin');
+    if (text) text.textContent = 'Sincronizando...';
+
+    if (typeof window.gisToast === 'function') {
+        window.gisToast('Iniciando sincronización de documentación técnica...', 'info');
+    }
+
+    try {
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        const res = await fetch(window.calmaqRoutes.sync, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': token,
+                'Accept': 'application/json',
+            },
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            mostrarToast(data.message || 'Sincronización completada con éxito.');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1200);
+        } else {
+            mostrarToast(data.message || 'Error al procesar la sincronización.', true);
+            if (btn) btn.disabled = false;
+            if (icon) icon.classList.remove('cal-maq-spin');
+            if (text) text.textContent = 'Sincronizar Ahora';
+        }
+    } catch (err) {
+        mostrarToast('Error de conexión al sincronizar: ' + err.message, true);
+        if (btn) btn.disabled = false;
+        if (icon) icon.classList.remove('cal-maq-spin');
+        if (text) text.textContent = 'Sincronizar Ahora';
+    }
+};
+
 // ── TOAST CENTRALIZADO ────────────────────────────────────────────────────────
 
 function mostrarToast(mensaje, esError = false) {
