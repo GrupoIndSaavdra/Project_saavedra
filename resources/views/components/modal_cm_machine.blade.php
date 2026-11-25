@@ -95,5 +95,7 @@
 </div>
 
 <script>
-    window.occupiedMachines = @json((new \App\Http\Controllers\MachinesController)->machinesOccupied());
+    window.occupiedMachines = @json(array_values((new \App\Http\Controllers\MachinesController)->machinesOccupied()));
+    if (!window.routes) window.routes = {};
+    window.routes.machinesOccupiedApi = "{{ route('machinesOccupiedApi') }}";
 </script>

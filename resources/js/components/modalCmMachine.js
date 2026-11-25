@@ -75,21 +75,23 @@ let occupiedMachinesList =
  */
 export function getMachineOccupiedInfo(item, occupiedList = null) {
     const list =
-        occupiedList ||
-        (occupiedMachinesList && occupiedMachinesList.length > 0
+        (Array.isArray(occupiedList) && occupiedList.length > 0
+            ? occupiedList
+            : null) ||
+        (Array.isArray(occupiedMachinesList) && occupiedMachinesList.length > 0
             ? occupiedMachinesList
             : null) ||
         (typeof window !== "undefined" && Array.isArray(window.occupiedMachines)
             ? window.occupiedMachines
-            : null);
+            : []);
 
-    if (!item || !list || !Array.isArray(list) || list.length === 0) {
+    if (!item || !Array.isArray(list) || list.length === 0) {
         return null;
     }
 
     const itemVal = String(item.value).trim().toLowerCase();
 
-    for (const occ of occupiedList) {
+    for (const occ of list) {
         if (!occ) continue;
 
         // Soporta formatos de API ('machine'/'process') y de Modelo Eloquent ('maquina'/'proceso')
@@ -102,7 +104,7 @@ export function getMachineOccupiedInfo(item, occupiedList = null) {
 
         if (rawVal === undefined || rawVal === null) continue;
 
-        const occVal = String(rawVal).trim().toLowerCase();
+        const occVal = String(rawVal).trim().toLowerCase().replace(/\s+y\s+/g, "_");
         const procName = occ.proceso || occ.process || "En uso";
         const opName = occ.operator || "";
 
@@ -229,9 +231,20 @@ export function openModalMachine(
         occupiedMachinesList = window.occupiedMachines;
     }
 
-    // Actualización en segundo plano desde el endpoint API
+    // Actualización fresca en segundo plano desde el endpoint API con cache-busting
     if (typeof fetch !== "undefined") {
-        fetch("/machinesOccupied/api")
+        const base = (window.baseUrl || "").replace(/\/$/, "");
+        const apiUrl = (window.routes && window.routes.machinesOccupiedApi)
+            ? window.routes.machinesOccupiedApi
+            : `${base}/machinesOccupied/api`;
+
+        fetch(`${apiUrl}?_t=${Date.now()}`, {
+            headers: {
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
+            },
+            cache: "no-store",
+        })
             .then((res) => (res.ok ? res.json() : null))
             .then((data) => {
                 if (Array.isArray(data)) {
@@ -633,4 +646,16 @@ function initMachineModalEvents() {
             renderMachines();
         });
     }
+}
+
+if (typeof window !== "undefined" && !window.__cmMachineOccupiedListenerSet) {
+    window.__cmMachineOccupiedListenerSet = true;
+    window.addEventListener("machinesOccupiedChanged", (e) => {
+        if (e.detail && Array.isArray(e.detail.occupiedMachines)) {
+            occupiedMachinesList = e.detail.occupiedMachines;
+            window.occupiedMachines = e.detail.occupiedMachines;
+            renderMachines();
+            updateSelectionUI();
+        }
+    });
 }

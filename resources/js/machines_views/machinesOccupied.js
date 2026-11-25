@@ -195,7 +195,7 @@ function createTable(machines, form) {
 
                 const executeFreeUp = () => {
                     tr.classList.remove("machine-row-targeting");
-                    document.querySelectorAll(".idMachine").forEach(el => el.remove());
+                    document.querySelectorAll(".idMachine, .inputMachineName").forEach(el => el.remove());
 
                     let inputIdMachine = document.createElement("input");
                     inputIdMachine.type = "hidden";
@@ -203,6 +203,13 @@ function createTable(machines, form) {
                     inputIdMachine.className = "idMachine";
                     inputIdMachine.value = machine.id;
                     form.appendChild(inputIdMachine);
+
+                    let inputMachine = document.createElement("input");
+                    inputMachine.type = "hidden";
+                    inputMachine.name = "machine";
+                    inputMachine.className = "inputMachineName";
+                    inputMachine.value = machine.machine || "";
+                    form.appendChild(inputMachine);
 
                     form.submit();
                 };
