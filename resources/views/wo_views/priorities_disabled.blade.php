@@ -9,7 +9,7 @@
 
 @php
     $userPerfil = (string) (auth()->user()->perfil ?? '');
-    $isMaster = $userPerfil === '3';
+    $isMaster = in_array($userPerfil, ['1', '6', '10', '0'], true);
 
     if (!function_exists('safeDateParse')) {
         function safeDateParse($value)

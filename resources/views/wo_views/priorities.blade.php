@@ -9,7 +9,7 @@
 
 @php
     $userPerfil = (string) (auth()->user()->perfil ?? '');
-    $canEditPriorities = $userPerfil === '3';
+    $canEditPriorities = in_array($userPerfil, ['1', '6', '10', '0'], true);
     $isReadOnly = !$canEditPriorities;
 
     if (!function_exists('safeDateParse')) {

@@ -242,7 +242,7 @@ class SystemLogController extends Controller
         // En MAQUINADO, el tiempo estándar debe respetarse y solo se reinicia al guardar la pieza.
         if ($action === 'Consulta Documentación Técnica') {
             $user = Auth::user();
-            if ($user && in_array((string) $user->perfil, ['2', '9'], true) && $user->prod_status !== 'machining') {
+            if ($user && (string) $user->perfil === '9' && $user->prod_status !== 'machining') {
                 $user->update(['prod_start_at' => now()->setSeconds(0), 'prod_locked_type' => null]);
             }
         }
