@@ -743,6 +743,10 @@ Route::middleware(['auth'])->prefix('calidad/maquinados')->name('calidad.maquina
     // API JSON (para uso futuro o filtrado dinámico)
     Route::get('/docs', [\App\Http\Controllers\CalidadMaquinadosController::class, 'getDocs'])
         ->name('docs');
+
+    // Sincronización manual bajo demanda
+    Route::post('/sync', [\App\Http\Controllers\CalidadMaquinadosController::class, 'sync'])
+        ->name('sync');
 });
 
 /* ===========================

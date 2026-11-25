@@ -117,12 +117,7 @@ class Heartbeat extends Command
             }
         }
 
-        // Log to a custom channel/file
-        Log::build([
-            'driver' => 'single',
-            'path' => storage_path('logs/heartbeat.log'),
-        ])->info($message);
-
+        // La salida hacia heartbeat.log es manejada automáticamente por appendOutputTo en Kernel.php
         $this->info($message);
     }
 }

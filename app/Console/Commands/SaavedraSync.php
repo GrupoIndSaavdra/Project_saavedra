@@ -731,6 +731,15 @@ class SaavedraSync extends Command
                             if (isset($cloudInfo['mtime'])) {
                                 @touch($destPath, (int) $cloudInfo['mtime']);
                             }
+
+                            // Indexar inmediatamente en Calidad Maquinados si corresponde
+                            $relStorage = "{$baseRelative}/{$path}";
+                            if (str_starts_with($path, 'DIBUJOS_MAQUINADOS/')) {
+                                \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($relStorage, 'dibujo', 'upsert');
+                            } elseif (str_starts_with($path, 'AYUDAS_MAQUINADOS/')) {
+                                \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($relStorage, 'ayuda', 'upsert');
+                            }
+
                             $pulled++;
                         } else {
                             $this->error("      ❌ Fallo al descargar '{$path}'");

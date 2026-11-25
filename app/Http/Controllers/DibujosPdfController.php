@@ -406,6 +406,9 @@ class DibujosPdfController extends Controller
 
         $file->storeAs($dirPath, $newName, 'local');
 
+        // Sincronización inmediata hacia Calidad Maquinados
+        \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($dirPath.'/'.$newName, 'dibujo', 'upsert');
+
         // Intento de réplica inmediata a la nube si hay conexión
         $this->pushToCloudImmediate($dirPath.'/'.$newName);
 
@@ -482,6 +485,7 @@ class DibujosPdfController extends Controller
         }
 
         Storage::disk('local')->delete($foundFile);
+        \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($foundFile, 'dibujo', 'delete');
         $this->logAction('eliminar_pdf', $ot.'/'.$clase, $archivo);
 
         return response()->json([
@@ -626,11 +630,6 @@ class DibujosPdfController extends Controller
             }
         }
 
-        // Eliminar el archivo anterior si existe
-        if ($foundFile) {
-            Storage::disk('local')->delete($foundFile);
-        }
-
         $file = $request->file('pdf');
         $originalName = $this->sanitizeFileName($file->getClientOriginalName());
 
@@ -640,7 +639,18 @@ class DibujosPdfController extends Controller
             $newName = (strpos($originalName, $prefix) === 0) ? $originalName : $prefix.$originalName;
         }
 
+        // Eliminar el archivo anterior si existe
+        if ($foundFile) {
+            Storage::disk('local')->delete($foundFile);
+            if ($foundFile !== $dirPath.'/'.$newName) {
+                \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($foundFile, 'dibujo', 'delete');
+            }
+        }
+
         $file->storeAs($dirPath, $newName, 'local');
+
+        // Sincronización inmediata hacia Calidad Maquinados
+        \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($dirPath.'/'.$newName, 'dibujo', 'upsert');
 
         $this->logAction('reemplazar_pdf', $ot.'/'.$clase, "{$archivoAnterior} → {$newName}");
 

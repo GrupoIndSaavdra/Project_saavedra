@@ -537,6 +537,14 @@ class SyncController extends Controller
 
             $this->logSync("[CPANEL-FILE-UPLOAD] Archivo '{$safePath}' (" . round(filesize($targetAbsolute) / 1024, 1) . " KB) recibido y guardado desde IP: {$request->ip()}");
 
+            // Sincronización inmediata hacia Calidad Maquinados si corresponde
+            $relativeStoragePath = "{$baseRelative}/{$safePath}";
+            if (str_starts_with($safePath, 'DIBUJOS_MAQUINADOS/')) {
+                \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($relativeStoragePath, 'dibujo', 'upsert');
+            } elseif (str_starts_with($safePath, 'AYUDAS_MAQUINADOS/')) {
+                \App\Console\Commands\SyncMaquinadosDocs::syncSingleFile($relativeStoragePath, 'ayuda', 'upsert');
+            }
+
             return response()->json([
                 'success' => true,
                 'path' => $safePath,

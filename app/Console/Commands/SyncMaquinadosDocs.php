@@ -5,55 +5,49 @@ namespace App\Console\Commands;
 use App\Models\CalidadMaquinadoDoc;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Throwable;
 
 /**
  * SyncMaquinadosDocs
  *
- * Escanea las carpetas de origen en la red/NAS:
+ * Escanea las carpetas de origen en la red/NAS o storage local:
  *   - DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS   → tipo: 'dibujo'
  *   - DOCUMENTACION_GIS/AYUDAS_MAQUINADOS    → tipo: 'ayuda'
+ *   - DIBUJOS_GIS (directorio legado)        → tipo: 'dibujo'
+ *   - AYUDAS_GIS (directorio legado)         → tipo: 'ayuda'
  *
- * Y copia cada archivo encontrado hacia el directorio de respaldo del
- * storage de Laravel:
+ * Y mantiene sincronizado el directorio de respaldo de Calidad:
  *   - CALIDAD_MAQUINADOS/dibujos/<ot>/<clase>/<archivo>
- *   - CALIDAD_MAQUINADOS/ayudas/<ot>/<clase>/<archivo>
+ *   - CALIDAD_MAQUINADOS/ayudas/<clase_o_proceso>/<archivo>
  *
- * Regla de inactivación (NO elimina archivos físicos):
- *   Si un registro existe en BD pero el archivo ya no está en la
- *   carpeta de ORIGEN, el registro se marca como 'inactivo'.
- *   El archivo copiado en el storage de respaldo se CONSERVA.
- *
- * Extracción de metadata (OT, Clase, Proceso, Fecha):
- *   Se infiere desde la estructura de carpetas:
- *     DIBUJOS_MAQUINADOS/<OT>/<Clase>/<Proceso>/archivo.pdf
- *     AYUDAS_MAQUINADOS/<OT>/<Clase>/<Proceso>/archivo.pdf
- *   Si la carpeta tiene menos niveles, los niveles superiores disponibles
- *   se asignan como OT → Clase → Proceso (los restantes quedan null).
+ * Reglas de optimización:
+ *   - Copia por streams para no saturar memoria RAM en archivos pesados.
+ *   - Omite re-copiar archivos idénticos (mismo tamaño y mtime).
+ *   - Soporta sincronización puntual inmediata vía syncSingleFile().
+ *   - Inactivación segura sin falsos positivos por barras o mayúsculas/minúsculas.
  */
 class SyncMaquinadosDocs extends Command
 {
     protected $signature   = 'calidad:sync-maquinados {--dry-run : Solo muestra los cambios sin aplicarlos}';
-    protected $description  = 'Sincroniza Dibujos y Ayudas Visuales de Maquinados con el storage de respaldo de Calidad.';
+    protected $description = 'Sincroniza Dibujos y Ayudas Visuales de Maquinados con el storage de respaldo de Calidad.';
 
     /**
-     * Mapeo: [directorio de origen en disco local] => tipo de documento
-     *
-     * AJUSTA estas rutas si los directorios de origen están en un disco
-     * compartido de red montado; en ese caso usa Storage::disk('red') o
-     * simplemente cambia el disk en getSourceFiles().
+     * Mapeo de directorios de origen soportados (actuales y legados)
      */
-    private const SOURCES = [
+    public const SOURCES = [
         'DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS' => 'dibujo',
         'DOCUMENTACION_GIS/AYUDAS_MAQUINADOS'  => 'ayuda',
+        'DIBUJOS_GIS'                          => 'dibujo',
+        'AYUDAS_GIS'                           => 'ayuda',
     ];
 
     /** Directorio raíz de respaldo dentro de storage/app */
-    private const BACKUP_ROOT = 'CALIDAD_MAQUINADOS';
+    public const BACKUP_ROOT = 'CALIDAD_MAQUINADOS';
 
     /** Extensiones de archivo permitidas */
-    private const ALLOWED_EXT = ['pdf', 'png', 'jpg', 'jpeg', 'dwg', 'dxf'];
+    public const ALLOWED_EXT = ['pdf', 'png', 'jpg', 'jpeg', 'dwg', 'dxf'];
 
     // =========================================================================
 
@@ -67,17 +61,16 @@ class SyncMaquinadosDocs extends Command
         $this->info('  Modo: ' . ($dryRun ? 'DRY-RUN (sin cambios)' : 'PRODUCCIÓN'));
         $this->info('══════════════════════════════════════════════════');
 
-        $totalNuevos    = 0;
+        $totalNuevos       = 0;
         $totalActualizados = 0;
         $totalInactivados  = 0;
 
-        // ── 1. Recopilar TODOS los archivos presentes en el origen ────────────
-        /** @var array<string> $rutasOrigen   Lista de rutas relativas en el disco 'local' */
-        $rutasOrigen = [];
+        // ── 1. Recopilar TODOS los archivos presentes en los orígenes ────────
+        /** @var array<string, string> $rutasOrigenMap [ruta_normalizada_lower => ruta_relativa] */
+        $rutasOrigenMap = [];
 
         foreach (self::SOURCES as $sourceDir => $tipo) {
             if (!Storage::disk('local')->exists($sourceDir)) {
-                $this->warn("  [AVISO] Directorio de origen no encontrado: {$sourceDir}");
                 continue;
             }
 
@@ -89,22 +82,23 @@ class SyncMaquinadosDocs extends Command
                     continue;
                 }
 
-                $rutasOrigen[] = $rutaRelativa;
+                $normPath = strtolower(str_replace('\\', '/', $rutaRelativa));
+                $rutasOrigenMap[$normPath] = $rutaRelativa;
 
-                // ── Extraer metadata desde la estructura de carpetas ──────
-                $meta = $this->extraerMetadata($rutaRelativa, $sourceDir, $tipo);
+                // ── Extraer metadata ──────
+                $meta = self::extraerMetadataStatic($rutaRelativa, $sourceDir, $tipo);
 
-                // ── Calcular ruta de respaldo ─────────────────────────────
-                $rutaBackup = $this->buildBackupPath($rutaRelativa, $sourceDir, $tipo);
+                // ── Calcular ruta de respaldo ──
+                $rutaBackup = self::buildBackupPathStatic($rutaRelativa, $sourceDir, $tipo);
 
-                // ── Upsert en BD ──────────────────────────────────────────
+                // ── Upsert en BD ──────────
                 /** @var CalidadMaquinadoDoc|null $registro */
                 $registro = CalidadMaquinadoDoc::query()->where('ruta_storage', $rutaBackup)->first();
 
                 if (!$registro) {
-                    // Archivo nuevo: copiar y crear registro
+                    // Archivo nuevo: copiar y registrar
                     if (!$dryRun) {
-                        $this->copiarArchivo($rutaRelativa, $rutaBackup);
+                        self::copiarArchivoStatic($rutaRelativa, $rutaBackup);
 
                         CalidadMaquinadoDoc::create([
                             'nombre_archivo'       => basename($rutaRelativa),
@@ -122,10 +116,9 @@ class SyncMaquinadosDocs extends Command
                     $this->line("  [NUEVO] {$rutaBackup}");
                     $totalNuevos++;
                 } else {
-                    // Archivo existente: re-activar si estaba inactivo y actualizar timestamp
+                    // Archivo existente: asegurar copia y re-activar si estaba inactivo
                     if (!$dryRun) {
-                        // Re-copiar para mantener el backup actualizado
-                        $this->copiarArchivo($rutaRelativa, $rutaBackup);
+                        self::copiarArchivoStatic($rutaRelativa, $rutaBackup);
 
                         $registro->update([
                             'estado'              => 'activo',
@@ -141,15 +134,23 @@ class SyncMaquinadosDocs extends Command
             }
         }
 
-        // ── 2. Inactivar registros que ya no están en el origen ──────────────
+        // ── 2. Inactivar registros que ya no están en ningún origen ───────────
         $registrosActivos = CalidadMaquinadoDoc::query()->where('estado', 'activo')->get();
 
         foreach ($registrosActivos as $registro) {
-            // Reconstruir la ruta de origen desde la ruta de backup
-            $rutaOrigenEstimada = $this->backupToSourcePath($registro->ruta_storage, $registro->tipo);
+            $rutasCandidatas = self::backupToSourceCandidates($registro->ruta_storage, $registro->tipo);
+            $existeEnOrigen = false;
 
-            // Si la ruta de origen ya no existe en el disco → inactivar
-            if (!in_array($rutaOrigenEstimada, $rutasOrigen, true)) {
+            foreach ($rutasCandidatas as $candidata) {
+                $candidataNorm = strtolower(str_replace('\\', '/', $candidata));
+                if (isset($rutasOrigenMap[$candidataNorm]) || Storage::disk('local')->exists($candidata)) {
+                    $existeEnOrigen = true;
+                    break;
+                }
+            }
+
+            // Si el archivo físico ya no existe en el origen, marcar inactivo
+            if (!$existeEnOrigen) {
                 if (!$dryRun) {
                     $registro->update(['estado' => 'inactivo']);
                 }
@@ -160,7 +161,7 @@ class SyncMaquinadosDocs extends Command
 
         // ── 3. Resumen ────────────────────────────────────────────────────────
         $this->newLine();
-        $this->info("  Nuevos   : {$totalNuevos}");
+        $this->info("  Nuevos       : {$totalNuevos}");
         $this->info("  Actualizados : {$totalActualizados}");
         $this->warn("  Inactivados  : {$totalInactivados}");
         $this->info('══════════════════════════════════════════════════');
@@ -169,42 +170,135 @@ class SyncMaquinadosDocs extends Command
     }
 
     // =========================================================================
-    // HELPERS PRIVADOS
+    // MÉTODOS PÚBLICOS ESTÁTICOS (SINCRONIZACIÓN PUNTUAL INMEDIATA)
     // =========================================================================
+
+    /**
+     * Sincroniza un único archivo de forma instantánea al subirlo o eliminarlo.
+     * Llamado directamente desde DibujosPdfController, AyudasVisualesPdfController o SyncController.
+     */
+    public static function syncSingleFile(string $sourcePath, string $tipo, string $action = 'upsert'): bool
+    {
+        try {
+            $normPath = str_replace('\\', '/', trim($sourcePath, '/'));
+            $ext = strtolower(pathinfo($normPath, PATHINFO_EXTENSION));
+
+            if (!in_array($ext, self::ALLOWED_EXT, true)) {
+                return false;
+            }
+
+            // Identificar el directorio base correspondiente
+            $matchedSourceDir = null;
+            foreach (self::SOURCES as $sourceDir => $srcTipo) {
+                if ($srcTipo === $tipo && str_starts_with($normPath, $sourceDir)) {
+                    $matchedSourceDir = $sourceDir;
+                    break;
+                }
+            }
+
+            if (!$matchedSourceDir) {
+                // Fallback automático según el tipo
+                $matchedSourceDir = $tipo === 'dibujo'
+                    ? 'DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS'
+                    : 'DOCUMENTACION_GIS/AYUDAS_MAQUINADOS';
+            }
+
+            $rutaBackup = self::buildBackupPathStatic($normPath, $matchedSourceDir, $tipo);
+            $meta = self::extraerMetadataStatic($normPath, $matchedSourceDir, $tipo);
+            $now = Carbon::now();
+
+            if ($action === 'delete') {
+                CalidadMaquinadoDoc::query()
+                    ->where('ruta_storage', $rutaBackup)
+                    ->update(['estado' => 'inactivo', 'ultima_deteccion_at' => $now]);
+                return true;
+            }
+
+            // Upsert / Reemplazar
+            self::copiarArchivoStatic($normPath, $rutaBackup);
+
+            CalidadMaquinadoDoc::updateOrCreate(
+                ['ruta_storage' => $rutaBackup],
+                [
+                    'nombre_archivo'       => basename($normPath),
+                    'tipo'                 => $tipo,
+                    'estado'               => 'activo',
+                    'ot'                   => $meta['ot'],
+                    'clase'                => $meta['clase'],
+                    'proceso'              => $meta['proceso'],
+                    'fecha_archivo'        => $meta['fecha_archivo'],
+                    'ultima_deteccion_at'  => $now,
+                ]
+            );
+
+            return true;
+        } catch (Throwable $e) {
+            Log::warning("Fallo en syncSingleFile ({$sourcePath}): " . $e->getMessage());
+            return false;
+        }
+    }
 
     /**
      * Extrae metadata desde la estructura de carpetas según el tipo de documento.
      *
-     * Dibujos  → partes[0]=OT,    partes[1]=Clase,   partes[2]=Proceso
-     * Ayudas   → partes[0]=Clase, partes[1]=Proceso  (no tienen OT)
+     * Dibujos:
+     *   <OT>/<Clase>/<Proceso>/archivo.pdf → ot, clase, proceso
+     *   <OT>/<Clase>/archivo.pdf           → ot, clase, proceso=null
+     *   <OT>/archivo.pdf                   → ot, clase='--', proceso=null
      *
-     * @param  string $rutaRelativa  Ruta relativa al disco (incluye $sourceDir)
-     * @param  string $sourceDir     Directorio raíz de origen
-     * @param  string $tipo          'dibujo' | 'ayuda'
-     * @return array{ot: string|null, clase: string|null, proceso: string|null, fecha_archivo: string|null}
+     * Ayudas:
+     *   <Proceso>/archivo.pdf              → ot=null, clase='General', proceso=<Proceso>
+     *   <Clase>/<Proceso>/archivo.pdf      → ot=null, clase=<Clase>,   proceso=<Proceso>
      */
-    private function extraerMetadata(string $rutaRelativa, string $sourceDir, string $tipo): array
+    public static function extraerMetadataStatic(string $rutaRelativa, string $sourceDir, string $tipo): array
     {
-        // Eliminar el prefijo del directorio fuente
-        $relative = ltrim(str_replace($sourceDir, '', $rutaRelativa), '/\\');
+        $cleanSource = trim(str_replace('\\', '/', $sourceDir), '/');
+        $cleanRuta   = trim(str_replace('\\', '/', $rutaRelativa), '/');
 
-        // Separar en partes (sin el nombre del archivo)
-        $partes = explode('/', str_replace('\\', '/', $relative));
-        array_pop($partes); // quitar el nombre del archivo
-
-        if ($tipo === 'dibujo') {
-            // Dibujos: <OT>/<Clase>/<Proceso>/archivo
-            $ot      = $partes[0] ?? null;
-            $clase   = $partes[1] ?? null;
-            $proceso = $partes[2] ?? null;
+        if (str_starts_with($cleanRuta, $cleanSource)) {
+            $relative = ltrim(substr($cleanRuta, strlen($cleanSource)), '/');
         } else {
-            // Ayudas: <Clase>/<Proceso>/archivo (sin OT)
-            $ot      = null;
-            $clase   = $partes[0] ?? null;
-            $proceso = $partes[1] ?? null;
+            $relative = $cleanRuta;
         }
 
-        // Intentar obtener la fecha de modificación del archivo
+        $partes = explode('/', $relative);
+        array_pop($partes); // Quitar el nombre del archivo
+
+        if ($tipo === 'dibujo') {
+            $count = count($partes);
+            if ($count >= 3) {
+                $ot      = $partes[0];
+                $clase   = $partes[1];
+                $proceso = $partes[2];
+            } elseif ($count === 2) {
+                $ot      = $partes[0];
+                $clase   = $partes[1];
+                $proceso = null;
+            } elseif ($count === 1) {
+                $ot      = $partes[0];
+                $clase   = '--';
+                $proceso = null;
+            } else {
+                $ot      = 'General';
+                $clase   = '--';
+                $proceso = null;
+            }
+        } else {
+            // Ayudas Visuales
+            $count = count($partes);
+            $ot = null;
+            if ($count >= 2) {
+                $clase   = $partes[0];
+                $proceso = $partes[1];
+            } elseif ($count === 1) {
+                $clase   = 'General';
+                $proceso = $partes[0];
+            } else {
+                $clase   = 'General';
+                $proceso = 'General';
+            }
+        }
+
         $fechaArchivo = null;
         try {
             $lastModified = Storage::disk('local')->lastModified($rutaRelativa);
@@ -212,7 +306,6 @@ class SyncMaquinadosDocs extends Command
                 $fechaArchivo = Carbon::createFromTimestamp($lastModified)->toDateString();
             }
         } catch (Throwable) {
-            // Si falla, dejar null
         }
 
         return [
@@ -225,47 +318,84 @@ class SyncMaquinadosDocs extends Command
 
     /**
      * Construye la ruta de respaldo dentro de CALIDAD_MAQUINADOS.
-     *
-     * Ejemplo:
-     *   Origen:  DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS/OT-123/Bombillo/plano.pdf
-     *   Backup:  CALIDAD_MAQUINADOS/dibujos/OT-123/Bombillo/plano.pdf
      */
-    private function buildBackupPath(string $rutaRelativa, string $sourceDir, string $tipo): string
+    public static function buildBackupPathStatic(string $rutaRelativa, string $sourceDir, string $tipo): string
     {
-        $relative = ltrim(str_replace($sourceDir, '', $rutaRelativa), '/\\');
-        $subdir   = $tipo === 'dibujo' ? 'dibujos' : 'ayudas';
+        $cleanSource = trim(str_replace('\\', '/', $sourceDir), '/');
+        $cleanRuta   = trim(str_replace('\\', '/', $rutaRelativa), '/');
+
+        if (str_starts_with($cleanRuta, $cleanSource)) {
+            $relative = ltrim(substr($cleanRuta, strlen($cleanSource)), '/');
+        } else {
+            $relative = $cleanRuta;
+        }
+
+        $subdir = $tipo === 'dibujo' ? 'dibujos' : 'ayudas';
         return self::BACKUP_ROOT . '/' . $subdir . '/' . $relative;
     }
 
     /**
-     * Reconstruye la ruta de origen estimada desde la ruta de backup.
-     * Se usa para detectar si un backup ya no existe en el origen.
+     * Devuelve las posibles rutas de origen estimadas para un backup dado
+     * (considerando directorio principal y legado).
      */
-    private function backupToSourcePath(string $rutaBackup, string $tipo): string
+    public static function backupToSourceCandidates(string $rutaBackup, string $tipo): array
     {
-        $subdir    = $tipo === 'dibujo' ? 'dibujos' : 'ayudas';
-        $prefix    = self::BACKUP_ROOT . '/' . $subdir . '/';
-        $relative  = ltrim(str_replace($prefix, '', $rutaBackup), '/\\');
-        $sourceDir = $tipo === 'dibujo'
-            ? 'DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS'
-            : 'DOCUMENTACION_GIS/AYUDAS_MAQUINADOS';
+        $cleanBackup = str_replace('\\', '/', $rutaBackup);
+        $subdir = $tipo === 'dibujo' ? 'dibujos' : 'ayudas';
+        $prefix = self::BACKUP_ROOT . '/' . $subdir . '/';
 
-        return $sourceDir . '/' . $relative;
+        $relative = ltrim(str_replace($prefix, '', $cleanBackup), '/');
+
+        if ($tipo === 'dibujo') {
+            return [
+                'DOCUMENTACION_GIS/DIBUJOS_MAQUINADOS/' . $relative,
+                'DIBUJOS_GIS/' . $relative,
+            ];
+        }
+
+        return [
+            'DOCUMENTACION_GIS/AYUDAS_MAQUINADOS/' . $relative,
+            'AYUDAS_GIS/' . $relative,
+        ];
     }
 
     /**
-     * Copia un archivo desde la ruta de origen a la ruta de backup,
-     * creando los directorios intermedios si es necesario.
+     * Copia eficiente usando streams y comprobación de integridad.
+     * Evita sobrecargar la memoria RAM de PHP en archivos pesados.
      */
-    private function copiarArchivo(string $origen, string $destino): void
+    public static function copiarArchivoStatic(string $origen, string $destino): void
     {
         try {
-            $contenido = Storage::disk('local')->get($origen);
-            if ($contenido !== null) {
-                Storage::disk('local')->put($destino, $contenido);
+            $disk = Storage::disk('local');
+            if (!$disk->exists($origen)) {
+                return;
+            }
+
+            // Si el destino ya existe y es idéntico, omitir copia
+            if ($disk->exists($destino)) {
+                try {
+                    $sizeOrig = $disk->size($origen);
+                    $sizeDest = $disk->size($destino);
+                    $mtimeOrig = $disk->lastModified($origen);
+                    $mtimeDest = $disk->lastModified($destino);
+
+                    if ($sizeOrig === $sizeDest && $mtimeOrig <= $mtimeDest) {
+                        return;
+                    }
+                } catch (Throwable) {
+                }
+            }
+
+            // Copia eficiente por streaming
+            $stream = $disk->readStream($origen);
+            if ($stream) {
+                $disk->put($destino, $stream);
+                if (is_resource($stream)) {
+                    fclose($stream);
+                }
             }
         } catch (Throwable $e) {
-            $this->error("  [ERROR] No se pudo copiar {$origen} → {$destino}: " . $e->getMessage());
+            Log::warning("No se pudo copiar {$origen} → {$destino}: " . $e->getMessage());
         }
     }
 }

@@ -152,13 +152,30 @@ class CalidadMaquinadosController extends Controller
             abort(404, 'Documento no encontrado en el índice.');
         }
 
-        if (! Storage::disk('local')->exists($doc->ruta_storage)) {
-            abort(404, 'El archivo físico de respaldo no se encontró.');
+        $disk = Storage::disk('local');
+        $targetPath = $doc->ruta_storage;
+
+        if (! $disk->exists($targetPath)) {
+            // Intentar fallback al archivo original en DOCUMENTACION_GIS o directorios legados
+            $candidatas = \App\Console\Commands\SyncMaquinadosDocs::backupToSourceCandidates($doc->ruta_storage, $doc->tipo);
+            $encontrado = null;
+            foreach ($candidatas as $cand) {
+                if ($disk->exists($cand)) {
+                    $encontrado = $cand;
+                    break;
+                }
+            }
+
+            if ($encontrado) {
+                // Recrear el archivo en el directorio de respaldo oportunísticamente
+                \App\Console\Commands\SyncMaquinadosDocs::copiarArchivoStatic($encontrado, $doc->ruta_storage);
+                $targetPath = $disk->exists($doc->ruta_storage) ? $doc->ruta_storage : $encontrado;
+            } else {
+                abort(404, 'El archivo físico del documento no se encontró en el servidor.');
+            }
         }
 
-        /** @var \Illuminate\Filesystem\FilesystemAdapter $disk */
-        $disk = Storage::disk('local');
-        $fullPath = $disk->path($doc->ruta_storage);
+        $fullPath = $disk->path($targetPath);
         $ext = strtolower(pathinfo($doc->nombre_archivo, PATHINFO_EXTENSION));
 
         $mimeMap = [
@@ -212,5 +229,41 @@ class CalidadMaquinadosController extends Controller
             'ayudas' => $ayudas,
             'inactivos' => $inactivos,
         ]);
+    }
+
+    /**
+     * Dispara la sincronización de Calidad Maquinados bajo demanda.
+     * POST /calidad/maquinados/sync
+     */
+    public function sync(Request $request): JsonResponse
+    {
+        $this->verificarAcceso();
+
+        try {
+            \Illuminate\Support\Facades\Artisan::call('calidad:sync-maquinados');
+            $output = \Illuminate\Support\Facades\Artisan::output();
+
+            $totalDibujos = CalidadMaquinadoDoc::query()->where('tipo', 'dibujo')->where('estado', 'activo')->count();
+            $totalAyudas = CalidadMaquinadoDoc::query()->where('tipo', 'ayuda')->where('estado', 'activo')->count();
+            $totalInactivos = CalidadMaquinadoDoc::query()->where('estado', 'inactivo')->count();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Documentación técnica de Maquinados sincronizada correctamente.',
+                'stats' => [
+                    'dibujos' => $totalDibujos,
+                    'ayudas' => $totalAyudas,
+                    'inactivos' => $totalInactivos,
+                ],
+                'output' => $output,
+            ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Fallo al sincronizar Calidad Maquinados: ' . $e->getMessage());
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Ocurrió un error al ejecutar la sincronización: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 }

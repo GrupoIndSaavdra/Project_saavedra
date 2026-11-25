@@ -31,7 +31,13 @@
                 <h1>Dibujos y Ayudas Visuales de Maquinados — {{ $maqDeptLabel }}</h1>
                 <p>Consulta de documentación técnica de Maquinados. Sincronización automática cada 5 minutos. Solo lectura.</p>
             </div>
-            <span class="alm-readonly-badge">Solo lectura</span>
+            <div class="alm-header-actions">
+                <button type="button" id="calmaq-btn-sync" class="btns blue cal-maq-btn-sync" onclick="calmaqSincronizarAhora()" title="Ejecutar sincronización manual">
+                    <img src="{{ asset(icon('actualizar')) }}" alt="Sincronizar" class="cal-maq-sync-icon" id="calmaq-sync-icon">
+                    <span id="calmaq-sync-text">Sincronizar Ahora</span>
+                </button>
+                <span class="alm-readonly-badge">Solo lectura</span>
+            </div>
         </div>
 
         {{-- ── STATS ───────────────────────────────────────────────── --}}
@@ -470,6 +476,7 @@
             serve      : "{{ route('calidad.maquinados.serve') }}",
             docs       : "{{ route('calidad.maquinados.docs') }}",
             indexBase  : "{{ route('calidad.maquinados.index') }}",
+            sync       : "{{ route('calidad.maquinados.sync') }}",
         };
     </script>
 
