@@ -342,10 +342,17 @@ function updateSelectionUI() {
             ? getMachineOccupiedInfo(selectedMach, occupiedMachinesList)
             : null;
         const isOccupied = Boolean(occInfo);
+        const isCrossBlocked = Boolean(occInfo && (occInfo.blockedByIndividual || occInfo.blockedByPair));
 
         const label = formatDisplayMachine(currentSelectedValue);
         if (previewText) {
-            previewText.textContent = isOccupied ? `${label} (OCUPADA)` : label;
+            if (isCrossBlocked) {
+                previewText.textContent = `${label} (INACTIVA)`;
+            } else if (isOccupied) {
+                previewText.textContent = `${label} (OCUPADA)`;
+            } else {
+                previewText.textContent = label;
+            }
         }
 
         if (confirmBtn) {
@@ -353,7 +360,11 @@ function updateSelectionUI() {
                 confirmBtn.disabled = true;
                 confirmBtn.style.opacity = "0.45";
                 confirmBtn.style.cursor = "not-allowed";
-                confirmBtn.title = `Máquina ocupada en proceso: ${occInfo.proceso || "Producción"}`;
+                confirmBtn.title = isCrossBlocked
+                    ? (occInfo.blockedByIndividual
+                        ? `Máquina inactiva porque Máquina ${occInfo.blockedByIndividual} está en uso en otra OT`
+                        : `Máquina inactiva porque Máquina Dual ${occInfo.blockedByPair} está en uso en otra OT`)
+                    : `Máquina ocupada en proceso: ${occInfo.proceso || "Producción"}`;
             } else {
                 confirmBtn.disabled = false;
                 confirmBtn.style.opacity = "1";
@@ -454,15 +465,33 @@ function renderMachines() {
         const card = document.createElement("div");
         const occInfo = getMachineOccupiedInfo(mach, occupiedMachinesList);
         const isOccupied = Boolean(occInfo);
+        const isCrossBlocked = Boolean(occInfo && (occInfo.blockedByIndividual || occInfo.blockedByPair));
+        const isDirectlyOccupied = Boolean(occInfo && !isCrossBlocked);
 
-        card.className = `cm-machine-card ${mach.isPaired ? "is-paired-card" : ""} ${isOccupied ? "is-occupied" : ""}`;
+        let statusClass = "";
+        let badgeHtml = "";
+        if (isDirectlyOccupied) {
+            statusClass = "is-occupied";
+            badgeHtml = `<div class="cm-mach-badge-occupied">Ocupada</div>`;
+        } else if (isCrossBlocked) {
+            statusClass = "is-inactive";
+            badgeHtml = `<div class="cm-mach-badge-inactive">Inactiva</div>`;
+        } else {
+            badgeHtml = `<div class="cm-mach-badge-available">Disponible</div>`;
+        }
+
+        card.className = `cm-machine-card ${mach.isPaired ? "is-paired-card" : ""} ${statusClass}`;
         card.setAttribute("data-value", mach.value);
         card.setAttribute("tabindex", isOccupied ? "-1" : "0");
         card.setAttribute("role", "button");
 
         if (isOccupied) {
             card.setAttribute("aria-disabled", "true");
-            card.title = `Máquina Ocupada (${occInfo.proceso || "En uso"}) - No disponible`;
+            card.title = isCrossBlocked
+                ? (occInfo.blockedByIndividual
+                    ? `Máquina Inactiva: Máquina ${occInfo.blockedByIndividual} está ocupada en otra OT (${occInfo.proceso || "En uso"})`
+                    : `Máquina Inactiva: Máquina Dual ${occInfo.blockedByPair} está ocupada en otra OT`)
+                : `Máquina Ocupada (${occInfo.proceso || "En uso"}) - No disponible`;
         }
 
         const isSelected = currentSelectedValue === mach.value;
@@ -476,29 +505,36 @@ function renderMachines() {
             ? `${baseUrl}/images/${isOcc ? "Color_Icons/Generales/Bloq-Maqu-Icon.png" : "Color_Icons/Generales/Desbloc-Maq-Icon.png"}`
             : (isOcc ? "/images/Color_Icons/Generales/Bloq-Maqu-Icon.png" : "/images/Color_Icons/Generales/Desbloc-Maq-Icon.png");
 
+        let lockStatusClass = "is-unlocked";
+        if (isDirectlyOccupied) {
+            lockStatusClass = "is-locked";
+        } else if (isCrossBlocked) {
+            lockStatusClass = "is-locked is-inactive-lock";
+        }
+
         if (mach.isPaired) {
             const subLabelText = isOccupied
                 ? (occInfo.blockedByIndividual
-                    ? `En: ${occInfo.proceso || "Uso"} (M-${occInfo.blockedByIndividual})`
+                    ? `Inactiva · M-${occInfo.blockedByIndividual} en uso`
                     : (occInfo.proceso ? `En: ${occInfo.proceso}` : "Ocupada"))
                 : `Opera ${mach.shortLabel}`;
 
             const lockTitle = isOccupied
                 ? (occInfo.blockedByIndividual
-                    ? `Bloqueada porque Máquina ${occInfo.blockedByIndividual} está en uso (${occInfo.proceso || "Ocupada"})`
+                    ? `Inactiva porque Máquina ${occInfo.blockedByIndividual} está en uso en otra OT (${occInfo.proceso || "Ocupada"})`
                     : `Bloqueada (${occInfo.proceso || "Ocupada"})`)
                 : "Desbloqueada / Disponible";
 
             card.innerHTML = `
                 <div class="cm-mach-badge-paired">Dual</div>
-                ${isOccupied ? `<div class="cm-mach-badge-occupied">Ocupada</div>` : `<div class="cm-mach-badge-available">Disponible</div>`}
+                ${badgeHtml}
                 <div class="cm-mach-icon-wrap">
                     <img src="${cncIcon}" class="cm-mach-icon" alt="Máquina">
                 </div>
                 <div class="cm-mach-main-label">${mach.label}</div>
                 <div class="cm-mach-sub-label">${subLabelText}</div>
                 <img src="${lockIcon(isOccupied)}"
-                     class="cm-mach-status-icon ${isOccupied ? "is-locked" : "is-unlocked"}"
+                     class="cm-mach-status-icon ${lockStatusClass}"
                      alt="${isOccupied ? "Máquina Bloqueada" : "Máquina Desbloqueada"}"
                      title="${lockTitle}">
                 <div class="cm-mach-check-mark">&#10003;</div>
@@ -506,18 +542,18 @@ function renderMachines() {
         } else {
             const processNameText = isOccupied && occInfo.proceso
                 ? (occInfo.blockedByPair
-                    ? `En: ${occInfo.proceso} (Dual ${occInfo.blockedByPair})`
+                    ? `Inactiva · Dual ${occInfo.blockedByPair}`
                     : occInfo.proceso)
                 : "";
 
             const lockTitle = isOccupied
                 ? (occInfo.blockedByPair
-                    ? `Bloqueada porque Máquina Dual ${occInfo.blockedByPair} está en uso (${occInfo.proceso})`
+                    ? `Inactiva porque Máquina Dual ${occInfo.blockedByPair} está en uso en otra OT (${occInfo.proceso})`
                     : `Bloqueada (${occInfo.proceso || "Ocupada"})`)
                 : "Desbloqueada / Disponible";
 
             card.innerHTML = `
-                ${isOccupied ? `<div class="cm-mach-badge-occupied">Ocupada</div>` : `<div class="cm-mach-badge-available">Disponible</div>`}
+                ${badgeHtml}
                 <div class="cm-mach-icon-wrap">
                     <img src="${cncIcon}" class="cm-mach-icon" alt="Máquina">
                 </div>
@@ -525,7 +561,7 @@ function renderMachines() {
                 <div class="cm-mach-main-label">${mach.label}</div>
                 ${processNameText ? `<div class="cm-mach-process-name">${processNameText}</div>` : ""}
                 <img src="${lockIcon(isOccupied)}"
-                     class="cm-mach-status-icon ${isOccupied ? "is-locked" : "is-unlocked"}"
+                     class="cm-mach-status-icon ${lockStatusClass}"
                      alt="${isOccupied ? "Máquina Bloqueada" : "Máquina Desbloqueada"}"
                      title="${lockTitle}">
                 <div class="cm-mach-check-mark">&#10003;</div>
