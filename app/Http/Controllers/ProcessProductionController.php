@@ -1233,15 +1233,19 @@ class ProcessProductionController extends Controller
                 $endTime = $endTime->format('H:i:s');
                 $processString = $request->input('subprocess') ? $request->input('process').'_'.$request->input('subprocess') : $request->input('process');
 
-                // Liberar cualquier meta previa vacía (resultado == 0) que el operador haya dejado abierta con máquina ocupada
+                // 1 Operador = Máximo 1 Máquina activa. Liberar cualquier máquina previa asignada a este operador
+                $prevUserMetaIds = Metas::query()
+                    ->where('id_usuario', auth()->user()->matricula)
+                    ->pluck('id');
+                Maquinas::query()->whereIn('id_meta', $prevUserMetaIds)->delete();
+
+                // Liberar piezas de cualquier meta previa vacía (resultado == 0) que el operador haya dejado abierta
                 $previousEmptyMetas = Metas::query()
                     ->where('id_usuario', auth()->user()->matricula)
                     ->where('resultado', 0)
-                    ->whereIn('id', Maquinas::query()->pluck('id_meta')->filter()->toArray())
                     ->get();
 
                 foreach ($previousEmptyMetas as $prevEmptyMeta) {
-                    Maquinas::query()->where('id_meta', $prevEmptyMeta->id)->delete();
                     $prevProcess = str_contains($prevEmptyMeta->proceso, 'Operacion Equipo') ? $this->getSub_Process($prevEmptyMeta->proceso, 0) : $prevEmptyMeta->proceso;
                     $prevClass = Clase::query()->find($prevEmptyMeta->id_clase);
                     if ($prevClass) {
@@ -1397,11 +1401,31 @@ class ProcessProductionController extends Controller
             }
 
             $class = Clase::query()->find($meta->id_clase);
-            // Desocupar la máquina y cualquier duplicado vinculado a esta meta o máquina
-            if (! empty($meta->maquina)) {
-                Maquinas::query()->where('maquina', (string) $meta->maquina)->delete();
-            }
+            // Desocupar la máquina, su meta y cualquier par pareado vinculado
             Maquinas::query()->where('id_meta', $meta->id)->delete();
+            if (! empty($meta->maquina)) {
+                $machVal = (string) $meta->maquina;
+                $normalized = str_replace(' y ', '_', $machVal);
+                $spaced = str_replace('_', ' y ', $machVal);
+                Maquinas::query()->whereIn('maquina', [$machVal, $normalized, $spaced])->delete();
+
+                $pairedMap = [
+                    '1_2' => ['1', '2'], '1 y 2' => ['1', '2'],
+                    '5_6' => ['5', '6'], '5 y 6' => ['5', '6'],
+                    '25_26' => ['25', '26'], '25 y 26' => ['25', '26'],
+                    '27_28' => ['27', '28'], '27 y 28' => ['27', '28'],
+                    '1' => ['1_2', '1 y 2'], '2' => ['1_2', '1 y 2'],
+                    '5' => ['5_6', '5 y 6'], '6' => ['5_6', '5 y 6'],
+                    '25' => ['25_26', '25 y 26'], '26' => ['25_26', '25 y 26'],
+                    '27' => ['27_28', '27 y 28'], '28' => ['27_28', '27 y 28'],
+                ];
+                if (isset($pairedMap[$machVal])) {
+                    Maquinas::query()->whereIn('maquina', (array) $pairedMap[$machVal])->delete();
+                }
+                if (isset($pairedMap[$normalized])) {
+                    Maquinas::query()->whereIn('maquina', (array) $pairedMap[$normalized])->delete();
+                }
+            }
             // Desocupar piezas en la meta si es que estaban ocupadas
             $processString = str_contains($meta->proceso, 'Operacion Equipo') ? $this->getSub_Process($meta->proceso, 0) : $meta->proceso;
             $modelProcessPieces = $this->get_ModelProcessPieces($processString, $class);
@@ -3491,27 +3515,38 @@ class ProcessProductionController extends Controller
      */
     public function isMachineOccupied($targetMachine, $ignoreMetaId = null)
     {
+        // 1. Limpiar automáticamente máquinas ocupadas de turnos vencidos antes de evaluar
+        \App\Http\Controllers\MachinesController::cleanupExpiredMachines();
+
         $target = trim((string) $targetMachine);
         if ($target === '') {
             return null;
         }
 
-        $conflicting = [$target];
+        $normalizedTarget = str_replace(' y ', '_', $target);
+        $spacedTarget = str_replace('_', ' y ', $target);
+        $conflicting = [$target, $normalizedTarget, $spacedTarget];
 
-        // Mapeo cruzado de máquinas pareadas/duales oficiales
+        // Mapeo cruzado de máquinas pareadas/duales oficiales (soportando tanto 1_2 como 1 y 2)
         $pairedMap = [
-            '1' => '1_2', '2' => '1_2', '1_2' => ['1', '2', '1_2'],
-            '5' => '5_6', '6' => '5_6', '5_6' => ['5', '6', '5_6'],
-            '25' => '25_26', '26' => '25_26', '25_26' => ['25', '26', '25_26'],
-            '27' => '27_28', '28' => '27_28', '27_28' => ['27', '28', '27_28'],
+            '1' => ['1_2', '1 y 2'], '2' => ['1_2', '1 y 2'],
+            '1_2' => ['1', '2', '1_2', '1 y 2'], '1 y 2' => ['1', '2', '1_2', '1 y 2'],
+            '5' => ['5_6', '5 y 6'], '6' => ['5_6', '5 y 6'],
+            '5_6' => ['5', '6', '5_6', '5 y 6'], '5 y 6' => ['5', '6', '5_6', '5 y 6'],
+            '25' => ['25_26', '25 y 26'], '26' => ['25_26', '25 y 26'],
+            '25_26' => ['25', '26', '25_26', '25 y 26'], '25 y 26' => ['25', '26', '25_26', '25 y 26'],
+            '27' => ['27_28', '27 y 28'], '28' => ['27_28', '27 y 28'],
+            '27_28' => ['27', '28', '27_28', '27 y 28'], '27 y 28' => ['27', '28', '27_28', '27 y 28'],
         ];
 
         if (isset($pairedMap[$target])) {
-            $mapped = (array) $pairedMap[$target];
-            $conflicting = array_unique(array_merge($conflicting, $mapped));
+            $conflicting = array_merge($conflicting, (array) $pairedMap[$target]);
+        }
+        if (isset($pairedMap[$normalizedTarget])) {
+            $conflicting = array_merge($conflicting, (array) $pairedMap[$normalizedTarget]);
         }
 
-        $query = Maquinas::query()->whereIn('maquina', $conflicting);
+        $query = Maquinas::query()->whereIn('maquina', array_unique($conflicting));
         if ($ignoreMetaId) {
             $query->where('id_meta', '!=', $ignoreMetaId);
         }
