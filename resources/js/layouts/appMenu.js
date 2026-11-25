@@ -656,10 +656,9 @@ function getRoutes(profile) {
 
     switch (profile) {
         case "1":
-        case "2":
         case "10":
         case "0":
-            // ── 1, 2, 10 & 0: MASTER, ADMINISTRADOR & SISTEMAS (Máxima Jerarquía Global: Acceso Total a Todos los Módulos) ──
+            // ── 1, 10 & 0: MASTER & SISTEMAS (Máxima Jerarquía Global: Acceso Total a Todos los Módulos) ──
             sections = [
                 {
                     title: null,
@@ -683,6 +682,66 @@ function getRoutes(profile) {
                 {
                     title: "Almacén",
                     routes: almacenSections,
+                },
+            ];
+            break;
+
+        case "2":
+            // ── 2: ADMINISTRADOR (Prioridades solo lectura, Molduras, OT sin Prog/Lib, Usuarios, Auditoría, Reportes, Herramientas) ──
+            sections = [
+                {
+                    title: null,
+                    routes: [routeHome],
+                },
+                {
+                    title: "Prioridades",
+                    routes: [
+                        ["masterPriorities", "Prioridades GIS"],
+                        ["masterPrioritiesDisabled", "Prioridades Desactivadas"],
+                    ],
+                },
+                {
+                    title: "Molduras",
+                    routes: [
+                        ["createMolding", "Crear nueva moldura"],
+                        ["editMolding", "Editar moldura"],
+                    ],
+                },
+                {
+                    title: "Orden de Trabajo",
+                    routes: [
+                        ["createMasterWO", "Crear o Modificar Orden de Trabajo"],
+                        ["piecesInProgress", "Orden de Trabajo en Progreso"],
+                        ["showPiecesReport_view", "Reporte de piezas"],
+                    ],
+                },
+                {
+                    title: "Usuarios",
+                    routes: [
+                        ["users", "Ver usuarios"],
+                        ["usersOrganigrama", "Organigrama"],
+                        ["createUser", "Registrar usuario"],
+                        ["recoverPassword", "Recuperar contraseña"],
+                    ],
+                },
+                {
+                    title: "Producción",
+                    routes: [
+                        ["systemLogsReport", "Auditoría de Producción"],
+                    ],
+                },
+                {
+                    title: "Reportes",
+                    routes: [
+                        ["reportes.reenvio", "Reenviar Reporte Diario"],
+                        ["reportes.pta", "Envío de Reportes PTA"],
+                    ],
+                },
+                {
+                    title: "Herramientas",
+                    routes: [
+                        ["herramientas.tecamac.index", "Herramientas Planta Tecámac"],
+                    ],
                 },
             ];
             break;
@@ -712,6 +771,7 @@ function getRoutes(profile) {
                     title: "Orden de Trabajo",
                     routes: [
                         ["createMasterWO", "Crear o Modificar Orden de Trabajo"],
+                        ["manageWO", "Programación de O.T"],
                         ["piecesInProgress", "Orden de Trabajo en Progreso"],
                         ["showPiecesReport_view", "Reporte de piezas"],
                         ["showReleasePieces_view", "Liberación de piezas"],
@@ -736,6 +796,7 @@ function getRoutes(profile) {
                         ["machinesOccupied", "Máquinas ocupadas"],
                         ["piecesOccupied", "Piezas ocupadas"],
                         ["systemLogsReport", "Auditoría de Producción"],
+                        ["adminLogsReport", "Logs de Administradores"],
                     ],
                 },
                 {
@@ -762,7 +823,7 @@ function getRoutes(profile) {
             break;
 
         case "4":
-            // ── 4: INGENIERÍA (Prioridades, Programación OT, OT en progreso, Documentación Técnica) ──
+            // ── 4: INGENIERÍA (Prioridades, OT en progreso, Documentación Técnica sin Programas CNC) ──
             sections = [
                 {
                     title: null,
@@ -778,7 +839,6 @@ function getRoutes(profile) {
                 {
                     title: "Orden de Trabajo",
                     routes: [
-                        ["manageWO", "Programación de O.T"],
                         ["piecesInProgress", "Orden de Trabajo en Progreso"],
                     ],
                 },
@@ -789,7 +849,6 @@ function getRoutes(profile) {
                         ["ayudas.manage", "Ayudas Visuales de Maquinados"],
                         ["fundicion.manage", "Dibujos de Fundición"],
                         ["dibujos.manage", "Dibujos de Maquinados"],
-                        ["programas.manage", "Programas CNC"],
                         ["manuales.manage", "Manuales de Procesos"],
                     ],
                 },
@@ -853,11 +912,18 @@ function getRoutes(profile) {
             break;
 
         case "6":
-            // ── 6: VENTAS (Molduras, Crear/Modificar OT, OT en progreso) ──
+            // ── 6: VENTAS (Prioridades, Molduras, Crear/Modificar OT, OT en progreso) ──
             sections = [
                 {
                     title: null,
                     routes: [routeHome],
+                },
+                {
+                    title: "Prioridades",
+                    routes: [
+                        ["masterPriorities", "Prioridades GIS"],
+                        ["masterPrioritiesDisabled", "Prioridades Desactivadas"],
+                    ],
                 },
                 {
                     title: "Molduras",

@@ -252,7 +252,7 @@
 @isset($pieces_Released)
     @php
         $userObj = auth()->user();
-        $isQualityStaff = $userObj && in_array((string) $userObj->perfil, ['1', '2', '3', '4', '8', '10', '0'], true);
+        $isQualityStaff = $userObj && in_array((string) $userObj->perfil, ['1', '3', '8', '10', '0'], true);
     @endphp
     <script>
         window.pieces_Released = ({{ $isQualityStaff ? '1' : '0' }}) ? @json($pieces_Released) : [];

@@ -28,26 +28,29 @@ class HomeController extends Controller
             $welcomeT = 'Bienvenido a Administración';
             switch ((int) auth()->user()->perfil) {
                 case 1:
-                    $layout = 'layouts.menu.appAdmin';
-                    $welcomeT = 'Bienvenido a Administración';
+                    $layout = 'layouts.menu.appMaster';
+                    $backgroundImage = 'images/fondos/fondo master.png';
+                    $welcomeT = 'Bienvenido Master';
                     break;
                 case 2:
+                    $layout = 'layouts.menu.appAdmin';
+                    $backgroundImage = 'images/fondos/fondoadmin.png';
+                    $welcomeT = 'Bienvenido a Administración';
+                    break;
                 case 9:
                     $layout = 'layouts.menu.appProduction';
                     $backgroundImage = 'images/Color_Icons/Usuarios/operadores.png';
                     $welcomeT = 'Bienvenido a Producción';
                     break;
                 case 3:
-                    $layout = 'layouts.menu.appMaster';
-                    $backgroundImage = 'images/fondos/fondo master.png';
-                    $welcomeT = 'Bienvenido Master';
+                    $layout = 'layouts.menu.appAdmin';
+                    $backgroundImage = 'images/fondos/fondoadmin.png';
+                    $welcomeT = 'Bienvenido Supervisor';
                     break;
                 case 4:
-                    $layout = 'layouts.menu.appQuality';
-                    $backgroundImage = 'images/fondos/fondocalidad.png';
-                    $welcomeT = 'Bienvenido a Control de calidad';
-                    $objectiveT = 'En nuestro perfil de calidad, cada milímetro importa. Nos comprometemos a inspeccionar con precisión cada pieza, asegurando medidas exactas y calidad impecable. En la búsqueda constante de la excelencia, nos destacamos por nuestra meticulosidad y compromiso con la perfección.';
-                    [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
+                    $layout = 'layouts.menu.appAdmin';
+                    $backgroundImage = 'images/fondos/fondoadmin.png';
+                    $welcomeT = 'Bienvenido a Ingeniería';
                     break;
                 case 5:
                     $layout = 'layouts.menu.appAdmin';
@@ -56,7 +59,7 @@ class HomeController extends Controller
                     break;
                 case 6:
                     $layout = 'layouts.menu.appAdmin';
-                    $welcomeT = 'Bienvenido Supervisor';
+                    $welcomeT = 'Bienvenido a Ventas';
                     break;
                 case 7:
                     $layout = 'layouts.menu.appAdmin';
@@ -71,8 +74,9 @@ class HomeController extends Controller
                     [$pieces_Released, $info_Pieces] = $this->releasedPiecesController->piecesToBeReleased();
                     break;
                 case 10:
+                case 0:
                     $layout = 'layouts.menu.appAdmin';
-                    $welcomeT = 'Bienvenido a Administración';
+                    $welcomeT = 'Bienvenido a Sistemas';
                     break;
                 default:
                     $layout = 'layouts.menu.appAdmin';

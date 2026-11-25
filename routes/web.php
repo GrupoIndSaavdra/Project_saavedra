@@ -90,7 +90,7 @@ Route::controller(WOController::class)->group(function () {
         Route::post('/master/storeWO', 'storeMasterWO')->name('storeMasterWO');
         Route::post('/master/updateWO', 'updateMasterWO')->name('updateMasterWO');
     });
-    Route::middleware(['auth', 'perfil:1,2,3,4,5,7,8,10'])->group(function () {
+    Route::middleware(['auth', 'perfil:1,2,3,4,5,6,7,8,10'])->group(function () {
         Route::get('/master/prioridades', 'prioritiesView')->name('master.priorities');
         Route::get('/master/prioridades/archivos/disponibilidad', [PriorityDocumentsController::class, 'availability'])
             ->name('master.priorities.documents.availability');
@@ -105,7 +105,7 @@ Route::controller(WOController::class)->group(function () {
         Route::get('/master/prioridades/desactivadas', 'prioritiesDisabledView')->name('master.priorities.disabled');
         Route::get('/master/prioridades/desactivadas/pdf', 'downloadPrioritiesDisabledPdf')->name('master.priorities.disabled.pdf');
     });
-    Route::middleware(['auth', 'perfil:1,2,3,10'])->group(function () {
+    Route::middleware(['auth', 'perfil:1,6,10'])->group(function () {
         Route::post('/master/prioridades/autosave', 'autosavePriority')->name('master.priorities.autosave');
         Route::post('/master/prioridades/deactivate', 'deactivatePriorities')->name('master.priorities.deactivate');
         Route::post('/master/prioridades/reactivate', 'reactivatePriorities')->name('master.priorities.reactivate');
@@ -147,7 +147,7 @@ Route::controller(ClassController::class)->group(function () {
 });
 
 //Grupo de rutas para el controlador ProcesosController (Cotas Nominales y Tolerancias)
-Route::middleware(['auth', 'perfil:1,2,3,5,8,10'])->controller(ProcessesController::class)->group(function () {
+Route::middleware(['auth', 'perfil:1,3,5,8,10'])->controller(ProcessesController::class)->group(function () {
     Route::get('/cNominals', 'show_cNominalsView')->name('cNominals'); //Ruta para la interfaz de los procesos para editar las cotas nominales y tolerancias
     Route::post('/cNominals/store', 'storeCNominalsData')->name('storeCNominals'); //Ruta para la interfaz de los procesos para guardar las cotas nominales y tolerancias
 });
@@ -211,8 +211,8 @@ Route::middleware(['auth', 'perfil:1,2,3,10'])->controller(MachinesController::c
     Route::match(['get', 'post'], '/machinesOccupied/freeUp', 'freeUp')->name('freeUp'); //Desocupar máquina
 });
 
-//Rutas para el controlador de PiecesOccupiedController (Master, Admin, Supervisor, Diseño y Programación, Sistemas)
-Route::middleware(['auth', 'perfil:1,2,3,5,10'])->controller(\App\Http\Controllers\PiecesOccupiedController::class)->group(function () {
+//Rutas para el controlador de PiecesOccupiedController (Master, Supervisor, Diseño y Programación, Sistemas)
+Route::middleware(['auth', 'perfil:1,3,5,10'])->controller(\App\Http\Controllers\PiecesOccupiedController::class)->group(function () {
     Route::get('/piecesOccupied', 'show')->name('piecesOccupied');
     Route::get('/piecesOccupied/classes', 'getClassesByOt')->name('piecesOccupied.classes');
     Route::post('/piecesOccupied/piecesByContext', 'getPiecesByContext')->name('piecesOccupied.piecesByContext');
@@ -413,7 +413,7 @@ Route::middleware(['auth'])->prefix('dibujos')->name('dibujos.')->group(function
     Route::get('/serve', [DibujosPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('dibujos')->name('dibujos.')->group(function () {
+Route::middleware(['auth', 'perfil:1,3,4,5,10'])->prefix('dibujos')->name('dibujos.')->group(function () {
 
     // ── Vista de administración ──
     Route::get('/manage', [DibujosPdfController::class, 'showManage'])
@@ -449,7 +449,7 @@ Route::middleware(['auth'])->prefix('fundicion')->name('fundicion.')->group(func
     Route::get('/serve', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('fundicion')->name('fundicion.')->group(function () {
+Route::middleware(['auth', 'perfil:1,3,4,5,10'])->prefix('fundicion')->name('fundicion.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\DibujosFundicionPdfController::class, 'createFolder'])->name('createFolder');
@@ -476,8 +476,8 @@ Route::middleware(['auth'])->prefix('programas')->name('programas.')->group(func
     Route::get('/procesos-clase',   [ProgramasCncController::class, 'getProcesosForClase'])->name('procesos_clase');
 });
 
-// ── Rutas protegidas (CRUD, Master/Admin/Supervisor/Ingeniería/Diseño/Sistemas) ──
-Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('programas')->name('programas.')->group(function () {
+// ── Rutas protegidas (CRUD, Master/Supervisor/Diseño/Sistemas) ──
+Route::middleware(['auth', 'perfil:1,3,5,10'])->prefix('programas')->name('programas.')->group(function () {
     Route::get('/manage',           [ProgramasCncController::class, 'showManage'])->name('manage');
     Route::get('/log',              [ProgramasCncController::class, 'getLog'])->name('log');
     Route::post('/createFolder',    [ProgramasCncController::class, 'createFolder'])->name('createFolder');
@@ -593,7 +593,7 @@ Route::middleware(['auth'])->prefix('manuales')->name('manuales.')->group(functi
     Route::get('/serve', [\App\Http\Controllers\ManualesPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('manuales')->name('manuales.')->group(function () {
+Route::middleware(['auth', 'perfil:1,3,4,5,10'])->prefix('manuales')->name('manuales.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\ManualesPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\ManualesPdfController::class, 'createFolder'])->name('createFolder');
@@ -615,7 +615,7 @@ Route::middleware(['auth'])->prefix('ayudas')->name('ayudas.')->group(function (
     Route::get('/serve', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('ayudas')->name('ayudas.')->group(function () {
+Route::middleware(['auth', 'perfil:1,3,4,5,10'])->prefix('ayudas')->name('ayudas.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\AyudasVisualesPdfController::class, 'createFolder'])->name('createFolder');
@@ -637,7 +637,7 @@ Route::middleware(['auth'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.
     Route::get('/serve', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'serveFile'])->name('serve');
 });
 
-Route::middleware(['auth', 'perfil:1,2,3,4,5,10'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
+Route::middleware(['auth', 'perfil:1,3,4,5,10'])->prefix('ayudas_fundicion')->name('ayudas_fundicion.')->group(function () {
     Route::get('/manage', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'showManage'])->name('manage');
     
     Route::post('/createFolder', [\App\Http\Controllers\AyudasVisualesFundicionPdfController::class, 'createFolder'])->name('createFolder');
