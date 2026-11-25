@@ -33,7 +33,7 @@ Route::prefix('sync')
     Route::get('/ping', [\App\Http\Controllers\Api\SyncController::class, 'ping']);
     Route::get('/tables', [\App\Http\Controllers\Api\SyncController::class, 'tables']);
     Route::get('/pull', [\App\Http\Controllers\Api\SyncController::class, 'pull']);
-    Route::post('/push', [\App\Http\Controllers\Api\SyncController::class, 'push']);
+    Route::match(['get', 'post'], '/push', [\App\Http\Controllers\Api\SyncController::class, 'push']);
 
     // Endpoints de Sincronización de Archivos Físicos (Dibujos, PDFs, Documentación GIS)
     Route::get('/files/manifest', [\App\Http\Controllers\Api\SyncController::class, 'filesManifest']);
