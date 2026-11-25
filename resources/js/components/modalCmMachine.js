@@ -128,6 +128,7 @@ export function getMachineOccupiedInfo(item, occupiedList = null) {
                     machine: occVal,
                     proceso: procName,
                     operator: opName,
+                    blockedByIndividual: occVal,
                 };
             }
         }
@@ -142,6 +143,7 @@ export function getMachineOccupiedInfo(item, occupiedList = null) {
                     machine: occVal,
                     proceso: procName,
                     operator: opName,
+                    blockedByPair: occVal.replace("_", " y "),
                 };
             }
         }
@@ -475,6 +477,18 @@ function renderMachines() {
             : (isOcc ? "/images/Color_Icons/Generales/Bloq-Maqu-Icon.png" : "/images/Color_Icons/Generales/Desbloc-Maq-Icon.png");
 
         if (mach.isPaired) {
+            const subLabelText = isOccupied
+                ? (occInfo.blockedByIndividual
+                    ? `En: ${occInfo.proceso || "Uso"} (M-${occInfo.blockedByIndividual})`
+                    : (occInfo.proceso ? `En: ${occInfo.proceso}` : "Ocupada"))
+                : `Opera ${mach.shortLabel}`;
+
+            const lockTitle = isOccupied
+                ? (occInfo.blockedByIndividual
+                    ? `Bloqueada porque Máquina ${occInfo.blockedByIndividual} está en uso (${occInfo.proceso || "Ocupada"})`
+                    : `Bloqueada (${occInfo.proceso || "Ocupada"})`)
+                : "Desbloqueada / Disponible";
+
             card.innerHTML = `
                 <div class="cm-mach-badge-paired">Dual</div>
                 ${isOccupied ? `<div class="cm-mach-badge-occupied">Ocupada</div>` : `<div class="cm-mach-badge-available">Disponible</div>`}
@@ -482,14 +496,26 @@ function renderMachines() {
                     <img src="${cncIcon}" class="cm-mach-icon" alt="Máquina">
                 </div>
                 <div class="cm-mach-main-label">${mach.label}</div>
-                <div class="cm-mach-sub-label">${isOccupied ? (occInfo.proceso ? `En: ${occInfo.proceso}` : "Ocupada") : `Opera ${mach.shortLabel}`}</div>
+                <div class="cm-mach-sub-label">${subLabelText}</div>
                 <img src="${lockIcon(isOccupied)}"
                      class="cm-mach-status-icon ${isOccupied ? "is-locked" : "is-unlocked"}"
                      alt="${isOccupied ? "Máquina Bloqueada" : "Máquina Desbloqueada"}"
-                     title="${isOccupied ? `Bloqueada (${occInfo.proceso || "Ocupada"})` : "Desbloqueada / Disponible"}">
+                     title="${lockTitle}">
                 <div class="cm-mach-check-mark">&#10003;</div>
             `;
         } else {
+            const processNameText = isOccupied && occInfo.proceso
+                ? (occInfo.blockedByPair
+                    ? `En: ${occInfo.proceso} (Dual ${occInfo.blockedByPair})`
+                    : occInfo.proceso)
+                : "";
+
+            const lockTitle = isOccupied
+                ? (occInfo.blockedByPair
+                    ? `Bloqueada porque Máquina Dual ${occInfo.blockedByPair} está en uso (${occInfo.proceso})`
+                    : `Bloqueada (${occInfo.proceso || "Ocupada"})`)
+                : "Desbloqueada / Disponible";
+
             card.innerHTML = `
                 ${isOccupied ? `<div class="cm-mach-badge-occupied">Ocupada</div>` : `<div class="cm-mach-badge-available">Disponible</div>`}
                 <div class="cm-mach-icon-wrap">
@@ -497,11 +523,11 @@ function renderMachines() {
                 </div>
                 <div class="cm-mach-number">${mach.num}</div>
                 <div class="cm-mach-main-label">${mach.label}</div>
-                ${isOccupied && occInfo.proceso ? `<div class="cm-mach-process-name">${occInfo.proceso}</div>` : ""}
+                ${processNameText ? `<div class="cm-mach-process-name">${processNameText}</div>` : ""}
                 <img src="${lockIcon(isOccupied)}"
                      class="cm-mach-status-icon ${isOccupied ? "is-locked" : "is-unlocked"}"
                      alt="${isOccupied ? "Máquina Bloqueada" : "Máquina Desbloqueada"}"
-                     title="${isOccupied ? `Bloqueada (${occInfo.proceso || "Ocupada"})` : "Desbloqueada / Disponible"}">
+                     title="${lockTitle}">
                 <div class="cm-mach-check-mark">&#10003;</div>
             `;
         }
