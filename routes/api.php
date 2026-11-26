@@ -32,6 +32,7 @@ Route::prefix('sync')
     ->group(function () {
     Route::get('/ping', [\App\Http\Controllers\Api\SyncController::class, 'ping']);
     Route::get('/tables', [\App\Http\Controllers\Api\SyncController::class, 'tables']);
+    Route::post('/changes', [\App\Http\Controllers\Api\SyncController::class, 'changes']);
     Route::get('/pull', [\App\Http\Controllers\Api\SyncController::class, 'pull']);
     Route::match(['get', 'post'], '/push', [\App\Http\Controllers\Api\SyncController::class, 'push']);
 
