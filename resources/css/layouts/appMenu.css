@@ -499,7 +499,7 @@ body {
 
 /* Modales globales (SweetAlert2 y overlays): filtro azul corporativo sin blur */
 .swal2-container {
-    z-index: 2147483647 !important;
+    z-index: 2147483646 !important;
 }
 
 .swal2-container.swal2-center.swal2-backdrop-show,

@@ -4,16 +4,26 @@ namespace App\Http\Controllers;
 
 use App\Models\Clase;
 use App\Models\Metas;
+use App\Models\Orden_trabajo;
+use App\Models\SoldaduraPTA;
 use App\Models\SoldaduraPTA_pza;
 use App\Models\SystemLog;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class SoldaduraPTAController extends Controller
 {
+    public const PROGRAMAS_PTA_DIR = 'DOCUMENTACION_GIS/PROGRAMAS_SOLDADURA_PTA';
+
+    private const BLOCKED_EXTENSIONS = ['php', 'phtml', 'phar'];
+
     /**
-     * Tipos de sub-fila, en orden de aparición en la tabla.
-     * Cada pieza (M o H) genera exactamente 3 registros en soldaduraPTA_pza.
+     * Tipos de sub-fila legacy (en orden de aparición en registros históricos).
+     * Las capturas nuevas simplificadas usan un único registro por pieza ('D_Conexion_pico').
      */
     const TIPOS_MEDIDA = ['D_Conexion_pico', 'D_Conexion_obt', 'Perfilado'];
 
@@ -100,45 +110,48 @@ class SoldaduraPTAController extends Controller
                 continue;
             }
 
-            $tipo = $request->tipo_medida[$key] ?? null;
+            $tipo = $request->tipo_medida[$key] ?? $piece->tipo_medida ?? 'D_Conexion_pico';
+            $resultado = $request->resultado[$key] ?? null;
+            $observaciones = $request->observaciones[$key] ?? null;
+            $rawPrograma = $request->programa_pta[$key] ?? null;
+            $programaPta = ($rawPrograma && $this->isSafeProgramPath($rawPrograma)) ? $rawPrograma : null;
 
-            // ── Campos comunes a las 3 sub-filas (1ra pasada) ──
+            $ptaParent = SoldaduraPTA::query()->find($piece->id_proceso);
+            if (! $programaPta && $ptaParent && $ptaParent->programa_pta && $this->isSafeProgramPath($ptaParent->programa_pta)) {
+                $programaPta = $ptaParent->programa_pta;
+            }
+
+            $isBad = in_array($resultado, ['En mal estado', 'Mal'], true);
+
             $piece->tipo_medida = $tipo;
-            $piece->vl = $request->vl[$key] ?? null;
-            $piece->tipo_preparacion = $request->tipo_preparacion[$key] ?? null;
-            $piece->sold_inicial = $request->sold_inicial[$key] ?? null;
-            $piece->sold_aplicada = $request->sold_aplicada[$key] ?? null;
-            $piece->sold_final = $request->sold_final[$key] ?? null;
-            $piece->corr_inicial = $request->corr_inicial[$key] ?? null;
-            $piece->corr_aplicada = $request->corr_aplicada[$key] ?? null;
-            $piece->corr_final = $request->corr_final[$key] ?? null;
-            $piece->gas_argon = $request->gas_argon[$key] ?? null;
-            $piece->velocidad_calculada = $request->velocidad_calculada[$key] ?? null;
-            $piece->resultado = $request->resultado[$key] ?? null;
+            $piece->resultado = $resultado;
             $piece->defecto_pta = $request->defecto_pta[$key] ?? 'Ninguno';
+            $piece->error = $isBad ? 'Maquinado' : 'Ninguno';
 
-            // Mantener campo 'error' (legacy) sincronizado con defecto_pta
-            $piece->error = $piece->defecto_pta;
-
-            // ── Campo de valor principal según tipo_medida (1ra pasada) ──
-            if ($tipo === 'D_Conexion_pico') {
-                $piece->d_conexion_pico = $request->d_conexion_pico[$key] ?? null;
-                $piece->precalentamiento = $request->precalentamiento[$key] ?? null;
-                $piece->observaciones = $request->observaciones[$key] ?? null;
-                $piece->material_soldadura = $request->material_soldadura[$key] ?? null;
-            } elseif ($tipo === 'D_Conexion_obt') {
-                $piece->d_conexion_obt = $request->d_conexion_obt[$key] ?? null;
-            } elseif ($tipo === 'Perfilado') {
-                $piece->perfilado = $request->perfilado[$key] ?? null;
+            if ($tipo === 'D_Conexion_pico' || count($sortedIds) === 1) {
+                $piece->observaciones = $observaciones;
+                $piece->programa_pta = $programaPta;
             }
 
             $piece->estado = 2;
             $piece->save();
 
-            // ── REGISTRO DE LOG OFICIAL (Consolidado por Juego: Solo en Hembra) ──
+            // ── Persistencia sticky del programa utilizado para todas las piezas PTA pendientes ──
+            if ($programaPta) {
+                if ($ptaParent && $ptaParent->programa_pta !== $programaPta) {
+                    $ptaParent->programa_pta = $programaPta;
+                    $ptaParent->save();
+                }
+                SoldaduraPTA_pza::query()
+                    ->where('id_proceso', '=', $piece->id_proceso, 'and')
+                    ->where('estado', '=', 1, 'and')
+                    ->update(['programa_pta' => $programaPta]);
+            }
+
+            // ── REGISTRO DE LOG OFICIAL (Consolidado por Juego: Solo en Hembra o Juego completo) ──
             $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
             $meta = Metas::query()->where('id', '=', $piece->id_meta, 'and')->first();
-            $clase = Clase::query()->where('id', '=', $meta->id_clase, 'and')->first();
+            $clase = $meta ? Clase::query()->where('id', '=', $meta->id_clase, 'and')->first() : null;
             $otFull = $clase ? ($clase->id_ot.' - '.$clase->tamanio) : ($meta->id_ot ?? 'N/A');
 
             if ($tipo === 'D_Conexion_pico' && (str_ends_with(strtoupper($nPiezaRef), 'H') || str_ends_with(strtoupper($nPiezaRef), 'J'))) {
@@ -187,13 +200,10 @@ class SoldaduraPTAController extends Controller
             }
 
             // ── 2da pasada (Se crea un ROW separado para toda la pieza) ──
-            // Solo lo hacemos UNA VEZ por pieza ($nPiezaRef), usando la iteración de la primera fila
-            // (D_Conexion_pico) como ancla para no crear 3 filas de 2da pasada.
             $nPiezaRef = $request->n_pieza_ref[$key] ?? $piece->n_pieza;
             $p2Activa = $nPiezaRef ? ($request->input("p2_activa.{$nPiezaRef}") === '1') : false;
 
             if ($tipo === 'D_Conexion_pico' && $p2Activa && $nPiezaRef) {
-                // Buscar si ya existe la fila de 2da pasada para esta pieza
                 $p2Row = SoldaduraPTA_pza::query()->where('id_proceso', '=', $piece->id_proceso, 'and')
                     ->where('n_pieza', '=', $nPiezaRef, 'and')
                     ->where('p2_activa', '=', 1, 'and')
@@ -202,7 +212,6 @@ class SoldaduraPTAController extends Controller
                 if (! $p2Row) {
                     $p2Row = new SoldaduraPTA_pza();
                     $p2Row->id_proceso = $piece->id_proceso;
-                    // Sufijo para evitar error UNIQUE CONSTRAINT al crear esta 4ta fila
                     $p2Row->id_pza = $piece->id_pza.'_P2';
                     $p2Row->id_meta = $piece->id_meta;
                     $p2Row->n_juego = $piece->n_juego;
@@ -211,8 +220,7 @@ class SoldaduraPTAController extends Controller
                     $p2Row->estado = 2;
                 }
 
-                // Todas las columnas principales de la 1ra pasada en Null (para que en el reporte salgan vacías)
-                $p2Row->tipo_medida = 'Segunda_Pasada'; // Marca para diferenciarlo de las 3 medidas normales
+                $p2Row->tipo_medida = 'Segunda_Pasada';
                 $p2Row->d_conexion_pico = null;
                 $p2Row->d_conexion_obt = null;
                 $p2Row->vl = null;
@@ -229,38 +237,23 @@ class SoldaduraPTAController extends Controller
                 $p2Row->velocidad_calculada = null;
                 $p2Row->resultado = null;
                 $p2Row->defecto_pta = null;
-
-                // Estos ya eran nullable en la base original
                 $p2Row->temp_calentado = null;
                 $p2Row->temp_dispositivo = null;
                 $p2Row->limpieza = null;
-                $p2Row->error = 'Ninguno';
                 $p2Row->observaciones = null;
 
-                // ── Llenar las columnas p2_* ──
-                $p2Row->p2_vl = $request->input("p2_vl.{$nPiezaRef}");
-                $p2Row->p2_tipo_preparacion = $request->input("p2_tipo_preparacion.{$nPiezaRef}");
-                $p2Row->material_soldadura = $request->input("p2_material_soldadura.{$nPiezaRef}");
-                $p2Row->p2_precalentamiento = $request->input("p2_precalentamiento.{$nPiezaRef}");
-                $p2Row->p2_sold_inicial = $request->input("p2_sold_inicial.{$nPiezaRef}");
-                $p2Row->p2_sold_aplicada = $request->input("p2_sold_aplicada.{$nPiezaRef}");
-                $p2Row->p2_sold_final = $request->input("p2_sold_final.{$nPiezaRef}");
-                $p2Row->p2_corr_inicial = $request->input("p2_corr_inicial.{$nPiezaRef}");
-                $p2Row->p2_corr_aplicada = $request->input("p2_corr_aplicada.{$nPiezaRef}");
-                $p2Row->p2_corr_final = $request->input("p2_corr_final.{$nPiezaRef}");
-                $p2Row->p2_gas_argon = $request->input("p2_gas_argon.{$nPiezaRef}");
-                $p2Row->p2_velocidad_calculada = $request->input("p2_velocidad_calculada.{$nPiezaRef}");
-                $p2Row->p2_resultado = $request->input("p2_resultado.{$nPiezaRef}");
-                $p2Row->p2_defecto_pta = $request->input("p2_defecto_pta.{$nPiezaRef}", 'Ninguno');
+                $p2Resultado = $request->input("p2_resultado.{$nPiezaRef}");
+                $p2IsBad = in_array($p2Resultado, ['En mal estado', 'Mal'], true);
+                $rawP2Prog = $request->input("p2_programa_pta.{$nPiezaRef}");
+                $p2Programa = ($rawP2Prog && $this->isSafeProgramPath($rawP2Prog))
+                    ? $rawP2Prog
+                    : ($piece->programa_pta ?? null);
+
+                $p2Row->p2_resultado = $p2Resultado;
+                $p2Row->p2_defecto_pta = 'Ninguno';
+                $p2Row->error = $p2IsBad ? 'Maquinado' : 'Ninguno';
                 $p2Row->p2_observaciones = $request->input("p2_observaciones.{$nPiezaRef}");
-
-                // Mapear el valor principal según el select 'p2_tipo_medida'
-                $p2Tipo = $request->input("p2_tipo_medida.{$nPiezaRef}");
-                $p2Val = $request->input("p2_valor.{$nPiezaRef}");
-
-                $p2Row->p2_d_conexion_pico = ($p2Tipo === 'D_Conexion_pico') ? $p2Val : null;
-                $p2Row->p2_d_conexion_obt = ($p2Tipo === 'D_Conexion_obt') ? $p2Val : null;
-                $p2Row->p2_perfilado = ($p2Tipo === 'Perfilado') ? $p2Val : null;
+                $p2Row->p2_programa_pta = $p2Programa;
 
                 $p2Row->save();
 
@@ -281,7 +274,6 @@ class SoldaduraPTAController extends Controller
                     'id_clase' => $meta->id_clase,
                 ]);
             } elseif ($tipo === 'D_Conexion_pico' && ! $p2Activa && $nPiezaRef) {
-                // Si el checkbox se desmarca, se puede borrar la fila de 2da pasada si existía
                 SoldaduraPTA_pza::query()->where('id_proceso', '=', $piece->id_proceso, 'and')
                     ->where('n_pieza', '=', $nPiezaRef, 'and')
                     ->where('p2_activa', '=', 1, 'and')
@@ -383,5 +375,337 @@ class SoldaduraPTAController extends Controller
 
             $piece->save();
         }
+    }
+
+    /**
+     * Lista programas de Soldadura PTA dentro de DOCUMENTACION_GIS/PROGRAMAS_SOLDADURA_PTA,
+     * creando automáticamente la carpeta OT / Clase actual si no existe.
+     */
+    public function listPrograms(Request $request)
+    {
+        try {
+            $otId = (string) $request->query('ot_id', '');
+            $claseId = $request->query('clase_id');
+            $idProceso = $request->query('id_proceso');
+
+            if ($otId === '') {
+                return response()->json(['success' => false, 'message' => 'OT requerida.'], 422);
+            }
+
+            $otModel = Orden_trabajo::query()->with('moldura')->find($otId);
+            if (! $otModel) {
+                return response()->json(['success' => false, 'message' => 'Orden de trabajo no encontrada.'], 404);
+            }
+
+            $claseModel = $claseId ? Clase::query()->find($claseId) : null;
+            $disk = Storage::disk('local');
+
+            if (! $disk->exists(self::PROGRAMAS_PTA_DIR)) {
+                $disk->makeDirectory(self::PROGRAMAS_PTA_DIR);
+            }
+
+            $otFolder = $this->resolvePtaOtFolder($otModel);
+            $claseFolder = $this->resolvePtaClaseFolder($otFolder, $claseModel?->nombre ?? 'GENERAL');
+            $currentDir = self::PROGRAMAS_PTA_DIR.'/'.$otFolder.'/'.$claseFolder;
+
+            if (! $disk->exists($currentDir)) {
+                $disk->makeDirectory($currentDir);
+            }
+
+            $activeProgram = null;
+            if ($idProceso) {
+                $activeProgram = SoldaduraPTA::query()->where('id', '=', $idProceso, 'and')->value('programa_pta');
+            } elseif ($claseModel) {
+                $procStr = 'Soldadura_PTA_'.str_replace(' ', '_', $claseModel->nombre).'_'.$otModel->id;
+                $activeProgram = SoldaduraPTA::query()->where('id_proceso', '=', $procStr, 'and')->value('programa_pta');
+            }
+
+            $currentFiles = $this->readPtaDirectoryFiles($disk, $currentDir, $otFolder, $claseFolder);
+
+            // Escanear todas las carpetas de OTs dentro de PROGRAMAS_SOLDADURA_PTA (sin salir de esa raíz)
+            $allOts = [];
+            foreach ($disk->directories(self::PROGRAMAS_PTA_DIR) as $otDir) {
+                $otName = basename($otDir);
+                $isCurrentOt = strcasecmp($otName, $otFolder) === 0;
+                $classesData = [];
+
+                foreach ($disk->directories($otDir) as $clsDir) {
+                    $clsName = basename($clsDir);
+                    $files = $this->readPtaDirectoryFiles($disk, $clsDir, $otName, $clsName);
+                    $classesData[] = [
+                        'clase' => $clsName,
+                        'is_current' => $isCurrentOt && strcasecmp($clsName, $claseFolder) === 0,
+                        'files' => $files,
+                    ];
+                }
+
+                // Archivos sueltos directamente en la carpeta de OT (si existieran)
+                $rootFiles = $this->readPtaDirectoryFiles($disk, $otDir, $otName, 'General');
+                if (! empty($rootFiles)) {
+                    $classesData[] = [
+                        'clase' => 'General',
+                        'is_current' => false,
+                        'files' => $rootFiles,
+                    ];
+                }
+
+                usort($classesData, function ($a, $b) {
+                    if ($a['is_current'] !== $b['is_current']) {
+                        return $a['is_current'] ? -1 : 1;
+                    }
+                    return strcasecmp($a['clase'], $b['clase']);
+                });
+
+                $allOts[] = [
+                    'ot' => $otName,
+                    'is_current' => $isCurrentOt,
+                    'classes' => $classesData,
+                ];
+            }
+
+            usort($allOts, function ($a, $b) {
+                if ($a['is_current'] !== $b['is_current']) {
+                    return $a['is_current'] ? -1 : 1;
+                }
+                return strcasecmp($a['ot'], $b['ot']);
+            });
+
+            return response()->json([
+                'success' => true,
+                'root_label' => 'DOCUMENTACION_GIS / PROGRAMAS_SOLDADURA_PTA',
+                'current' => [
+                    'ot_folder' => $otFolder,
+                    'clase_folder' => $claseFolder,
+                    'relative_dir' => $currentDir,
+                    'files' => $currentFiles,
+                ],
+                'all_ots' => $allOts,
+                'active_program' => ($activeProgram && $this->isSafeProgramPath($activeProgram)) ? $activeProgram : null,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error al listar programas de Soldadura PTA', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['success' => false, 'message' => 'No se pudieron consultar los programas de Soldadura PTA.'], 500);
+        }
+    }
+
+    /**
+     * Sube un programa (cualquier extensión no ejecutable) a PROGRAMAS_SOLDADURA_PTA/{OT}/{Clase}.
+     */
+    public function uploadProgram(Request $request)
+    {
+        $request->validate([
+            'ot_id' => 'required|exists:orden_trabajo,id',
+            'clase_id' => 'required|exists:clases,id',
+            'programa' => 'required|file|max:20480',
+        ]);
+
+        try {
+            $file = $request->file('programa');
+            $ext = strtolower((string) $file->getClientOriginalExtension());
+            if (in_array($ext, self::BLOCKED_EXTENSIONS, true)) {
+                return response()->json(['success' => false, 'message' => 'Tipo de archivo no permitido por seguridad.'], 422);
+            }
+
+            $otModel = Orden_trabajo::query()->with('moldura')->findOrFail($request->input('ot_id'));
+            $claseModel = Clase::query()->findOrFail($request->input('clase_id'));
+            $disk = Storage::disk('local');
+
+            $otFolder = $this->resolvePtaOtFolder($otModel);
+            $claseFolder = $this->resolvePtaClaseFolder($otFolder, $claseModel->nombre);
+            $targetDir = self::PROGRAMAS_PTA_DIR.'/'.$otFolder.'/'.$claseFolder;
+
+            if (! $disk->exists($targetDir)) {
+                $disk->makeDirectory($targetDir);
+            }
+
+            $originalName = $this->sanitizeFileName($file->getClientOriginalName());
+            if ($disk->exists($targetDir.'/'.$originalName)) {
+                $base = pathinfo($originalName, PATHINFO_FILENAME);
+                $extPart = pathinfo($originalName, PATHINFO_EXTENSION);
+                $suffix = now()->format('Ymd_His');
+                $originalName = $extPart !== '' ? "{$base}_{$suffix}.{$extPart}" : "{$base}_{$suffix}";
+            }
+
+            $storedPath = $file->storeAs($targetDir, $originalName, 'local');
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Programa guardado en DOCUMENTACION_GIS/PROGRAMAS_SOLDADURA_PTA.',
+                'file' => [
+                    'name' => $originalName,
+                    'path' => $storedPath,
+                    'extension' => strtoupper($ext ?: 'ARCHIVO'),
+                    'ot' => $otFolder,
+                    'clase' => $claseFolder,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Error al subir programa de Soldadura PTA', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['success' => false, 'message' => 'No se pudo subir el programa.'], 500);
+        }
+    }
+
+    /**
+     * Asigna un programa de Soldadura PTA al proceso padre y a todas las piezas activas pendientes.
+     */
+    public function assignProgram(Request $request)
+    {
+        $data = $request->validate([
+            'programa_pta' => 'required|string|max:500',
+            'id_proceso' => 'nullable|integer',
+            'ot_id' => 'nullable|string',
+            'clase_id' => 'nullable|integer',
+        ]);
+
+        $path = trim(str_replace('\\', '/', $data['programa_pta']));
+        if (! $this->isSafeProgramPath($path) || ! Storage::disk('local')->fileExists($path)) {
+            return response()->json(['success' => false, 'message' => 'El programa seleccionado no existe en PROGRAMAS_SOLDADURA_PTA.'], 404);
+        }
+
+        DB::beginTransaction();
+        try {
+            $proceso = null;
+            if (! empty($data['id_proceso'])) {
+                $proceso = SoldaduraPTA::query()->find($data['id_proceso']);
+            } elseif (! empty($data['ot_id']) && ! empty($data['clase_id'])) {
+                $clase = Clase::query()->find($data['clase_id']);
+                if ($clase) {
+                    $procStr = 'Soldadura_PTA_'.str_replace(' ', '_', $clase->nombre).'_'.$data['ot_id'];
+                    $proceso = SoldaduraPTA::query()->where('id_proceso', '=', $procStr, 'and')->first();
+                }
+            }
+
+            if ($proceso) {
+                $proceso->programa_pta = $path;
+                $proceso->save();
+
+                SoldaduraPTA_pza::query()
+                    ->where('id_proceso', '=', $proceso->id, 'and')
+                    ->where('estado', '=', 1, 'and')
+                    ->update(['programa_pta' => $path]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'programa_pta' => $path,
+                'file_name' => basename($path),
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            Log::error('Error al asignar programa de Soldadura PTA', [
+                'user_id' => auth()->id(),
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['success' => false, 'message' => 'Error al asignar el programa.'], 500);
+        }
+    }
+
+    private function resolvePtaOtFolder(Orden_trabajo $ot): string
+    {
+        $disk = Storage::disk('local');
+        if ($disk->exists(self::PROGRAMAS_PTA_DIR)) {
+            foreach ($disk->directories(self::PROGRAMAS_PTA_DIR) as $dir) {
+                $base = basename($dir);
+                if (preg_match('/^OT[\s_-]*0*'.preg_quote((string) $ot->id, '/').'(?:\s|[_-]|$)/i', $base)) {
+                    return $base;
+                }
+            }
+        }
+
+        $moldura = $ot->moldura ? $ot->moldura->nombre : '';
+        $raw = $moldura ? "OT {$ot->id} - {$moldura}" : "OT {$ot->id}";
+
+        return $this->sanitizeSegment($raw);
+    }
+
+    private function resolvePtaClaseFolder(string $otFolder, string $claseNombre): string
+    {
+        $disk = Storage::disk('local');
+        $otDir = self::PROGRAMAS_PTA_DIR.'/'.$otFolder;
+        $sanitized = $this->sanitizeSegment($claseNombre ?: 'GENERAL');
+
+        if ($disk->exists($otDir)) {
+            foreach ($disk->directories($otDir) as $dir) {
+                $base = basename($dir);
+                if (strcasecmp($base, $sanitized) === 0 || strcasecmp($base, trim($claseNombre)) === 0) {
+                    return $base;
+                }
+            }
+        }
+
+        return $sanitized;
+    }
+
+    private function readPtaDirectoryFiles(Filesystem $disk, string $dir, string $otName, string $clsName): array
+    {
+        if (! $disk->exists($dir)) {
+            return [];
+        }
+
+        $files = [];
+        foreach ($disk->files($dir) as $path) {
+            $name = basename($path);
+            if ($name === '' || str_starts_with($name, '.')) {
+                continue;
+            }
+            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            if (in_array($ext, self::BLOCKED_EXTENSIONS, true)) {
+                continue;
+            }
+            $files[] = [
+                'name' => $name,
+                'path' => str_replace('\\', '/', $path),
+                'extension' => strtoupper($ext ?: 'ARCHIVO'),
+                'ot' => $otName,
+                'clase' => $clsName,
+            ];
+        }
+
+        usort($files, fn ($a, $b) => strcasecmp($a['name'], $b['name']));
+
+        return $files;
+    }
+
+    private function sanitizeSegment(string $value): string
+    {
+        $clean = str_replace(['/', '\\', "\0"], '-', $value);
+        $clean = preg_replace('/[:*?"<>|]/', '_', $clean);
+        $clean = preg_replace('/\.{2,}/', '.', $clean);
+        $clean = trim($clean, " .\t\n\r\0\x0B");
+
+        return $clean !== '' ? $clean : 'GENERAL';
+    }
+
+    private function sanitizeFileName(string $name): string
+    {
+        $base = basename(str_replace('\\', '/', $name));
+        $base = preg_replace('/[:*?"<>|\0]/', '_', $base);
+        $base = trim($base);
+
+        return ($base !== '' && $base !== '.' && $base !== '..') ? $base : 'programa_pta.txt';
+    }
+
+    private function isSafeProgramPath(?string $path): bool
+    {
+        if (! is_string($path) || $path === '') {
+            return false;
+        }
+        $norm = str_replace('\\', '/', $path);
+        if (str_contains($norm, "\0") || preg_match('~(?:^|/)\.\.(?:/|$)~', $norm)) {
+            return false;
+        }
+
+        return str_starts_with($norm, self::PROGRAMAS_PTA_DIR.'/');
     }
 }

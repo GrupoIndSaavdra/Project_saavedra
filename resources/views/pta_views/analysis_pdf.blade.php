@@ -118,92 +118,151 @@
                     ];
                 @endphp
                 @foreach ($piezasDelJuegoTecnicos as $nPieza => $subFilas)
-                    <table class="pta-table" style="page-break-inside: avoid; margin-bottom: 5px;">
-                        <thead>
-                            <tr>
-                                <th rowspan="2" style="width: 35px;">Número<br>({{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'M/H' }})</th>
-                                <th colspan="2" class="th-section">Concepto</th>
-                                <th rowspan="2" style="width: 25px;">VL</th>
-                                <th rowspan="2" style="width: 20px;">T. de P.</th>
-                                <th rowspan="2" style="width: 25px;">Precal.<br>(°C)</th>
-                                <th rowspan="2" style="width: 55px;">Soldadura</th>
-                                <th colspan="3" class="th-section">Soldadura</th>
-                                <th colspan="3" class="th-section">Corriente</th>
-                                <th rowspan="2" style="width: 22px;">Gas<br>Argón<br><small>(75-80 PSI)</small></th>
-                                <th rowspan="2" style="width: 22px;">Vel.<br>Calc.</th>
-                                <th rowspan="2" style="width: 35px;">Resultado</th>
-                                <th rowspan="2" style="width: 35px;">Defecto</th>
-                                <th rowspan="2">Observ.</th>
-                            </tr>
-                            <tr>
-                                <th style="width: 60px;">Medida</th>
-                                <th style="width: 25px;">Valor</th>
-                                <th>Inicial (POLI)</th>
-                                <th>Aplicada (POLS)</th>
-                                <th>Final (POLF)</th>
-                                <th>Inicial (CORI)</th>
-                                <th>Aplicada (CORS)</th>
-                                <th>Final (CORF)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php
-                                $filasPorTipo = [];
-                                foreach ($subFilas as $sf) {
-                                    $filasPorTipo[$sf->tipo_medida] = $sf;
-                                }
-                                $filaPrecal = $filasPorTipo['D_Conexion_pico'] ?? null;
-                                $piezaObj = $piezasMap->get($nPieza);
-                                $libVal = $piezaObj->liberacion ?? null;
+                    @php
+                        $filasPorTipo = [];
+                        foreach ($subFilas as $sf) {
+                            $filasPorTipo[$sf->tipo_medida] = $sf;
+                        }
+                        $filaPrecal = $filasPorTipo['D_Conexion_pico'] ?? $subFilas->firstWhere('tipo_medida', '!=', 'Segunda_Pasada') ?? $subFilas->first();
+                        $piezaObj = $piezasMap->get($nPieza);
+                        $libVal = $piezaObj->liberacion ?? null;
 
-                                $claseColor = match($libVal) {
-                                    1 => 'pta-row-liberada',
-                                    2 => 'pta-row-rechazada',
-                                    3 => 'pta-row-buena',
-                                    4 => 'pta-row-mala',
-                                    5 => 'pta-row-incompleta',
-                                    0, null => 'pta-row-ok',
-                                    default => 'pta-row-sin-lib'
-                                };
-                            @endphp
-                            @foreach ($tiposOrden as $subIdx => $tipo)
+                        $claseColor = match($libVal) {
+                            1 => 'pta-row-liberada',
+                            2 => 'pta-row-rechazada',
+                            3 => 'pta-row-buena',
+                            4 => 'pta-row-mala',
+                            5 => 'pta-row-incompleta',
+                            0, null => 'pta-row-ok',
+                            default => 'pta-row-sin-lib'
+                        };
+
+                        $isSimplified = ($filaPrecal?->vl === null && $filaPrecal?->d_conexion_pico === null && $filaPrecal?->precalentamiento === null)
+                            || !empty($filaPrecal?->programa_pta);
+
+                        $filaP2 = $filasPorTipo['Segunda_Pasada'] ?? (($filaPrecal && $filaPrecal->p2_activa) ? $filaPrecal : null);
+                    @endphp
+
+                    @if ($isSimplified)
+                        <table class="pta-table" style="page-break-inside: avoid; margin-bottom: 6px;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 65px;">Número<br>({{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'M/H' }})</th>
+                                    <th style="width: 120px;">Estado</th>
+                                    <th style="width: 170px;">Programa Utilizado</th>
+                                    <th>Observaciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                                 @php
-                                    $fila = $filasPorTipo[$tipo] ?? null;
-                                    $campo = $tipo === 'D_Conexion_pico' ? 'd_conexion_pico' : ($tipo === 'D_Conexion_obt' ? 'd_conexion_obt' : 'perfilado');
+                                    $estadoTxt = match ($filaPrecal?->resultado) {
+                                        'Bien', 'En correcto estado' => 'En correcto estado',
+                                        'Mal', 'En mal estado' => 'En mal estado',
+                                        default => ($filaPrecal?->resultado ?: '—'),
+                                    };
+                                    $progName = !empty($filaPrecal?->programa_pta) ? basename($filaPrecal->programa_pta) : '—';
                                 @endphp
                                 <tr class="{{ $claseColor }}">
-                                    @if ($subIdx === 0)
-                                        <td rowspan="3" class="td-pieza">{{ $nPieza }}</td>
-                                    @endif
-                                    <td class="td-tipo-medida">{{ $labelMedida[$tipo] }}</td>
-                                    <td>{{ ($fila?->$campo !== null) ? $fila->$campo . '"' : '—' }}</td>
-                                    <td>{{ $fila?->vl ?? '—' }}</td>
-                                    <td>{{ $fila?->tipo_preparacion ?? '—' }}</td>
-                                    @if ($subIdx === 0)
-                                        <td rowspan="3" class="td-precal">{{ $filaPrecal?->precalentamiento ?? '—' }}</td>
-                                        <td rowspan="3" class="td-precal" style="font-size:7px;">{{ $filaPrecal?->material_soldadura ?? '—' }}</td>
-                                    @endif
-                                    <td>{{ $fila?->sold_inicial ?? '—' }}</td>
-                                    <td>{{ $fila?->sold_aplicada ?? '—' }}</td>
-                                    <td>{{ $fila?->sold_final ?? '—' }}</td>
-                                    <td>{{ $fila?->corr_inicial ?? '—' }}</td>
-                                    <td>{{ $fila?->corr_aplicada ?? '—' }}</td>
-                                    <td>{{ $fila?->corr_final ?? '—' }}</td>
-                                    <td>{{ $fila?->gas_argon ?? '—' }}</td>
-                                    <td>{{ $fila?->velocidad_calculada ?? '—' }}</td>
+                                    <td class="td-pieza">{{ $nPieza }}</td>
                                     <td>
-                                        <span class="{{ ($fila?->resultado ?? '') === 'Bien' ? 'resultado-OK' : 'resultado-NOK' }}">
-                                            {{ $fila?->resultado ?? '—' }}
+                                        <span class="{{ $estadoTxt === 'En correcto estado' ? 'resultado-OK' : ($estadoTxt !== '—' ? 'resultado-NOK' : '') }}">
+                                            {{ $estadoTxt }}
                                         </span>
                                     </td>
-                                    <td>{{ $fila?->defecto_pta ?? 'Ninguno' }}</td>
-                                    @if ($subIdx === 0)
-                                        <td rowspan="3" style="text-align: left; font-size: 7px;">{{ $filaPrecal?->observaciones ?? '—' }}</td>
-                                    @endif
+                                    <td>{{ $progName }}</td>
+                                    <td style="text-align: left; font-size: 8px;">{{ $filaPrecal?->observaciones ?: '—' }}</td>
                                 </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+                                @if ($filaP2 && $filaP2->p2_activa)
+                                    @php
+                                        $p2EstadoTxt = match ($filaP2->p2_resultado) {
+                                            'Bien', 'En correcto estado' => 'En correcto estado',
+                                            'Mal', 'En mal estado' => 'En mal estado',
+                                            default => ($filaP2->p2_resultado ?: '—'),
+                                        };
+                                        $p2ProgName = !empty($filaP2->p2_programa_pta) ? basename($filaP2->p2_programa_pta) : $progName;
+                                    @endphp
+                                    <tr class="{{ $claseColor }}">
+                                        <td class="td-pieza">{{ $nPieza }} (2da P.)</td>
+                                        <td>
+                                            <span class="{{ $p2EstadoTxt === 'En correcto estado' ? 'resultado-OK' : ($p2EstadoTxt !== '—' ? 'resultado-NOK' : '') }}">
+                                                {{ $p2EstadoTxt }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $p2ProgName }}</td>
+                                        <td style="text-align: left; font-size: 8px;">{{ $filaP2->p2_observaciones ?: '—' }}</td>
+                                    </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    @else
+                        <table class="pta-table" style="page-break-inside: avoid; margin-bottom: 5px;">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2" style="width: 35px;">Número<br>({{ isset($esJuegoCompleto) && $esJuegoCompleto ? 'Juego' : 'M/H' }})</th>
+                                    <th colspan="2" class="th-section">Concepto</th>
+                                    <th rowspan="2" style="width: 25px;">VL</th>
+                                    <th rowspan="2" style="width: 20px;">T. de P.</th>
+                                    <th rowspan="2" style="width: 25px;">Precal.<br>(°C)</th>
+                                    <th rowspan="2" style="width: 55px;">Soldadura</th>
+                                    <th colspan="3" class="th-section">Soldadura</th>
+                                    <th colspan="3" class="th-section">Corriente</th>
+                                    <th rowspan="2" style="width: 22px;">Gas<br>Argón<br><small>(75-80 PSI)</small></th>
+                                    <th rowspan="2" style="width: 22px;">Vel.<br>Calc.</th>
+                                    <th rowspan="2" style="width: 35px;">Resultado</th>
+                                    <th rowspan="2" style="width: 35px;">Defecto</th>
+                                    <th rowspan="2">Observ.</th>
+                                </tr>
+                                <tr>
+                                    <th style="width: 60px;">Medida</th>
+                                    <th style="width: 25px;">Valor</th>
+                                    <th>Inicial (POLI)</th>
+                                    <th>Aplicada (POLS)</th>
+                                    <th>Final (POLF)</th>
+                                    <th>Inicial (CORI)</th>
+                                    <th>Aplicada (CORS)</th>
+                                    <th>Final (CORF)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($tiposOrden as $subIdx => $tipo)
+                                    @php
+                                        $fila = $filasPorTipo[$tipo] ?? null;
+                                        $campo = $tipo === 'D_Conexion_pico' ? 'd_conexion_pico' : ($tipo === 'D_Conexion_obt' ? 'd_conexion_obt' : 'perfilado');
+                                    @endphp
+                                    <tr class="{{ $claseColor }}">
+                                        @if ($subIdx === 0)
+                                            <td rowspan="3" class="td-pieza">{{ $nPieza }}</td>
+                                        @endif
+                                        <td class="td-tipo-medida">{{ $labelMedida[$tipo] }}</td>
+                                        <td>{{ ($fila?->$campo !== null) ? $fila->$campo . '"' : '—' }}</td>
+                                        <td>{{ $fila?->vl ?? '—' }}</td>
+                                        <td>{{ $fila?->tipo_preparacion ?? '—' }}</td>
+                                        @if ($subIdx === 0)
+                                            <td rowspan="3" class="td-precal">{{ $filaPrecal?->precalentamiento ?? '—' }}</td>
+                                            <td rowspan="3" class="td-precal" style="font-size:7px;">{{ $filaPrecal?->material_soldadura ?? '—' }}</td>
+                                        @endif
+                                        <td>{{ $fila?->sold_inicial ?? '—' }}</td>
+                                        <td>{{ $fila?->sold_aplicada ?? '—' }}</td>
+                                        <td>{{ $fila?->sold_final ?? '—' }}</td>
+                                        <td>{{ $fila?->corr_inicial ?? '—' }}</td>
+                                        <td>{{ $fila?->corr_aplicada ?? '—' }}</td>
+                                        <td>{{ $fila?->corr_final ?? '—' }}</td>
+                                        <td>{{ $fila?->gas_argon ?? '—' }}</td>
+                                        <td>{{ $fila?->velocidad_calculada ?? '—' }}</td>
+                                        <td>
+                                            <span class="{{ ($fila?->resultado ?? '') === 'Bien' ? 'resultado-OK' : 'resultado-NOK' }}">
+                                                {{ $fila?->resultado ?? '—' }}
+                                            </span>
+                                        </td>
+                                        <td>{{ $fila?->defecto_pta ?? 'Ninguno' }}</td>
+                                        @if ($subIdx === 0)
+                                            <td rowspan="3" style="text-align: left; font-size: 7px;">{{ $filaPrecal?->observaciones ?? '—' }}</td>
+                                        @endif
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    @endif
                 @endforeach
             @else
                 <p style="text-align: center; color: #888; font-style: italic;">Sin datos técnicos registrados para este juego.</p>
