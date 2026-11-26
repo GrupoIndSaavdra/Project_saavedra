@@ -70,7 +70,7 @@ $xml = @"
   <Triggers>
     <TimeTrigger>
       <Repetition>
-        <Interval>PT1M</Interval>
+        <Interval>PT5M</Interval>
         <StopAtDurationEnd>false</StopAtDurationEnd>
       </Repetition>
       <StartBoundary>2020-01-01T00:00:00</StartBoundary>
@@ -111,7 +111,7 @@ try {
     Write-Host "  - Programa o script:  $php" -ForegroundColor Gray
     Write-Host "  - Argumentos:         artisan schedule:run" -ForegroundColor Gray
     Write-Host "  - Iniciar en:         $projectDir" -ForegroundColor Gray
-    Write-Host "  - Repeticion:         Cada 1 minuto (Indefinido, activo YA)" -ForegroundColor Gray
+    Write-Host "  - Repeticion:         Cada 5 minutos (:00, :05, :10 ... :55, indefinido)" -ForegroundColor Gray
     Write-Host "  - Energia:            Sin restriccion de corriente alterna" -ForegroundColor Gray
     Write-Host "  - Concurrencia:       No iniciar nueva instancia si ya corre" -ForegroundColor Gray
     Write-Host "  - Auto-recuperacion:  Ejecutar lo antes posible si hubo fallo" -ForegroundColor Gray
