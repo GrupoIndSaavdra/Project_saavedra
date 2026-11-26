@@ -91,7 +91,7 @@ php artisan saavedra:backup-local %1 %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%
 
 :run_schedule_install
-powershell -NoProfile -ExecutionPolicy Bypass -File tools\setup_scheduler.ps1 %*
+powershell -NoProfile -ExecutionPolicy Bypass -File tools\setup_scheduler.ps1 %1 %2 %3 %4 %5 %6 %7 %8 %9
 exit /b %errorlevel%
 
 :run_schedule_gui
@@ -131,7 +131,7 @@ echo    schema                   - Introspeccion de MySQL a prisma/schema.prisma
 echo    learn                    - Escanea commits y logs para actualizar aprendizajes_temp.md
 echo    sync [args...]           - Sincronizacion bidireccional de BD (local a nube)
 echo    backup [args...]         - Respaldo comprimido .sql.gz de base de datos
-echo    schedule                 - Registra la tarea editable en el Programador de Tareas y lo abre
+echo    schedule                 - Registra tarea automatica (cada 5 min) en Task Scheduler
 echo    schedule-gui             - Abre el Programador de Tareas de Windows (taskschd.msc)
 echo    schedule-work            - Ejecuta el demonio del scheduler en vivo en consola
 echo    install                  - Instalar o actualizar dependencias y grafos de IA
