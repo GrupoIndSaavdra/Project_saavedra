@@ -86,8 +86,8 @@ class Dashboard {
                 // dormido y se montará solo en cuanto el polling detecte la primera pieza.
                 if (classArray["hasPTA"] === true) {
                     let userProfile = document.getElementById("profile");
-                    // Perfiles permitidos: 1=Master, 2=Operador, 3=Admin, 4=Calidad, 5=Diseño, 7=Almacén, 8=Calidad
-                    if (userProfile && (userProfile.value == "1" || userProfile.value == "2" || userProfile.value == "3" || userProfile.value == "4" || userProfile.value == "5" || userProfile.value == "7" || userProfile.value == "8")) {
+                    // Perfiles permitidos: 1=Master, 2=Admin, 3=Supervisor, 4=Ingeniería, 5=Diseño, 6=Ventas, 7=Almacén, 8=Calidad, 10/0=Sistemas
+                    if (userProfile && ["1", "2", "3", "4", "5", "6", "7", "8", "10", "0"].includes(String(userProfile.value))) {
                         const classId = classArray["id"];
                         const ptaData = (window.ptaCardsData && window.ptaCardsData[wOrderName] && window.ptaCardsData[wOrderName][classId])
                             ? window.ptaCardsData[wOrderName][classId]
@@ -99,13 +99,11 @@ class Dashboard {
                 section.appendChild(headerSection);
 
                 // ── Checklist de Fundición (entre header y procesos) ──────────
-                // Guard de perfil: 1=Master, 2=Admin, 4=Calidad, 5=Diseño, 7=Almacén, 8=Calidad.
                 let userProfileChecklist = document.getElementById("profile");
-                // Perfiles permitidos: 1=Master, 2=Admin, 4=Calidad, 5=Diseño, 7=Almacén, 8=Calidad
+                // Perfiles permitidos: 1=Master, 2=Admin, 3=Supervisor, 4=Ingeniería, 5=Diseño, 6=Ventas, 7=Almacén, 8=Calidad, 10/0=Sistemas
                 if (
                     userProfileChecklist &&
-                    (userProfileChecklist.value === "1" || userProfileChecklist.value === "2" || userProfileChecklist.value === "3" ||
-                        userProfileChecklist.value === "4" || userProfileChecklist.value === "5" || userProfileChecklist.value === "7" || userProfileChecklist.value === "8")
+                    ["1", "2", "3", "4", "5", "6", "7", "8", "10", "0"].includes(String(userProfileChecklist.value))
                 ) {
                     section.classList.add('section--has-checklist');
                     const checklistWrapper = document.createElement('div');
@@ -147,15 +145,13 @@ class Dashboard {
                         checklistWrapper.appendChild(emptyCard);
                     }
 
-                    // Card 2: Tratamiento Térmico (Reactiva) — Oculta para Diseño y programación (perfil 5)
-                    if (String(userProfileChecklist.value) !== "5") {
-                        const termicoCard = new TermicoChecklistCard(
-                            wOrderName,
-                            className,
-                            { pieces: classArray["pieces"] || 0, tratadas: classArray["tratadas"] || 0 },
-                            checklistWrapper
-                        );
-                    }
+                    // Card 2: Tratamiento Térmico (Reactiva)
+                    const termicoCard = new TermicoChecklistCard(
+                        wOrderName,
+                        className,
+                        { pieces: classArray["pieces"] || 0, tratadas: classArray["tratadas"] || 0 },
+                        checklistWrapper
+                    );
 
                     // Card 3: Planeación (Reactiva)
                     const planeacionCard = new PlaneacionChecklistCard(

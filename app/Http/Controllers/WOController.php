@@ -2611,10 +2611,6 @@ class WOController extends Controller
      */
     public function getTermicoChecklist(string $otId)
     {
-        if (auth()->check() && (string) auth()->user()->perfil === '5') {
-            abort(403, 'Acceso denegado: tu perfil no tiene permisos para consultar tratamientos térmicos.');
-        }
-
         $otIdClean = explode('_', $otId)[0];
         $ot = Orden_trabajo::with('clases')->find($otIdClean);
         if (! $ot) {
