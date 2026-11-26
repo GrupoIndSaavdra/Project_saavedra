@@ -72,6 +72,8 @@ class SaavedraSync extends Command
 
     protected int $spinnerTick = 0;
 
+    protected int $terminalWidth = 100;
+
     /**
      * Execute the console command.
      */
@@ -382,7 +384,7 @@ class SaavedraSync extends Command
             try {
                 $response = $requestCallback();
 
-                if (!in_array($response->status(), [429, 502, 503, 504], true) || $attempt === $maxAttempts) {
+                if (!in_array($response->status(), [429, 500, 502, 503, 504], true) || $attempt === $maxAttempts) {
                     return $response;
                 }
 
@@ -1578,6 +1580,14 @@ class SaavedraSync extends Command
         }
 
         $this->interactiveUi = $isTty && $this->output->isDecorated();
+
+        try {
+            $term = new \Symfony\Component\Console\Terminal();
+            $w = $term->getWidth();
+            $this->terminalWidth = ($w >= 60) ? $w : 96;
+        } catch (\Throwable $e) {
+            $this->terminalWidth = 96;
+        }
     }
 
     /**
@@ -1613,7 +1623,7 @@ class SaavedraSync extends Command
     }
 
     /**
-     * Muestra progreso global [SCAN 088/139] [###########.......] 63% mientras verifica cursores de tablas.
+     * Muestra progreso global [SCAN 088/139] [#########...] 63% ajustado al ancho real de la consola para evitar saltos de línea.
      */
     protected function renderScanningLine(string $dir, string $table, string $desc, ?float $scanStartedAt = null): void
     {
@@ -1622,7 +1632,7 @@ class SaavedraSync extends Command
         }
 
         $counter = $this->formatTableCounter();
-        $barWidth = 18;
+        $barWidth = 12;
 
         if ($this->totalTablesCount > 1 && $this->currentTableIndex > 0) {
             $ratio = max(0.0, min(1.0, $this->currentTableIndex / $this->totalTablesCount));
@@ -1638,24 +1648,24 @@ class SaavedraSync extends Command
                 $remTbl = max(0, $this->totalTablesCount - $this->currentTableIndex);
                 if ($tblPerSec > 0.05 && $remTbl > 0) {
                     $etaSec = (int) round($remTbl / $tblPerSec);
-                    $etaInfo = ' | ' . number_format($tblPerSec, 1) . ' tbl/s | eta=' . $this->formatDuration((float) $etaSec);
+                    $etaInfo = ' | ' . number_format($tblPerSec, 1) . 't/s | eta=' . $this->formatDuration((float) $etaSec);
                 }
             }
 
-            $shortTbl = mb_strlen($table) > 26 ? mb_substr($table, 0, 24) . '..' : $table;
+            $maxTblLen = max(12, min(24, $this->terminalWidth - 56));
+            $shortTbl = mb_strlen($table) > $maxTblLen ? mb_substr($table, 0, $maxTblLen - 2) . '..' : $table;
             $this->output->write(
-                "\r\033[2K\033[90m[SCAN]\033[0m {$counter} [{$bar}] \033[33m{$pct}\033[0m op={$dir} table=\033[37m{$shortTbl}\033[0m\033[90m{$etaInfo}\033[0m"
+                "\r\033[2K\033[90m[SCAN]\033[0m {$counter} [{$bar}] \033[33m{$pct}\033[0m {$dir} \033[37m{$shortTbl}\033[0m\033[90m{$etaInfo}\033[0m"
             );
             return;
         }
 
-        $this->renderLiveLine("\033[90m{$counter} op={$dir}_CHECK\033[0m table=\033[37m{$table}\033[0m \033[90m({$desc})\033[0m");
+        $this->renderLiveLine("\033[90m{$counter} {$dir}_CHECK\033[0m \033[37m{$table}\033[0m");
     }
 
     /**
-     * Renderiza telemetría de transferencia con barra ASCII técnica en una sola línea:
-     * - Total conocido: [PULL] [019/139] piezas [###########.......]  62% 70,500/114,049 | batch=141 | 2,450 r/s | eta=17.0s
-     * - Total abierto : [PULL] [019/139] piezas [....######........] 70,500 rows | batch=141 | 2,450 r/s | t=28.7s
+     * Renderiza telemetría compacta que nunca excede el ancho de la ventana (evita que \r deje renglones repetidos):
+     * [PULL] [025/138] piezas           [######......]  46% 52,000/114,142 | 924r/s | eta=1m 7s
      */
     protected function renderProgressLine(
         string $actionLabel,
@@ -1673,15 +1683,16 @@ class SaavedraSync extends Command
         $this->spinnerTick++;
         $elapsed = max(0.001, microtime(true) - $startedAt);
         $rate = ($current > 0 && $elapsed >= 0.15) ? (int) round($current / $elapsed) : 0;
-        $rateStr = $rate > 0 ? number_format($rate) . ' r/s' : 'init';
+        $rateStr = $rate > 0 ? number_format($rate) . 'r/s' : 'init';
         $counter = $this->formatTableCounter();
         $counterPart = $counter !== '' ? " {$counter}" : '';
-        $barWidth = 18;
+        $barWidth = 12;
 
-        $tag = str_pad(substr($actionLabel, 0, 6), 4, ' ', STR_PAD_RIGHT);
+        $tag = str_pad(substr($actionLabel, 0, 4), 4, ' ', STR_PAD_RIGHT);
+        $subjMax = $this->terminalWidth < 95 ? 14 : 18;
         $shortSubj = str_pad(
-            mb_strlen($subject) > 22 ? mb_substr($subject, 0, 20) . '..' : $subject,
-            22,
+            mb_strlen($subject) > $subjMax ? mb_substr($subject, 0, $subjMax - 2) . '..' : $subject,
+            $subjMax,
             ' ',
             STR_PAD_RIGHT
         );
@@ -1698,14 +1709,14 @@ class SaavedraSync extends Command
             $progressNums = number_format($current) . '/' . number_format($total);
 
             $etaStr = '';
-            if ($rate > 0 && $current < $total) {
+            if ($rate > 0 && $current < $total && $this->terminalWidth >= 88) {
                 $etaSec = max(1, (int) round(($total - $current) / $rate));
                 $etaStr = ' | eta=' . $this->formatDuration((float) $etaSec);
             }
 
-            $line = "\r\033[2K\033[36m[{$tag}]\033[0m\033[90m{$counterPart}\033[0m \033[1;37m{$shortSubj}\033[0m [{$bar}] \033[33m{$pctPad}\033[0m {$progressNums} | p={$batchPage} | \033[36m{$rateStr}\033[0m{$etaStr}";
+            $line = "\r\033[2K\033[36m[{$tag}]\033[0m\033[90m{$counterPart}\033[0m \033[1;37m{$shortSubj}\033[0m [{$bar}] \033[33m{$pctPad}\033[0m {$progressNums} | \033[36m{$rateStr}\033[0m{$etaStr}";
         } else {
-            $pulseWidth = 5;
+            $pulseWidth = 4;
             $maxPos = $barWidth - $pulseWidth;
             $cycle = $maxPos * 2;
             $step = $cycle > 0 ? ($this->spinnerTick % $cycle) : 0;
@@ -1716,9 +1727,9 @@ class SaavedraSync extends Command
             $right = str_repeat('.', max(0, $barWidth - $pos - $pulseWidth));
             $bar = "\033[90m{$left}\033[36m{$mid}\033[90m{$right}\033[0m";
 
-            $curFormatted = number_format($current) . ' rows';
+            $curFormatted = number_format($current) . 'r';
             $elapsedStr = $this->formatDuration($elapsed);
-            $line = "\r\033[2K\033[36m[{$tag}]\033[0m\033[90m{$counterPart}\033[0m \033[1;37m{$shortSubj}\033[0m [{$bar}] \033[33m{$curFormatted}\033[0m | p={$batchPage} | \033[36m{$rateStr}\033[0m | t={$elapsedStr}";
+            $line = "\r\033[2K\033[36m[{$tag}]\033[0m\033[90m{$counterPart}\033[0m \033[1;37m{$shortSubj}\033[0m [{$bar}] \033[33m{$curFormatted}\033[0m | p={$batchPage} | \033[36m{$rateStr}\033[0m | {$elapsedStr}";
         }
 
         $this->output->write($line);
@@ -1735,7 +1746,7 @@ class SaavedraSync extends Command
     }
 
     /**
-     * Imprime una fila tabular técnica al concluir la transferencia de una tabla.
+     * Imprime una fila tabular técnica compacta (<= 94 cols) al concluir la transferencia de una tabla.
      */
     protected function renderCompletedTableLine(
         string $dir,
@@ -1753,28 +1764,28 @@ class SaavedraSync extends Command
         $statusTag = $dryRun ? '<fg=yellow>[SIM ]</>' : '<fg=green>[OK  ]</>';
 
         $tblCol = str_pad(
-            mb_strlen($table) > 28 ? mb_substr($table, 0, 26) . '..' : $table,
-            28,
+            mb_strlen($table) > 24 ? mb_substr($table, 0, 22) . '..' : $table,
+            24,
             ' ',
             STR_PAD_RIGHT
         );
 
         $descClean = str_replace(' · ', '/', $desc);
         $descCol = str_pad(
-            mb_strlen($descClean) > 28 ? mb_substr($descClean, 0, 26) . '..' : $descClean,
-            28,
+            mb_strlen($descClean) > 22 ? mb_substr($descClean, 0, 20) . '..' : $descClean,
+            22,
             ' ',
             STR_PAD_RIGHT
         );
 
-        $rowsCol = str_pad(number_format($totalRecords), 9, ' ', STR_PAD_LEFT);
-        $batchCol = str_pad((string) $batches, 3, ' ', STR_PAD_LEFT);
+        $rowsCol = str_pad(number_format($totalRecords), 8, ' ', STR_PAD_LEFT);
+        $batchCol = str_pad('p=' . $batches, 5, ' ', STR_PAD_LEFT);
         $timeCol = str_pad($this->formatDuration($elapsed), 6, ' ', STR_PAD_LEFT);
         $rate = ($elapsed >= 0.05 && $totalRecords > 0) ? (int) round($totalRecords / $elapsed) : 0;
-        $rateCol = $rate > 0 ? str_pad(number_format($rate) . ' r/s', 10, ' ', STR_PAD_LEFT) : '       n/a';
+        $rateCol = $rate > 0 ? str_pad(number_format($rate) . 'r/s', 8, ' ', STR_PAD_LEFT) : '     n/a';
 
         $this->line(
-            "{$statusTag} <fg=gray>{$counter}</> <fg=cyan>{$opTag}</> <fg=white;options=bold>{$tblCol}</> <fg=gray>| {$descCol} |</> rows=<fg=green;options=bold>{$rowsCol}</> <fg=gray>batches={$batchCol} t={$timeCol} rate={$rateCol}</>"
+            "{$statusTag} <fg=gray>{$counter}</> <fg=cyan>{$opTag}</> <fg=white;options=bold>{$tblCol}</> <fg=gray>| {$descCol} |</> rows=<fg=green;options=bold>{$rowsCol}</> <fg=gray>{$batchCol} {$timeCol} {$rateCol}</>"
         );
     }
 
