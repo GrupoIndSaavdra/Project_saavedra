@@ -487,6 +487,13 @@ Route::middleware(['auth', 'perfil:1,3,5,10'])->prefix('programas')->name('progr
     Route::post('/deleteParent',    [ProgramasCncController::class, 'deleteParent'])->name('deleteParent');
 });
 
+// ── Programas de Soldadura PTA (PROGRAMAS_SOLDADURA_PTA) ──
+Route::middleware(['auth'])->prefix('pta/programas')->name('pta.programas.')->group(function () {
+    Route::get('/listar',   [\App\Http\Controllers\SoldaduraPTAController::class, 'listPrograms'])->name('list');
+    Route::post('/subir',   [\App\Http\Controllers\SoldaduraPTAController::class, 'uploadProgram'])->name('upload');
+    Route::post('/asignar', [\App\Http\Controllers\SoldaduraPTAController::class, 'assignProgram'])->name('assign');
+});
+
 /* ===========================
    Vista Almacén — Dibujos de Fundición
    Acceso: Departamentos de Almacén únicamente.

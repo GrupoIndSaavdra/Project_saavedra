@@ -5,6 +5,7 @@
         const title = dialog.querySelector('h2');
         const status = dialog.querySelector('[data-documents-status]');
         const sections = dialog.querySelector('[data-documents-sections]');
+        const missingBox = dialog.querySelector('[data-documents-missing]');
         const retry = dialog.querySelector('[data-retry-documents]');
         let controller;
         let activeButton;
@@ -100,6 +101,44 @@
             sections.append(details);
         }
 
+        function renderMissingAlert(allSections, renderedCount) {
+            if (!missingBox) return;
+            missingBox.replaceChildren();
+            missingBox.classList.remove('is-complete');
+
+            const missingRequired = allSections.filter(
+                (s) => s.required !== false && !s.error && (!s.files || s.files.length === 0)
+            );
+
+            if (missingRequired.length === 0) {
+                missingBox.classList.add('is-complete');
+                const heading = document.createElement('strong');
+                heading.className = 'priority-missing-title';
+                heading.textContent = 'Documentación completa — esta OT cuenta con todos los documentos esperados.';
+                missingBox.append(heading);
+                missingBox.hidden = false;
+                return;
+            }
+
+            const heading = document.createElement('strong');
+            heading.className = 'priority-missing-title';
+            heading.textContent = renderedCount === 0
+                ? `No hay documentos cargados aún. Documentos faltantes (${missingRequired.length}):`
+                : `Documentos faltantes para esta OT (${missingRequired.length}):`;
+
+            const list = document.createElement('div');
+            list.className = 'priority-missing-chips';
+            missingRequired.forEach((sec) => {
+                const chip = document.createElement('span');
+                chip.className = 'priority-missing-chip';
+                chip.textContent = sec.title;
+                list.append(chip);
+            });
+
+            missingBox.append(heading, list);
+            missingBox.hidden = false;
+        }
+
         async function load(button) {
             controller?.abort();
             const pending = new AbortController();
@@ -107,6 +146,10 @@
             activeButton = button;
             title.textContent = `Archivos · ${button.dataset.label}`;
             sections.replaceChildren();
+            if (missingBox) {
+                missingBox.replaceChildren();
+                missingBox.hidden = true;
+            }
             status.textContent = 'Consultando archivos…';
             retry.hidden = true;
             button.disabled = true;
@@ -126,8 +169,14 @@
                 const data = await response.json();
                 if (pending.signal.aborted) return;
                 if (!data.success || !Array.isArray(data.sections)) throw new Error('La respuesta del servidor no es válida.');
-                data.sections.forEach(renderSection);
-                status.textContent = 'Selecciona una sección para ver sus archivos.';
+
+                const visibleSections = data.sections.filter((s) => (s.files && s.files.length > 0) || s.error);
+                visibleSections.forEach(renderSection);
+                renderMissingAlert(data.sections, visibleSections.length);
+
+                status.textContent = visibleSections.length
+                    ? 'Selecciona una sección para ver sus archivos.'
+                    : 'No se encontraron archivos cargados para esta OT.';
             } catch (error) {
                 if (error.name === 'AbortError') return;
                 status.textContent = error.message || 'No se pudo conectar con el servidor.';

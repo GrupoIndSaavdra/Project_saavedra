@@ -1,7 +1,7 @@
 <!-- Modal de Selección de Fecha con Calendario Interactivo -->
 @once
 <div id="modalCmCalendar" class="alm-modal"
-    style="padding: 0px; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 999999 !important; position: fixed; inset: 0;">
+    style="padding: 0px; background: rgba(0, 0, 0, 0.5); display: none; align-items: center; justify-content: center; z-index: 2147483647 !important; position: fixed; inset: 0;">
     <div
         style="background: #fff; padding: 24px 30px; border-radius: 16px; border: 2px solid #0a8504; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 450px; max-width: 95vw; position: relative; box-sizing: border-box;">
         <div

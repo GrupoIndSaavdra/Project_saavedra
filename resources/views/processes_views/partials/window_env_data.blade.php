@@ -27,6 +27,9 @@
     window.occupiedMachines = @json(array_values((new \App\Http\Controllers\MachinesController)->machinesOccupied()));
     if (!window.routes) window.routes = {};
     window.routes.machinesOccupiedApi = "{{ route('machinesOccupiedApi') }}";
+    window.routes.ptaProgramasList = "{{ route('pta.programas.list') }}";
+    window.routes.ptaProgramasUpload = "{{ route('pta.programas.upload') }}";
+    window.routes.ptaProgramasAssign = "{{ route('pta.programas.assign') }}";
 </script>
 @isset($arrayData)
     <script>

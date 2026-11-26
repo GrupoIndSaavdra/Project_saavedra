@@ -11,6 +11,8 @@ class SoldaduraPTA extends Model
     protected $table = 'soldadurapta';
     protected $fillable = [
         'id',
-        'id_ot'
+        'id_proceso',
+        'id_ot',
+        'programa_pta',
     ];
 }

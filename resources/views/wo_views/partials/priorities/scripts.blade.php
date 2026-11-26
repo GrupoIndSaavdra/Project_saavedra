@@ -2,6 +2,116 @@
     window.isReadOnlyPriorities = @json($isReadOnly);
     window.prioritiesWOsData = @json($wosJsData);
 
+    function _escapeHtmlAttr(str) {
+        return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+    }
+
+    function _formatFundicionDateDisplay(isoVal) {
+        if (!isoVal || typeof isoVal !== 'string') return '';
+        var trimmed = isoVal.trim();
+        if (!trimmed) return '';
+        if (typeof window.formatDisplayDate === 'function') {
+            var formatted = window.formatDisplayDate(trimmed);
+            if (formatted) return formatted;
+        }
+        if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+            var parts = trimmed.split('-');
+            return parts[2] + '/' + parts[1] + '/' + parts[0];
+        }
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(trimmed)) {
+            return trimmed;
+        }
+        return '';
+    }
+
+    function _buildFundicionDateBtnHtml(opts) {
+        var formatted = _formatFundicionDateDisplay(opts.value || '');
+        var hasDate = Boolean(formatted);
+        var idAttr = opts.id ? `id="${_escapeHtmlAttr(opts.id)}"` : '';
+        var classAttr = opts.inputClass ? `class="${_escapeHtmlAttr(opts.inputClass)}"` : '';
+        var claseAttr = opts.claseId !== undefined && opts.claseId !== null ? `data-clase-id="${_escapeHtmlAttr(opts.claseId)}"` : '';
+        var onchangeAttr = opts.onChange ? `onchange="${_escapeHtmlAttr(opts.onChange)}"` : '';
+        var groupClass = 'gis-date-pick-group' + (opts.center ? ' gis-date-pick-group--center' : '');
+        var btnClass = 'gis-date-pick-btn' + (opts.small ? ' gis-date-pick-btn-sm' : '') + (hasDate ? ' has-date' : '');
+        var disabledAttr = opts.disabled ? 'disabled' : '';
+        var modalTitleAttr = _escapeHtmlAttr(opts.modalTitle || 'Seleccionar Fecha');
+        var clearDisplay = (hasDate && !opts.disabled) ? 'inline-flex' : 'none';
+
+        return `
+            <div class="${groupClass}">
+                <input type="hidden" ${idAttr} ${classAttr} ${claseAttr} value="${_escapeHtmlAttr(opts.value || '')}" ${onchangeAttr}>
+                <button type="button" class="${btnClass}" ${disabledAttr} data-modal-title="${modalTitleAttr}" onclick="window.openSwalDatePicker(this)">
+                    <svg class="gis-date-pick-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <span class="gis-date-pick-label">${formatted || 'Seleccionar fecha'}</span>
+                </button>
+                <button type="button" class="gis-date-clear-btn" title="Limpiar fecha" aria-label="Limpiar fecha" style="display: ${clearDisplay};" onclick="window.clearSwalDatePicker(this)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        `;
+    }
+
+    window.openSwalDatePicker = function(btn) {
+        if (!btn || btn.disabled) return;
+        var group = btn.closest('.gis-date-pick-group');
+        if (!group) return;
+        var hiddenInput = group.querySelector('input[type="hidden"]');
+        var labelSpan = btn.querySelector('.gis-date-pick-label');
+        var clearBtn = group.querySelector('.gis-date-clear-btn');
+        var title = btn.dataset.modalTitle || 'Seleccionar Fecha';
+
+        if (typeof window.openModalCalendar === 'function' && hiddenInput) {
+            window.openModalCalendar(hiddenInput, labelSpan, clearBtn, title);
+        }
+    };
+
+    window.clearSwalDatePicker = function(clearBtn) {
+        if (!clearBtn) return;
+        var group = clearBtn.closest('.gis-date-pick-group');
+        if (!group) return;
+        var hiddenInput = group.querySelector('input[type="hidden"]');
+        if (!hiddenInput) return;
+
+        hiddenInput.value = '';
+        window.syncSwalDateButtonUI(hiddenInput);
+        hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
+    };
+
+    window.syncSwalDateButtonUI = function(hiddenInput) {
+        if (!hiddenInput) return;
+        var group = hiddenInput.closest('.gis-date-pick-group');
+        if (!group) return;
+        var btn = group.querySelector('.gis-date-pick-btn');
+        var labelSpan = btn ? btn.querySelector('.gis-date-pick-label') : null;
+        var clearBtn = group.querySelector('.gis-date-clear-btn');
+        var formatted = _formatFundicionDateDisplay(hiddenInput.value || '');
+
+        if (labelSpan) {
+            labelSpan.textContent = formatted || 'Seleccionar fecha';
+            labelSpan.style.color = '';
+            labelSpan.style.fontWeight = '';
+        }
+        if (btn) {
+            btn.classList.toggle('has-date', Boolean(formatted));
+        }
+        if (clearBtn) {
+            clearBtn.style.display = (formatted && !(btn && btn.disabled)) ? 'inline-flex' : 'none';
+        }
+    };
+
     window.openFundicionModal = function(otId) {
         if (typeof Swal === 'undefined') {
             alert("No se pudo cargar el componente visual. Por favor, revisa tu conexión a internet.");
@@ -25,11 +135,18 @@
         var clases = woData.clases || [];
         if (clases.length === 0) {
             var currentVal = woData.fecha_entrega_fundicion || '';
+            var singleDateBtnHtml = _buildFundicionDateBtnHtml({
+                id: 'swal-single-fundicion-date',
+                value: currentVal,
+                disabled: false,
+                small: false,
+                modalTitle: 'Fecha Entrega Proveedor Fundición',
+                onChange: 'window.syncSwalDateButtonUI(this)'
+            });
             Swal.fire({
                 title: 'Fecha Entrega Proveedor Fundición',
-                html: `<strong>OT ${otId}</strong> - ${woData.moldura}<br><br>Ingresa la fecha de entrega:`,
-                input: 'date',
-                inputValue: currentVal,
+                html: `<div style="text-align: left;"><strong>OT ${otId}</strong> - ${woData.moldura || ''}<br><br><label style="font-size: 0.72rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">Fecha de entrega</label>${singleDateBtnHtml}</div>`,
+                width: '460px',
                 showCancelButton: true,
                 confirmButtonText: 'Guardar Fecha',
                 cancelButtonText: 'Cancelar',
@@ -40,8 +157,9 @@
                     cancelButton: 'gis-swal-cancel'
                 }
             }).then(function(result) {
-                if (result.isConfirmed && result.value !== undefined) {
-                    _doAutosave(otId, 'fecha_entrega_fundicion', result.value, document.body);
+                if (result.isConfirmed) {
+                    var val = document.getElementById('swal-single-fundicion-date')?.value || '';
+                    _doAutosave(otId, 'fecha_entrega_fundicion', val, document.body);
                     setTimeout(function() {
                         window.location.reload();
                     }, 600);
@@ -59,16 +177,35 @@
         var rowsHtml = '';
         clases.forEach(function(c, index) {
             var cDate = c.fecha_entrega_fundicion || '';
+            var classBtnHtml = _buildFundicionDateBtnHtml({
+                inputClass: 'swal-class-date-input',
+                claseId: c.id,
+                value: cDate,
+                disabled: allSame,
+                small: true,
+                center: true,
+                modalTitle: 'Fecha Fundición - ' + (c.nombre || ''),
+                onChange: 'window.syncSwalDateButtonUI(this)'
+            });
             rowsHtml += `
                     <tr>
                         <td style="font-weight: 700;">${index + 1}</td>
                         <td style="font-weight: 700; text-align: left;">${c.nombre}</td>
                         <td style="font-weight: 700;">${c.pedido}</td>
                         <td>
-                            <input type="date" class="swal-class-date-input gis-date-input-clean" data-clase-id="${c.id}" value="${cDate}" style="width: 100%; box-sizing: border-box; ${allSame ? 'opacity: 0.5; cursor: not-allowed;' : ''}" ${allSame ? 'disabled' : ''}>
+                            ${classBtnHtml}
                         </td>
                     </tr>
                 `;
+        });
+
+        var masterDateBtnHtml = _buildFundicionDateBtnHtml({
+            id: 'swal-master-date',
+            value: masterDate,
+            disabled: false,
+            small: false,
+            modalTitle: 'Fecha General de Fundición',
+            onChange: 'window.syncSwalDateButtonUI(this); window.applyMasterDateToAllClasses(this.value);'
         });
 
         var modalHtml = `
@@ -103,17 +240,17 @@
 
                 <div id="swal-master-date-container" style="margin-bottom: 16px; text-align: left; ${allSame ? '' : 'display: none;'}">
                     <label style="font-size: 0.72rem; text-transform: uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.5px; display: block; margin-bottom: 6px;">Fecha General (Aplica a todas las clases)</label>
-                    <input type="date" id="swal-master-date" value="${masterDate}" class="gis-date-input-clean" style="width: 100%; box-sizing: border-box;" onchange="window.applyMasterDateToAllClasses(this.value)">
+                    ${masterDateBtnHtml}
                 </div>
 
                 <div class="gis-date-modal-table-wrap">
                     <table class="gis-date-modal-table">
                         <thead>
                             <tr>
-                                <th style="width: 45px;">Nº</th>
+                                <th style="width: 48px;">Nº</th>
                                 <th style="text-align: left;">Clase</th>
-                                <th style="width: 60px;">Cant.</th>
-                                <th style="width: 170px;">Fecha Entrega Fundición</th>
+                                <th style="width: 72px;">Cant.</th>
+                                <th style="width: 230px;">Fecha Entrega Fundición</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -202,14 +339,12 @@
         }
         var isSame = mode === 'same';
         document.querySelectorAll('.swal-class-date-input').forEach(function(inp) {
-            inp.disabled = isSame;
-            if (isSame) {
-                inp.style.opacity = '0.5';
-                inp.style.cursor = 'not-allowed';
-            } else {
-                inp.style.opacity = '1';
-                inp.style.cursor = 'pointer';
+            var group = inp.closest('.gis-date-pick-group');
+            var btn = group ? group.querySelector('.gis-date-pick-btn') : null;
+            if (btn) {
+                btn.disabled = isSame;
             }
+            window.syncSwalDateButtonUI(inp);
         });
         if (isSame) {
             var masterVal = document.getElementById('swal-master-date')?.value || '';
@@ -220,6 +355,7 @@
     window.applyMasterDateToAllClasses = function(val) {
         document.querySelectorAll('.swal-class-date-input').forEach(function(inp) {
             inp.value = val;
+            window.syncSwalDateButtonUI(inp);
         });
     };
 
