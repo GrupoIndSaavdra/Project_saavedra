@@ -12,6 +12,95 @@ use Illuminate\Support\Facades\Schema;
 class SyncController extends Controller
 {
     /**
+     * Caché en memoria del esquema de tablas para evitar cientos de consultas a information_schema.
+     *
+     * @var array<string, array{columns: array<string, int>, primary_key: string, has_updated_at: bool, has_created_at: bool}>|null
+     */
+    protected ?array $schemaCache = null;
+
+    /**
+     * Carga en una sola consulta SQL todas las tablas, columnas y llaves primarias de la BD actual.
+     */
+    protected function ensureSchemaCache(): array
+    {
+        if ($this->schemaCache !== null) {
+            return $this->schemaCache;
+        }
+
+        $this->schemaCache = [];
+
+        try {
+            $rows = DB::select(
+                'SELECT TABLE_NAME, COLUMN_NAME, COLUMN_KEY
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                 ORDER BY TABLE_NAME, ORDINAL_POSITION'
+            );
+
+            foreach ($rows as $row) {
+                $t = (string) $row->TABLE_NAME;
+                $col = (string) $row->COLUMN_NAME;
+                $key = (string) ($row->COLUMN_KEY ?? '');
+
+                if (!isset($this->schemaCache[$t])) {
+                    $this->schemaCache[$t] = [
+                        'columns' => [],
+                        'primary_key' => 'id',
+                        'has_updated_at' => false,
+                        'has_created_at' => false,
+                    ];
+                }
+
+                $this->schemaCache[$t]['columns'][$col] = 1;
+
+                if ($key === 'PRI' && $this->schemaCache[$t]['primary_key'] === 'id') {
+                    $this->schemaCache[$t]['primary_key'] = $col;
+                }
+                if ($col === 'updated_at') {
+                    $this->schemaCache[$t]['has_updated_at'] = true;
+                } elseif ($col === 'created_at') {
+                    $this->schemaCache[$t]['has_created_at'] = true;
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->schemaCache = [];
+        }
+
+        return $this->schemaCache;
+    }
+
+    /**
+     * Obtiene metadatos de una tabla usando el caché precargado o fallback directo.
+     */
+    protected function getTableMeta(string $table): ?array
+    {
+        $cache = $this->ensureSchemaCache();
+        if (isset($cache[$table])) {
+            return $cache[$table];
+        }
+
+        if (!Schema::hasTable($table)) {
+            return null;
+        }
+
+        $cols = array_flip(Schema::getColumnListing($table));
+        return [
+            'columns' => $cols,
+            'primary_key' => $this->getPrimaryKey($table),
+            'has_updated_at' => isset($cols['updated_at']),
+            'has_created_at' => isset($cols['created_at']),
+        ];
+    }
+
+    /**
+     * Calcula una huella MD5 determinística para tablas pequeñas sin timestamps (catálogos).
+     */
+    protected function computeSnapshotHash(string $table, string $primaryKey): string
+    {
+        $rows = DB::table($table)->orderBy($primaryKey, 'asc')->get();
+        return md5(json_encode($rows));
+    }
+    /**
      * Valida el token secreto recibido.
      * Soporta dos llaves:
      * - Token de Producción (SYNC_API_TOKEN): Permisos completos (PUSH y PULL).
@@ -108,6 +197,115 @@ class SyncController extends Controller
     }
 
     /**
+     * Evalúa en bloque qué tablas tienen registros nuevos o modificados respecto al checkpoint del cliente.
+     * Reduce ~135 peticiones HTTP secuenciales a 1-2 peticiones rápidas (< 15 KB por paquete).
+     */
+    public function changes(Request $request): JsonResponse
+    {
+        if ($authError = $this->validateToken($request)) {
+            return $authError;
+        }
+
+        $states = $request->input('states', []);
+        if (!is_array($states) || empty($states)) {
+            return response()->json([
+                'success' => true,
+                'changed_tables' => [],
+                'checked' => 0,
+            ]);
+        }
+
+        $this->ensureSchemaCache();
+        $changedTables = [];
+
+        foreach ($states as $table => $state) {
+            $table = (string) $table;
+            if (!$this->isTableAllowed($table)) {
+                continue;
+            }
+
+            $meta = $this->getTableMeta($table);
+            if (!$meta) {
+                continue;
+            }
+
+            $since = is_array($state) ? ($state['s'] ?? null) : null;
+            $lastId = is_array($state) ? ($state['i'] ?? null) : null;
+            $clientHash = is_array($state) ? ($state['h'] ?? null) : null;
+
+            $primaryKey = $meta['primary_key'];
+            $hasUpdatedAt = $meta['has_updated_at'];
+            $hasCreatedAt = $meta['has_created_at'];
+
+            try {
+                if ($hasUpdatedAt) {
+                    $query = DB::table($table);
+                    if (!empty($since)) {
+                        $query->where(function ($q) use ($since, $lastId, $primaryKey) {
+                            $q->where('updated_at', '>', $since);
+                            if (!empty($lastId)) {
+                                $q->orWhere(function ($q2) use ($since, $lastId, $primaryKey) {
+                                    $q2->where('updated_at', '=', $since)
+                                       ->where($primaryKey, '>', $lastId);
+                                });
+                            }
+                        });
+                    }
+                    if ($query->exists()) {
+                        $changedTables[] = $table;
+                    }
+                } elseif ($hasCreatedAt) {
+                    $query = DB::table($table);
+                    if (!empty($since)) {
+                        $query->where(function ($q) use ($since, $lastId, $primaryKey) {
+                            $q->where('created_at', '>', $since);
+                            if (!empty($lastId)) {
+                                $q->orWhere(function ($q2) use ($since, $lastId, $primaryKey) {
+                                    $q2->where('created_at', '=', $since)
+                                       ->where($primaryKey, '>', $lastId);
+                                });
+                            }
+                        });
+                    }
+                    if ($query->exists()) {
+                        $changedTables[] = $table;
+                    }
+                } else {
+                    $totalInTable = DB::table($table)->count();
+                    if ($totalInTable === 0) {
+                        continue;
+                    }
+                    if ($totalInTable <= 3000) {
+                        $serverHash = $this->computeSnapshotHash($table, $primaryKey);
+                        if (empty($clientHash) || !hash_equals($serverHash, (string) $clientHash)) {
+                            $changedTables[] = $table;
+                        }
+                    } else {
+                        $query = DB::table($table);
+                        if (!empty($lastId)) {
+                            $query->where($primaryKey, '>', $lastId);
+                        }
+                        if ($query->exists()) {
+                            $changedTables[] = $table;
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                // En caso de duda sobre una tabla, marcarla para revisión individual segura
+                $changedTables[] = $table;
+            }
+        }
+
+        $this->logSync("[CPANEL-CHANGES] Revisadas " . count($states) . " tablas para IP: {$request->ip()} -> " . count($changedTables) . " con cambios");
+
+        return response()->json([
+            'success' => true,
+            'changed_tables' => $changedTables,
+            'checked' => count($states),
+        ]);
+    }
+
+    /**
      * Entrega un lote de registros modificados (PULL).
      */
     public function pull(Request $request): JsonResponse
@@ -119,7 +317,9 @@ class SyncController extends Controller
         $table = (string) $request->query('table');
         $since = $request->query('since');
         $lastId = $request->query('last_id');
-        $limit = min((int) ($request->query('limit', config('sync.batch_size', 200))), 500);
+        $clientSnapshotHash = $request->query('snapshot_hash');
+        $withTotal = filter_var($request->query('with_total', false), FILTER_VALIDATE_BOOLEAN);
+        $limit = min((int) ($request->query('limit', config('sync.pull_batch_size', 500))), 1000);
 
         if (!$this->isTableAllowed($table)) {
             return response()->json([
@@ -128,10 +328,12 @@ class SyncController extends Controller
             ], 400);
         }
 
-        $primaryKey = $this->getPrimaryKey($table);
-        $hasUpdatedAt = Schema::hasColumn($table, 'updated_at');
-        $hasCreatedAt = Schema::hasColumn($table, 'created_at');
+        $meta = $this->getTableMeta($table);
+        $primaryKey = $meta['primary_key'] ?? $this->getPrimaryKey($table);
+        $hasUpdatedAt = $meta['has_updated_at'] ?? Schema::hasColumn($table, 'updated_at');
+        $hasCreatedAt = $meta['has_created_at'] ?? Schema::hasColumn($table, 'created_at');
         $isSnapshot = false;
+        $snapshotHash = null;
 
         $query = DB::table($table);
 
@@ -165,11 +367,46 @@ class SyncController extends Controller
                   ->orderBy($primaryKey, 'asc');
         } else {
             // Tablas de catálogo sin timestamps (ej. clases, procesos, maquinas)
-            // Si tienen <= 3000 registros, entregamos snapshot completo para garantizar sincronía total
+            // Si tienen <= 3000 registros, entregamos snapshot completo solo cuando su hash cambió
             $totalInTable = DB::table($table)->count();
             if ($totalInTable <= 3000) {
                 $isSnapshot = true;
-                $query->orderBy($primaryKey, 'asc');
+                $records = DB::table($table)->orderBy($primaryKey, 'asc')->get();
+                $snapshotHash = md5(json_encode($records));
+
+                if (!empty($clientSnapshotHash) && hash_equals($snapshotHash, (string) $clientSnapshotHash)) {
+                    return response()->json([
+                        'success' => true,
+                        'table' => $table,
+                        'primary_key' => $primaryKey,
+                        'records' => [],
+                        'count' => 0,
+                        'has_more' => false,
+                        'is_snapshot' => true,
+                        'snapshot_hash' => $snapshotHash,
+                        'next_since' => null,
+                        'next_id' => null,
+                    ]);
+                }
+
+                $count = $records->count();
+                $lastRecord = $records->last();
+                $nextId = ($lastRecord && isset($lastRecord->{$primaryKey})) ? $lastRecord->{$primaryKey} : null;
+
+                $this->logSync("[CPANEL-PULL] Tabla '{$table}': entregados {$count} registros hacia IP: {$request->ip()} (snapshot)");
+
+                return response()->json([
+                    'success' => true,
+                    'table' => $table,
+                    'primary_key' => $primaryKey,
+                    'records' => $records,
+                    'count' => $count,
+                    'has_more' => false,
+                    'is_snapshot' => true,
+                    'snapshot_hash' => $snapshotHash,
+                    'next_since' => null,
+                    'next_id' => $nextId,
+                ]);
             } elseif (!empty($lastId)) {
                 $query->where($primaryKey, '>', $lastId)->orderBy($primaryKey, 'asc');
             } else {
@@ -177,7 +414,16 @@ class SyncController extends Controller
             }
         }
 
-        $records = $isSnapshot ? $query->get() : $query->limit($limit)->get();
+        $totalPending = null;
+        if ($withTotal) {
+            try {
+                $totalPending = (clone $query)->count();
+            } catch (\Throwable $e) {
+                $totalPending = null;
+            }
+        }
+
+        $records = $query->limit($limit)->get();
         $count = $records->count();
 
         // Determinar siguiente punto de corte
@@ -196,7 +442,7 @@ class SyncController extends Controller
             }
         }
 
-        $this->logSync("[CPANEL-PULL] Tabla '{$table}': entregados {$count} registros hacia IP: {$request->ip()}" . ($isSnapshot ? ' (snapshot)' : ''));
+        $this->logSync("[CPANEL-PULL] Tabla '{$table}': entregados {$count} registros hacia IP: {$request->ip()}");
 
         return response()->json([
             'success' => true,
@@ -204,8 +450,10 @@ class SyncController extends Controller
             'primary_key' => $primaryKey,
             'records' => $records,
             'count' => $count,
-            'has_more' => $isSnapshot ? false : ($count >= $limit),
-            'is_snapshot' => $isSnapshot,
+            'total_pending' => $totalPending,
+            'has_more' => ($count >= $limit),
+            'is_snapshot' => false,
+            'snapshot_hash' => null,
             'next_since' => $nextSince,
             'next_id' => $nextId,
         ]);
@@ -245,8 +493,9 @@ class SyncController extends Controller
             ]);
         }
 
-        $primaryKey = $this->getPrimaryKey($table);
-        $validColumns = array_flip(Schema::getColumnListing($table));
+        $meta = $this->getTableMeta($table);
+        $primaryKey = $meta['primary_key'] ?? $this->getPrimaryKey($table);
+        $validColumns = $meta['columns'] ?? array_flip(Schema::getColumnListing($table));
 
         DB::beginTransaction();
         try {
@@ -384,7 +633,13 @@ class SyncController extends Controller
      */
     protected function isTableAllowed(string $table): bool
     {
-        if (empty($table) || !Schema::hasTable($table)) {
+        if (empty($table)) {
+            return false;
+        }
+
+        $cache = $this->ensureSchemaCache();
+        $exists = !empty($cache) ? isset($cache[$table]) : Schema::hasTable($table);
+        if (!$exists) {
             return false;
         }
 

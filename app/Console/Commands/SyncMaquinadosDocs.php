@@ -65,6 +65,10 @@ class SyncMaquinadosDocs extends Command
         $totalActualizados = 0;
         $totalInactivados  = 0;
 
+        // ── 0. Precargar en 1 sola consulta todos los registros actuales ─────
+        /** @var \Illuminate\Support\Collection<string, CalidadMaquinadoDoc> $registrosPorRuta */
+        $registrosPorRuta = CalidadMaquinadoDoc::query()->get()->keyBy('ruta_storage');
+
         // ── 1. Recopilar TODOS los archivos presentes en los orígenes ────────
         /** @var array<string, string> $rutasOrigenMap [ruta_normalizada_lower => ruta_relativa] */
         $rutasOrigenMap = [];
@@ -91,16 +95,16 @@ class SyncMaquinadosDocs extends Command
                 // ── Calcular ruta de respaldo ──
                 $rutaBackup = self::buildBackupPathStatic($rutaRelativa, $sourceDir, $tipo);
 
-                // ── Upsert en BD ──────────
+                // ── Upsert inteligente en BD (sin ensuciar updated_at si no hubo cambios) ──
                 /** @var CalidadMaquinadoDoc|null $registro */
-                $registro = CalidadMaquinadoDoc::query()->where('ruta_storage', $rutaBackup)->first();
+                $registro = $registrosPorRuta->get($rutaBackup);
 
                 if (!$registro) {
                     // Archivo nuevo: copiar y registrar
                     if (!$dryRun) {
                         self::copiarArchivoStatic($rutaRelativa, $rutaBackup);
 
-                        CalidadMaquinadoDoc::create([
+                        $nuevo = CalidadMaquinadoDoc::create([
                             'nombre_archivo'       => basename($rutaRelativa),
                             'ruta_storage'         => $rutaBackup,
                             'tipo'                 => $tipo,
@@ -112,30 +116,51 @@ class SyncMaquinadosDocs extends Command
                             'primera_deteccion_at' => $now,
                             'ultima_deteccion_at'  => $now,
                         ]);
+                        $registrosPorRuta->put($rutaBackup, $nuevo);
                     }
                     $this->line("  [NUEVO] {$rutaBackup}");
                     $totalNuevos++;
                 } else {
-                    // Archivo existente: asegurar copia y re-activar si estaba inactivo
+                    // Archivo existente: copiar solo si cambió en disco y actualizar BD solo si algo difiere
+                    $fueCopiado = false;
                     if (!$dryRun) {
-                        self::copiarArchivoStatic($rutaRelativa, $rutaBackup);
-
-                        $registro->update([
-                            'estado'              => 'activo',
-                            'ultima_deteccion_at' => $now,
-                            'ot'                  => $meta['ot']     ?? $registro->ot,
-                            'clase'               => $meta['clase']  ?? $registro->clase,
-                            'proceso'             => $meta['proceso'] ?? $registro->proceso,
-                            'fecha_archivo'       => $meta['fecha_archivo'] ?? $registro->fecha_archivo,
-                        ]);
+                        $fueCopiado = self::copiarArchivoStatic($rutaRelativa, $rutaBackup);
                     }
-                    $totalActualizados++;
+
+                    $newOt      = $meta['ot'] ?? $registro->ot;
+                    $newClase   = $meta['clase'] ?? $registro->clase;
+                    $newProceso = $meta['proceso'] ?? $registro->proceso;
+                    $fechaActual = $registro->fecha_archivo instanceof \Carbon\CarbonInterface
+                        ? $registro->fecha_archivo->toDateString()
+                        : ($registro->fecha_archivo ? substr((string) $registro->fecha_archivo, 0, 10) : null);
+                    $newFecha   = $meta['fecha_archivo'] ?? $fechaActual;
+
+                    $huboCambio = $fueCopiado
+                        || $registro->estado !== 'activo'
+                        || $newOt !== $registro->ot
+                        || $newClase !== $registro->clase
+                        || $newProceso !== $registro->proceso
+                        || $newFecha !== $fechaActual;
+
+                    if ($huboCambio) {
+                        if (!$dryRun) {
+                            $registro->update([
+                                'estado'              => 'activo',
+                                'ultima_deteccion_at' => $now,
+                                'ot'                  => $newOt,
+                                'clase'               => $newClase,
+                                'proceso'             => $newProceso,
+                                'fecha_archivo'       => $newFecha,
+                            ]);
+                        }
+                        $totalActualizados++;
+                    }
                 }
             }
         }
 
         // ── 2. Inactivar registros que ya no están en ningún origen ───────────
-        $registrosActivos = CalidadMaquinadoDoc::query()->where('estado', 'activo')->get();
+        $registrosActivos = $registrosPorRuta->filter(fn (CalidadMaquinadoDoc $r) => $r->estado === 'activo');
 
         foreach ($registrosActivos as $registro) {
             $rutasCandidatas = self::backupToSourceCandidates($registro->ruta_storage, $registro->tipo);
@@ -362,13 +387,17 @@ class SyncMaquinadosDocs extends Command
     /**
      * Copia eficiente usando streams y comprobación de integridad.
      * Evita sobrecargar la memoria RAM de PHP en archivos pesados.
+     *
+     * @param  string  $origen
+     * @param  string  $destino
+     * @return bool  true si el archivo fue copiado/actualizado, false si ya era idéntico o no existía.
      */
-    public static function copiarArchivoStatic(string $origen, string $destino): void
+    public static function copiarArchivoStatic(string $origen, string $destino): bool
     {
         try {
             $disk = Storage::disk('local');
             if (!$disk->exists($origen)) {
-                return;
+                return false;
             }
 
             // Si el destino ya existe y es idéntico, omitir copia
@@ -380,7 +409,7 @@ class SyncMaquinadosDocs extends Command
                     $mtimeDest = $disk->lastModified($destino);
 
                     if ($sizeOrig === $sizeDest && $mtimeOrig <= $mtimeDest) {
-                        return;
+                        return false;
                     }
                 } catch (Throwable) {
                 }
@@ -393,9 +422,12 @@ class SyncMaquinadosDocs extends Command
                 if (is_resource($stream)) {
                     fclose($stream);
                 }
+                return true;
             }
         } catch (Throwable $e) {
             Log::warning("No se pudo copiar {$origen} → {$destino}: " . $e->getMessage());
         }
+
+        return false;
     }
 }

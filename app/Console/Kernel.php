@@ -14,7 +14,8 @@ class Kernel extends ConsoleKernel
      * asegúrate de ejecutar los siguientes comandos para que los logs funcionen:
      * 1. php artisan key:generate
      * 2. php artisan config:clear
-     * 3. (Windows) Configurar el Programador de Tareas para ejecutar 'php artisan schedule:run' cada minuto.
+     * 3. Configurar el Cron / Programador de Tareas para ejecutar 'php artisan schedule:run' cada 5 minutos.
+     *    IMPORTANTE: Todos los horarios en este Kernel deben ser múltiplos de 5 minutos (:00, :05, :10 ... :55).
      */
     protected function schedule(Schedule $schedule): void
     {
@@ -34,23 +35,23 @@ class Kernel extends ConsoleKernel
             ->withoutOverlapping(60)
             ->appendOutputTo(storage_path('logs/alert_preorden_entrega.log'));
 
-        // ── Latido de Monitoreo — cada minuto ──────────────────────────
+        // ── Latido de Monitoreo y Limpieza de Sesiones Fantasma — cada 5 minutos ──
         $schedule->command('app:heartbeat')
-            ->everyMinute()
+            ->everyFiveMinutes()
             ->withoutOverlapping(5)
             ->appendOutputTo(storage_path('logs/heartbeat.log'));
 
-        // ── Sincronización Local <-> Nube — cada 2 minutos (Solo Servidor de Producción) ──
+        // ── Sincronización Local <-> Nube — cada 5 minutos (Solo Servidor de Producción) ──
         if (config('sync.auto_enabled', true) && !config('sync.is_dev', false)) {
             $schedule->command('saavedra:sync')
-                ->everyTwoMinutes()
+                ->everyFiveMinutes()
                 ->withoutOverlapping(10)
                 ->appendOutputTo(storage_path('logs/sync.log'));
         }
 
-        // ── Respaldo Diario de Base de Datos Local — 23:59 todos los días ─────
+        // ── Respaldo Diario de Base de Datos Local — 23:55 todos los días (múltiplo de 5) ──
         $schedule->command('saavedra:backup-local')
-            ->dailyAt('23:59')
+            ->dailyAt('23:55')
             ->withoutOverlapping(60)
             ->appendOutputTo(storage_path('logs/backup_local.log'));
 

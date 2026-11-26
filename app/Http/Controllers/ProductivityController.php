@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Console\Commands\Heartbeat;
 use App\Models\Maquinas;
 use App\Models\Metas;
 use App\Models\Pieza;
@@ -63,6 +64,9 @@ class ProductivityController extends Controller
 
         // TÉCNICO: Actualizar estampa de tiempo para limpieza de sesiones fantasma
         $user->touch();
+
+        // Evaluar límites de inactividad/maquinado en tiempo real sin depender de Cron de 1 min
+        Heartbeat::evaluateUser($user);
 
         return response()->json([
             'locked' => $user->prod_locked_type,
