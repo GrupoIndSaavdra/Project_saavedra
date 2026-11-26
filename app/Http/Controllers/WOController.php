@@ -57,7 +57,7 @@ class WOController extends Controller
     //Mostrar la vista para seleccionar o crear una Orden de Trabajo
     public function manage()
     {
-        if (auth()->check() && in_array((string) auth()->user()->perfil, ['2', '4', '8'], true)) {
+        if (auth()->check() && in_array((string) auth()->user()->perfil, ['4', '8'], true)) {
             abort(403, 'Acceso denegado: tu perfil no tiene permisos para acceder a esta sección.');
         }
         // Obtener todas las molduras (incluyendo las nuevas), a excepción de aquellas cuyas clases tienen finalizada = 2
@@ -73,7 +73,7 @@ class WOController extends Controller
 
         $user = auth()->user();
         $isDiseno = $user && (string) $user->perfil === '5';
-        $isAlmacen = ! $isDiseno && (($user && (string) $user->perfil === '7') || request('almacen_only') == 1);
+        $isAlmacen = ! $isDiseno && (($user && in_array((string) $user->perfil, ['2', '7'], true)) || request('almacen_only') == 1);
 
         if ($workOrdersAll->isNotEmpty()) {
             $workOrders = [];
@@ -202,7 +202,7 @@ class WOController extends Controller
         // Admin (1) y Master (3) siempre necesitan la vista completa para editar todos los procesos
         $authUser = auth()->user();
         $isDiseno = $authUser && (string) $authUser->perfil === '5';
-        $userIsAlmacen = $authUser && (string) $authUser->perfil === '7';
+        $userIsAlmacen = $authUser && in_array((string) $authUser->perfil, ['2', '7'], true);
         if (! $isDiseno && ($userIsAlmacen || $request->filled('almacen_only'))) {
             $redirectParams['almacen_only'] = 1;
         }
@@ -1571,8 +1571,9 @@ class WOController extends Controller
 
         $showUser = auth()->user();
         $isDiseno = $showUser && (string) $showUser->perfil === '5';
-        $userIsAlmacen = $showUser && (string) $showUser->perfil === '7';
-        if (! $isDiseno && ($userIsAlmacen || request()->filled('almacen_only'))) {
+        $isFromMaster = request()->filled('from_master');
+        $userIsAlmacen = $showUser && ((string) $showUser->perfil === '7' || ((string) $showUser->perfil === '2' && ! $isFromMaster));
+        if (! $isDiseno && ($userIsAlmacen || (! $isFromMaster && request()->filled('almacen_only')))) {
             // Cargar remisiones y parcialidades agrupadas por id_clase
             $claseIds = $classes ? $classes->pluck('id')->toArray() : [];
             $remisiones = RemisionOt::with('usuario')->whereIn('id_clase', $claseIds, 'and', false)->where('visible', '=', 1, 'and')->orderByDesc('created_at')->get()->groupBy('id_clase');

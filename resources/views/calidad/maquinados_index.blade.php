@@ -1,9 +1,11 @@
 @extends('layouts.appMenu')
 
 @php
-    $isAlmacenMaq = (int) (Auth::user()->perfil ?? 0) === 7;
-    $maqDeptLabel = $isAlmacenMaq ? 'Almacén' : 'Calidad';
-    $maqDeptIcon = $isAlmacenMaq ? 'images/Color_Icons/Generales/almacen.png' : 'images/Color_Icons/Generales/Quality.png';
+    $maqPerfil = (int) (Auth::user()->perfil ?? 0);
+    $isAlmacenMaq = $maqPerfil === 7;
+    $isAdminMaq = $maqPerfil === 2;
+    $maqDeptLabel = $isAlmacenMaq ? 'Almacén' : ($isAdminMaq ? 'Administración' : 'Calidad');
+    $maqDeptIcon = ($isAlmacenMaq || $isAdminMaq) ? 'images/Color_Icons/Generales/almacen.png' : 'images/Color_Icons/Generales/Quality.png';
 @endphp
 
 @section('head')

@@ -687,7 +687,7 @@ function getRoutes(profile) {
             break;
 
         case "2":
-            // ── 2: ADMINISTRADOR (Prioridades solo lectura, Molduras, OT sin Prog/Lib, Usuarios, Auditoría, Reportes, Herramientas) ──
+            // ── 2: ADMINISTRADOR (Incluye módulo desplegable de Almacén temporalmente) ──
             sections = [
                 {
                     title: null,
@@ -741,6 +741,24 @@ function getRoutes(profile) {
                     title: "Herramientas",
                     routes: [
                         ["herramientas.tecamac.index", "Herramientas Planta Tecámac"],
+                    ],
+                },
+                {
+                    title: "Almacén",
+                    routes: [
+                        {
+                            title: "Orden de Trabajo",
+                            routes: [
+                                ["manageWO", "Modificar O.T", "almacen_only=1"],
+                            ],
+                        },
+                        {
+                            title: "Documentación Técnica",
+                            routes: [
+                                ["almacen.fundicion.index", "Dibujos y Ayudas de Fundición"],
+                                ["calidad.maquinados.index", "Dibujos y Ayudas de Maquinados", "sec=almacen"],
+                            ],
+                        },
                     ],
                 },
             ];

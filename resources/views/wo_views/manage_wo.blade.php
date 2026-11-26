@@ -19,10 +19,13 @@
         </div>
         <p class="subtitle">Seleccione una OT existente para captura de procesos o registre una nueva orden</p>
     </div>
-    <form action="{{ route('storeWO', request('almacen_only') == 1 ? ['almacen_only' => 1] : []) }}" method="POST" class="form pt-3">
+    @php
+        $isAlmacenMode = request('almacen_only') == 1 || in_array((string) auth()->user()->perfil, ['2', '7'], true);
+    @endphp
+    <form action="{{ route('storeWO', $isAlmacenMode ? ['almacen_only' => 1] : []) }}" method="POST" class="form pt-3">
         @csrf
         @include('layouts.partials.messages') <!--Mensajes de error o exito en la creacion o seleccion de una orden de trabajo-->
-        <input type="hidden" value="{{ request('almacen_only') == 1 ? 5 : auth()->user()->perfil }}" id="wo-profile" name="profile" />
+        <input type="hidden" value="{{ $isAlmacenMode ? 5 : auth()->user()->perfil }}" id="wo-profile" name="profile" />
         <div class="div-bttns"></div>
     </form>
 </div>

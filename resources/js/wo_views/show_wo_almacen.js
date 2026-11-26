@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? 'Ingresa la contraseña de un Administrador o Master para eliminar este tratamiento:' 
                 : 'Ingresa la contraseña de un Administrador o Master para eliminar esta parcialidad:';
             
-            if (userPerfil != '1' && userPerfil != '3') {
+            if (!['1', '2', '3', '10', '0'].includes(String(userPerfil))) {
                 pendingDeleteForm = form;
                 const modal = document.getElementById('modal-confirm-delete');
                 const passwordInput = document.getElementById('modal-delete-password');
