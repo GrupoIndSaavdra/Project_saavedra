@@ -73,7 +73,7 @@ return [
     |
     */
     'batch_size' => (int) env('SYNC_BATCH_SIZE', 40),
-    'pull_batch_size' => (int) env('SYNC_PULL_BATCH_SIZE', 250),
+    'pull_batch_size' => (int) env('SYNC_PULL_BATCH_SIZE', 500),
     'timeout' => (int) env('SYNC_TIMEOUT', 90),
     'ping_timeout' => (int) env('SYNC_PING_TIMEOUT', 4),
     'ssl_verify' => (bool) env('SYNC_SSL_VERIFY', false),
