@@ -725,7 +725,7 @@ class PtaResultsController extends Controller
             'p2_corr_final' => 'nullable|numeric',
             'p2_gas_argon' => 'nullable|numeric',
             'p2_velocidad_calculada' => 'nullable|numeric',
-            'p2_resultado' => 'nullable|in:Bien,Mal',
+            'p2_resultado' => 'nullable|in:Bien,Mal,En correcto estado,En mal estado',
             'p2_defecto_pta' => 'nullable|string',
             'p2_observaciones' => 'nullable|string|max:500',
         ]);

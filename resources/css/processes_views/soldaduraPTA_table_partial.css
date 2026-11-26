@@ -17,8 +17,8 @@
 .pta-table {
     border-collapse: collapse;
     background: #fff;
-    width: max-content;
-    min-width: 200%;
+    width: 100%;
+    min-width: 100%;
     /* font-family heredado de global.css */
 }
 
@@ -449,3 +449,322 @@ textarea.pta-input {
 .sol-width-25px { width: 25px; }
 .sol-width-60px { width: 60px; }
 .sol-margin-left-5rem { margin-left: 5rem; }
+
+/* ── Botón selector de programa PTA en tabla ───────────────────────────────── */
+.pta-prog-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    background: #f8fafc;
+    color: var(--gis-blue);
+    font-family: "Poppins", sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    box-sizing: border-box;
+}
+
+.pta-prog-btn:hover {
+    background: #e0f2fe;
+    border-color: var(--gis-blue);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.16);
+}
+
+.pta-prog-btn.has-program {
+    background: #f0fdf4;
+    border-color: var(--gis-green);
+    color: #065f46;
+}
+
+.pta-prog-btn.has-program:hover {
+    background: #dcfce7;
+}
+
+.pta-prog-icon {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+}
+
+.pta-prog-btn-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.pta-prog-readonly {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 6px;
+    background: #e8f1fb;
+    border: 1px solid #bfdbfe;
+    color: var(--gis-blue);
+    font-size: 0.86rem;
+    font-weight: 700;
+    word-break: break-word;
+}
+
+/* ── Modal selector de programas de Soldadura PTA ─────────────────────────── */
+.pta-prog-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 10, 25, 0.82);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 2147483640;
+}
+
+.pta-prog-modal {
+    width: min(760px, 95vw);
+    max-height: 86vh;
+    background: #ffffff;
+    border: 2px solid var(--gis-blue);
+    border-radius: 16px;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: "Poppins", sans-serif;
+    color: #1e293b;
+}
+
+.pta-prog-modal-header {
+    background: var(--gis-blue);
+    color: #ffffff;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.pta-prog-modal-header h3 {
+    margin: 0;
+    font-size: 1.08rem;
+    font-weight: 700;
+}
+
+.pta-prog-modal-sub {
+    margin: 2px 0 0;
+    font-size: 0.76rem;
+    opacity: 0.85;
+}
+
+.pta-prog-modal-close {
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.pta-prog-modal-close:hover {
+    background: #dc2626;
+    border-color: #dc2626;
+}
+
+.pta-prog-tabs {
+    display: flex;
+    gap: 8px;
+    padding: 12px 20px 0;
+    border-bottom: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+}
+
+.pta-prog-tab {
+    padding: 8px 16px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    color: #64748b;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.pta-prog-tab.active {
+    color: var(--gis-blue);
+    border-bottom-color: var(--gis-blue);
+    background: #ffffff;
+    border-radius: 8px 8px 0 0;
+}
+
+.pta-prog-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.pta-prog-search {
+    flex: 1 1 220px;
+    min-width: 0;
+    height: 38px;
+    padding: 0 12px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    color: #0f172a;
+}
+
+.pta-prog-search:focus {
+    outline: none;
+    border-color: var(--gis-blue);
+}
+
+.pta-prog-upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: 8px;
+    border: none;
+    background: var(--gis-green);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.pta-prog-upload-btn:hover {
+    filter: brightness(1.08);
+}
+
+.pta-prog-modal-body {
+    padding: 14px 20px 20px;
+    overflow-y: auto;
+    flex: 1 1 auto;
+}
+
+.pta-prog-folder-banner {
+    background: #f0f7ff;
+    border: 1px solid #bae6fd;
+    color: var(--gis-blue);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+}
+
+.pta-prog-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.pta-prog-file-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    background: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s ease;
+}
+
+.pta-prog-file-item:hover {
+    border-color: var(--gis-blue);
+    background: #f0f9ff;
+}
+
+.pta-prog-file-item.is-selected {
+    border-color: var(--gis-green);
+    background: #f0fdf4;
+}
+
+.pta-prog-file-meta {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.pta-prog-file-name {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0f172a;
+    overflow-wrap: anywhere;
+}
+
+.pta-prog-file-sub {
+    font-size: 0.76rem;
+    color: #64748b;
+}
+
+.pta-prog-file-ext {
+    padding: 3px 9px;
+    border-radius: 6px;
+    background: #e2e8f0;
+    color: var(--gis-blue);
+    font-size: 0.72rem;
+    font-weight: 800;
+    flex-shrink: 0;
+}
+
+.pta-prog-ot-details {
+    border: 1px solid #cbd5e1;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+}
+
+.pta-prog-ot-details > summary {
+    padding: 10px 14px;
+    background: #f8fafc;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--gis-blue);
+    cursor: pointer;
+}
+
+.pta-prog-cls-group {
+    padding: 10px 14px;
+    border-top: 1px solid #e2e8f0;
+}
+
+.pta-prog-cls-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #475569;
+    margin-bottom: 8px;
+}
+
+.pta-prog-empty {
+    text-align: center;
+    padding: 20px;
+    color: #64748b;
+    font-size: 0.88rem;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 10px;
+}

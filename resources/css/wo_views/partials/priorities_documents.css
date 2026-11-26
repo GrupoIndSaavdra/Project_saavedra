@@ -11,7 +11,11 @@
     color: var(--gis-blue);
     background: var(--glass-bg-white);
 }
-.priority-documents-dialog::backdrop { background: var(--shadow-blue); backdrop-filter: blur(5px); }
+.priority-documents-dialog::backdrop {
+    background: var(--shadow-blue);
+    -webkit-backdrop-filter: blur(5px);
+    backdrop-filter: blur(5px);
+}
 .priority-documents-dialog header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .priority-documents-dialog h2 { font-size: 20px; overflow-wrap: anywhere; color: var(--gis-white); }
 .priority-documents-dialog p { margin: 16px 0; }
@@ -35,6 +39,41 @@
 .priority-document-detail { color: var(--gis-gray); text-align: center; overflow-wrap: anywhere; }
 .priority-document-card .file-actions a { text-decoration: none; }
 .priority-document-card .file-actions a:focus-visible { outline: 3px solid var(--gis-blue); outline-offset: 3px; }
+.priority-missing-alert {
+    margin-top: 18px;
+    padding: 14px 16px;
+    border-radius: 10px;
+    border: 1.5px solid #f59e0b;
+    background: #fffbeb;
+    color: #92400e;
+}
+.priority-missing-alert.is-complete {
+    border-color: #16a34a;
+    background: #f0fdf4;
+    color: #166534;
+}
+.priority-missing-title {
+    display: block;
+    font-size: 0.92rem;
+    font-weight: 700;
+}
+.priority-missing-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+.priority-missing-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #fef3c7;
+    border: 1px solid #fcd34d;
+    color: #78350f;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
 @media (max-width: 600px) {
     .priority-documents-dialog { padding: 16px; }
 }

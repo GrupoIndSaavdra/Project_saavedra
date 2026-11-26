@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -22,6 +23,7 @@ class SoldaduraPTA_pza extends Model
         'material_soldadura',
         'error',
         'observaciones',
+        'programa_pta',
 
         // ── Identificador de sub-fila ──
         'tipo_medida',        // 'D_Conexion_pico' | 'D_Conexion_obt' | 'Perfilado'
@@ -73,6 +75,7 @@ class SoldaduraPTA_pza extends Model
         'p2_resultado',        // 'Bien' | 'Mal'
         'p2_defecto_pta',      // 'Ninguno' | 'Fundición'
         'p2_observaciones',
+        'p2_programa_pta',
     ];
 
     protected $casts = [
@@ -91,8 +94,8 @@ class SoldaduraPTA_pza extends Model
      * Scope para filtrar solo las sub-filas de tipo D_Conexion_pico
      * (portadoras del precalentamiento)
      */
-    public function scopePrecalentamientoFila($query)
+    public function scopePrecalentamientoFila(Builder $query): Builder
     {
-        return $query->where('tipo_medida', 'D_Conexion_pico');
+        return $query->where('tipo_medida', '=', 'D_Conexion_pico', 'and');
     }
 }

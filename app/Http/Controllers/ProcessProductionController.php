@@ -246,13 +246,8 @@ class ProcessProductionController extends Controller
 
     /**
      * Prepare all data needed for the report view
-     *
-     * @param  Metas  $meta
-     * @param  Clase  $class
-     * @param  bool|int  $edit
-     * @return array
      */
-    private function prepareReportData($meta, $class, $edit)
+    private function prepareReportData(Metas $meta, Clase $class, bool|int $edit): array
     {
         $workOrder = Orden_trabajo::query()->find($meta->id_ot);
         $molding = Moldura::query()->find($workOrder->id_moldura);
@@ -261,59 +256,9 @@ class ProcessProductionController extends Controller
         $subprocess = $this->getSub_Process($meta->proceso, 1);
         $piecesData = $this->get_ArrayPieces($meta->proceso, $class, $meta);
 
-        // Para Soldadura PTA pre-renderizar la tabla de rowspans en el servidor
-        $ptaTableHtml = null;
-        if ($process === 'Soldadura PTA') {
-            // Historial: piezas ya completadas (estado=2) — modo reporte
-            $rawHistoryPieces = collect($piecesData['machinedPiecesInMeta'] ?? [])
-                ->map(fn ($item) => $item['piece'])
-                ->sortBy(fn ($p) => [(int) filter_var($p->n_pieza, FILTER_SANITIZE_NUMBER_INT), $p->n_pieza]);
-
-            $piezasGroupHistory = $rawHistoryPieces->groupBy('n_pieza');
-
-            // Construir mapa de liberación por n_pieza (para colorear filas históricas)
-            $ptaLiberacion = [];
-            foreach ($piezasGroupHistory->keys() as $nPieza) {
-                $piezaDB = Pieza::query()->where('n_pieza', $nPieza)
-                    ->where('proceso', 'Soldadura PTA')
-                    ->where('id_clase', $class->id)
-                    ->first();
-                $ptaLiberacion[$nPieza] = $piezaDB ? (int) $piezaDB->liberacion : null;
-            }
-
-            // Piezas activas (estado=1, meta actual) — modo captura
-            $processIdString = str_replace(' ', '_', 'Soldadura PTA').'_'.$class->nombre.'_'.$class->id_ot;
-            $ptaProcessDB = SoldaduraPTA::query()->where('id_proceso', $processIdString)->first();
-
-            // Obtener solo el primer nombre de pieza que tenga estado 1 para forzar flujo 1 a 1
-            $firstActivePieceName = $ptaProcessDB
-                ? SoldaduraPTA_pza::query()->where('id_proceso', $ptaProcessDB->id)
-                    ->where('id_meta', $meta->id)
-                    ->where('estado', 1)
-                    ->orderBy('n_pieza')
-                    ->value('n_pieza')
-                : null;
-
-            $piezasGroupActivas = ($ptaProcessDB && $firstActivePieceName)
-                ? SoldaduraPTA_pza::query()->where('id_proceso', $ptaProcessDB->id)
-                    ->where('id_meta', $meta->id)
-                    ->where('estado', 1)
-                    ->where('n_pieza', $firstActivePieceName)
-                    ->orderByRaw("FIELD(tipo_medida, 'D_Conexion_pico', 'D_Conexion_obt', 'Perfilado')")
-                    ->get()
-                    ->groupBy('n_pieza')
-                : collect();
-
-            $displayClass = $class->getBaseType() ?: $class->nombre;
-            $ptaTableHtml = view('processes_views.soldaduraPTA_table_partial', [
-                'piezasGroup' => $piezasGroupHistory,
-                'piezasGroupActivas' => $piezasGroupActivas,
-                'modo' => ($edit == 2) ? 'captura' : 'reporte',
-                'ptaLiberacion' => $ptaLiberacion,
-                'esJuegoCompleto' => in_array(strtoupper($displayClass), ['OBTURADOR', 'FONDO']),
-                'claseNombre' => $displayClass,
-            ])->render();
-        }
+        $ptaTableHtml = $process === 'Soldadura PTA'
+            ? $this->buildPtaTableHtml($meta, $class, $workOrder, $molding, $piecesData, $edit)
+            : null;
 
         return [
             'operator' => $this->getOperatorName(),
@@ -337,6 +282,71 @@ class ProcessProductionController extends Controller
             'ptaTableHtml' => $ptaTableHtml,
             'tipo_soldadura' => $class->tipo_soldadura,
         ];
+    }
+
+    /**
+     * Renderiza la tabla simplificada de Soldadura PTA para la vista de producción.
+     */
+    private function buildPtaTableHtml(
+        Metas $meta,
+        Clase $class,
+        Orden_trabajo $workOrder,
+        Moldura $molding,
+        array $piecesData,
+        bool|int $edit
+    ): string {
+        $rawHistoryPieces = collect($piecesData['machinedPiecesInMeta'] ?? [])
+            ->map(fn ($item) => $item['piece'])
+            ->sortBy(fn ($p) => [(int) filter_var($p->n_pieza, FILTER_SANITIZE_NUMBER_INT), $p->n_pieza]);
+
+        $piezasGroupHistory = $rawHistoryPieces->groupBy('n_pieza');
+
+        $ptaLiberacion = [];
+        foreach ($piezasGroupHistory->keys() as $nPieza) {
+            $piezaDB = Pieza::query()->where('n_pieza', '=', $nPieza, 'and')
+                ->where('proceso', '=', 'Soldadura PTA', 'and')
+                ->where('id_clase', '=', $class->id, 'and')
+                ->first();
+            $ptaLiberacion[$nPieza] = $piezaDB ? (int) $piezaDB->liberacion : null;
+        }
+
+        $processIdString = str_replace(' ', '_', 'Soldadura PTA').'_'.$class->nombre.'_'.$class->id_ot;
+        $ptaProcessDB = SoldaduraPTA::query()->where('id_proceso', '=', $processIdString, 'and')->first();
+
+        $firstActivePieceName = $ptaProcessDB
+            ? SoldaduraPTA_pza::query()->where('id_proceso', '=', $ptaProcessDB->id, 'and')
+                ->where('id_meta', '=', $meta->id, 'and')
+                ->where('estado', '=', 1, 'and')
+                ->orderBy('n_pieza')
+                ->value('n_pieza')
+            : null;
+
+        $piezasGroupActivas = ($ptaProcessDB && $firstActivePieceName)
+            ? SoldaduraPTA_pza::query()->where('id_proceso', '=', $ptaProcessDB->id, 'and')
+                ->where('id_meta', '=', $meta->id, 'and')
+                ->where('estado', '=', 1, 'and')
+                ->where('n_pieza', '=', $firstActivePieceName, 'and')
+                ->orderByRaw("FIELD(tipo_medida, 'D_Conexion_pico', 'D_Conexion_obt', 'Perfilado')")
+                ->get()
+                ->groupBy('n_pieza')
+            : collect();
+
+        $displayClass = $class->getBaseType() ?: $class->nombre;
+
+        return view('processes_views.soldaduraPTA_table_partial', [
+            'piezasGroup' => $piezasGroupHistory,
+            'piezasGroupActivas' => $piezasGroupActivas,
+            'modo' => ($edit == 2) ? 'captura' : 'reporte',
+            'ptaLiberacion' => $ptaLiberacion,
+            'esJuegoCompleto' => in_array(strtoupper($displayClass), ['OBTURADOR', 'FONDO']),
+            'claseNombre' => $displayClass,
+            'ptaProcessId' => $ptaProcessDB?->id,
+            'ptaActiveProgram' => $ptaProcessDB?->programa_pta,
+            'ptaOtId' => $workOrder->id,
+            'ptaClaseId' => $class->id,
+            'ptaOtLabel' => 'OT '.$workOrder->id.' - '.$molding->nombre,
+            'ptaClaseLabel' => $class->nombre,
+        ])->render();
     }
 
     /**
@@ -727,13 +737,25 @@ class ProcessProductionController extends Controller
                 }
 
                 $defecto = $request->input('defecto_pta')[$key] ?? 'Ninguno';
-                $resultado = $request->input('resultado')[$key] ?? 'Bien';
+                $resultado = $request->input('resultado')[$key] ?? 'En correcto estado';
 
                 if ($defecto === 'Fundición' || $defecto === 'Fundicion') {
                     $piecesToProcess[$n_piece]['hasFundicion'] = true;
                 }
-                if ($resultado === 'Mal') {
+                if (in_array($resultado, ['En mal estado', 'Mal'], true)) {
                     $piecesToProcess[$n_piece]['hasMal'] = true;
+                }
+
+                $p2Activa = $request->input("p2_activa.{$n_piece}") === '1';
+                if ($p2Activa) {
+                    $p2Res = $request->input("p2_resultado.{$n_piece}");
+                    if (in_array($p2Res, ['En mal estado', 'Mal'], true)) {
+                        $piecesToProcess[$n_piece]['hasMal'] = true;
+                    }
+                    $p2Obs = $request->input("p2_observaciones.{$n_piece}");
+                    if (! empty($p2Obs) && $p2Obs !== '—') {
+                        $piecesToProcess[$n_piece]['p2_obs'][] = $p2Obs;
+                    }
                 }
 
                 // Colectar observaciones de esta sub-fila
@@ -979,72 +1001,24 @@ class ProcessProductionController extends Controller
                         }
                         // ── Creación de piezas ──
                         if ($processString === 'Soldadura PTA') {
-                            // Defaults de pre-llenado para Soldadura PTA (Molde y Bombillo)
-                            $claseNormPTA = strtolower(trim($class->nombre ?? ''));
-                            $ptaDefaults = in_array($claseNormPTA, config('global_classes.welding_classes', ['molde', 'fondo', 'bombillo', 'obturador', 'corona'])) ? [
-                                'D_Conexion_pico' => [
-                                    'vl' => 2.000,
-                                    'sold_inicial' => 3.000,
-                                    'sold_aplicada' => 8.000,
-                                    'sold_final' => 6.000,
-                                    'corr_inicial' => 45.000,
-                                    'corr_aplicada' => 60.000,
-                                    'corr_final' => 60.000,
-                                    'gas_argon' => 2.200,
-                                    'precalentamiento' => 415,
-                                    'd_conexion_pico' => 0,
-                                ],
-                                'D_Conexion_obt' => [
-                                    'vl' => 2.000,
-                                    'sold_inicial' => 3.000,
-                                    'sold_aplicada' => 8.000,
-                                    'sold_final' => 6.000,
-                                    'corr_inicial' => 45.000,
-                                    'corr_aplicada' => 60.000,
-                                    'corr_final' => 70.000,
-                                    'gas_argon' => 2.200,
-                                    'd_conexion_obt' => 0,
-                                ],
-                                'Perfilado' => [
-                                    'vl' => '0.000',
-                                    'sold_inicial' => '0.000',
-                                    'sold_aplicada' => '0.000',
-                                    'sold_final' => '0.000',
-                                    'corr_inicial' => '0.000',
-                                    'corr_aplicada' => '0.000',
-                                    'corr_final' => '0.000',
-                                    'gas_argon' => '0.000',
-                                    'velocidad_calculada' => '0.000',
-                                    'perfilado' => '0.000',
-                                ],
-                            ] : [];
+                            // Nuevo esquema simplificado PTA: 1 registro por pieza (hereda programa activo del proceso)
+                            $newPiece = new $modelPieces();
+                            $newPiece->id_pza = $noAssembly.$pieceLetter.'_0_'.$process->id;
+                            $newPiece->id_meta = $meta->id;
+                            $newPiece->id_proceso = $process->id;
+                            $newPiece->estado = 1;
+                            $newPiece->n_pieza = $noAssembly.$pieceLetter;
+                            $newPiece->n_juego = $request->input('selectedAssembly');
+                            $newPiece->tipo_medida = 'D_Conexion_pico';
+                            $newPiece->programa_pta = $process->programa_pta ?? null;
 
-                            // PTA: 3 sub-filas por mitad (D_Conexion_pico, D_Conexion_obt, Perfilado)
-                            foreach (SoldaduraPTAController::TIPOS_MEDIDA as $tidx => $tipo) {
-                                $newPiece = new $modelPieces();
-                                $newPiece->id_pza = $noAssembly.$pieceLetter.'_'.$tidx.'_'.$process->id;
-                                $newPiece->id_meta = $meta->id;
-                                $newPiece->id_proceso = $process->id;
-                                $newPiece->estado = 1;
-                                $newPiece->n_pieza = $noAssembly.$pieceLetter;
-                                $newPiece->n_juego = $request->input('selectedAssembly');
-                                $newPiece->tipo_medida = $tipo;
-
-                                // Aplicar defaults de pre-llenado
-                                if (! empty($ptaDefaults[$tipo])) {
-                                    foreach ($ptaDefaults[$tipo] as $campo => $valor) {
-                                        $newPiece->$campo = $valor;
-                                    }
+                            try {
+                                $newPiece->save();
+                            } catch (QueryException $ex) {
+                                if ($ex->errorInfo[1] == 1062) {
+                                    return back()->with('error', 'Este juego ya fue asignado.');
                                 }
-
-                                try {
-                                    $newPiece->save();
-                                } catch (QueryException $ex) {
-                                    if ($ex->errorInfo[1] == 1062) {
-                                        return back()->with('error', 'Este juego ya fue asignado.');
-                                    }
-                                    throw $ex;
-                                }
+                                throw $ex;
                             }
                         } else {
                             // Proceso normal: 1 registro por mitad
@@ -1070,6 +1044,9 @@ class ProcessProductionController extends Controller
                     } elseif ($existingPiece->estado == 0 || $existingPiece->id_meta == $meta->id) {
                         $existingPiece->id_meta = $meta->id;
                         $existingPiece->estado = 1;
+                        if ($processString === 'Soldadura PTA' && empty($existingPiece->programa_pta) && ! empty($process->programa_pta)) {
+                            $existingPiece->programa_pta = $process->programa_pta;
+                        }
                         $existingPiece->save();
                         $param = 'success';
                         $message = 'Juego '.$noAssembly.' seleccionado correctamente';

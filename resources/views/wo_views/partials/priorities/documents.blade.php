@@ -5,6 +5,7 @@
     </header>
     <p data-documents-status role="status" aria-live="polite"></p>
     <div data-documents-sections></div>
+    <div data-documents-missing class="priority-missing-alert" hidden></div>
     <button type="button" class="btns blue" data-retry-documents hidden>Reintentar</button>
 </dialog>
 @php

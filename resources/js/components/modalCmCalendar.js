@@ -110,6 +110,11 @@ export function openModalCalendar(inputEl, displayLabelEl, clearBtnEl, title = "
 
     const modal = document.getElementById("modalCmCalendar");
     if (modal) {
+        if (document.body && document.body.lastElementChild !== modal) {
+            document.body.appendChild(modal);
+        }
+        modal.removeAttribute("aria-hidden");
+        modal.style.setProperty("z-index", "2147483647", "important");
         modal.style.display = "flex";
     }
 }
@@ -177,9 +182,11 @@ function initCalendarModalEvents() {
 
     document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && modal && modal.style.display !== "none") {
+            e.preventDefault();
+            e.stopImmediatePropagation();
             closeModalCalendar();
         }
-    });
+    }, true);
 
     isInitialized = true;
 }

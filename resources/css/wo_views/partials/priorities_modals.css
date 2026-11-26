@@ -130,6 +130,7 @@
     letter-spacing: 0.5px;
     padding: 10px 14px;
     border-bottom: 1px solid #022644;
+    white-space: nowrap;
 }
 
 .gis-date-modal-table td {
@@ -168,6 +169,119 @@
 .swal2-select:focus {
     border-color: #033966 !important;
     box-shadow: 0 0 0 3px rgba(3, 57, 102, 0.15) !important;
+}
+
+/* Botones de Selección de Fecha en Modales */
+.gis-date-pick-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.gis-date-pick-group--center {
+    justify-content: center;
+}
+
+.gis-date-pick-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #cbd5e1;
+    background: #f8fafc;
+    color: #033966;
+    font-family: "Poppins", sans-serif;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.18s ease;
+    box-sizing: border-box;
+}
+
+.gis-date-pick-btn:hover:not(:disabled) {
+    background: #e0f2fe;
+    border-color: #033966;
+    color: #033966;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 6px rgba(3, 57, 102, 0.14);
+}
+
+.gis-date-pick-btn.has-date {
+    background: #ffffff;
+    border-color: #033966;
+    color: #0f172a;
+    box-shadow: 0 1px 3px rgba(3, 57, 102, 0.1);
+}
+
+.gis-date-pick-btn.has-date:hover:not(:disabled) {
+    background: #f0f9ff;
+    border-color: #0a8504;
+}
+
+.gis-date-pick-btn.gis-date-pick-btn-sm {
+    min-height: 34px;
+    padding: 6px 12px;
+    font-size: 0.84rem;
+}
+
+.gis-date-pick-btn:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+    background: #f1f5f9;
+    border-color: #e2e8f0;
+    color: #64748b;
+    box-shadow: none;
+    transform: none;
+}
+
+.gis-date-pick-btn .gis-date-pick-icon {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    color: #033966;
+}
+
+.gis-date-pick-btn.has-date .gis-date-pick-icon {
+    color: #0a8504;
+}
+
+.gis-date-pick-btn:disabled .gis-date-pick-icon {
+    color: #94a3b8;
+}
+
+.gis-date-pick-btn .gis-date-pick-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.gis-date-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    padding: 0;
+}
+
+.gis-date-clear-btn:hover {
+    background: #fee2e2;
+    border-color: #fca5a5;
+    color: #dc2626;
 }
 
 /* Acciones y Botones */
